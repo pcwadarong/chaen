@@ -13,11 +13,6 @@ html {
   cursor: url('../images/cursor.png'), auto;
 }
 
-body {
-  scroll-behavior: smooth;
-  overflow-y: scroll;
-}
-
 * {
   font-family: 'Helvetica* Extended Extra Light';
   padding: 0;
@@ -45,6 +40,10 @@ h1 {
   font-size: 4.2rem;
 }
 
+.semi_title {
+  font-size: 2.3rem;
+}
+
 .scroll-container {
   overflow-y: scroll;
   scroll-behavior: smooth;
@@ -59,16 +58,24 @@ section {
   align-items: center;
 }
 
-#page1 {
+#page1,
+.tab_yellow {
   background-color: var(--yellow);
+  text-align: center;
 }
 
 #page2 {
   background-color: var(--blue);
+  display: flex;
 }
 
-#page3 {
+#page3,
+.tab_green {
   background-color: var(--green);
+}
+
+.tab_red {
+  background-color: var(--red);
 }
 
 nav {
@@ -81,14 +88,26 @@ nav {
   font-size: 1.5rem;
   padding: 0.7rem;
   border-bottom: 2px solid var(--black);
+  z-index: 1000;
 }
 
-.big_modal {
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.container .modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.modal {
   background-color: var(--beige);
   width: 50rem;
   border: 2px solid var(--black);
   border-radius: 10px;
-  text-align: center;
   overflow: hidden;
 }
 
@@ -126,11 +145,7 @@ nav {
   border-radius: 50%;
 }
 
-.tab_red {
-  background-color: var(--red);
-}
-
-.tab_inner {
+.modal_inner {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -144,11 +159,87 @@ nav {
   padding: 1.2rem 2rem;
 }
 
-.big_modal button {
+.modal button {
   background-color: var(--green);
   font-size: 1em;
 }
 
-.page2 .big_modal {
-  height: 300px;
+.projects_container .modal:first-child {
+  top: 80px;
+  left: 50px;
+  height: 500px;
+}
+
+.projects_container .modal:nth-child(2) {
+  top: 120px;
+  left: 100px;
+  height: 500px;
+}
+
+.blue_div {
+  margin: 3.5rem;
+  height: 50%;
+  width: 100%;
+  background-color: var(--blue);
+}
+
+.projects_container .modal:last-child {
+  top: 170px;
+  left: 160px;
+  height: 550px;
+}
+
+#page2 .tab_yellow + div {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 500px;
+  overflow-y: auto;
+}
+
+.project {
+  display: flex;
+  text-align: left;
+  padding: 0.6rem;
+  padding-right: 1.5rem;
+  border-radius: 2rem;
+}
+
+.project:hover {
+  background-color: #d9d9d9;
+}
+
+.project img {
+  width: 7rem;
+  margin-right: 2rem;
+}
+
+.project_explanation {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 50px;
+}
+.project_explanation p {
+  font-size: 2rem;
+  margin: 0.5rem 0px;
+}
+
+.project_explanation div {
+  width: 100%;
+  background-color: var(--yellow);
+  border: 1px solid var(--black);
+  border-radius: 4px;
+  padding: 0.3rem;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
