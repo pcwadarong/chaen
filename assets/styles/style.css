@@ -18,6 +18,7 @@ html {
   padding: 0;
   margin: 0;
   color: var(--black);
+  line-height: 3.4rem;
 }
 
 button,
@@ -41,7 +42,7 @@ h1 {
 }
 
 .semi_title {
-  font-size: 2.3rem;
+  font-size: 3rem;
 }
 
 .scroll-container {
@@ -91,24 +92,15 @@ nav {
   z-index: 1000;
 }
 
-.container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.container .modal {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 .modal {
   background-color: var(--beige);
-  width: 50rem;
   border: 2px solid var(--black);
   border-radius: 10px;
   overflow: hidden;
+}
+
+.big_modal {
+  width: 50rem;
 }
 
 .tab {
@@ -164,6 +156,37 @@ nav {
   font-size: 1em;
 }
 
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--beige);
+  border-left: 1px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--yellow);
+  border-bottom: 1px solid var(--black);
+  border-left: 1px solid var(--black);
+  border-top: 1px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--green);
+}
+
+/* #page2 projects */
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.container .modal {
+  position: absolute;
+}
+
 .projects_container .modal:first-child {
   top: 80px;
   left: 50px;
@@ -212,6 +235,10 @@ nav {
   border-radius: 2rem;
 }
 
+.project:last-of-type {
+  margin-bottom: 2rem;
+}
+
 .project:hover {
   background-color: #d9d9d9;
 }
@@ -227,18 +254,83 @@ nav {
   flex-grow: 1;
   min-width: 50px;
 }
-.project_explanation p {
+
+.project_explanation p,
+.folder p {
   font-size: 2rem;
-  margin: 0.5rem 0px;
 }
 
 .project_explanation div {
   width: 100%;
   background-color: var(--yellow);
   border: 1px solid var(--black);
-  border-radius: 4px;
-  padding: 0.3rem;
+  border-radius: 6px;
+  padding: 0 0.3rem;
   font-size: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* #page2 tech */
+.tech {
+  top: 110px;
+  right: 50px;
+}
+
+.tech_container {
+  display: flex;
+  font-size: 2rem;
+}
+
+.tech_folders {
+  border-right: 2px solid var(--black);
+  padding: 2rem;
+  width: 26rem;
+}
+
+.tech_folders h3 {
+  margin-bottom: 3rem;
+}
+
+.folderlist {
+  display: flex;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+.folder {
+  padding: 2rem;
+  border-radius: 2rem;
+  width: 9rem;
+}
+
+.folder img {
+  width: 95%;
+}
+
+.folder:hover {
+  background-color: #d9d9d9;
+}
+
+.techlist_container {
+  width: 17rem;
+}
+
+.techlist_container h4 {
+  padding: 2rem;
+  font-size: 2.5rem;
+  text-align: center;
+  border-bottom: 2px solid var(--black);
+}
+
+.techlist {
+  height: 45rem;
+  overflow-y: auto;
+  padding: 2rem 2rem 0 2rem;
+}
+
+.techlist li {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
