@@ -1,0 +1,148 @@
+/* basic preset */
+:root {
+  --yellow: #ffc830;
+  --red: #d25f40;
+  --beige: #f4e9d1;
+  --green: #9fd5af;
+  --blue: #475d8e;
+  --black: #010b13;
+}
+
+html {
+  font-size: 10px;
+}
+
+body {
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+}
+
+* {
+  font-family: 'Helvetica* Extended Extra Light';
+  padding: 0;
+  margin: 0;
+  color: var(--black);
+  cursor: url('./assets/cursor.png'), 20 30 auto;
+}
+
+button,
+a {
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  text-decoration: none;
+  color: var(--black);
+}
+
+ul {
+  list-style: none;
+}
+
+/* common */
+h1 {
+  font-family: 'Helvetica* Extended Light';
+  font-size: 4.2rem;
+}
+
+section {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}
+
+#page1 {
+  background-color: var(--yellow);
+}
+
+#page2 {
+  background-color: var(--blue);
+}
+
+#page3 {
+  background-color: var(--green);
+}
+
+nav {
+  display: flex;
+  position: fixed;
+  justify-content: center;
+  gap: 3rem;
+  width: 100vw;
+  background-color: var(--beige);
+  font-size: 1.5rem;
+  padding: 0.7rem;
+  border-bottom: 2px solid var(--black);
+}
+
+.big_modal {
+  background-color: var(--beige);
+  width: 50rem;
+  border: 2px solid var(--black);
+  border-radius: 10px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.tab {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 2px solid var(--black);
+}
+
+.tab ul {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab li {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 0.1rem solid var(--black);
+}
+
+.tab li:first-of-type {
+  background-color: var(--yellow);
+  border-radius: 50%;
+}
+
+.tab li:nth-of-type(2) {
+  background-color: var(--green);
+  border-radius: 50%;
+}
+
+.tab li:last-of-type {
+  background-color: var(--blue);
+  border-radius: 50%;
+}
+
+.tab_red {
+  background-color: var(--red);
+}
+
+.tab_inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  padding: 4rem;
+  font-size: 2.5rem;
+}
+
+.rounded {
+  border-radius: 12% / 50%;
+  padding: 1.2rem 2rem;
+}
+
+.big_modal button {
+  background-color: var(--green);
+  font-size: 1em;
+}
+
+.page2 .big_modal {
+  height: 300px;
+}
