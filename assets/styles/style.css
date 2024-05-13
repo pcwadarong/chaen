@@ -10,6 +10,7 @@
 
 html {
   font-size: 10px;
+  cursor: url('../images/cursor.png'), auto;
 }
 
 body {
@@ -22,7 +23,6 @@ body {
   padding: 0;
   margin: 0;
   color: var(--black);
-  cursor: url('./assets/cursor.png'), 20 30 auto;
 }
 
 button,
@@ -43,6 +43,12 @@ ul {
 h1 {
   font-family: 'Helvetica* Extended Light';
   font-size: 4.2rem;
+}
+
+.scroll-container {
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  height: 100vh;
 }
 
 section {
