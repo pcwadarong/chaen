@@ -172,7 +172,9 @@ nav {
   padding: 1.2rem 2rem;
 }
 
-.modal button {
+.modal button,
+.modal a {
+  border: 2px solid var(--black);
   background-color: var(--green);
   font-size: 1em;
 }
@@ -409,13 +411,11 @@ nav {
 .resume_container {
   position: relative;
 }
-.resume_container button {
+.resume_container button,
+.resume_container a {
   border-radius: 1.5rem;
   padding: 0.4rem 4rem;
   background-color: var(--blue);
-}
-
-.resume_container a {
   color: var(--beige);
 }
 
@@ -477,6 +477,7 @@ nav {
 }
 
 .info a {
+  border: none;
   border-bottom: 1px solid var(--black);
 }
 
