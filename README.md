@@ -1,4 +1,4 @@
 # Personal Portfolio Website
 
 - Web programming liberal arts tasks
-- To be downgraded to NEXT.js soon
+- To be downgraded to React soon
