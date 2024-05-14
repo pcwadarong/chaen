@@ -11,13 +11,13 @@
 html {
   font-size: 10px;
   cursor: url('../images/cursor.png'), auto;
+  color: var(--black);
 }
 
 * {
   font-family: 'Helvetica* Extended Extra Light';
   padding: 0;
   margin: 0;
-  color: var(--black);
   line-height: 3.4rem;
 }
 
@@ -64,6 +64,19 @@ section {
   align-items: center;
 }
 
+nav {
+  display: flex;
+  position: fixed;
+  justify-content: center;
+  gap: 3rem;
+  width: 100vw;
+  background-color: var(--beige);
+  font-size: 1.5rem;
+  padding: 0.7rem;
+  border-bottom: 2px solid var(--black);
+  z-index: 1000;
+}
+
 #page1,
 .tab_yellow {
   background-color: var(--yellow);
@@ -72,6 +85,11 @@ section {
 
 #page2 {
   background-color: var(--blue);
+  display: flex;
+  justify-content: space-around;
+}
+
+#page3 {
   display: flex;
   justify-content: space-around;
 }
@@ -85,17 +103,8 @@ section {
   background-color: var(--red);
 }
 
-nav {
-  display: flex;
-  position: fixed;
-  justify-content: center;
-  gap: 3rem;
-  width: 100vw;
-  background-color: var(--beige);
-  font-size: 1.5rem;
-  padding: 0.7rem;
-  border-bottom: 2px solid var(--black);
-  z-index: 1000;
+.tab_blue {
+  background-color: var(--blue);
 }
 
 .modal {
@@ -129,18 +138,25 @@ nav {
 }
 
 .tab li:first-of-type {
-  background-color: var(--yellow);
+  background-color: var(--red);
   border-radius: 50%;
 }
 
 .tab li:nth-of-type(2) {
-  background-color: var(--green);
+  background-color: var(--yellow);
   border-radius: 50%;
 }
 
 .tab li:last-of-type {
-  background-color: var(--blue);
+  background-color: var(--green);
   border-radius: 50%;
+}
+
+.tab_red li:first-of-type,
+.tab_yellow li:nth-of-type(2),
+.tab_green li:last-of-type 
+ {
+  background-color: var(--blue);
 }
 
 .modal_inner {
@@ -384,4 +400,123 @@ nav {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+/* page3 resume, github */
+#page3 {
+  font-size: 1.5rem;
+}
+
+.resume_container {
+  position: relative;
+}
+.resume_container button {
+  border-radius: 1.5rem;
+  padding: 0.4rem 4rem;
+  background-color: var(--blue);
+}
+
+.resume_container a {
+  color: var(--beige);
+}
+
+.github{
+  position: relative;
+  left: 70px;
+  top: -25px;
+  z-index: 3;
+}
+
+.code {
+  position: absolute;
+  left: 25px;
+  top: 360px;
+  width: 270px;
+  background-color: #464646;
+  color: var(--green);
+}
+
+.code_block {
+  padding: 2rem;
+}
+
+.code_block p {
+  line-height: 2rem;
+}
+
+/* page3 contact */
+.contact {
+  padding: 2rem;
+}
+
+.contact_from {
+  display: flex;
+  gap: 2rem;
+}
+
+.contact_from .semi_title{
+  background-color: var(--red);
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  text-align: center;
+  line-height: 4rem;
+}
+
+.info {
+  background-color: var(--green);
+  border: 2px solid var(--black);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  line-height: 2.5rem;
+}
+
+.info:last-of-type {
+  margin-top: 1.5rem;
+  width: min-content;
+}
+
+.info a {
+  border-bottom: 1px solid var(--black);
+}
+
+.info a:hover {
+  color: var(--red);
+  border-bottom: 1px solid var(--red);
+}
+
+.contact_to {
+  display: flex;
+  flex-direction: row-reverse;
+  margin-top: 1.5rem;
+}
+
+.contact_to p {
+  justify-self: end;
+  background-color: var(--red);
+  border-radius: 1.3rem;
+  border: 2px solid var(--black);
+  padding: 0 1.5rem;
+  width: max-content;
+}
+
+.contact_input {
+  display: flex;
+  justify-items: space-between;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.contact_input input {
+  border-radius: 1.3rem;
+  padding: 0 1.5rem;
+  border: 2px solid var(--black);
+  flex: 1;
+}
+
+.contact_input button {
+  border-radius: 1.3rem;
+  background-color: var(--yellow);
+  padding: 0 1.5rem;
 }
