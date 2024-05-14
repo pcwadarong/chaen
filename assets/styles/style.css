@@ -154,8 +154,7 @@ nav {
 
 .tab_red li:first-of-type,
 .tab_yellow li:nth-of-type(2),
-.tab_green li:last-of-type 
- {
+.tab_green li:last-of-type {
   background-color: var(--blue);
 }
 
@@ -217,20 +216,20 @@ nav {
   padding: 0.3rem;
 }
 
-.search_container input:hover{
+.search_container input:hover {
   background-color: #d9d9d9;
 }
 
-.search_container input:hover + button{
+.search_container input:hover + button {
   background-color: #d9d9d9;
 }
 
-.search_container input:focus{
+.search_container input:focus {
   background-color: white;
   outline: none;
 }
 
-.search_container input:focus + button{
+.search_container input:focus + button {
   background-color: white;
 }
 
@@ -238,7 +237,7 @@ nav {
 .projects_container {
   width: 690px;
   position: relative;
-  top:-80px;
+  top: -80px;
 }
 
 .projects_container .modal:first-child {
@@ -316,7 +315,7 @@ nav {
   background-color: var(--yellow);
   border: 1px solid var(--black);
   border-radius: 6px;
-  padding: 0 0.3rem;
+  padding: 0 0.5rem;
   font-size: 1.5rem;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -420,7 +419,7 @@ nav {
   color: var(--beige);
 }
 
-.github{
+.github {
   position: relative;
   left: 70px;
   top: -25px;
@@ -454,7 +453,7 @@ nav {
   gap: 2rem;
 }
 
-.contact_from .semi_title{
+.contact_from .semi_title {
   background-color: var(--red);
   border: 2px solid var(--black);
   border-radius: 50%;
@@ -505,7 +504,7 @@ nav {
   display: flex;
   justify-items: space-between;
   gap: 1.5rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 }
 
 .contact_input input {
@@ -519,4 +518,99 @@ nav {
   border-radius: 1.3rem;
   background-color: var(--yellow);
   padding: 0 1.5rem;
+}
+
+@media all and (min-width: 1300px) {
+  html {
+    font-size: 12px;
+  }
+
+  .projects {
+    height: 46rem;
+  }
+}
+
+@media all and (max-width: 1170px) {
+  .projects_container .modal:first-child,
+  .projects_container .modal:nth-child(2) {
+    display: none;
+  }
+
+  .projects_container .modal:last-child {
+    position: static;
+    width: fit-content;
+    margin: 0 auto;
+  }
+}
+@media all and (min-width: 930px) and (max-width: 1170px) {
+  .tech_container {
+    width: 400px;
+    margin-right: 30px;
+  }
+  .folderlist {
+    height: 500px;
+    overflow-y: scroll;
+  }
+}
+
+@media all and (max-width: 929px) {
+  html {
+    font-size: 9px;
+  }
+
+  .projects_container {
+    width: 100vw;
+  }
+
+  section {
+    flex-direction: column;
+    height: fit-content;
+    padding: 20rem 0;
+  }
+
+  .projects {
+    height: 49rem;
+  }
+
+  .tech_container {
+    position: static;
+    width: 500px;
+  }
+
+  .techlist_container {
+    flex: 1;
+  }
+
+  .code {
+    display: none;
+  }
+
+  .github {
+    position: static;
+  }
+
+  .resume_container {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+}
+
+@media all and (max-width: 615px) {
+  html {
+    font-size: 8px;
+  }
+
+  .projects {
+    width: 84vw;
+    height: 56.5rem;
+  }
+
+  .modal,
+  .projects_container .modal:last-child {
+    width: 90vw;
+  }
+  .resume_container {
+    flex-direction: column;
+  }
 }
