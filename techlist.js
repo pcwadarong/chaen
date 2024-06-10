@@ -1,5 +1,5 @@
 const techList = {
-  front: [
+  Frontend: [
     'HTML',
     'CSS',
     'JavaScript',
@@ -12,38 +12,42 @@ const techList = {
     'SASS',
     'Bootstrap',
   ],
-  back: ['Vercel', 'Firebase', 'Fake Store API', 'Python'],
-  design: [
+  Backend: ['Vercel', 'Firebase', 'Fake Store API', 'Python'],
+  Design: [
     'Figma',
     'Adobe Illustrator',
     'Adobe XD',
     'Adobe After Effect',
     'Adobe Photoshop',
   ],
-  collaborate: ['Notion', 'Slack'],
-  others: ['continued..'],
-  certificate: ['continued..'],
+  Collaborate: ['Notion', 'Slack'],
+  Others: ['continued..'],
+  Certificate: ['continued..'],
 };
 
 const techElements = {
-  front: document.getElementById('tech_front'),
-  back: document.getElementById('tech_backend'),
-  design: document.getElementById('tech_design'),
-  collaborate: document.getElementById('tech_collaborate'),
-  others: document.getElementById('tech_others'),
-  certificate: document.getElementById('tech_certificate'),
+  Frontend: document.getElementById('tech_front'),
+  Backend: document.getElementById('tech_back'),
+  Design: document.getElementById('tech_design'),
+  Collaborate: document.getElementById('tech_collaborate'),
+  Others: document.getElementById('tech_others'),
+  Certificate: document.getElementById('tech_certificate'),
 };
 
-const techListContainer = document.getElementById('techlist');
+const techListContainer = document.getElementById('tech_list');
+const techPartName = document.getElementById('tech_part');
 
 const changeTechList = (part) => {
-  const techItems = techList[part] || techList.front;
+  const techItems = techList[part] || techList.Frontend;
+  techPartName.innerHTML = part;
   techListContainer.innerHTML = techItems
     .map((item) => `<li>${item}</li>`)
     .join('');
 };
 
-changeTechList('front');
+window.onload = () => {
+  changeTechList('Frontend');
+};
 
 Object.keys(techElements).forEach((part) => {
   techElements[part].addEventListener('click', () => changeTechList(part));

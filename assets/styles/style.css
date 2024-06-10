@@ -384,20 +384,20 @@ nav {
   width: 17rem;
 }
 
-.techlist_container h4 {
+#tech_part {
   padding: 2rem;
   font-size: 2.5rem;
   text-align: center;
   border-bottom: 2px solid var(--black);
 }
 
-#techlist {
+#tech_list {
   height: 45rem;
   overflow-y: auto;
   padding: 2rem 2rem 0 2rem;
 }
 
-#techlist li {
+#tech_list li {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
