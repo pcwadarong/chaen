@@ -1,3 +1,5 @@
+// Show tech list and update the view according to the selected folder
+
 const techList = {
   Frontend: [
     'HTML',

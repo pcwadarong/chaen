@@ -1,3 +1,5 @@
+// Modal that shows detailed information of each project
+
 const projects = {
   Uniform: {
     name: 'Uniform',
