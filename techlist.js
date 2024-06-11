@@ -45,9 +45,7 @@ const changeTechList = (part) => {
     .join('');
 };
 
-window.onload = () => {
-  changeTechList('Frontend');
-};
+window.onload = changeTechList('Frontend');
 
 Object.keys(techElements).forEach((part) => {
   techElements[part].addEventListener('click', () => changeTechList(part));

@@ -21,6 +21,7 @@
       <a href="#page1">About Me </a>
       <a href="#page2">Projects</a>
       <a href="#page3">Contact</a>
+      <a href="./resume.html">Resume</a>
     </nav>
     <div class="scroll-container">
       <section id="page1">
@@ -83,43 +84,47 @@
               </div>
               <img src="assets/images/star.svg" alt="star(deco)" />
             </div>
-            <div class="projects">
-              <h2 class="semi_title">Projects</h2>
-              <div class="project">
-                <img src="../assets//images/uniform.svg" alt="logo" />
-                <div class="project_explanation">
-                  <p>Uniform</p>
-                  <div>Survey Form Service for University Students</div>
+            <div class="projects"></div>
+            <div id="project_modal_background">
+              <div id="project_modal">
+                <div class="tab tab_green">
+                  <ul>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                  </ul>
                 </div>
-              </div>
-              <div class="project">
-                <img src="../assets//images/ac.svg" alt="logo" />
-                <div class="project_explanation">
-                  <p>Anything you crave</p>
-                  <div>E commerce Shopping Mall by React, Recoil, Vercel</div>
-                </div>
-              </div>
-              <div class="project">
-                <img src="../assets//images/dalgona.svg" alt="logo" />
-                <div class="project_explanation">
-                  <p>Dalgona Squide Game</p>
-                  <div>
-                    Introduce Dalgona with Scrolling Animation & Gamification
+                <div class="project_content">
+                  <div class="project_header">
+                    <img id="project_img" src="" alt="logo" width="118" />
+                    <div>
+                      <h2 id="project_title"></h2>
+                      <p id="project_description"></p>
+                    </div>
+                    <div class="project_links">
+                      <a href="" id="project_github">Github</a>
+                      <a href="" id="project_website">Website</a>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div class="project">
-                <img src="../assets//images/coplant.svg" alt="logo" />
-                <div class="project_explanation">
-                  <p>Coplant</p>
-                  <div>companion plant selling site</div>
-                </div>
-              </div>
-              <div class="project">
-                <img src="../assets//images/chacha.svg" alt="logo" />
-                <div class="project_explanation">
-                  <p>Cha Cha</p>
-                  <div>Personal Tea Recommending Service with Backend</div>
+                  <span class="stack_title">Tech Stack</span>
+                  <ul id="stack_list">
+                    <li id="stack_frontend_item">
+                      <span>Frontend</span>
+                      <ul id="stack_front"></ul>
+                    </li>
+                    <li id="stack_backend_item">
+                      <span>Backend</span>
+                      <ul id="stack_back"></ul>
+                    </li>
+                    <li id="stack_design_item">
+                      <span>Design</span>
+                      <ul id="stack_design"></ul>
+                    </li>
+                    <li id="stack_others_item">
+                      <span>Others</span>
+                      <ul id="stack_others"></ul>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -188,7 +193,7 @@
               </ul>
             </div>
             <div class="modal_inner">
-              <h5 class="semi_title">Download resume.</h5>
+              <h5 class="semi_title">Look around resume.</h5>
               <button>OK</button>
             </div>
           </div>

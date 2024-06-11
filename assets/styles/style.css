@@ -1,4 +1,4 @@
-/* basic preset */
+/* Basic Preset */
 :root {
   --yellow: #ffc830;
   --red: #d25f40;
@@ -40,7 +40,7 @@ ul {
   list-style: none;
 }
 
-/* common */
+/* Common */
 h1 {
   font-family: 'Helvetica* Extended Light';
   font-size: 4.2rem;
@@ -74,9 +74,10 @@ nav {
   font-size: 1.5rem;
   padding: 0.7rem;
   border-bottom: 2px solid var(--black);
-  z-index: 1000;
+  z-index: 500;
 }
 
+/* Pages */
 #page1,
 .tab_yellow {
   background-color: var(--yellow);
@@ -99,23 +100,13 @@ nav {
   background-color: var(--green);
 }
 
+/* Tabs */
 .tab_red {
   background-color: var(--red);
 }
 
 .tab_blue {
   background-color: var(--blue);
-}
-
-.modal {
-  background-color: var(--beige);
-  border: 2px solid var(--black);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.big_modal {
-  width: 50rem;
 }
 
 .tab {
@@ -158,6 +149,19 @@ nav {
   background-color: var(--blue);
 }
 
+/* Modal */
+.modal,
+#project_modal {
+  background-color: var(--beige);
+  border: 2px solid var(--black);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.big_modal {
+  width: 50rem;
+}
+
 .modal_inner {
   display: flex;
   flex-direction: column;
@@ -179,7 +183,7 @@ nav {
   font-size: 1em;
 }
 
-/* #page2 search bar */
+/* Page2 Search Bar */
 .search_container {
   display: flex;
   padding: 1rem;
@@ -212,6 +216,7 @@ nav {
   background: transparent;
   line-height: 1rem;
 }
+
 .search_container input {
   flex: 1;
   height: 100%;
@@ -235,7 +240,7 @@ nav {
   background-color: white;
 }
 
-/* #page2 projects */
+/* Page2 Projects */
 .projects_container {
   width: 690px;
   position: relative;
@@ -308,7 +313,8 @@ nav {
 }
 
 .project_explanation p,
-.folder p {
+.folder p,
+#project_title {
   font-size: 2rem;
 }
 
@@ -344,7 +350,103 @@ nav {
   background-color: var(--green);
 }
 
-/* #page2 tech */
+/* Modal */
+#project_modal_background {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+#project_modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  font-size: 1.5rem;
+}
+
+.project_content {
+  padding: 4.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.project_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.project_header div:nth-of-type(1) {
+  flex: 1;
+}
+
+.project_links {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.project_links a {
+  padding: 0rem 1rem;
+  display: inline-block;
+  color: white;
+  background-color: var(--red);
+  border-radius: 1.3rem;
+  line-height: 3rem;
+}
+
+#project_website {
+  background-color: var(--blue);
+}
+
+.stack_title {
+  padding: 0rem 2rem;
+  width: fit-content;
+  background-color: var(--yellow);
+  border-radius: 1.3rem;
+  border: 2px solid var(--black);
+  line-height: 3rem;
+}
+
+#stack_list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#stack_list > li,
+#stack_list ul {
+  display: flex;
+  gap: 1rem;
+}
+
+#stack_list ul {
+  flex-wrap: wrap;
+}
+
+#stack_list li span{
+  width: 8rem;
+  flex-shrink: 0;
+}
+
+#stack_list > li > ul > li {
+  border-radius: 2rem;
+  padding: 0rem 1rem;
+  border: 2px solid var(--black);
+  text-wrap: nowrap;
+  line-height: 3rem;
+}
+
+/* Page2 Tech */
 .tech_inner {
   display: flex;
   font-size: 2rem;
@@ -403,7 +505,7 @@ nav {
   overflow: hidden;
 }
 
-/* page3 resume, github */
+/* Page3 Resume, GitHub */
 #page3 {
   font-size: 1.5rem;
 }
@@ -411,6 +513,7 @@ nav {
 .resume_container {
   position: relative;
 }
+
 .resume_container button,
 .resume_container a {
   border-radius: 1.5rem;
@@ -443,7 +546,7 @@ nav {
   line-height: 2rem;
 }
 
-/* page3 contact */
+/* Page3 Contact */
 .contact {
   padding: 2rem;
 }
@@ -521,6 +624,7 @@ nav {
   padding: 0 1.5rem;
 }
 
+/* Responsive Design */
 @media all and (min-width: 1300px) {
   html {
     font-size: 12px;
@@ -528,6 +632,10 @@ nav {
 
   .projects {
     height: 35rem;
+  }
+
+  #project_modal {
+    width: 1044px;
   }
 }
 
@@ -543,11 +651,13 @@ nav {
     margin: 0 auto;
   }
 }
+
 @media all and (min-width: 930px) and (max-width: 1170px) {
   .tech_container {
     width: 400px;
     margin-right: 30px;
   }
+
   .folderlist {
     height: 500px;
     overflow-y: scroll;
@@ -595,6 +705,13 @@ nav {
     gap: 2rem;
     margin-bottom: 5rem;
   }
+
+  #project_img {
+    width: 80px;
+  }
+
+  h1 {
+    line-height: 4rem;
 }
 
 @media all and (max-width: 615px) {
@@ -611,7 +728,23 @@ nav {
   .projects_container .modal:last-child {
     width: 90vw;
   }
-  .resume_container {
+
+  .resume_container,
+  .project_header {
     flex-direction: column;
   }
+
+.project_content {
+  align-items: center;
+  text-align: center;
+}
+
+.stack_title {
+  margin-top: 1rem;
+}
+
+#stack_list {
+  text-align: left;
+  width: 100%;
+}
 }
