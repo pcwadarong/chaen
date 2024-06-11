@@ -1,0 +1,81 @@
+html {
+  font-size: 10px;
+}
+
+* {
+  font-family: 'Helvetica* Extended Extra Light';
+  padding: 0;
+  margin: 0;
+  line-height: 2.8rem;
+}
+
+body {
+  font-size: 1.6rem;
+}
+
+li {
+    list-style-position: inside;
+  }
+  
+a {
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  text-decoration: none;
+  color: black;
+}
+
+h1 {
+  font-family: 'Helvetica* Extended Light';
+  font-size: 4rem;
+}
+
+.caption, .edu_score {
+  font-size: 1.4rem;
+  color: gray;
+}
+
+h1,
+h2,
+hr {
+  color: gray;
+  margin-bottom: 0.5rem;
+}
+
+header {
+  padding: 3rem;
+}
+
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.contact div {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 3rem 0 0;
+  line-height: 1rem;
+}
+
+section {
+  padding: 1.5rem 3rem;
+}
+
+.listItem {
+  display: flex;
+  margin-bottom: 2rem;
+}
+
+.listItem em {
+  width: 9rem;
+  flex-shrink: 0;
+  padding-right: 1rem;
+}
+
+.listItem div {
+  border-left: 1px solid black;
+  padding: 0 1rem;
+}
+

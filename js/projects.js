@@ -57,7 +57,7 @@ export const projects = {
   ChaCha: {
     name: 'Cha Cha',
     img: '../assets/images/chacha.svg',
-    description: 'Personal Tea Recommending Service with Backend, team project',
+    description: 'Personal Tea Recommending Service with Backend, team project / Role: 2nd Designer and Frontend Team Leader',
     github: 'https://github.com/pcwadarong/chacha',
     website: '',
     tech: {
