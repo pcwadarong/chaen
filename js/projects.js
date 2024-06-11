@@ -6,7 +6,7 @@ export const projects = {
     img: '../assets/images/uniform.svg',
     description: 'Survey Form Service for University Students',
     github: 'https://github.com/pcwadarong/Uni-Form',
-    website: 'https://uniform.com',
+    website: '',
     tech: {
       frontend: ['React', 'TypeScript', 'Tailwind CSS', 'Zustand'],
       backend: ['Vercel', 'Firebase Storage'],
