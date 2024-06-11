@@ -408,6 +408,11 @@ nav {
   background-color: var(--blue);
 }
 
+.no_project {
+font-size: 3rem;
+color: gray;
+}
+
 .stack_title {
   padding: 0rem 2rem;
   width: fit-content;
