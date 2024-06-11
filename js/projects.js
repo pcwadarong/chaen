@@ -33,7 +33,7 @@ export const projects = {
     img: '../assets/images/dalgona.svg',
     description: 'Introduce Dalgona with Scrolling Animation & Gamification',
     github: 'https://github.com/example/dalgona',
-    website: 'https://dalgona.example.com',
+    website: 'https://pcwadarong.github.io/squidgame/',
     tech: {
       frontend: ['React', 'JavaScript', 'CSS'],
       backend: [],
