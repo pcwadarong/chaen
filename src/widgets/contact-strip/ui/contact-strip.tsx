@@ -1,25 +1,28 @@
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 /** 홈 하단 연락 유도 영역입니다. */
-export const ContactStrip = () => (
-  <section style={sectionStyle}>
-    <div style={copyStyle}>
-      <p style={eyebrowStyle}>Contact Me</p>
-      <h2 style={titleStyle}>A compact closing section with motion.</h2>
-      <p style={descriptionStyle}>
-        홈 하단에는 짧은 애니메이션과 함께 연락 유도 문구가 들어갈 자리만 먼저 확보합니다.
-      </p>
-    </div>
-    <div aria-hidden="true" style={motionStyle}>
-      <span style={pulseStyle} />
-      <span style={pulseDelayedStyle} />
-    </div>
-  </section>
-);
+export const ContactStrip = () => {
+  const t = useTranslations('Contact');
+
+  return (
+    <section style={sectionStyle}>
+      <div style={copyStyle}>
+        <p style={eyebrowStyle}>{t('eyebrow')}</p>
+        <h2 style={titleStyle}>{t('title')}</h2>
+        <p style={descriptionStyle}>{t('description')}</p>
+      </div>
+      <div aria-hidden="true" style={motionStyle}>
+        <span style={pulseStyle} />
+        <span style={pulseDelayedStyle} />
+      </div>
+    </section>
+  );
+};
 
 const sectionStyle: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(16rem, 20rem)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
   alignItems: 'center',
   gap: '1rem',
 };
@@ -34,7 +37,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const titleStyle: CSSProperties = {
@@ -45,7 +48,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const motionStyle: CSSProperties = {
@@ -53,10 +56,10 @@ const motionStyle: CSSProperties = {
   minHeight: '16rem',
   overflow: 'hidden',
   padding: '1.5rem',
-  borderRadius: '1.5rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
-    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
+    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
 };
 
 const pulseBaseStyle: CSSProperties = {
@@ -69,7 +72,7 @@ const pulseStyle: CSSProperties = {
   inset: '22% auto auto 18%',
   width: '7rem',
   height: '7rem',
-  background: 'rgb(var(--grayscale-5) / 0.35)',
+  background: 'rgb(var(--color-primary) / 0.35)',
 };
 
 const pulseDelayedStyle: CSSProperties = {
@@ -77,5 +80,5 @@ const pulseDelayedStyle: CSSProperties = {
   inset: 'auto 16% 18% auto',
   width: '4.5rem',
   height: '4.5rem',
-  background: 'rgb(var(--grayscale-7) / 0.18)',
+  background: 'rgb(var(--color-text) / 0.18)',
 };

@@ -1,28 +1,33 @@
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { ProjectItem } from '@/entities/project/model/project-items';
+import { Link } from '@/i18n/navigation';
 
 type ProjectCardProps = {
   item: ProjectItem;
 };
 
 /** 프로젝트 요약 카드를 렌더링합니다. */
-export const ProjectCard = ({ item }: ProjectCardProps) => (
-  <article style={cardStyle}>
-    <div style={metaStyle}>
-      <span>{item.category}</span>
-      <span>{item.year}</span>
-    </div>
-    <div style={bodyStyle}>
-      <h3 style={titleStyle}>{item.headline}</h3>
-      <p style={summaryStyle}>{item.summary}</p>
-    </div>
-    <Link href={`/work/${item.id}`} style={cardLinkStyle}>
-      View project
-    </Link>
-  </article>
-);
+export const ProjectCard = ({ item }: ProjectCardProps) => {
+  const t = useTranslations('Work');
+
+  return (
+    <article style={cardStyle}>
+      <div style={metaStyle}>
+        <span>{item.category}</span>
+        <span>{item.year}</span>
+      </div>
+      <div style={bodyStyle}>
+        <h3 style={titleStyle}>{item.headline}</h3>
+        <p style={summaryStyle}>{item.summary}</p>
+      </div>
+      <Link href={`/work/${item.id}`} style={cardLinkStyle}>
+        {t('viewProject')}
+      </Link>
+    </article>
+  );
+};
 
 const cardStyle: CSSProperties = {
   minHeight: '18rem',
@@ -30,17 +35,17 @@ const cardStyle: CSSProperties = {
   alignContent: 'space-between',
   gap: '1rem',
   padding: '1.5rem',
-  borderRadius: '1.5rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
-    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
+    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
 };
 
 const metaStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '0.75rem',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
   fontSize: '0.92rem',
 };
 
@@ -56,7 +61,7 @@ const titleStyle: CSSProperties = {
 };
 
 const summaryStyle: CSSProperties = {
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const cardLinkStyle: CSSProperties = {
@@ -66,9 +71,9 @@ const cardLinkStyle: CSSProperties = {
   width: 'fit-content',
   minHeight: '2.75rem',
   padding: '0 1rem',
-  borderRadius: '999px',
-  border: '1px solid rgb(var(--grayscale-7) / 0.12)',
-  backgroundColor: 'rgb(var(--grayscale-1) / 0.9)',
+  borderRadius: 'var(--radius-pill)',
+  border: '1px solid rgb(var(--color-border) / 0.3)',
+  backgroundColor: 'rgb(var(--color-surface) / 0.9)',
   textDecoration: 'none',
-  color: 'inherit',
+  color: 'rgb(var(--color-text))',
 };

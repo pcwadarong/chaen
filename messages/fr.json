@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "ariaLabel": "Navigation principale",
+    "blog": "Blog",
+    "brand": "chaen",
+    "guest": "Livre d'or",
+    "home": "Accueil",
+    "work": "Projets"
+  },
+  "Home": {
+    "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
+    "eyebrow": "Accueil",
+    "showcaseDescription": "La page d'accueil affiche d'abord quelques cartes sélectionnées, tandis que la collection complète peut vivre sur la page work.",
+    "showcaseTitle": "Projets sélectionnés",
+    "title": "Une ouverture pensée pour accueillir du mouvement."
+  },
+  "Guest": {
+    "description": "La saisie du livre d'or sera déplacée plus tard dans une feature modale. Pour l'instant, la page se concentre sur la présentation publique et la lecture.",
+    "eyebrow": "Livre d'or",
+    "item1": "Zone de messages publics orientée lecture",
+    "item2": "L'écriture sera séparée plus tard dans la feature create-guestbook-entry",
+    "item3": "La page ne gère que l'assemblage et le chargement des données",
+    "title": "Les interactions invité restent légères et pilotées par des modales."
+  },
+  "Blog": {
+    "description": "Pour l'instant, la page garde seulement la liste et la structure de base. La recherche, les filtres par tags et les commentaires viendront plus tard comme features séparées.",
+    "eyebrow": "Blog",
+    "title": "Écrits techniques, tags, recherche et commentaires viendront ensuite."
+  },
+  "Work": {
+    "deliverables": "Livrables",
+    "showcaseDescription": "Contrairement à l'aperçu compact de l'accueil, cette page affiche toute la collection de cartes projet.",
+    "showcaseTitle": "Archive des projets",
+    "viewProject": "Voir le projet"
+  },
+  "Contact": {
+    "description": "Cette section finale réserve une place à une courte animation et à un appel à contact direct.",
+    "eyebrow": "Contact",
+    "title": "Une section finale compacte avec du mouvement."
+  },
+  "Switchers": {
+    "locale": {
+      "ariaLabel": "Choisir la langue",
+      "en": "Anglais",
+      "fr": "Français",
+      "ja": "Japonais",
+      "ko": "Coréen",
+      "label": "Langue"
+    },
+    "theme": {
+      "ariaLabel": "Choisir le thème",
+      "dark": "Sombre",
+      "label": "Thème",
+      "light": "Clair",
+      "system": "Système"
+    }
+  }
+}

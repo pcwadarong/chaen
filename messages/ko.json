@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "ariaLabel": "주요 탐색",
+    "blog": "블로그",
+    "brand": "chaen",
+    "guest": "방명록",
+    "home": "홈",
+    "work": "작업"
+  },
+  "Home": {
+    "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
+    "eyebrow": "홈",
+    "showcaseDescription": "홈에서는 일부 프로젝트 카드만 먼저 노출하고, 이후 전체 목록은 work 리스트 페이지로 분리할 수 있습니다.",
+    "showcaseTitle": "선별 프로젝트",
+    "title": "모션을 담아낼 수 있는 첫 화면 구조."
+  },
+  "Guest": {
+    "description": "방명록 입력은 이후 모달 feature로 분리하고, 현재 페이지는 공개 소개와 읽기 경험 중심으로 둡니다.",
+    "eyebrow": "방명록",
+    "item1": "읽기 중심의 공개 메시지 영역",
+    "item2": "작성은 추후 create-guestbook-entry feature로 분리",
+    "item3": "페이지는 데이터 패칭과 조합만 담당",
+    "title": "방명록 상호작용은 가볍고 모달 중심으로 유지합니다."
+  },
+  "Blog": {
+    "description": "지금은 블로그 리스트와 기본 정보 구조만 두고, 검색과 태그 필터, 댓글 작성은 feature로 분리할 예정입니다.",
+    "eyebrow": "블로그",
+    "title": "기술 글, 태그, 검색, 댓글은 이후에 확장합니다."
+  },
+  "Work": {
+    "deliverables": "주요 산출물",
+    "showcaseDescription": "프로젝트 리스트는 홈의 일부 프리뷰와 달리 전체 카드 컬렉션을 보여주는 독립 페이지입니다.",
+    "showcaseTitle": "프로젝트 아카이브",
+    "viewProject": "프로젝트 보기"
+  },
+  "Contact": {
+    "description": "홈 하단에는 짧은 애니메이션과 함께 연락 유도 문구가 들어갈 자리만 먼저 확보합니다.",
+    "eyebrow": "연락",
+    "title": "짧은 모션과 함께 닫히는 콤팩트한 마지막 섹션."
+  },
+  "Switchers": {
+    "locale": {
+      "ariaLabel": "언어 선택",
+      "en": "영어",
+      "fr": "프랑스어",
+      "ja": "일본어",
+      "ko": "한국어",
+      "label": "언어"
+    },
+    "theme": {
+      "ariaLabel": "테마 선택",
+      "dark": "다크",
+      "label": "테마",
+      "light": "라이트",
+      "system": "시스템"
+    }
+  }
+}

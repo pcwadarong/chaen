@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { ProjectItem } from '@/entities/project/model/project-items';
@@ -7,26 +8,30 @@ type WorkDetailPageProps = {
 };
 
 /** 프로젝트 상세 페이지 컨테이너입니다. */
-export const WorkDetailPage = ({ item }: WorkDetailPageProps) => (
-  <main style={pageStyle}>
-    <section style={heroStyle}>
-      <div style={metaStyle}>
-        <span>{item.category}</span>
-        <span>{item.year}</span>
-      </div>
-      <h1 style={titleStyle}>{item.headline}</h1>
-      <p style={descriptionStyle}>{item.summary}</p>
-    </section>
-    <section style={panelStyle}>
-      <h2 style={sectionTitleStyle}>Deliverables</h2>
-      <ul style={listStyle}>
-        {item.deliverables.map(deliverable => (
-          <li key={deliverable}>{deliverable}</li>
-        ))}
-      </ul>
-    </section>
-  </main>
-);
+export const WorkDetailPage = ({ item }: WorkDetailPageProps) => {
+  const t = useTranslations('Work');
+
+  return (
+    <main style={pageStyle}>
+      <section style={heroStyle}>
+        <div style={metaStyle}>
+          <span>{item.category}</span>
+          <span>{item.year}</span>
+        </div>
+        <h1 style={titleStyle}>{item.headline}</h1>
+        <p style={descriptionStyle}>{item.summary}</p>
+      </section>
+      <section style={panelStyle}>
+        <h2 style={sectionTitleStyle}>{t('deliverables')}</h2>
+        <ul style={listStyle}>
+          {item.deliverables.map(deliverable => (
+            <li key={deliverable}>{deliverable}</li>
+          ))}
+        </ul>
+      </section>
+    </main>
+  );
+};
 
 const pageStyle: CSSProperties = {
   width: 'min(960px, calc(100% - 2rem))',
@@ -45,7 +50,7 @@ const metaStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '0.75rem',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
   fontSize: '0.92rem',
 };
 
@@ -57,14 +62,14 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const panelStyle: CSSProperties = {
   padding: '1.5rem',
-  borderRadius: '1.25rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
-  backgroundColor: 'rgb(var(--grayscale-1) / 0.76)',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
+  backgroundColor: 'rgb(var(--color-surface) / 0.86)',
 };
 
 const sectionTitleStyle: CSSProperties = {
