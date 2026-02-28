@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
+    "commit": "cz",
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
     "typecheck": "pnpm run check-types",
@@ -33,6 +34,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.57.4",
     "gsap": "^3.13.0",
     "next": "^15.5.3",
@@ -43,6 +45,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.35.0",
+    "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.4.0",
@@ -65,7 +68,6 @@
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.43.0",
-    "vite-plugin-svgr": "^4.5.0",
     "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@10.18.3"
