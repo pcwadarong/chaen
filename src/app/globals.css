@@ -7,19 +7,23 @@
   --font-sans-ja:
     var(--font-pretendard-jp), var(--font-pretendard), -apple-system, BlinkMacSystemFont,
     'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+
   --color-bg: 246 247 249;
   --color-surface: 255 255 255;
   --color-surface-muted: 236 239 243;
   --color-surface-strong: 228 232 238;
+
   --color-text: 12 18 28;
   --color-muted: 91 102 117;
   --color-border: 122 133 148;
   --color-primary: 59 130 246;
   --color-primary-contrast: 255 255 255;
+
   --radius-sm: 0.85rem;
   --radius-md: 1.2rem;
   --radius-lg: 1.65rem;
   --radius-pill: 999px;
+
   color-scheme: light;
 }
 

@@ -14,7 +14,6 @@ type RootLayoutProps = Readonly<{
 const RootLayout = ({ children }: RootLayoutProps) => (
   <html
     className={`${pretendard.variable} ${pretendardJp.variable} ${d2Coding.variable}`}
-    lang="ko"
     suppressHydrationWarning
   >
     <body>{children}</body>
