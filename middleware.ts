@@ -1,11 +1,19 @@
 import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
 
+import { routing } from '@/i18n/routing';
 import { updateSession } from '@/lib/supabase/middleware';
 
+const handleI18nRouting = createMiddleware(routing);
+
 /**
- * 모든 앱 라우트 요청 전에 Supabase 세션을 동기화합니다.
+ * locale 라우팅과 Supabase 세션 갱신을 순서대로 처리합니다.
  */
-export const middleware = async (request: NextRequest) => updateSession(request);
+export const middleware = async (request: NextRequest) => {
+  const response = handleI18nRouting(request);
+
+  return updateSession(request, response);
+};
 
 export const config = {
   matcher: [
