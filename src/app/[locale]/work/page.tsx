@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { projectItems } from '@/entities/project/model/project-items';
 import { WorkListPage } from '@/views/work-list';
 

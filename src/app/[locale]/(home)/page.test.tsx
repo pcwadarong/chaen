@@ -10,7 +10,7 @@ vi.mock('@/views/home', () => ({
 }));
 
 describe('HomeRoute', () => {
-  it('returns the home view entry', () => {
+  it('홈 뷰 엔트리를 반환한다', () => {
     const element = HomeRoute();
 
     expect(isValidElement(element)).toBe(true);
