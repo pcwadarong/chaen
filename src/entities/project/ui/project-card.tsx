@@ -31,16 +31,16 @@ const cardStyle: CSSProperties = {
   gap: '1rem',
   padding: '1.5rem',
   borderRadius: '1.5rem',
-  border: '1px solid rgba(23, 23, 23, 0.08)',
+  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
   background:
-    'linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.56)), rgba(255, 255, 255, 0.7)',
+    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
 };
 
 const metaStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '0.75rem',
-  color: 'rgba(23, 23, 23, 0.56)',
+  color: 'rgb(var(--grayscale-7) / 0.56)',
   fontSize: '0.92rem',
 };
 
@@ -56,7 +56,7 @@ const titleStyle: CSSProperties = {
 };
 
 const summaryStyle: CSSProperties = {
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const cardLinkStyle: CSSProperties = {
@@ -67,8 +67,8 @@ const cardLinkStyle: CSSProperties = {
   minHeight: '2.75rem',
   padding: '0 1rem',
   borderRadius: '999px',
-  border: '1px solid rgba(23, 23, 23, 0.12)',
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  border: '1px solid rgb(var(--grayscale-7) / 0.12)',
+  backgroundColor: 'rgb(var(--grayscale-1) / 0.9)',
   textDecoration: 'none',
   color: 'inherit',
 };

@@ -34,8 +34,8 @@ const headerStyle: CSSProperties = {
   position: 'sticky',
   top: 0,
   zIndex: 10,
-  backgroundColor: 'rgba(248, 244, 236, 0.72)',
-  borderBottom: '1px solid rgba(23, 23, 23, 0.08)',
+  backgroundColor: 'rgb(var(--grayscale-2) / 0.72)',
+  borderBottom: '1px solid rgb(var(--grayscale-7) / 0.08)',
 };
 
 const innerStyle: CSSProperties = {

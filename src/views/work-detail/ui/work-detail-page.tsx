@@ -45,7 +45,7 @@ const metaStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '0.75rem',
-  color: 'rgba(23, 23, 23, 0.56)',
+  color: 'rgb(var(--grayscale-7) / 0.56)',
   fontSize: '0.92rem',
 };
 
@@ -57,14 +57,14 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const panelStyle: CSSProperties = {
   padding: '1.5rem',
   borderRadius: '1.25rem',
-  border: '1px solid rgba(23, 23, 23, 0.08)',
-  backgroundColor: 'rgba(255, 255, 255, 0.76)',
+  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  backgroundColor: 'rgb(var(--grayscale-1) / 0.76)',
 };
 
 const sectionTitleStyle: CSSProperties = {

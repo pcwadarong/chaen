@@ -36,7 +36,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgba(23, 23, 23, 0.56)',
+  color: 'rgb(var(--grayscale-7) / 0.56)',
 };
 
 const titleStyle: CSSProperties = {
@@ -47,7 +47,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const stageStyle: CSSProperties = {
@@ -55,9 +55,9 @@ const stageStyle: CSSProperties = {
   minHeight: '18rem',
   overflow: 'hidden',
   borderRadius: '2rem',
-  border: '1px solid rgba(23, 23, 23, 0.08)',
+  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
   background:
-    'radial-gradient(circle at top, rgba(255, 255, 255, 0.88), transparent 45%), linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.56))',
+    'radial-gradient(circle at top, rgb(var(--grayscale-1) / 0.88), transparent 45%), linear-gradient(180deg, rgb(var(--grayscale-1) / 0.86), rgb(var(--grayscale-1) / 0.56))',
 };
 
 const orbBaseStyle: CSSProperties = {
@@ -71,7 +71,8 @@ const largeOrbStyle: CSSProperties = {
   inset: '15% auto auto 18%',
   width: '12rem',
   height: '12rem',
-  background: 'linear-gradient(135deg, rgba(255, 140, 92, 0.78), rgba(255, 255, 255, 0.2))',
+  background:
+    'linear-gradient(135deg, rgb(var(--grayscale-5) / 0.78), rgb(var(--grayscale-1) / 0.2))',
 };
 
 const smallOrbStyle: CSSProperties = {
@@ -79,5 +80,6 @@ const smallOrbStyle: CSSProperties = {
   inset: 'auto 18% 15% auto',
   width: '7rem',
   height: '7rem',
-  background: 'linear-gradient(135deg, rgba(23, 23, 23, 0.55), rgba(255, 255, 255, 0.18))',
+  background:
+    'linear-gradient(135deg, rgb(var(--grayscale-7) / 0.55), rgb(var(--grayscale-1) / 0.18))',
 };

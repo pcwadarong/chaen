@@ -40,7 +40,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgba(23, 23, 23, 0.56)',
+  color: 'rgb(var(--grayscale-7) / 0.56)',
 };
 
 const titleStyle: CSSProperties = {
@@ -51,7 +51,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const stackStyle: CSSProperties = {

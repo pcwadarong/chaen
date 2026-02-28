@@ -42,7 +42,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const gridStyle: CSSProperties = {

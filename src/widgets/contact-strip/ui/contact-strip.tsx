@@ -34,7 +34,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgba(23, 23, 23, 0.56)',
+  color: 'rgb(var(--grayscale-7) / 0.56)',
 };
 
 const titleStyle: CSSProperties = {
@@ -45,7 +45,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgba(23, 23, 23, 0.72)',
+  color: 'rgb(var(--grayscale-7) / 0.72)',
 };
 
 const motionStyle: CSSProperties = {
@@ -54,9 +54,9 @@ const motionStyle: CSSProperties = {
   overflow: 'hidden',
   padding: '1.5rem',
   borderRadius: '1.5rem',
-  border: '1px solid rgba(23, 23, 23, 0.08)',
+  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
   background:
-    'linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.56)), rgba(255, 255, 255, 0.7)',
+    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
 };
 
 const pulseBaseStyle: CSSProperties = {
@@ -69,7 +69,7 @@ const pulseStyle: CSSProperties = {
   inset: '22% auto auto 18%',
   width: '7rem',
   height: '7rem',
-  background: 'rgba(255, 140, 92, 0.35)',
+  background: 'rgb(var(--grayscale-5) / 0.35)',
 };
 
 const pulseDelayedStyle: CSSProperties = {
@@ -77,5 +77,5 @@ const pulseDelayedStyle: CSSProperties = {
   inset: 'auto 16% 18% auto',
   width: '4.5rem',
   height: '4.5rem',
-  background: 'rgba(23, 23, 23, 0.18)',
+  background: 'rgb(var(--grayscale-7) / 0.18)',
 };
