@@ -6,10 +6,12 @@ import { getSupabaseEnv } from '@/lib/supabase/config';
 /**
  * 미들웨어에서 세션을 갱신하고 응답 쿠키를 동기화합니다.
  */
-export const updateSession = async (request: NextRequest) => {
-  let response = NextResponse.next({
-    request,
-  });
+export const updateSession = async (request: NextRequest, response?: NextResponse) => {
+  const nextResponse =
+    response ??
+    NextResponse.next({
+      request,
+    });
 
   const { supabaseAnonKey, supabaseUrl } = getSupabaseEnv();
 
@@ -23,12 +25,8 @@ export const updateSession = async (request: NextRequest) => {
           request.cookies.set(name, value);
         });
 
-        response = NextResponse.next({
-          request,
-        });
-
         cookiesToSet.forEach(({ name, options, value }) => {
-          response.cookies.set(name, value, options);
+          nextResponse.cookies.set(name, value, options);
         });
       },
     },
@@ -36,5 +34,5 @@ export const updateSession = async (request: NextRequest) => {
 
   await supabase.auth.getUser();
 
-  return response;
+  return nextResponse;
 };

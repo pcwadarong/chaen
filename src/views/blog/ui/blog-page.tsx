@@ -1,26 +1,30 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import { articleItems } from '@/entities/article/model/article-items';
 import { ArticleCard } from '@/entities/article/ui/article-card';
 
 /** 블로그 목록 화면의 실제 페이지 컨테이너입니다. */
-export const BlogPage = () => (
-  <main style={pageStyle}>
-    <section style={heroStyle}>
-      <p style={eyebrowStyle}>Blog</p>
-      <h1 style={titleStyle}>Technical writing, tags, search, and comments later.</h1>
-      <p style={descriptionStyle}>
-        지금은 블로그 리스트와 기본 정보 구조만 두고, 검색과 태그 필터, 댓글 작성은 feature로 분리할
-        예정입니다.
-      </p>
-    </section>
-    <section style={stackStyle}>
-      {articleItems.map(article => (
-        <ArticleCard article={article} key={article.id} />
-      ))}
-    </section>
-  </main>
-);
+export const BlogPage = () => {
+  const t = useTranslations('Blog');
+
+  return (
+    <main style={pageStyle}>
+      <section style={heroStyle}>
+        <p style={eyebrowStyle}>{t('eyebrow')}</p>
+        <h1 style={titleStyle}>{t('title')}</h1>
+        <p style={descriptionStyle}>{t('description')}</p>
+      </section>
+      <section style={stackStyle}>
+        {articleItems.map(article => (
+          <ArticleCard article={article} key={article.id} />
+        ))}
+      </section>
+    </main>
+  );
+};
 
 const pageStyle: CSSProperties = {
   width: 'min(1120px, calc(100% - 2rem))',
@@ -40,7 +44,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const titleStyle: CSSProperties = {
@@ -51,7 +55,7 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const stackStyle: CSSProperties = {

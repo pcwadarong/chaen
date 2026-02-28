@@ -1,25 +1,29 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 /** 방명록 소개와 공개 영역 구성을 담당하는 페이지 컨테이너입니다. */
-export const GuestPage = () => (
-  <main style={pageStyle}>
-    <section style={heroStyle}>
-      <p style={eyebrowStyle}>Guestbook</p>
-      <h1 style={titleStyle}>Guest interactions stay lightweight and modal-driven.</h1>
-      <p style={descriptionStyle}>
-        방명록 입력은 이후 모달 feature로 분리하고, 현재 페이지는 공개 소개와 읽기 경험 중심으로
-        둡니다.
-      </p>
-    </section>
-    <section style={panelStyle}>
-      <ul style={listStyle}>
-        <li>읽기 중심의 공개 메시지 영역</li>
-        <li>작성은 추후 `create-guestbook-entry` feature로 분리</li>
-        <li>페이지는 데이터 패칭과 조합만 담당</li>
-      </ul>
-    </section>
-  </main>
-);
+export const GuestPage = () => {
+  const t = useTranslations('Guest');
+
+  return (
+    <main style={pageStyle}>
+      <section style={heroStyle}>
+        <p style={eyebrowStyle}>{t('eyebrow')}</p>
+        <h1 style={titleStyle}>{t('title')}</h1>
+        <p style={descriptionStyle}>{t('description')}</p>
+      </section>
+      <section style={panelStyle}>
+        <ul style={listStyle}>
+          <li>{t('item1')}</li>
+          <li>{t('item2')}</li>
+          <li>{t('item3')}</li>
+        </ul>
+      </section>
+    </main>
+  );
+};
 
 const pageStyle: CSSProperties = {
   width: 'min(960px, calc(100% - 2rem))',
@@ -39,7 +43,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const titleStyle: CSSProperties = {
@@ -50,14 +54,14 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const panelStyle: CSSProperties = {
   padding: '1.5rem',
-  borderRadius: '1.25rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
-  backgroundColor: 'rgb(var(--grayscale-1) / 0.76)',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
+  backgroundColor: 'rgb(var(--color-surface) / 0.86)',
 };
 
 const listStyle: CSSProperties = {

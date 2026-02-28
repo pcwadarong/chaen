@@ -12,7 +12,7 @@ const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 });
 
-export default [
+const eslintConfig = [
   {
     ignores: [
       '**/dist',
@@ -97,3 +97,5 @@ export default [
     },
   },
 ];
+
+export default eslintConfig;

@@ -1,0 +1,123 @@
+{
+  "Navigation": {
+    "ariaLabel": "주요 탐색",
+    "blog": "블로그",
+    "brand": "chaen",
+    "guest": "방명록",
+    "home": "홈",
+    "resume": "이력",
+    "work": "작업"
+  },
+  "Resume": {
+    "title": "안녕하세요 박채원입니다."
+  },
+  "Home": {
+    "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
+    "eyebrow": "홈",
+    "showcaseDescription": "홈에서는 일부 프로젝트 카드만 먼저 노출하고, 이후 전체 목록은 work 리스트 페이지로 분리할 수 있습니다.",
+    "showcaseTitle": "선별 프로젝트",
+    "title": "모션을 담아낼 수 있는 첫 화면 구조."
+  },
+  "Guest": {
+    "description": "방명록 입력은 이후 모달 feature로 분리하고, 현재 페이지는 공개 소개와 읽기 경험 중심으로 둡니다.",
+    "eyebrow": "방명록",
+    "item1": "읽기 중심의 공개 메시지 영역",
+    "item2": "작성은 추후 create-guestbook-entry feature로 분리",
+    "item3": "페이지는 데이터 패칭과 조합만 담당",
+    "title": "방명록 상호작용은 가볍고 모달 중심으로 유지합니다."
+  },
+  "Blog": {
+    "description": "지금은 블로그 리스트와 기본 정보 구조만 두고, 검색과 태그 필터, 댓글 작성은 feature로 분리할 예정입니다.",
+    "eyebrow": "블로그",
+    "title": "기술 글, 태그, 검색, 댓글은 이후에 확장합니다."
+  },
+  "Work": {
+    "deliverables": "주요 산출물",
+    "showcaseDescription": "프로젝트 리스트는 홈의 일부 프리뷰와 달리 전체 카드 컬렉션을 보여주는 독립 페이지입니다.",
+    "showcaseTitle": "프로젝트 아카이브",
+    "viewProject": "프로젝트 보기"
+  },
+  "Contact": {
+    "description": "홈 하단에는 짧은 애니메이션과 함께 연락 유도 문구가 들어갈 자리만 먼저 확보합니다.",
+    "eyebrow": "연락",
+    "title": "짧은 모션과 함께 닫히는 콤팩트한 마지막 섹션."
+  },
+  "Switchers": {
+    "locale": {
+      "ariaLabel": "언어 선택",
+      "en": "영어",
+      "fr": "프랑스어",
+      "ja": "일본어",
+      "ko": "한국어",
+      "label": "언어"
+    },
+    "theme": {
+      "ariaLabel": "테마 선택",
+      "dark": "다크",
+      "label": "테마",
+      "light": "라이트",
+      "system": "시스템"
+    }
+  },
+  "ProjectItems": {
+    "motion-library": {
+      "category": "디자인 엔지니어링",
+      "headline": "모션 중심 컴포넌트 라이브러리",
+      "summary": "브랜드 인터랙션을 컴포넌트 단위에서 재사용할 수 있도록 모션 토큰과 UI 규칙을 정리한 프로젝트입니다.",
+      "deliverables": {
+        "interactionSpec": "인터랙션 명세",
+        "motionTokens": "모션 토큰",
+        "storybookFoundation": "스토리북 기반"
+      }
+    },
+    "supabase-editorial": {
+      "category": "풀스택",
+      "headline": "Supabase 기반 에디토리얼 플랫폼",
+      "summary": "콘텐츠 작성과 퍼블리싱 흐름을 Supabase 기반으로 설계하고 App Router에 맞게 SSR 경계를 정리한 프로젝트입니다.",
+      "deliverables": {
+        "authFlow": "인증 플로우",
+        "publishingDashboard": "퍼블리싱 대시보드",
+        "storageStrategy": "스토리지 전략"
+      }
+    },
+    "guest-campaign": {
+      "category": "그로스",
+      "headline": "게스트 온보딩 캠페인 사이트",
+      "summary": "광고 유입 사용자를 제품 경험으로 자연스럽게 연결하기 위한 랜딩 경험과 전환 흐름을 설계한 프로젝트입니다.",
+      "deliverables": {
+        "analyticsHooks": "분석 훅",
+        "ctaExperiment": "CTA 실험",
+        "landingNarrative": "랜딩 내러티브"
+      }
+    }
+  },
+  "ArticleItems": {
+    "typography-rhythm": {
+      "title": "한국어와 일본어 카피에서의 타이포 리듬",
+      "description": "다국어 환경에서 행간과 폰트 선택이 레이아웃 밀도에 미치는 영향을 정리한 글입니다.",
+      "tags": {
+        "designSystem": "디자인 시스템",
+        "i18n": "i18n",
+        "typography": "타이포그래피"
+      }
+    },
+    "svgr-turbopack": {
+      "title": "Webpack과 Turbopack에서 일관되게 SVGR 실행하기",
+      "description": "개발과 빌드 환경이 달라도 같은 SVG import 경험을 유지하는 설정 메모입니다.",
+      "tags": {
+        "buildTooling": "빌드 도구",
+        "nextjs": "Next.js",
+        "svg": "SVG"
+      }
+    },
+    "supabase-ssr-boundary": {
+      "title": "기능 작업 전에 Supabase SSR 경계 정리하기",
+      "description": "클라이언트, 서버, 미들웨어 책임을 어떻게 나눌지 먼저 정리한 구조 문서입니다.",
+      "tags": {
+        "architecture": "아키텍처",
+        "ssr": "SSR",
+        "supabase": "Supabase"
+      }
+    }
+  }
+}

@@ -1,26 +1,30 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
-export const HomeHeroScene = () => (
-  <section style={sectionStyle}>
-    <div style={copyStyle}>
-      <p style={eyebrowStyle}>Home</p>
-      <h1 style={titleStyle}>A single-page opening with room for motion.</h1>
-      <p style={descriptionStyle}>
-        첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를
-        염두에 둔 홈 컨테이너입니다.
-      </p>
-    </div>
-    <div aria-hidden="true" style={stageStyle}>
-      <span style={largeOrbStyle} />
-      <span style={smallOrbStyle} />
-    </div>
-  </section>
-);
+export const HomeHeroScene = () => {
+  const t = useTranslations('Home');
+
+  return (
+    <section style={sectionStyle}>
+      <div style={copyStyle}>
+        <p style={eyebrowStyle}>{t('eyebrow')}</p>
+        <h1 style={titleStyle}>{t('title')}</h1>
+        <p style={descriptionStyle}>{t('description')}</p>
+      </div>
+      <div aria-hidden="true" style={stageStyle}>
+        <span style={largeOrbStyle} />
+        <span style={smallOrbStyle} />
+      </div>
+    </section>
+  );
+};
 
 const sectionStyle: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(16rem, 24rem)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
   alignItems: 'center',
   gap: '1.5rem',
   minHeight: '32rem',
@@ -36,7 +40,7 @@ const eyebrowStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const titleStyle: CSSProperties = {
@@ -47,17 +51,17 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const stageStyle: CSSProperties = {
   position: 'relative',
   minHeight: '18rem',
   overflow: 'hidden',
-  borderRadius: '2rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
-    'radial-gradient(circle at top, rgb(var(--grayscale-1) / 0.88), transparent 45%), linear-gradient(180deg, rgb(var(--grayscale-1) / 0.86), rgb(var(--grayscale-1) / 0.56))',
+    'radial-gradient(circle at top, rgb(var(--color-primary) / 0.2), transparent 42%), linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)))',
 };
 
 const orbBaseStyle: CSSProperties = {
@@ -72,7 +76,7 @@ const largeOrbStyle: CSSProperties = {
   width: '12rem',
   height: '12rem',
   background:
-    'linear-gradient(135deg, rgb(var(--grayscale-5) / 0.78), rgb(var(--grayscale-1) / 0.2))',
+    'linear-gradient(135deg, rgb(var(--color-primary) / 0.78), rgb(var(--color-surface) / 0.18))',
 };
 
 const smallOrbStyle: CSSProperties = {
@@ -81,5 +85,5 @@ const smallOrbStyle: CSSProperties = {
   width: '7rem',
   height: '7rem',
   background:
-    'linear-gradient(135deg, rgb(var(--grayscale-7) / 0.55), rgb(var(--grayscale-1) / 0.18))',
+    'linear-gradient(135deg, rgb(var(--color-text) / 0.55), rgb(var(--color-surface) / 0.18))',
 };

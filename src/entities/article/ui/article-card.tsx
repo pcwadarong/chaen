@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { ArticleItem } from '@/entities/article/model/article-items';
@@ -7,30 +10,34 @@ type ArticleCardProps = {
 };
 
 /** 아티클 목록용 요약 카드를 렌더링합니다. */
-export const ArticleCard = ({ article }: ArticleCardProps) => (
-  <article style={cardStyle}>
-    <div style={tagsStyle}>
-      {article.tags.map(tag => (
-        <span key={tag} style={tagStyle}>
-          {tag}
-        </span>
-      ))}
-    </div>
-    <div style={bodyStyle}>
-      <h3 style={titleStyle}>{article.title}</h3>
-      <p style={descriptionStyle}>{article.description}</p>
-    </div>
-  </article>
-);
+export const ArticleCard = ({ article }: ArticleCardProps) => {
+  const t = useTranslations('ArticleItems');
+
+  return (
+    <article style={cardStyle}>
+      <div style={tagsStyle}>
+        {article.tags.map(tag => (
+          <span key={tag} style={tagStyle}>
+            {t(`${article.id}.tags.${tag}`)}
+          </span>
+        ))}
+      </div>
+      <div style={bodyStyle}>
+        <h3 style={titleStyle}>{t(`${article.id}.title`)}</h3>
+        <p style={descriptionStyle}>{t(`${article.id}.description`)}</p>
+      </div>
+    </article>
+  );
+};
 
 const cardStyle: CSSProperties = {
   display: 'grid',
   gap: '1rem',
   padding: '1.5rem',
-  borderRadius: '1.5rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
-    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
+    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
 };
 
 const tagsStyle: CSSProperties = {
@@ -44,13 +51,13 @@ const tagStyle: CSSProperties = {
   alignItems: 'center',
   minHeight: '2rem',
   padding: '0 0.75rem',
-  borderRadius: '999px',
-  backgroundColor: 'rgb(var(--grayscale-7) / 0.06)',
+  borderRadius: 'var(--radius-pill)',
+  backgroundColor: 'rgb(var(--color-text) / 0.06)',
   fontSize: '0.82rem',
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const bodyStyle: CSSProperties = {
@@ -65,5 +72,5 @@ const titleStyle: CSSProperties = {
 };
 
 const descriptionStyle: CSSProperties = {
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };
