@@ -1,6 +1,29 @@
 # chaen
 
-Next.js 기반 프로젝트 초기 세팅입니다.
+포트폴리오 + 기록용 블로그입니다.
+
+<br>
+
+## 🚀 시작하기
+
+### 1. 프로젝트 클론
+
+```bash
+git clone https://github.com/pcwadarong/chaen.git
+cd chaen
+```
+
+### 2. 환경 변수 설정
+
+```bash
+cp apps/frontend/.env.example apps/frontend/.env.development
+```
+
+### 3. 브라우저 실행
+
+`http://localhost:3000`
+
+<br>
 
 ## 🛠️ 기술 스택
 
@@ -33,10 +56,3 @@ Next.js 기반 프로젝트 초기 세팅입니다.
     <img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat&logo=vitest&logoColor=white">
     <img src="https://img.shields.io/badge/Commitizen-3B82F6?style=flat&logo=git&logoColor=white">
 </div>
-
-## 시작
-
-```bash
-pnpm install
-pnpm dev
-```

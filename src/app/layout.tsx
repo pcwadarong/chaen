@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
+
 import { d2Coding, pretendard, pretendardJp } from './fonts';
 
 import './globals.css';
@@ -22,7 +24,10 @@ export default function RootLayout({
       lang="ko"
       className={`${pretendard.variable} ${pretendardJp.variable} ${d2Coding.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <GlobalNav />
+        {children}
+      </body>
     </html>
   );
 }

@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
         ]
       : [],
   },
-  // 1. Webpack 설정 (Build 시 사용)
+  // Webpack (배포)
   webpack(config) {
     const fileLoaderRule = config.module.rules.find((rule: any) => rule.test?.test?.('.svg'));
 
@@ -34,14 +34,12 @@ const nextConfig: NextConfig = {
     fileLoaderRule.exclude = /\.svg$/i;
     return config;
   },
-  // 2. Turbopack 설정 (next dev --turbo 시 사용)
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  // Turbopack (개발)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
