@@ -27,10 +27,10 @@ const cardStyle: CSSProperties = {
   display: 'grid',
   gap: '1rem',
   padding: '1.5rem',
-  borderRadius: '1.5rem',
-  border: '1px solid rgb(var(--grayscale-7) / 0.08)',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
-    'linear-gradient(180deg, rgb(var(--grayscale-1) / 0.88), rgb(var(--grayscale-1) / 0.56)), rgb(var(--grayscale-1) / 0.7)',
+    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
 };
 
 const tagsStyle: CSSProperties = {
@@ -44,13 +44,13 @@ const tagStyle: CSSProperties = {
   alignItems: 'center',
   minHeight: '2rem',
   padding: '0 0.75rem',
-  borderRadius: '999px',
-  backgroundColor: 'rgb(var(--grayscale-7) / 0.06)',
+  borderRadius: 'var(--radius-pill)',
+  backgroundColor: 'rgb(var(--color-text) / 0.06)',
   fontSize: '0.82rem',
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: 'rgb(var(--grayscale-7) / 0.56)',
+  color: 'rgb(var(--color-muted))',
 };
 
 const bodyStyle: CSSProperties = {
@@ -65,5 +65,5 @@ const titleStyle: CSSProperties = {
 };
 
 const descriptionStyle: CSSProperties = {
-  color: 'rgb(var(--grayscale-7) / 0.72)',
+  color: 'rgb(var(--color-muted))',
 };

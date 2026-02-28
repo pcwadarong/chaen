@@ -1,11 +1,4 @@
 :root {
-  --grayscale-1: 255 255 255;
-  --grayscale-2: 248 248 248;
-  --grayscale-3: 234 234 234;
-  --grayscale-4: 204 204 204;
-  --grayscale-5: 148 148 148;
-  --grayscale-6: 56 57 61;
-  --grayscale-7: 1 11 19;
   --font-sans:
     var(--font-pretendard), -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
     'Noto Sans KR', 'Segoe UI', sans-serif;
@@ -14,8 +7,33 @@
   --font-sans-ja:
     var(--font-pretendard-jp), var(--font-pretendard), -apple-system, BlinkMacSystemFont,
     'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
-  --color-bg: rgb(var(--grayscale-2));
-  --color-fg: rgb(var(--grayscale-7));
+  --color-bg: 246 247 249;
+  --color-surface: 255 255 255;
+  --color-surface-muted: 236 239 243;
+  --color-surface-strong: 228 232 238;
+  --color-text: 12 18 28;
+  --color-muted: 91 102 117;
+  --color-border: 122 133 148;
+  --color-primary: 59 130 246;
+  --color-primary-contrast: 255 255 255;
+  --radius-sm: 0.85rem;
+  --radius-md: 1.2rem;
+  --radius-lg: 1.65rem;
+  --radius-pill: 999px;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --color-bg: 10 14 22;
+  --color-surface: 17 24 39;
+  --color-surface-muted: 23 33 51;
+  --color-surface-strong: 30 41 59;
+  --color-text: 241 245 249;
+  --color-muted: 156 163 175;
+  --color-border: 100 116 139;
+  --color-primary: 96 165 250;
+  --color-primary-contrast: 10 14 22;
+  color-scheme: dark;
 }
 
 *,
@@ -38,8 +56,10 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background:
+    radial-gradient(circle at top right, rgb(var(--color-primary) / 0.12), transparent 26%),
+    linear-gradient(180deg, rgb(var(--color-bg)), rgb(var(--color-bg)));
+  color: rgb(var(--color-text));
   font-family: var(--font-sans);
   line-height: 1.5;
   text-rendering: optimizeLegibility;
@@ -55,7 +75,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  color: rgb(var(--grayscale-7) / 0.56);
+  color: rgb(var(--color-muted));
   font-size: 0.92rem;
 }
 
@@ -64,8 +84,8 @@ body {
   align-items: center;
   min-height: 2rem;
   padding: 0 0.75rem;
-  border-radius: 999px;
-  background: rgb(var(--grayscale-7) / 0.06);
+  border-radius: var(--radius-pill);
+  background: rgb(var(--color-text) / 0.06);
 }
 
 .project-card {
@@ -80,14 +100,14 @@ body {
   min-height: 2.75rem;
   width: fit-content;
   padding: 0 1rem;
-  border: 1px solid rgb(var(--grayscale-7) / 0.12);
-  border-radius: 999px;
-  background: rgb(var(--grayscale-1) / 0.9);
+  border: 1px solid rgb(var(--color-border) / 0.3);
+  border-radius: var(--radius-pill);
+  background: rgb(var(--color-surface) / 0.9);
 }
 
 .project-card__link:hover {
-  background: rgb(var(--grayscale-7));
-  color: rgb(var(--grayscale-1));
+  background: rgb(var(--color-text));
+  color: rgb(var(--color-bg));
 }
 
 .contact-strip {
@@ -99,14 +119,14 @@ body {
   inset: 22% auto auto 18%;
   width: 7rem;
   height: 7rem;
-  background: rgb(var(--grayscale-5) / 0.35);
+  background: rgb(var(--color-primary) / 0.32);
 }
 
 .contact-strip__pulse--delayed {
   inset: auto 16% 18% auto;
   width: 4.5rem;
   height: 4.5rem;
-  background: rgb(var(--grayscale-7) / 0.18);
+  background: rgb(var(--color-text) / 0.16);
 }
 
 h1,
@@ -159,6 +179,11 @@ button {
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 img,
