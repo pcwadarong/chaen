@@ -5,7 +5,11 @@
     "brand": "chaen",
     "guest": "Guest",
     "home": "Home",
+    "resume": "Resume",
     "work": "Work"
+  },
+  "Resume": {
+    "title": "Hello, I am Park Chaewon."
   },
   "Home": {
     "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",

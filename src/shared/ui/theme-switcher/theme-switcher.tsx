@@ -10,7 +10,7 @@ import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 const themeOptions = ['system', 'light', 'dark'] as const;
 
 /**
- * 전역 테마를 전환하는 세그먼트형 스위처입니다.
+ * 전역 테마를 전환하는 팝오버형 스위처입니다.
  */
 export const ThemeSwitcher = () => {
   const t = useTranslations('Switchers.theme');

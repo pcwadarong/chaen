@@ -5,7 +5,11 @@
     "brand": "chaen",
     "guest": "방명록",
     "home": "홈",
+    "resume": "이력",
     "work": "작업"
+  },
+  "Resume": {
+    "title": "안녕하세요 박채원입니다."
   },
   "Home": {
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",

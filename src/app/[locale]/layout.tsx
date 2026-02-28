@@ -34,9 +34,7 @@ type LocaleLayoutProps = Readonly<{
 const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
   const { locale } = await params;
 
-  if (!locale || !isValidLocale(locale)) {
-    notFound();
-  }
+  if (!locale || !isValidLocale(locale)) notFound();
 
   setRequestLocale(locale);
 

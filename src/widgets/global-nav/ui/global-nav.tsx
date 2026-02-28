@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
+import { Suspense } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
@@ -13,6 +14,7 @@ export const GlobalNav = () => {
 
   const navigationItems = [
     { href: '/', label: t('home') },
+    { href: '/resume', label: t('resume') },
     { href: '/guest', label: t('guest') },
     { href: '/blog', label: t('blog') },
     { href: '/work', label: t('work') },
@@ -37,7 +39,9 @@ export const GlobalNav = () => {
             </ul>
           </nav>
           <div style={controlsStyle}>
-            <LocaleSwitcher />
+            <Suspense fallback={<span style={switcherFallbackStyle} />}>
+              <LocaleSwitcher />
+            </Suspense>
             <ThemeSwitcher />
           </div>
         </div>
@@ -111,4 +115,13 @@ const controlsStyle: CSSProperties = {
   justifyContent: 'flex-end',
   gap: '0.65rem',
   flexWrap: 'wrap',
+};
+
+const switcherFallbackStyle: CSSProperties = {
+  display: 'inline-flex',
+  width: '8.5rem',
+  minHeight: '2.5rem',
+  borderRadius: 'var(--radius-pill)',
+  border: '1px solid rgb(var(--color-border) / 0.18)',
+  backgroundColor: 'rgb(var(--color-surface) / 0.5)',
 };

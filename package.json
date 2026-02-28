@@ -8,7 +8,7 @@
     "start": "next start",
     "commit": "cz",
     "lint": "eslint .",
-    "check-types": "tsc --noEmit",
+    "check-types": "next typegen && tsc --noEmit",
     "typecheck": "pnpm run check-types",
     "format": "prettier --check .",
     "format:write": "prettier --write .",

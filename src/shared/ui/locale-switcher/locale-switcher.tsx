@@ -10,7 +10,7 @@ import { type AppLocale, routing } from '@/i18n/routing';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 
 /**
- * 현재 경로를 유지한 채 locale을 전환하는 세그먼트형 스위처입니다.
+ * 현재 경로를 유지한 채 locale을 전환하는 팝오버형 스위처입니다.
  */
 export const LocaleSwitcher = () => {
   const t = useTranslations('Switchers.locale');
