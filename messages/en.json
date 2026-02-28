@@ -12,11 +12,8 @@
     "title": "Hello, I am Park Chaewon."
   },
   "Home": {
-    "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
-    "eyebrow": "Home",
     "showcaseDescription": "The home route previews a few selected cards first, while the full collection can live on the work archive page.",
-    "showcaseTitle": "Selected projects",
-    "title": "An opening frame with room for motion."
+    "showcaseTitle": "Selected projects"
   },
   "Guest": {
     "description": "Guestbook input will move into a modal feature later. For now, this page focuses on the public intro and reading experience.",

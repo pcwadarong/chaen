@@ -12,11 +12,8 @@
     "title": "안녕하세요 박채원입니다."
   },
   "Home": {
-    "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
-    "eyebrow": "홈",
     "showcaseDescription": "홈에서는 일부 프로젝트 카드만 먼저 노출하고, 이후 전체 목록은 work 리스트 페이지로 분리할 수 있습니다.",
-    "showcaseTitle": "선별 프로젝트",
-    "title": "모션을 담아낼 수 있는 첫 화면 구조."
+    "showcaseTitle": "선별 프로젝트"
   },
   "Guest": {
     "description": "방명록 입력은 이후 모달 feature로 분리하고, 현재 페이지는 공개 소개와 읽기 경험 중심으로 둡니다.",
