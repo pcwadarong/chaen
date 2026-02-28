@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "🔧 Running pnpm exec lint-staged..."
+pnpm exec lint-staged
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Format failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ Format passed. Commit allowed."
+exit 0
