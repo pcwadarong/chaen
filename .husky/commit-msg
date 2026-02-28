@@ -1,0 +1,15 @@
+#!/bin/sh
+
+commit_msg=$(cat "$1")
+
+case "$commit_msg" in
+  "✨ feat:"*|"🐛 fix:"*|"♻️ refactor:"*|"💄 style:"*|"📝 docs:"*|"🔧 chore:"*|"🔥 remove:"*|"🧪 test:"*|"⚙️ ci:"*|"🧹 lint:"*|"Merge"*)
+    exit 0
+    ;;
+  *)
+    echo "❌ 커밋 메시지가 허용된 유형으로 시작하지 않습니다."
+    echo "허용된 유형: ✨ feat:, 🐛 fix:, ♻️ refactor:, 💄 style:, 📝 docs:, 🔧 chore:, 🔥 remove:, 🧪 test:, ⚙️ ci:, 🧹 lint:, Merge"
+    echo "예시: ✨ feat: 로그인 완성"
+    exit 1
+    ;;
+esac

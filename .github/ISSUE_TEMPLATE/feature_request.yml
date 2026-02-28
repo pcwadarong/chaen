@@ -1,0 +1,39 @@
+name: Feature Request
+description: 새로운 기능 제안 템플릿
+title: "[Feature] "
+labels:
+  - feature
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 📝 작업 내용
+      description: 어떤 기능이 필요한지 구체적으로 작성해주세요.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-solving
+    attributes:
+      label: 🚨 주요 고민 및 해결 과정
+      description: 예상 문제와 해결 방향을 작성해주세요.
+      placeholder: |
+        ### 문제
+
+        ### 해결 과정
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 📑 참고 문서/ ADR
+      description: 참고 문서 링크가 있다면 입력해주세요.
+      placeholder: |
+        - https://...
+    validations:
+      required: false

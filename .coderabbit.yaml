@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: 'ko-KR'
+tone_instructions: |
+  1. 리뷰 시에는 가능하면 공식 문서나 참고자료를 첨부해서 설명할 것
+  2. 피드백은 반드시 구체적이고 명확하게 작성할 것
+early_access: false
+reviews:
+  profile: 'chill'
+  request_changes_workflow: false
+  high_level_summary: true
+  changed_files_summary: true
+  review_status: true
+  poem: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+chat:
+  auto_reply: true
