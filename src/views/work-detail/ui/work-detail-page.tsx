@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
@@ -10,22 +12,23 @@ type WorkDetailPageProps = {
 /** 프로젝트 상세 페이지 컨테이너입니다. */
 export const WorkDetailPage = ({ item }: WorkDetailPageProps) => {
   const t = useTranslations('Work');
+  const projectT = useTranslations('ProjectItems');
 
   return (
     <main style={pageStyle}>
       <section style={heroStyle}>
         <div style={metaStyle}>
-          <span>{item.category}</span>
+          <span>{projectT(`${item.id}.category`)}</span>
           <span>{item.year}</span>
         </div>
-        <h1 style={titleStyle}>{item.headline}</h1>
-        <p style={descriptionStyle}>{item.summary}</p>
+        <h1 style={titleStyle}>{projectT(`${item.id}.headline`)}</h1>
+        <p style={descriptionStyle}>{projectT(`${item.id}.summary`)}</p>
       </section>
       <section style={panelStyle}>
         <h2 style={sectionTitleStyle}>{t('deliverables')}</h2>
         <ul style={listStyle}>
-          {item.deliverables.map(deliverable => (
-            <li key={deliverable}>{deliverable}</li>
+          {item.deliverableKeys.map(deliverableKey => (
+            <li key={deliverableKey}>{projectT(`${item.id}.deliverables.${deliverableKey}`)}</li>
           ))}
         </ul>
       </section>

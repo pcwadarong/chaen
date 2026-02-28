@@ -54,5 +54,66 @@
       "light": "Clair",
       "system": "Système"
     }
+  },
+  "ProjectItems": {
+    "motion-library": {
+      "category": "Design engineering",
+      "headline": "Bibliothèque de composants orientée motion",
+      "summary": "Projet qui a structuré des motion tokens et des règles UI pour rendre les interactions de marque réutilisables au niveau composant.",
+      "deliverables": {
+        "interactionSpec": "Spécification d'interaction",
+        "motionTokens": "Motion tokens",
+        "storybookFoundation": "Base Storybook"
+      }
+    },
+    "supabase-editorial": {
+      "category": "Fullstack",
+      "headline": "Plateforme éditoriale avec Supabase",
+      "summary": "Projet qui a conçu un flux d'écriture et de publication avec Supabase et clarifié les frontières SSR pour l'App Router.",
+      "deliverables": {
+        "authFlow": "Flux d'authentification",
+        "publishingDashboard": "Tableau de publication",
+        "storageStrategy": "Stratégie de stockage"
+      }
+    },
+    "guest-campaign": {
+      "category": "Growth",
+      "headline": "Site de campagne d'onboarding invité",
+      "summary": "Expérience de landing et parcours de conversion conçus pour amener naturellement le trafic publicitaire vers l'expérience produit.",
+      "deliverables": {
+        "analyticsHooks": "Hooks analytics",
+        "ctaExperiment": "Expérience CTA",
+        "landingNarrative": "Narratif de landing"
+      }
+    }
+  },
+  "ArticleItems": {
+    "typography-rhythm": {
+      "title": "Rythme typographique entre les copies coréennes et japonaises",
+      "description": "Note sur l'impact de l'interlignage et du choix de police sur la densité d'interface en contexte multilingue.",
+      "tags": {
+        "designSystem": "Design system",
+        "i18n": "i18n",
+        "typography": "Typographie"
+      }
+    },
+    "svgr-turbopack": {
+      "title": "Faire tourner SVGR de manière cohérente dans Webpack et Turbopack",
+      "description": "Notes de configuration pour garder la même expérience d'import SVG entre les outils de développement et de build.",
+      "tags": {
+        "buildTooling": "Outillage build",
+        "nextjs": "Next.js",
+        "svg": "SVG"
+      }
+    },
+    "supabase-ssr-boundary": {
+      "title": "Cartographier les frontières SSR de Supabase avant les features",
+      "description": "Mémo de structure qui définit d'abord comment répartir les responsabilités client, serveur et middleware.",
+      "tags": {
+        "architecture": "Architecture",
+        "ssr": "SSR",
+        "supabase": "Supabase"
+      }
+    }
   }
 }

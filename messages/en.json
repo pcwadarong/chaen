@@ -54,5 +54,66 @@
       "light": "Light",
       "system": "System"
     }
+  },
+  "ProjectItems": {
+    "motion-library": {
+      "category": "Design Engineering",
+      "headline": "Motion-first component library",
+      "summary": "A project that organized motion tokens and UI rules so brand interactions can be reused at the component level.",
+      "deliverables": {
+        "interactionSpec": "Interaction spec",
+        "motionTokens": "Motion tokens",
+        "storybookFoundation": "Storybook foundation"
+      }
+    },
+    "supabase-editorial": {
+      "category": "Fullstack",
+      "headline": "Editorial platform with Supabase",
+      "summary": "A project that mapped a Supabase-based writing and publishing flow and clarified SSR boundaries for the App Router.",
+      "deliverables": {
+        "authFlow": "Auth flow",
+        "publishingDashboard": "Publishing dashboard",
+        "storageStrategy": "Storage strategy"
+      }
+    },
+    "guest-campaign": {
+      "category": "Growth",
+      "headline": "Guest onboarding campaign site",
+      "summary": "A landing and conversion flow designed to move paid traffic smoothly into the product experience.",
+      "deliverables": {
+        "analyticsHooks": "Analytics hooks",
+        "ctaExperiment": "CTA experiment",
+        "landingNarrative": "Landing narrative"
+      }
+    }
+  },
+  "ArticleItems": {
+    "typography-rhythm": {
+      "title": "Typography rhythm across Korean and Japanese copy",
+      "description": "Notes on how line-height and font choice affect layout density in multilingual interfaces.",
+      "tags": {
+        "designSystem": "Design system",
+        "i18n": "i18n",
+        "typography": "Typography"
+      }
+    },
+    "svgr-turbopack": {
+      "title": "Running SVGR consistently in Webpack and Turbopack",
+      "description": "Configuration notes for keeping the same SVG import experience across development and production tooling.",
+      "tags": {
+        "buildTooling": "Build tooling",
+        "nextjs": "Next.js",
+        "svg": "SVG"
+      }
+    },
+    "supabase-ssr-boundary": {
+      "title": "Mapping Supabase SSR boundaries before feature work",
+      "description": "A structure memo that defines how client, server and middleware responsibilities should be split first.",
+      "tags": {
+        "architecture": "Architecture",
+        "ssr": "SSR",
+        "supabase": "Supabase"
+      }
+    }
   }
 }

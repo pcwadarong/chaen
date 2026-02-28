@@ -5,6 +5,9 @@ import { defineRouting } from 'next-intl/routing';
  */
 export const locales = ['ko', 'en', 'ja', 'fr'] as const;
 
+/** locale 유지에 사용하는 쿠키 이름입니다. */
+export const localeCookieName = 'NEXT_LOCALE';
+
 /** 앱 전체에서 사용하는 locale 타입입니다. */
 export type AppLocale = (typeof locales)[number];
 
@@ -14,6 +17,10 @@ export const defaultLocale: AppLocale = 'ko';
 /** next-intl 라우팅 설정입니다. */
 export const routing = defineRouting({
   defaultLocale,
+  localeCookie: {
+    maxAge: 60 * 60 * 24 * 365,
+    name: localeCookieName,
+  },
   localePrefix: 'always',
   locales,
 });

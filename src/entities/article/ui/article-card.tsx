@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { ArticleItem } from '@/entities/article/model/article-items';
@@ -7,21 +10,25 @@ type ArticleCardProps = {
 };
 
 /** 아티클 목록용 요약 카드를 렌더링합니다. */
-export const ArticleCard = ({ article }: ArticleCardProps) => (
-  <article style={cardStyle}>
-    <div style={tagsStyle}>
-      {article.tags.map(tag => (
-        <span key={tag} style={tagStyle}>
-          {tag}
-        </span>
-      ))}
-    </div>
-    <div style={bodyStyle}>
-      <h3 style={titleStyle}>{article.title}</h3>
-      <p style={descriptionStyle}>{article.description}</p>
-    </div>
-  </article>
-);
+export const ArticleCard = ({ article }: ArticleCardProps) => {
+  const t = useTranslations('ArticleItems');
+
+  return (
+    <article style={cardStyle}>
+      <div style={tagsStyle}>
+        {article.tags.map(tag => (
+          <span key={tag} style={tagStyle}>
+            {t(`${article.id}.tags.${tag}`)}
+          </span>
+        ))}
+      </div>
+      <div style={bodyStyle}>
+        <h3 style={titleStyle}>{t(`${article.id}.title`)}</h3>
+        <p style={descriptionStyle}>{t(`${article.id}.description`)}</p>
+      </div>
+    </article>
+  );
+};
 
 const cardStyle: CSSProperties = {
   display: 'grid',

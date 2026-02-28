@@ -8,10 +8,6 @@ import { isValidLocale, routing } from '@/i18n/routing';
 import { ThemeProvider } from '@/shared/providers';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
-import { d2Coding, pretendard, pretendardJp } from '../fonts';
-
-import '../globals.css';
-
 export const metadata: Metadata = {
   title: {
     default: 'chaen',
@@ -47,20 +43,14 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
   const messages = await getMessages({ locale });
 
   return (
-    <html
-      className={`${pretendard.variable} ${pretendardJp.variable} ${d2Coding.variable}`}
-      lang={locale}
-      suppressHydrationWarning
-    >
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider>
-            <GlobalNav />
-            {children}
-          </ThemeProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeProvider>
+        <div lang={locale}>
+          <GlobalNav />
+          {children}
+        </div>
+      </ThemeProvider>
+    </NextIntlClientProvider>
   );
 };
 

@@ -56,9 +56,7 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background:
-    radial-gradient(circle at top right, rgb(var(--color-primary) / 0.12), transparent 26%),
-    linear-gradient(180deg, rgb(var(--color-bg)), rgb(var(--color-bg)));
+  background: rgb(var(--color-bg));
   color: rgb(var(--color-text));
   font-family: var(--font-sans);
   line-height: 1.5;

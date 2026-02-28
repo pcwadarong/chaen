@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
@@ -11,16 +13,17 @@ type ProjectCardProps = {
 /** 프로젝트 요약 카드를 렌더링합니다. */
 export const ProjectCard = ({ item }: ProjectCardProps) => {
   const t = useTranslations('Work');
+  const projectT = useTranslations('ProjectItems');
 
   return (
     <article style={cardStyle}>
       <div style={metaStyle}>
-        <span>{item.category}</span>
+        <span>{projectT(`${item.id}.category`)}</span>
         <span>{item.year}</span>
       </div>
       <div style={bodyStyle}>
-        <h3 style={titleStyle}>{item.headline}</h3>
-        <p style={summaryStyle}>{item.summary}</p>
+        <h3 style={titleStyle}>{projectT(`${item.id}.headline`)}</h3>
+        <p style={summaryStyle}>{projectT(`${item.id}.summary`)}</p>
       </div>
       <Link href={`/work/${item.id}`} style={cardLinkStyle}>
         {t('viewProject')}
