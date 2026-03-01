@@ -24,9 +24,9 @@ export const homeHeroCameraMotion: HomeHeroCameraMotion = {
   finalCameraOffset: [0, 0.24, 2.2],
   initialRotationY: 0,
   finalRotationY: Math.PI,
-  canvasFadeStart: 0.9,
+  canvasFadeStart: 0.94,
   interactiveThreshold: 0.98,
-  webUiFadeStart: 0.96,
+  webUiFadeStart: 0.985,
   scrub: 1.2,
-  end: '+=220%',
+  end: '+=190%',
 };

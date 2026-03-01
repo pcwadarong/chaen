@@ -10,5 +10,5 @@ export type HomeHeroWebUiLayout = {
 export const homeHeroWebUiLayout: HomeHeroWebUiLayout = {
   containerWidth: 'min(1120px, calc(100% - 2rem))',
   overlayPadding: 'clamp(1rem, 3vw, 2rem)',
-  showcaseOverlap: 'clamp(18rem, 34vh, 24rem)',
+  showcaseOverlap: 'clamp(2.5rem, 6vh, 4rem)',
 };

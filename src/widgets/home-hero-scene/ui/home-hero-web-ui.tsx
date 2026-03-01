@@ -17,7 +17,9 @@ type HomeHeroWebUiProps = {
 export const HomeHeroWebUi = ({ description, items, title, wrapperRef }: HomeHeroWebUiProps) => (
   <div id="web-ui" ref={wrapperRef} style={wrapperStyle}>
     <div style={gridBridgeStyle}>
-      <ProjectShowcase description={description} hideHeader items={items} title={title} />
+      <div style={contentStyle}>
+        <ProjectShowcase description={description} hideHeader items={items} title={title} />
+      </div>
     </div>
   </div>
 );
@@ -27,16 +29,22 @@ const wrapperStyle: CSSProperties = {
   inset: 0,
   zIndex: 2,
   display: 'flex',
-  alignItems: 'flex-end',
+  alignItems: 'stretch',
   justifyContent: 'center',
-  padding: homeHeroWebUiLayout.overlayPadding,
+  padding: 'clamp(4.5rem, 8vh, 6rem) 0 clamp(2rem, 5vh, 3rem)',
   opacity: 0,
   pointerEvents: 'none',
   willChange: 'opacity, transform',
 };
 
 const gridBridgeStyle: CSSProperties = {
+  width: '100%',
+  minHeight: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const contentStyle: CSSProperties = {
   width: homeHeroWebUiLayout.containerWidth,
-  display: 'grid',
-  paddingBottom: 'clamp(0rem, 1vh, 0.5rem)',
 };

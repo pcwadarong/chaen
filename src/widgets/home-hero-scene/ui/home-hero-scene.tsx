@@ -31,7 +31,8 @@ export const HomeHeroScene = ({ description, items, title, triggerRef }: HomeHer
 const sectionStyle: CSSProperties = {
   position: 'relative',
   width: '100vw',
-  minHeight: 'clamp(42rem, 88vh, 58rem)',
+  minHeight: '100svh',
+  height: '100svh',
   marginInline: 'calc(50% - 50vw)',
   overflow: 'clip',
   isolation: 'isolate',

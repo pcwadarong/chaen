@@ -1,8 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
-import { Suspense } from 'react';
+import { type CSSProperties, Suspense, useEffect, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
@@ -11,6 +10,9 @@ import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
+  const [isHidden, setIsHidden] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
 
   const navigationItems = [
     { href: '/', label: t('home') },
@@ -20,8 +22,45 @@ export const GlobalNav = () => {
     { href: '/work', label: t('work') },
   ] as const;
 
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+
+    const updateByDirection = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollYRef.current;
+      const nearTop = currentScrollY <= 8;
+
+      if (nearTop) {
+        setIsHidden(false);
+      } else if (delta >= 6) {
+        setIsHidden(true);
+      } else if (delta <= -6) {
+        setIsHidden(false);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+      rafIdRef.current = null;
+    };
+
+    const onScroll = () => {
+      if (rafIdRef.current !== null) {
+        return;
+      }
+
+      rafIdRef.current = window.requestAnimationFrame(updateByDirection);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafIdRef.current !== null) {
+        window.cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <header style={headerStyle}>
+    <header style={{ ...headerStyle, ...(isHidden ? hiddenHeaderStyle : visibleHeaderStyle) }}>
       <div style={innerStyle}>
         <Link href="/" style={brandLinkStyle}>
           {t('brand')}
@@ -57,6 +96,18 @@ const headerStyle: CSSProperties = {
   backdropFilter: 'blur(14px)',
   backgroundColor: 'rgb(var(--color-bg) / 0.78)',
   borderBottom: '1px solid rgb(var(--color-border) / 0.2)',
+  willChange: 'transform, opacity',
+  transition: 'transform 240ms ease, opacity 240ms ease',
+};
+
+const visibleHeaderStyle: CSSProperties = {
+  transform: 'translateY(0)',
+  opacity: 1,
+};
+
+const hiddenHeaderStyle: CSSProperties = {
+  transform: 'translateY(calc(-100% - 0.5rem))',
+  opacity: 0,
 };
 
 const innerStyle: CSSProperties = {
