@@ -9,20 +9,33 @@ export const ContactStrip = () => {
 
   return (
     <section style={sectionStyle}>
-      <div style={copyStyle}>
-        <p style={eyebrowStyle}>{t('eyebrow')}</p>
-        <h2 style={titleStyle}>{t('title')}</h2>
-        <p style={descriptionStyle}>{t('description')}</p>
-      </div>
-      <div aria-hidden="true" style={motionStyle}>
-        <span style={pulseStyle} />
-        <span style={pulseDelayedStyle} />
+      <div style={innerStyle}>
+        <div style={copyStyle}>
+          <p style={eyebrowStyle}>{t('eyebrow')}</p>
+          <h2 style={titleStyle}>{t('title')}</h2>
+          <p style={descriptionStyle}>{t('description')}</p>
+        </div>
+        <div aria-hidden="true" style={motionStyle}>
+          <span style={pulseStyle} />
+          <span style={pulseDelayedStyle} />
+        </div>
       </div>
     </section>
   );
 };
 
 const sectionStyle: CSSProperties = {
+  width: '100vw',
+  minHeight: '100svh',
+  marginInline: 'calc(50% - 50vw)',
+  display: 'flex',
+  alignItems: 'center',
+  padding: 'clamp(2rem, 5vh, 3rem) 0',
+};
+
+const innerStyle: CSSProperties = {
+  width: 'min(1120px, calc(100% - 2rem))',
+  margin: '0 auto',
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
   alignItems: 'center',

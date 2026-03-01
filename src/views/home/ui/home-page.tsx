@@ -6,18 +6,17 @@ import type { CSSProperties } from 'react';
 import { projectItems } from '@/entities/project/model/project-items';
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
 import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
-import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 /** 홈 화면의 실제 페이지 컨테이너입니다. */
 export const HomePage = () => {
   const t = useTranslations('Home');
+  const featuredItems = projectItems.slice(0, 3);
 
   return (
     <main style={pageStyle}>
-      <HomeHeroScene />
-      <ProjectShowcase
+      <HomeHeroScene
         description={t('showcaseDescription')}
-        items={projectItems.slice(0, 3)}
+        items={featuredItems}
         title={t('showcaseTitle')}
       />
       <ContactStrip />
@@ -26,9 +25,7 @@ export const HomePage = () => {
 };
 
 const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
+  width: '100%',
   display: 'grid',
-  gap: '2rem',
+  gap: '0',
 };

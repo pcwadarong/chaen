@@ -5,17 +5,25 @@ import { ProjectCard } from '@/entities/project/ui/project-card';
 
 type ProjectShowcaseProps = {
   description: string;
+  hideHeader?: boolean;
   items: ProjectItem[];
   title: string;
 };
 
 /** 프로젝트 카드 묶음을 노출하는 위젯입니다. */
-export const ProjectShowcase = ({ description, items, title }: ProjectShowcaseProps) => (
+export const ProjectShowcase = ({
+  description,
+  hideHeader = false,
+  items,
+  title,
+}: ProjectShowcaseProps) => (
   <section style={sectionStyle}>
-    <div style={headerStyle}>
-      <h2 style={titleStyle}>{title}</h2>
-      <p style={descriptionStyle}>{description}</p>
-    </div>
+    {hideHeader ? null : (
+      <div style={headerStyle}>
+        <h2 style={titleStyle}>{title}</h2>
+        <p style={descriptionStyle}>{description}</p>
+      </div>
+    )}
     <div style={gridStyle}>
       {items.map(item => (
         <ProjectCard item={item} key={item.id} />
@@ -26,7 +34,7 @@ export const ProjectShowcase = ({ description, items, title }: ProjectShowcasePr
 
 const sectionStyle: CSSProperties = {
   display: 'grid',
-  gap: '1.25rem',
+  gap: '1rem',
 };
 
 const headerStyle: CSSProperties = {

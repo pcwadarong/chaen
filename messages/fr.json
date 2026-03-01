@@ -12,11 +12,8 @@
     "title": "Bonjour, je suis Chaewon Park."
   },
   "Home": {
-    "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
-    "eyebrow": "Accueil",
     "showcaseDescription": "La page d'accueil affiche d'abord quelques cartes sélectionnées, tandis que la collection complète peut vivre sur la page work.",
-    "showcaseTitle": "Projets sélectionnés",
-    "title": "Une ouverture pensée pour accueillir du mouvement."
+    "showcaseTitle": "Projets sélectionnés"
   },
   "Guest": {
     "description": "La saisie du livre d'or sera déplacée plus tard dans une feature modale. Pour l'instant, la page se concentre sur la présentation publique et la lecture.",
