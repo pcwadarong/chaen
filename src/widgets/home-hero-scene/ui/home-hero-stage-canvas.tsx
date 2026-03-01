@@ -2,12 +2,27 @@
 
 import { ContactShadows, Float, RoundedBox } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import type { RefObject } from 'react';
+
+import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
+
+type HomeHeroStageCanvasProps = {
+  readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiRef: RefObject<HTMLDivElement | null>;
+};
 
 /**
  * 홈 히어로 영역의 정적 3D 스테이지를 구성합니다.
  */
-export const HomeHeroStageCanvas = () => (
-  <Canvas camera={cameraSettings} dpr={[1, 1.75]} gl={{ alpha: false, antialias: true }}>
+export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanvasProps) => (
+  <Canvas
+    camera={cameraSettings}
+    dpr={[1, 1.75]}
+    gl={{ alpha: false, antialias: true }}
+    onCreated={({ gl }) => {
+      gl.domElement.id = 'three-canvas';
+    }}
+  >
     <color args={[sceneColors.background]} attach="background" />
     <fog args={[sceneColors.fog, 12, 28]} attach="fog" />
     <ambientLight color={sceneColors.ambientLight} intensity={1.25} />
@@ -21,9 +36,29 @@ export const HomeHeroStageCanvas = () => (
       shadow-mapSize-width={1024}
     />
     <directionalLight color={sceneColors.fillLight} intensity={0.8} position={[-7.4, 4.8, -5.4]} />
+    <HomeHeroCameraRig triggerRef={triggerRef} webUiRef={webUiRef} />
     <HomeHeroSceneObjects />
   </Canvas>
 );
+
+/**
+ * 스크롤 진행도에 따라 기본 카메라를 모니터 포커스 시점으로 이동시키는 리그입니다.
+ */
+const HomeHeroCameraRig = ({
+  triggerRef,
+  webUiRef,
+}: {
+  readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiRef: RefObject<HTMLDivElement | null>;
+}) => {
+  const { pivotRef, cameraMountRef } = useHomeHeroSceneTransition({ triggerRef, webUiRef });
+
+  return (
+    <group ref={pivotRef}>
+      <group ref={cameraMountRef} />
+    </group>
+  );
+};
 
 /**
  * 배경, 좌우 박스, 중앙 플랫폼, 노트북 오브젝트를 포함한 스테이지 구성을 렌더링합니다.
@@ -48,25 +83,34 @@ const HomeHeroSceneObjects = () => (
     </RoundedBox>
 
     <Float floatIntensity={0.22} rotationIntensity={0.08} speed={1.15}>
-      <group position={[0.1, 3.65, 1.45]} rotation={[-0.16, 0, 0]}>
-        <group position={[0, 0.5, 0]} rotation={[1.5, 0, 0]}>
-          <RoundedBox args={[2.7, 0.12, 1.7]} castShadow radius={0.08} smoothness={4}>
-            <meshStandardMaterial
-              color={sceneColors.monitorFrame}
-              metalness={0.24}
-              roughness={0.38}
-            />
-          </RoundedBox>
-          <RoundedBox args={[2.42, 0.04, 1.42]} position={[0, 0.05, 0.02]} radius={0.05}>
-            <meshStandardMaterial
-              color={sceneColors.monitorScreen}
-              emissive={sceneColors.accent}
-              emissiveIntensity={0.12}
-              metalness={0.04}
-              roughness={0.2}
-            />
-          </RoundedBox>
-        </group>
+      <group position={[0.1, 3.65, 1.45]} rotation={[-0.04, Math.PI, 0]}>
+        <RoundedBox args={[2.9, 1.8, 0.16]} castShadow radius={0.1} smoothness={4}>
+          <meshStandardMaterial
+            color={sceneColors.monitorFrame}
+            metalness={0.24}
+            roughness={0.34}
+          />
+        </RoundedBox>
+        <RoundedBox args={[2.52, 1.42, 0.04]} position={[0, 0.02, 0.1]} radius={0.06}>
+          <meshStandardMaterial
+            color={sceneColors.monitorScreen}
+            emissive={sceneColors.accent}
+            emissiveIntensity={0.18}
+            metalness={0.04}
+            roughness={0.16}
+          />
+        </RoundedBox>
+        <RoundedBox args={[0.34, 1.1, 0.2]} position={[0, -1.18, 0]} radius={0.08} smoothness={4}>
+          <meshStandardMaterial color={sceneColors.monitorFrame} roughness={0.48} />
+        </RoundedBox>
+        <RoundedBox
+          args={[1.5, 0.14, 0.86]}
+          position={[0, -1.78, 0.2]}
+          radius={0.08}
+          smoothness={4}
+        >
+          <meshStandardMaterial color={sceneColors.monitorFrame} roughness={0.48} />
+        </RoundedBox>
       </group>
     </Float>
 
@@ -99,7 +143,9 @@ const sceneColors = {
   detailBlock: '#a8b1bd',
   monitorFrame: '#212936',
   monitorScreen: '#f3f5f7',
+  keyboardPlate: '#dfe5eb',
   accent: '#7f8896',
+  detailGlow: '#8d96a3',
   ambientLight: '#ffffff',
   keyLight: '#ffffff',
   fillLight: '#d2d8e1',

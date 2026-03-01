@@ -1,9 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 
-const HomeHeroStageCanvas = dynamic(
+type HomeHeroStageCanvasProps = {
+  readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiRef: RefObject<HTMLDivElement | null>;
+};
+
+const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
   () =>
     import('@/widgets/home-hero-scene/ui/home-hero-stage-canvas').then(
       module => module.HomeHeroStageCanvas,
@@ -17,9 +22,9 @@ const HomeHeroStageCanvas = dynamic(
 /**
  * 홈 히어로 영역의 3D 캔버스 프레임과 로딩 폴백을 제공합니다.
  */
-export const HomeHeroStage = () => (
+export const HomeHeroStage = ({ triggerRef, webUiRef }: HomeHeroStageCanvasProps) => (
   <div aria-hidden="true" style={stageFrameStyle}>
-    <HomeHeroStageCanvas />
+    <HomeHeroStageCanvas triggerRef={triggerRef} webUiRef={webUiRef} />
   </div>
 );
 
