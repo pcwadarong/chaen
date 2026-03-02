@@ -3,24 +3,24 @@ import { createUniqueStorageFileName } from '@/shared/lib/storage/create-unique-
 
 import 'server-only';
 
-type UploadResumeFileOptions = {
+type UploadPdfFileOptions = {
   bucket?: string;
   directory?: string;
   file: File;
 };
 
-const DEFAULT_RESUME_BUCKET = 'resumes';
-const DEFAULT_RESUME_DIRECTORY = process.env.NEXT_PUBLIC_RESUME_UPLOAD_DIRECTORY ?? 'uploads';
+const DEFAULT_PDF_FILE_BUCKET = 'resumes';
+const DEFAULT_PDF_FILE_DIRECTORY = process.env.NEXT_PUBLIC_PDF_FILE_UPLOAD_DIRECTORY ?? 'uploads';
 
 /**
  * Supabase Storage `resumes` 버킷에 PDF 파일을 업로드합니다.
  * 업로드 파일명은 UUID 기반으로 난수화되어 덮어쓰기 위험을 줄입니다.
  */
-export const uploadResumeFile = async ({
-  bucket = DEFAULT_RESUME_BUCKET,
-  directory = DEFAULT_RESUME_DIRECTORY,
+export const uploadPdfFile = async ({
+  bucket = DEFAULT_PDF_FILE_BUCKET,
+  directory = DEFAULT_PDF_FILE_DIRECTORY,
   file,
-}: UploadResumeFileOptions): Promise<string> => {
+}: UploadPdfFileOptions): Promise<string> => {
   const supabase = await createServerSupabaseClient();
   const uniqueFileName = createUniqueStorageFileName(file.name);
   const filePath = `${directory}/${uniqueFileName}`;
@@ -30,7 +30,7 @@ export const uploadResumeFile = async ({
     upsert: false,
   });
 
-  if (error) throw new Error(`[resume] 파일 업로드 실패: ${error.message}`);
+  if (error) throw new Error(`[pdf-file] 파일 업로드 실패: ${error.message}`);
 
   return filePath;
 };

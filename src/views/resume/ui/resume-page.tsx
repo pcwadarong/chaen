@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react';
 
-import type { ResumeContent } from '@/entities/resume/model/types';
+import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 
 type ResumePageProps = {
-  content: ResumeContent;
+  content: PdfFileContent;
   downloadFileName: string;
   resumeUrl: string | null;
 };

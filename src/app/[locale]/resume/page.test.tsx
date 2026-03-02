@@ -1,13 +1,13 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getResumeContent } from '@/entities/resume/api/get-resume-content';
-import { getResumeUrl } from '@/entities/resume/api/get-resume-url';
+import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
+import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 
 import ResumeRoute from './page';
 
-vi.mock('@/entities/resume/api/get-resume-content', () => ({
-  getResumeContent: vi.fn(async () => ({
+vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
+  getPdfFileContent: vi.fn(async () => ({
     locale: 'ko',
     title: '안녕하세요 박채원입니다.',
     description: '서버 내용',
@@ -18,8 +18,8 @@ vi.mock('@/entities/resume/api/get-resume-content', () => ({
   })),
 }));
 
-vi.mock('@/entities/resume/api/get-resume-url', () => ({
-  getResumeUrl: vi.fn(async () => 'https://example.com/resume.pdf'),
+vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
+  getPdfFileUrl: vi.fn(async () => 'https://example.com/resume.pdf'),
 }));
 
 vi.mock('@/views/resume', () => ({
@@ -38,8 +38,8 @@ describe('ResumeRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ResumePage');
-    expect(getResumeUrl).toHaveBeenCalledTimes(1);
-    expect(getResumeContent).toHaveBeenCalledWith('ko');
+    expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
+    expect(getPdfFileContent).toHaveBeenCalledWith('ko');
     expect(element.props.resumeUrl).toBe('https://example.com/resume.pdf');
     expect(element.props.downloadFileName).toBeDefined();
     expect(element.props.content.title).toBe('안녕하세요 박채원입니다.');
