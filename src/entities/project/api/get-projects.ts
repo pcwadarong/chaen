@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
-import { createPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
 
 import 'server-only';
 
@@ -29,7 +29,9 @@ const dedupeProjectsById = (items: Project[]): Project[] => {
 const fetchProjectsByLocale = async (
   locale: string,
 ): Promise<{ data: Project[]; localeColumnMissing: boolean }> => {
-  const supabase = createPublicServerSupabaseClient();
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], localeColumnMissing: false };
+
   const { data, error } = await supabase
     .from('projects')
     .select('*')
@@ -58,7 +60,9 @@ const fetchProjectsByLocale = async (
  * locale 컬럼이 없는 기존 스키마를 위한 프로젝트 목록 조회입니다.
  */
 const fetchProjectsLegacy = async (): Promise<Project[]> => {
-  const supabase = createPublicServerSupabaseClient();
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return [];
+
   const { data, error } = await supabase
     .from('projects')
     .select('*')

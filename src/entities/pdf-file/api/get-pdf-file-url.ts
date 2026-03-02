@@ -1,4 +1,4 @@
-import { createPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
 
 import 'server-only';
 
@@ -32,7 +32,9 @@ export const getPdfFileUrl = async ({
   signedUrlExpiresInSeconds = DEFAULT_SIGNED_URL_EXPIRES_IN_SECONDS,
   downloadFileName = DEFAULT_PDF_FILE_PATH,
 }: GetPdfFileUrlOptions = {}): Promise<string | null> => {
-  const supabase = createPublicServerSupabaseClient();
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return null;
+
   const storage = supabase.storage.from(bucket);
 
   if (accessType === 'public') {
