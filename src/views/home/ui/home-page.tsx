@@ -6,7 +6,6 @@ import type { CSSProperties } from 'react';
 import type { Project } from '@/entities/project/model/types';
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
 import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
-import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomePageProps = {
   items: Project[];
@@ -18,11 +17,8 @@ export const HomePage = ({ items }: HomePageProps) => {
 
   return (
     <main style={pageStyle}>
-      <HomeHeroScene />
-      <ProjectShowcase
+      <HomeHeroScene
         description={t('showcaseScreenReaderDescription')}
-        descriptionVisibility="sr-only"
-        emptyText={t('emptyProjects')}
         items={items}
         title={t('showcaseTitle')}
       />
@@ -32,9 +28,7 @@ export const HomePage = ({ items }: HomePageProps) => {
 };
 
 const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
+  width: '100%',
   display: 'grid',
-  gap: '2rem',
+  gap: '0',
 };

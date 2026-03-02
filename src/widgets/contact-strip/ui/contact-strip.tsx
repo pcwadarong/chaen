@@ -38,10 +38,12 @@ export const ContactStrip = () => {
 };
 
 const sectionStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
+  width: '100vw',
+  minHeight: '100svh',
+  marginInline: 'calc(50% - 50vw)',
+  display: 'flex',
   alignItems: 'center',
-  gap: '1rem',
+  padding: 'clamp(2rem, 5vh, 3rem) 0',
 };
 
 const copyStyle: CSSProperties = {

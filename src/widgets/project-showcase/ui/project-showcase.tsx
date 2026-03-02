@@ -8,6 +8,7 @@ type ProjectShowcaseProps = {
   descriptionVisibility?: 'sr-only' | 'visible';
   emptyText: string;
   items: Project[];
+  hideHeader?: boolean;
   title: string;
 };
 
@@ -16,16 +17,19 @@ export const ProjectShowcase = ({
   description,
   descriptionVisibility = 'visible',
   emptyText,
+  hideHeader = false,
   items,
   title,
 }: ProjectShowcaseProps) => (
   <section style={sectionStyle}>
-    <div style={headerStyle}>
-      <h2 style={titleStyle}>{title}</h2>
-      <p style={descriptionVisibility === 'sr-only' ? srOnlyStyle : descriptionStyle}>
-        {description}
-      </p>
-    </div>
+    {hideHeader ? null : (
+      <div style={headerStyle}>
+        <h2 style={titleStyle}>{title}</h2>
+        <p style={descriptionVisibility === 'sr-only' ? srOnlyStyle : descriptionStyle}>
+          {description}
+        </p>
+      </div>
+    )}
     {items.length > 0 ? (
       <div style={gridStyle}>
         {items.map(item => (
@@ -40,7 +44,7 @@ export const ProjectShowcase = ({
 
 const sectionStyle: CSSProperties = {
   display: 'grid',
-  gap: '1.25rem',
+  gap: '1rem',
 };
 
 const headerStyle: CSSProperties = {
