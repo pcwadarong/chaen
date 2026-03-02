@@ -33,7 +33,7 @@ export const ProjectShowcase = ({
     {items.length > 0 ? (
       <div style={gridStyle}>
         {items.map(item => (
-          <ProjectCard item={item} key={item.id} />
+          <ProjectCard item={item} key={`${item.id}-${item.created_at}`} />
         ))}
       </div>
     ) : (

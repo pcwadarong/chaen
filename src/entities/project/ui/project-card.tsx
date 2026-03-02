@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
@@ -17,36 +17,34 @@ type ProjectCardProps = {
 /** 프로젝트 요약 카드를 렌더링합니다. */
 export const ProjectCard = ({ item }: ProjectCardProps) => {
   const locale = useLocale();
-  const t = useTranslations('Work');
   const tagLabel = item.tags?.[0] ? getTagLabelByLocale(item.tags[0], locale) : 'project';
   const thumbnailSrc = normalizeImageUrl(item.thumbnail_url);
   const createdYearText = formatYear(item.created_at, locale) ?? '-';
 
   return (
-    <article style={cardStyle}>
-      {thumbnailSrc ? (
-        <div style={thumbnailWrapStyle}>
-          <Image
-            alt={`${item.title} thumbnail`}
-            height={720}
-            src={thumbnailSrc}
-            style={thumbnailStyle}
-            width={1280}
-          />
+    <Link aria-label={`${item.title} 상세 보기`} href={`/work/${item.id}`} style={cardLinkStyle}>
+      <article style={cardStyle}>
+        {thumbnailSrc ? (
+          <div style={thumbnailWrapStyle}>
+            <Image
+              alt={`${item.title} thumbnail`}
+              height={720}
+              src={thumbnailSrc}
+              style={thumbnailStyle}
+              width={1280}
+            />
+          </div>
+        ) : null}
+        <div style={metaStyle}>
+          <span>{tagLabel}</span>
+          <span>{createdYearText}</span>
         </div>
-      ) : null}
-      <div style={metaStyle}>
-        <span>{tagLabel}</span>
-        <span>{createdYearText}</span>
-      </div>
-      <div style={bodyStyle}>
-        <h3 style={titleStyle}>{item.title}</h3>
-        <p style={summaryStyle}>{item.description ?? ''}</p>
-      </div>
-      <Link href={`/work/${item.id}`} style={cardLinkStyle}>
-        {t('viewProject')}
-      </Link>
-    </article>
+        <div style={bodyStyle}>
+          <h3 style={titleStyle}>{item.title}</h3>
+          <p style={summaryStyle}>{item.description ?? ''}</p>
+        </div>
+      </article>
+    </Link>
   );
 };
 
@@ -100,15 +98,7 @@ const summaryStyle: CSSProperties = {
 };
 
 const cardLinkStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 'fit-content',
-  minHeight: '2.75rem',
-  padding: '0 1rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.3)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.9)',
+  display: 'block',
   textDecoration: 'none',
   color: 'rgb(var(--color-text))',
 };

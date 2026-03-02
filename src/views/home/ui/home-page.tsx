@@ -17,11 +17,7 @@ export const HomePage = ({ items }: HomePageProps) => {
 
   return (
     <main style={pageStyle}>
-      <HomeHeroScene
-        description={t('showcaseScreenReaderDescription')}
-        items={items}
-        title={t('showcaseTitle')}
-      />
+      <HomeHeroScene items={items} title={t('showcaseTitle')} />
       <ContactStrip />
     </main>
   );

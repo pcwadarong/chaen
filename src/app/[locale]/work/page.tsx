@@ -14,7 +14,7 @@ const WorkRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const items = await getProjects();
+  const items = await getProjects(locale);
   const portfolioFilePath =
     process.env.NEXT_PUBLIC_PORTFOLIO_FILE_PATH ?? 'ParkChaewon-Portfolio.pdf';
   const portfolioDownloadFileName =

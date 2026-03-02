@@ -43,7 +43,7 @@ describe('WorkRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('WorkListPage');
-    expect(getProjects).toHaveBeenCalledTimes(1);
+    expect(getProjects).toHaveBeenCalledWith('ko');
     expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
     expect(getPdfFileContent).toHaveBeenCalledWith('ko');
     expect(element.props.items).toEqual([]);

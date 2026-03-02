@@ -38,17 +38,21 @@ export const ContactStrip = () => {
 };
 
 const sectionStyle: CSSProperties = {
-  width: '100vw',
-  minHeight: '100svh',
-  marginInline: 'calc(50% - 50vw)',
+  width: 'min(1120px, calc(100% - 2rem))',
+  margin: '0 auto',
+  minHeight: 'clamp(22rem, 50svh, 36rem)',
   display: 'flex',
-  alignItems: 'center',
-  padding: 'clamp(2rem, 5vh, 3rem) 0',
+  alignItems: 'stretch',
+  flexWrap: 'wrap',
+  gap: '1rem',
+  padding: '3rem 0 5rem',
 };
 
 const copyStyle: CSSProperties = {
   display: 'grid',
+  alignContent: 'center',
   gap: '0.75rem',
+  flex: '1 1 22rem',
 };
 
 const eyebrowStyle: CSSProperties = {
@@ -87,6 +91,7 @@ const emailLinkStyle: CSSProperties = {
 
 const motionStyle: CSSProperties = {
   position: 'relative',
+  flex: '1 1 18rem',
   minHeight: '16rem',
   overflow: 'hidden',
   padding: '1.5rem',

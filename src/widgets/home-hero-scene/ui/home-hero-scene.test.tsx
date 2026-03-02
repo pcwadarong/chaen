@@ -15,12 +15,16 @@ describe('HomeHeroScene', () => {
   it('캔버스와 웹 UI 레이어를 함께 렌더링한다', () => {
     render(
       <HomeHeroScene
-        description="desc"
         items={[
           {
-            deliverableKeys: ['motionTokens'],
             id: 'motion-library',
-            year: '2026',
+            title: 'Motion Library',
+            description: 'description',
+            content: 'content',
+            thumbnail_url: null,
+            gallery_urls: null,
+            tags: ['react'],
+            created_at: '2026-01-01T00:00:00.000Z',
           },
         ]}
         title="Selected Projects"
