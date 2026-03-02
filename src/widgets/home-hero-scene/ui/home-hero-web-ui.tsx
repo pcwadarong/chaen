@@ -1,28 +1,38 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React, { type CSSProperties } from 'react';
 
-import type { ProjectItem } from '@/entities/project/model/project-items';
+import type { Project } from '@/entities/project/model/types';
 import { homeHeroWebUiLayout } from '@/widgets/home-hero-scene/model/home-hero-web-ui-layout';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomeHeroWebUiProps = {
-  readonly description: string;
-  readonly items: ProjectItem[];
+  readonly items: Project[];
   readonly title: string;
   readonly wrapperRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 /** 3D 캔버스 위에서 페이드 인되는 실제 HTML UI 레이어입니다. */
-export const HomeHeroWebUi = ({ description, items, title, wrapperRef }: HomeHeroWebUiProps) => (
-  <div id="web-ui" ref={wrapperRef} style={wrapperStyle}>
-    <div style={gridBridgeStyle}>
-      <div style={contentStyle}>
-        <ProjectShowcase description={description} hideHeader items={items} title={title} />
+export const HomeHeroWebUi = ({ items, title, wrapperRef }: HomeHeroWebUiProps) => {
+  const t = useTranslations('Home');
+  return (
+    <div id="web-ui" ref={wrapperRef} style={wrapperStyle}>
+      <div style={gridBridgeStyle}>
+        <div style={contentStyle}>
+          <ProjectShowcase
+            description={t('showcaseScreenReaderDescription')}
+            descriptionVisibility="sr-only"
+            emptyText={t('emptyProjects')}
+            items={items}
+            hideHeader
+            title={title}
+          />
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const wrapperStyle: CSSProperties = {
   position: 'absolute',

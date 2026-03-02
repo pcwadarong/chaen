@@ -9,42 +9,50 @@ export const ContactStrip = () => {
 
   return (
     <section style={sectionStyle}>
-      <div style={innerStyle}>
-        <div style={copyStyle}>
-          <p style={eyebrowStyle}>{t('eyebrow')}</p>
-          <h2 style={titleStyle}>{t('title')}</h2>
-          <p style={descriptionStyle}>{t('description')}</p>
-        </div>
-        <div aria-hidden="true" style={motionStyle}>
-          <span style={pulseStyle} />
-          <span style={pulseDelayedStyle} />
-        </div>
+      <div style={copyStyle}>
+        <p style={eyebrowStyle}>{t('eyebrow')}</p>
+        <h2 style={titleStyle}>{t('title')}</h2>
+        <ul style={metaListStyle}>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('locationLabel')}</span>
+            <span>{t('locationValue')}</span>
+          </li>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('focusLabel')}</span>
+            <span>{t('focusValue')}</span>
+          </li>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('emailLabel')}</span>
+            <a href={`mailto:${t('emailValue')}`} style={emailLinkStyle}>
+              {t('emailValue')}
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div aria-hidden="true" style={motionStyle}>
+        <span style={pulseStyle} />
+        <span style={pulseDelayedStyle} />
       </div>
     </section>
   );
 };
 
 const sectionStyle: CSSProperties = {
-  width: '100vw',
-  minHeight: '100svh',
-  marginInline: 'calc(50% - 50vw)',
-  display: 'flex',
-  alignItems: 'center',
-  padding: 'clamp(2rem, 5vh, 3rem) 0',
-};
-
-const innerStyle: CSSProperties = {
   width: 'min(1120px, calc(100% - 2rem))',
   margin: '0 auto',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
-  alignItems: 'center',
+  minHeight: 'clamp(22rem, 50svh, 36rem)',
+  display: 'flex',
+  alignItems: 'stretch',
+  flexWrap: 'wrap',
   gap: '1rem',
+  padding: '3rem 0 5rem',
 };
 
 const copyStyle: CSSProperties = {
   display: 'grid',
+  alignContent: 'center',
   gap: '0.75rem',
+  flex: '1 1 22rem',
 };
 
 const eyebrowStyle: CSSProperties = {
@@ -61,13 +69,29 @@ const titleStyle: CSSProperties = {
   letterSpacing: '-0.04em',
 };
 
-const descriptionStyle: CSSProperties = {
-  maxWidth: '52rem',
+const metaListStyle: CSSProperties = {
+  display: 'grid',
+  gap: '0.45rem',
   color: 'rgb(var(--color-muted))',
+};
+
+const metaItemStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.45rem',
+};
+
+const metaLabelStyle: CSSProperties = {
+  fontWeight: 700,
+};
+
+const emailLinkStyle: CSSProperties = {
+  textDecoration: 'underline',
 };
 
 const motionStyle: CSSProperties = {
   position: 'relative',
+  flex: '1 1 18rem',
   minHeight: '16rem',
   overflow: 'hidden',
   padding: '1.5rem',

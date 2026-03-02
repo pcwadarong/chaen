@@ -9,10 +9,10 @@ describe('request', () => {
     const result = await getRequestConfig({
       requestLocale: Promise.resolve('ja'),
     } as never);
-    const messages = result.messages as { Resume: { title: string } };
+    const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ja');
-    expect(messages.Resume.title).toBe('こんにちは、パク・チェウォンです。');
+    expect(messages.Navigation.home).toBe('ホーム');
   });
 
   it('locale 요청이 없으면 기본 locale과 메시지를 반환한다', async () => {
@@ -21,10 +21,10 @@ describe('request', () => {
     const result = await getRequestConfig({
       requestLocale: Promise.resolve(undefined),
     } as never);
-    const messages = result.messages as { Resume: { title: string } };
+    const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ko');
-    expect(messages.Resume.title).toBe('안녕하세요 박채원입니다.');
+    expect(messages.Navigation.home).toBe('홈');
   });
 
   it('지원하지 않는 locale 요청이면 기본 locale로 되돌린다', async () => {
@@ -33,9 +33,9 @@ describe('request', () => {
     const result = await getRequestConfig({
       requestLocale: Promise.resolve('jp'),
     } as never);
-    const messages = result.messages as { Resume: { title: string } };
+    const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ko');
-    expect(messages.Resume.title).toBe('안녕하세요 박채원입니다.');
+    expect(messages.Navigation.home).toBe('홈');
   });
 });
