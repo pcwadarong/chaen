@@ -1,9 +1,11 @@
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 import { getProjects } from '@/entities/project/api/get-projects';
 import { WorkListPage } from '@/views/work-list';
+
+export const dynamic = 'force-dynamic';
 
 /** 프로젝트 목록 페이지 엔트리입니다. */
 const WorkRoute = async ({
@@ -14,6 +16,7 @@ const WorkRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Work' });
   const items = await getProjects(locale);
   const portfolioFilePath =
     process.env.NEXT_PUBLIC_PORTFOLIO_FILE_PATH ?? 'ParkChaewon-Portfolio.pdf';
@@ -24,13 +27,12 @@ const WorkRoute = async ({
     downloadFileName: portfolioDownloadFileName,
     filePath: portfolioFilePath,
   }).catch(() => null);
-  const pdfFileContent = await getPdfFileContent(locale);
 
   return (
     <WorkListPage
       items={items}
-      portfolioButtonLabel={pdfFileContent.download_button_label}
-      portfolioButtonUnavailableLabel={pdfFileContent.download_unavailable_label}
+      portfolioButtonLabel={t('portfolioDownload')}
+      portfolioButtonUnavailableLabel={t('portfolioDownloadUnavailable')}
       portfolioDownloadFileName={portfolioDownloadFileName}
       portfolioUrl={portfolioUrl}
     />

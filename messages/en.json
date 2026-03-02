@@ -32,6 +32,8 @@
   "Work": {
     "deliverables": "Deliverables",
     "emptyProjects": "No projects have been published yet.",
+    "portfolioDownload": "Download portfolio",
+    "portfolioDownloadUnavailable": "Portfolio unavailable",
     "showcaseDescription": "Unlike the compact preview on the home route, this page shows the full collection of project cards.",
     "showcaseTitle": "Project archive",
     "viewProject": "View project"

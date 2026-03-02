@@ -32,6 +32,8 @@
   "Work": {
     "deliverables": "주요 산출물",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
+    "portfolioDownload": "포트폴리오 다운로드",
+    "portfolioDownloadUnavailable": "포트폴리오 준비 중",
     "showcaseDescription": "프로젝트 리스트는 홈의 일부 프리뷰와 달리 전체 카드 컬렉션을 보여주는 독립 페이지입니다.",
     "showcaseTitle": "프로젝트 아카이브",
     "viewProject": "프로젝트 보기"

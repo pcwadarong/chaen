@@ -32,6 +32,8 @@
   "Work": {
     "deliverables": "成果物",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
+    "portfolioDownload": "ポートフォリオをダウンロード",
+    "portfolioDownloadUnavailable": "ポートフォリオは準備中です",
     "showcaseDescription": "ホームの一部プレビューとは異なり、このページではプロジェクトカード全体を一覧で表示します。",
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"

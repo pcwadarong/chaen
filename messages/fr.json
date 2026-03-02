@@ -32,6 +32,8 @@
   "Work": {
     "deliverables": "Livrables",
     "emptyProjects": "Aucun projet n'a encore été publié.",
+    "portfolioDownload": "Télécharger le portfolio",
+    "portfolioDownloadUnavailable": "Portfolio indisponible",
     "showcaseDescription": "Contrairement à l'aperçu compact de l'accueil, cette page affiche toute la collection de cartes projet.",
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"

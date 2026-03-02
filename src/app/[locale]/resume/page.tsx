@@ -1,8 +1,11 @@
+import { notFound } from 'next/navigation';
 import React from 'react';
 
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 import { ResumePage } from '@/views/resume';
+
+export const dynamic = 'force-dynamic';
 
 /** 이력서 페이지 엔트리입니다. */
 const ResumeRoute = async ({
@@ -24,7 +27,8 @@ const ResumeRoute = async ({
     downloadFileName: resumeDownloadFileName,
     filePath: resumeFilePath,
   }).catch(() => null);
-  const resumeContent = await getPdfFileContent(locale);
+  const resumeContent = await getPdfFileContent(locale).catch(() => null);
+  if (!resumeContent) notFound();
 
   return (
     <ResumePage
