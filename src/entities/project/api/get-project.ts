@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
+import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
 
 import 'server-only';
@@ -71,6 +72,9 @@ export const getProject = async (
   projectId: string,
   targetLocale: string,
 ): Promise<Project | null> => {
+  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
+  if (cacheScope === 'supabase-disabled') return null;
+
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProject = unstable_cache(
     async () => {
@@ -88,7 +92,7 @@ export const getProject = async (
 
       return null;
     },
-    ['project', projectId, normalizedLocale],
+    ['project', cacheScope, projectId, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG, createProjectCacheTag(projectId)],
       revalidate: false,
