@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
+import React from 'react';
 
-import { findProjectItem } from '@/entities/project/model/project-items';
+import { getProject } from '@/entities/project/api/get-project';
 import { WorkDetailPage } from '@/views/work-detail';
 
 type WorkDetailRouteProps = {
@@ -14,14 +15,11 @@ type WorkDetailRouteProps = {
  * 프로젝트 상세 라우트 엔트리입니다.
  */
 const WorkDetailRoute = async ({ params }: WorkDetailRouteProps) => {
-  const { id } = await params;
-  const item = findProjectItem(id);
+  const { id, locale } = await params;
+  const item = await getProject(id, locale);
+  if (!item) notFound();
 
-  if (!item) {
-    notFound();
-  }
-
-  return <WorkDetailPage item={item} />;
+  return <WorkDetailPage item={item} locale={locale} />;
 };
 
 export default WorkDetailRoute;
