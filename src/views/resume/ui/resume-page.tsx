@@ -1,22 +1,32 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
+
+import type { ResumeContent } from '@/entities/resume/model/types';
+import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
+
+type ResumePageProps = {
+  content: ResumeContent;
+  downloadFileName: string;
+  resumeUrl: string | null;
+};
 
 /**
  * 이력서 소개 페이지 컨테이너입니다.
  */
-export const ResumePage = () => {
-  const t = useTranslations('Resume');
-
-  return (
-    <main style={pageStyle}>
-      <section style={panelStyle}>
-        <h1 style={titleStyle}>{t('title')}</h1>
-      </section>
-    </main>
-  );
-};
+export const ResumePage = ({ content, downloadFileName, resumeUrl }: ResumePageProps) => (
+  <main style={pageStyle}>
+    <section style={panelStyle}>
+      <h1 style={titleStyle}>{content.title}</h1>
+      <p style={descriptionStyle}>{content.description}</p>
+      <p style={bodyStyle}>{content.body}</p>
+      <DownloadFileButton
+        fileName={downloadFileName}
+        href={resumeUrl}
+        label={resumeUrl ? content.download_button_label : content.download_unavailable_label}
+        mode="download"
+      />
+    </section>
+  </main>
+);
 
 const pageStyle: CSSProperties = {
   width: 'min(960px, calc(100% - 2rem))',
@@ -25,6 +35,8 @@ const pageStyle: CSSProperties = {
 };
 
 const panelStyle: CSSProperties = {
+  display: 'grid',
+  gap: '1rem',
   padding: '1.75rem',
   borderRadius: 'var(--radius-lg)',
   border: '1px solid rgb(var(--color-border) / 0.22)',
@@ -35,4 +47,13 @@ const titleStyle: CSSProperties = {
   fontSize: 'clamp(2.25rem, 5vw, 4rem)',
   lineHeight: 1.02,
   letterSpacing: '-0.04em',
+};
+
+const descriptionStyle: CSSProperties = {
+  color: 'rgb(var(--color-muted))',
+};
+
+const bodyStyle: CSSProperties = {
+  whiteSpace: 'pre-wrap',
+  lineHeight: 1.72,
 };
