@@ -1,11 +1,12 @@
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import type { CSSProperties } from 'react';
 
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project } from '@/entities/project/model/types';
 import { formatMonthYear } from '@/shared/lib/date/format-month-year';
+import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
+import { WorkDetailMediaGallery } from '@/views/work-detail/ui/work-detail-media-gallery';
 
 type WorkDetailPageProps = {
   item: Project;
@@ -61,7 +62,13 @@ const formatProjectPeriod = (item: Project, locale: string, ongoingLabel: string
  */
 export const WorkDetailPage = async ({ item, locale }: WorkDetailPageProps) => {
   const t = await getTranslations('WorkDetail');
+  const imageViewerText = await getTranslations('ImageViewer');
   const mediaUrls = getProjectMediaUrls(item);
+  const mediaItems = mediaUrls.map((mediaUrl, index) => ({
+    alt: t('mediaAlt', { index: index + 1, title: item.title }),
+    src: createImageViewerUrl(mediaUrl),
+    unoptimized: isGifUrl(mediaUrl),
+  }));
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
 
   return (
@@ -91,24 +98,19 @@ export const WorkDetailPage = async ({ item, locale }: WorkDetailPageProps) => {
           <h2 id="project-media-heading" style={sectionTitleStyle}>
             {t('mediaSection')}
           </h2>
-          {mediaUrls.length > 0 ? (
-            <div aria-label={t('mediaSection')} role="region" style={mediaSliderStyle}>
-              {mediaUrls.map((mediaUrl, index) => (
-                <figure key={`${item.id}-${mediaUrl}-${index}`} style={mediaItemStyle}>
-                  <Image
-                    alt={t('mediaAlt', { index: index + 1, title: item.title })}
-                    height={1080}
-                    src={mediaUrl}
-                    style={mediaImageStyle}
-                    unoptimized={isGifUrl(mediaUrl)}
-                    width={1920}
-                  />
-                </figure>
-              ))}
-            </div>
-          ) : (
-            <p style={emptyTextStyle}>{t('emptyMedia')}</p>
-          )}
+          <WorkDetailMediaGallery
+            emptyText={t('emptyMedia')}
+            items={mediaItems}
+            sectionLabel={t('mediaSection')}
+            viewerLabels={{
+              closeAriaLabel: imageViewerText('closeAriaLabel'),
+              nextAriaLabel: imageViewerText('nextAriaLabel'),
+              previousAriaLabel: imageViewerText('previousAriaLabel'),
+              thumbnailListAriaLabel: imageViewerText('thumbnailListAriaLabel'),
+              zoomInAriaLabel: imageViewerText('zoomInAriaLabel'),
+              zoomOutAriaLabel: imageViewerText('zoomOutAriaLabel'),
+            }}
+          />
         </section>
 
         <section aria-labelledby="project-description-heading" style={panelStyle}>
@@ -193,32 +195,6 @@ const sectionTitleStyle: CSSProperties = {
   fontSize: '1.2rem',
   lineHeight: 1.2,
   letterSpacing: '-0.02em',
-};
-
-const mediaSliderStyle: CSSProperties = {
-  display: 'grid',
-  gridAutoFlow: 'column',
-  gridAutoColumns: 'min(100%, 100%)',
-  gap: '0.75rem',
-  overflowX: 'auto',
-  paddingBottom: '0.3rem',
-  scrollSnapType: 'x mandatory',
-};
-
-const mediaItemStyle: CSSProperties = {
-  margin: 0,
-  borderRadius: 'var(--radius-md)',
-  overflow: 'hidden',
-  border: '1px solid rgb(var(--color-border) / 0.2)',
-  backgroundColor: 'rgb(var(--color-surface-strong) / 0.36)',
-  scrollSnapAlign: 'start',
-};
-
-const mediaImageStyle: CSSProperties = {
-  width: '100%',
-  height: 'auto',
-  aspectRatio: '16 / 9',
-  objectFit: 'cover',
 };
 
 const emptyTextStyle: CSSProperties = {

@@ -8,6 +8,7 @@ import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project } from '@/entities/project/model/types';
 import { Link } from '@/i18n/navigation';
 import { formatYear } from '@/shared/lib/date/format-year';
+import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 
 type ProjectCardProps = {
@@ -19,17 +20,18 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
   const locale = useLocale();
   const tagLabel = item.tags?.[0] ? getTagLabelByLocale(item.tags[0], locale) : 'project';
   const thumbnailSrc = normalizeImageUrl(item.thumbnail_url);
+  const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
   const createdYearText = formatYear(item.created_at, locale) ?? '-';
 
   return (
     <Link aria-label={`${item.title} 상세 보기`} href={`/work/${item.id}`} style={cardLinkStyle}>
       <article style={cardStyle}>
-        {thumbnailSrc ? (
+        {previewThumbnailSrc ? (
           <div style={thumbnailWrapStyle}>
             <Image
               alt={`${item.title} thumbnail`}
               height={720}
-              src={thumbnailSrc}
+              src={previewThumbnailSrc}
               style={thumbnailStyle}
               width={1280}
             />

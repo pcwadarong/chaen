@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
+import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
 
 import 'server-only';
@@ -80,6 +81,9 @@ const fetchProjectsLegacy = async (): Promise<Project[]> => {
  * `revalidateTag('projects')`로 즉시 갱신할 수 있습니다.
  */
 export const getProjects = async (targetLocale: string): Promise<Project[]> => {
+  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
+  if (cacheScope === 'supabase-disabled') return [];
+
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProjects = unstable_cache(
     async () => {
@@ -97,7 +101,7 @@ export const getProjects = async (targetLocale: string): Promise<Project[]> => {
 
       return [];
     },
-    ['projects', 'list', normalizedLocale],
+    ['projects', 'list', cacheScope, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG],
       revalidate: false,
