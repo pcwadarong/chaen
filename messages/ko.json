@@ -50,6 +50,14 @@
     "publishedAt": "등록일 {date}",
     "tagSection": "태그"
   },
+  "ImageViewer": {
+    "closeAriaLabel": "이미지 뷰어 닫기",
+    "nextAriaLabel": "다음 이미지 보기",
+    "previousAriaLabel": "이전 이미지 보기",
+    "thumbnailListAriaLabel": "이미지 썸네일 목록",
+    "zoomInAriaLabel": "이미지 확대",
+    "zoomOutAriaLabel": "이미지 축소"
+  },
   "Contact": {
     "emailLabel": "Email",
     "emailValue": "pcwadarong@naver.com",

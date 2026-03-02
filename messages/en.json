@@ -50,6 +50,14 @@
     "publishedAt": "Published {date}",
     "tagSection": "Tags"
   },
+  "ImageViewer": {
+    "closeAriaLabel": "Close image viewer",
+    "nextAriaLabel": "View next image",
+    "previousAriaLabel": "View previous image",
+    "thumbnailListAriaLabel": "Image thumbnails",
+    "zoomInAriaLabel": "Zoom in image",
+    "zoomOutAriaLabel": "Zoom out image"
+  },
   "Contact": {
     "emailLabel": "Email",
     "emailValue": "pcwadarong@naver.com",
