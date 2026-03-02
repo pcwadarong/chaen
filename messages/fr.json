@@ -8,13 +8,11 @@
     "resume": "CV",
     "work": "Projets"
   },
-  "Resume": {
-    "title": "Bonjour, je suis Chaewon Park."
-  },
   "Home": {
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
+    "emptyProjects": "Aucun projet n'a encore été publié.",
     "eyebrow": "Accueil",
-    "showcaseDescription": "La page d'accueil affiche d'abord quelques cartes sélectionnées, tandis que la collection complète peut vivre sur la page work.",
+    "showcaseScreenReaderDescription": "Section des projets sélectionnés. Chaque carte ouvre une page de détail du projet.",
     "showcaseTitle": "Projets sélectionnés",
     "title": "Une ouverture pensée pour accueillir du mouvement."
   },
@@ -33,14 +31,32 @@
   },
   "Work": {
     "deliverables": "Livrables",
+    "emptyProjects": "Aucun projet n'a encore été publié.",
     "showcaseDescription": "Contrairement à l'aperçu compact de l'accueil, cette page affiche toute la collection de cartes projet.",
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"
   },
+  "WorkDetail": {
+    "descriptionSection": "Description détaillée",
+    "emptyDescription": "La description détaillée n'a pas encore été ajoutée.",
+    "emptyMedia": "Aucun média n'a encore été ajouté.",
+    "emptySummary": "Le résumé n'est pas disponible.",
+    "mediaAlt": "Aperçu {index} de {title}",
+    "mediaSection": "Médias principaux",
+    "noTags": "sans-tag",
+    "ongoing": "En cours",
+    "publishedAt": "Publié le {date}",
+    "tagSection": "Tags"
+  },
   "Contact": {
-    "description": "Cette section finale réserve une place à une courte animation et à un appel à contact direct.",
+    "emailLabel": "Email",
+    "emailValue": "pcwadarong@naver.com",
     "eyebrow": "Contact",
-    "title": "Une section finale compacte avec du mouvement."
+    "focusLabel": "Focus",
+    "focusValue": "Frontend Development",
+    "locationLabel": "Location",
+    "locationValue": "Seoul, Korea",
+    "title": "Let's connect and create meaningful experiences."
   },
   "Switchers": {
     "locale": {
@@ -57,38 +73,6 @@
       "label": "Thème",
       "light": "Clair",
       "system": "Système"
-    }
-  },
-  "ProjectItems": {
-    "motion-library": {
-      "category": "Design engineering",
-      "headline": "Bibliothèque de composants orientée motion",
-      "summary": "Projet qui a structuré des motion tokens et des règles UI pour rendre les interactions de marque réutilisables au niveau composant.",
-      "deliverables": {
-        "interactionSpec": "Spécification d'interaction",
-        "motionTokens": "Motion tokens",
-        "storybookFoundation": "Base Storybook"
-      }
-    },
-    "supabase-editorial": {
-      "category": "Fullstack",
-      "headline": "Plateforme éditoriale avec Supabase",
-      "summary": "Projet qui a conçu un flux d'écriture et de publication avec Supabase et clarifié les frontières SSR pour l'App Router.",
-      "deliverables": {
-        "authFlow": "Flux d'authentification",
-        "publishingDashboard": "Tableau de publication",
-        "storageStrategy": "Stratégie de stockage"
-      }
-    },
-    "guest-campaign": {
-      "category": "Growth",
-      "headline": "Site de campagne d'onboarding invité",
-      "summary": "Expérience de landing et parcours de conversion conçus pour amener naturellement le trafic publicitaire vers l'expérience produit.",
-      "deliverables": {
-        "analyticsHooks": "Hooks analytics",
-        "ctaExperiment": "Expérience CTA",
-        "landingNarrative": "Narratif de landing"
-      }
     }
   },
   "ArticleItems": {

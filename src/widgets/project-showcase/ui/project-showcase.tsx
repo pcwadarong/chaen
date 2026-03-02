@@ -1,26 +1,40 @@
 import type { CSSProperties } from 'react';
 
-import type { ProjectItem } from '@/entities/project/model/project-items';
+import type { Project } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
 
 type ProjectShowcaseProps = {
   description: string;
-  items: ProjectItem[];
+  descriptionVisibility?: 'sr-only' | 'visible';
+  emptyText: string;
+  items: Project[];
   title: string;
 };
 
 /** 프로젝트 카드 묶음을 노출하는 위젯입니다. */
-export const ProjectShowcase = ({ description, items, title }: ProjectShowcaseProps) => (
+export const ProjectShowcase = ({
+  description,
+  descriptionVisibility = 'visible',
+  emptyText,
+  items,
+  title,
+}: ProjectShowcaseProps) => (
   <section style={sectionStyle}>
     <div style={headerStyle}>
       <h2 style={titleStyle}>{title}</h2>
-      <p style={descriptionStyle}>{description}</p>
+      <p style={descriptionVisibility === 'sr-only' ? srOnlyStyle : descriptionStyle}>
+        {description}
+      </p>
     </div>
-    <div style={gridStyle}>
-      {items.map(item => (
-        <ProjectCard item={item} key={item.id} />
-      ))}
-    </div>
+    {items.length > 0 ? (
+      <div style={gridStyle}>
+        {items.map(item => (
+          <ProjectCard item={item} key={item.id} />
+        ))}
+      </div>
+    ) : (
+      <p style={emptyStyle}>{emptyText}</p>
+    )}
   </section>
 );
 
@@ -49,4 +63,21 @@ const gridStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
   gap: '1rem',
+};
+
+const emptyStyle: CSSProperties = {
+  color: 'rgb(var(--color-muted))',
+  padding: '1rem 0',
+};
+
+const srOnlyStyle: CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
 };

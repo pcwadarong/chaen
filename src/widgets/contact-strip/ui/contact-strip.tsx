@@ -12,7 +12,22 @@ export const ContactStrip = () => {
       <div style={copyStyle}>
         <p style={eyebrowStyle}>{t('eyebrow')}</p>
         <h2 style={titleStyle}>{t('title')}</h2>
-        <p style={descriptionStyle}>{t('description')}</p>
+        <ul style={metaListStyle}>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('locationLabel')}</span>
+            <span>{t('locationValue')}</span>
+          </li>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('focusLabel')}</span>
+            <span>{t('focusValue')}</span>
+          </li>
+          <li style={metaItemStyle}>
+            <span style={metaLabelStyle}>{t('emailLabel')}</span>
+            <a href={`mailto:${t('emailValue')}`} style={emailLinkStyle}>
+              {t('emailValue')}
+            </a>
+          </li>
+        </ul>
       </div>
       <div aria-hidden="true" style={motionStyle}>
         <span style={pulseStyle} />
@@ -48,9 +63,24 @@ const titleStyle: CSSProperties = {
   letterSpacing: '-0.04em',
 };
 
-const descriptionStyle: CSSProperties = {
-  maxWidth: '52rem',
+const metaListStyle: CSSProperties = {
+  display: 'grid',
+  gap: '0.45rem',
   color: 'rgb(var(--color-muted))',
+};
+
+const metaItemStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.45rem',
+};
+
+const metaLabelStyle: CSSProperties = {
+  fontWeight: 700,
+};
+
+const emailLinkStyle: CSSProperties = {
+  textDecoration: 'underline',
 };
 
 const motionStyle: CSSProperties = {

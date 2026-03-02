@@ -8,13 +8,11 @@
     "resume": "履歴書",
     "work": "作品"
   },
-  "Resume": {
-    "title": "こんにちは、パク・チェウォンです。"
-  },
   "Home": {
     "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
+    "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "eyebrow": "ホーム",
-    "showcaseDescription": "ホームでは一部のプロジェクトカードのみを先に見せ、全体一覧は work ページに分けられる構成です。",
+    "showcaseScreenReaderDescription": "ピックアップ作品セクションです。各カードから詳細ページへ移動できます。",
     "showcaseTitle": "ピックアップ作品",
     "title": "モーションを載せられる最初のフレーム。"
   },
@@ -33,14 +31,32 @@
   },
   "Work": {
     "deliverables": "成果物",
+    "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "showcaseDescription": "ホームの一部プレビューとは異なり、このページではプロジェクトカード全体を一覧で表示します。",
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"
   },
+  "WorkDetail": {
+    "descriptionSection": "詳細説明",
+    "emptyDescription": "詳細説明はまだ登録されていません。",
+    "emptyMedia": "表示できるメディアがありません。",
+    "emptySummary": "概要はまだありません。",
+    "mediaAlt": "{title} プレビュー {index}",
+    "mediaSection": "主要メディア",
+    "noTags": "タグなし",
+    "ongoing": "進行中",
+    "publishedAt": "公開日 {date}",
+    "tagSection": "タグ"
+  },
   "Contact": {
-    "description": "ホーム下部には短いアニメーションと一緒に連絡導線の文言が入るスペースを先に確保します。",
+    "emailLabel": "Email",
+    "emailValue": "pcwadarong@naver.com",
     "eyebrow": "連絡",
-    "title": "短いモーションで締めるコンパクトな終端セクション。"
+    "focusLabel": "Focus",
+    "focusValue": "Frontend Development",
+    "locationLabel": "Location",
+    "locationValue": "Seoul, Korea",
+    "title": "Let's connect and create meaningful experiences."
   },
   "Switchers": {
     "locale": {
@@ -57,38 +73,6 @@
       "label": "テーマ",
       "light": "ライト",
       "system": "システム"
-    }
-  },
-  "ProjectItems": {
-    "motion-library": {
-      "category": "デザインエンジニアリング",
-      "headline": "モーション主導のコンポーネントライブラリ",
-      "summary": "ブランドインタラクションをコンポーネント単位で再利用できるように、モーショントークンと UI ルールを整理したプロジェクトです。",
-      "deliverables": {
-        "interactionSpec": "インタラクション仕様",
-        "motionTokens": "モーショントークン",
-        "storybookFoundation": "Storybook 基盤"
-      }
-    },
-    "supabase-editorial": {
-      "category": "フルスタック",
-      "headline": "Supabase ベースのエディトリアルプラットフォーム",
-      "summary": "コンテンツ作成と公開の流れを Supabase ベースで設計し、App Router 向けに SSR の境界を整理したプロジェクトです。",
-      "deliverables": {
-        "authFlow": "認証フロー",
-        "publishingDashboard": "公開ダッシュボード",
-        "storageStrategy": "ストレージ戦略"
-      }
-    },
-    "guest-campaign": {
-      "category": "グロース",
-      "headline": "ゲスト向けオンボーディングキャンペーンサイト",
-      "summary": "広告流入ユーザーを製品体験へ自然につなぐためのランディング体験とコンバージョン導線を設計したプロジェクトです。",
-      "deliverables": {
-        "analyticsHooks": "分析フック",
-        "ctaExperiment": "CTA 実験",
-        "landingNarrative": "ランディングナラティブ"
-      }
     }
   },
   "ArticleItems": {

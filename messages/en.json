@@ -8,13 +8,11 @@
     "resume": "Resume",
     "work": "Work"
   },
-  "Resume": {
-    "title": "Hello, I am Park Chaewon."
-  },
   "Home": {
     "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
+    "emptyProjects": "No projects have been published yet.",
     "eyebrow": "Home",
-    "showcaseDescription": "The home route previews a few selected cards first, while the full collection can live on the work archive page.",
+    "showcaseScreenReaderDescription": "Selected projects section. Each card links to its detailed case study page.",
     "showcaseTitle": "Selected projects",
     "title": "An opening frame with room for motion."
   },
@@ -33,14 +31,32 @@
   },
   "Work": {
     "deliverables": "Deliverables",
+    "emptyProjects": "No projects have been published yet.",
     "showcaseDescription": "Unlike the compact preview on the home route, this page shows the full collection of project cards.",
     "showcaseTitle": "Project archive",
     "viewProject": "View project"
   },
+  "WorkDetail": {
+    "descriptionSection": "Detailed Description",
+    "emptyDescription": "Detailed description has not been added yet.",
+    "emptyMedia": "No media has been uploaded yet.",
+    "emptySummary": "Summary is not available.",
+    "mediaAlt": "{title} preview {index}",
+    "mediaSection": "Key Media",
+    "noTags": "untagged",
+    "ongoing": "Ongoing",
+    "publishedAt": "Published {date}",
+    "tagSection": "Tags"
+  },
   "Contact": {
-    "description": "This closing area reserves space for a short motion cue and a direct contact prompt.",
+    "emailLabel": "Email",
+    "emailValue": "pcwadarong@naver.com",
     "eyebrow": "Contact",
-    "title": "A compact closing section with motion."
+    "focusLabel": "Focus",
+    "focusValue": "Frontend Development",
+    "locationLabel": "Location",
+    "locationValue": "Seoul, Korea",
+    "title": "Let's connect and create meaningful experiences."
   },
   "Switchers": {
     "locale": {
@@ -57,38 +73,6 @@
       "label": "Theme",
       "light": "Light",
       "system": "System"
-    }
-  },
-  "ProjectItems": {
-    "motion-library": {
-      "category": "Design Engineering",
-      "headline": "Motion-first component library",
-      "summary": "A project that organized motion tokens and UI rules so brand interactions can be reused at the component level.",
-      "deliverables": {
-        "interactionSpec": "Interaction spec",
-        "motionTokens": "Motion tokens",
-        "storybookFoundation": "Storybook foundation"
-      }
-    },
-    "supabase-editorial": {
-      "category": "Fullstack",
-      "headline": "Editorial platform with Supabase",
-      "summary": "A project that mapped a Supabase-based writing and publishing flow and clarified SSR boundaries for the App Router.",
-      "deliverables": {
-        "authFlow": "Auth flow",
-        "publishingDashboard": "Publishing dashboard",
-        "storageStrategy": "Storage strategy"
-      }
-    },
-    "guest-campaign": {
-      "category": "Growth",
-      "headline": "Guest onboarding campaign site",
-      "summary": "A landing and conversion flow designed to move paid traffic smoothly into the product experience.",
-      "deliverables": {
-        "analyticsHooks": "Analytics hooks",
-        "ctaExperiment": "CTA experiment",
-        "landingNarrative": "Landing narrative"
-      }
     }
   },
   "ArticleItems": {

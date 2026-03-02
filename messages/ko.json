@@ -8,13 +8,11 @@
     "resume": "이력",
     "work": "작업"
   },
-  "Resume": {
-    "title": "안녕하세요 박채원입니다."
-  },
   "Home": {
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
+    "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
     "eyebrow": "홈",
-    "showcaseDescription": "홈에서는 일부 프로젝트 카드만 먼저 노출하고, 이후 전체 목록은 work 리스트 페이지로 분리할 수 있습니다.",
+    "showcaseScreenReaderDescription": "선별 프로젝트 섹션입니다. 프로젝트별 상세 페이지로 이동할 수 있습니다.",
     "showcaseTitle": "선별 프로젝트",
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
   },
@@ -33,14 +31,32 @@
   },
   "Work": {
     "deliverables": "주요 산출물",
+    "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
     "showcaseDescription": "프로젝트 리스트는 홈의 일부 프리뷰와 달리 전체 카드 컬렉션을 보여주는 독립 페이지입니다.",
     "showcaseTitle": "프로젝트 아카이브",
     "viewProject": "프로젝트 보기"
   },
+  "WorkDetail": {
+    "descriptionSection": "상세 설명",
+    "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
+    "emptyMedia": "표시할 미디어가 없습니다.",
+    "emptySummary": "요약이 비어 있습니다.",
+    "mediaAlt": "{title} 미리보기 {index}",
+    "mediaSection": "주요 미디어",
+    "noTags": "태그없음",
+    "ongoing": "진행 중",
+    "publishedAt": "등록일 {date}",
+    "tagSection": "태그"
+  },
   "Contact": {
-    "description": "홈 하단에는 짧은 애니메이션과 함께 연락 유도 문구가 들어갈 자리만 먼저 확보합니다.",
+    "emailLabel": "Email",
+    "emailValue": "pcwadarong@naver.com",
     "eyebrow": "연락",
-    "title": "짧은 모션과 함께 닫히는 콤팩트한 마지막 섹션."
+    "focusLabel": "Focus",
+    "focusValue": "Frontend Development",
+    "locationLabel": "Location",
+    "locationValue": "Seoul, Korea",
+    "title": "Let's connect and create meaningful experiences."
   },
   "Switchers": {
     "locale": {
@@ -57,38 +73,6 @@
       "label": "테마",
       "light": "라이트",
       "system": "시스템"
-    }
-  },
-  "ProjectItems": {
-    "motion-library": {
-      "category": "디자인 엔지니어링",
-      "headline": "모션 중심 컴포넌트 라이브러리",
-      "summary": "브랜드 인터랙션을 컴포넌트 단위에서 재사용할 수 있도록 모션 토큰과 UI 규칙을 정리한 프로젝트입니다.",
-      "deliverables": {
-        "interactionSpec": "인터랙션 명세",
-        "motionTokens": "모션 토큰",
-        "storybookFoundation": "스토리북 기반"
-      }
-    },
-    "supabase-editorial": {
-      "category": "풀스택",
-      "headline": "Supabase 기반 에디토리얼 플랫폼",
-      "summary": "콘텐츠 작성과 퍼블리싱 흐름을 Supabase 기반으로 설계하고 App Router에 맞게 SSR 경계를 정리한 프로젝트입니다.",
-      "deliverables": {
-        "authFlow": "인증 플로우",
-        "publishingDashboard": "퍼블리싱 대시보드",
-        "storageStrategy": "스토리지 전략"
-      }
-    },
-    "guest-campaign": {
-      "category": "그로스",
-      "headline": "게스트 온보딩 캠페인 사이트",
-      "summary": "광고 유입 사용자를 제품 경험으로 자연스럽게 연결하기 위한 랜딩 경험과 전환 흐름을 설계한 프로젝트입니다.",
-      "deliverables": {
-        "analyticsHooks": "분석 훅",
-        "ctaExperiment": "CTA 실험",
-        "landingNarrative": "랜딩 내러티브"
-      }
     }
   },
   "ArticleItems": {
