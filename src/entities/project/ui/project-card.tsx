@@ -1,29 +1,47 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import Image from 'next/image';
+import { useLocale, useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
-import type { ProjectItem } from '@/entities/project/model/project-items';
+import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
+import type { Project } from '@/entities/project/model/types';
 import { Link } from '@/i18n/navigation';
+import { formatYear } from '@/shared/lib/date/format-year';
+import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 
 type ProjectCardProps = {
-  item: ProjectItem;
+  item: Project;
 };
 
 /** 프로젝트 요약 카드를 렌더링합니다. */
 export const ProjectCard = ({ item }: ProjectCardProps) => {
+  const locale = useLocale();
   const t = useTranslations('Work');
-  const projectT = useTranslations('ProjectItems');
+  const tagLabel = item.tags?.[0] ? getTagLabelByLocale(item.tags[0], locale) : 'project';
+  const thumbnailSrc = normalizeImageUrl(item.thumbnail_url);
+  const createdYearText = formatYear(item.created_at, locale) ?? '-';
 
   return (
     <article style={cardStyle}>
+      {thumbnailSrc ? (
+        <div style={thumbnailWrapStyle}>
+          <Image
+            alt={`${item.title} thumbnail`}
+            height={720}
+            src={thumbnailSrc}
+            style={thumbnailStyle}
+            width={1280}
+          />
+        </div>
+      ) : null}
       <div style={metaStyle}>
-        <span>{projectT(`${item.id}.category`)}</span>
-        <span>{item.year}</span>
+        <span>{tagLabel}</span>
+        <span>{createdYearText}</span>
       </div>
       <div style={bodyStyle}>
-        <h3 style={titleStyle}>{projectT(`${item.id}.headline`)}</h3>
-        <p style={summaryStyle}>{projectT(`${item.id}.summary`)}</p>
+        <h3 style={titleStyle}>{item.title}</h3>
+        <p style={summaryStyle}>{item.description ?? ''}</p>
       </div>
       <Link href={`/work/${item.id}`} style={cardLinkStyle}>
         {t('viewProject')}
@@ -42,6 +60,20 @@ const cardStyle: CSSProperties = {
   border: '1px solid rgb(var(--color-border) / 0.22)',
   background:
     'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
+};
+
+const thumbnailWrapStyle: CSSProperties = {
+  borderRadius: 'var(--radius-md)',
+  overflow: 'hidden',
+  border: '1px solid rgb(var(--color-border) / 0.18)',
+  backgroundColor: 'rgb(var(--color-surface-strong) / 0.5)',
+};
+
+const thumbnailStyle: CSSProperties = {
+  width: '100%',
+  height: 'auto',
+  aspectRatio: '16 / 9',
+  objectFit: 'cover',
 };
 
 const metaStyle: CSSProperties = {
