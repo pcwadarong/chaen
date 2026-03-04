@@ -49,6 +49,18 @@
     "publishedAt": "Published {date}",
     "tagSection": "Tags"
   },
+  "ArticleDetail": {
+    "contentSection": "Content",
+    "emptyContent": "Article content has not been added yet.",
+    "emptySummary": "Summary is not available.",
+    "emptyThumbnail": "No thumbnail has been uploaded yet.",
+    "noTags": "untagged",
+    "publishedAt": "Published {date}",
+    "tagSection": "Tags",
+    "thumbnailAlt": "{title} thumbnail",
+    "thumbnailSection": "Thumbnail",
+    "updatedAt": "Updated {date}"
+  },
   "ImageViewer": {
     "closeAriaLabel": "Close image viewer",
     "nextAriaLabel": "View next image",

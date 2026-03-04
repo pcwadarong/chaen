@@ -49,6 +49,18 @@
     "publishedAt": "Publié le {date}",
     "tagSection": "Tags"
   },
+  "ArticleDetail": {
+    "contentSection": "Contenu",
+    "emptyContent": "Le contenu de l'article n'a pas encore été ajouté.",
+    "emptySummary": "Le résumé n'est pas disponible.",
+    "emptyThumbnail": "Aucune miniature n'a encore été ajoutée.",
+    "noTags": "sans-tag",
+    "publishedAt": "Publié le {date}",
+    "tagSection": "Tags",
+    "thumbnailAlt": "Miniature de {title}",
+    "thumbnailSection": "Miniature",
+    "updatedAt": "Mis à jour le {date}"
+  },
   "ImageViewer": {
     "closeAriaLabel": "Fermer la visionneuse d'image",
     "nextAriaLabel": "Afficher l'image suivante",

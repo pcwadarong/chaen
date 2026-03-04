@@ -49,6 +49,18 @@
     "publishedAt": "公開日 {date}",
     "tagSection": "タグ"
   },
+  "ArticleDetail": {
+    "contentSection": "本文",
+    "emptyContent": "本文はまだ登録されていません。",
+    "emptySummary": "概要はまだありません。",
+    "emptyThumbnail": "表示できるサムネイルがありません。",
+    "noTags": "タグなし",
+    "publishedAt": "公開日 {date}",
+    "tagSection": "タグ",
+    "thumbnailAlt": "{title} のサムネイル",
+    "thumbnailSection": "サムネイル",
+    "updatedAt": "更新日 {date}"
+  },
   "ImageViewer": {
     "closeAriaLabel": "画像ビューアーを閉じる",
     "nextAriaLabel": "次の画像を表示",

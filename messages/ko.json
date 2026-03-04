@@ -49,6 +49,18 @@
     "publishedAt": "등록일 {date}",
     "tagSection": "태그"
   },
+  "ArticleDetail": {
+    "contentSection": "본문",
+    "emptyContent": "아직 등록된 본문이 없습니다.",
+    "emptySummary": "요약이 비어 있습니다.",
+    "emptyThumbnail": "표시할 대표 이미지가 없습니다.",
+    "noTags": "태그없음",
+    "publishedAt": "등록일 {date}",
+    "tagSection": "태그",
+    "thumbnailAlt": "{title} 대표 이미지",
+    "thumbnailSection": "대표 이미지",
+    "updatedAt": "수정일 {date}"
+  },
   "ImageViewer": {
     "closeAriaLabel": "이미지 뷰어 닫기",
     "nextAriaLabel": "다음 이미지 보기",

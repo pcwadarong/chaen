@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react';
 
 import type { Article } from '@/entities/article/model/types';
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
+import { Link } from '@/i18n/navigation';
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 
 type ArticleCardProps = {
@@ -19,32 +20,38 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   const normalizedTags = article.tags ?? [];
 
   return (
-    <article style={cardStyle}>
-      {thumbnailSrc ? (
-        <div style={thumbnailWrapStyle}>
-          <Image
-            alt={`${article.title} thumbnail`}
-            height={768}
-            src={thumbnailSrc}
-            style={thumbnailStyle}
-            width={1366}
-          />
+    <Link
+      aria-label={`${article.title} 상세 보기`}
+      href={`/articles/${article.id}`}
+      style={cardLinkStyle}
+    >
+      <article style={cardStyle}>
+        {thumbnailSrc ? (
+          <div style={thumbnailWrapStyle}>
+            <Image
+              alt={`${article.title} thumbnail`}
+              height={768}
+              src={thumbnailSrc}
+              style={thumbnailStyle}
+              width={1366}
+            />
+          </div>
+        ) : null}
+        {normalizedTags.length > 0 ? (
+          <div style={tagsStyle}>
+            {normalizedTags.map(tag => (
+              <span key={tag} style={tagStyle}>
+                {getTagLabelByLocale(tag, locale)}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <div style={bodyStyle}>
+          <h3 style={titleStyle}>{article.title}</h3>
+          {article.description ? <p style={descriptionStyle}>{article.description}</p> : null}
         </div>
-      ) : null}
-      {normalizedTags.length > 0 ? (
-        <div style={tagsStyle}>
-          {normalizedTags.map(tag => (
-            <span key={tag} style={tagStyle}>
-              {getTagLabelByLocale(tag, locale)}
-            </span>
-          ))}
-        </div>
-      ) : null}
-      <div style={bodyStyle}>
-        <h3 style={titleStyle}>{article.title}</h3>
-        {article.description ? <p style={descriptionStyle}>{article.description}</p> : null}
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 };
 
@@ -104,4 +111,10 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   color: 'rgb(var(--color-muted))',
+};
+
+const cardLinkStyle: CSSProperties = {
+  display: 'block',
+  textDecoration: 'none',
+  color: 'rgb(var(--color-text))',
 };
