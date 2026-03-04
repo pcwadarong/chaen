@@ -1,12 +1,12 @@
 {
   "Navigation": {
     "ariaLabel": "주요 탐색",
-    "blog": "블로그",
+    "articles": "기록",
     "brand": "chaen",
     "guest": "방명록",
     "home": "홈",
     "resume": "이력",
-    "work": "작업"
+    "work": "프로젝트"
   },
   "Home": {
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
@@ -17,17 +17,16 @@
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
   },
   "Guest": {
-    "description": "방명록 입력은 이후 모달 feature로 분리하고, 현재 페이지는 공개 소개와 읽기 경험 중심으로 둡니다.",
-    "eyebrow": "방명록",
+    "description": "하고 싶은 말을 편하게 남겨 주세요.",
     "item1": "읽기 중심의 공개 메시지 영역",
     "item2": "작성은 추후 create-guestbook-entry feature로 분리",
     "item3": "페이지는 데이터 패칭과 조합만 담당",
-    "title": "방명록 상호작용은 가볍고 모달 중심으로 유지합니다."
+    "title": "방명록"
   },
-  "Blog": {
-    "description": "지금은 블로그 리스트와 기본 정보 구조만 두고, 검색과 태그 필터, 댓글 작성은 feature로 분리할 예정입니다.",
-    "eyebrow": "블로그",
-    "title": "기술 글, 태그, 검색, 댓글은 이후에 확장합니다."
+  "Articles": {
+    "description": "공유하고 싶거나 다시 보고 싶은 기술들을 정리합니다.",
+    "emptyItems": "아직 등록된 아티클이 없습니다.",
+    "title": "기록"
   },
   "Work": {
     "deliverables": "주요 산출물",
@@ -61,12 +60,11 @@
   "Contact": {
     "emailLabel": "Email",
     "emailValue": "pcwadarong@naver.com",
-    "eyebrow": "연락",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
-    "title": "Let's connect and create meaningful experiences."
+    "title": "의미 있는 경험을 함께 만들어요."
   },
   "Switchers": {
     "locale": {
@@ -83,35 +81,6 @@
       "label": "테마",
       "light": "라이트",
       "system": "시스템"
-    }
-  },
-  "ArticleItems": {
-    "typography-rhythm": {
-      "title": "한국어와 일본어 카피에서의 타이포 리듬",
-      "description": "다국어 환경에서 행간과 폰트 선택이 레이아웃 밀도에 미치는 영향을 정리한 글입니다.",
-      "tags": {
-        "designSystem": "디자인 시스템",
-        "i18n": "i18n",
-        "typography": "타이포그래피"
-      }
-    },
-    "svgr-turbopack": {
-      "title": "Webpack과 Turbopack에서 일관되게 SVGR 실행하기",
-      "description": "개발과 빌드 환경이 달라도 같은 SVG import 경험을 유지하는 설정 메모입니다.",
-      "tags": {
-        "buildTooling": "빌드 도구",
-        "nextjs": "Next.js",
-        "svg": "SVG"
-      }
-    },
-    "supabase-ssr-boundary": {
-      "title": "기능 작업 전에 Supabase SSR 경계 정리하기",
-      "description": "클라이언트, 서버, 미들웨어 책임을 어떻게 나눌지 먼저 정리한 구조 문서입니다.",
-      "tags": {
-        "architecture": "아키텍처",
-        "ssr": "SSR",
-        "supabase": "Supabase"
-      }
     }
   }
 }

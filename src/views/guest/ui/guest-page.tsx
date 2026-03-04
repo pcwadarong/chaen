@@ -10,9 +10,8 @@ export const GuestPage = () => {
   return (
     <main style={pageStyle}>
       <section style={heroStyle}>
-        <p style={eyebrowStyle}>{t('eyebrow')}</p>
         <h1 style={titleStyle}>{t('title')}</h1>
-        <p style={descriptionStyle}>{t('description')}</p>
+        <p style={srOnlyStyle}>{t('description')}</p>
       </section>
       <section style={panelStyle}>
         <ul style={listStyle}>
@@ -38,23 +37,22 @@ const heroStyle: CSSProperties = {
   gap: '0.75rem',
 };
 
-const eyebrowStyle: CSSProperties = {
-  fontSize: '0.82rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'rgb(var(--color-muted))',
-};
-
 const titleStyle: CSSProperties = {
   fontSize: 'clamp(2.4rem, 6vw, 4.8rem)',
   lineHeight: 0.96,
   letterSpacing: '-0.04em',
 };
 
-const descriptionStyle: CSSProperties = {
-  maxWidth: '52rem',
-  color: 'rgb(var(--color-muted))',
+const srOnlyStyle: CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
 };
 
 const panelStyle: CSSProperties = {

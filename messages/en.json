@@ -1,7 +1,7 @@
 {
   "Navigation": {
     "ariaLabel": "Primary navigation",
-    "blog": "Blog",
+    "articles": "Articles",
     "brand": "chaen",
     "guest": "Guest",
     "home": "Home",
@@ -17,17 +17,16 @@
     "title": "An opening frame with room for motion."
   },
   "Guest": {
-    "description": "Guestbook input will move into a modal feature later. For now, this page focuses on the public intro and reading experience.",
-    "eyebrow": "Guestbook",
+    "description": "Feel free to leave any message you'd like to share.",
     "item1": "Public message area optimized for reading",
     "item2": "Writing will move into a later create-guestbook-entry feature",
     "item3": "The page only handles composition and data fetching",
-    "title": "Guest interactions stay lightweight and modal-driven."
+    "title": "Guestbook"
   },
-  "Blog": {
-    "description": "For now, the page keeps the list and base metadata structure only. Search, tag filters and comments will ship as separate features later.",
-    "eyebrow": "Blog",
-    "title": "Technical writing, tags, search and comments come later."
+  "Articles": {
+    "description": "I organize technologies I want to share or revisit.",
+    "emptyItems": "No articles have been published yet.",
+    "title": "Articles"
   },
   "Work": {
     "deliverables": "Deliverables",
@@ -61,7 +60,6 @@
   "Contact": {
     "emailLabel": "Email",
     "emailValue": "pcwadarong@naver.com",
-    "eyebrow": "Contact",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
     "locationLabel": "Location",
@@ -83,35 +81,6 @@
       "label": "Theme",
       "light": "Light",
       "system": "System"
-    }
-  },
-  "ArticleItems": {
-    "typography-rhythm": {
-      "title": "Typography rhythm across Korean and Japanese copy",
-      "description": "Notes on how line-height and font choice affect layout density in multilingual interfaces.",
-      "tags": {
-        "designSystem": "Design system",
-        "i18n": "i18n",
-        "typography": "Typography"
-      }
-    },
-    "svgr-turbopack": {
-      "title": "Running SVGR consistently in Webpack and Turbopack",
-      "description": "Configuration notes for keeping the same SVG import experience across development and production tooling.",
-      "tags": {
-        "buildTooling": "Build tooling",
-        "nextjs": "Next.js",
-        "svg": "SVG"
-      }
-    },
-    "supabase-ssr-boundary": {
-      "title": "Mapping Supabase SSR boundaries before feature work",
-      "description": "A structure memo that defines how client, server and middleware responsibilities should be split first.",
-      "tags": {
-        "architecture": "Architecture",
-        "ssr": "SSR",
-        "supabase": "Supabase"
-      }
     }
   }
 }

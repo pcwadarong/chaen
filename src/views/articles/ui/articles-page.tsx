@@ -3,25 +3,32 @@
 import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
-import { articleItems } from '@/entities/article/model/article-items';
+import type { Article } from '@/entities/article/model/types';
 import { ArticleCard } from '@/entities/article/ui/article-card';
 
-/** 블로그 목록 화면의 실제 페이지 컨테이너입니다. */
-export const BlogPage = () => {
-  const t = useTranslations('Blog');
+type ArticlesPageProps = {
+  items: Article[];
+};
+
+/** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
+export const ArticlesPage = ({ items }: ArticlesPageProps) => {
+  const t = useTranslations('Articles');
 
   return (
     <main style={pageStyle}>
       <section style={heroStyle}>
-        <p style={eyebrowStyle}>{t('eyebrow')}</p>
         <h1 style={titleStyle}>{t('title')}</h1>
         <p style={descriptionStyle}>{t('description')}</p>
       </section>
-      <section style={stackStyle}>
-        {articleItems.map(article => (
-          <ArticleCard article={article} key={article.id} />
-        ))}
-      </section>
+      {items.length > 0 ? (
+        <section style={stackStyle}>
+          {items.map(article => (
+            <ArticleCard article={article} key={`${article.id}-${article.created_at}`} />
+          ))}
+        </section>
+      ) : (
+        <p style={emptyStyle}>{t('emptyItems')}</p>
+      )}
     </main>
   );
 };
@@ -39,14 +46,6 @@ const heroStyle: CSSProperties = {
   gap: '0.75rem',
 };
 
-const eyebrowStyle: CSSProperties = {
-  fontSize: '0.82rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'rgb(var(--color-muted))',
-};
-
 const titleStyle: CSSProperties = {
   fontSize: 'clamp(2.4rem, 6vw, 4.8rem)',
   lineHeight: 0.96,
@@ -62,4 +61,11 @@ const stackStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
   gap: '1rem',
+};
+
+const emptyStyle: CSSProperties = {
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid rgb(var(--color-border) / 0.24)',
+  padding: '1rem 1.25rem',
+  color: 'rgb(var(--color-muted))',
 };

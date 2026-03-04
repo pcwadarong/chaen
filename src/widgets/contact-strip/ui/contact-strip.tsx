@@ -10,7 +10,6 @@ export const ContactStrip = () => {
   return (
     <section style={sectionStyle}>
       <div style={copyStyle}>
-        <p style={eyebrowStyle}>{t('eyebrow')}</p>
         <h2 style={titleStyle}>{t('title')}</h2>
         <ul style={metaListStyle}>
           <li style={metaItemStyle}>
@@ -53,14 +52,6 @@ const copyStyle: CSSProperties = {
   alignContent: 'center',
   gap: '0.75rem',
   flex: '1 1 22rem',
-};
-
-const eyebrowStyle: CSSProperties = {
-  fontSize: '0.82rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'rgb(var(--color-muted))',
 };
 
 const titleStyle: CSSProperties = {
