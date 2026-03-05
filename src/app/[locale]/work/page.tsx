@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getWorkListPageData, WorkListPage } from '@/views/work-list';
+import { getWorkListPageData, WorkListPage } from '@/views/work';
 
 export const dynamic = 'force-dynamic';
 

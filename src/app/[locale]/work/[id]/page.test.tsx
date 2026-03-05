@@ -19,7 +19,7 @@ vi.mock('@/entities/project/api/get-project', () => ({
   getProject: vi.fn(async () => null),
 }));
 
-vi.mock('@/views/work-detail', () => ({
+vi.mock('@/views/work', () => ({
   WorkDetailPage: function WorkDetailPage() {
     return null;
   },

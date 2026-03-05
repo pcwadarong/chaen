@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 
 import { getProject } from '@/entities/project/api/get-project';
-import { WorkDetailPage } from '@/views/work-detail';
+import { WorkDetailPage } from '@/views/work';
 
 type WorkDetailRouteProps = {
   params: Promise<{

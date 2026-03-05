@@ -1,11 +1,11 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getWorkListPageData } from '@/views/work-list';
+import { getWorkListPageData } from '@/views/work';
 
 import WorkRoute from './page';
 
-vi.mock('@/views/work-list', () => ({
+vi.mock('@/views/work', () => ({
   getWorkListPageData: vi.fn(async () => ({
     initialCursor: null,
     initialItems: [],

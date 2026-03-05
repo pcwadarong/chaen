@@ -1,3 +1,5 @@
+'use client';
+
 import { css } from '@emotion/react';
 
 import type { Project } from '@/entities/project/model/types';
