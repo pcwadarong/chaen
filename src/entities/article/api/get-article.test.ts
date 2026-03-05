@@ -62,4 +62,42 @@ describe('getArticle', () => {
       'ko',
     ]);
   });
+
+  it('locale 컬럼이 없으면 legacy 단일 조회로 fallback한다', async () => {
+    const localizedQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'column articles.locale does not exist',
+        },
+      }),
+    };
+    const legacyQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'frontend-performance',
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+          locale: 'en',
+        },
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(localizedQuery).mockReturnValueOnce(legacyQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'ko');
+
+    expect(result?.id).toBe('frontend-performance');
+    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(localizedQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(legacyQuery.eq).toHaveBeenCalledWith('id', 'frontend-performance');
+  });
 });

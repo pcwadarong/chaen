@@ -64,4 +64,43 @@ describe('getProjects', () => {
       'ko',
     ]);
   });
+
+  it('대상 locale 결과가 비어 있으면 en locale로 fallback 조회한다', async () => {
+    const koreanQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+    };
+    const englishQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'funda-project',
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            locale: 'en',
+          },
+        ],
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(koreanQuery).mockReturnValueOnce(englishQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProjects('ko');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.locale).toBe('en');
+    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(koreanQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(englishQuery.eq).toHaveBeenCalledWith('locale', 'en');
+  });
 });
