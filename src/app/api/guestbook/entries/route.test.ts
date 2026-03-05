@@ -50,4 +50,24 @@ describe('POST /api/guestbook/entries', () => {
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
   });
+
+  it('실패 시 400과 에러 사유를 반환한다', async () => {
+    vi.mocked(createGuestbookEntry).mockRejectedValue(new Error('invalid payload'));
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        authorName: '',
+      }),
+    });
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.ok).toBe(false);
+    expect(payload.reason).toBe('invalid payload');
+  });
 });

@@ -66,4 +66,38 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-1');
   });
+
+  it('PATCH 실패 시 invalid password는 403을 반환한다', async () => {
+    vi.mocked(updateGuestbookEntry).mockRejectedValue(new Error('invalid password'));
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries/entry-1', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ content: 'updated', password: 'wrong' }),
+    });
+
+    const response = await PATCH(request, { params: Promise.resolve({ id: 'entry-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.reason).toBe('invalid password');
+  });
+
+  it('DELETE 실패 시 invalid password는 403을 반환한다', async () => {
+    vi.mocked(deleteGuestbookEntry).mockRejectedValue(new Error('invalid password'));
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries/entry-1', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: 'wrong' }),
+    });
+
+    const response = await DELETE(request, { params: Promise.resolve({ id: 'entry-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.reason).toBe('invalid password');
+  });
 });
