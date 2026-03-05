@@ -15,10 +15,12 @@ export const GET = async (request: Request) => {
   try {
     const page = await getGuestbookThreads({
       cursor,
+      includeSecret: true,
       limit,
     });
 
     return NextResponse.json({
+      isAdmin: true,
       ok: true,
       ...page,
     });

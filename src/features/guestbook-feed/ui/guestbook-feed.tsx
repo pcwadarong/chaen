@@ -8,6 +8,7 @@ import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-ca
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 
 type GuestbookFeedProps = {
+  canReply: boolean;
   errorMessage: string | null;
   hasMore: boolean;
   isInitialLoading: boolean;
@@ -25,6 +26,7 @@ type GuestbookFeedProps = {
  * 방명록 스레드 목록을 렌더링하고 무한스크롤을 처리합니다.
  */
 export const GuestbookFeed = ({
+  canReply,
   errorMessage,
   hasMore,
   isInitialLoading,
@@ -90,6 +92,7 @@ export const GuestbookFeed = ({
               actionDeleteLabel={t('delete')}
               actionEditLabel={t('edit')}
               actionReplyLabel={t('reply')}
+              canReply={canReply}
               dateText={formatDateText}
               entry={entry}
               key={entry.id}

@@ -15,6 +15,7 @@ import type {
 
 type GetGuestbookThreadsOptions = {
   cursor?: string | null;
+  includeSecret?: boolean;
   limit?: number;
 };
 
@@ -92,9 +93,17 @@ const fetchRepliesByParentIds = async (
 /**
  * 비밀글 노출 정책에 맞춰 공개 가능한 형태로 항목을 변환합니다.
  */
-const toPublicGuestbookEntry = (entry: GuestbookEntryRow): GuestbookEntry => {
+const toPublicGuestbookEntry = (
+  entry: GuestbookEntryRow,
+  includeSecret: boolean,
+): GuestbookEntry => {
   const { password_hash: _passwordHash, ...publicEntry } = entry;
-  if (!entry.is_secret) return publicEntry;
+  if (!entry.is_secret || includeSecret) {
+    return {
+      ...publicEntry,
+      is_content_masked: false,
+    };
+  }
 
   return {
     ...publicEntry,
@@ -109,6 +118,7 @@ const toPublicGuestbookEntry = (entry: GuestbookEntryRow): GuestbookEntry => {
  */
 export const getGuestbookThreads = async ({
   cursor,
+  includeSecret = false,
   limit = DEFAULT_PAGE_SIZE,
 }: GetGuestbookThreadsOptions): Promise<GuestbookThreadPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
@@ -123,22 +133,30 @@ export const getGuestbookThreads = async ({
   const offset = parseCursorOffset(cursor);
   const cacheCursor = String(offset);
 
+  const readThreads = async () => {
+    const parents = await fetchGuestbookParents(offset, normalizedLimit);
+    const parentIds = parents.map(parent => parent.id);
+    const repliesByParentId = await fetchRepliesByParentIds(parentIds);
+
+    const items: GuestbookThreadItem[] = parents.map(parent => ({
+      ...toPublicGuestbookEntry(parent, includeSecret),
+      replies: (repliesByParentId[parent.id] ?? []).map(reply =>
+        toPublicGuestbookEntry(reply, includeSecret),
+      ),
+    }));
+
+    return {
+      items,
+      nextCursor: parents.length === normalizedLimit ? String(offset + parents.length) : null,
+    };
+  };
+
+  if (includeSecret) {
+    return readThreads();
+  }
+
   const getCachedThreads = unstable_cache(
-    async () => {
-      const parents = await fetchGuestbookParents(offset, normalizedLimit);
-      const parentIds = parents.map(parent => parent.id);
-      const repliesByParentId = await fetchRepliesByParentIds(parentIds);
-
-      const items: GuestbookThreadItem[] = parents.map(parent => ({
-        ...toPublicGuestbookEntry(parent),
-        replies: (repliesByParentId[parent.id] ?? []).map(toPublicGuestbookEntry),
-      }));
-
-      return {
-        items,
-        nextCursor: parents.length === normalizedLimit ? String(offset + parents.length) : null,
-      };
-    },
+    readThreads,
     ['guestbook', 'threads', cacheScope, cacheCursor, String(normalizedLimit)],
     {
       tags: [GUESTBOOK_CACHE_TAG],

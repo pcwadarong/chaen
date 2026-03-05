@@ -14,6 +14,7 @@ import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/
 import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
 import { useGuestbookThreads } from '@/features/guestbook-feed/model/use-guestbook-threads';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
+import { useAuth } from '@/shared/providers';
 import { Modal } from '@/shared/ui/modal/modal';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast';
 
@@ -36,6 +37,7 @@ const createOptimisticId = () =>
  */
 export const GuestbookBoard = () => {
   const t = useTranslations('Guest');
+  const { isAdmin } = useAuth();
   const {
     applyServerThreadEntry,
     errorMessage,
@@ -83,6 +85,34 @@ export const GuestbookBoard = () => {
   };
 
   const handleSubmit = async (values: GuestbookComposeValues) => {
+    const isAdminReply = Boolean(isAdmin && replyTarget);
+
+    if (isAdminReply && !replyTarget) return;
+
+    if (isAdminReply && replyTarget) {
+      try {
+        const createdReply = await createGuestbookEntryClient({
+          authorName: 'admin',
+          content: values.content,
+          isAdminReply: true,
+          isSecret: values.isSecret,
+          parentId: replyTarget.id,
+          password: '',
+        });
+
+        updateThreadById(replyTarget.id, item => ({
+          ...item,
+          replies: [...item.replies, createdReply],
+        }));
+        setReplyTarget(null);
+        pushToast(t('toastReplySuccess'), 'success');
+      } catch {
+        pushToast(t('toastReplyError'), 'error');
+      }
+
+      return;
+    }
+
     const optimisticId = createOptimisticId();
     const optimisticThread: GuestbookThreadItem = {
       author_blog_url: values.authorBlogUrl.trim() || null,
@@ -107,6 +137,7 @@ export const GuestbookBoard = () => {
         authorBlogUrl: values.authorBlogUrl,
         authorName: values.authorName,
         content: values.content,
+        isAdminReply: false,
         isSecret: values.isSecret,
         password: values.password,
       });
@@ -160,6 +191,7 @@ export const GuestbookBoard = () => {
     }
 
     const target = modalState.entry;
+    const shouldSkipPassword = target.is_admin_reply;
     setIsModalSubmitting(true);
     try {
       if (modalState.mode === 'edit') {
@@ -171,7 +203,11 @@ export const GuestbookBoard = () => {
         }));
 
         try {
-          const updated = await updateGuestbookEntryClient(target.id, modalContent, modalPassword);
+          const updated = await updateGuestbookEntryClient(
+            target.id,
+            modalContent,
+            shouldSkipPassword ? '' : modalPassword,
+          );
           applyServerThreadEntry(updated);
           pushToast(t('toastEditSuccess'), 'success');
           closeModal();
@@ -193,7 +229,7 @@ export const GuestbookBoard = () => {
 
         removeThreadById(target.id);
         try {
-          await deleteGuestbookEntryClient(target.id, modalPassword);
+          await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : modalPassword);
           pushToast(t('toastDeleteSuccess'), 'success');
           closeModal();
         } catch {
@@ -213,6 +249,8 @@ export const GuestbookBoard = () => {
     return t('deleteModalTitle');
   }, [modalState, t]);
 
+  const shouldHideModalPassword = Boolean(modalState?.entry.is_admin_reply);
+
   return (
     <div style={boardStyle}>
       <section style={feedWrapStyle}>
@@ -220,6 +258,7 @@ export const GuestbookBoard = () => {
           <h1 style={titleStyle}>{t('title')}</h1>
         </header>
         <GuestbookFeed
+          canReply={isAdmin}
           errorMessage={errorMessage}
           hasMore={hasMore}
           isInitialLoading={isInitialLoading}
@@ -235,9 +274,11 @@ export const GuestbookBoard = () => {
       </section>
 
       <GuestbookComposeForm
+        isAdmin={isAdmin}
+        isReplyMode={Boolean(replyTarget && isAdmin)}
         onSubmit={handleSubmit}
         onReplyTargetReset={() => setReplyTarget(null)}
-        replyTargetContent={replyTarget?.content ?? null}
+        replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
         replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel={t('secretLabel')}
         submitLabel={t('submit')}
@@ -262,13 +303,15 @@ export const GuestbookBoard = () => {
           ) : (
             <p style={modalHintStyle}>{t('deleteModalHint')}</p>
           )}
-          <input
-            onChange={event => setModalPassword(event.target.value)}
-            placeholder={t('password')}
-            style={modalInputStyle}
-            type="password"
-            value={modalPassword}
-          />
+          {!shouldHideModalPassword ? (
+            <input
+              onChange={event => setModalPassword(event.target.value)}
+              placeholder={t('password')}
+              style={modalInputStyle}
+              type="password"
+              value={modalPassword}
+            />
+          ) : null}
           <div style={modalActionsStyle}>
             <button onClick={closeModal} style={modalSecondaryButtonStyle} type="button">
               {t('cancel')}
@@ -310,8 +353,11 @@ const feedWrapStyle: CSSProperties = {
 };
 
 const headerStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.45rem',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '0.75rem',
+  flexWrap: 'wrap',
 };
 
 const titleStyle: CSSProperties = {

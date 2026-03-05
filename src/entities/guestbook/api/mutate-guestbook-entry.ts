@@ -9,9 +9,10 @@ type CreateGuestbookEntryInput = {
   authorBlogUrl?: string | null;
   authorName: string;
   content: string;
+  isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;
-  password: string;
+  password?: string;
 };
 
 type UpdateGuestbookEntryInput = {
@@ -55,19 +56,22 @@ const toPublicEntry = (entry: GuestbookEntryRow, revealSecret: boolean): Guestbo
 const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   const authorName = input.authorName.trim();
   const content = input.content.trim();
-  const password = input.password.trim();
+  const password = input.password?.trim() ?? '';
   const authorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
 
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
+  if (!input.isAdminReply && !password) throw new Error('password is required');
+  if (input.isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
 
   return {
     authorBlogUrl,
     authorName,
     content,
     isSecret: input.isSecret,
+    isAdminReply: Boolean(input.isAdminReply),
     parentId,
     password,
   };
@@ -107,7 +111,9 @@ export const updateGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
-  assertPasswordMatches(password, currentRow);
+  if (!currentRow.is_admin_reply) {
+    assertPasswordMatches(password, currentRow);
+  }
 
   const { data, error } = await supabase
     .from('guestbook_entries')
@@ -147,7 +153,9 @@ export const deleteGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
-  assertPasswordMatches(password, currentRow);
+  if (!currentRow.is_admin_reply) {
+    assertPasswordMatches(password, currentRow);
+  }
 
   const now = new Date().toISOString();
   const { error } = await supabase
@@ -200,7 +208,29 @@ export const createGuestbookEntry = async (
   if (!supabase) throw new Error('service role env is not configured');
 
   const normalized = normalizeCreateInput(input);
-  const passwordHash = hashGuestbookPassword(normalized.password);
+  let passwordHash: string | null = null;
+
+  if (!normalized.isAdminReply) {
+    passwordHash = hashGuestbookPassword(normalized.password);
+  }
+
+  if (normalized.isAdminReply && normalized.isSecret) {
+    const { data: parent, error: parentError } = await supabase
+      .from('guestbook_entries')
+      .select('*')
+      .eq('id', normalized.parentId)
+      .is('deleted_at', null)
+      .single();
+
+    if (parentError || !parent) throw new Error('parent entry not found');
+
+    const parentRow = parent as GuestbookEntryRow;
+    if (!parentRow.password_hash) {
+      throw new Error('parent password is missing');
+    }
+
+    passwordHash = parentRow.password_hash;
+  }
 
   const { data, error } = await supabase
     .from('guestbook_entries')
@@ -208,7 +238,7 @@ export const createGuestbookEntry = async (
       author_blog_url: normalized.authorBlogUrl,
       author_name: normalized.authorName,
       content: normalized.content,
-      is_admin_reply: false,
+      is_admin_reply: normalized.isAdminReply,
       is_secret: normalized.isSecret,
       parent_id: normalized.parentId,
       password_hash: passwordHash,

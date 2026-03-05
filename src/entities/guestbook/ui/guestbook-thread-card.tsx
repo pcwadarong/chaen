@@ -9,6 +9,7 @@ type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
   actionEditLabel: string;
   actionReplyLabel: string;
+  canReply: boolean;
   dateText: (isoDate: string) => string;
   entry: GuestbookThreadItem;
   onDelete: (entry: GuestbookThreadItem) => void;
@@ -32,6 +33,7 @@ export const GuestbookThreadCard = ({
   actionDeleteLabel,
   actionEditLabel,
   actionReplyLabel,
+  canReply,
   dateText,
   entry,
   onDelete,
@@ -119,9 +121,11 @@ export const GuestbookThreadCard = ({
           ) : null}
 
           <footer style={footerStyle}>
-            <button onClick={() => onReply(entry)} style={actionButtonStyle} type="button">
-              {actionReplyLabel}
-            </button>
+            {canReply ? (
+              <button onClick={() => onReply(entry)} style={actionButtonStyle} type="button">
+                {actionReplyLabel}
+              </button>
+            ) : null}
             <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
               {actionEditLabel}
             </button>

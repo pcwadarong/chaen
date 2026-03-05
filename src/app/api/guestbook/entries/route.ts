@@ -8,6 +8,7 @@ type CreateEntryPayload = {
   authorBlogUrl?: unknown;
   authorName?: unknown;
   content?: unknown;
+  isAdminReply?: unknown;
   isSecret?: unknown;
   parentId?: unknown;
   password?: unknown;
@@ -19,11 +20,17 @@ type CreateEntryPayload = {
 export const POST = async (request: Request) => {
   try {
     const payload = (await request.json()) as CreateEntryPayload;
+    const isAdminReply = Boolean(payload.isAdminReply);
 
     const entry = await createGuestbookEntry({
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
-      authorName: typeof payload.authorName === 'string' ? payload.authorName : '',
+      authorName: isAdminReply
+        ? 'admin'
+        : typeof payload.authorName === 'string'
+          ? payload.authorName
+          : '',
       content: typeof payload.content === 'string' ? payload.content : '',
+      isAdminReply,
       isSecret: Boolean(payload.isSecret),
       parentId: typeof payload.parentId === 'string' ? payload.parentId : null,
       password: typeof payload.password === 'string' ? payload.password : '',

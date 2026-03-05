@@ -13,6 +13,8 @@ import {
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
 
 type GuestbookComposeFormProps = {
+  isAdmin: boolean;
+  isReplyMode: boolean;
   onSubmit: (values: GuestbookComposeValues) => Promise<void> | void;
   onReplyTargetReset: () => void;
   replyTargetContent: string | null;
@@ -29,6 +31,8 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
 export const GuestbookComposeForm = ({
+  isAdmin,
+  isReplyMode,
   onSubmit,
   onReplyTargetReset,
   replyTargetContent,
@@ -43,6 +47,8 @@ export const GuestbookComposeForm = ({
   const [content, setContent] = useState('');
   const [isSecret, setIsSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const shouldHideIdentityFields = isAdmin && isReplyMode;
 
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -70,14 +76,15 @@ export const GuestbookComposeForm = ({
   const charCountText = useMemo(() => `${content.length}/3000`, [content.length]);
 
   const submit = async () => {
-    if (!authorName.trim() || !content.trim()) return;
+    if (!content.trim()) return;
+    if (!shouldHideIdentityFields && !authorName.trim()) return;
 
     setIsSubmitting(true);
     try {
       await onSubmit({
-        authorName: authorName.trim(),
-        password: password.trim(),
-        authorBlogUrl: authorBlogUrl.trim(),
+        authorName: shouldHideIdentityFields ? 'admin' : authorName.trim(),
+        password: shouldHideIdentityFields ? '' : password.trim(),
+        authorBlogUrl: shouldHideIdentityFields ? '' : authorBlogUrl.trim(),
         isSecret,
         content: content.trim(),
       });
@@ -113,28 +120,30 @@ export const GuestbookComposeForm = ({
         </aside>
       ) : null}
       <TopRow>
-        <LeftFields>
-          <input
-            onChange={event => setAuthorName(event.target.value)}
-            placeholder="이름"
-            required
-            style={inputStyle}
-            value={authorName}
-          />
-          <input
-            onChange={event => setPassword(event.target.value)}
-            placeholder="비밀번호"
-            style={inputStyle}
-            type="password"
-            value={password}
-          />
-          <input
-            onChange={event => setAuthorBlogUrl(event.target.value)}
-            placeholder="블로그 홈페이지(선택)"
-            style={inputStyle}
-            value={authorBlogUrl}
-          />
-        </LeftFields>
+        {!shouldHideIdentityFields ? (
+          <LeftFields>
+            <input
+              onChange={event => setAuthorName(event.target.value)}
+              placeholder="이름"
+              required
+              style={inputStyle}
+              value={authorName}
+            />
+            <input
+              onChange={event => setPassword(event.target.value)}
+              placeholder="비밀번호"
+              style={inputStyle}
+              type="password"
+              value={password}
+            />
+            <input
+              onChange={event => setAuthorBlogUrl(event.target.value)}
+              placeholder="블로그 홈페이지(선택)"
+              style={inputStyle}
+              value={authorBlogUrl}
+            />
+          </LeftFields>
+        ) : null}
         <RightActions>
           <label style={secretToggleStyle}>
             <input

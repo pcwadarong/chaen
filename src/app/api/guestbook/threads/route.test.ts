@@ -26,9 +26,11 @@ describe('GET /api/guestbook/threads', () => {
 
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
+    expect(payload.isAdmin).toBe(true);
     expect(payload.nextCursor).toBe('12');
     expect(getGuestbookThreads).toHaveBeenCalledWith({
       cursor: '0',
+      includeSecret: true,
       limit: 12,
     });
   });
