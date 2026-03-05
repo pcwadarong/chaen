@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
 
 import 'server-only';
 
@@ -17,20 +18,6 @@ type GetGuestbookThreadsOptions = {
   cursor?: string | null;
   includeSecret?: boolean;
   limit?: number;
-};
-
-const DEFAULT_PAGE_SIZE = 12;
-
-/**
- * 커서 문자열을 offset 숫자로 변환합니다.
- */
-const parseCursorOffset = (cursor?: string | null) => {
-  if (!cursor) return 0;
-
-  const parsed = Number.parseInt(cursor, 10);
-  if (Number.isNaN(parsed) || parsed < 0) return 0;
-
-  return parsed;
 };
 
 /**
@@ -119,7 +106,7 @@ const toPublicGuestbookEntry = (
 export const getGuestbookThreads = async ({
   cursor,
   includeSecret = false,
-  limit = DEFAULT_PAGE_SIZE,
+  limit,
 }: GetGuestbookThreadsOptions): Promise<GuestbookThreadPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') {
@@ -129,8 +116,8 @@ export const getGuestbookThreads = async ({
     };
   }
 
-  const normalizedLimit = Math.min(Math.max(limit, 1), 30);
-  const offset = parseCursorOffset(cursor);
+  const normalizedLimit = parseOffsetLimit(limit);
+  const offset = parseOffsetCursor(cursor);
   const cacheCursor = String(offset);
 
   const readThreads = async () => {
