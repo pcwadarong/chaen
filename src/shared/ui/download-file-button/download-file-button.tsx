@@ -28,9 +28,7 @@ const triggerDownload = (url: string, fileName?: string) => {
   anchor.target = '_blank';
   anchor.rel = 'noopener noreferrer';
 
-  if (fileName) {
-    anchor.download = fileName;
-  }
+  if (fileName) anchor.download = fileName;
 
   document.body.append(anchor);
   anchor.click();
@@ -53,9 +51,7 @@ export const DownloadFileButton = ({
       aria-disabled={isDisabled}
       disabled={isDisabled}
       onClick={() => {
-        if (!href) {
-          return;
-        }
+        if (!href) return;
 
         if (mode === 'download') {
           triggerDownload(href, fileName);

@@ -2,40 +2,53 @@ import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-
 
 import 'server-only';
 
-import type { PdfFileContent } from '../model/types';
+import { getPdfFileContentConfig } from '../model/config';
+import type { PdfFileContent, PdfFileKind } from '../model/types';
 
 /**
- * Supabase `resume_contents` 테이블에서 locale별 PDF 소개 텍스트를 조회합니다.
- * 관리자 수정은 Supabase Dashboard(Table Editor)에서 가능하도록 단순 구조로 유지합니다.
+ * PDF 소개 콘텐츠 조회 옵션입니다.
  */
-export const getPdfFileContent = async (locale: string): Promise<PdfFileContent> => {
+type GetPdfFileContentOptions = {
+  locale: string;
+  kind?: PdfFileKind;
+  fallbackLocale?: string;
+};
+
+/**
+ * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale별 소개 텍스트를 조회합니다.
+ * locale 데이터가 없으면 fallback locale(`ko`)을 한 번 더 조회합니다.
+ */
+export const getPdfFileContent = async ({
+  locale,
+  kind = 'resume',
+  fallbackLocale = 'ko',
+}: GetPdfFileContentOptions): Promise<PdfFileContent | null> => {
   const normalizedLocale = locale.toLowerCase().split('-')[0] ?? 'en';
+  const normalizedFallbackLocale = fallbackLocale.toLowerCase().split('-')[0] ?? 'ko';
+  const { tableName } = getPdfFileContentConfig(kind);
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) {
-    throw new Error('[pdf-file] Supabase 환경변수가 없어 resume_contents를 조회할 수 없습니다.');
-  }
+
+  if (!supabase) return null;
+
   const { data, error } = await supabase
-    .from('resume_contents')
+    .from(tableName)
     .select('*')
     .eq('locale', normalizedLocale)
     .maybeSingle<PdfFileContent>();
 
-  if (error) throw new Error(`[resume] 내용 조회 실패: ${error.message}`);
-
+  if (error) return null;
   if (data) return data;
 
-  if (normalizedLocale !== 'ko') {
+  if (normalizedLocale !== normalizedFallbackLocale) {
     const { data: fallbackData, error: fallbackError } = await supabase
-      .from('resume_contents')
+      .from(tableName)
       .select('*')
-      .eq('locale', 'ko')
+      .eq('locale', normalizedFallbackLocale)
       .maybeSingle<PdfFileContent>();
 
-    if (fallbackError) throw new Error(`[resume] fallback(ko) 조회 실패: ${fallbackError.message}`);
+    if (fallbackError) return null;
     if (fallbackData) return fallbackData;
   }
 
-  throw new Error(
-    `[resume] locale(${normalizedLocale})와 fallback(ko) 데이터가 모두 비어 있습니다. resume_contents를 먼저 시딩해 주세요.`,
-  );
+  return null;
 };

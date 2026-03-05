@@ -56,7 +56,9 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
 };
 
 const cardStyle: CSSProperties = {
+  height: '100%',
   display: 'grid',
+  alignContent: 'start',
   gap: '1rem',
   padding: '1.5rem',
   borderRadius: 'var(--radius-lg)',
@@ -115,6 +117,7 @@ const descriptionStyle: CSSProperties = {
 
 const cardLinkStyle: CSSProperties = {
   display: 'block',
+  height: '100%',
   textDecoration: 'none',
   color: 'rgb(var(--color-text))',
 };
