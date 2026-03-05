@@ -6,7 +6,10 @@ import { getProjects } from '@/entities/project/api/get-projects';
 import HomeRoute from './page';
 
 vi.mock('@/entities/project/api/get-projects', () => ({
-  getProjects: vi.fn(async () => []),
+  getProjects: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
+  })),
 }));
 
 vi.mock('@/views/home', () => ({
@@ -25,7 +28,7 @@ describe('HomeRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('HomePage');
-    expect(getProjects).toHaveBeenCalledWith('ko');
+    expect(getProjects).toHaveBeenCalledWith({ locale: 'ko', limit: 3 });
     expect(element.props.items).toEqual([]);
   });
 });

@@ -8,7 +8,10 @@ import { getProjects } from '@/entities/project/api/get-projects';
 import WorkRoute from './page';
 
 vi.mock('@/entities/project/api/get-projects', () => ({
-  getProjects: vi.fn(async () => []),
+  getProjects: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
+  })),
 }));
 
 vi.mock('next-intl/server', () => ({
@@ -44,10 +47,12 @@ describe('WorkRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('WorkListPage');
-    expect(getProjects).toHaveBeenCalledWith('ko');
+    expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
     expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
     expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(element.props.items).toEqual([]);
+    expect(element.props.initialItems).toEqual([]);
+    expect(element.props.initialCursor).toBeNull();
+    expect(element.props.locale).toBe('ko');
     expect(element.props.portfolioButtonLabel).toBe('Download portfolio');
     expect(element.props.portfolioButtonUnavailableLabel).toBe('Portfolio unavailable');
     expect(element.props.portfolioDownloadFileName).toBeDefined();

@@ -19,7 +19,9 @@ const WorkRoute = async ({
 }) => {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Work' });
-  const items = await getProjects(locale);
+  const projectsPage = await getProjects({
+    locale,
+  });
   const portfolioConfig = getPdfFileStorageConfig('portfolio');
   const portfolioUrl = await getPdfFileUrl({
     accessType: 'signed',
@@ -32,7 +34,9 @@ const WorkRoute = async ({
 
   return (
     <WorkListPage
-      items={items}
+      initialCursor={projectsPage.nextCursor}
+      initialItems={projectsPage.items}
+      locale={locale}
       portfolioButtonLabel={t('portfolioDownload')}
       portfolioButtonUnavailableLabel={
         sharedPdfContent?.download_unavailable_label ?? t('portfolioDownloadUnavailable')

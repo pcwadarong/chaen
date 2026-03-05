@@ -12,9 +12,12 @@ const HomeRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const items = await getProjects(locale);
+  const projectsPage = await getProjects({
+    locale,
+    limit: 3,
+  });
 
-  return <HomePage items={items.slice(0, 3)} />;
+  return <HomePage items={projectsPage.items} />;
 };
 
 export default HomeRoute;

@@ -4,11 +4,13 @@ import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
+import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
-import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type WorkListPageProps = {
-  items: Project[];
+  initialCursor: string | null;
+  initialItems: Project[];
+  locale: string;
   portfolioButtonLabel: string;
   portfolioButtonUnavailableLabel: string;
   portfolioDownloadFileName: string;
@@ -17,7 +19,9 @@ type WorkListPageProps = {
 
 /** 프로젝트 목록 페이지 컨테이너입니다. */
 export const WorkListPage = ({
-  items,
+  initialCursor,
+  initialItems,
+  locale,
   portfolioButtonLabel,
   portfolioButtonUnavailableLabel,
   portfolioDownloadFileName,
@@ -35,10 +39,16 @@ export const WorkListPage = ({
           mode="download"
         />
       </section>
-      <ProjectShowcase
+      <ProjectFeed
         description={t('showcaseDescription')}
         emptyText={t('emptyProjects')}
-        items={items}
+        initialCursor={initialCursor}
+        initialItems={initialItems}
+        loadErrorText={t('loadError')}
+        loadMoreEndText={t('loadMoreEnd')}
+        loadingText={t('loading')}
+        locale={locale}
+        retryText={t('retry')}
         title={t('showcaseTitle')}
       />
     </main>

@@ -12,9 +12,17 @@ const ArticlesRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const items = await getArticles(locale);
+  const articlesPage = await getArticles({
+    locale,
+  });
 
-  return <ArticlesPage items={items} />;
+  return (
+    <ArticlesPage
+      initialCursor={articlesPage.nextCursor}
+      initialItems={articlesPage.items}
+      locale={locale}
+    />
+  );
 };
 
 export default ArticlesRoute;

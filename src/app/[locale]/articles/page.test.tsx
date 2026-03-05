@@ -6,7 +6,10 @@ import { getArticles } from '@/entities/article/api/get-articles';
 import ArticlesRoute from './page';
 
 vi.mock('@/entities/article/api/get-articles', () => ({
-  getArticles: vi.fn(async () => []),
+  getArticles: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
+  })),
 }));
 
 vi.mock('@/views/articles', () => ({
@@ -25,7 +28,9 @@ describe('ArticlesRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
-    expect(getArticles).toHaveBeenCalledWith('ko');
-    expect(element.props.items).toEqual([]);
+    expect(getArticles).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(element.props.initialItems).toEqual([]);
+    expect(element.props.initialCursor).toBeNull();
+    expect(element.props.locale).toBe('ko');
   });
 });
