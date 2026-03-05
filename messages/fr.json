@@ -17,11 +17,20 @@
     "title": "Une ouverture pensée pour accueillir du mouvement."
   },
   "Guest": {
-    "description": "N'hésitez pas à laisser le message que vous souhaitez partager.",
-    "item1": "Zone de messages publics orientée lecture",
-    "item2": "L'écriture sera séparée plus tard dans la feature create-guestbook-entry",
-    "item3": "La page ne gère que l'assemblage et le chargement des données",
-    "title": "Livre d'or"
+    "description": "Internet est un espace précieux que nous construisons ensemble. Merci d'écrire avec respect et responsabilité envers les autres.",
+    "title": "Livre d'or",
+    "loading": "Chargement du livre d'or.",
+    "loadError": "Impossible de charger le livre d'or.",
+    "retry": "Réessayer",
+    "loadMoreEnd": "Vous avez atteint la fin des messages.",
+    "emptyItems": "Aucun message pour le moment.",
+    "secretLabel": "Secret",
+    "secretPlaceholder": "Ce message est privé.",
+    "secretReveal": "Voir",
+    "dateFilterLabel": "Date",
+    "replyTargetResetLabel": "Annuler la réponse",
+    "composePlaceholder": "Internet est un espace précieux que nous construisons ensemble. Merci d'écrire avec respect et responsabilité envers les autres.",
+    "submit": "Envoyer"
   },
   "Articles": {
     "description": "J'organise les technologies que je veux partager ou revoir plus tard.",

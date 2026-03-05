@@ -17,11 +17,20 @@
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
   },
   "Guest": {
-    "description": "하고 싶은 말을 편하게 남겨 주세요.",
-    "item1": "읽기 중심의 공개 메시지 영역",
-    "item2": "작성은 추후 create-guestbook-entry feature로 분리",
-    "item3": "페이지는 데이터 패칭과 조합만 담당",
-    "title": "방명록"
+    "description": "인터넷은 우리가 함께 만들어가는 소중한 공간입니다. 댓글 작성 시 타인에 대한 배려와 책임을 담아주세요.",
+    "title": "안부게시판",
+    "loading": "방명록을 불러오는 중입니다.",
+    "loadError": "방명록을 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "loadMoreEnd": "마지막 방명록까지 모두 확인했습니다.",
+    "emptyItems": "아직 등록된 방명록이 없습니다.",
+    "secretLabel": "비밀글",
+    "secretPlaceholder": "비밀글입니다.",
+    "secretReveal": "확인하기",
+    "dateFilterLabel": "날짜",
+    "replyTargetResetLabel": "답신 취소",
+    "composePlaceholder": "인터넷은 우리가 함께 만들어가는 소중한 공간입니다. 댓글 작성 시 타인에 대한 배려와 책임을 담아주세요.",
+    "submit": "전송"
   },
   "Articles": {
     "description": "공유하고 싶거나 다시 보고 싶은 기술들을 정리합니다.",

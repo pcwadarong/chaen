@@ -17,11 +17,20 @@
     "title": "モーションを載せられる最初のフレーム。"
   },
   "Guest": {
-    "description": "伝えたいことを気軽に残してください。",
-    "item1": "閲覧中心の公開メッセージ領域",
-    "item2": "投稿は後で create-guestbook-entry 機能へ分離",
-    "item3": "ページはデータ取得と構成だけを担当",
-    "title": "ゲストブック"
+    "description": "インターネットは私たちが一緒につくる大切な空間です。コメントを書くときは、他者への配慮と責任を忘れずにお願いします。",
+    "title": "ゲストブック",
+    "loading": "ゲストブックを読み込み中です。",
+    "loadError": "ゲストブックを読み込めませんでした。",
+    "retry": "再試行",
+    "loadMoreEnd": "最後の投稿まで表示しました。",
+    "emptyItems": "まだ投稿がありません。",
+    "secretLabel": "秘密",
+    "secretPlaceholder": "秘密の投稿です。",
+    "secretReveal": "確認する",
+    "dateFilterLabel": "日付",
+    "replyTargetResetLabel": "返信を取り消す",
+    "composePlaceholder": "インターネットは私たちが一緒につくる大切な空間です。コメントを書くときは、他者への配慮と責任を忘れずにお願いします。",
+    "submit": "送信"
   },
   "Articles": {
     "description": "共有したい技術や、あとで見返したい技術を整理します。",

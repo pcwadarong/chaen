@@ -17,11 +17,20 @@
     "title": "An opening frame with room for motion."
   },
   "Guest": {
-    "description": "Feel free to leave any message you'd like to share.",
-    "item1": "Public message area optimized for reading",
-    "item2": "Writing will move into a later create-guestbook-entry feature",
-    "item3": "The page only handles composition and data fetching",
-    "title": "Guestbook"
+    "description": "The internet is a shared space we build together. Please write with care and responsibility for others.",
+    "title": "Guestbook",
+    "loading": "Loading guestbook entries.",
+    "loadError": "Failed to load the guestbook.",
+    "retry": "Retry",
+    "loadMoreEnd": "You have reached the end of the guestbook.",
+    "emptyItems": "No guestbook entries yet.",
+    "secretLabel": "Secret",
+    "secretPlaceholder": "This is a secret post.",
+    "secretReveal": "Open",
+    "dateFilterLabel": "Date",
+    "replyTargetResetLabel": "Cancel reply",
+    "composePlaceholder": "The internet is a shared space we build together. Please write with care and responsibility for others.",
+    "submit": "Send"
   },
   "Articles": {
     "description": "I organize technologies I want to share or revisit.",
