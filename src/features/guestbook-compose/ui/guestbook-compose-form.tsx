@@ -48,8 +48,6 @@ export const GuestbookComposeForm = ({
   const [isSecret, setIsSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const shouldHideIdentityFields = isAdmin && isReplyMode;
-
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!stored) return;
@@ -77,14 +75,14 @@ export const GuestbookComposeForm = ({
 
   const submit = async () => {
     if (!content.trim()) return;
-    if (!shouldHideIdentityFields && !authorName.trim()) return;
+    if (!isAdmin && !authorName.trim()) return;
 
     setIsSubmitting(true);
     try {
       await onSubmit({
-        authorName: shouldHideIdentityFields ? 'admin' : authorName.trim(),
-        password: shouldHideIdentityFields ? '' : password.trim(),
-        authorBlogUrl: shouldHideIdentityFields ? '' : authorBlogUrl.trim(),
+        authorName: isAdmin ? 'admin' : authorName.trim(),
+        password: isAdmin ? '' : password.trim(),
+        authorBlogUrl: isAdmin ? '' : authorBlogUrl.trim(),
         isSecret,
         content: content.trim(),
       });
@@ -108,7 +106,7 @@ export const GuestbookComposeForm = ({
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      {replyTargetContent ? (
+      {isReplyMode ? (
         <aside style={replyPreviewStyle}>
           <span aria-hidden style={replyPreviewIconStyle}>
             ↪
@@ -120,7 +118,7 @@ export const GuestbookComposeForm = ({
         </aside>
       ) : null}
       <TopRow>
-        {!shouldHideIdentityFields ? (
+        {!isAdmin ? (
           <LeftFields>
             <input
               onChange={event => setAuthorName(event.target.value)}
@@ -132,6 +130,7 @@ export const GuestbookComposeForm = ({
             <input
               onChange={event => setPassword(event.target.value)}
               placeholder="비밀번호"
+              required
               style={inputStyle}
               type="password"
               value={password}
@@ -145,14 +144,16 @@ export const GuestbookComposeForm = ({
           </LeftFields>
         ) : null}
         <RightActions>
-          <label style={secretToggleStyle}>
-            <input
-              checked={isSecret}
-              onChange={event => setIsSecret(event.target.checked)}
-              type="checkbox"
-            />
-            <span>{secretLabel}</span>
-          </label>
+          {!isAdmin ? (
+            <label style={secretToggleStyle}>
+              <input
+                checked={isSecret}
+                onChange={event => setIsSecret(event.target.checked)}
+                type="checkbox"
+              />
+              <span>{secretLabel}</span>
+            </label>
+          ) : null}
           <button disabled={isSubmitting} style={submitButtonStyle} type="submit">
             {submitLabel}
           </button>

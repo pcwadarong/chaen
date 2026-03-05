@@ -9,6 +9,7 @@ type CreateGuestbookEntryInput = {
   authorBlogUrl?: string | null;
   authorName: string;
   content: string;
+  isAdminAuthor?: boolean;
   isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;
@@ -59,11 +60,12 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   const password = input.password?.trim() ?? '';
   const authorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
+  const isAdminAuthor = Boolean(input.isAdminAuthor);
 
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
-  if (!input.isAdminReply && !password) throw new Error('password is required');
+  if (!input.isAdminReply && !isAdminAuthor && !password) throw new Error('password is required');
   if (input.isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
 
   return {
@@ -71,6 +73,7 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
     authorName,
     content,
     isSecret: input.isSecret,
+    isAdminAuthor,
     isAdminReply: Boolean(input.isAdminReply),
     parentId,
     password,
@@ -210,7 +213,7 @@ export const createGuestbookEntry = async (
   const normalized = normalizeCreateInput(input);
   let passwordHash: string | null = null;
 
-  if (!normalized.isAdminReply) {
+  if (!normalized.isAdminReply && !normalized.isAdminAuthor && normalized.password) {
     passwordHash = hashGuestbookPassword(normalized.password);
   }
 

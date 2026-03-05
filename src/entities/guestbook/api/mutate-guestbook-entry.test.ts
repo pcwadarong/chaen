@@ -136,4 +136,68 @@ describe('createGuestbookEntry', () => {
     );
     expect(hashGuestbookPassword).not.toHaveBeenCalled();
   });
+
+  it('일반 원댓글은 비밀번호가 없으면 등록에 실패한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn(),
+    } as never);
+
+    await expect(
+      createGuestbookEntry({
+        authorName: 'guest',
+        content: 'hello',
+        isAdminReply: false,
+        isSecret: false,
+        parentId: null,
+        password: '',
+      }),
+    ).rejects.toThrow('password is required');
+  });
+
+  it('관리자 원댓글은 비밀번호 없이 등록할 수 있다', async () => {
+    const insertSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'thread-admin-1',
+        parent_id: null,
+        author_name: 'admin',
+        author_blog_url: null,
+        password_hash: null,
+        content: 'admin thread',
+        is_secret: false,
+        is_admin_reply: false,
+        created_at: '2026-03-06T00:00:00.000Z',
+        updated_at: '2026-03-06T00:00:00.000Z',
+        deleted_at: null,
+      },
+      error: null,
+    });
+
+    const client = {
+      from: vi.fn().mockReturnValue({
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: insertSingle,
+      }),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(client as never);
+
+    await createGuestbookEntry({
+      authorName: 'admin',
+      content: 'admin thread',
+      isAdminAuthor: true,
+      isAdminReply: false,
+      isSecret: false,
+      parentId: null,
+      password: '',
+    });
+
+    const firstCall = client.from.mock.results[0]?.value;
+    expect(firstCall.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        password_hash: null,
+      }),
+    );
+    expect(hashGuestbookPassword).not.toHaveBeenCalled();
+  });
 });

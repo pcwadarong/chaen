@@ -8,6 +8,7 @@ type CreateEntryPayload = {
   authorBlogUrl?: unknown;
   authorName?: unknown;
   content?: unknown;
+  isAdminAuthor?: unknown;
   isAdminReply?: unknown;
   isSecret?: unknown;
   parentId?: unknown;
@@ -30,6 +31,7 @@ export const POST = async (request: Request) => {
           ? payload.authorName
           : '',
       content: typeof payload.content === 'string' ? payload.content : '',
+      isAdminAuthor: Boolean(payload.isAdminAuthor),
       isAdminReply,
       isSecret: Boolean(payload.isSecret),
       parentId: typeof payload.parentId === 'string' ? payload.parentId : null,

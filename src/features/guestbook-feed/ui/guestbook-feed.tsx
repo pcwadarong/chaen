@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { type CSSProperties, useEffect, useRef } from 'react';
 
-import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 
@@ -14,7 +14,9 @@ type GuestbookFeedProps = {
   isInitialLoading: boolean;
   isLoadingMore: boolean;
   items: GuestbookThreadItem[];
+  onDeleteReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onDelete: (entry: GuestbookThreadItem) => void;
+  onEditReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
   onLoadMore: () => Promise<void>;
   onReply: (entry: GuestbookThreadItem) => void;
@@ -32,7 +34,9 @@ export const GuestbookFeed = ({
   isInitialLoading,
   isLoadingMore,
   items,
+  onDeleteReply,
   onDelete,
+  onEditReply,
   onEdit,
   onLoadMore,
   onReply,
@@ -96,7 +100,9 @@ export const GuestbookFeed = ({
               dateText={formatDateText}
               entry={entry}
               key={entry.id}
+              onDeleteReply={onDeleteReply}
               onDelete={onDelete}
+              onEditReply={onEditReply}
               onEdit={onEdit}
               onReply={onReply}
               revealLabel={t('secretReveal')}

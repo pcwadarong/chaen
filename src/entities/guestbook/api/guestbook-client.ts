@@ -16,6 +16,7 @@ type CreateGuestbookEntryInput = {
   authorBlogUrl?: string;
   authorName: string;
   content: string;
+  isAdminAuthor?: boolean;
   isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;

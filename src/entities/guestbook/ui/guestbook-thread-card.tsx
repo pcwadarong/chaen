@@ -2,7 +2,7 @@
 
 import { type CSSProperties, useState } from 'react';
 
-import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookAdminReplyBubble } from '@/entities/guestbook/ui/guestbook-admin-reply-bubble';
 
 type GuestbookThreadCardProps = {
@@ -12,7 +12,9 @@ type GuestbookThreadCardProps = {
   canReply: boolean;
   dateText: (isoDate: string) => string;
   entry: GuestbookThreadItem;
+  onDeleteReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onDelete: (entry: GuestbookThreadItem) => void;
+  onEditReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
   onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
   onReply: (entry: GuestbookThreadItem) => void;
@@ -36,7 +38,9 @@ export const GuestbookThreadCard = ({
   canReply,
   dateText,
   entry,
+  onDeleteReply,
   onDelete,
+  onEditReply,
   onEdit,
   onRevealSecret,
   onReply,
@@ -140,9 +144,13 @@ export const GuestbookThreadCard = ({
         <div style={replyStackStyle}>
           {entry.replies.map(reply => (
             <GuestbookAdminReplyBubble
+              actionDeleteLabel={actionDeleteLabel}
+              actionEditLabel={actionEditLabel}
               dateText={dateText(reply.created_at)}
               entry={reply}
               key={reply.id}
+              onDelete={replyEntry => onDeleteReply(replyEntry, entry)}
+              onEdit={replyEntry => onEditReply(replyEntry, entry)}
             />
           ))}
         </div>

@@ -9,7 +9,7 @@ import {
   updateGuestbookEntryClient,
   verifyGuestbookSecretClient,
 } from '@/entities/guestbook/api/guestbook-client';
-import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
 import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
 import { useGuestbookThreads } from '@/features/guestbook-feed/model/use-guestbook-threads';
@@ -20,12 +20,14 @@ import { type ToastItem, ToastViewport } from '@/shared/ui/toast';
 
 type ActionModalState =
   | {
-      entry: GuestbookThreadItem;
+      entry: GuestbookEntry | GuestbookThreadItem;
       mode: 'delete';
+      parentThreadId: string | null;
     }
   | {
-      entry: GuestbookThreadItem;
+      entry: GuestbookEntry | GuestbookThreadItem;
       mode: 'edit';
+      parentThreadId: string | null;
     }
   | null;
 
@@ -94,6 +96,7 @@ export const GuestbookBoard = () => {
         const createdReply = await createGuestbookEntryClient({
           authorName: 'admin',
           content: values.content,
+          isAdminAuthor: isAdmin,
           isAdminReply: true,
           isSecret: values.isSecret,
           parentId: replyTarget.id,
@@ -106,8 +109,9 @@ export const GuestbookBoard = () => {
         }));
         setReplyTarget(null);
         pushToast(t('toastReplySuccess'), 'success');
-      } catch {
-        pushToast(t('toastReplyError'), 'error');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : t('toastReplyError');
+        pushToast(`${t('toastReplyError')} (${message})`, 'error');
       }
 
       return;
@@ -137,6 +141,7 @@ export const GuestbookBoard = () => {
         authorBlogUrl: values.authorBlogUrl,
         authorName: values.authorName,
         content: values.content,
+        isAdminAuthor: isAdmin,
         isAdminReply: false,
         isSecret: values.isSecret,
         password: values.password,
@@ -148,9 +153,10 @@ export const GuestbookBoard = () => {
         replies: [],
       });
       pushToast(t('toastCreateSuccess'), 'success');
-    } catch {
+    } catch (error) {
       removeThreadById(optimisticId);
-      pushToast(t('toastCreateError'), 'error');
+      const message = error instanceof Error ? error.message : t('toastCreateError');
+      pushToast(`${t('toastCreateError')} (${message})`, 'error');
     }
   };
 
@@ -168,6 +174,7 @@ export const GuestbookBoard = () => {
     setModalState({
       mode: 'edit',
       entry,
+      parentThreadId: null,
     });
     setModalPassword('');
     setModalContent(entry.content);
@@ -177,6 +184,27 @@ export const GuestbookBoard = () => {
     setModalState({
       mode: 'delete',
       entry,
+      parentThreadId: null,
+    });
+    setModalPassword('');
+    setModalContent('');
+  };
+
+  const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    setModalState({
+      mode: 'edit',
+      entry,
+      parentThreadId: parentEntry.id,
+    });
+    setModalPassword('');
+    setModalContent(entry.content);
+  };
+
+  const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    setModalState({
+      mode: 'delete',
+      entry,
+      parentThreadId: parentEntry.id,
     });
     setModalPassword('');
     setModalContent('');
@@ -196,11 +224,22 @@ export const GuestbookBoard = () => {
     try {
       if (modalState.mode === 'edit') {
         const previousContent = target.content;
-        updateThreadById(target.id, item => ({
-          ...item,
-          content: modalContent.trim(),
-          is_content_masked: false,
-        }));
+        if (modalState.parentThreadId) {
+          updateThreadById(modalState.parentThreadId, item => ({
+            ...item,
+            replies: item.replies.map(reply =>
+              reply.id === target.id
+                ? { ...reply, content: modalContent.trim(), is_content_masked: false }
+                : reply,
+            ),
+          }));
+        } else {
+          updateThreadById(target.id, item => ({
+            ...item,
+            content: modalContent.trim(),
+            is_content_masked: false,
+          }));
+        }
 
         try {
           const updated = await updateGuestbookEntryClient(
@@ -208,19 +247,68 @@ export const GuestbookBoard = () => {
             modalContent,
             shouldSkipPassword ? '' : modalPassword,
           );
-          applyServerThreadEntry(updated);
+          if (!modalState.parentThreadId) {
+            applyServerThreadEntry(updated);
+          }
           pushToast(t('toastEditSuccess'), 'success');
           closeModal();
         } catch {
-          updateThreadById(target.id, item => ({
-            ...item,
-            content: previousContent,
-          }));
+          if (modalState.parentThreadId) {
+            updateThreadById(modalState.parentThreadId, item => ({
+              ...item,
+              replies: item.replies.map(reply =>
+                reply.id === target.id ? { ...reply, content: previousContent } : reply,
+              ),
+            }));
+          } else {
+            updateThreadById(target.id, item => ({
+              ...item,
+              content: previousContent,
+            }));
+          }
           pushToast(t('toastEditError'), 'error');
         }
       }
 
       if (modalState.mode === 'delete') {
+        if (modalState.parentThreadId) {
+          const parentThread = items.find(item => item.id === modalState.parentThreadId);
+          if (!parentThread) {
+            closeModal();
+            return;
+          }
+
+          const replyIndex = parentThread.replies.findIndex(reply => reply.id === target.id);
+          if (replyIndex < 0) {
+            closeModal();
+            return;
+          }
+
+          const deletedReply = parentThread.replies[replyIndex];
+          updateThreadById(modalState.parentThreadId, item => ({
+            ...item,
+            replies: item.replies.filter(reply => reply.id !== target.id),
+          }));
+
+          try {
+            await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : modalPassword);
+            pushToast(t('toastDeleteSuccess'), 'success');
+            closeModal();
+          } catch {
+            updateThreadById(modalState.parentThreadId, item => ({
+              ...item,
+              replies: [
+                ...item.replies.slice(0, replyIndex),
+                deletedReply,
+                ...item.replies.slice(replyIndex),
+              ],
+            }));
+            pushToast(t('toastDeleteError'), 'error');
+          }
+
+          return;
+        }
+
         const deletedThread = items.find(item => item.id === target.id);
         if (!deletedThread) {
           closeModal();
@@ -264,7 +352,9 @@ export const GuestbookBoard = () => {
           isInitialLoading={isInitialLoading}
           isLoadingMore={isLoadingMore}
           items={items}
+          onDeleteReply={openDeleteReplyModal}
           onDelete={openDeleteModal}
+          onEditReply={openEditReplyModal}
           onEdit={openEditModal}
           onLoadMore={loadMore}
           onReply={entry => setReplyTarget(entry)}

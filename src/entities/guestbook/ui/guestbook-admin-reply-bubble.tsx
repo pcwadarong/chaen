@@ -3,26 +3,56 @@
 import type { CSSProperties } from 'react';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
+import { useAuth } from '@/shared/providers';
 
 type GuestbookAdminReplyBubbleProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
   entry: GuestbookEntry;
   dateText: string;
+  onDelete: (entry: GuestbookEntry) => void;
+  onEdit: (entry: GuestbookEntry) => void;
 };
 
 /**
  * 관리자 대댓글 버블을 렌더링합니다.
  * 우측 정렬 + 어두운 톤 스타일로 일반 댓글과 시각적으로 분리합니다.
  */
-export const GuestbookAdminReplyBubble = ({ entry, dateText }: GuestbookAdminReplyBubbleProps) => (
-  <article style={wrapperStyle}>
-    <div style={bubbleStyle}>
-      <p style={contentStyle}>{entry.content}</p>
-      <time dateTime={entry.created_at} style={dateStyle}>
-        {dateText}
-      </time>
-    </div>
-  </article>
-);
+export const GuestbookAdminReplyBubble = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  entry,
+  dateText,
+  onDelete,
+  onEdit,
+}: GuestbookAdminReplyBubbleProps) => {
+  const { isAdmin } = useAuth();
+
+  return (
+    <article style={wrapperStyle}>
+      <div style={bubbleStyle}>
+        <p style={contentStyle}>{entry.content}</p>
+        <footer style={footerStyle}>
+          <div style={actionRowStyle}>
+            {isAdmin && (
+              <>
+                <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
+                  {actionEditLabel}
+                </button>
+                <button onClick={() => onDelete(entry)} style={actionButtonStyle} type="button">
+                  {actionDeleteLabel}
+                </button>
+              </>
+            )}
+          </div>
+          <time dateTime={entry.created_at} style={dateStyle}>
+            {dateText}
+          </time>
+        </footer>
+      </div>
+    </article>
+  );
+};
 
 const wrapperStyle: CSSProperties = {
   display: 'flex',
@@ -44,6 +74,24 @@ const bubbleStyle: CSSProperties = {
 const contentStyle: CSSProperties = {
   whiteSpace: 'pre-wrap',
   lineHeight: 1.55,
+};
+
+const footerStyle: CSSProperties = {
+  display: 'flex',
+  gap: '0.35rem',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  fontSize: '0.82rem',
+};
+
+const actionRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: '0.35rem',
+};
+
+const actionButtonStyle: CSSProperties = {
+  border: 'none',
+  textDecoration: 'underline',
 };
 
 const dateStyle: CSSProperties = {
