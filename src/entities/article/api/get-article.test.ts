@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import { getArticle } from './get-article';
 
@@ -9,11 +9,11 @@ vi.mock('next/cache', () => ({
   unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
 }));
 
-vi.mock('@/lib/supabase/config', () => ({
+vi.mock('@/shared/lib/supabase/config', () => ({
   hasSupabaseEnv: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/public-server', () => ({
+vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
@@ -61,5 +61,78 @@ describe('getArticle', () => {
       'frontend-performance',
       'ko',
     ]);
+  });
+
+  it('locale 컬럼이 없으면 legacy 단일 조회로 fallback한다', async () => {
+    const localizedQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'column articles.locale does not exist',
+        },
+      }),
+    };
+    const legacyQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'frontend-performance',
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+          locale: 'en',
+        },
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(localizedQuery).mockReturnValueOnce(legacyQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'ko');
+
+    expect(result?.id).toBe('frontend-performance');
+    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(localizedQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(legacyQuery.eq).toHaveBeenCalledWith('id', 'frontend-performance');
+  });
+
+  it('대상 locale 결과가 없으면 ko locale로 fallback 조회한다', async () => {
+    const targetLocaleQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    };
+    const koreanFallbackQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'frontend-performance',
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+        },
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(targetLocaleQuery).mockReturnValueOnce(koreanFallbackQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'fr');
+
+    expect(result?.id).toBe('frontend-performance');
+    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(koreanFallbackQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
 });

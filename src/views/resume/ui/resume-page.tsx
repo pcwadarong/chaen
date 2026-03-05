@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 
-type ResumePageProps = {
+export type ResumePageProps = {
   content: PdfFileContent;
   downloadFileName: string;
   resumeUrl: string | null;

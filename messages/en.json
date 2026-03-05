@@ -54,18 +54,27 @@
     "toastEditError": "Failed to update guestbook entry.",
     "toastDeleteSuccess": "Guestbook entry has been deleted.",
     "toastDeleteError": "Failed to delete guestbook entry.",
-    "toastSecretVerifyError": "Failed to verify secret entry."
+    "toastSecretVerifyError": "Failed to verify secret entry.",
+    "deletedPlaceholder": "This post has been deleted."
   },
   "Articles": {
     "description": "I organize technologies I want to share or revisit.",
     "emptyItems": "No articles have been published yet.",
+    "loadError": "Failed to load articles.",
+    "loadMoreEnd": "You have reached the end of the articles.",
+    "loading": "Loading articles.",
+    "retry": "Retry",
     "title": "Articles"
   },
   "Work": {
     "deliverables": "Deliverables",
     "emptyProjects": "No projects have been published yet.",
+    "loadError": "Failed to load projects.",
+    "loadMoreEnd": "You have reached the end of the projects.",
+    "loading": "Loading projects.",
     "portfolioDownload": "Download portfolio",
     "portfolioDownloadUnavailable": "Portfolio unavailable",
+    "retry": "Retry",
     "showcaseDescription": "Unlike the compact preview on the home route, this page shows the full collection of project cards.",
     "showcaseTitle": "Project archive",
     "viewProject": "View project"

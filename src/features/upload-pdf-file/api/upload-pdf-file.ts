@@ -1,6 +1,6 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createUniqueStorageFileName } from '@/shared/lib/storage/create-unique-storage-file-name';
 import { createStoragePath, STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
+import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
 import 'server-only';
 

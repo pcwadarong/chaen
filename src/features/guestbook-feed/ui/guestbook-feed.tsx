@@ -98,6 +98,7 @@ export const GuestbookFeed = ({
               actionReplyLabel={t('reply')}
               canReply={canReply}
               dateText={formatDateText}
+              deletedPlaceholder={t('deletedPlaceholder')}
               entry={entry}
               key={entry.id}
               onDeleteReply={onDeleteReply}

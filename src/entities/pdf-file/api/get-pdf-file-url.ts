@@ -1,4 +1,4 @@
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 

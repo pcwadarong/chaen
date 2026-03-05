@@ -4,14 +4,16 @@ import { useTranslations } from 'next-intl';
 import type { CSSProperties } from 'react';
 
 import type { Article } from '@/entities/article/model/types';
-import { ArticleCard } from '@/entities/article/ui/article-card';
+import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 
-type ArticlesPageProps = {
-  items: Article[];
+export type ArticlesPageProps = {
+  initialCursor: string | null;
+  initialItems: Article[];
+  locale: string;
 };
 
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
-export const ArticlesPage = ({ items }: ArticlesPageProps) => {
+export const ArticlesPage = ({ initialCursor, initialItems, locale }: ArticlesPageProps) => {
   const t = useTranslations('Articles');
 
   return (
@@ -20,15 +22,16 @@ export const ArticlesPage = ({ items }: ArticlesPageProps) => {
         <h1 style={titleStyle}>{t('title')}</h1>
         <p style={descriptionStyle}>{t('description')}</p>
       </section>
-      {items.length > 0 ? (
-        <section style={stackStyle}>
-          {items.map(article => (
-            <ArticleCard article={article} key={`${article.id}-${article.created_at}`} />
-          ))}
-        </section>
-      ) : (
-        <p style={emptyStyle}>{t('emptyItems')}</p>
-      )}
+      <ArticleFeed
+        emptyText={t('emptyItems')}
+        initialCursor={initialCursor}
+        initialItems={initialItems}
+        loadErrorText={t('loadError')}
+        loadMoreEndText={t('loadMoreEnd')}
+        loadingText={t('loading')}
+        locale={locale}
+        retryText={t('retry')}
+      />
     </main>
   );
 };
@@ -54,20 +57,5 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   maxWidth: '52rem',
-  color: 'rgb(var(--color-muted))',
-};
-
-const stackStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-  gridAutoRows: '1fr',
-  alignItems: 'stretch',
-  gap: '1rem',
-};
-
-const emptyStyle: CSSProperties = {
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid rgb(var(--color-border) / 0.24)',
-  padding: '1rem 1.25rem',
   color: 'rgb(var(--color-muted))',
 };

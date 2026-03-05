@@ -5,7 +5,7 @@ vi.mock('next-intl/middleware', () => ({
   default: () => handleI18nRoutingMock,
 }));
 
-vi.mock('@/lib/supabase/middleware', () => ({
+vi.mock('@/shared/lib/supabase/middleware', () => ({
   updateSession: updateSessionMock,
 }));
 

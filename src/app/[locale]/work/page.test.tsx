@@ -1,34 +1,20 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
-import { getProjects } from '@/entities/project/api/get-projects';
+import { getWorkListPageData } from '@/views/work-list';
 
 import WorkRoute from './page';
 
-vi.mock('@/entities/project/api/get-projects', () => ({
-  getProjects: vi.fn(async () => []),
-}));
-
-vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn(async () => (key: string) => {
-    if (key === 'portfolioDownload') return 'Download portfolio';
-    if (key === 'portfolioDownloadUnavailable') return 'Portfolio unavailable';
-
-    return key;
-  }),
-}));
-
-vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
-  getPdfFileUrl: vi.fn(async () => 'https://example.com/portfolio.pdf'),
-}));
-
-vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
-  getPdfFileContent: vi.fn(async () => null),
-}));
-
 vi.mock('@/views/work-list', () => ({
+  getWorkListPageData: vi.fn(async () => ({
+    initialCursor: null,
+    initialItems: [],
+    locale: 'ko',
+    portfolioButtonLabel: 'Download portfolio',
+    portfolioButtonUnavailableLabel: 'Portfolio unavailable',
+    portfolioDownloadFileName: 'portfolio.pdf',
+    portfolioUrl: 'https://example.com/portfolio.pdf',
+  })),
   WorkListPage: function WorkListPage() {
     return null;
   },
@@ -44,10 +30,10 @@ describe('WorkRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('WorkListPage');
-    expect(getProjects).toHaveBeenCalledWith('ko');
-    expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
-    expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(element.props.items).toEqual([]);
+    expect(getWorkListPageData).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(element.props.initialItems).toEqual([]);
+    expect(element.props.initialCursor).toBeNull();
+    expect(element.props.locale).toBe('ko');
     expect(element.props.portfolioButtonLabel).toBe('Download portfolio');
     expect(element.props.portfolioButtonUnavailableLabel).toBe('Portfolio unavailable');
     expect(element.props.portfolioDownloadFileName).toBeDefined();

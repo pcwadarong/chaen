@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { verifyGuestbookSecret } from '@/entities/guestbook';
+import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type VerifyPayload = {
   password?: unknown;
@@ -24,15 +25,12 @@ export const POST = async (request: Request, context: { params: Promise<{ id: st
       entry,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    const status = reason === 'invalid password' ? 403 : 400;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+      statusByReason: {
+        'invalid password': 403,
       },
-      { status },
-    );
+    });
   }
 };

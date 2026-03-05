@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-import { getSupabaseEnv } from '@/lib/supabase/config';
+import { getSupabaseEnv } from '@/shared/lib/supabase/config';
 
 /**
  * 서버 컴포넌트와 서버 액션에서 사용하는 Supabase 클라이언트를 생성합니다.

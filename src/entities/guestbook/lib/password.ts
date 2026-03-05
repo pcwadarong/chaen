@@ -4,6 +4,12 @@ import 'server-only';
 
 const SCRYPT_LENGTH = 64;
 const SALT_LENGTH = 16;
+const SCRYPT_OPTIONS = {
+  N: 2 ** 14,
+  r: 8,
+  p: 1,
+  maxmem: 64 * 1024 * 1024,
+} as const;
 
 /**
  * 평문 비밀번호를 검증 가능한 해시 문자열로 변환합니다.
@@ -11,7 +17,7 @@ const SALT_LENGTH = 16;
  */
 export const hashGuestbookPassword = (plainText: string): string => {
   const salt = randomBytes(SALT_LENGTH).toString('hex');
-  const derivedKey = scryptSync(plainText, salt, SCRYPT_LENGTH).toString('hex');
+  const derivedKey = scryptSync(plainText, salt, SCRYPT_LENGTH, SCRYPT_OPTIONS).toString('hex');
 
   return `${salt}:${derivedKey}`;
 };
@@ -25,7 +31,7 @@ export const verifyGuestbookPassword = (plainText: string, storedHash: string | 
   const [salt, storedKeyHex] = storedHash.split(':');
   if (!salt || !storedKeyHex) return false;
 
-  const suppliedKey = scryptSync(plainText, salt, SCRYPT_LENGTH);
+  const suppliedKey = scryptSync(plainText, salt, SCRYPT_LENGTH, SCRYPT_OPTIONS);
   const storedKey = Buffer.from(storedKeyHex, 'hex');
   if (suppliedKey.byteLength !== storedKey.byteLength) return false;
 

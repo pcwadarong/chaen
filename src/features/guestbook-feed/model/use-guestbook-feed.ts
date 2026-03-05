@@ -3,19 +3,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import { getErrorMessage } from '@/shared/lib/error/get-error-message';
+import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 
-type GuestbookThreadsResponse = {
+type GuestbookFeedResponse = {
   ok: boolean;
   items: GuestbookThreadItem[];
   nextCursor: string | null;
   reason?: string;
 };
 
-type UseGuestbookThreadsOptions = {
+type UseGuestbookFeedOptions = {
   limit?: number;
 };
 
-type UseGuestbookThreadsResult = {
+type UseGuestbookFeedResult = {
   applyServerThread: (entry: GuestbookThreadItem) => void;
   applyServerThreadEntry: (entry: GuestbookThreadItem | GuestbookEntryLike) => void;
   errorMessage: string | null;
@@ -39,14 +41,17 @@ type GuestbookEntryLike = GuestbookEntry;
 /**
  * 방명록 스레드 목록을 클라이언트에서 무한스크롤 방식으로 관리합니다.
  */
-export const useGuestbookThreads = ({
+export const useGuestbookFeed = ({
   limit = DEFAULT_LIMIT,
-}: UseGuestbookThreadsOptions = {}): UseGuestbookThreadsResult => {
+}: UseGuestbookFeedOptions = {}): UseGuestbookFeedResult => {
   const [items, setItems] = useState<GuestbookThreadItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const setNormalizedError = useCallback((error: unknown) => {
+    setErrorMessage(getErrorMessage(error));
+  }, []);
 
   const mergeUniqueById = useCallback(
     (incoming: GuestbookThreadItem[]) =>
@@ -70,15 +75,14 @@ export const useGuestbookThreads = ({
       url.searchParams.set('limit', String(limit));
       if (cursor) url.searchParams.set('cursor', cursor);
 
-      const response = await fetch(url.toString(), {
+      const payload = await requestJsonApiClient<GuestbookFeedResponse>({
+        fallbackReason: 'failed to fetch guestbook threads',
+        init: {
+          cache: 'no-store',
+        },
         method: 'GET',
-        cache: 'no-store',
+        url: url.toString(),
       });
-
-      const payload = (await response.json()) as GuestbookThreadsResponse;
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.reason ?? 'failed to fetch guestbook threads');
-      }
 
       mergeUniqueById(payload.items);
       setNextCursor(payload.nextCursor);
@@ -92,12 +96,11 @@ export const useGuestbookThreads = ({
     try {
       await requestPage(null, 'initial');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'unknown error';
-      setErrorMessage(message);
+      setNormalizedError(error);
     } finally {
       setIsInitialLoading(false);
     }
-  }, [requestPage]);
+  }, [requestPage, setNormalizedError]);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore || isInitialLoading) return;
@@ -105,12 +108,11 @@ export const useGuestbookThreads = ({
     try {
       await requestPage(nextCursor, 'more');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'unknown error';
-      setErrorMessage(message);
+      setNormalizedError(error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isInitialLoading, isLoadingMore, nextCursor, requestPage]);
+  }, [isInitialLoading, isLoadingMore, nextCursor, requestPage, setNormalizedError]);
 
   const prependLocalThread = useCallback((entry: GuestbookThreadItem) => {
     setItems(previous => [entry, ...previous]);
@@ -157,15 +159,14 @@ export const useGuestbookThreads = ({
       try {
         await requestPage(null, 'initial');
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'unknown error';
-        setErrorMessage(message);
+        setNormalizedError(error);
       } finally {
         setIsInitialLoading(false);
       }
     };
 
     void fetchInitial();
-  }, [requestPage]);
+  }, [requestPage, setNormalizedError]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

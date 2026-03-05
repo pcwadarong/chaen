@@ -43,4 +43,24 @@ describe('POST /api/guestbook/entries/[id]/verify-secret', () => {
     expect(payload.ok).toBe(true);
     expect(payload.entry.content).toBe('secret content');
   });
+
+  it('실패 시 invalid password는 403을 반환한다', async () => {
+    vi.mocked(verifyGuestbookSecret).mockRejectedValue(new Error('invalid password'));
+
+    const request = new Request(
+      'http://localhost:3000/api/guestbook/entries/entry-1/verify-secret',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password: 'wrong' }),
+      },
+    );
+
+    const response = await POST(request, { params: Promise.resolve({ id: 'entry-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.reason).toBe('invalid password');
+  });
 });

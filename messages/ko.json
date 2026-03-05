@@ -26,6 +26,7 @@
     "emptyItems": "아직 등록된 방명록이 없습니다.",
     "secretLabel": "비밀글",
     "secretPlaceholder": "비밀글입니다.",
+    "deletedPlaceholder": "삭제된 글입니다.",
     "secretReveal": "확인하기",
     "secretRevealTitle": "비밀번호를 입력하면 내용을 확인할 수 있습니다.",
     "secretVerifyFailed": "비밀번호가 올바르지 않습니다.",
@@ -59,13 +60,21 @@
   "Articles": {
     "description": "공유하고 싶거나 다시 보고 싶은 기술들을 정리합니다.",
     "emptyItems": "아직 등록된 아티클이 없습니다.",
+    "loadError": "아티클을 불러오지 못했습니다.",
+    "loadMoreEnd": "마지막 아티클까지 모두 확인했습니다.",
+    "loading": "아티클을 불러오는 중입니다.",
+    "retry": "다시 시도",
     "title": "기록"
   },
   "Work": {
     "deliverables": "주요 산출물",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
+    "loadError": "프로젝트를 불러오지 못했습니다.",
+    "loadMoreEnd": "마지막 프로젝트까지 모두 확인했습니다.",
+    "loading": "프로젝트를 불러오는 중입니다.",
     "portfolioDownload": "포트폴리오 다운로드",
     "portfolioDownloadUnavailable": "포트폴리오 준비 중",
+    "retry": "다시 시도",
     "showcaseDescription": "프로젝트 리스트는 홈의 일부 프리뷰와 달리 전체 카드 컬렉션을 보여주는 독립 페이지입니다.",
     "showcaseTitle": "프로젝트 아카이브",
     "viewProject": "프로젝트 보기"

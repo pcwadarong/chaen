@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { getArticles } from '@/entities/article/api/get-articles';
-import { ArticlesPage } from '@/views/articles';
+import { ArticlesPage, getArticlesPageData } from '@/views/articles';
 
 /** 아티클 페이지 엔트리입니다. */
 const ArticlesRoute = async ({
@@ -12,9 +11,9 @@ const ArticlesRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const items = await getArticles(locale);
+  const pageData = await getArticlesPageData({ locale });
 
-  return <ArticlesPage items={items} />;
+  return <ArticlesPage {...pageData} />;
 };
 
 export default ArticlesRoute;

@@ -5,8 +5,9 @@ import type { CSSProperties } from 'react';
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { useAuth } from '@/shared/providers';
 
-type GuestbookAdminReplyBubbleProps = {
+type GuestbookReplyBubbleProps = {
   actionDeleteLabel: string;
+  deletedPlaceholder: string;
   actionEditLabel: string;
   entry: GuestbookEntry;
   dateText: string;
@@ -18,23 +19,25 @@ type GuestbookAdminReplyBubbleProps = {
  * 관리자 대댓글 버블을 렌더링합니다.
  * 우측 정렬 + 어두운 톤 스타일로 일반 댓글과 시각적으로 분리합니다.
  */
-export const GuestbookAdminReplyBubble = ({
+export const GuestbookReplyBubble = ({
   actionDeleteLabel,
+  deletedPlaceholder,
   actionEditLabel,
   entry,
   dateText,
   onDelete,
   onEdit,
-}: GuestbookAdminReplyBubbleProps) => {
+}: GuestbookReplyBubbleProps) => {
   const { isAdmin } = useAuth();
+  const isDeleted = Boolean(entry.deleted_at);
 
   return (
     <article style={wrapperStyle}>
       <div style={bubbleStyle}>
-        <p style={contentStyle}>{entry.content}</p>
+        <p style={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
         <footer style={footerStyle}>
           <div style={actionRowStyle}>
-            {isAdmin && (
+            {isAdmin && !isDeleted && (
               <>
                 <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
                   {actionEditLabel}

@@ -1,49 +1,70 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { Article } from '../model/types';
 
-/**
- * 같은 id가 중복된 경우(created_at 역순 기준) 첫 레코드만 유지합니다.
- */
-const dedupeArticlesById = (items: Article[]): Article[] => {
-  const seen = new Set<string>();
-  const deduped: Article[] = [];
+type ArticlesPage = {
+  items: Article[];
+  nextCursor: string | null;
+};
 
-  for (const item of items) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    deduped.push(item);
-  }
-
-  return deduped;
+type GetArticlesOptions = {
+  cursor?: string | null;
+  limit?: number;
+  locale: string;
 };
 
 /**
- * locale 컬럼을 사용하는 아티클 목록 조회입니다.
+ * 조회 결과 행으로부터 다음 페이지 cursor를 계산합니다.
+ */
+const toArticlesPage = (rows: Article[], offset: number, pageSize: number): ArticlesPage => {
+  const hasMore = rows.length > pageSize;
+  const pageItems = dedupeById(rows.slice(0, pageSize));
+
+  return {
+    items: pageItems,
+    nextCursor: hasMore ? String(offset + pageSize) : null,
+  };
+};
+
+/**
+ * locale 컬럼을 사용하는 아티클 목록 페이지 조회입니다.
  */
 const fetchArticlesByLocale = async (
   locale: string,
-): Promise<{ data: Article[]; localeColumnMissing: boolean }> => {
+  offset: number,
+  pageSize: number,
+): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: [], localeColumnMissing: false };
+  if (!supabase) {
+    return {
+      data: { items: [], nextCursor: null },
+      localeColumnMissing: false,
+    };
+  }
 
   const { data, error } = await supabase
     .from('articles')
     .select('*')
     .eq('locale', locale)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize);
 
   if (error) {
-    const isLocaleColumnMissing = /column .*locale.* does not exist/i.test(error.message);
-    if (isLocaleColumnMissing) {
+    if (isLocaleColumnMissingError(error.message)) {
       return {
-        data: [],
+        data: { items: [], nextCursor: null },
         localeColumnMissing: true,
       };
     }
@@ -52,56 +73,72 @@ const fetchArticlesByLocale = async (
   }
 
   return {
-    data: dedupeArticlesById((data ?? []) as Article[]),
+    data: toArticlesPage((data ?? []) as Article[], offset, pageSize),
     localeColumnMissing: false,
   };
 };
 
 /**
- * locale 컬럼이 없는 기존 스키마를 위한 아티클 목록 조회입니다.
+ * locale 컬럼이 없는 기존 스키마를 위한 아티클 목록 페이지 조회입니다.
  */
-const fetchArticlesLegacy = async (): Promise<Article[]> => {
+const fetchArticlesLegacy = async (offset: number, pageSize: number): Promise<ArticlesPage> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return [];
+  if (!supabase) return { items: [], nextCursor: null };
 
   const { data, error } = await supabase
     .from('articles')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize);
 
   if (error) {
     throw new Error(`[articles] 목록 조회 실패: ${error.message}`);
   }
 
-  return dedupeArticlesById((data ?? []) as Article[]);
+  return toArticlesPage((data ?? []) as Article[], offset, pageSize);
 };
 
 /**
- * 아티클 목록 데이터를 On-demand ISR 태그 기반으로 캐시해서 가져옵니다.
- * `revalidateTag('articles')`로 즉시 갱신할 수 있습니다.
+ * 아티클 목록을 cursor(offset) 기반 페이지 단위로 조회합니다.
+ *
+ * - locale 우선 조회 후, 첫 페이지에서만 `ko` fallback을 시도합니다.
+ * - locale 컬럼 미존재 스키마에서는 legacy 조회로 자동 전환합니다.
  */
-export const getArticles = async (targetLocale: string): Promise<Article[]> => {
+export const getArticles = async ({
+  cursor,
+  limit,
+  locale,
+}: GetArticlesOptions): Promise<ArticlesPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return [];
+  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
 
-  const normalizedLocale = targetLocale.toLowerCase();
+  const normalizedLocale = locale.toLowerCase();
+  const offset = parseOffsetCursor(cursor);
+  const pageSize = parseOffsetLimit(limit);
+
   const getCachedArticles = unstable_cache(
     async () => {
-      const localizedResult = await fetchArticlesByLocale(normalizedLocale);
-      if (localizedResult.localeColumnMissing) return fetchArticlesLegacy();
+      const isFirstPage = offset === 0;
 
-      if (localizedResult.data.length > 0) return localizedResult.data;
+      if (!isFirstPage) {
+        const localizedResult = await fetchArticlesByLocale(normalizedLocale, offset, pageSize);
+        if (localizedResult.localeColumnMissing) {
+          return fetchArticlesLegacy(offset, pageSize);
+        }
 
-      if (normalizedLocale !== 'en') {
-        const fallbackResult = await fetchArticlesByLocale('en');
-        if (fallbackResult.localeColumnMissing) return fetchArticlesLegacy();
-
-        if (fallbackResult.data.length > 0) return fallbackResult.data;
+        return localizedResult.data;
       }
 
-      return [];
+      return resolveLocaleAwareData<ArticlesPage>({
+        emptyData: { items: [], nextCursor: null },
+        fallbackLocale: 'ko',
+        fetchByLocale: targetLocale => fetchArticlesByLocale(targetLocale, offset, pageSize),
+        fetchLegacy: () => fetchArticlesLegacy(offset, pageSize),
+        isEmptyData: page => page.items.length === 0,
+        targetLocale: normalizedLocale,
+      });
     },
-    ['articles', 'list', cacheScope, normalizedLocale],
+    ['articles', 'list', cacheScope, normalizedLocale, String(offset), String(pageSize)],
     {
       tags: [ARTICLES_CACHE_TAG],
       revalidate: false,

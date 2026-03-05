@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import { getGuestbookThreads } from './get-guestbook-threads';
 
@@ -9,11 +9,11 @@ vi.mock('next/cache', () => ({
   unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
 }));
 
-vi.mock('@/lib/supabase/config', () => ({
+vi.mock('@/shared/lib/supabase/config', () => ({
   hasSupabaseEnv: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/public-server', () => ({
+vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
@@ -61,7 +61,7 @@ describe('getGuestbookThreads', () => {
 
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -101,6 +101,63 @@ describe('getGuestbookThreads', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.replies).toHaveLength(1);
     expect(result.nextCursor).toBeNull();
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
+    expect(unstable_cache).toHaveBeenCalledTimes(2);
+    expect(parentQuery.is).toHaveBeenCalledWith('parent_id', null);
+    expect(parentQuery.is).not.toHaveBeenCalledWith('deleted_at', null);
+    expect(replyQuery.eq).toHaveBeenCalledWith('parent_id', 'parent-1');
+  });
+
+  it('삭제된 원댓글은 답글이 없으면 목록에서 제외한다', async () => {
+    const parentQuery = {
+      select: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'parent-deleted',
+            parent_id: null,
+            author_name: 'guest',
+            author_blog_url: null,
+            content: '',
+            is_secret: false,
+            is_admin_reply: false,
+            created_at: '2026-03-05T00:00:00.000Z',
+            updated_at: '2026-03-05T00:00:00.000Z',
+            deleted_at: '2026-03-06T00:00:00.000Z',
+          },
+        ],
+        error: null,
+      }),
+    };
+
+    const replyQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+    };
+
+    const supabaseClient = {
+      from: vi.fn((tableName: string) => {
+        if (tableName === 'guestbook_entries') {
+          const callCount = supabaseClient.from.mock.calls.length;
+          return callCount === 1 ? parentQuery : replyQuery;
+        }
+
+        return parentQuery;
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getGuestbookThreads({ limit: 12 });
+
+    expect(result.items).toHaveLength(0);
+    expect(result.nextCursor).toBeNull();
   });
 });

@@ -4,8 +4,10 @@ import { NextResponse } from 'next/server';
 import { deleteGuestbookEntry, updateGuestbookEntry } from '@/entities/guestbook';
 import {
   createGuestbookEntryCacheTag,
+  createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
 } from '@/entities/guestbook/model/cache-tags';
+import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type UpdatePayload = {
   content?: unknown;
@@ -32,22 +34,20 @@ export const PATCH = async (request: Request, context: { params: Promise<{ id: s
 
     revalidateTag(GUESTBOOK_CACHE_TAG);
     revalidateTag(createGuestbookEntryCacheTag(id));
+    revalidateTag(createGuestbookRepliesCacheTag(entry.parent_id ?? id));
 
     return NextResponse.json({
       ok: true,
       entry,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    const status = reason === 'invalid password' ? 403 : 400;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+      statusByReason: {
+        'invalid password': 403,
       },
-      { status },
-    );
+    });
   }
 };
 
@@ -59,28 +59,26 @@ export const DELETE = async (request: Request, context: { params: Promise<{ id: 
     const { id } = await context.params;
     const payload = (await request.json().catch(() => ({}))) as DeletePayload;
 
-    await deleteGuestbookEntry({
+    const deleted = await deleteGuestbookEntry({
       entryId: id,
       password: typeof payload.password === 'string' ? payload.password : '',
     });
 
     revalidateTag(GUESTBOOK_CACHE_TAG);
     revalidateTag(createGuestbookEntryCacheTag(id));
+    revalidateTag(createGuestbookRepliesCacheTag(deleted.parentId ?? id));
 
     return NextResponse.json({
       ok: true,
       deletedId: id,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    const status = reason === 'invalid password' ? 403 : 400;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+      statusByReason: {
+        'invalid password': 403,
       },
-      { status },
-    );
+    });
   }
 };

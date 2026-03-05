@@ -54,18 +54,27 @@
     "toastEditError": "投稿の更新に失敗しました。",
     "toastDeleteSuccess": "投稿を削除しました。",
     "toastDeleteError": "投稿の削除に失敗しました。",
-    "toastSecretVerifyError": "秘密投稿の確認に失敗しました。"
+    "toastSecretVerifyError": "秘密投稿の確認に失敗しました。",
+    "deletedPlaceholder": "削除された投稿です。"
   },
   "Articles": {
     "description": "共有したい技術や、あとで見返したい技術を整理します。",
     "emptyItems": "まだ登録された記事がありません。",
+    "loadError": "記事の読み込みに失敗しました。",
+    "loadMoreEnd": "最後の記事まで表示しました。",
+    "loading": "記事を読み込み中です。",
+    "retry": "再試行",
     "title": "記事"
   },
   "Work": {
     "deliverables": "成果物",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
+    "loadError": "プロジェクトの読み込みに失敗しました。",
+    "loadMoreEnd": "最後のプロジェクトまで表示しました。",
+    "loading": "プロジェクトを読み込み中です。",
     "portfolioDownload": "ポートフォリオをダウンロード",
     "portfolioDownloadUnavailable": "ポートフォリオは準備中です",
+    "retry": "再試行",
     "showcaseDescription": "ホームの一部プレビューとは異なり、このページではプロジェクトカード全体を一覧で表示します。",
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"

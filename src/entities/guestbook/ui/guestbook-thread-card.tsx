@@ -1,9 +1,9 @@
 'use client';
 
-import { type CSSProperties, useState } from 'react';
+import React, { type CSSProperties, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { GuestbookAdminReplyBubble } from '@/entities/guestbook/ui/guestbook-admin-reply-bubble';
+import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
@@ -11,6 +11,7 @@ type GuestbookThreadCardProps = {
   actionReplyLabel: string;
   canReply: boolean;
   dateText: (isoDate: string) => string;
+  deletedPlaceholder: string;
   entry: GuestbookThreadItem;
   onDeleteReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onDelete: (entry: GuestbookThreadItem) => void;
@@ -37,6 +38,7 @@ export const GuestbookThreadCard = ({
   actionReplyLabel,
   canReply,
   dateText,
+  deletedPlaceholder,
   entry,
   onDeleteReply,
   onDelete,
@@ -57,6 +59,7 @@ export const GuestbookThreadCard = ({
   const [secretError, setSecretError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const isSecretRevealed = !entry.is_secret || !entry.is_content_masked;
+  const isDeleted = Boolean(entry.deleted_at);
 
   return (
     <article style={threadStyle}>
@@ -73,7 +76,9 @@ export const GuestbookThreadCard = ({
           </header>
 
           <div style={bodyStyle}>
-            {isSecretRevealed ? (
+            {isDeleted ? (
+              <p style={deletedContentStyle}>{deletedPlaceholder}</p>
+            ) : isSecretRevealed ? (
               <p style={contentStyle}>{entry.content}</p>
             ) : (
               <div style={secretContentStyle}>
@@ -89,7 +94,7 @@ export const GuestbookThreadCard = ({
             )}
           </div>
 
-          {entry.is_secret && isSecretPanelOpen && !isSecretRevealed ? (
+          {entry.is_secret && !isDeleted && isSecretPanelOpen && !isSecretRevealed ? (
             <div style={revealPanelStyle}>
               <p style={revealTitleStyle}>{revealSecretTitle}</p>
               <input
@@ -125,17 +130,21 @@ export const GuestbookThreadCard = ({
           ) : null}
 
           <footer style={footerStyle}>
-            {canReply ? (
+            {canReply && !isDeleted ? (
               <button onClick={() => onReply(entry)} style={actionButtonStyle} type="button">
                 {actionReplyLabel}
               </button>
             ) : null}
-            <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
-              {actionEditLabel}
-            </button>
-            <button onClick={() => onDelete(entry)} style={actionButtonStyle} type="button">
-              {actionDeleteLabel}
-            </button>
+            {!isDeleted ? (
+              <>
+                <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
+                  {actionEditLabel}
+                </button>
+                <button onClick={() => onDelete(entry)} style={actionButtonStyle} type="button">
+                  {actionDeleteLabel}
+                </button>
+              </>
+            ) : null}
           </footer>
         </div>
       </div>
@@ -143,8 +152,9 @@ export const GuestbookThreadCard = ({
       {entry.replies.length > 0 ? (
         <div style={replyStackStyle}>
           {entry.replies.map(reply => (
-            <GuestbookAdminReplyBubble
+            <GuestbookReplyBubble
               actionDeleteLabel={actionDeleteLabel}
+              deletedPlaceholder={deletedPlaceholder}
               actionEditLabel={actionEditLabel}
               dateText={dateText(reply.created_at)}
               entry={reply}
@@ -224,6 +234,11 @@ const bodyStyle: CSSProperties = {
 const contentStyle: CSSProperties = {
   whiteSpace: 'pre-wrap',
   lineHeight: 1.6,
+};
+
+const deletedContentStyle: CSSProperties = {
+  color: 'rgb(var(--color-muted))',
+  fontStyle: 'italic',
 };
 
 const secretContentStyle: CSSProperties = {

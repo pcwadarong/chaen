@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getGuestbookThreads } from '@/entities/guestbook';
+import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 /**
  * 방명록 스레드 목록을 cursor(offset) 기반으로 조회합니다.
@@ -25,14 +26,9 @@ export const GET = async (request: Request) => {
       ...page,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown error';
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason: message,
-      },
-      { status: 500 },
-    );
+    return createApiErrorResponse({
+      defaultStatus: 500,
+      error,
+    });
   }
 };

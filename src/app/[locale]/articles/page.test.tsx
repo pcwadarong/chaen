@@ -1,15 +1,16 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getArticles } from '@/entities/article/api/get-articles';
+import { getArticlesPageData } from '@/views/articles';
 
 import ArticlesRoute from './page';
 
-vi.mock('@/entities/article/api/get-articles', () => ({
-  getArticles: vi.fn(async () => []),
-}));
-
 vi.mock('@/views/articles', () => ({
+  getArticlesPageData: vi.fn(async () => ({
+    initialCursor: null,
+    initialItems: [],
+    locale: 'ko',
+  })),
   ArticlesPage: function ArticlesPage() {
     return null;
   },
@@ -25,7 +26,9 @@ describe('ArticlesRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
-    expect(getArticles).toHaveBeenCalledWith('ko');
-    expect(element.props.items).toEqual([]);
+    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(element.props.initialItems).toEqual([]);
+    expect(element.props.initialCursor).toBeNull();
+    expect(element.props.locale).toBe('ko');
   });
 });

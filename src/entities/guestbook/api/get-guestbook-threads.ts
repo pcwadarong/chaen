@@ -1,11 +1,12 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
-import { GUESTBOOK_CACHE_TAG } from '../model/cache-tags';
+import { createGuestbookRepliesCacheTag, GUESTBOOK_CACHE_TAG } from '../model/cache-tags';
 import type {
   GuestbookEntry,
   GuestbookEntryRow,
@@ -17,20 +18,6 @@ type GetGuestbookThreadsOptions = {
   cursor?: string | null;
   includeSecret?: boolean;
   limit?: number;
-};
-
-const DEFAULT_PAGE_SIZE = 12;
-
-/**
- * 커서 문자열을 offset 숫자로 변환합니다.
- */
-const parseCursorOffset = (cursor?: string | null) => {
-  if (!cursor) return 0;
-
-  const parsed = Number.parseInt(cursor, 10);
-  if (Number.isNaN(parsed) || parsed < 0) return 0;
-
-  return parsed;
 };
 
 /**
@@ -47,7 +34,6 @@ const fetchGuestbookParents = async (
     .from('guestbook_entries')
     .select('*')
     .is('parent_id', null)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -60,34 +46,46 @@ const fetchGuestbookParents = async (
  */
 const fetchRepliesByParentIds = async (
   parentIds: string[],
+  cacheScope: string,
+  includeSecret: boolean,
 ): Promise<Record<string, GuestbookEntryRow[]>> => {
   if (parentIds.length === 0) return {};
 
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return {};
+  const readRepliesByParentId = async (parentId: string): Promise<GuestbookEntryRow[]> => {
+    const supabase = createOptionalPublicServerSupabaseClient();
+    if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from('guestbook_entries')
-    .select('*')
-    .in('parent_id', parentIds)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: true });
+    const { data, error } = await supabase
+      .from('guestbook_entries')
+      .select('*')
+      .eq('parent_id', parentId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true });
 
-  if (error) throw new Error(`[guestbook] 대댓글 조회 실패: ${error.message}`);
+    if (error) throw new Error(`[guestbook] 대댓글 조회 실패: ${error.message}`);
+    return (data ?? []) as GuestbookEntryRow[];
+  };
 
-  return ((data ?? []) as GuestbookEntryRow[]).reduce<Record<string, GuestbookEntryRow[]>>(
-    (accumulator, entry) => {
-      const parentId = entry.parent_id;
-      if (!parentId) return accumulator;
+  const repliesByParent = await Promise.all(
+    parentIds.map(async parentId => {
+      if (includeSecret) {
+        return [parentId, await readRepliesByParentId(parentId)] as const;
+      }
 
-      const current = accumulator[parentId] ?? [];
-      current.push(entry);
-      accumulator[parentId] = current;
+      const getCachedReplies = unstable_cache(
+        () => readRepliesByParentId(parentId),
+        ['guestbook', 'replies', cacheScope, parentId],
+        {
+          tags: [GUESTBOOK_CACHE_TAG, createGuestbookRepliesCacheTag(parentId)],
+          revalidate: false,
+        },
+      );
 
-      return accumulator;
-    },
-    {},
+      return [parentId, await getCachedReplies()] as const;
+    }),
   );
+
+  return Object.fromEntries(repliesByParent);
 };
 
 /**
@@ -119,7 +117,7 @@ const toPublicGuestbookEntry = (
 export const getGuestbookThreads = async ({
   cursor,
   includeSecret = false,
-  limit = DEFAULT_PAGE_SIZE,
+  limit,
 }: GetGuestbookThreadsOptions): Promise<GuestbookThreadPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') {
@@ -129,21 +127,29 @@ export const getGuestbookThreads = async ({
     };
   }
 
-  const normalizedLimit = Math.min(Math.max(limit, 1), 30);
-  const offset = parseCursorOffset(cursor);
+  const normalizedLimit = parseOffsetLimit(limit);
+  const offset = parseOffsetCursor(cursor);
   const cacheCursor = String(offset);
 
   const readThreads = async () => {
     const parents = await fetchGuestbookParents(offset, normalizedLimit);
     const parentIds = parents.map(parent => parent.id);
-    const repliesByParentId = await fetchRepliesByParentIds(parentIds);
+    const repliesByParentId = await fetchRepliesByParentIds(parentIds, cacheScope, includeSecret);
 
-    const items: GuestbookThreadItem[] = parents.map(parent => ({
-      ...toPublicGuestbookEntry(parent, includeSecret),
-      replies: (repliesByParentId[parent.id] ?? []).map(reply =>
+    const items: GuestbookThreadItem[] = parents.flatMap(parent => {
+      const replies = (repliesByParentId[parent.id] ?? []).map(reply =>
         toPublicGuestbookEntry(reply, includeSecret),
-      ),
-    }));
+      );
+      const shouldHideDeletedParent = Boolean(parent.deleted_at) && replies.length === 0;
+      if (shouldHideDeletedParent) return [];
+
+      return [
+        {
+          ...toPublicGuestbookEntry(parent, includeSecret),
+          replies,
+        },
+      ];
+    });
 
     return {
       items,

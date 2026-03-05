@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseEnv } from '@/lib/supabase/config';
+import { getSupabaseEnv } from '@/shared/lib/supabase/config';
 
 /**
  * 미들웨어에서 세션을 갱신하고 응답 쿠키를 동기화합니다.
