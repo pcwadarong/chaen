@@ -1,9 +1,10 @@
 'use client';
 
+import styled from '@emotion/styled';
 import {
   type CSSProperties,
-  type FormEvent,
   type KeyboardEvent,
+  type SyntheticEvent,
   useEffect,
   useMemo,
   useState,
@@ -87,7 +88,7 @@ export const GuestbookComposeForm = ({
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
     void submit();
   };
@@ -111,39 +112,43 @@ export const GuestbookComposeForm = ({
           </button>
         </aside>
       ) : null}
-      <div style={topRowStyle}>
-        <input
-          onChange={event => setAuthorName(event.target.value)}
-          placeholder="이름"
-          required
-          style={inputStyle}
-          value={authorName}
-        />
-        <input
-          onChange={event => setPassword(event.target.value)}
-          placeholder="비밀번호"
-          style={inputStyle}
-          type="password"
-          value={password}
-        />
-        <input
-          onChange={event => setAuthorBlogUrl(event.target.value)}
-          placeholder="블로그 홈페이지(선택)"
-          style={inputStyle}
-          value={authorBlogUrl}
-        />
-        <label style={secretToggleStyle}>
-          <span>{secretLabel}</span>
+      <TopRow>
+        <LeftFields>
           <input
-            checked={isSecret}
-            onChange={event => setIsSecret(event.target.checked)}
-            type="checkbox"
+            onChange={event => setAuthorName(event.target.value)}
+            placeholder="이름"
+            required
+            style={inputStyle}
+            value={authorName}
           />
-        </label>
-        <button disabled={isSubmitting} style={submitButtonStyle} type="submit">
-          {submitLabel}
-        </button>
-      </div>
+          <input
+            onChange={event => setPassword(event.target.value)}
+            placeholder="비밀번호"
+            style={inputStyle}
+            type="password"
+            value={password}
+          />
+          <input
+            onChange={event => setAuthorBlogUrl(event.target.value)}
+            placeholder="블로그 홈페이지(선택)"
+            style={inputStyle}
+            value={authorBlogUrl}
+          />
+        </LeftFields>
+        <RightActions>
+          <label style={secretToggleStyle}>
+            <input
+              checked={isSecret}
+              onChange={event => setIsSecret(event.target.checked)}
+              type="checkbox"
+            />
+            <span>{secretLabel}</span>
+          </label>
+          <button disabled={isSubmitting} style={submitButtonStyle} type="submit">
+            {submitLabel}
+          </button>
+        </RightActions>
+      </TopRow>
 
       <div style={textareaWrapStyle}>
         <textarea
@@ -176,12 +181,18 @@ const formStyle: CSSProperties = {
   gap: '0.7rem',
 };
 
-const topRowStyle: CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-  alignItems: 'center',
-};
+const TopRow = styled.div`
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+`;
+
+const LeftFields = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+`;
 
 const replyPreviewStyle: CSSProperties = {
   display: 'grid',
@@ -213,7 +224,7 @@ const replyPreviewCloseStyle: CSSProperties = {
 };
 
 const inputStyle: CSSProperties = {
-  flex: '0 1 80px',
+  flex: '0 1 5rem',
   minHeight: '2.5rem',
   borderRadius: '0.6rem',
   border: '1px solid rgb(var(--color-border) / 0.34)',
@@ -222,12 +233,23 @@ const inputStyle: CSSProperties = {
   padding: '0 0.75rem',
 };
 
+const RightActions = styled.div`
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  align-self: flex-end;
+`;
+
 const secretToggleStyle: CSSProperties = {
   flex: '0 0 auto',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.45rem',
   color: 'rgb(var(--color-text))',
+  whiteSpace: 'nowrap',
 };
 
 const submitButtonStyle: CSSProperties = {

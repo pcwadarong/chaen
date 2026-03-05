@@ -8,6 +8,9 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  compiler: {
+    emotion: true,
+  },
   images: {
     remotePatterns: [
       {
