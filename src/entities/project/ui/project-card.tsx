@@ -52,8 +52,9 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
 
 const cardStyle: CSSProperties = {
   minHeight: '18rem',
+  height: '100%',
   display: 'grid',
-  alignContent: 'space-between',
+  alignContent: 'start',
   gap: '1rem',
   padding: '1.5rem',
   borderRadius: 'var(--radius-lg)',
@@ -101,6 +102,7 @@ const summaryStyle: CSSProperties = {
 
 const cardLinkStyle: CSSProperties = {
   display: 'block',
+  height: '100%',
   textDecoration: 'none',
   color: 'rgb(var(--color-text))',
 };

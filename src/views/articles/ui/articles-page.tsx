@@ -60,6 +60,8 @@ const descriptionStyle: CSSProperties = {
 const stackStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+  gridAutoRows: '1fr',
+  alignItems: 'stretch',
   gap: '1rem',
 };
 
