@@ -4,10 +4,10 @@ import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
 /**
- * 아티클 상세 로딩 상태 UI입니다.
+ * 프로젝트 상세 로딩 상태 UI입니다.
  */
-const ArticleDetailLoading = () => {
-  const t = useTranslations('ArticleDetail');
+const ProjectDetailLoading = () => {
+  const t = useTranslations('ProjectDetail');
 
   return (
     <main css={pageStyle}>
@@ -56,4 +56,4 @@ const lineSmStyle = css`
   width: 45%;
 `;
 
-export default ArticleDetailLoading;
+export default ProjectDetailLoading;
