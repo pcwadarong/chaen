@@ -46,6 +46,12 @@
 - route는 loader 호출 + view 렌더만 수행하도록 단순화
 - loader 단위 테스트 4개 추가 및 기존 route 테스트를 loader mock 기준으로 갱신
 
+9. Supabase 공통 코드 경계를 `shared/lib/supabase`로 단일화했습니다.
+
+- `src/lib/supabase/*`를 `src/shared/lib/supabase/*`로 이동
+- import/mock 경로를 `@/shared/lib/supabase/*`로 통일
+- `config`, `public-server`, `server`, `service-role`, `middleware` 모듈을 shared로 일원화
+
 <br/>
 
 ## 🚨 주요 고민 및 해결 과정
@@ -59,6 +65,7 @@
 - 방명록은 fetch/에러는 일부 공통화됐지만 cursor/limit 파싱 기준이 article/project와 일치하지 않았습니다.
 - 리팩토링 이후 남아 있는 파일 중 실제 참조되지 않는 파일을 정리할 필요가 있었습니다.
 - 방명록의 비밀번호 파생키 비용 설정, 답글 단위 캐시 무효화, 낙관적 실패 롤백 검증이 부족했습니다.
+- Supabase 인프라 코드가 `lib/supabase`와 `shared/lib/supabase`로 분산되어 import 기준이 혼재되어 있었습니다.
 
 ### 해결 과정
 
@@ -69,3 +76,4 @@
 - `scrypt` 옵션을 명시해 비밀번호 검증 강도를 고정했고, 답글 캐시 태그를 추가해 부모/답글 수정·삭제 시 무효화 범위를 명확히 했습니다.
 - `GuestbookBoard` 실패 경로 테스트를 추가해 낙관적 생성 후 API 실패 시 `removeThreadById` 롤백을 보장했습니다.
 - 서버 데이터 조합 책임을 `views/*/model` loader로 이동해 app을 라우팅 전용 계층으로 정리했습니다.
+- Supabase 관련 공통 코드를 `shared/lib/supabase`로 이동해 레이어 경계를 명확히 하고 import 일관성을 확보했습니다.

@@ -3,16 +3,16 @@
 import { useTranslations } from 'next-intl';
 import React, { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
+import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
+import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
 import {
   createGuestbookEntryClient,
   deleteGuestbookEntryClient,
   updateGuestbookEntryClient,
   verifyGuestbookSecretClient,
-} from '@/entities/guestbook/api/guestbook-client';
-import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
-import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
-import { useGuestbookThreads } from '@/features/guestbook-feed/model/use-guestbook-threads';
+} from '@/features/guestbook-feed/api/client';
+import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
 import { useAuth } from '@/shared/providers';
 import { Modal } from '@/shared/ui/modal/modal';
@@ -53,7 +53,7 @@ export const GuestbookBoard = () => {
     removeThreadById,
     retryInitialLoad,
     updateThreadById,
-  } = useGuestbookThreads();
+  } = useGuestbookFeed();
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [replyTarget, setReplyTarget] = useState<GuestbookThreadItem | null>(null);

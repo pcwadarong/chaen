@@ -1,8 +1,8 @@
+import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import {
   createGuestbookEntryClient,
   verifyGuestbookSecretClient,
-} from '@/entities/guestbook/api/guestbook-client';
-import type { GuestbookEntry } from '@/entities/guestbook/model/types';
+} from '@/features/guestbook-feed/api/client';
 
 /**
  * 테스트에서 재사용하는 방명록 항목 fixture를 생성합니다.
@@ -31,7 +31,7 @@ const createJsonResponse = (payload: unknown, status = 200): Response =>
     },
   });
 
-describe('guestbook-client', () => {
+describe('guestbookFeedApiClient', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();

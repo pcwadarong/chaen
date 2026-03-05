@@ -6,18 +6,18 @@ import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/m
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 
-type GuestbookThreadsResponse = {
+type GuestbookFeedResponse = {
   ok: boolean;
   items: GuestbookThreadItem[];
   nextCursor: string | null;
   reason?: string;
 };
 
-type UseGuestbookThreadsOptions = {
+type UseGuestbookFeedOptions = {
   limit?: number;
 };
 
-type UseGuestbookThreadsResult = {
+type UseGuestbookFeedResult = {
   applyServerThread: (entry: GuestbookThreadItem) => void;
   applyServerThreadEntry: (entry: GuestbookThreadItem | GuestbookEntryLike) => void;
   errorMessage: string | null;
@@ -41,9 +41,9 @@ type GuestbookEntryLike = GuestbookEntry;
 /**
  * 방명록 스레드 목록을 클라이언트에서 무한스크롤 방식으로 관리합니다.
  */
-export const useGuestbookThreads = ({
+export const useGuestbookFeed = ({
   limit = DEFAULT_LIMIT,
-}: UseGuestbookThreadsOptions = {}): UseGuestbookThreadsResult => {
+}: UseGuestbookFeedOptions = {}): UseGuestbookFeedResult => {
   const [items, setItems] = useState<GuestbookThreadItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -75,7 +75,7 @@ export const useGuestbookThreads = ({
       url.searchParams.set('limit', String(limit));
       if (cursor) url.searchParams.set('cursor', cursor);
 
-      const payload = await requestJsonApiClient<GuestbookThreadsResponse>({
+      const payload = await requestJsonApiClient<GuestbookFeedResponse>({
         fallbackReason: 'failed to fetch guestbook threads',
         init: {
           cache: 'no-store',

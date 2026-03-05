@@ -1,11 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { createGuestbookEntryClient } from '@/entities/guestbook/api/guestbook-client';
+import { createGuestbookEntryClient } from '@/features/guestbook-feed/api/client';
 
 import { GuestbookBoard } from './guestbook-board';
 
 const hookState = {
+  applyServerThread: vi.fn(),
   applyServerThreadEntry: vi.fn(),
   errorMessage: null as string | null,
   hasMore: false,
@@ -29,11 +30,11 @@ vi.mock('@/shared/providers', () => ({
   }),
 }));
 
-vi.mock('@/features/guestbook-feed/model/use-guestbook-threads', () => ({
-  useGuestbookThreads: () => hookState,
+vi.mock('@/features/guestbook-feed/model/use-guestbook-feed', () => ({
+  useGuestbookFeed: () => hookState,
 }));
 
-vi.mock('@/entities/guestbook/api/guestbook-client', () => ({
+vi.mock('@/features/guestbook-feed/api/client', () => ({
   createGuestbookEntryClient: vi.fn(),
   deleteGuestbookEntryClient: vi.fn(),
   updateGuestbookEntryClient: vi.fn(),

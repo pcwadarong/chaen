@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 
-import { useGuestbookThreads } from './use-guestbook-threads';
+import { useGuestbookFeed } from './use-guestbook-feed';
 
 /**
  * 테스트에서 사용하는 스레드 fixture를 생성합니다.
@@ -32,7 +32,7 @@ const createJsonResponse = (payload: unknown, status = 200): Response =>
     },
   });
 
-describe('useGuestbookThreads', () => {
+describe('useGuestbookFeed', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
@@ -48,7 +48,7 @@ describe('useGuestbookThreads', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { result } = renderHook(() => useGuestbookThreads());
+    const { result } = renderHook(() => useGuestbookFeed());
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -74,7 +74,7 @@ describe('useGuestbookThreads', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { result } = renderHook(() => useGuestbookThreads());
+    const { result } = renderHook(() => useGuestbookFeed());
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -106,7 +106,7 @@ describe('useGuestbookThreads', () => {
       );
     vi.stubGlobal('fetch', fetchMock);
 
-    const { result } = renderHook(() => useGuestbookThreads());
+    const { result } = renderHook(() => useGuestbookFeed());
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
