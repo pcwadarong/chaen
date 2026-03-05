@@ -6,7 +6,12 @@ import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-
 import 'server-only';
 
 import { GUESTBOOK_CACHE_TAG } from '../model/cache-tags';
-import type { GuestbookEntry, GuestbookThreadItem, GuestbookThreadPage } from '../model/types';
+import type {
+  GuestbookEntry,
+  GuestbookEntryRow,
+  GuestbookThreadItem,
+  GuestbookThreadPage,
+} from '../model/types';
 
 type GetGuestbookThreadsOptions = {
   cursor?: string | null;
@@ -30,7 +35,10 @@ const parseCursorOffset = (cursor?: string | null) => {
 /**
  * 원댓글 목록을 조회합니다.
  */
-const fetchGuestbookParents = async (offset: number, limit: number): Promise<GuestbookEntry[]> => {
+const fetchGuestbookParents = async (
+  offset: number,
+  limit: number,
+): Promise<GuestbookEntryRow[]> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
 
@@ -43,7 +51,7 @@ const fetchGuestbookParents = async (offset: number, limit: number): Promise<Gue
     .range(offset, offset + limit - 1);
 
   if (error) throw new Error(`[guestbook] 원댓글 조회 실패: ${error.message}`);
-  return (data ?? []) as GuestbookEntry[];
+  return (data ?? []) as GuestbookEntryRow[];
 };
 
 /**
@@ -51,7 +59,7 @@ const fetchGuestbookParents = async (offset: number, limit: number): Promise<Gue
  */
 const fetchRepliesByParentIds = async (
   parentIds: string[],
-): Promise<Record<string, GuestbookEntry[]>> => {
+): Promise<Record<string, GuestbookEntryRow[]>> => {
   if (parentIds.length === 0) return {};
 
   const supabase = createOptionalPublicServerSupabaseClient();
@@ -66,7 +74,7 @@ const fetchRepliesByParentIds = async (
 
   if (error) throw new Error(`[guestbook] 대댓글 조회 실패: ${error.message}`);
 
-  return ((data ?? []) as GuestbookEntry[]).reduce<Record<string, GuestbookEntry[]>>(
+  return ((data ?? []) as GuestbookEntryRow[]).reduce<Record<string, GuestbookEntryRow[]>>(
     (accumulator, entry) => {
       const parentId = entry.parent_id;
       if (!parentId) return accumulator;
@@ -79,6 +87,20 @@ const fetchRepliesByParentIds = async (
     },
     {},
   );
+};
+
+/**
+ * 비밀글 노출 정책에 맞춰 공개 가능한 형태로 항목을 변환합니다.
+ */
+const toPublicGuestbookEntry = (entry: GuestbookEntryRow): GuestbookEntry => {
+  const { password_hash: _passwordHash, ...publicEntry } = entry;
+  if (!entry.is_secret) return publicEntry;
+
+  return {
+    ...publicEntry,
+    content: '',
+    is_content_masked: true,
+  };
 };
 
 /**
@@ -108,8 +130,8 @@ export const getGuestbookThreads = async ({
       const repliesByParentId = await fetchRepliesByParentIds(parentIds);
 
       const items: GuestbookThreadItem[] = parents.map(parent => ({
-        ...parent,
-        replies: repliesByParentId[parent.id] ?? [],
+        ...toPublicGuestbookEntry(parent),
+        replies: (repliesByParentId[parent.id] ?? []).map(toPublicGuestbookEntry),
       }));
 
       return {

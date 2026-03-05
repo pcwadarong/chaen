@@ -6,9 +6,19 @@ import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookAdminReplyBubble } from '@/entities/guestbook/ui/guestbook-admin-reply-bubble';
 
 type GuestbookThreadCardProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
+  actionReplyLabel: string;
   dateText: (isoDate: string) => string;
   entry: GuestbookThreadItem;
+  onDelete: (entry: GuestbookThreadItem) => void;
+  onEdit: (entry: GuestbookThreadItem) => void;
+  onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
   onReply: (entry: GuestbookThreadItem) => void;
+  revealSecretErrorLabel: string;
+  revealSecretPasswordLabel: string;
+  revealSecretSubmitLabel: string;
+  revealSecretTitle: string;
   revealLabel: string;
   secretLabel: string;
   secretPlaceholder: string;
@@ -19,16 +29,28 @@ type GuestbookThreadCardProps = {
  * 비밀글은 기본적으로 내용을 숨기고 확인하기 버튼으로 열 수 있습니다.
  */
 export const GuestbookThreadCard = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  actionReplyLabel,
   dateText,
   entry,
+  onDelete,
+  onEdit,
+  onRevealSecret,
   onReply,
+  revealSecretErrorLabel,
+  revealSecretPasswordLabel,
+  revealSecretSubmitLabel,
+  revealSecretTitle,
   revealLabel,
   secretLabel,
   secretPlaceholder,
 }: GuestbookThreadCardProps) => {
   const [isSecretPanelOpen, setIsSecretPanelOpen] = useState(false);
-  const [isSecretRevealed, setIsSecretRevealed] = useState(!entry.is_secret);
+  const [isSecretSubmitting, setIsSecretSubmitting] = useState(false);
+  const [secretError, setSecretError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
+  const isSecretRevealed = !entry.is_secret || !entry.is_content_masked;
 
   return (
     <article style={threadStyle}>
@@ -63,36 +85,48 @@ export const GuestbookThreadCard = ({
 
           {entry.is_secret && isSecretPanelOpen && !isSecretRevealed ? (
             <div style={revealPanelStyle}>
+              <p style={revealTitleStyle}>{revealSecretTitle}</p>
               <input
                 onChange={event => setPasswordInput(event.target.value)}
-                placeholder="비밀번호"
+                placeholder={revealSecretPasswordLabel}
                 style={revealInputStyle}
                 type="password"
                 value={passwordInput}
               />
               <button
-                onClick={() => {
+                disabled={isSecretSubmitting}
+                onClick={async () => {
                   if (!passwordInput.trim()) return;
-                  setIsSecretRevealed(true);
-                  setIsSecretPanelOpen(false);
+                  try {
+                    setSecretError(null);
+                    setIsSecretSubmitting(true);
+                    await onRevealSecret(entry, passwordInput);
+                    setPasswordInput('');
+                    setIsSecretPanelOpen(false);
+                  } catch {
+                    setSecretError(revealSecretErrorLabel);
+                  } finally {
+                    setIsSecretSubmitting(false);
+                  }
                 }}
                 style={revealConfirmButtonStyle}
                 type="button"
               >
-                확인
+                {revealSecretSubmitLabel}
               </button>
+              {secretError ? <p style={revealErrorStyle}>{secretError}</p> : null}
             </div>
           ) : null}
 
           <footer style={footerStyle}>
             <button onClick={() => onReply(entry)} style={actionButtonStyle} type="button">
-              답신하기
+              {actionReplyLabel}
             </button>
-            <button disabled style={actionButtonStyle} type="button">
-              수정
+            <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
+              {actionEditLabel}
             </button>
-            <button disabled style={actionButtonStyle} type="button">
-              삭제
+            <button onClick={() => onDelete(entry)} style={actionButtonStyle} type="button">
+              {actionDeleteLabel}
             </button>
           </footer>
         </div>
@@ -208,6 +242,12 @@ const revealPanelStyle: CSSProperties = {
   animation: 'guestbook-secret-reveal 180ms ease',
 };
 
+const revealTitleStyle: CSSProperties = {
+  gridColumn: '1 / -1',
+  color: 'rgb(var(--color-muted))',
+  fontSize: '0.88rem',
+};
+
 const revealInputStyle: CSSProperties = {
   minHeight: '2.4rem',
   borderRadius: '0.6rem',
@@ -225,6 +265,12 @@ const revealConfirmButtonStyle: CSSProperties = {
   backgroundColor: 'rgb(var(--color-surface-strong) / 0.45)',
   color: 'rgb(var(--color-text))',
   fontWeight: 600,
+};
+
+const revealErrorStyle: CSSProperties = {
+  gridColumn: '1 / -1',
+  color: 'rgb(var(--color-danger, 210 75 75))',
+  fontSize: '0.88rem',
 };
 
 const footerStyle: CSSProperties = {

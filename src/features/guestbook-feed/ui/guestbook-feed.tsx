@@ -5,28 +5,40 @@ import { type CSSProperties, useEffect, useRef } from 'react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
-import { useGuestbookThreads } from '@/features/guestbook-feed/model/use-guestbook-threads';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 
 type GuestbookFeedProps = {
+  errorMessage: string | null;
+  hasMore: boolean;
+  isInitialLoading: boolean;
+  isLoadingMore: boolean;
+  items: GuestbookThreadItem[];
+  onDelete: (entry: GuestbookThreadItem) => void;
+  onEdit: (entry: GuestbookThreadItem) => void;
+  onLoadMore: () => Promise<void>;
   onReply: (entry: GuestbookThreadItem) => void;
+  onRetry: () => Promise<void>;
+  onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
 };
 
 /**
  * 방명록 스레드 목록을 렌더링하고 무한스크롤을 처리합니다.
  */
-export const GuestbookFeed = ({ onReply }: GuestbookFeedProps) => {
+export const GuestbookFeed = ({
+  errorMessage,
+  hasMore,
+  isInitialLoading,
+  isLoadingMore,
+  items,
+  onDelete,
+  onEdit,
+  onLoadMore,
+  onReply,
+  onRetry,
+  onRevealSecret,
+}: GuestbookFeedProps) => {
   const t = useTranslations('Guest');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const {
-    errorMessage,
-    hasMore,
-    isInitialLoading,
-    isLoadingMore,
-    items,
-    loadMore,
-    retryInitialLoad,
-  } = useGuestbookThreads();
 
   const formatDateText = (isoDate: string) => formatYearMonthDay(isoDate) ?? '-';
 
@@ -37,7 +49,7 @@ export const GuestbookFeed = ({ onReply }: GuestbookFeedProps) => {
       entries => {
         const target = entries[0];
         if (!target?.isIntersecting) return;
-        void loadMore();
+        void onLoadMore();
       },
       {
         root: null,
@@ -48,7 +60,7 @@ export const GuestbookFeed = ({ onReply }: GuestbookFeedProps) => {
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [onLoadMore]);
 
   if (isInitialLoading) {
     return (
@@ -62,7 +74,7 @@ export const GuestbookFeed = ({ onReply }: GuestbookFeedProps) => {
     return (
       <section style={stateWrapStyle}>
         <p style={stateTextStyle}>{t('loadError')}</p>
-        <button onClick={() => void retryInitialLoad()} style={retryButtonStyle} type="button">
+        <button onClick={() => void onRetry()} style={retryButtonStyle} type="button">
           {t('retry')}
         </button>
       </section>
@@ -75,11 +87,21 @@ export const GuestbookFeed = ({ onReply }: GuestbookFeedProps) => {
         <div style={stackStyle}>
           {items.map(entry => (
             <GuestbookThreadCard
+              actionDeleteLabel={t('delete')}
+              actionEditLabel={t('edit')}
+              actionReplyLabel={t('reply')}
               dateText={formatDateText}
               entry={entry}
               key={entry.id}
+              onDelete={onDelete}
+              onEdit={onEdit}
               onReply={onReply}
               revealLabel={t('secretReveal')}
+              revealSecretErrorLabel={t('secretVerifyFailed')}
+              revealSecretPasswordLabel={t('password')}
+              revealSecretSubmitLabel={t('secretReveal')}
+              revealSecretTitle={t('secretRevealTitle')}
+              onRevealSecret={onRevealSecret}
               secretLabel={t('secretLabel')}
               secretPlaceholder={t('secretPlaceholder')}
             />

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 
 type GuestbookThreadsResponse = {
   ok: boolean;
@@ -16,17 +16,25 @@ type UseGuestbookThreadsOptions = {
 };
 
 type UseGuestbookThreadsResult = {
+  applyServerThread: (entry: GuestbookThreadItem) => void;
+  applyServerThreadEntry: (entry: GuestbookThreadItem | GuestbookEntryLike) => void;
   errorMessage: string | null;
   hasMore: boolean;
   isInitialLoading: boolean;
   isLoadingMore: boolean;
   items: GuestbookThreadItem[];
   loadMore: () => Promise<void>;
+  removeThreadById: (id: string) => void;
   prependLocalThread: (entry: GuestbookThreadItem) => void;
   retryInitialLoad: () => Promise<void>;
+  updateThreadById: (
+    id: string,
+    updater: (entry: GuestbookThreadItem) => GuestbookThreadItem,
+  ) => void;
 };
 
 const DEFAULT_LIMIT = 12;
+type GuestbookEntryLike = GuestbookEntry;
 
 /**
  * 방명록 스레드 목록을 클라이언트에서 무한스크롤 방식으로 관리합니다.
@@ -108,6 +116,42 @@ export const useGuestbookThreads = ({
     setItems(previous => [entry, ...previous]);
   }, []);
 
+  const applyServerThread = useCallback((entry: GuestbookThreadItem) => {
+    setItems(previous => {
+      const withoutTarget = previous.filter(item => item.id !== entry.id);
+      return [entry, ...withoutTarget].sort(
+        (left, right) => +new Date(right.created_at) - +new Date(left.created_at),
+      );
+    });
+  }, []);
+
+  const applyServerThreadEntry = useCallback(
+    (entry: GuestbookThreadItem | GuestbookEntryLike) => {
+      if ('replies' in entry) {
+        applyServerThread(entry);
+        return;
+      }
+
+      setItems(previous =>
+        previous.map(item =>
+          item.id === entry.id ? { ...item, ...entry, replies: item.replies } : item,
+        ),
+      );
+    },
+    [applyServerThread],
+  );
+
+  const updateThreadById = useCallback(
+    (id: string, updater: (entry: GuestbookThreadItem) => GuestbookThreadItem) => {
+      setItems(previous => previous.map(entry => (entry.id === id ? updater(entry) : entry)));
+    },
+    [],
+  );
+
+  const removeThreadById = useCallback((id: string) => {
+    setItems(previous => previous.filter(entry => entry.id !== id));
+  }, []);
+
   useEffect(() => {
     const fetchInitial = async () => {
       try {
@@ -132,7 +176,11 @@ export const useGuestbookThreads = ({
     isLoadingMore,
     items,
     loadMore,
+    applyServerThread,
+    applyServerThreadEntry,
+    removeThreadById,
     prependLocalThread,
     retryInitialLoad,
+    updateThreadById,
   };
 };
