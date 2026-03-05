@@ -2,27 +2,16 @@ import { unstable_cache } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
-
-/**
- * 같은 id가 중복된 경우(created_at 역순 기준) 첫 레코드만 유지합니다.
- */
-const dedupeProjectsById = (items: Project[]): Project[] => {
-  const seen = new Set<string>();
-  const deduped: Project[] = [];
-
-  for (const item of items) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    deduped.push(item);
-  }
-
-  return deduped;
-};
 
 /**
  * locale 컬럼을 사용하는 프로젝트 목록 조회입니다.
@@ -40,8 +29,7 @@ const fetchProjectsByLocale = async (
     .order('created_at', { ascending: false });
 
   if (error) {
-    const isLocaleColumnMissing = /column .*locale.* does not exist/i.test(error.message);
-    if (isLocaleColumnMissing) {
+    if (isLocaleColumnMissingError(error.message)) {
       return {
         data: [],
         localeColumnMissing: true,
@@ -52,7 +40,7 @@ const fetchProjectsByLocale = async (
   }
 
   return {
-    data: dedupeProjectsById((data ?? []) as Project[]),
+    data: dedupeById((data ?? []) as Project[]),
     localeColumnMissing: false,
   };
 };
@@ -73,7 +61,7 @@ const fetchProjectsLegacy = async (): Promise<Project[]> => {
     throw new Error(`[projects] 목록 조회 실패: ${error.message}`);
   }
 
-  return dedupeProjectsById((data ?? []) as Project[]);
+  return dedupeById((data ?? []) as Project[]);
 };
 
 /**
@@ -86,21 +74,14 @@ export const getProjects = async (targetLocale: string): Promise<Project[]> => {
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProjects = unstable_cache(
-    async () => {
-      const localizedResult = await fetchProjectsByLocale(normalizedLocale);
-      if (localizedResult.localeColumnMissing) return fetchProjectsLegacy();
-
-      if (localizedResult.data.length > 0) return localizedResult.data;
-
-      if (normalizedLocale !== 'en') {
-        const fallbackResult = await fetchProjectsByLocale('en');
-        if (fallbackResult.localeColumnMissing) return fetchProjectsLegacy();
-
-        if (fallbackResult.data.length > 0) return fallbackResult.data;
-      }
-
-      return [];
-    },
+    async () =>
+      resolveLocaleAwareData<Project[]>({
+        emptyData: [],
+        fetchByLocale: fetchProjectsByLocale,
+        fetchLegacy: fetchProjectsLegacy,
+        isEmptyData: items => items.length === 0,
+        targetLocale: normalizedLocale,
+      }),
     ['projects', 'list', cacheScope, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG],

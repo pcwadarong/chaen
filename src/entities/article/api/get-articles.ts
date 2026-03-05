@@ -2,27 +2,16 @@ import { unstable_cache } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { Article } from '../model/types';
-
-/**
- * 같은 id가 중복된 경우(created_at 역순 기준) 첫 레코드만 유지합니다.
- */
-const dedupeArticlesById = (items: Article[]): Article[] => {
-  const seen = new Set<string>();
-  const deduped: Article[] = [];
-
-  for (const item of items) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    deduped.push(item);
-  }
-
-  return deduped;
-};
 
 /**
  * locale 컬럼을 사용하는 아티클 목록 조회입니다.
@@ -40,8 +29,7 @@ const fetchArticlesByLocale = async (
     .order('created_at', { ascending: false });
 
   if (error) {
-    const isLocaleColumnMissing = /column .*locale.* does not exist/i.test(error.message);
-    if (isLocaleColumnMissing) {
+    if (isLocaleColumnMissingError(error.message)) {
       return {
         data: [],
         localeColumnMissing: true,
@@ -52,7 +40,7 @@ const fetchArticlesByLocale = async (
   }
 
   return {
-    data: dedupeArticlesById((data ?? []) as Article[]),
+    data: dedupeById((data ?? []) as Article[]),
     localeColumnMissing: false,
   };
 };
@@ -73,7 +61,7 @@ const fetchArticlesLegacy = async (): Promise<Article[]> => {
     throw new Error(`[articles] 목록 조회 실패: ${error.message}`);
   }
 
-  return dedupeArticlesById((data ?? []) as Article[]);
+  return dedupeById((data ?? []) as Article[]);
 };
 
 /**
@@ -86,21 +74,14 @@ export const getArticles = async (targetLocale: string): Promise<Article[]> => {
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedArticles = unstable_cache(
-    async () => {
-      const localizedResult = await fetchArticlesByLocale(normalizedLocale);
-      if (localizedResult.localeColumnMissing) return fetchArticlesLegacy();
-
-      if (localizedResult.data.length > 0) return localizedResult.data;
-
-      if (normalizedLocale !== 'en') {
-        const fallbackResult = await fetchArticlesByLocale('en');
-        if (fallbackResult.localeColumnMissing) return fetchArticlesLegacy();
-
-        if (fallbackResult.data.length > 0) return fallbackResult.data;
-      }
-
-      return [];
-    },
+    async () =>
+      resolveLocaleAwareData<Article[]>({
+        emptyData: [],
+        fetchByLocale: fetchArticlesByLocale,
+        fetchLegacy: fetchArticlesLegacy,
+        isEmptyData: items => items.length === 0,
+        targetLocale: normalizedLocale,
+      }),
     ['articles', 'list', cacheScope, normalizedLocale],
     {
       tags: [ARTICLES_CACHE_TAG],

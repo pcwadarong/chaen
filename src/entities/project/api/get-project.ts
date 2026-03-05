@@ -2,6 +2,10 @@ import { unstable_cache } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -26,9 +30,7 @@ const fetchProjectByLocale = async (
     .maybeSingle<Project>();
 
   if (error) {
-    const isLocaleColumnMissing = /column .*locale.* does not exist/i.test(error.message);
-
-    if (isLocaleColumnMissing) {
+    if (isLocaleColumnMissingError(error.message)) {
       return {
         data: null,
         localeColumnMissing: true,
@@ -77,21 +79,14 @@ export const getProject = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProject = unstable_cache(
-    async () => {
-      const localizedResult = await fetchProjectByLocale(projectId, normalizedLocale);
-      if (localizedResult.localeColumnMissing) return fetchProjectLegacy(projectId);
-
-      if (localizedResult.data) return localizedResult.data;
-
-      if (normalizedLocale !== 'en') {
-        const fallbackResult = await fetchProjectByLocale(projectId, 'en');
-        if (fallbackResult.localeColumnMissing) return fetchProjectLegacy(projectId);
-
-        if (fallbackResult.data) return fallbackResult.data;
-      }
-
-      return null;
-    },
+    async () =>
+      resolveLocaleAwareData<Project | null>({
+        emptyData: null,
+        fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
+        fetchLegacy: () => fetchProjectLegacy(projectId),
+        isEmptyData: item => item === null,
+        targetLocale: normalizedLocale,
+      }),
     ['project', cacheScope, projectId, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG, createProjectCacheTag(projectId)],

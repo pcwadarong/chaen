@@ -2,6 +2,10 @@ import { unstable_cache } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -26,9 +30,7 @@ const fetchArticleByLocale = async (
     .maybeSingle<Article>();
 
   if (error) {
-    const isLocaleColumnMissing = /column .*locale.* does not exist/i.test(error.message);
-
-    if (isLocaleColumnMissing) {
+    if (isLocaleColumnMissingError(error.message)) {
       return {
         data: null,
         localeColumnMissing: true,
@@ -77,21 +79,14 @@ export const getArticle = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedArticle = unstable_cache(
-    async () => {
-      const localizedResult = await fetchArticleByLocale(articleId, normalizedLocale);
-      if (localizedResult.localeColumnMissing) return fetchArticleLegacy(articleId);
-
-      if (localizedResult.data) return localizedResult.data;
-
-      if (normalizedLocale !== 'en') {
-        const fallbackResult = await fetchArticleByLocale(articleId, 'en');
-        if (fallbackResult.localeColumnMissing) return fetchArticleLegacy(articleId);
-
-        if (fallbackResult.data) return fallbackResult.data;
-      }
-
-      return null;
-    },
+    async () =>
+      resolveLocaleAwareData<Article | null>({
+        emptyData: null,
+        fetchByLocale: locale => fetchArticleByLocale(articleId, locale),
+        fetchLegacy: () => fetchArticleLegacy(articleId),
+        isEmptyData: item => item === null,
+        targetLocale: normalizedLocale,
+      }),
     ['article', cacheScope, articleId, normalizedLocale],
     {
       tags: [ARTICLES_CACHE_TAG, createArticleCacheTag(articleId)],
