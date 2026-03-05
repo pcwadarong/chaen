@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { css } from '@emotion/react';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { useAuth } from '@/shared/providers';
@@ -32,23 +32,23 @@ export const GuestbookReplyBubble = ({
   const isDeleted = Boolean(entry.deleted_at);
 
   return (
-    <article style={wrapperStyle}>
-      <div style={bubbleStyle}>
-        <p style={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
-        <footer style={footerStyle}>
-          <div style={actionRowStyle}>
+    <article css={wrapperStyle}>
+      <div css={bubbleStyle}>
+        <p css={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
+        <footer css={footerStyle}>
+          <div css={actionRowStyle}>
             {isAdmin && !isDeleted && (
               <>
-                <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
+                <button onClick={() => onEdit(entry)} css={actionButtonStyle} type="button">
                   {actionEditLabel}
                 </button>
-                <button onClick={() => onDelete(entry)} style={actionButtonStyle} type="button">
+                <button onClick={() => onDelete(entry)} css={actionButtonStyle} type="button">
                   {actionDeleteLabel}
                 </button>
               </>
             )}
           </div>
-          <time dateTime={entry.created_at} style={dateStyle}>
+          <time dateTime={entry.created_at} css={dateStyle}>
             {dateText}
           </time>
         </footer>
@@ -57,48 +57,48 @@ export const GuestbookReplyBubble = ({
   );
 };
 
-const wrapperStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  width: '100%',
-};
+const wrapperStyle = css`
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+`;
 
-const bubbleStyle: CSSProperties = {
-  width: 'fit-content',
-  maxWidth: 'min(640px, 90%)',
-  padding: '1rem 1.1rem',
-  borderRadius: '1rem',
-  backgroundColor: 'rgb(var(--color-text) / 0.78)',
-  color: 'rgb(var(--color-surface))',
-  display: 'grid',
-  gap: '0.5rem',
-};
+const bubbleStyle = css`
+  width: fit-content;
+  max-width: min(640px, 90%);
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background-color: rgb(var(--color-text) / 0.78);
+  color: rgb(var(--color-surface));
+  display: grid;
+  gap: 0.5rem;
+`;
 
-const contentStyle: CSSProperties = {
-  whiteSpace: 'pre-wrap',
-  lineHeight: 1.55,
-};
+const contentStyle = css`
+  white-space: pre-wrap;
+  line-height: 1.55;
+`;
 
-const footerStyle: CSSProperties = {
-  display: 'flex',
-  gap: '0.35rem',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-  fontSize: '0.82rem',
-};
+const footerStyle = css`
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 0.82rem;
+`;
 
-const actionRowStyle: CSSProperties = {
-  display: 'flex',
-  gap: '0.35rem',
-};
+const actionRowStyle = css`
+  display: flex;
+  gap: 0.35rem;
+`;
 
-const actionButtonStyle: CSSProperties = {
-  border: 'none',
-  textDecoration: 'underline',
-};
+const actionButtonStyle = css`
+  border: none;
+  text-decoration: underline;
+`;
 
-const dateStyle: CSSProperties = {
-  justifySelf: 'end',
-  color: 'rgb(var(--color-surface) / 0.65)',
-  fontSize: '0.86rem',
-};
+const dateStyle = css`
+  justify-self: end;
+  color: rgb(var(--color-surface) / 0.65);
+  font-size: 0.86rem;
+`;

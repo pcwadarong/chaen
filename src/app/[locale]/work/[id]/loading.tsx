@@ -1,52 +1,52 @@
-import type { CSSProperties } from 'react';
+import { css } from '@emotion/react';
 
 /**
  * 프로젝트 상세 로딩 상태 UI입니다.
  */
 const WorkDetailLoading = () => (
-  <main style={pageStyle}>
-    <section aria-busy="true" aria-live="polite" style={panelStyle}>
-      <div style={lineLgStyle} />
-      <div style={lineMdStyle} />
-      <div style={lineSmStyle} />
+  <main css={pageStyle}>
+    <section aria-busy="true" aria-live="polite" css={panelStyle}>
+      <div css={lineLgStyle} />
+      <div css={lineMdStyle} />
+      <div css={lineSmStyle} />
     </section>
   </main>
 );
 
-const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
-};
+const pageStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+`;
 
-const panelStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.85rem',
-  padding: '1.75rem',
-  borderRadius: 'var(--radius-lg)',
-  border: '1px solid rgb(var(--color-border) / 0.2)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.9)',
-};
+const panelStyle = css`
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--color-border) / 0.2);
+  background-color: rgb(var(--color-surface) / 0.9);
+`;
 
-const lineBaseStyle: CSSProperties = {
-  height: '1rem',
-  borderRadius: 'var(--radius-pill)',
-  backgroundColor: 'rgb(var(--color-surface-muted))',
-};
+const lineBaseStyle = css`
+  height: 1rem;
+  border-radius: var(--radius-pill);
+  background-color: rgb(var(--color-surface-muted));
+`;
 
-const lineLgStyle: CSSProperties = {
-  ...lineBaseStyle,
-  width: '62%',
-};
+const lineLgStyle = css`
+  ${lineBaseStyle};
+  width: 62%;
+`;
 
-const lineMdStyle: CSSProperties = {
-  ...lineBaseStyle,
-  width: '82%',
-};
+const lineMdStyle = css`
+  ${lineBaseStyle};
+  width: 82%;
+`;
 
-const lineSmStyle: CSSProperties = {
-  ...lineBaseStyle,
-  width: '45%',
-};
+const lineSmStyle = css`
+  ${lineBaseStyle};
+  width: 45%;
+`;
 
 export default WorkDetailLoading;

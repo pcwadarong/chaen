@@ -1,8 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
-import type { CSSProperties } from 'react';
 import { useEffect, useState } from 'react';
 
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
@@ -26,7 +26,7 @@ export const ThemeSwitcher = () => {
   return (
     <SwitcherPopover label={t('label')} panelLabel={t('ariaLabel')} value={t(activeTheme)}>
       {({ closePopover }) => (
-        <div style={listStyle}>
+        <div css={listStyle}>
           {themeOptions.map(option => {
             const isActive = activeTheme === option;
 
@@ -38,10 +38,7 @@ export const ThemeSwitcher = () => {
                   setTheme(option);
                   closePopover();
                 }}
-                style={{
-                  ...optionStyle,
-                  ...(isActive ? optionActiveStyle : null),
-                }}
+                css={[optionStyle, isActive && optionActiveStyle]}
                 type="button"
               >
                 {t(option)}
@@ -54,25 +51,27 @@ export const ThemeSwitcher = () => {
   );
 };
 
-const listStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.2rem',
-};
+const listStyle = css`
+  display: grid;
+  gap: 0.2rem;
+`;
 
-const optionStyle: CSSProperties = {
-  minHeight: '2.8rem',
-  width: '100%',
-  padding: '0.7rem 0.8rem',
-  borderRadius: 'var(--radius-sm)',
-  display: 'flex',
-  alignItems: 'center',
-  fontSize: '0.92rem',
-  color: 'rgb(var(--color-text))',
-  backgroundColor: 'transparent',
-  transition: 'background-color 160ms ease, color 160ms ease',
-};
+const optionStyle = css`
+  min-height: 2.8rem;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  font-size: 0.92rem;
+  color: rgb(var(--color-text));
+  background-color: transparent;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+`;
 
-const optionActiveStyle: CSSProperties = {
-  backgroundColor: 'rgb(var(--color-primary))',
-  color: 'rgb(var(--color-primary-contrast))',
-};
+const optionActiveStyle = css`
+  background-color: rgb(var(--color-primary));
+  color: rgb(var(--color-primary-contrast));
+`;

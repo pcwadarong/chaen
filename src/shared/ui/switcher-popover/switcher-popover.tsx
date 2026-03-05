@@ -1,6 +1,7 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import { css } from '@emotion/react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 type SwitcherPopoverProps = {
@@ -54,20 +55,20 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
   };
 
   return (
-    <div ref={rootRef} style={rootStyle}>
+    <div ref={rootRef} css={rootStyle}>
       <button
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={panelLabel}
         onClick={handleToggle}
-        style={triggerStyle}
+        css={triggerStyle}
         type="button"
       >
-        <span style={triggerLabelStyle}>{label}</span>
-        <span style={triggerValueStyle}>{value}</span>
+        <span css={triggerLabelStyle}>{label}</span>
+        <span css={triggerValueStyle}>{value}</span>
       </button>
       {isOpen ? (
-        <div aria-label={panelLabel} role="dialog" style={panelStyle}>
+        <div aria-label={panelLabel} role="dialog" css={panelStyle}>
           {children({ closePopover })}
         </div>
       ) : null}
@@ -75,45 +76,45 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
   );
 };
 
-const rootStyle: CSSProperties = {
-  position: 'relative',
-};
+const rootStyle = css`
+  position: relative;
+`;
 
-const triggerStyle: CSSProperties = {
-  minHeight: '2.5rem',
-  padding: '0.4rem 0.75rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.24)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.84)',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.65rem',
-};
+const triggerStyle = css`
+  min-height: 2.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.24);
+  background-color: rgb(var(--color-surface) / 0.84);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+`;
 
-const triggerLabelStyle: CSSProperties = {
-  fontSize: '0.76rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'rgb(var(--color-muted))',
-};
+const triggerLabelStyle = css`
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--color-muted));
+`;
 
-const triggerValueStyle: CSSProperties = {
-  fontSize: '0.92rem',
-  color: 'rgb(var(--color-text))',
-};
+const triggerValueStyle = css`
+  font-size: 0.92rem;
+  color: rgb(var(--color-text));
+`;
 
-const panelStyle: CSSProperties = {
-  position: 'absolute',
-  top: 'calc(100% + 0.55rem)',
-  right: 0,
-  minWidth: '12rem',
-  padding: '0.45rem',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid rgb(var(--color-border) / 0.22)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.98)',
-  boxShadow: '0 18px 42px rgb(0 0 0 / 0.12)',
-  display: 'grid',
-  gap: '0.25rem',
-  zIndex: 30,
-};
+const panelStyle = css`
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  min-width: 12rem;
+  padding: 0.45rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--color-border) / 0.22);
+  background-color: rgb(var(--color-surface) / 0.98);
+  box-shadow: 0 18px 42px rgb(0 0 0 / 0.12);
+  display: grid;
+  gap: 0.25rem;
+  z-index: 30;
+`;

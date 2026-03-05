@@ -1,7 +1,7 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
 import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
@@ -30,8 +30,8 @@ export const WorkListPage = ({
   const t = useTranslations('Work');
 
   return (
-    <main style={pageStyle}>
-      <section style={resumeCtaStyle}>
+    <main css={pageStyle}>
+      <section css={resumeCtaStyle}>
         <DownloadFileButton
           fileName={portfolioDownloadFileName}
           href={portfolioUrl}
@@ -55,15 +55,15 @@ export const WorkListPage = ({
   );
 };
 
-const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
-  display: 'grid',
-  gap: '1rem',
-};
+const pageStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+  display: grid;
+  gap: 1rem;
+`;
 
-const resumeCtaStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-};
+const resumeCtaStyle = css`
+  display: flex;
+  justify-content: flex-end;
+`;

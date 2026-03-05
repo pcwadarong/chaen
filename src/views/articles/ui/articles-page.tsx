@@ -1,7 +1,7 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
 
 import type { Article } from '@/entities/article/model/types';
 import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
@@ -17,10 +17,10 @@ export const ArticlesPage = ({ initialCursor, initialItems, locale }: ArticlesPa
   const t = useTranslations('Articles');
 
   return (
-    <main style={pageStyle}>
-      <section style={heroStyle}>
-        <h1 style={titleStyle}>{t('title')}</h1>
-        <p style={descriptionStyle}>{t('description')}</p>
+    <main css={pageStyle}>
+      <section css={heroStyle}>
+        <h1 css={titleStyle}>{t('title')}</h1>
+        <p css={descriptionStyle}>{t('description')}</p>
       </section>
       <ArticleFeed
         emptyText={t('emptyItems')}
@@ -36,26 +36,26 @@ export const ArticlesPage = ({ initialCursor, initialItems, locale }: ArticlesPa
   );
 };
 
-const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
-  display: 'grid',
-  gap: '1.5rem',
-};
+const pageStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+  display: grid;
+  gap: 1.5rem;
+`;
 
-const heroStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.75rem',
-};
+const heroStyle = css`
+  display: grid;
+  gap: 0.75rem;
+`;
 
-const titleStyle: CSSProperties = {
-  fontSize: 'clamp(2rem, 4vw, 3.25rem)',
-  lineHeight: 0.96,
-  letterSpacing: '-0.04em',
-};
+const titleStyle = css`
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+`;
 
-const descriptionStyle: CSSProperties = {
-  maxWidth: '52rem',
-  color: 'rgb(var(--color-muted))',
-};
+const descriptionStyle = css`
+  max-width: 52rem;
+  color: rgb(var(--color-muted));
+`;

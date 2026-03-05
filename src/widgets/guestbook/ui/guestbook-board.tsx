@@ -1,7 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import React, { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
@@ -351,10 +352,10 @@ export const GuestbookBoard = () => {
   const shouldHideModalPassword = Boolean(modalState?.entry.is_admin_reply);
 
   return (
-    <div style={boardStyle}>
-      <section style={feedWrapStyle}>
-        <header style={headerStyle}>
-          <h1 style={titleStyle}>{t('title')}</h1>
+    <div css={boardStyle}>
+      <section css={feedWrapStyle}>
+        <header css={headerStyle}>
+          <h1 css={titleStyle}>{t('title')}</h1>
         </header>
         <GuestbookFeed
           canReply={isAdmin}
@@ -391,36 +392,36 @@ export const GuestbookBoard = () => {
         isOpen={Boolean(modalState)}
         onClose={closeModal}
       >
-        <div style={modalBodyStyle}>
-          <p style={modalLeadStyle}>{modalTitle}</p>
+        <div css={modalBodyStyle}>
+          <p css={modalLeadStyle}>{modalTitle}</p>
           {modalState?.mode === 'edit' ? (
             <textarea
               maxLength={3000}
               onChange={event => setModalContent(event.target.value)}
               rows={4}
-              style={modalTextareaStyle}
+              css={modalTextareaStyle}
               value={modalContent}
             />
           ) : (
-            <p style={modalHintStyle}>{t('deleteModalHint')}</p>
+            <p css={modalHintStyle}>{t('deleteModalHint')}</p>
           )}
           {!shouldHideModalPassword ? (
             <input
               onChange={event => setModalPassword(event.target.value)}
               placeholder={t('password')}
-              style={modalInputStyle}
+              css={modalInputStyle}
               type="password"
               value={modalPassword}
             />
           ) : null}
-          <div style={modalActionsStyle}>
-            <button onClick={closeModal} style={modalSecondaryButtonStyle} type="button">
+          <div css={modalActionsStyle}>
+            <button onClick={closeModal} css={modalSecondaryButtonStyle} type="button">
               {t('cancel')}
             </button>
             <button
               disabled={isModalSubmitting}
               onClick={() => void handleConfirmModal()}
-              style={modalPrimaryButtonStyle}
+              css={modalPrimaryButtonStyle}
               type="button"
             >
               {modalState?.mode === 'edit' ? t('editConfirm') : t('deleteConfirm')}
@@ -438,93 +439,93 @@ export const GuestbookBoard = () => {
   );
 };
 
-const boardStyle: CSSProperties = {
-  width: '100%',
-  minHeight: '100dvh',
-  display: 'grid',
-  gridTemplateRows: '1fr',
-};
+const boardStyle = css`
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr;
+`;
 
-const feedWrapStyle: CSSProperties = {
-  width: 'min(1120px, 100%)',
-  justifySelf: 'center',
-  padding: '1.5rem 1rem 18rem',
-  display: 'grid',
-  gap: '1rem',
-};
+const feedWrapStyle = css`
+  width: min(1120px, 100%);
+  justify-self: center;
+  padding: 1.5rem 1rem 18rem;
+  display: grid;
+  gap: 1rem;
+`;
 
-const headerStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '0.75rem',
-  flexWrap: 'wrap',
-};
+const headerStyle = css`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
 
-const titleStyle: CSSProperties = {
-  fontSize: 'clamp(2rem, 4vw, 3.25rem)',
-  lineHeight: 1.02,
-  letterSpacing: '-0.03em',
-};
+const titleStyle = css`
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+`;
 
-const modalBodyStyle: CSSProperties = {
-  width: 'min(26rem, 90vw)',
-  padding: '2.4rem 1rem 1rem',
-  display: 'grid',
-  gap: '0.7rem',
-  backgroundColor: 'rgb(var(--color-surface))',
-  borderRadius: '0.9rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-};
+const modalBodyStyle = css`
+  width: min(26rem, 90vw);
+  padding: 2.4rem 1rem 1rem;
+  display: grid;
+  gap: 0.7rem;
+  background-color: rgb(var(--color-surface));
+  border-radius: 0.9rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+`;
 
-const modalLeadStyle: CSSProperties = {
-  fontWeight: 700,
-};
+const modalLeadStyle = css`
+  font-weight: 700;
+`;
 
-const modalHintStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  fontSize: '0.92rem',
-};
+const modalHintStyle = css`
+  color: rgb(var(--color-muted));
+  font-size: 0.92rem;
+`;
 
-const modalTextareaStyle: CSSProperties = {
-  width: '100%',
-  borderRadius: '0.65rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  padding: '0.75rem',
-  backgroundColor: 'rgb(var(--color-surface))',
-  color: 'rgb(var(--color-text))',
-  resize: 'vertical',
-};
+const modalTextareaStyle = css`
+  width: 100%;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  padding: 0.75rem;
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-text));
+  resize: vertical;
+`;
 
-const modalInputStyle: CSSProperties = {
-  minHeight: '2.5rem',
-  borderRadius: '0.65rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  padding: '0 0.75rem',
-  backgroundColor: 'rgb(var(--color-surface))',
-  color: 'rgb(var(--color-text))',
-};
+const modalInputStyle = css`
+  min-height: 2.5rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  padding: 0 0.75rem;
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-text));
+`;
 
-const modalActionsStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  gap: '0.5rem',
-};
+const modalActionsStyle = css`
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+`;
 
-const modalSecondaryButtonStyle: CSSProperties = {
-  minHeight: '2.3rem',
-  padding: '0 0.8rem',
-  borderRadius: '0.6rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  backgroundColor: 'transparent',
-  color: 'rgb(var(--color-text))',
-};
+const modalSecondaryButtonStyle = css`
+  min-height: 2.3rem;
+  padding: 0 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  background-color: transparent;
+  color: rgb(var(--color-text));
+`;
 
-const modalPrimaryButtonStyle: CSSProperties = {
-  minHeight: '2.3rem',
-  padding: '0 0.8rem',
-  borderRadius: '0.6rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  backgroundColor: 'rgb(var(--color-text) / 0.9)',
-  color: 'rgb(var(--color-surface))',
-};
+const modalPrimaryButtonStyle = css`
+  min-height: 2.3rem;
+  padding: 0 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  background-color: rgb(var(--color-text) / 0.9);
+  color: rgb(var(--color-surface));
+`;

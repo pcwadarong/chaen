@@ -1,6 +1,4 @@
-'use client';
-
-import type { CSSProperties } from 'react';
+import { css } from '@emotion/react';
 
 type ArticleDetailErrorProps = {
   error: Error & { digest?: string };
@@ -11,49 +9,49 @@ type ArticleDetailErrorProps = {
  * 아티클 상세 페이지 에러 UI입니다.
  */
 const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => (
-  <main style={pageStyle}>
-    <section role="alert" style={panelStyle}>
-      <h1 style={titleStyle}>기록을 불러오는 중 문제가 발생했습니다.</h1>
-      <p style={descriptionStyle}>{error.message}</p>
-      <button onClick={reset} style={buttonStyle} type="button">
+  <main css={pageStyle}>
+    <section role="alert" css={panelStyle}>
+      <h1 css={titleStyle}>기록을 불러오는 중 문제가 발생했습니다.</h1>
+      <p css={descriptionStyle}>{error.message}</p>
+      <button onClick={reset} css={buttonStyle} type="button">
         다시 시도
       </button>
     </section>
   </main>
 );
 
-const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
-};
+const pageStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+`;
 
-const panelStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.8rem',
-  padding: '1.75rem',
-  borderRadius: 'var(--radius-lg)',
-  border: '1px solid rgb(var(--color-border) / 0.3)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.92)',
-};
+const panelStyle = css`
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--color-border) / 0.3);
+  background-color: rgb(var(--color-surface) / 0.92);
+`;
 
-const titleStyle: CSSProperties = {
-  fontSize: 'clamp(1.6rem, 3.2vw, 2.2rem)',
-  lineHeight: 1.1,
-  letterSpacing: '-0.03em',
-};
+const titleStyle = css`
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+`;
 
-const descriptionStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-};
+const descriptionStyle = css`
+  color: rgb(var(--color-muted));
+`;
 
-const buttonStyle: CSSProperties = {
-  width: 'fit-content',
-  minHeight: '2.7rem',
-  padding: '0 1rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.3)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.95)',
-};
+const buttonStyle = css`
+  width: fit-content;
+  min-height: 2.7rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.3);
+  background-color: rgb(var(--color-surface) / 0.95);
+`;
 
 export default ArticleDetailError;

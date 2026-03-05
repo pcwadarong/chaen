@@ -1,7 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import Image from 'next/image';
-import { type CSSProperties, useState } from 'react';
+import { useState } from 'react';
 
 import {
   type ImageViewerLabels,
@@ -33,26 +34,26 @@ export const WorkDetailMediaGallery = ({
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   if (items.length === 0) {
-    return <p style={emptyTextStyle}>{emptyText}</p>;
+    return <p css={emptyTextStyle}>{emptyText}</p>;
   }
 
   return (
     <>
-      <div aria-label={sectionLabel} role="region" style={mediaSliderStyle}>
+      <div aria-label={sectionLabel} role="region" css={mediaSliderStyle}>
         {items.map((media, index) => (
-          <figure key={`${media.src}-${index}`} style={mediaItemStyle}>
+          <figure key={`${media.src}-${index}`} css={mediaItemStyle}>
             <button
               onClick={() => {
                 setViewerIndex(index);
               }}
-              style={mediaButtonStyle}
+              css={mediaButtonStyle}
               type="button"
             >
               <Image
                 alt={media.alt}
                 height={1080}
                 src={media.src}
-                style={mediaImageStyle}
+                css={mediaImageStyle}
                 unoptimized={media.unoptimized}
                 width={1920}
               />
@@ -72,41 +73,41 @@ export const WorkDetailMediaGallery = ({
   );
 };
 
-const mediaSliderStyle: CSSProperties = {
-  display: 'grid',
-  gridAutoFlow: 'column',
-  gridAutoColumns: 'min(100%, 100%)',
-  gap: '0.75rem',
-  overflowX: 'auto',
-  paddingBottom: '0.3rem',
-  scrollSnapType: 'x mandatory',
-};
+const mediaSliderStyle = css`
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(100%, 100%);
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+  scroll-snap-type: x mandatory;
+`;
 
-const mediaItemStyle: CSSProperties = {
-  margin: 0,
-  borderRadius: 'var(--radius-md)',
-  overflow: 'hidden',
-  border: '1px solid rgb(var(--color-border) / 0.2)',
-  backgroundColor: 'rgb(var(--color-surface-strong) / 0.36)',
-  scrollSnapAlign: 'start',
-};
+const mediaItemStyle = css`
+  margin: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-border) / 0.2);
+  background-color: rgb(var(--color-surface-strong) / 0.36);
+  scroll-snap-align: start;
+`;
 
-const mediaButtonStyle: CSSProperties = {
-  width: '100%',
-  display: 'block',
-  border: 0,
-  padding: 0,
-  background: 'transparent',
-  cursor: 'zoom-in',
-};
+const mediaButtonStyle = css`
+  width: 100%;
+  display: block;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+`;
 
-const mediaImageStyle: CSSProperties = {
-  width: '100%',
-  height: 'auto',
-  aspectRatio: '16 / 9',
-  objectFit: 'cover',
-};
+const mediaImageStyle = css`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+`;
 
-const emptyTextStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-};
+const emptyTextStyle = css`
+  color: rgb(var(--color-muted));
+`;

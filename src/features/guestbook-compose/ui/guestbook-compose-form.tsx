@@ -1,14 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import {
-  type CSSProperties,
-  type KeyboardEvent,
-  type SyntheticEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { type KeyboardEvent, type SyntheticEvent, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
 
@@ -105,14 +99,14 @@ export const GuestbookComposeForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
+    <form onSubmit={handleSubmit} css={formStyle}>
       {isReplyMode ? (
-        <aside style={replyPreviewStyle}>
-          <span aria-hidden style={replyPreviewIconStyle}>
+        <aside css={replyPreviewStyle}>
+          <span aria-hidden css={replyPreviewIconStyle}>
             ↪
           </span>
-          <p style={replyPreviewTextStyle}>{replyTargetContent}</p>
-          <button onClick={onReplyTargetReset} style={replyPreviewCloseStyle} type="button">
+          <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
+          <button onClick={onReplyTargetReset} css={replyPreviewCloseStyle} type="button">
             {replyTargetResetLabel}
           </button>
         </aside>
@@ -124,28 +118,28 @@ export const GuestbookComposeForm = ({
               onChange={event => setAuthorName(event.target.value)}
               placeholder="이름"
               required
-              style={inputStyle}
+              css={inputStyle}
               value={authorName}
             />
             <input
               onChange={event => setPassword(event.target.value)}
               placeholder="비밀번호"
               required
-              style={inputStyle}
+              css={inputStyle}
               type="password"
               value={password}
             />
             <input
               onChange={event => setAuthorBlogUrl(event.target.value)}
               placeholder="블로그 홈페이지(선택)"
-              style={inputStyle}
+              css={inputStyle}
               value={authorBlogUrl}
             />
           </LeftFields>
         ) : null}
         <RightActions>
           {!isAdmin ? (
-            <label style={secretToggleStyle}>
+            <label css={secretToggleStyle}>
               <input
                 checked={isSecret}
                 onChange={event => setIsSecret(event.target.checked)}
@@ -154,42 +148,45 @@ export const GuestbookComposeForm = ({
               <span>{secretLabel}</span>
             </label>
           ) : null}
-          <button disabled={isSubmitting} style={submitButtonStyle} type="submit">
+          <button disabled={isSubmitting} css={submitButtonStyle} type="submit">
             {submitLabel}
           </button>
         </RightActions>
       </TopRow>
 
-      <div style={textareaWrapStyle}>
+      <div css={textareaWrapStyle}>
         <textarea
           maxLength={3000}
           onChange={event => setContent(event.target.value)}
           onKeyDown={handleTextareaKeyDown}
           placeholder={textPlaceholder}
           rows={5}
-          style={textareaStyle}
+          css={textareaStyle}
           value={content}
         />
-        <p style={countStyle}>{charCountText}</p>
+        <p css={countStyle}>{charCountText}</p>
       </div>
     </form>
   );
 };
 
-const formStyle: CSSProperties = {
-  position: 'fixed',
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: 20,
-  borderTop: '1px solid rgb(var(--color-border) / 0.24)',
-  background:
-    'linear-gradient(180deg, rgb(var(--color-surface) / 0.94), rgb(var(--color-surface) / 0.98))',
-  backdropFilter: 'blur(10px)',
-  padding: '0.85rem 1rem calc(0.9rem + env(safe-area-inset-bottom))',
-  display: 'grid',
-  gap: '0.7rem',
-};
+const formStyle = css`
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  border-top: 1px solid rgb(var(--color-border) / 0.24);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--color-surface) / 0.94),
+    rgb(var(--color-surface) / 0.98)
+  );
+  backdrop-filter: blur(10px);
+  padding: 0.85rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 0.7rem;
+`;
 
 const TopRow = styled.div`
   display: flex;
@@ -204,44 +201,44 @@ const LeftFields = styled.div`
   flex: 1;
 `;
 
-const replyPreviewStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'auto 1fr auto',
-  alignItems: 'center',
-  gap: '0.6rem',
-  minHeight: '2.7rem',
-  padding: '0.55rem 0.8rem',
-};
+const replyPreviewStyle = css`
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.8rem;
+`;
 
-const replyPreviewIconStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  fontSize: '1rem',
-};
+const replyPreviewIconStyle = css`
+  color: rgb(var(--color-muted));
+  font-size: 1rem;
+`;
 
-const replyPreviewTextStyle: CSSProperties = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  color: 'rgb(var(--color-muted))',
-};
+const replyPreviewTextStyle = css`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(var(--color-muted));
+`;
 
-const replyPreviewCloseStyle: CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  color: 'rgb(var(--color-text))',
-  textDecoration: 'underline',
-  padding: 0,
-};
+const replyPreviewCloseStyle = css`
+  border: none;
+  background: transparent;
+  color: rgb(var(--color-text));
+  text-decoration: underline;
+  padding: 0;
+`;
 
-const inputStyle: CSSProperties = {
-  flex: '0 1 5rem',
-  minHeight: '2.5rem',
-  borderRadius: '0.6rem',
-  border: '1px solid rgb(var(--color-border) / 0.34)',
-  backgroundColor: 'rgb(var(--color-surface))',
-  color: 'rgb(var(--color-text))',
-  padding: '0 0.75rem',
-};
+const inputStyle = css`
+  flex: 0 1 5rem;
+  min-height: 2.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgb(var(--color-border) / 0.34);
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-text));
+  padding: 0 0.75rem;
+`;
 
 const RightActions = styled.div`
   margin-left: auto;
@@ -253,44 +250,44 @@ const RightActions = styled.div`
   align-self: flex-end;
 `;
 
-const secretToggleStyle: CSSProperties = {
-  flex: '0 0 auto',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.45rem',
-  color: 'rgb(var(--color-text))',
-  whiteSpace: 'nowrap',
-};
+const secretToggleStyle = css`
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgb(var(--color-text));
+  white-space: nowrap;
+`;
 
-const submitButtonStyle: CSSProperties = {
-  flex: '0 0 auto',
-  minHeight: '2.5rem',
-  borderRadius: '0.7rem',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  backgroundColor: 'rgb(var(--color-text) / 0.85)',
-  color: 'rgb(var(--color-surface))',
-  minWidth: '5rem',
-  fontWeight: 700,
-};
+const submitButtonStyle = css`
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  background-color: rgb(var(--color-text) / 0.85);
+  color: rgb(var(--color-surface));
+  min-width: 5rem;
+  font-weight: 700;
+`;
 
-const textareaWrapStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.45rem',
-};
+const textareaWrapStyle = css`
+  display: grid;
+  gap: 0.45rem;
+`;
 
-const textareaStyle: CSSProperties = {
-  width: '100%',
-  minHeight: '8.5rem',
-  borderRadius: '0.75rem',
-  border: '1px solid rgb(var(--color-border) / 0.34)',
-  backgroundColor: 'rgb(var(--color-surface))',
-  color: 'rgb(var(--color-text))',
-  padding: '0.85rem',
-  resize: 'vertical',
-};
+const textareaStyle = css`
+  width: 100%;
+  min-height: 8.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--color-border) / 0.34);
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-text));
+  padding: 0.85rem;
+  resize: vertical;
+`;
 
-const countStyle: CSSProperties = {
-  justifySelf: 'end',
-  color: 'rgb(var(--color-muted))',
-  fontSize: '0.86rem',
-};
+const countStyle = css`
+  justify-self: end;
+  color: rgb(var(--color-muted));
+  font-size: 0.86rem;
+`;

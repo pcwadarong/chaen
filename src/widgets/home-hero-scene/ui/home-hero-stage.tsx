@@ -1,7 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import dynamic from 'next/dynamic';
-import type { CSSProperties, RefObject } from 'react';
+import type { RefObject } from 'react';
 
 type HomeHeroStageCanvasProps = {
   readonly triggerRef: RefObject<HTMLElement | null>;
@@ -15,7 +16,7 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
     ),
   {
     ssr: false,
-    loading: () => <div aria-hidden="true" style={stageFallbackStyle} />,
+    loading: () => <div aria-hidden="true" css={stageFallbackStyle} />,
   },
 );
 
@@ -23,25 +24,27 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
  * 홈 히어로 영역의 3D 캔버스 프레임과 로딩 폴백을 제공합니다.
  */
 export const HomeHeroStage = ({ triggerRef, webUiRef }: HomeHeroStageCanvasProps) => (
-  <div aria-hidden="true" style={stageFrameStyle}>
+  <div aria-hidden="true" css={stageFrameStyle}>
     <HomeHeroStageCanvas triggerRef={triggerRef} webUiRef={webUiRef} />
   </div>
 );
 
-const stageFrameStyle: CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  overflow: 'hidden',
-  borderRadius: '2rem',
-  border: '1px solid rgb(var(--color-border) / 0.22)',
+const stageFrameStyle = css`
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 2rem;
+  border: 1px solid rgb(var(--color-border) / 0.22);
   background:
-    'radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.08), transparent 0 32%), linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)))',
-  boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.3)',
-};
+    radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.08), transparent 0 32%),
+    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+`;
 
-const stageFallbackStyle: CSSProperties = {
-  width: '100%',
-  height: '100%',
+const stageFallbackStyle = css`
+  width: 100%;
+  height: 100%;
   background:
-    'radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.12), transparent 0 24%), linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)))',
-};
+    radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.12), transparent 0 24%),
+    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)));
+`;
