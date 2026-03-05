@@ -26,5 +26,5 @@ export const HomePage = ({ items }: HomePageProps) => {
 const pageStyle = css`
   width: 100%;
   display: grid;
-  gap: 0;
+  gap: var(--space-0);
 `;

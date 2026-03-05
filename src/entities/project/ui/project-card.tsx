@@ -55,8 +55,8 @@ const cardStyle = css`
   height: 100%;
   display: grid;
   align-content: start;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: var(--space-4);
+  padding: var(--space-6);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background:
@@ -81,19 +81,19 @@ const thumbnailStyle = css`
 const metaStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--space-3);
   color: rgb(var(--color-muted));
-  font-size: 0.92rem;
+  font-size: var(--font-size-14);
 `;
 
 const bodyStyle = css`
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const titleStyle = css`
-  font-size: 1.35rem;
-  line-height: 1.15;
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-120);
   letter-spacing: -0.03em;
 `;
 

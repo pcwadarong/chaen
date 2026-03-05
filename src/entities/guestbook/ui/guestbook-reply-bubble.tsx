@@ -66,30 +66,30 @@ const wrapperStyle = css`
 const bubbleStyle = css`
   width: fit-content;
   max-width: min(640px, 90%);
-  padding: 1rem 1.1rem;
-  border-radius: 1rem;
+  padding: var(--space-4) var(--space-4);
+  border-radius: var(--radius-l);
   background-color: rgb(var(--color-text) / 0.78);
   color: rgb(var(--color-surface));
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
 `;
 
 const contentStyle = css`
   white-space: pre-wrap;
-  line-height: 1.55;
+  line-height: var(--line-height-155);
 `;
 
 const footerStyle = css`
   display: flex;
-  gap: 0.35rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
   justify-content: flex-end;
-  font-size: 0.82rem;
+  font-size: var(--font-size-12);
 `;
 
 const actionRowStyle = css`
   display: flex;
-  gap: 0.35rem;
+  gap: var(--space-1);
 `;
 
 const actionButtonStyle = css`
@@ -100,5 +100,5 @@ const actionButtonStyle = css`
 const dateStyle = css`
   justify-self: end;
   color: rgb(var(--color-surface) / 0.65);
-  font-size: 0.86rem;
+  font-size: var(--font-size-14);
 `;

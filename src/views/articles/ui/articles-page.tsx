@@ -39,19 +39,19 @@ export const ArticlesPage = ({ initialCursor, initialItems, locale }: ArticlesPa
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
   display: grid;
-  gap: 1.5rem;
+  gap: var(--space-6);
 `;
 
 const heroStyle = css`
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const titleStyle = css`
   font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 0.96;
+  line-height: var(--line-height-96);
   letter-spacing: -0.04em;
 `;
 

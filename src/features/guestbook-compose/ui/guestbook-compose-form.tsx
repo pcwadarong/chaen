@@ -183,20 +183,20 @@ const formStyle = css`
     rgb(var(--color-surface) / 0.98)
   );
   backdrop-filter: blur(10px);
-  padding: 0.85rem 1rem calc(0.9rem + env(safe-area-inset-bottom));
+  padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   display: grid;
-  gap: 0.7rem;
+  gap: var(--space-3);
 `;
 
 const TopRow = styled.div`
   display: flex;
-  gap: 0.65rem;
+  gap: var(--space-3);
   align-items: center;
 `;
 
 const LeftFields = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
   flex: 1;
 `;
@@ -205,14 +205,14 @@ const replyPreviewStyle = css`
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-2);
   min-height: 2.7rem;
-  padding: 0.55rem 0.8rem;
+  padding: var(--space-2) var(--space-3);
 `;
 
 const replyPreviewIconStyle = css`
   color: rgb(var(--color-muted));
-  font-size: 1rem;
+  font-size: var(--font-size-16);
 `;
 
 const replyPreviewTextStyle = css`
@@ -227,24 +227,24 @@ const replyPreviewCloseStyle = css`
   background: transparent;
   color: rgb(var(--color-text));
   text-decoration: underline;
-  padding: 0;
+  padding: var(--space-0);
 `;
 
 const inputStyle = css`
   flex: 0 1 5rem;
   min-height: 2.5rem;
-  border-radius: 0.6rem;
+  border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.34);
   background-color: rgb(var(--color-surface));
   color: rgb(var(--color-text));
-  padding: 0 0.75rem;
+  padding: var(--space-0) var(--space-3);
 `;
 
 const RightActions = styled.div`
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: var(--space-3);
   flex: 0 0 auto;
   justify-content: flex-end;
   align-self: flex-end;
@@ -254,7 +254,7 @@ const secretToggleStyle = css`
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--space-2);
   color: rgb(var(--color-text));
   white-space: nowrap;
 `;
@@ -262,32 +262,32 @@ const secretToggleStyle = css`
 const submitButtonStyle = css`
   flex: 0 0 auto;
   min-height: 2.5rem;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-s);
   border: 1px solid rgb(var(--color-border) / 0.35);
   background-color: rgb(var(--color-text) / 0.85);
   color: rgb(var(--color-surface));
   min-width: 5rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 `;
 
 const textareaWrapStyle = css`
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-2);
 `;
 
 const textareaStyle = css`
   width: 100%;
   min-height: 8.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-s);
   border: 1px solid rgb(var(--color-border) / 0.34);
   background-color: rgb(var(--color-surface));
   color: rgb(var(--color-text));
-  padding: 0.85rem;
+  padding: var(--space-3);
   resize: vertical;
 `;
 
 const countStyle = css`
   justify-self: end;
   color: rgb(var(--color-muted));
-  font-size: 0.86rem;
+  font-size: var(--font-size-14);
 `;

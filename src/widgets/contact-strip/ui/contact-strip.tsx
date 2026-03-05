@@ -43,37 +43,37 @@ const sectionStyle = css`
   display: flex;
   align-items: stretch;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 3rem 0 5rem;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-0) var(--space-20);
 `;
 
 const copyStyle = css`
   display: grid;
   align-content: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex: 1 1 22rem;
 `;
 
 const titleStyle = css`
   font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 0.96;
+  line-height: var(--line-height-96);
   letter-spacing: -0.04em;
 `;
 
 const metaListStyle = css`
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-2);
   color: rgb(var(--color-muted));
 `;
 
 const metaItemStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: var(--space-2);
 `;
 
 const metaLabelStyle = css`
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 `;
 
 const emailLinkStyle = css`
@@ -85,7 +85,7 @@ const motionStyle = css`
   flex: 1 1 18rem;
   min-height: 16rem;
   overflow: hidden;
-  padding: 1.5rem;
+  padding: var(--space-6);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background:
@@ -95,7 +95,7 @@ const motionStyle = css`
 
 const pulseBaseStyle = css`
   position: absolute;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 `;
 
 const pulseStyle = css`

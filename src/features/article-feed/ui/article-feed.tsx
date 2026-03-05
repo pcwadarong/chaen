@@ -95,7 +95,7 @@ export const ArticleFeed = ({
 
 const sectionStyle = css`
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-3);
 `;
 
 const gridStyle = css`
@@ -103,13 +103,13 @@ const gridStyle = css`
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   grid-auto-rows: 1fr;
   align-items: stretch;
-  gap: 1rem;
+  gap: var(--space-4);
 `;
 
 const emptyStyle = css`
   border-radius: var(--radius-md);
   border: 1px solid rgb(var(--color-border) / 0.24);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   color: rgb(var(--color-muted));
 `;
 
@@ -125,21 +125,21 @@ const stateTextStyle = css`
 
 const errorPanelStyle = css`
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
   justify-items: center;
   border-radius: var(--radius-md);
   border: 1px solid rgb(var(--color-border) / 0.24);
-  padding: 1rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
 `;
 
 const errorTextStyle = css`
-  color: rgb(var(--color-danger, 210 75 75));
+  color: rgb(var(--color-danger));
   text-align: center;
 `;
 
 const retryButtonStyle = css`
   min-height: 2.4rem;
-  padding: 0 1rem;
+  padding: var(--space-0) var(--space-4);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.35);
   background-color: transparent;

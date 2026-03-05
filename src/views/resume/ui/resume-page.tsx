@@ -1,3 +1,5 @@
+'use client';
+
 import { css } from '@emotion/react';
 
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
@@ -31,13 +33,13 @@ export const ResumePage = ({ content, downloadFileName, resumeUrl }: ResumePageP
 const pageStyle = css`
   width: min(960px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
 `;
 
 const panelStyle = css`
   display: grid;
-  gap: 1rem;
-  padding: 1.75rem;
+  gap: var(--space-4);
+  padding: var(--space-7);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background-color: rgb(var(--color-surface) / 0.9);
@@ -45,7 +47,7 @@ const panelStyle = css`
 
 const titleStyle = css`
   font-size: clamp(2.25rem, 5vw, 4rem);
-  line-height: 1.02;
+  line-height: var(--line-height-100);
   letter-spacing: -0.04em;
 `;
 
@@ -55,5 +57,5 @@ const descriptionStyle = css`
 
 const bodyStyle = css`
   white-space: pre-wrap;
-  line-height: 1.72;
+  line-height: var(--line-height-170);
 `;

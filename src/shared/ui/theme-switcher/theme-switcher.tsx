@@ -53,17 +53,17 @@ export const ThemeSwitcher = () => {
 
 const listStyle = css`
   display: grid;
-  gap: 0.2rem;
+  gap: var(--space-1);
 `;
 
 const optionStyle = css`
   min-height: 2.8rem;
   width: 100%;
-  padding: 0.7rem 0.8rem;
+  padding: var(--space-3) var(--space-3);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  font-size: 0.92rem;
+  font-size: var(--font-size-14);
   color: rgb(var(--color-text));
   background-color: transparent;
   transition:

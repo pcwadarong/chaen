@@ -30,13 +30,13 @@ const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => {
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
 `;
 
 const panelStyle = css`
   display: grid;
-  gap: 0.8rem;
-  padding: 1.75rem;
+  gap: var(--space-3);
+  padding: var(--space-7);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.3);
   background-color: rgb(var(--color-surface) / 0.92);
@@ -44,7 +44,7 @@ const panelStyle = css`
 
 const titleStyle = css`
   font-size: clamp(1.6rem, 3.2vw, 2.2rem);
-  line-height: 1.1;
+  line-height: var(--line-height-110);
   letter-spacing: -0.03em;
 `;
 
@@ -55,7 +55,7 @@ const descriptionStyle = css`
 const buttonStyle = css`
   width: fit-content;
   min-height: 2.7rem;
-  padding: 0 1rem;
+  padding: var(--space-0) var(--space-4);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.3);
   background-color: rgb(var(--color-surface) / 0.95);

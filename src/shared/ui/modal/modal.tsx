@@ -74,10 +74,10 @@ const backdropStyle = css`
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background-color: rgb(0 0 0 / 0.86);
+  background-color: rgb(var(--color-black) / 0.86);
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: var(--space-4);
 `;
 
 const frameBaseStyle = css`
@@ -91,11 +91,11 @@ const closeButtonStyle = css`
   z-index: 10;
   width: 2.4rem;
   height: 2.4rem;
-  border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 0.3);
-  background-color: rgb(0 0 0 / 0.5);
-  color: rgb(255 255 255);
-  font-size: 1.2rem;
-  line-height: 1;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-white) / 0.3);
+  background-color: rgb(var(--color-black) / 0.5);
+  color: rgb(var(--color-white));
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-100);
   cursor: pointer;
 `;

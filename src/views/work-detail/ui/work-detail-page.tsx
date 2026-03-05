@@ -131,18 +131,18 @@ export const WorkDetailPage = async ({ item, locale }: WorkDetailPageProps) => {
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
 `;
 
 const articleStyle = css`
   display: grid;
-  gap: 1.25rem;
+  gap: var(--space-5);
 `;
 
 const heroStyle = css`
   display: grid;
-  gap: 0.85rem;
-  padding: 1.75rem;
+  gap: var(--space-3);
+  padding: var(--space-7);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.24);
   background:
@@ -153,14 +153,14 @@ const heroStyle = css`
 const metaStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: var(--space-3);
   color: rgb(var(--color-muted));
-  font-size: 0.9rem;
+  font-size: var(--font-size-14);
 `;
 
 const titleStyle = css`
   font-size: clamp(2.2rem, 5vw, 4.4rem);
-  line-height: 0.98;
+  line-height: var(--line-height-98);
   letter-spacing: -0.04em;
 `;
 
@@ -172,29 +172,29 @@ const descriptionStyle = css`
 const tagListStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 `;
 
 const tagItemStyle = css`
-  padding: 0.25rem 0.7rem;
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.28);
   background-color: rgb(var(--color-surface) / 0.82);
-  font-size: 0.85rem;
+  font-size: var(--font-size-14);
 `;
 
 const panelStyle = css`
   display: grid;
-  gap: 0.9rem;
-  padding: 1.5rem;
+  gap: var(--space-4);
+  padding: var(--space-6);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.2);
   background-color: rgb(var(--color-surface) / 0.92);
 `;
 
 const sectionTitleStyle = css`
-  font-size: 1.2rem;
-  line-height: 1.2;
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-120);
   letter-spacing: -0.02em;
 `;
 
@@ -204,5 +204,5 @@ const emptyTextStyle = css`
 
 const plainContentStyle = css`
   white-space: pre-wrap;
-  line-height: 1.7;
+  line-height: var(--line-height-170);
 `;

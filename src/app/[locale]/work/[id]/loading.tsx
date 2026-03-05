@@ -21,13 +21,13 @@ const WorkDetailLoading = async () => {
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
 `;
 
 const panelStyle = css`
   display: grid;
-  gap: 0.85rem;
-  padding: 1.75rem;
+  gap: var(--space-3);
+  padding: var(--space-7);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.2);
   background-color: rgb(var(--color-surface) / 0.9);

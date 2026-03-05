@@ -58,9 +58,9 @@ export const WorkListPage = ({
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: var(--space-12) var(--space-0) var(--space-20);
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 `;
 
 const resumeCtaStyle = css`

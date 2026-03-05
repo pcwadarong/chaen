@@ -116,11 +116,11 @@ const hiddenHeaderStyle = css`
 const innerStyle = css`
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 0.95rem 0;
+  padding: var(--space-4) var(--space-0);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
 `;
 
@@ -128,14 +128,14 @@ const contentStyle = css`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.9rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
   flex: 1 1 40rem;
 `;
 
 const brandLinkStyle = css`
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
@@ -145,7 +145,7 @@ const brandLinkStyle = css`
 const listStyle = css`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 `;
 
@@ -153,10 +153,10 @@ const navLinkStyle = css`
   display: inline-flex;
   align-items: center;
   min-height: 2.25rem;
-  padding: 0 0.85rem;
+  padding: var(--space-0) var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.24);
-  font-size: 0.95rem;
+  font-size: var(--font-size-16);
   letter-spacing: 0.04em;
   text-decoration: none;
   background-color: rgb(var(--color-surface) / 0.8);
@@ -167,7 +167,7 @@ const controlsStyle = css`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.65rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
 `;
 

@@ -44,17 +44,17 @@ export const ProjectShowcase = ({
 
 const sectionStyle = css`
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 `;
 
 const headerStyle = css`
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const titleStyle = css`
   font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 0.96;
+  line-height: var(--line-height-96);
   letter-spacing: -0.04em;
 `;
 
@@ -68,19 +68,19 @@ const gridStyle = css`
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   grid-auto-rows: 1fr;
   align-items: stretch;
-  gap: 1rem;
+  gap: var(--space-4);
 `;
 
 const emptyStyle = css`
   color: rgb(var(--color-muted));
-  padding: 1rem 0;
+  padding: var(--space-4) var(--space-0);
 `;
 
 const srOnlyStyle = css`
   position: absolute;
   width: 1px;
   height: 1px;
-  padding: 0;
+  padding: var(--space-0);
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);

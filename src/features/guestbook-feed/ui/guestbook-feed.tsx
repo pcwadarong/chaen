@@ -133,17 +133,17 @@ export const GuestbookFeed = ({
 const sectionStyle = css`
   width: 100%;
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-3);
 `;
 
 const stackStyle = css`
   display: grid;
-  gap: 0.9rem;
+  gap: var(--space-4);
 `;
 
 const emptyStyle = css`
   color: rgb(var(--color-muted));
-  padding: 1rem 0.25rem;
+  padding: var(--space-4) var(--space-1);
 `;
 
 const sentinelStyle = css`
@@ -161,11 +161,11 @@ const endStyle = css`
   color: rgb(var(--color-muted));
   text-align: center;
   padding-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-size: var(--font-size-14);
 `;
 
 const errorStyle = css`
-  color: rgb(var(--color-danger, 210 75 75));
+  color: rgb(var(--color-danger));
   text-align: center;
 `;
 
@@ -174,7 +174,7 @@ const stateWrapStyle = css`
   min-height: 38vh;
   display: grid;
   place-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const stateTextStyle = css`
@@ -183,7 +183,7 @@ const stateTextStyle = css`
 
 const retryButtonStyle = css`
   min-height: 2.4rem;
-  padding: 0 1rem;
+  padding: var(--space-0) var(--space-4);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.35);
   background-color: transparent;

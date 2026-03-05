@@ -233,15 +233,15 @@ const viewerContentStyle = css`
   height: 100%;
   display: grid;
   grid-template-rows: 1fr auto;
-  gap: 0.85rem;
+  gap: var(--space-3);
 `;
 
 const imageStageStyle = css`
   position: relative;
   min-height: 0;
   border-radius: var(--radius-lg);
-  border: 1px solid rgb(255 255 255 / 0.18);
-  background-color: rgb(0 0 0 / 0.22);
+  border: 1px solid rgb(var(--color-white) / 0.18);
+  background-color: rgb(var(--color-black) / 0.22);
   overflow: hidden;
 `;
 
@@ -256,7 +256,7 @@ const imageInnerStyle = css`
   min-height: 100%;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: var(--space-4);
 `;
 
 const viewerImageStyle = css`
@@ -272,12 +272,12 @@ const sideButtonStyle = css`
   z-index: 3;
   width: 2.6rem;
   height: 3.2rem;
-  border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 0.28);
-  background-color: rgb(0 0 0 / 0.45);
-  color: rgb(255 255 255);
-  font-size: 2rem;
-  line-height: 1;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-white) / 0.28);
+  background-color: rgb(var(--color-black) / 0.45);
+  color: rgb(var(--color-white));
+  font-size: var(--font-size-32);
+  line-height: var(--line-height-100);
   transform: translateY(-50%);
   cursor: pointer;
 `;
@@ -290,31 +290,31 @@ const zoomDockStyle = css`
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   min-height: 2.6rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 0.25);
-  background-color: rgb(0 0 0 / 0.45);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-white) / 0.25);
+  background-color: rgb(var(--color-black) / 0.45);
 `;
 
 const dockButtonStyle = css`
   min-width: 2.15rem;
   height: 2rem;
-  border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 0.3);
-  background-color: rgb(255 255 255 / 0.08);
-  color: rgb(255 255 255);
-  font-size: 1rem;
-  line-height: 1;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-white) / 0.3);
+  background-color: rgb(var(--color-white) / 0.08);
+  color: rgb(var(--color-white));
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-100);
   cursor: pointer;
 `;
 
 const zoomTextStyle = css`
   min-width: 3.5rem;
   text-align: center;
-  color: rgb(235 235 235);
-  font-size: 0.9rem;
+  color: rgb(var(--color-gray-200));
+  font-size: var(--font-size-14);
   font-variant-numeric: tabular-nums;
 `;
 
@@ -322,18 +322,18 @@ const thumbnailRailStyle = css`
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: max-content;
-  gap: 0.6rem;
+  gap: var(--space-2);
   overflow-x: auto;
-  padding: 0.15rem 0.25rem 0.4rem;
+  padding: var(--space-1) var(--space-1) var(--space-2);
   justify-content: center;
 `;
 
 const thumbnailButtonStyle = css`
   width: clamp(84px, 13vw, 128px);
-  border: 1px solid rgb(255 255 255 / 0.2);
+  border: 1px solid rgb(var(--color-white) / 0.2);
   background: transparent;
   border-radius: var(--radius-md);
-  padding: 0;
+  padding: var(--space-0);
   overflow: hidden;
   opacity: 0.75;
   transform: scale(0.96);
@@ -347,7 +347,7 @@ const thumbnailButtonStyle = css`
 const activeThumbnailButtonStyle = css`
   opacity: 1;
   transform: scale(1);
-  border-color: rgb(255 255 255 / 0.8);
+  border-color: rgb(var(--color-white) / 0.8);
 `;
 
 const thumbnailImageStyle = css`

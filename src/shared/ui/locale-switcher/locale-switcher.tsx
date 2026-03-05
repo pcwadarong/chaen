@@ -71,19 +71,19 @@ export const LocaleSwitcher = () => {
 
 const listStyle = css`
   display: grid;
-  gap: 0.2rem;
+  gap: var(--space-1);
 `;
 
 const optionStyle = css`
   min-height: 2.8rem;
   width: 100%;
-  padding: 0.7rem 0.8rem;
+  padding: var(--space-3) var(--space-3);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.92rem;
+  gap: var(--space-3);
+  font-size: var(--font-size-14);
   color: rgb(var(--color-text));
   background-color: transparent;
   transition:
@@ -97,8 +97,8 @@ const optionActiveStyle = css`
 `;
 
 const optionCodeStyle = css`
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 `;

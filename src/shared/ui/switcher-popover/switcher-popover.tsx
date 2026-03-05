@@ -82,25 +82,25 @@ const rootStyle = css`
 
 const triggerStyle = css`
   min-height: 2.5rem;
-  padding: 0.4rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.24);
   background-color: rgb(var(--color-surface) / 0.84);
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: var(--space-3);
 `;
 
 const triggerLabelStyle = css`
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgb(var(--color-muted));
 `;
 
 const triggerValueStyle = css`
-  font-size: 0.92rem;
+  font-size: var(--font-size-14);
   color: rgb(var(--color-text));
 `;
 
@@ -109,12 +109,12 @@ const panelStyle = css`
   top: calc(100% + 0.55rem);
   right: 0;
   min-width: 12rem;
-  padding: 0.45rem;
+  padding: var(--space-2);
   border-radius: var(--radius-md);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background-color: rgb(var(--color-surface) / 0.98);
-  box-shadow: 0 18px 42px rgb(0 0 0 / 0.12);
+  box-shadow: 0 18px 42px rgb(var(--color-black) / 0.12);
   display: grid;
-  gap: 0.25rem;
+  gap: var(--space-1);
   z-index: 30;
 `;

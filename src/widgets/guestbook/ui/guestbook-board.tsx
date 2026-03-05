@@ -449,49 +449,49 @@ const boardStyle = css`
 const feedWrapStyle = css`
   width: min(1120px, 100%);
   justify-self: center;
-  padding: 1.5rem 1rem 18rem;
+  padding: var(--space-6) var(--space-4) var(--space-72);
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 `;
 
 const headerStyle = css`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
 `;
 
 const titleStyle = css`
   font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1.02;
+  line-height: var(--line-height-100);
   letter-spacing: -0.03em;
 `;
 
 const modalBodyStyle = css`
   width: min(26rem, 90vw);
-  padding: 2.4rem 1rem 1rem;
+  padding: var(--space-10) var(--space-4) var(--space-4);
   display: grid;
-  gap: 0.7rem;
+  gap: var(--space-3);
   background-color: rgb(var(--color-surface));
-  border-radius: 0.9rem;
+  border-radius: var(--radius-m);
   border: 1px solid rgb(var(--color-border) / 0.35);
 `;
 
 const modalLeadStyle = css`
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 `;
 
 const modalHintStyle = css`
   color: rgb(var(--color-muted));
-  font-size: 0.92rem;
+  font-size: var(--font-size-14);
 `;
 
 const modalTextareaStyle = css`
   width: 100%;
-  border-radius: 0.65rem;
+  border-radius: var(--radius-xs);
   border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: 0.75rem;
+  padding: var(--space-3);
   background-color: rgb(var(--color-surface));
   color: rgb(var(--color-text));
   resize: vertical;
@@ -499,9 +499,9 @@ const modalTextareaStyle = css`
 
 const modalInputStyle = css`
   min-height: 2.5rem;
-  border-radius: 0.65rem;
+  border-radius: var(--radius-xs);
   border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: 0 0.75rem;
+  padding: var(--space-0) var(--space-3);
   background-color: rgb(var(--color-surface));
   color: rgb(var(--color-text));
 `;
@@ -509,13 +509,13 @@ const modalInputStyle = css`
 const modalActionsStyle = css`
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--space-2);
 `;
 
 const modalSecondaryButtonStyle = css`
   min-height: 2.3rem;
-  padding: 0 0.8rem;
-  border-radius: 0.6rem;
+  padding: var(--space-0) var(--space-3);
+  border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.35);
   background-color: transparent;
   color: rgb(var(--color-text));
@@ -523,8 +523,8 @@ const modalSecondaryButtonStyle = css`
 
 const modalPrimaryButtonStyle = css`
   min-height: 2.3rem;
-  padding: 0 0.8rem;
-  border-radius: 0.6rem;
+  padding: var(--space-0) var(--space-3);
+  border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.35);
   background-color: rgb(var(--color-text) / 0.9);
   color: rgb(var(--color-surface));

@@ -33,12 +33,12 @@ const stageFrameStyle = css`
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: 2rem;
+  border-radius: var(--radius-3xl);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background:
     radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.08), transparent 0 32%),
     linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+  box-shadow: inset 0 1px 0 rgb(var(--color-white) / 0.3);
 `;
 
 const stageFallbackStyle = css`

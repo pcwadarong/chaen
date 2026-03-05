@@ -36,20 +36,20 @@ const viewportStyle = css`
   bottom: 1rem;
   z-index: 70;
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-2);
   width: min(22rem, calc(100vw - 2rem));
 `;
 
 const toastStyle = css`
-  border-radius: 0.8rem;
+  border-radius: var(--radius-s);
   border: 1px solid rgb(var(--color-border) / 0.3);
   background-color: rgb(var(--color-surface));
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  gap: 0.75rem;
-  padding: 0.7rem 0.8rem;
-  box-shadow: 0 10px 24px rgb(0 0 0 / 0.12);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  box-shadow: 0 10px 24px rgb(var(--color-black) / 0.12);
 `;
 
 const toneStyleMap: Record<ToastItem['tone'], ReturnType<typeof css>> = {
@@ -57,24 +57,24 @@ const toneStyleMap: Record<ToastItem['tone'], ReturnType<typeof css>> = {
     border-left: 3px solid rgb(var(--color-muted));
   `,
   success: css`
-    border-left: 3px solid rgb(50 170 110);
+    border-left: 3px solid rgb(var(--color-success));
   `,
   error: css`
-    border-left: 3px solid rgb(var(--color-danger, 210 75 75));
+    border-left: 3px solid rgb(var(--color-danger));
   `,
 };
 
 const messageStyle = css`
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.35;
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-155);
 `;
 
 const closeButtonStyle = css`
   border: none;
   background: transparent;
   color: rgb(var(--color-muted));
-  font-size: 0.8rem;
+  font-size: var(--font-size-12);
   text-decoration: underline;
-  padding: 0;
+  padding: var(--space-0);
 `;

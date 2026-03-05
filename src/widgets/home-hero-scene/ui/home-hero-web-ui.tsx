@@ -42,7 +42,8 @@ const wrapperStyle = css`
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: clamp(4.5rem, 8vh, 6rem) 0 clamp(2rem, 5vh, 3rem);
+  padding: clamp(var(--space-18), 8vh, var(--space-24)) var(--space-0)
+    clamp(var(--space-8), 5vh, var(--space-12));
   opacity: 0;
   pointer-events: none;
   will-change: opacity, transform;

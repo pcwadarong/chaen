@@ -173,7 +173,7 @@ export const GuestbookThreadCard = ({
 const threadStyle = css`
   width: 100%;
   display: grid;
-  gap: 0.6rem;
+  gap: var(--space-2);
 `;
 
 const parentWrapStyle = css`
@@ -185,9 +185,9 @@ const cardStyle = css`
   width: fit-content;
   max-width: min(760px, 92%);
   display: grid;
-  gap: 0.9rem;
-  padding: 1rem;
-  border-radius: 1rem;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-l);
   border: 1px solid rgb(var(--color-border) / 0.25);
   background-color: rgb(var(--color-surface) / 0.82);
 `;
@@ -196,45 +196,45 @@ const headerStyle = css`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const metaLeftStyle = css`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 `;
 
 const nameStyle = css`
-  font-size: 1.08rem;
+  font-size: var(--font-size-18);
 `;
 
 const secretBadgeStyle = css`
   display: inline-flex;
   align-items: center;
   min-height: 1.7rem;
-  border-radius: 999px;
-  padding: 0 0.6rem;
+  border-radius: var(--radius-pill);
+  padding: var(--space-0) var(--space-2);
   background-color: rgb(var(--color-text) / 0.08);
   color: rgb(var(--color-muted));
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-semibold);
 `;
 
 const dateStyle = css`
   color: rgb(var(--color-muted));
-  font-size: 0.86rem;
+  font-size: var(--font-size-14);
 `;
 
 const bodyStyle = css`
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
 `;
 
 const contentStyle = css`
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: var(--line-height-160);
 `;
 
 const deletedContentStyle = css`
@@ -244,7 +244,7 @@ const deletedContentStyle = css`
 
 const secretContentStyle = css`
   display: grid;
-  gap: 0.65rem;
+  gap: var(--space-3);
 `;
 
 const secretTextStyle = css`
@@ -256,16 +256,16 @@ const secretButtonStyle = css`
   border: 1px solid rgb(var(--color-border) / 0.3);
   background-color: transparent;
   border-radius: var(--radius-pill);
-  padding: 0.35rem 0.9rem;
+  padding: var(--space-1) var(--space-4);
   color: rgb(var(--color-text));
 `;
 
 const revealPanelStyle = css`
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-radius: 0.85rem;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-m);
   background-color: rgb(var(--color-surface-muted) / 0.75);
   animation: guestbook-secret-reveal 180ms ease;
 `;
@@ -273,37 +273,37 @@ const revealPanelStyle = css`
 const revealTitleStyle = css`
   grid-column: 1 / -1;
   color: rgb(var(--color-muted));
-  font-size: 0.88rem;
+  font-size: var(--font-size-14);
 `;
 
 const revealInputStyle = css`
   min-height: 2.4rem;
-  border-radius: 0.6rem;
+  border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.3);
-  padding: 0 0.8rem;
+  padding: var(--space-0) var(--space-3);
   background-color: rgb(var(--color-surface));
   color: rgb(var(--color-text));
 `;
 
 const revealConfirmButtonStyle = css`
   min-height: 2.4rem;
-  border-radius: 0.6rem;
+  border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: 0 0.9rem;
+  padding: var(--space-0) var(--space-4);
   background-color: rgb(var(--color-surface-strong) / 0.45);
   color: rgb(var(--color-text));
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 `;
 
 const revealErrorStyle = css`
   grid-column: 1 / -1;
-  color: rgb(var(--color-danger, 210 75 75));
-  font-size: 0.88rem;
+  color: rgb(var(--color-danger));
+  font-size: var(--font-size-14);
 `;
 
 const footerStyle = css`
   display: flex;
-  gap: 0.35rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
 `;
 
@@ -311,11 +311,11 @@ const actionButtonStyle = css`
   border: none;
   background-color: transparent;
   color: rgb(var(--color-muted));
-  padding: 0.25rem 0.4rem;
-  font-size: 0.9rem;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-14);
 `;
 
 const replyStackStyle = css`
   display: grid;
-  gap: 0.6rem;
+  gap: var(--space-2);
 `;

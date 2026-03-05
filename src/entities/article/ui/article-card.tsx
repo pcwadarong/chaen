@@ -59,8 +59,8 @@ const cardStyle = css`
   height: 100%;
   display: grid;
   align-content: start;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: var(--space-4);
+  padding: var(--space-6);
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background:
@@ -84,18 +84,18 @@ const thumbnailStyle = css`
 const tagsStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 `;
 
 const tagStyle = css`
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
-  padding: 0 0.75rem;
+  padding: var(--space-0) var(--space-3);
   border-radius: var(--radius-pill);
   background-color: rgb(var(--color-text) / 0.06);
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgb(var(--color-muted));
@@ -103,12 +103,12 @@ const tagStyle = css`
 
 const bodyStyle = css`
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
 `;
 
 const titleStyle = css`
-  font-size: 1.35rem;
-  line-height: 1.15;
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-120);
   letter-spacing: -0.03em;
 `;
 

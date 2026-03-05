@@ -77,7 +77,7 @@ const mediaSliderStyle = css`
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: min(100%, 100%);
-  gap: 0.75rem;
+  gap: var(--space-3);
   overflow-x: auto;
   padding-bottom: 0.3rem;
   scroll-snap-type: x mandatory;
@@ -96,7 +96,7 @@ const mediaButtonStyle = css`
   width: 100%;
   display: block;
   border: 0;
-  padding: 0;
+  padding: var(--space-0);
   background: transparent;
   cursor: zoom-in;
 `;
