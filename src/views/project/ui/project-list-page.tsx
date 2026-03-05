@@ -1,13 +1,13 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
 import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 
-export type WorkListPageProps = {
+export type ProjectListPageProps = {
   initialCursor: string | null;
   initialItems: Project[];
   locale: string;
@@ -18,7 +18,7 @@ export type WorkListPageProps = {
 };
 
 /** 프로젝트 목록 페이지 컨테이너입니다. */
-export const WorkListPage = ({
+export const ProjectListPage = ({
   initialCursor,
   initialItems,
   locale,
@@ -26,12 +26,12 @@ export const WorkListPage = ({
   portfolioButtonUnavailableLabel,
   portfolioDownloadFileName,
   portfolioUrl,
-}: WorkListPageProps) => {
-  const t = useTranslations('Work');
+}: ProjectListPageProps) => {
+  const t = useTranslations('Project');
 
   return (
-    <main style={pageStyle}>
-      <section style={resumeCtaStyle}>
+    <main css={pageStyle}>
+      <section css={resumeCtaStyle}>
         <DownloadFileButton
           fileName={portfolioDownloadFileName}
           href={portfolioUrl}
@@ -55,15 +55,15 @@ export const WorkListPage = ({
   );
 };
 
-const pageStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '3rem 0 5rem',
-  display: 'grid',
-  gap: '1rem',
-};
+const pageStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-0) var(--space-20);
+  display: grid;
+  gap: var(--space-4);
+`;
 
-const resumeCtaStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-};
+const resumeCtaStyle = css`
+  display: flex;
+  justify-content: flex-end;
+`;

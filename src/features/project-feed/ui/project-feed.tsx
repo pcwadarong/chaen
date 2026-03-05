@@ -1,6 +1,7 @@
 'use client';
 
-import { type CSSProperties, useEffect, useRef } from 'react';
+import { css } from '@emotion/react';
+import { useEffect, useRef } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
@@ -62,11 +63,11 @@ export const ProjectFeed = ({
   }, [loadMore]);
 
   return (
-    <section style={sectionStyle}>
+    <section css={sectionStyle}>
       {errorMessage && items.length === 0 ? (
-        <div style={errorPanelStyle}>
-          <p style={errorTextStyle}>{loadErrorText}</p>
-          <button onClick={() => void loadMore()} style={retryButtonStyle} type="button">
+        <div css={errorPanelStyle}>
+          <p css={errorTextStyle}>{loadErrorText}</p>
+          <button onClick={() => void loadMore()} css={retryButtonStyle} type="button">
             {retryText}
           </button>
         </div>
@@ -79,15 +80,15 @@ export const ProjectFeed = ({
         />
       )}
 
-      <div aria-hidden ref={sentinelRef} style={sentinelStyle} />
+      <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
       {isLoadingMore ? (
-        <p aria-live="polite" style={stateTextStyle}>
+        <p aria-live="polite" css={stateTextStyle}>
           {loadingText}
         </p>
       ) : null}
-      {!hasMore && items.length > 0 ? <p style={stateTextStyle}>{loadMoreEndText}</p> : null}
+      {!hasMore && items.length > 0 ? <p css={stateTextStyle}>{loadMoreEndText}</p> : null}
       {errorMessage && items.length > 0 ? (
-        <p aria-live="polite" style={errorTextStyle}>
+        <p aria-live="polite" css={errorTextStyle}>
           {loadErrorText}
         </p>
       ) : null}
@@ -95,40 +96,40 @@ export const ProjectFeed = ({
   );
 };
 
-const sectionStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.8rem',
-};
+const sectionStyle = css`
+  display: grid;
+  gap: var(--space-3);
+`;
 
-const sentinelStyle: CSSProperties = {
-  width: '100%',
-  height: '1px',
-};
+const sentinelStyle = css`
+  width: 100%;
+  height: 1px;
+`;
 
-const stateTextStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  textAlign: 'center',
-};
+const stateTextStyle = css`
+  color: rgb(var(--color-muted));
+  text-align: center;
+`;
 
-const errorPanelStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.75rem',
-  justifyItems: 'center',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid rgb(var(--color-border) / 0.24)',
-  padding: '1rem 1.25rem',
-};
+const errorPanelStyle = css`
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--color-border) / 0.24);
+  padding: var(--space-4) var(--space-5);
+`;
 
-const errorTextStyle: CSSProperties = {
-  color: 'rgb(var(--color-danger, 210 75 75))',
-  textAlign: 'center',
-};
+const errorTextStyle = css`
+  color: rgb(var(--color-danger));
+  text-align: center;
+`;
 
-const retryButtonStyle: CSSProperties = {
-  minHeight: '2.4rem',
-  padding: '0 1rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  backgroundColor: 'transparent',
-  color: 'rgb(var(--color-text))',
-};
+const retryButtonStyle = css`
+  min-height: 2.4rem;
+  padding: var(--space-0) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  background-color: transparent;
+  color: rgb(var(--color-text));
+`;

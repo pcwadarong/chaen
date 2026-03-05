@@ -6,7 +6,7 @@
     "guest": "ゲストブック",
     "home": "ホーム",
     "resume": "履歴書",
-    "work": "作品"
+    "project": "作品"
   },
   "Home": {
     "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
@@ -66,7 +66,7 @@
     "retry": "再試行",
     "title": "記事"
   },
-  "Work": {
+  "Project": {
     "deliverables": "成果物",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "loadError": "プロジェクトの読み込みに失敗しました。",
@@ -79,16 +79,21 @@
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"
   },
-  "WorkDetail": {
+  "ProjectDetail": {
     "descriptionSection": "詳細説明",
     "emptyDescription": "詳細説明はまだ登録されていません。",
     "emptyMedia": "表示できるメディアがありません。",
     "emptySummary": "概要はまだありません。",
+    "errorTitle": "プロジェクトの読み込み中に問題が発生しました。",
+    "loading": "プロジェクト詳細を読み込み中です。",
     "mediaAlt": "{title} プレビュー {index}",
     "mediaSection": "主要メディア",
     "noTags": "タグなし",
+    "notFoundDescription": "プロジェクト ID を確認するか、一覧ページからもう一度選択してください。",
+    "notFoundTitle": "指定したプロジェクトが見つかりません。",
     "ongoing": "進行中",
     "publishedAt": "公開日 {date}",
+    "retry": "再試行",
     "tagSection": "タグ"
   },
   "ArticleDetail": {
@@ -96,8 +101,13 @@
     "emptyContent": "本文はまだ登録されていません。",
     "emptySummary": "概要はまだありません。",
     "emptyThumbnail": "表示できるサムネイルがありません。",
+    "errorTitle": "記事の読み込み中に問題が発生しました。",
+    "loading": "記事詳細を読み込み中です。",
     "noTags": "タグなし",
+    "notFoundDescription": "記事 ID を確認するか、一覧ページからもう一度選択してください。",
+    "notFoundTitle": "指定した記事が見つかりません。",
     "publishedAt": "公開日 {date}",
+    "retry": "再試行",
     "tagSection": "タグ",
     "thumbnailAlt": "{title} のサムネイル",
     "thumbnailSection": "サムネイル",

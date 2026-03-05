@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: 'chaen',
     template: '%s | chaen',
   },
-  description: 'Frontend workspace for main, guest, articles, and work pages.',
+  description: 'Frontend workspace for main, guest, articles, and project pages.',
 };
 
 /**

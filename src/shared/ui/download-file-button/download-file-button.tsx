@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { css } from '@emotion/react';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -60,7 +60,7 @@ export const DownloadFileButton = ({
 
         openInNewTab(href);
       }}
-      style={buttonStyle}
+      css={buttonStyle}
       type="button"
     >
       {label}
@@ -68,17 +68,18 @@ export const DownloadFileButton = ({
   );
 };
 
-const buttonStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '2.875rem',
-  padding: '0 1.2rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.3)',
+const buttonStyle = css`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.875rem;
+  padding: var(--space-0) var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.3);
   background:
-    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
-  color: 'rgb(var(--color-text))',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-};
+    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
+    rgb(var(--color-surface));
+  color: rgb(var(--color-text));
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+`;

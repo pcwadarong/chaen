@@ -1,8 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
-import type { CSSProperties } from 'react';
 
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project } from '@/entities/project/model/types';
@@ -24,85 +24,86 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
   const createdYearText = formatYear(item.created_at, locale) ?? '-';
 
   return (
-    <Link aria-label={`${item.title} 상세 보기`} href={`/work/${item.id}`} style={cardLinkStyle}>
-      <article style={cardStyle}>
+    <Link aria-label={`${item.title} 상세 보기`} href={`/project/${item.id}`} css={cardLinkStyle}>
+      <article css={cardStyle}>
         {previewThumbnailSrc ? (
-          <div style={thumbnailWrapStyle}>
+          <div css={thumbnailWrapStyle}>
             <Image
               alt={`${item.title} thumbnail`}
               height={720}
               src={previewThumbnailSrc}
-              style={thumbnailStyle}
+              css={thumbnailStyle}
               width={1280}
             />
           </div>
         ) : null}
-        <div style={metaStyle}>
+        <div css={metaStyle}>
           <span>{tagLabel}</span>
           <span>{createdYearText}</span>
         </div>
-        <div style={bodyStyle}>
-          <h3 style={titleStyle}>{item.title}</h3>
-          <p style={summaryStyle}>{item.description ?? ''}</p>
+        <div css={bodyStyle}>
+          <h3 css={titleStyle}>{item.title}</h3>
+          <p css={summaryStyle}>{item.description ?? ''}</p>
         </div>
       </article>
     </Link>
   );
 };
 
-const cardStyle: CSSProperties = {
-  minHeight: '18rem',
-  height: '100%',
-  display: 'grid',
-  alignContent: 'start',
-  gap: '1rem',
-  padding: '1.5rem',
-  borderRadius: 'var(--radius-lg)',
-  border: '1px solid rgb(var(--color-border) / 0.22)',
+const cardStyle = css`
+  min-height: 18rem;
+  height: 100%;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--color-border) / 0.22);
   background:
-    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
-};
+    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
+    rgb(var(--color-surface));
+`;
 
-const thumbnailWrapStyle: CSSProperties = {
-  borderRadius: 'var(--radius-md)',
-  overflow: 'hidden',
-  border: '1px solid rgb(var(--color-border) / 0.18)',
-  backgroundColor: 'rgb(var(--color-surface-strong) / 0.5)',
-};
+const thumbnailWrapStyle = css`
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-border) / 0.18);
+  background-color: rgb(var(--color-surface-strong) / 0.5);
+`;
 
-const thumbnailStyle: CSSProperties = {
-  width: '100%',
-  height: 'auto',
-  aspectRatio: '16 / 9',
-  objectFit: 'cover',
-};
+const thumbnailStyle = css`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+`;
 
-const metaStyle: CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.75rem',
-  color: 'rgb(var(--color-muted))',
-  fontSize: '0.92rem',
-};
+const metaStyle = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+`;
 
-const bodyStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.75rem',
-};
+const bodyStyle = css`
+  display: grid;
+  gap: var(--space-3);
+`;
 
-const titleStyle: CSSProperties = {
-  fontSize: '1.35rem',
-  lineHeight: 1.15,
-  letterSpacing: '-0.03em',
-};
+const titleStyle = css`
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-120);
+  letter-spacing: -0.03em;
+`;
 
-const summaryStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-};
+const summaryStyle = css`
+  color: rgb(var(--color-muted));
+`;
 
-const cardLinkStyle: CSSProperties = {
-  display: 'block',
-  height: '100%',
-  textDecoration: 'none',
-  color: 'rgb(var(--color-text))',
-};
+const cardLinkStyle = css`
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: rgb(var(--color-text));
+`;

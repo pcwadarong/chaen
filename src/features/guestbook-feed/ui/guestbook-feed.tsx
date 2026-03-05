@@ -1,7 +1,8 @@
 'use client';
 
+import { css, type Theme } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import { type CSSProperties, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
@@ -70,17 +71,17 @@ export const GuestbookFeed = ({
 
   if (isInitialLoading) {
     return (
-      <section style={stateWrapStyle}>
-        <p style={stateTextStyle}>{t('loading')}</p>
+      <section css={stateWrapStyle}>
+        <p css={stateTextStyle}>{t('loading')}</p>
       </section>
     );
   }
 
   if (errorMessage && items.length === 0) {
     return (
-      <section style={stateWrapStyle}>
-        <p style={stateTextStyle}>{t('loadError')}</p>
-        <button onClick={() => void onRetry()} style={retryButtonStyle} type="button">
+      <section css={stateWrapStyle}>
+        <p css={stateTextStyle}>{t('loadError')}</p>
+        <button onClick={() => void onRetry()} css={retryButtonStyle} type="button">
           {t('retry')}
         </button>
       </section>
@@ -88,9 +89,9 @@ export const GuestbookFeed = ({
   }
 
   return (
-    <section style={sectionStyle}>
+    <section css={sectionStyle}>
       {items.length > 0 ? (
-        <div style={stackStyle}>
+        <div css={stackStyle}>
           {items.map(entry => (
             <GuestbookThreadCard
               actionDeleteLabel={t('delete')}
@@ -118,73 +119,73 @@ export const GuestbookFeed = ({
           ))}
         </div>
       ) : (
-        <p style={emptyStyle}>{t('emptyItems')}</p>
+        <p css={emptyStyle}>{t('emptyItems')}</p>
       )}
 
-      <div aria-hidden ref={sentinelRef} style={sentinelStyle} />
-      {isLoadingMore ? <p style={loadingMoreStyle}>{t('loading')}</p> : null}
-      {!hasMore ? <p style={endStyle}>{t('loadMoreEnd')}</p> : null}
-      {errorMessage && items.length > 0 ? <p style={errorStyle}>{t('loadError')}</p> : null}
+      <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
+      {isLoadingMore ? <p css={loadingMoreStyle}>{t('loading')}</p> : null}
+      {!hasMore ? <p css={endStyle}>{t('loadMoreEnd')}</p> : null}
+      {errorMessage && items.length > 0 ? <p css={errorStyle}>{t('loadError')}</p> : null}
     </section>
   );
 };
 
-const sectionStyle: CSSProperties = {
-  width: '100%',
-  display: 'grid',
-  gap: '0.8rem',
-};
+const sectionStyle = css`
+  width: 100%;
+  display: grid;
+  gap: var(--space-3);
+`;
 
-const stackStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.9rem',
-};
+const stackStyle = css`
+  display: grid;
+  gap: var(--space-4);
+`;
 
-const emptyStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  padding: '1rem 0.25rem',
-};
+const emptyStyle = css`
+  color: rgb(var(--color-muted));
+  padding: var(--space-4) var(--space-1);
+`;
 
-const sentinelStyle: CSSProperties = {
-  width: '100%',
-  height: '1px',
-};
+const sentinelStyle = css`
+  width: 100%;
+  height: 1px;
+`;
 
-const loadingMoreStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  textAlign: 'center',
-  paddingBottom: '0.5rem',
-};
+const loadingMoreStyle = (_theme: Theme) => css`
+  color: rgb(var(--color-muted));
+  text-align: center;
+  padding-bottom: 0.5rem;
+`;
 
-const endStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-  textAlign: 'center',
-  paddingBottom: '0.5rem',
-  fontSize: '0.9rem',
-};
+const endStyle = css`
+  color: rgb(var(--color-muted));
+  text-align: center;
+  padding-bottom: 0.5rem;
+  font-size: var(--font-size-14);
+`;
 
-const errorStyle: CSSProperties = {
-  color: 'rgb(var(--color-danger, 210 75 75))',
-  textAlign: 'center',
-};
+const errorStyle = css`
+  color: rgb(var(--color-danger));
+  text-align: center;
+`;
 
-const stateWrapStyle: CSSProperties = {
-  width: '100%',
-  minHeight: '38vh',
-  display: 'grid',
-  placeItems: 'center',
-  gap: '0.75rem',
-};
+const stateWrapStyle = css`
+  width: 100%;
+  min-height: 38vh;
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+`;
 
-const stateTextStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-};
+const stateTextStyle = css`
+  color: rgb(var(--color-muted));
+`;
 
-const retryButtonStyle: CSSProperties = {
-  minHeight: '2.4rem',
-  padding: '0 1rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.35)',
-  backgroundColor: 'transparent',
-  color: 'rgb(var(--color-text))',
-};
+const retryButtonStyle = css`
+  min-height: 2.4rem;
+  padding: var(--space-0) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.35);
+  background-color: transparent;
+  color: rgb(var(--color-text));
+`;

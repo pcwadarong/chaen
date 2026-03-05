@@ -5,7 +5,7 @@ import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content'
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 import { getProjects } from '@/entities/project/api/get-projects';
 
-import { getWorkListPageData } from './get-work-list-page-data';
+import { getProjectListPageData } from './get-project-list-page-data';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
   getPdfFileContent: vi.fn(),
 }));
 
-describe('getWorkListPageData', () => {
+describe('getProjectListPageData', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -48,9 +48,9 @@ describe('getWorkListPageData', () => {
       updated_at: '2026-03-01T00:00:00.000Z',
     });
 
-    const data = await getWorkListPageData({ locale: 'ko' });
+    const data = await getProjectListPageData({ locale: 'ko' });
 
-    expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Work' });
+    expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');

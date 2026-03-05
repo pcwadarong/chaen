@@ -1,8 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import Image from 'next/image';
 import { useLocale } from 'next-intl';
-import type { CSSProperties } from 'react';
 
 import type { Article } from '@/entities/article/model/types';
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
@@ -23,101 +23,102 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
     <Link
       aria-label={`${article.title} 상세 보기`}
       href={`/articles/${article.id}`}
-      style={cardLinkStyle}
+      css={cardLinkStyle}
     >
-      <article style={cardStyle}>
+      <article css={cardStyle}>
         {thumbnailSrc ? (
-          <div style={thumbnailWrapStyle}>
+          <div css={thumbnailWrapStyle}>
             <Image
               alt={`${article.title} thumbnail`}
               height={768}
               src={thumbnailSrc}
-              style={thumbnailStyle}
+              css={thumbnailStyle}
               width={1366}
             />
           </div>
         ) : null}
         {normalizedTags.length > 0 ? (
-          <div style={tagsStyle}>
+          <div css={tagsStyle}>
             {normalizedTags.map(tag => (
-              <span key={tag} style={tagStyle}>
+              <span key={tag} css={tagStyle}>
                 {getTagLabelByLocale(tag, locale)}
               </span>
             ))}
           </div>
         ) : null}
-        <div style={bodyStyle}>
-          <h3 style={titleStyle}>{article.title}</h3>
-          {article.description ? <p style={descriptionStyle}>{article.description}</p> : null}
+        <div css={bodyStyle}>
+          <h3 css={titleStyle}>{article.title}</h3>
+          {article.description ? <p css={descriptionStyle}>{article.description}</p> : null}
         </div>
       </article>
     </Link>
   );
 };
 
-const cardStyle: CSSProperties = {
-  height: '100%',
-  display: 'grid',
-  alignContent: 'start',
-  gap: '1rem',
-  padding: '1.5rem',
-  borderRadius: 'var(--radius-lg)',
-  border: '1px solid rgb(var(--color-border) / 0.22)',
+const cardStyle = css`
+  height: 100%;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--color-border) / 0.22);
   background:
-    'linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))',
-};
+    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
+    rgb(var(--color-surface));
+`;
 
-const thumbnailWrapStyle: CSSProperties = {
-  width: '100%',
-  borderRadius: 'var(--radius-md)',
-  overflow: 'hidden',
-};
+const thumbnailWrapStyle = css`
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+`;
 
-const thumbnailStyle: CSSProperties = {
-  width: '100%',
-  height: 'auto',
-  aspectRatio: '16 / 9',
-  objectFit: 'cover',
-};
+const thumbnailStyle = css`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+`;
 
-const tagsStyle: CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-};
+const tagsStyle = css`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+`;
 
-const tagStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: '2rem',
-  padding: '0 0.75rem',
-  borderRadius: 'var(--radius-pill)',
-  backgroundColor: 'rgb(var(--color-text) / 0.06)',
-  fontSize: '0.82rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'rgb(var(--color-muted))',
-};
+const tagStyle = css`
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: var(--space-0) var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: rgb(var(--color-text) / 0.06);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--color-muted));
+`;
 
-const bodyStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.75rem',
-};
+const bodyStyle = css`
+  display: grid;
+  gap: var(--space-3);
+`;
 
-const titleStyle: CSSProperties = {
-  fontSize: '1.35rem',
-  lineHeight: 1.15,
-  letterSpacing: '-0.03em',
-};
+const titleStyle = css`
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-120);
+  letter-spacing: -0.03em;
+`;
 
-const descriptionStyle: CSSProperties = {
-  color: 'rgb(var(--color-muted))',
-};
+const descriptionStyle = css`
+  color: rgb(var(--color-muted));
+`;
 
-const cardLinkStyle: CSSProperties = {
-  display: 'block',
-  height: '100%',
-  textDecoration: 'none',
-  color: 'rgb(var(--color-text))',
-};
+const cardLinkStyle = css`
+  display: block;
+  height: 100%;
+  text-decoration: none;
+  color: rgb(var(--color-text));
+`;

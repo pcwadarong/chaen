@@ -19,7 +19,7 @@ vi.mock('@/entities/article/api/get-article', () => ({
   getArticle: vi.fn(async () => null),
 }));
 
-vi.mock('@/views/article-detail', () => ({
+vi.mock('@/views/articles', () => ({
   ArticleDetailPage: function ArticleDetailPage() {
     return null;
   },

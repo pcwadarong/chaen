@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 
 import { getArticle } from '@/entities/article/api/get-article';
-import { ArticleDetailPage } from '@/views/article-detail';
+import { ArticleDetailPage } from '@/views/articles';
 
 type ArticleDetailRouteProps = {
   params: Promise<{

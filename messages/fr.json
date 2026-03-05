@@ -6,7 +6,7 @@
     "guest": "Livre d'or",
     "home": "Accueil",
     "resume": "CV",
-    "work": "Projets"
+    "project": "Projets"
   },
   "Home": {
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
@@ -66,7 +66,7 @@
     "retry": "Réessayer",
     "title": "Articles"
   },
-  "Work": {
+  "Project": {
     "deliverables": "Livrables",
     "emptyProjects": "Aucun projet n'a encore été publié.",
     "loadError": "Impossible de charger les projets.",
@@ -79,16 +79,21 @@
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"
   },
-  "WorkDetail": {
+  "ProjectDetail": {
     "descriptionSection": "Description détaillée",
     "emptyDescription": "La description détaillée n'a pas encore été ajoutée.",
     "emptyMedia": "Aucun média n'a encore été ajouté.",
     "emptySummary": "Le résumé n'est pas disponible.",
+    "errorTitle": "Un problème est survenu lors du chargement du projet.",
+    "loading": "Chargement des détails du projet.",
     "mediaAlt": "Aperçu {index} de {title}",
     "mediaSection": "Médias principaux",
     "noTags": "sans-tag",
+    "notFoundDescription": "Vérifiez l'identifiant du projet, ou revenez à la liste des projets et sélectionnez-le de nouveau.",
+    "notFoundTitle": "Le projet demandé est introuvable.",
     "ongoing": "En cours",
     "publishedAt": "Publié le {date}",
+    "retry": "Réessayer",
     "tagSection": "Tags"
   },
   "ArticleDetail": {
@@ -96,8 +101,13 @@
     "emptyContent": "Le contenu de l'article n'a pas encore été ajouté.",
     "emptySummary": "Le résumé n'est pas disponible.",
     "emptyThumbnail": "Aucune miniature n'a encore été ajoutée.",
+    "errorTitle": "Un problème est survenu lors du chargement de l'article.",
+    "loading": "Chargement des détails de l'article.",
     "noTags": "sans-tag",
+    "notFoundDescription": "Vérifiez l'identifiant de l'article, ou revenez à la liste des articles et sélectionnez-le de nouveau.",
+    "notFoundTitle": "L'article demandé est introuvable.",
     "publishedAt": "Publié le {date}",
+    "retry": "Réessayer",
     "tagSection": "Tags",
     "thumbnailAlt": "Miniature de {title}",
     "thumbnailSection": "Miniature",

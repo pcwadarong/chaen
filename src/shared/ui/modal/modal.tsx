@@ -1,12 +1,13 @@
 'use client';
 
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { css } from '@emotion/react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type ModalProps = {
   children: ReactNode;
   closeAriaLabel: string;
-  frameStyle?: CSSProperties;
+  frameStyle?: ReturnType<typeof css>;
   isOpen: boolean;
   onClose: () => void;
 };
@@ -56,15 +57,10 @@ export const Modal = ({ children, closeAriaLabel, frameStyle, isOpen, onClose }:
         if (event.target === event.currentTarget) onClose();
       }}
       role="dialog"
-      style={backdropStyle}
+      css={backdropStyle}
     >
-      <div style={{ ...frameBaseStyle, ...frameStyle }}>
-        <button
-          aria-label={closeAriaLabel}
-          onClick={onClose}
-          style={closeButtonStyle}
-          type="button"
-        >
+      <div css={[frameBaseStyle, frameStyle]}>
+        <button aria-label={closeAriaLabel} onClick={onClose} css={closeButtonStyle} type="button">
           ×
         </button>
         {children}
@@ -74,32 +70,32 @@ export const Modal = ({ children, closeAriaLabel, frameStyle, isOpen, onClose }:
   );
 };
 
-const backdropStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: 1200,
-  backgroundColor: 'rgb(0 0 0 / 0.86)',
-  display: 'grid',
-  placeItems: 'center',
-  padding: '1rem',
-};
+const backdropStyle = css`
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background-color: rgb(var(--color-black) / 0.86);
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+`;
 
-const frameBaseStyle: CSSProperties = {
-  position: 'relative',
-};
+const frameBaseStyle = css`
+  position: relative;
+`;
 
-const closeButtonStyle: CSSProperties = {
-  position: 'absolute',
-  top: '0.65rem',
-  right: '0.65rem',
-  zIndex: 10,
-  width: '2.4rem',
-  height: '2.4rem',
-  borderRadius: '999px',
-  border: '1px solid rgb(255 255 255 / 0.3)',
-  backgroundColor: 'rgb(0 0 0 / 0.5)',
-  color: 'rgb(255 255 255)',
-  fontSize: '1.2rem',
-  lineHeight: 1,
-  cursor: 'pointer',
-};
+const closeButtonStyle = css`
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 10;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-white) / 0.3);
+  background-color: rgb(var(--color-black) / 0.5);
+  color: rgb(var(--color-white));
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-100);
+  cursor: pointer;
+`;

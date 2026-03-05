@@ -1,7 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import { type CSSProperties, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
@@ -19,7 +20,7 @@ export const GlobalNav = () => {
     { href: '/resume', label: t('resume') },
     { href: '/guest', label: t('guest') },
     { href: '/articles', label: t('articles') },
-    { href: '/work', label: t('work') },
+    { href: '/project', label: t('project') },
   ] as const;
 
   useEffect(() => {
@@ -60,25 +61,25 @@ export const GlobalNav = () => {
   }, []);
 
   return (
-    <header style={{ ...headerStyle, ...(isHidden ? hiddenHeaderStyle : visibleHeaderStyle) }}>
-      <div style={innerStyle}>
-        <Link href="/" style={brandLinkStyle}>
+    <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
+      <div css={innerStyle}>
+        <Link href="/" css={brandLinkStyle}>
           {t('brand')}
         </Link>
-        <div style={contentStyle}>
+        <div css={contentStyle}>
           <nav aria-label={t('ariaLabel')}>
-            <ul style={listStyle}>
+            <ul css={listStyle}>
               {navigationItems.map(item => (
                 <li key={item.href}>
-                  <Link href={item.href} style={navLinkStyle}>
+                  <Link href={item.href} css={navLinkStyle}>
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
-          <div style={controlsStyle}>
-            <Suspense fallback={<span style={switcherFallbackStyle} />}>
+          <div css={controlsStyle}>
+            <Suspense fallback={<span css={switcherFallbackStyle} />}>
               <LocaleSwitcher />
             </Suspense>
             <ThemeSwitcher />
@@ -89,90 +90,92 @@ export const GlobalNav = () => {
   );
 };
 
-const headerStyle: CSSProperties = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 10,
-  backdropFilter: 'blur(14px)',
-  backgroundColor: 'rgb(var(--color-bg) / 0.78)',
-  borderBottom: '1px solid rgb(var(--color-border) / 0.2)',
-  willChange: 'transform, opacity',
-  transition: 'transform 240ms ease, opacity 240ms ease',
-};
+const headerStyle = css`
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(14px);
+  background-color: rgb(var(--color-bg) / 0.78);
+  border-bottom: 1px solid rgb(var(--color-border) / 0.2);
+  will-change: transform, opacity;
+  transition:
+    transform 240ms ease,
+    opacity 240ms ease;
+`;
 
-const visibleHeaderStyle: CSSProperties = {
-  transform: 'translateY(0)',
-  opacity: 1,
-};
+const visibleHeaderStyle = css`
+  transform: translateY(0);
+  opacity: 1;
+`;
 
-const hiddenHeaderStyle: CSSProperties = {
-  transform: 'translateY(calc(-100% - 0.5rem))',
-  opacity: 0,
-};
+const hiddenHeaderStyle = css`
+  transform: translateY(calc(-100% - 0.5rem));
+  opacity: 0;
+`;
 
-const innerStyle: CSSProperties = {
-  width: 'min(1120px, calc(100% - 2rem))',
-  margin: '0 auto',
-  padding: '0.95rem 0',
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
-  gap: '1rem',
-  flexWrap: 'wrap',
-};
+const innerStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-0);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+`;
 
-const contentStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: '0.9rem',
-  flexWrap: 'wrap',
-  flex: '1 1 40rem',
-};
+const contentStyle = css`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  flex: 1 1 40rem;
+`;
 
-const brandLinkStyle: CSSProperties = {
-  fontSize: '0.95rem',
-  fontWeight: 700,
-  letterSpacing: '0.18em',
-  textTransform: 'uppercase',
-  textDecoration: 'none',
-  color: 'rgb(var(--color-text))',
-};
+const brandLinkStyle = css`
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgb(var(--color-text));
+`;
 
-const listStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0.5rem',
-  flexWrap: 'wrap',
-};
+const listStyle = css`
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+`;
 
-const navLinkStyle: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: '2.25rem',
-  padding: '0 0.85rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.24)',
-  fontSize: '0.95rem',
-  letterSpacing: '0.04em',
-  textDecoration: 'none',
-  backgroundColor: 'rgb(var(--color-surface) / 0.8)',
-  color: 'rgb(var(--color-text))',
-};
+const navLinkStyle = css`
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: var(--space-0) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.24);
+  font-size: var(--font-size-16);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  background-color: rgb(var(--color-surface) / 0.8);
+  color: rgb(var(--color-text));
+`;
 
-const controlsStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: '0.65rem',
-  flexWrap: 'wrap',
-};
+const controlsStyle = css`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+`;
 
-const switcherFallbackStyle: CSSProperties = {
-  display: 'inline-flex',
-  width: '8.5rem',
-  minHeight: '2.5rem',
-  borderRadius: 'var(--radius-pill)',
-  border: '1px solid rgb(var(--color-border) / 0.18)',
-  backgroundColor: 'rgb(var(--color-surface) / 0.5)',
-};
+const switcherFallbackStyle = css`
+  display: inline-flex;
+  width: 8.5rem;
+  min-height: 2.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.18);
+  background-color: rgb(var(--color-surface) / 0.5);
+`;

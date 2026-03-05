@@ -1,7 +1,7 @@
 'use client';
 
-import React, { type CSSProperties } from 'react';
-import { useRef } from 'react';
+import { css } from '@emotion/react';
+import React, { useRef } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
@@ -20,19 +20,19 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
   const sectionRef = triggerRef ?? localSectionRef;
 
   return (
-    <section ref={sectionRef} style={sectionStyle}>
+    <section ref={sectionRef} css={sectionStyle}>
       <HomeHeroStage triggerRef={sectionRef} webUiRef={webUiRef} />
       <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
     </section>
   );
 };
 
-const sectionStyle: CSSProperties = {
-  position: 'relative',
-  width: '100vw',
-  minHeight: '100svh',
-  height: '100svh',
-  marginInline: 'calc(50% - 50vw)',
-  overflow: 'clip',
-  isolation: 'isolate',
-};
+const sectionStyle = css`
+  position: relative;
+  width: 100vw;
+  min-height: 100svh;
+  height: 100svh;
+  margin-inline: calc(50% - 50vw);
+  overflow: clip;
+  isolation: isolate;
+`;

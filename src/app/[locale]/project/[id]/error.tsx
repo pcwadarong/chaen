@@ -3,16 +3,16 @@
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
-type ArticleDetailErrorProps = {
+type ProjectDetailErrorProps = {
   error: Error & { digest?: string };
   reset: () => void;
 };
 
 /**
- * 아티클 상세 페이지 에러 UI입니다.
+ * 프로젝트 상세 페이지 에러 UI입니다.
  */
-const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => {
-  const t = useTranslations('ArticleDetail');
+const ProjectDetailError = ({ error, reset }: ProjectDetailErrorProps) => {
+  const t = useTranslations('ProjectDetail');
 
   return (
     <main css={pageStyle}>
@@ -61,4 +61,4 @@ const buttonStyle = css`
   background-color: rgb(var(--color-surface) / 0.95);
 `;
 
-export default ArticleDetailError;
+export default ProjectDetailError;

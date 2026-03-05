@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 import { getProject } from '@/entities/project/api/get-project';
 
-import WorkDetailRoute from './page';
+import ProjectDetailRoute from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -19,13 +19,13 @@ vi.mock('@/entities/project/api/get-project', () => ({
   getProject: vi.fn(async () => null),
 }));
 
-vi.mock('@/views/work-detail', () => ({
-  WorkDetailPage: function WorkDetailPage() {
+vi.mock('@/views/project', () => ({
+  ProjectDetailPage: function ProjectDetailPage() {
     return null;
   },
 }));
 
-describe('WorkDetailRoute', () => {
+describe('ProjectDetailRoute', () => {
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getProject).mockResolvedValueOnce({
       id: 'supabase-editorial',
@@ -38,7 +38,7 @@ describe('WorkDetailRoute', () => {
       created_at: '2026-03-01T00:00:00.000Z',
     });
 
-    const element = await WorkDetailRoute({
+    const element = await ProjectDetailRoute({
       params: Promise.resolve({
         id: 'supabase-editorial',
         locale: 'ko',
@@ -46,7 +46,7 @@ describe('WorkDetailRoute', () => {
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(element.type.name).toBe('WorkDetailPage');
+    expect(element.type.name).toBe('ProjectDetailPage');
     expect(element.props.locale).toBe('ko');
     expect(getProject).toHaveBeenCalledWith('supabase-editorial', 'ko');
   });
@@ -55,7 +55,7 @@ describe('WorkDetailRoute', () => {
     vi.mocked(getProject).mockResolvedValueOnce(null);
 
     await expect(
-      WorkDetailRoute({
+      ProjectDetailRoute({
         params: Promise.resolve({
           id: 'missing-project',
           locale: 'ko',

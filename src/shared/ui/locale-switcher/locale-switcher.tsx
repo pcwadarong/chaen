@@ -1,8 +1,8 @@
 'use client';
 
+import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
 import { useMemo, useTransition } from 'react';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
@@ -45,7 +45,7 @@ export const LocaleSwitcher = () => {
   return (
     <SwitcherPopover label={t('label')} panelLabel={t('ariaLabel')} value={t(locale)}>
       {({ closePopover }) => (
-        <div aria-busy={isPending} style={listStyle}>
+        <div aria-busy={isPending} css={listStyle}>
           {routing.locales.map(option => {
             const isActive = locale === option;
 
@@ -55,13 +55,10 @@ export const LocaleSwitcher = () => {
                 disabled={isPending}
                 key={option}
                 onClick={() => handleLocaleChange(option, closePopover)}
-                style={{
-                  ...optionStyle,
-                  ...(isActive ? optionActiveStyle : null),
-                }}
+                css={[optionStyle, isActive && optionActiveStyle]}
                 type="button"
               >
-                <span style={optionCodeStyle}>{option.toUpperCase()}</span>
+                <span css={optionCodeStyle}>{option.toUpperCase()}</span>
                 <span>{t(option)}</span>
               </button>
             );
@@ -72,34 +69,36 @@ export const LocaleSwitcher = () => {
   );
 };
 
-const listStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.2rem',
-};
+const listStyle = css`
+  display: grid;
+  gap: var(--space-1);
+`;
 
-const optionStyle: CSSProperties = {
-  minHeight: '2.8rem',
-  width: '100%',
-  padding: '0.7rem 0.8rem',
-  borderRadius: 'var(--radius-sm)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '0.75rem',
-  fontSize: '0.92rem',
-  color: 'rgb(var(--color-text))',
-  backgroundColor: 'transparent',
-  transition: 'background-color 160ms ease, color 160ms ease',
-};
+const optionStyle = css`
+  min-height: 2.8rem;
+  width: 100%;
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-14);
+  color: rgb(var(--color-text));
+  background-color: transparent;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+`;
 
-const optionActiveStyle: CSSProperties = {
-  backgroundColor: 'rgb(var(--color-text))',
-  color: 'rgb(var(--color-bg))',
-};
+const optionActiveStyle = css`
+  background-color: rgb(var(--color-text));
+  color: rgb(var(--color-bg));
+`;
 
-const optionCodeStyle: CSSProperties = {
-  fontSize: '0.76rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-};
+const optionCodeStyle = css`
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+`;

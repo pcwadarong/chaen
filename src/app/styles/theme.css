@@ -1,0 +1,48 @@
+:root {
+  --color-bg: var(--color-gray-50);
+  --color-surface: var(--color-white);
+  --color-surface-muted: var(--color-gray-100);
+  --color-surface-strong: var(--color-gray-200);
+
+  --color-text: var(--color-gray-900);
+  --color-muted: var(--color-gray-600);
+  --color-border: var(--color-gray-500);
+
+  --color-primary: var(--color-primary-500);
+  --color-primary-contrast: var(--color-white);
+
+  --color-success: var(--color-success-500);
+  --color-success-contrast: var(--color-white);
+
+  --color-error: var(--color-error-500);
+  --color-error-contrast: var(--color-white);
+
+  /* Compatibility alias */
+  --color-danger: var(--color-error);
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --color-bg: var(--color-gray-900);
+  --color-surface: var(--color-gray-800);
+  --color-surface-muted: var(--color-gray-700);
+  --color-surface-strong: var(--color-gray-600);
+
+  --color-text: var(--color-gray-50);
+  --color-muted: var(--color-gray-300);
+  --color-border: var(--color-gray-500);
+
+  --color-primary: var(--color-primary-300);
+  --color-primary-contrast: var(--color-gray-900);
+
+  --color-success: var(--color-success-400);
+  --color-success-contrast: var(--color-gray-900);
+
+  --color-error: var(--color-error-400);
+  --color-error-contrast: var(--color-gray-900);
+
+  --color-danger: var(--color-error);
+
+  color-scheme: dark;
+}

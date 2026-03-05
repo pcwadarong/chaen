@@ -4,10 +4,10 @@ import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
 /**
- * 아티클이 없을 때 보여주는 fallback 화면입니다.
+ * 프로젝트가 없을 때 보여주는 fallback 화면입니다.
  */
-const ArticleDetailNotFound = () => {
-  const t = useTranslations('ArticleDetail');
+const ProjectDetailNotFound = () => {
+  const t = useTranslations('ProjectDetail');
 
   return (
     <main css={pageStyle}>
@@ -44,4 +44,4 @@ const descriptionStyle = css`
   color: rgb(var(--color-muted));
 `;
 
-export default ArticleDetailNotFound;
+export default ProjectDetailNotFound;
