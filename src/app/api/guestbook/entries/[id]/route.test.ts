@@ -46,10 +46,39 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-1');
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:entry-1');
+  });
+
+  it('PATCH가 답글을 수정하면 부모 답글 태그를 갱신한다', async () => {
+    vi.mocked(updateGuestbookEntry).mockResolvedValue({
+      author_blog_url: null,
+      author_name: 'admin',
+      content: 'updated reply',
+      created_at: '2026-03-05T00:00:00.000Z',
+      deleted_at: null,
+      id: 'reply-1',
+      is_admin_reply: true,
+      is_secret: false,
+      parent_id: 'parent-1',
+      updated_at: '2026-03-05T00:00:00.000Z',
+    });
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries/reply-1', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ content: 'updated reply', password: '' }),
+    });
+
+    const response = await PATCH(request, { params: Promise.resolve({ id: 'reply-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
   });
 
   it('DELETE 성공 시 deletedId 반환 및 캐시 태그를 갱신한다', async () => {
-    vi.mocked(deleteGuestbookEntry).mockResolvedValue({ id: 'entry-1' });
+    vi.mocked(deleteGuestbookEntry).mockResolvedValue({ id: 'entry-1', parentId: null });
 
     const request = new Request('http://localhost:3000/api/guestbook/entries/entry-1', {
       method: 'DELETE',
@@ -65,6 +94,24 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(payload.deletedId).toBe('entry-1');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-1');
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:entry-1');
+  });
+
+  it('DELETE가 답글을 삭제하면 부모 답글 태그를 갱신한다', async () => {
+    vi.mocked(deleteGuestbookEntry).mockResolvedValue({ id: 'reply-1', parentId: 'parent-1' });
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries/reply-1', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: '' }),
+    });
+
+    const response = await DELETE(request, { params: Promise.resolve({ id: 'reply-1' }) });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
   });
 
   it('PATCH 실패 시 invalid password는 403을 반환한다', async () => {

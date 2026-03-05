@@ -140,7 +140,7 @@ export const updateGuestbookEntry = async ({
 export const deleteGuestbookEntry = async ({
   entryId,
   password,
-}: DeleteGuestbookEntryInput): Promise<{ id: string }> => {
+}: DeleteGuestbookEntryInput): Promise<{ id: string; parentId: string | null }> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw new Error('service role env is not configured');
 
@@ -171,7 +171,7 @@ export const deleteGuestbookEntry = async ({
 
   if (error) throw new Error(`failed to delete entry: ${error.message}`);
 
-  return { id: normalizedEntryId };
+  return { id: normalizedEntryId, parentId: currentRow.parent_id };
 };
 
 /**

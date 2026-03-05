@@ -51,6 +51,41 @@ describe('POST /api/guestbook/entries', () => {
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
   });
 
+  it('답글 생성 성공 시 부모 답글 태그도 갱신한다', async () => {
+    vi.mocked(createGuestbookEntry).mockResolvedValue({
+      author_blog_url: null,
+      author_name: 'admin',
+      content: 'reply',
+      created_at: '2026-03-05T00:00:00.000Z',
+      deleted_at: null,
+      id: 'reply-1',
+      is_admin_reply: true,
+      is_secret: false,
+      parent_id: 'parent-1',
+      updated_at: '2026-03-05T00:00:00.000Z',
+    });
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        authorName: 'admin',
+        content: 'reply',
+        isAdminReply: true,
+        parentId: 'parent-1',
+      }),
+    });
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook');
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
+  });
+
   it('실패 시 400과 에러 사유를 반환한다', async () => {
     vi.mocked(createGuestbookEntry).mockRejectedValue(new Error('invalid payload'));
 

@@ -2,7 +2,10 @@ import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 import { createGuestbookEntry } from '@/entities/guestbook';
-import { GUESTBOOK_CACHE_TAG } from '@/entities/guestbook/model/cache-tags';
+import {
+  createGuestbookRepliesCacheTag,
+  GUESTBOOK_CACHE_TAG,
+} from '@/entities/guestbook/model/cache-tags';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type CreateEntryPayload = {
@@ -40,6 +43,9 @@ export const POST = async (request: Request) => {
     });
 
     revalidateTag(GUESTBOOK_CACHE_TAG);
+    if (entry.parent_id) {
+      revalidateTag(createGuestbookRepliesCacheTag(entry.parent_id));
+    }
 
     return NextResponse.json({
       ok: true,

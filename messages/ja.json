@@ -54,7 +54,8 @@
     "toastEditError": "投稿の更新に失敗しました。",
     "toastDeleteSuccess": "投稿を削除しました。",
     "toastDeleteError": "投稿の削除に失敗しました。",
-    "toastSecretVerifyError": "秘密投稿の確認に失敗しました。"
+    "toastSecretVerifyError": "秘密投稿の確認に失敗しました。",
+    "deletedPlaceholder": "削除された投稿です。"
   },
   "Articles": {
     "description": "共有したい技術や、あとで見返したい技術を整理します。",

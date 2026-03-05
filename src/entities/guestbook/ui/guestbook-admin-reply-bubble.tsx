@@ -7,6 +7,7 @@ import { useAuth } from '@/shared/providers';
 
 type GuestbookAdminReplyBubbleProps = {
   actionDeleteLabel: string;
+  deletedPlaceholder: string;
   actionEditLabel: string;
   entry: GuestbookEntry;
   dateText: string;
@@ -20,6 +21,7 @@ type GuestbookAdminReplyBubbleProps = {
  */
 export const GuestbookAdminReplyBubble = ({
   actionDeleteLabel,
+  deletedPlaceholder,
   actionEditLabel,
   entry,
   dateText,
@@ -27,14 +29,15 @@ export const GuestbookAdminReplyBubble = ({
   onEdit,
 }: GuestbookAdminReplyBubbleProps) => {
   const { isAdmin } = useAuth();
+  const isDeleted = Boolean(entry.deleted_at);
 
   return (
     <article style={wrapperStyle}>
       <div style={bubbleStyle}>
-        <p style={contentStyle}>{entry.content}</p>
+        <p style={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
         <footer style={footerStyle}>
           <div style={actionRowStyle}>
-            {isAdmin && (
+            {isAdmin && !isDeleted && (
               <>
                 <button onClick={() => onEdit(entry)} style={actionButtonStyle} type="button">
                   {actionEditLabel}

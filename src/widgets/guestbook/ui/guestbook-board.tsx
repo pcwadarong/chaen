@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   createGuestbookEntryClient,
@@ -41,6 +41,7 @@ export const GuestbookBoard = () => {
   const t = useTranslations('Guest');
   const { isAdmin } = useAuth();
   const {
+    applyServerThread,
     applyServerThreadEntry,
     errorMessage,
     hasMore,
@@ -315,13 +316,23 @@ export const GuestbookBoard = () => {
           return;
         }
 
-        removeThreadById(target.id);
+        if (deletedThread.replies.length > 0) {
+          const deletedAt = new Date().toISOString();
+          updateThreadById(target.id, item => ({
+            ...item,
+            content: '',
+            deleted_at: deletedAt,
+            is_content_masked: false,
+          }));
+        } else {
+          removeThreadById(target.id);
+        }
         try {
           await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : modalPassword);
           pushToast(t('toastDeleteSuccess'), 'success');
           closeModal();
         } catch {
-          prependLocalThread(deletedThread);
+          applyServerThread(deletedThread);
           pushToast(t('toastDeleteError'), 'error');
         }
       }

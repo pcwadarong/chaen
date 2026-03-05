@@ -54,7 +54,8 @@
     "toastEditError": "Failed to update guestbook entry.",
     "toastDeleteSuccess": "Guestbook entry has been deleted.",
     "toastDeleteError": "Failed to delete guestbook entry.",
-    "toastSecretVerifyError": "Failed to verify secret entry."
+    "toastSecretVerifyError": "Failed to verify secret entry.",
+    "deletedPlaceholder": "This post has been deleted."
   },
   "Articles": {
     "description": "I organize technologies I want to share or revisit.",
