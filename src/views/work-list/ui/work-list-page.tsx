@@ -7,7 +7,7 @@ import type { Project } from '@/entities/project/model/types';
 import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 
-type WorkListPageProps = {
+export type WorkListPageProps = {
   initialCursor: string | null;
   initialItems: Project[];
   locale: string;

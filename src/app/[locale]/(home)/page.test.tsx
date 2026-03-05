@@ -1,18 +1,14 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getProjects } from '@/entities/project/api/get-projects';
+import { getHomePageData } from '@/views/home';
 
 import HomeRoute from './page';
 
-vi.mock('@/entities/project/api/get-projects', () => ({
-  getProjects: vi.fn(async () => ({
-    items: [],
-    nextCursor: null,
-  })),
-}));
-
 vi.mock('@/views/home', () => ({
+  getHomePageData: vi.fn(async () => ({
+    items: [],
+  })),
   HomePage: function HomePage() {
     return null;
   },
@@ -28,7 +24,7 @@ describe('HomeRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('HomePage');
-    expect(getProjects).toHaveBeenCalledWith({ locale: 'ko', limit: 3 });
+    expect(getHomePageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.items).toEqual([]);
   });
 });

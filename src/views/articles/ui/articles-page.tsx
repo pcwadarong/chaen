@@ -6,7 +6,7 @@ import type { CSSProperties } from 'react';
 import type { Article } from '@/entities/article/model/types';
 import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 
-type ArticlesPageProps = {
+export type ArticlesPageProps = {
   initialCursor: string | null;
   initialItems: Article[];
   locale: string;
