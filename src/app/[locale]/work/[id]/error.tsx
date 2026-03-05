@@ -1,4 +1,7 @@
+'use client';
+
 import { css } from '@emotion/react';
+import { useTranslations } from 'next-intl';
 
 type WorkDetailErrorProps = {
   error: Error & { digest?: string };
@@ -8,17 +11,21 @@ type WorkDetailErrorProps = {
 /**
  * 프로젝트 상세 페이지 에러 UI입니다.
  */
-const WorkDetailError = ({ error, reset }: WorkDetailErrorProps) => (
-  <main css={pageStyle}>
-    <section role="alert" css={panelStyle}>
-      <h1 css={titleStyle}>프로젝트를 불러오는 중 문제가 발생했습니다.</h1>
-      <p css={descriptionStyle}>{error.message}</p>
-      <button onClick={reset} css={buttonStyle} type="button">
-        다시 시도
-      </button>
-    </section>
-  </main>
-);
+const WorkDetailError = ({ error, reset }: WorkDetailErrorProps) => {
+  const t = useTranslations('WorkDetail');
+
+  return (
+    <main css={pageStyle}>
+      <section role="alert" css={panelStyle}>
+        <h1 css={titleStyle}>{t('errorTitle')}</h1>
+        <p css={descriptionStyle}>{error.message}</p>
+        <button onClick={reset} css={buttonStyle} type="button">
+          {t('retry')}
+        </button>
+      </section>
+    </main>
+  );
+};
 
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));

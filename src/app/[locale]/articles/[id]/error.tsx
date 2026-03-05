@@ -1,4 +1,7 @@
+'use client';
+
 import { css } from '@emotion/react';
+import { useTranslations } from 'next-intl';
 
 type ArticleDetailErrorProps = {
   error: Error & { digest?: string };
@@ -8,17 +11,21 @@ type ArticleDetailErrorProps = {
 /**
  * 아티클 상세 페이지 에러 UI입니다.
  */
-const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => (
-  <main css={pageStyle}>
-    <section role="alert" css={panelStyle}>
-      <h1 css={titleStyle}>기록을 불러오는 중 문제가 발생했습니다.</h1>
-      <p css={descriptionStyle}>{error.message}</p>
-      <button onClick={reset} css={buttonStyle} type="button">
-        다시 시도
-      </button>
-    </section>
-  </main>
-);
+const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => {
+  const t = useTranslations('ArticleDetail');
+
+  return (
+    <main css={pageStyle}>
+      <section role="alert" css={panelStyle}>
+        <h1 css={titleStyle}>{t('errorTitle')}</h1>
+        <p css={descriptionStyle}>{error.message}</p>
+        <button onClick={reset} css={buttonStyle} type="button">
+          {t('retry')}
+        </button>
+      </section>
+    </main>
+  );
+};
 
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));

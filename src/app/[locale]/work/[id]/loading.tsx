@@ -1,17 +1,22 @@
 import { css } from '@emotion/react';
+import { getTranslations } from 'next-intl/server';
 
 /**
  * 프로젝트 상세 로딩 상태 UI입니다.
  */
-const WorkDetailLoading = () => (
-  <main css={pageStyle}>
-    <section aria-busy="true" aria-live="polite" css={panelStyle}>
-      <div css={lineLgStyle} />
-      <div css={lineMdStyle} />
-      <div css={lineSmStyle} />
-    </section>
-  </main>
-);
+const WorkDetailLoading = async () => {
+  const t = await getTranslations('WorkDetail');
+
+  return (
+    <main css={pageStyle}>
+      <section aria-busy="true" aria-label={t('loading')} aria-live="polite" css={panelStyle}>
+        <div css={lineLgStyle} />
+        <div css={lineMdStyle} />
+        <div css={lineSmStyle} />
+      </section>
+    </main>
+  );
+};
 
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));

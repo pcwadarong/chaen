@@ -1,18 +1,21 @@
 import { css } from '@emotion/react';
+import { getTranslations } from 'next-intl/server';
 
 /**
  * 프로젝트가 없을 때 보여주는 fallback 화면입니다.
  */
-const WorkDetailNotFound = () => (
-  <main css={pageStyle}>
-    <section css={panelStyle}>
-      <h1 css={titleStyle}>요청한 프로젝트를 찾을 수 없습니다.</h1>
-      <p css={descriptionStyle}>
-        프로젝트 ID를 다시 확인하거나 목록 페이지에서 다시 선택해 주세요.
-      </p>
-    </section>
-  </main>
-);
+const WorkDetailNotFound = async () => {
+  const t = await getTranslations('WorkDetail');
+
+  return (
+    <main css={pageStyle}>
+      <section css={panelStyle}>
+        <h1 css={titleStyle}>{t('notFoundTitle')}</h1>
+        <p css={descriptionStyle}>{t('notFoundDescription')}</p>
+      </section>
+    </main>
+  );
+};
 
 const pageStyle = css`
   width: min(1120px, calc(100% - 2rem));
