@@ -39,7 +39,10 @@ describe('ResumeRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ResumePage');
     expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
-    expect(getPdfFileContent).toHaveBeenCalledWith('ko');
+    expect(getPdfFileContent).toHaveBeenCalledWith({
+      locale: 'ko',
+      kind: 'resume',
+    });
     expect(element.props.resumeUrl).toBe('https://example.com/resume.pdf');
     expect(element.props.downloadFileName).toBeDefined();
     expect(element.props.content.title).toBe('안녕하세요 박채원입니다.');

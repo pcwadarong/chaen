@@ -1,6 +1,7 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 import { getProjects } from '@/entities/project/api/get-projects';
 
@@ -23,6 +24,10 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
   getPdfFileUrl: vi.fn(async () => 'https://example.com/portfolio.pdf'),
 }));
 
+vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
+  getPdfFileContent: vi.fn(async () => null),
+}));
+
 vi.mock('@/views/work-list', () => ({
   WorkListPage: function WorkListPage() {
     return null;
@@ -41,6 +46,7 @@ describe('WorkRoute', () => {
     expect(element.type.name).toBe('WorkListPage');
     expect(getProjects).toHaveBeenCalledWith('ko');
     expect(getPdfFileUrl).toHaveBeenCalledTimes(1);
+    expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.items).toEqual([]);
     expect(element.props.portfolioButtonLabel).toBe('Download portfolio');
     expect(element.props.portfolioButtonUnavailableLabel).toBe('Portfolio unavailable');

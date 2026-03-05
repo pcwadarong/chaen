@@ -1,50 +1,64 @@
 'use client';
 
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import type { CSSProperties } from 'react';
 
-import type { ArticleItem } from '@/entities/article/model/article-items';
+import type { Article } from '@/entities/article/model/types';
+import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
+import { Link } from '@/i18n/navigation';
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 
 type ArticleCardProps = {
-  article: ArticleItem;
+  article: Article;
 };
 
 /** 아티클 목록용 요약 카드를 렌더링합니다. */
 export const ArticleCard = ({ article }: ArticleCardProps) => {
-  const t = useTranslations('ArticleItems');
-  const title = t(`${article.id}.title`);
-  const thumbnailSrc = createImageViewerUrl(article.thumbnailUrl);
+  const locale = useLocale();
+  const thumbnailSrc = article.thumbnail_url ? createImageViewerUrl(article.thumbnail_url) : null;
+  const normalizedTags = article.tags ?? [];
 
   return (
-    <article style={cardStyle}>
-      <div style={thumbnailWrapStyle}>
-        <Image
-          alt={`${title} thumbnail`}
-          height={768}
-          src={thumbnailSrc}
-          style={thumbnailStyle}
-          width={1366}
-        />
-      </div>
-      <div style={tagsStyle}>
-        {article.tags.map(tag => (
-          <span key={tag} style={tagStyle}>
-            {t(`${article.id}.tags.${tag}`)}
-          </span>
-        ))}
-      </div>
-      <div style={bodyStyle}>
-        <h3 style={titleStyle}>{title}</h3>
-        <p style={descriptionStyle}>{t(`${article.id}.description`)}</p>
-      </div>
-    </article>
+    <Link
+      aria-label={`${article.title} 상세 보기`}
+      href={`/articles/${article.id}`}
+      style={cardLinkStyle}
+    >
+      <article style={cardStyle}>
+        {thumbnailSrc ? (
+          <div style={thumbnailWrapStyle}>
+            <Image
+              alt={`${article.title} thumbnail`}
+              height={768}
+              src={thumbnailSrc}
+              style={thumbnailStyle}
+              width={1366}
+            />
+          </div>
+        ) : null}
+        {normalizedTags.length > 0 ? (
+          <div style={tagsStyle}>
+            {normalizedTags.map(tag => (
+              <span key={tag} style={tagStyle}>
+                {getTagLabelByLocale(tag, locale)}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <div style={bodyStyle}>
+          <h3 style={titleStyle}>{article.title}</h3>
+          {article.description ? <p style={descriptionStyle}>{article.description}</p> : null}
+        </div>
+      </article>
+    </Link>
   );
 };
 
 const cardStyle: CSSProperties = {
+  height: '100%',
   display: 'grid',
+  alignContent: 'start',
   gap: '1rem',
   padding: '1.5rem',
   borderRadius: 'var(--radius-lg)',
@@ -99,4 +113,11 @@ const titleStyle: CSSProperties = {
 
 const descriptionStyle: CSSProperties = {
   color: 'rgb(var(--color-muted))',
+};
+
+const cardLinkStyle: CSSProperties = {
+  display: 'block',
+  height: '100%',
+  textDecoration: 'none',
+  color: 'rgb(var(--color-text))',
 };

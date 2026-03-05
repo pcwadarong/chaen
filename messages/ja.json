@@ -1,7 +1,7 @@
 {
   "Navigation": {
     "ariaLabel": "主要ナビゲーション",
-    "blog": "ブログ",
+    "articles": "記事",
     "brand": "chaen",
     "guest": "ゲストブック",
     "home": "ホーム",
@@ -17,17 +17,16 @@
     "title": "モーションを載せられる最初のフレーム。"
   },
   "Guest": {
-    "description": "ゲストブック入力は後でモーダル機能に分離し、今は公開紹介と閲覧体験に集中します。",
-    "eyebrow": "ゲストブック",
+    "description": "伝えたいことを気軽に残してください。",
     "item1": "閲覧中心の公開メッセージ領域",
     "item2": "投稿は後で create-guestbook-entry 機能へ分離",
     "item3": "ページはデータ取得と構成だけを担当",
-    "title": "ゲストとのやり取りは軽量でモーダル中心に保ちます。"
+    "title": "ゲストブック"
   },
-  "Blog": {
-    "description": "今はブログ一覧と基本情報の構造だけを置き、検索・タグフィルター・コメント投稿は後で feature として分離します。",
-    "eyebrow": "ブログ",
-    "title": "技術記事、タグ、検索、コメントは後から拡張します。"
+  "Articles": {
+    "description": "共有したい技術や、あとで見返したい技術を整理します。",
+    "emptyItems": "まだ登録された記事がありません。",
+    "title": "記事"
   },
   "Work": {
     "deliverables": "成果物",
@@ -50,6 +49,18 @@
     "publishedAt": "公開日 {date}",
     "tagSection": "タグ"
   },
+  "ArticleDetail": {
+    "contentSection": "本文",
+    "emptyContent": "本文はまだ登録されていません。",
+    "emptySummary": "概要はまだありません。",
+    "emptyThumbnail": "表示できるサムネイルがありません。",
+    "noTags": "タグなし",
+    "publishedAt": "公開日 {date}",
+    "tagSection": "タグ",
+    "thumbnailAlt": "{title} のサムネイル",
+    "thumbnailSection": "サムネイル",
+    "updatedAt": "更新日 {date}"
+  },
   "ImageViewer": {
     "closeAriaLabel": "画像ビューアーを閉じる",
     "nextAriaLabel": "次の画像を表示",
@@ -61,12 +72,11 @@
   "Contact": {
     "emailLabel": "Email",
     "emailValue": "pcwadarong@naver.com",
-    "eyebrow": "連絡",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
-    "title": "Let's connect and create meaningful experiences."
+    "title": "意味のある体験を一緒につくりましょう。"
   },
   "Switchers": {
     "locale": {
@@ -83,35 +93,6 @@
       "label": "テーマ",
       "light": "ライト",
       "system": "システム"
-    }
-  },
-  "ArticleItems": {
-    "typography-rhythm": {
-      "title": "韓国語と日本語コピーにおけるタイポグラフィのリズム",
-      "description": "多言語環境で行間とフォント選定がレイアウト密度にどう影響するかを整理した記事です。",
-      "tags": {
-        "designSystem": "デザインシステム",
-        "i18n": "i18n",
-        "typography": "タイポグラフィ"
-      }
-    },
-    "svgr-turbopack": {
-      "title": "Webpack と Turbopack で一貫して SVGR を動かす",
-      "description": "開発環境とビルド環境が違っても同じ SVG import 体験を保つための設定メモです。",
-      "tags": {
-        "buildTooling": "ビルドツーリング",
-        "nextjs": "Next.js",
-        "svg": "SVG"
-      }
-    },
-    "supabase-ssr-boundary": {
-      "title": "機能実装の前に Supabase の SSR 境界を整理する",
-      "description": "クライアント、サーバー、ミドルウェアの責務をどう分けるかを先に定義した構造メモです。",
-      "tags": {
-        "architecture": "アーキテクチャ",
-        "ssr": "SSR",
-        "supabase": "Supabase"
-      }
     }
   }
 }

@@ -11,11 +11,29 @@ export const TAG_MAP: TagMap = {
   react: { ko: 'React', en: 'React', ja: 'React', fr: 'React' },
   javascript: { ko: 'JavaScript', en: 'JavaScript', ja: 'JavaScript', fr: 'JavaScript' },
   typescript: { ko: 'TypeScript', en: 'TypeScript', ja: 'TypeScript', fr: 'TypeScript' },
+  supabase: { ko: 'Supabase', en: 'Supabase', ja: 'Supabase', fr: 'Supabase' },
+  ssr: { ko: 'SSR', en: 'SSR', ja: 'SSR', fr: 'SSR' },
   websocket: { ko: 'Web Socket', en: 'Web Socket', ja: 'Web Socket', fr: 'Web Socket' },
   css: { ko: 'CSS', en: 'CSS', ja: 'CSS', fr: 'CSS' },
+  svg: { ko: 'SVG', en: 'SVG', ja: 'SVG', fr: 'SVG' },
+  typography: { ko: '타이포그래피', en: 'Typography', ja: 'タイポグラフィ', fr: 'Typographie' },
+  i18n: { ko: '다국어', en: 'i18n', ja: '多言語', fr: 'i18n' },
+  'design-system': {
+    ko: '디자인 시스템',
+    en: 'Design System',
+    ja: 'デザインシステム',
+    fr: 'Design System',
+  },
+  'build-tooling': {
+    ko: '빌드 도구',
+    en: 'Build Tooling',
+    ja: 'ビルドツーリング',
+    fr: 'Outillage Build',
+  },
 
   // 카테고리 및 경험
   cs: { ko: 'CS', en: 'CS', ja: 'CS', fr: 'CS' },
+  architecture: { ko: '아키텍처', en: 'Architecture', ja: 'アーキテクチャ', fr: 'Architecture' },
   retrospect: { ko: '회고', en: 'Retrospect', ja: '振り返り', fr: 'Rétrospective' },
   review: { ko: '리뷰', en: 'Review', ja: 'レビュー', fr: 'Critique' },
   boostcamp: {

@@ -2,18 +2,20 @@ import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-
 
 import 'server-only';
 
+import { getPdfFileStorageConfig } from '../model/config';
+import type { PdfFileKind } from '../model/types';
+
 type PdfFileUrlAccessType = 'public' | 'signed';
 
 type GetPdfFileUrlOptions = {
   accessType?: PdfFileUrlAccessType;
+  kind?: PdfFileKind;
   bucket?: string;
   filePath?: string;
   signedUrlExpiresInSeconds?: number;
   downloadFileName?: string;
 };
 
-const DEFAULT_PDF_FILE_BUCKET = 'resumes';
-const DEFAULT_PDF_FILE_PATH = process.env.NEXT_PUBLIC_PDF_FILE_PATH ?? 'ParkChaewon-Resume.pdf';
 const DEFAULT_SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 10;
 
 /**
@@ -27,32 +29,37 @@ const isStorageObjectMissing = (errorMessage: string) =>
  */
 export const getPdfFileUrl = async ({
   accessType = 'signed',
-  bucket = DEFAULT_PDF_FILE_BUCKET,
-  filePath = DEFAULT_PDF_FILE_PATH,
+  kind = 'resume',
+  bucket,
+  filePath,
   signedUrlExpiresInSeconds = DEFAULT_SIGNED_URL_EXPIRES_IN_SECONDS,
-  downloadFileName = DEFAULT_PDF_FILE_PATH,
+  downloadFileName,
 }: GetPdfFileUrlOptions = {}): Promise<string | null> => {
+  const storageConfig = getPdfFileStorageConfig(kind);
+  const resolvedBucket = bucket ?? storageConfig.bucket;
+  const resolvedFilePath = filePath ?? storageConfig.filePath;
+  const resolvedDownloadFileName = downloadFileName ?? storageConfig.downloadFileName;
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return null;
 
-  const storage = supabase.storage.from(bucket);
+  const storage = supabase.storage.from(resolvedBucket);
 
   if (accessType === 'public') {
-    const { data } = storage.getPublicUrl(filePath);
-
+    const { data } = storage.getPublicUrl(resolvedFilePath);
     return data.publicUrl;
   }
 
-  const { data, error } = await storage.createSignedUrl(filePath, signedUrlExpiresInSeconds, {
-    download: downloadFileName,
-  });
+  const { data, error } = await storage.createSignedUrl(
+    resolvedFilePath,
+    signedUrlExpiresInSeconds,
+    {
+      download: resolvedDownloadFileName,
+    },
+  );
 
   if (error) {
-    if (isStorageObjectMissing(error.message)) {
-      return null;
-    }
-
-    throw new Error(`[pdf-file] signed URL 생성 실패: ${error.message}`);
+    if (isStorageObjectMissing(error.message)) return null;
+    throw new Error(`[pdf-file:${kind}] signed URL 생성 실패: ${error.message}`);
   }
 
   return data.signedUrl;

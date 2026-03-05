@@ -18,7 +18,7 @@ export const GlobalNav = () => {
     { href: '/', label: t('home') },
     { href: '/resume', label: t('resume') },
     { href: '/guest', label: t('guest') },
-    { href: '/blog', label: t('blog') },
+    { href: '/articles', label: t('articles') },
     { href: '/work', label: t('work') },
   ] as const;
 
