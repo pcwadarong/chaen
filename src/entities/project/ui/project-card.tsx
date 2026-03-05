@@ -24,7 +24,7 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
   const createdYearText = formatYear(item.created_at, locale) ?? '-';
 
   return (
-    <Link aria-label={`${item.title} 상세 보기`} href={`/work/${item.id}`} css={cardLinkStyle}>
+    <Link aria-label={`${item.title} 상세 보기`} href={`/project/${item.id}`} css={cardLinkStyle}>
       <article css={cardStyle}>
         {previewThumbnailSrc ? (
           <div css={thumbnailWrapStyle}>

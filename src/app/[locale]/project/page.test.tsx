@@ -1,12 +1,12 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getWorkListPageData } from '@/views/work';
+import { getProjectListPageData } from '@/views/project';
 
-import WorkRoute from './page';
+import ProjectRoute from './page';
 
-vi.mock('@/views/work', () => ({
-  getWorkListPageData: vi.fn(async () => ({
+vi.mock('@/views/project', () => ({
+  getProjectListPageData: vi.fn(async () => ({
     initialCursor: null,
     initialItems: [],
     locale: 'ko',
@@ -15,22 +15,22 @@ vi.mock('@/views/work', () => ({
     portfolioDownloadFileName: 'portfolio.pdf',
     portfolioUrl: 'https://example.com/portfolio.pdf',
   })),
-  WorkListPage: function WorkListPage() {
+  ProjectListPage: function ProjectListPage() {
     return null;
   },
 }));
 
-describe('WorkRoute', () => {
+describe('ProjectRoute', () => {
   it('프로젝트 목록 뷰 엔트리와 포트폴리오 다운로드 props를 반환한다', async () => {
-    const element = await WorkRoute({
+    const element = await ProjectRoute({
       params: Promise.resolve({
         locale: 'ko',
       }),
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(element.type.name).toBe('WorkListPage');
-    expect(getWorkListPageData).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(element.type.name).toBe('ProjectListPage');
+    expect(getProjectListPageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.initialItems).toEqual([]);
     expect(element.props.initialCursor).toBeNull();
     expect(element.props.locale).toBe('ko');

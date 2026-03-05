@@ -5,9 +5,9 @@ import type { Project } from '@/entities/project/model/types';
 import { formatMonthYear } from '@/shared/lib/date/format-month-year';
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
-import { WorkDetailPageClient } from '@/views/work/ui/work-detail-page.client';
+import { ProjectDetailPageClient } from '@/views/project/ui/project-detail-page.client';
 
-type WorkDetailPageProps = {
+type ProjectDetailPageProps = {
   item: Project;
   locale: string;
 };
@@ -59,8 +59,8 @@ const formatProjectPeriod = (item: Project, locale: string, ongoingLabel: string
 /**
  * 프로젝트 상세 페이지 컨테이너입니다.
  */
-export const WorkDetailPage = async ({ item, locale }: WorkDetailPageProps) => {
-  const t = await getTranslations('WorkDetail');
+export const ProjectDetailPage = async ({ item, locale }: ProjectDetailPageProps) => {
+  const t = await getTranslations('ProjectDetail');
   const imageViewerText = await getTranslations('ImageViewer');
   const mediaUrls = getProjectMediaUrls(item);
   const mediaItems = mediaUrls.map((mediaUrl, index) => ({
@@ -71,7 +71,7 @@ export const WorkDetailPage = async ({ item, locale }: WorkDetailPageProps) => {
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
 
   return (
-    <WorkDetailPageClient
+    <ProjectDetailPageClient
       content={item.content}
       description={item.description}
       emptyDescriptionText={t('emptyDescription')}

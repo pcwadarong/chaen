@@ -9,15 +9,15 @@ import {
   ImageViewerModal,
 } from '@/shared/ui/image-viewer/image-viewer-modal';
 
-type WorkDetailMediaItem = {
+type ProjectDetailMediaItem = {
   alt: string;
   src: string;
   unoptimized?: boolean;
 };
 
-type WorkDetailMediaGalleryProps = {
+type ProjectDetailMediaGalleryProps = {
   emptyText: string;
-  items: WorkDetailMediaItem[];
+  items: ProjectDetailMediaItem[];
   sectionLabel: string;
   viewerLabels: ImageViewerLabels;
 };
@@ -25,12 +25,12 @@ type WorkDetailMediaGalleryProps = {
 /**
  * 프로젝트 상세의 미디어 목록과 뷰어 모달을 렌더링합니다.
  */
-export const WorkDetailMediaGallery = ({
+export const ProjectDetailMediaGallery = ({
   emptyText,
   items,
   sectionLabel,
   viewerLabels,
-}: WorkDetailMediaGalleryProps) => {
+}: ProjectDetailMediaGalleryProps) => {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   if (items.length === 0) {

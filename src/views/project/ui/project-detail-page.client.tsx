@@ -3,21 +3,21 @@
 import { css } from '@emotion/react';
 
 import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-modal';
-import { WorkDetailMediaGallery } from '@/views/work/ui/work-detail-media-gallery';
+import { ProjectDetailMediaGallery } from '@/views/project/ui/project-detail-media-gallery';
 
-type WorkDetailMediaItem = {
+type ProjectDetailMediaItem = {
   alt: string;
   src: string;
   unoptimized?: boolean;
 };
 
-type WorkDetailPageClientProps = {
+type ProjectDetailPageClientProps = {
   content: string | null;
   description: string | null;
   emptyDescriptionText: string;
   emptyMediaText: string;
   emptySummaryText: string;
-  mediaItems: WorkDetailMediaItem[];
+  mediaItems: ProjectDetailMediaItem[];
   noTagsText: string;
   periodText: string;
   publishedText: string;
@@ -34,7 +34,7 @@ type WorkDetailPageClientProps = {
 /**
  * 프로젝트 상세 프레젠테이션 컴포넌트입니다.
  */
-export const WorkDetailPageClient = ({
+export const ProjectDetailPageClient = ({
   content,
   description,
   emptyDescriptionText,
@@ -48,7 +48,7 @@ export const WorkDetailPageClient = ({
   tagLabels,
   title,
   viewerLabels,
-}: WorkDetailPageClientProps) => (
+}: ProjectDetailPageClientProps) => (
   <main css={pageStyle}>
     <article css={articleStyle}>
       <header css={heroStyle}>
@@ -75,7 +75,7 @@ export const WorkDetailPageClient = ({
         <h2 id="project-media-heading" css={sectionTitleStyle}>
           {sectionLabels.media}
         </h2>
-        <WorkDetailMediaGallery
+        <ProjectDetailMediaGallery
           emptyText={emptyMediaText}
           items={mediaItems}
           sectionLabel={sectionLabels.media}

@@ -20,7 +20,7 @@ export const GlobalNav = () => {
     { href: '/resume', label: t('resume') },
     { href: '/guest', label: t('guest') },
     { href: '/articles', label: t('articles') },
-    { href: '/work', label: t('work') },
+    { href: '/project', label: t('project') },
   ] as const;
 
   useEffect(() => {

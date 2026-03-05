@@ -6,7 +6,7 @@
     "guest": "방명록",
     "home": "홈",
     "resume": "이력",
-    "work": "프로젝트"
+    "project": "프로젝트"
   },
   "Home": {
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
@@ -66,7 +66,7 @@
     "retry": "다시 시도",
     "title": "기록"
   },
-  "Work": {
+  "Project": {
     "deliverables": "주요 산출물",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
     "loadError": "프로젝트를 불러오지 못했습니다.",
@@ -79,7 +79,7 @@
     "showcaseTitle": "프로젝트 아카이브",
     "viewProject": "프로젝트 보기"
   },
-  "WorkDetail": {
+  "ProjectDetail": {
     "descriptionSection": "상세 설명",
     "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
     "emptyMedia": "표시할 미디어가 없습니다.",

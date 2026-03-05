@@ -6,7 +6,7 @@
     "guest": "ゲストブック",
     "home": "ホーム",
     "resume": "履歴書",
-    "work": "作品"
+    "project": "作品"
   },
   "Home": {
     "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
@@ -66,7 +66,7 @@
     "retry": "再試行",
     "title": "記事"
   },
-  "Work": {
+  "Project": {
     "deliverables": "成果物",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "loadError": "プロジェクトの読み込みに失敗しました。",
@@ -79,7 +79,7 @@
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"
   },
-  "WorkDetail": {
+  "ProjectDetail": {
     "descriptionSection": "詳細説明",
     "emptyDescription": "詳細説明はまだ登録されていません。",
     "emptyMedia": "表示できるメディアがありません。",
