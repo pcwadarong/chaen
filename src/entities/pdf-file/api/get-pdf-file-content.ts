@@ -1,4 +1,5 @@
 import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { resolveLocaleAwareData } from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -30,25 +31,30 @@ export const getPdfFileContent = async ({
 
   if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from(tableName)
-    .select('*')
-    .eq('locale', normalizedLocale)
-    .maybeSingle<PdfFileContent>();
+  return resolveLocaleAwareData<PdfFileContent | null>({
+    emptyData: null,
+    fallbackLocale: normalizedFallbackLocale,
+    fetchByLocale: async targetLocale => {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('locale', targetLocale)
+        .maybeSingle<PdfFileContent>();
 
-  if (error) return null;
-  if (data) return data;
+      if (error) {
+        return {
+          data: null,
+          localeColumnMissing: false,
+        };
+      }
 
-  if (normalizedLocale !== normalizedFallbackLocale) {
-    const { data: fallbackData, error: fallbackError } = await supabase
-      .from(tableName)
-      .select('*')
-      .eq('locale', normalizedFallbackLocale)
-      .maybeSingle<PdfFileContent>();
-
-    if (fallbackError) return null;
-    if (fallbackData) return fallbackData;
-  }
-
-  return null;
+      return {
+        data,
+        localeColumnMissing: false,
+      };
+    },
+    fetchLegacy: async () => null,
+    isEmptyData: item => item === null,
+    targetLocale: normalizedLocale,
+  });
 };
