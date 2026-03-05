@@ -3,7 +3,7 @@
 import React, { type CSSProperties, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { GuestbookAdminReplyBubble } from '@/entities/guestbook/ui/guestbook-admin-reply-bubble';
+import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
@@ -152,7 +152,7 @@ export const GuestbookThreadCard = ({
       {entry.replies.length > 0 ? (
         <div style={replyStackStyle}>
           {entry.replies.map(reply => (
-            <GuestbookAdminReplyBubble
+            <GuestbookReplyBubble
               actionDeleteLabel={actionDeleteLabel}
               deletedPlaceholder={deletedPlaceholder}
               actionEditLabel={actionEditLabel}

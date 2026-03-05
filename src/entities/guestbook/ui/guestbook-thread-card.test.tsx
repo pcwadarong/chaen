@@ -5,8 +5,8 @@ import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 
 import { GuestbookThreadCard } from './guestbook-thread-card';
 
-vi.mock('@/entities/guestbook/ui/guestbook-admin-reply-bubble', () => ({
-  GuestbookAdminReplyBubble: () => <div>reply</div>,
+vi.mock('@/entities/guestbook/ui/guestbook-reply-bubble', () => ({
+  GuestbookReplyBubble: () => <div>reply</div>,
 }));
 
 const createThread = (overrides?: Partial<GuestbookThreadItem>): GuestbookThreadItem => ({

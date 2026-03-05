@@ -52,6 +52,13 @@
 - import/mock 경로를 `@/shared/lib/supabase/*`로 통일
 - `config`, `public-server`, `server`, `service-role`, `middleware` 모듈을 shared로 일원화
 
+10. 방명록 클라이언트 API를 features로 이동하고 feed 훅 네이밍을 정리했습니다.
+
+- `src/entities/guestbook/api/guestbook-client.ts` -> `src/features/guestbook-feed/api/client.ts`
+- 관련 테스트도 동일하게 `features` 경로로 이동
+- `useGuestbookThreads` -> `useGuestbookFeed`로 리네이밍
+- 훅 테스트 파일/참조도 `use-guestbook-feed` 기준으로 갱신
+
 <br/>
 
 ## 🚨 주요 고민 및 해결 과정
@@ -66,6 +73,8 @@
 - 리팩토링 이후 남아 있는 파일 중 실제 참조되지 않는 파일을 정리할 필요가 있었습니다.
 - 방명록의 비밀번호 파생키 비용 설정, 답글 단위 캐시 무효화, 낙관적 실패 롤백 검증이 부족했습니다.
 - Supabase 인프라 코드가 `lib/supabase`와 `shared/lib/supabase`로 분산되어 import 기준이 혼재되어 있었습니다.
+- `entities/guestbook/api/guestbook-client`가 실제로는 UI 상호작용(feature) 성격이라 레이어 책임이 맞지 않았습니다.
+- `useGuestbookThreads` 이름이 프로젝트/아티클의 `*Feed` 패턴과 달라 네이밍 일관성이 떨어졌습니다.
 
 ### 해결 과정
 
@@ -77,3 +86,4 @@
 - `GuestbookBoard` 실패 경로 테스트를 추가해 낙관적 생성 후 API 실패 시 `removeThreadById` 롤백을 보장했습니다.
 - 서버 데이터 조합 책임을 `views/*/model` loader로 이동해 app을 라우팅 전용 계층으로 정리했습니다.
 - Supabase 관련 공통 코드를 `shared/lib/supabase`로 이동해 레이어 경계를 명확히 하고 import 일관성을 확보했습니다.
+- 방명록 API 클라이언트를 `features/guestbook-feed/api`로 이동해 레이어 책임을 맞추고, 훅명을 `useGuestbookFeed`로 통일해 명명 규칙 일관성을 맞췄습니다.
