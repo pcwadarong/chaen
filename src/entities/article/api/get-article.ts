@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import {
   isLocaleColumnMissingError,
   resolveLocaleAwareData,

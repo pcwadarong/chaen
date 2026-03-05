@@ -1,4 +1,4 @@
-import { createOptionalServiceRoleSupabaseClient } from '@/lib/supabase/service-role';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
 

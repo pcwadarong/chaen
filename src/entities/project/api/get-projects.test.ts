@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import { getProjects } from './get-projects';
 
@@ -9,11 +9,11 @@ vi.mock('next/cache', () => ({
   unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
 }));
 
-vi.mock('@/lib/supabase/config', () => ({
+vi.mock('@/shared/lib/supabase/config', () => ({
   hasSupabaseEnv: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/public-server', () => ({
+vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 

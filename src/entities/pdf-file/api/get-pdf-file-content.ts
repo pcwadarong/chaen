@@ -1,4 +1,4 @@
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { resolveLocaleAwareData } from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';

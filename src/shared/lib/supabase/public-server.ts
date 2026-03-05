@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-import { getSupabaseEnv, getSupabaseEnvOptional } from '@/lib/supabase/config';
+import { getSupabaseEnv, getSupabaseEnvOptional } from '@/shared/lib/supabase/config';
 
 import 'server-only';
 

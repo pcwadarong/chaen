@@ -1,9 +1,9 @@
 import { unstable_cache } from 'next/cache';
 
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/lib/supabase/public-server';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import {
   isLocaleColumnMissingError,
   resolveLocaleAwareData,

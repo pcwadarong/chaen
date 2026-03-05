@@ -28,11 +28,7 @@
 - 선실행 -> 커버리지 보강 -> 구현 -> 재실행
 - 최종 검증: `pnpm lint`, `pnpm typecheck`, `pnpm test` 모두 통과
 
-6. 미사용 파일을 전역 참조 기준으로 정리했습니다.
-
-- 대상 규칙: 페이지 라우팅 파일 제외, `src/features/upload-pdf-file/api/upload-pdf-file.ts` 제외
-- 정적 import/export + 동적 import 기준으로 전역 참조를 재검증
-- 실제 미사용으로 확인된 `src/lib/supabase/browser.ts` 삭제
+6. 미사용으로 확인된 `src/lib/supabase/browser.ts` 삭제
 
 7. 방명록 보안/캐시/실패 복구 경로를 보강했습니다.
 
@@ -43,9 +39,18 @@
 - 삭제된 원댓글 상태에서는 `수정/삭제/답신` 액션을 노출하지 않도록 처리
 - 관련 테스트 추가: `password.test.ts`, `guestbook-board.test.tsx`, route/get-threads 확장 케이스
 
+8. FSD 경계 정리를 위해 app route의 데이터 조합 로직을 views/model loader로 이동했습니다.
+
+- 대상: `home`, `articles`, `work`, `resume` route
+- 추가: `getHomePageData`, `getArticlesPageData`, `getWorkListPageData`, `getResumePageData`
+- route는 loader 호출 + view 렌더만 수행하도록 단순화
+- loader 단위 테스트 4개 추가 및 기존 route 테스트를 loader mock 기준으로 갱신
+
 <br/>
 
 ## 🚨 주요 고민 및 해결 과정
+
+- app 라우트 파일이 엔터티 API/번역/파일 URL 조합까지 직접 처리해 레이어 경계가 흐려져 있었습니다.
 
 ### 문제
 
@@ -63,3 +68,4 @@
 - 루트/테스트/설정 파일까지 포함해 참조를 재검증한 뒤, 실제 미사용 파일만 삭제했습니다.
 - `scrypt` 옵션을 명시해 비밀번호 검증 강도를 고정했고, 답글 캐시 태그를 추가해 부모/답글 수정·삭제 시 무효화 범위를 명확히 했습니다.
 - `GuestbookBoard` 실패 경로 테스트를 추가해 낙관적 생성 후 API 실패 시 `removeThreadById` 롤백을 보장했습니다.
+- 서버 데이터 조합 책임을 `views/*/model` loader로 이동해 app을 라우팅 전용 계층으로 정리했습니다.
