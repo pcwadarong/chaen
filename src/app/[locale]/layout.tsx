@@ -5,7 +5,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
-import { ThemeProvider } from '@/shared/providers';
+import { AuthProvider, ThemeProvider } from '@/shared/providers';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
 export const metadata: Metadata = {
@@ -43,10 +43,12 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <ThemeProvider>
-        <div lang={locale}>
-          <GlobalNav />
-          {children}
-        </div>
+        <AuthProvider>
+          <div lang={locale}>
+            <GlobalNav />
+            {children}
+          </div>
+        </AuthProvider>
       </ThemeProvider>
     </NextIntlClientProvider>
   );

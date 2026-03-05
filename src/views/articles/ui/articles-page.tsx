@@ -47,7 +47,7 @@ const heroStyle: CSSProperties = {
 };
 
 const titleStyle: CSSProperties = {
-  fontSize: 'clamp(2.4rem, 6vw, 4.8rem)',
+  fontSize: 'clamp(2rem, 4vw, 3.25rem)',
   lineHeight: 0.96,
   letterSpacing: '-0.04em',
 };
