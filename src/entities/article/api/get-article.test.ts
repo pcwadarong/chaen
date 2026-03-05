@@ -100,4 +100,39 @@ describe('getArticle', () => {
     expect(localizedQuery.eq).toHaveBeenCalledWith('locale', 'ko');
     expect(legacyQuery.eq).toHaveBeenCalledWith('id', 'frontend-performance');
   });
+
+  it('대상 locale 결과가 없으면 ko locale로 fallback 조회한다', async () => {
+    const targetLocaleQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    };
+    const koreanFallbackQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'frontend-performance',
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+        },
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(targetLocaleQuery).mockReturnValueOnce(koreanFallbackQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'fr');
+
+    expect(result?.id).toBe('frontend-performance');
+    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(koreanFallbackQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
 });

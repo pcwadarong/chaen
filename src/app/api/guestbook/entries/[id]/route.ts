@@ -6,6 +6,7 @@ import {
   createGuestbookEntryCacheTag,
   GUESTBOOK_CACHE_TAG,
 } from '@/entities/guestbook/model/cache-tags';
+import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type UpdatePayload = {
   content?: unknown;
@@ -38,16 +39,13 @@ export const PATCH = async (request: Request, context: { params: Promise<{ id: s
       entry,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    const status = reason === 'invalid password' ? 403 : 400;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+      statusByReason: {
+        'invalid password': 403,
       },
-      { status },
-    );
+    });
   }
 };
 
@@ -72,15 +70,12 @@ export const DELETE = async (request: Request, context: { params: Promise<{ id: 
       deletedId: id,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-    const status = reason === 'invalid password' ? 403 : 400;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+      statusByReason: {
+        'invalid password': 403,
       },
-      { status },
-    );
+    });
   }
 };

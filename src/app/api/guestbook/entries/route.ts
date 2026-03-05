@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { createGuestbookEntry } from '@/entities/guestbook';
 import { GUESTBOOK_CACHE_TAG } from '@/entities/guestbook/model/cache-tags';
+import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type CreateEntryPayload = {
   authorBlogUrl?: unknown;
@@ -45,14 +46,9 @@ export const POST = async (request: Request) => {
       entry,
     });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : 'unknown error';
-
-    return NextResponse.json(
-      {
-        ok: false,
-        reason,
-      },
-      { status: 400 },
-    );
+    return createApiErrorResponse({
+      defaultStatus: 400,
+      error,
+    });
   }
 };

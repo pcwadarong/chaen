@@ -82,6 +82,7 @@ export const getProject = async (
     async () =>
       resolveLocaleAwareData<Project | null>({
         emptyData: null,
+        fallbackLocale: 'ko',
         fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
         fetchLegacy: () => fetchProjectLegacy(projectId),
         isEmptyData: item => item === null,

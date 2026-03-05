@@ -82,6 +82,7 @@ export const getArticle = async (
     async () =>
       resolveLocaleAwareData<Article | null>({
         emptyData: null,
+        fallbackLocale: 'ko',
         fetchByLocale: locale => fetchArticleByLocale(articleId, locale),
         fetchLegacy: () => fetchArticleLegacy(articleId),
         isEmptyData: item => item === null,

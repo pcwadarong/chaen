@@ -77,6 +77,7 @@ export const getArticles = async (targetLocale: string): Promise<Article[]> => {
     async () =>
       resolveLocaleAwareData<Article[]>({
         emptyData: [],
+        fallbackLocale: 'ko',
         fetchByLocale: fetchArticlesByLocale,
         fetchLegacy: fetchArticlesLegacy,
         isEmptyData: items => items.length === 0,

@@ -77,6 +77,7 @@ export const getProjects = async (targetLocale: string): Promise<Project[]> => {
     async () =>
       resolveLocaleAwareData<Project[]>({
         emptyData: [],
+        fallbackLocale: 'ko',
         fetchByLocale: fetchProjectsByLocale,
         fetchLegacy: fetchProjectsLegacy,
         isEmptyData: items => items.length === 0,
