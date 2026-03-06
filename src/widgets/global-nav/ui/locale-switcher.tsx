@@ -12,7 +12,7 @@ import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 
 const headerLocaleCodeMap: Partial<Record<AppLocale, string>> = {
   en: 'EN',
-  fr: 'PR',
+  fr: 'FR',
   ja: 'JA',
   ko: 'KO',
 };

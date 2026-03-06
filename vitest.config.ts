@@ -17,6 +17,10 @@ export default defineConfig({
         find: /\.svg$/,
         replacement: path.resolve(__dirname, './src/shared/lib/test/svg-component.tsx'),
       },
+      {
+        find: /\.svg\?url$/,
+        replacement: path.resolve(__dirname, './src/shared/lib/test/svg-mock-url.ts'),
+      },
     ],
   },
   test: {
