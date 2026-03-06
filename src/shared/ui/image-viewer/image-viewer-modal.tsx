@@ -15,6 +15,7 @@ type ImageViewerItem = {
 
 export type ImageViewerLabels = {
   closeAriaLabel: string;
+  imageViewerAriaLabel?: string;
   nextAriaLabel: string;
   previousAriaLabel: string;
   thumbnailListAriaLabel: string;
@@ -66,6 +67,11 @@ export const ImageViewerModal = ({
     () => sanitizedItems[currentIndex] ?? null,
     [currentIndex, sanitizedItems],
   );
+  const resolvedDialogAriaLabel = useMemo(() => {
+    if (!currentItem) return labels.imageViewerAriaLabel?.trim() || 'Image viewer';
+
+    return currentItem.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer';
+  }, [currentItem, labels.imageViewerAriaLabel]);
 
   useEffect(() => {
     if (!isOpen || initialIndex === null) return;
@@ -96,6 +102,7 @@ export const ImageViewerModal = ({
 
   return (
     <Modal
+      ariaLabel={resolvedDialogAriaLabel}
       closeAriaLabel={labels.closeAriaLabel}
       frameStyle={viewerFrameStyle}
       isOpen={isOpen}

@@ -1,13 +1,19 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { type ReactNode, useEffect, useState } from 'react';
+import React, { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+
 type ModalProps = {
+  ariaDescribedBy?: string;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   children: ReactNode;
   closeAriaLabel: string;
   frameStyle?: ReturnType<typeof css>;
+  initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
   onClose: () => void;
 };
@@ -16,8 +22,19 @@ type ModalProps = {
  * 공통 포털 모달입니다.
  * 어두운 배경, 우측 상단 닫기 버튼, 배경 클릭 닫기 동작을 기본으로 제공합니다.
  */
-export const Modal = ({ children, closeAriaLabel, frameStyle, isOpen, onClose }: ModalProps) => {
+export const Modal = ({
+  ariaDescribedBy,
+  ariaLabel,
+  ariaLabelledBy,
+  children,
+  closeAriaLabel,
+  frameStyle,
+  initialFocusRef,
+  isOpen,
+  onClose,
+}: ModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
+  const frameRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -34,32 +51,32 @@ export const Modal = ({ children, closeAriaLabel, frameStyle, isOpen, onClose }:
     };
   }, [isMounted, isOpen]);
 
-  useEffect(() => {
-    if (!isOpen || !isMounted) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', handleEscape);
-
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [isMounted, isOpen, onClose]);
+  useDialogFocusManagement({
+    containerRef: frameRef,
+    initialFocusRef,
+    isEnabled: isOpen && isMounted,
+    onEscape: onClose,
+  });
 
   if (!isMounted || !isOpen) return null;
 
   return createPortal(
     <div
-      aria-modal="true"
       onClick={event => {
         if (event.target === event.currentTarget) onClose();
       }}
-      role="dialog"
       css={backdropStyle}
     >
-      <div css={[frameBaseStyle, frameStyle]}>
+      <div
+        aria-describedby={ariaDescribedBy}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-modal="true"
+        ref={frameRef}
+        role="dialog"
+        tabIndex={-1}
+        css={[frameBaseStyle, frameStyle]}
+      >
         <button aria-label={closeAriaLabel} onClick={onClose} css={closeButtonStyle} type="button">
           ×
         </button>
