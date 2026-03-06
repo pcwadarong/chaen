@@ -1,8 +1,9 @@
 'use client';
 
 import { css } from '@emotion/react';
-import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+
+import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 
 type SwitcherPopoverProps = {
   children: (args: { closePopover: () => void }) => ReactNode;
@@ -17,6 +18,8 @@ type SwitcherPopoverProps = {
 export const SwitcherPopover = ({ children, label, panelLabel, value }: SwitcherPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const panelId = useId();
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -25,20 +28,21 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
     window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
 
     return () => {
       window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
     };
   }, []);
+
+  useDialogFocusManagement({
+    containerRef: panelRef,
+    initialFocusRef: undefined,
+    isEnabled: isOpen,
+    onEscape: () => {
+      setIsOpen(false);
+    },
+  });
 
   /**
    * 패널 열림 상태를 토글합니다.
@@ -57,6 +61,7 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
   return (
     <div ref={rootRef} css={rootStyle}>
       <button
+        aria-controls={isOpen ? panelId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={panelLabel}
@@ -68,7 +73,14 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
         <span css={triggerValueStyle}>{value}</span>
       </button>
       {isOpen ? (
-        <div aria-label={panelLabel} role="dialog" css={panelStyle}>
+        <div
+          aria-label={panelLabel}
+          id={panelId}
+          ref={panelRef}
+          role="dialog"
+          tabIndex={-1}
+          css={panelStyle}
+        >
           {children({ closePopover })}
         </div>
       ) : null}
