@@ -18,6 +18,8 @@ describe('SwitcherPopover', () => {
 
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(trigger.getAttribute('aria-controls')).toBe(dialog.id);
+    expect(dialog.getAttribute('aria-labelledby')).toBeTruthy();
+    expect(trigger.getAttribute('aria-labelledby')).toBe(dialog.getAttribute('aria-labelledby'));
   });
 
   it('열리면 첫 번째 포커스 가능한 옵션으로 포커스를 이동한다', async () => {
@@ -57,6 +59,23 @@ describe('SwitcherPopover', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: '테마 선택' })).toBeNull();
       expect(trigger).toBe(document.activeElement);
+    });
+  });
+
+  it('외부 click 이벤트로 팝오버를 닫는다', async () => {
+    render(
+      <SwitcherPopover label="테마" panelLabel="테마 선택" value="시스템">
+        {() => <button type="button">시스템</button>}
+      </SwitcherPopover>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '테마 선택' }));
+    await screen.findByRole('dialog', { name: '테마 선택' });
+
+    fireEvent.click(document.body);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: '테마 선택' })).toBeNull();
     });
   });
 });
