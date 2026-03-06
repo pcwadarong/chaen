@@ -1,136 +1,142 @@
 'use client';
 
 import { css } from '@emotion/react';
-import Image from 'next/image';
+import React from 'react';
 
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import type { ArticleDetailListItem } from '@/entities/article/model/types';
+import { formatYear } from '@/shared/lib/date/format-year';
+import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 
 type ArticleDetailPageClientProps = {
+  archiveItems: ArticleDetailListItem[];
   content: string | null;
   description: string | null;
+  emptyArchiveText: string;
   emptyContentText: string;
   emptySummaryText: string;
-  emptyThumbnailText: string;
+  id: string;
+  locale: string;
   noTagsText: string;
   publishedText: string;
   sectionLabels: {
+    archive: string;
     content: string;
     tagList: string;
-    thumbnail: string;
+  };
+  shareLabels: {
+    copyFailed: string;
+    copied: string;
+    share: string;
+    viewCount: string;
   };
   tagLabels: string[];
-  thumbnailAlt: string;
-  thumbnailSrc: string | null;
   title: string;
-  updatedText: string | null;
+  viewCount: number;
 };
 
 /**
  * 아티클 상세 프레젠테이션 컴포넌트입니다.
  */
 export const ArticleDetailPageClient = ({
+  archiveItems,
   content,
   description,
+  emptyArchiveText,
   emptyContentText,
   emptySummaryText,
-  emptyThumbnailText,
+  id,
+  locale,
   noTagsText,
   publishedText,
   sectionLabels,
+  shareLabels,
   tagLabels,
-  thumbnailAlt,
-  thumbnailSrc,
   title,
-  updatedText,
+  viewCount,
 }: ArticleDetailPageClientProps) => (
-  <PageShell>
-    <article css={articleStyle}>
-      <PageHeader
-        description={description ?? emptySummaryText}
-        meta={
-          <>
-            <span>{publishedText}</span>
-            {updatedText ? <span>{updatedText}</span> : null}
-          </>
-        }
-        title={title}
-      >
-        <ul aria-label={sectionLabels.tagList} css={tagListStyle}>
-          {tagLabels.length > 0 ? (
-            tagLabels.map(tagLabel => (
-              <li key={tagLabel} css={tagItemStyle}>
-                #{tagLabel}
-              </li>
-            ))
-          ) : (
-            <li css={tagItemStyle}>#{noTagsText}</li>
-          )}
-        </ul>
-      </PageHeader>
-
-      <PageSection title={sectionLabels.thumbnail} titleId="article-thumbnail-heading">
-        {thumbnailSrc ? (
-          <div css={thumbnailWrapStyle}>
-            <Image
-              alt={thumbnailAlt}
-              height={768}
-              src={thumbnailSrc}
-              css={thumbnailStyle}
-              width={1366}
-            />
-          </div>
+  <DetailPageShell
+    emptyArchiveText={emptyArchiveText}
+    heroDescription={description ?? emptySummaryText}
+    metaBar={
+      <DetailMetaBar
+        copyFailedText={shareLabels.copyFailed}
+        copiedText={shareLabels.copied}
+        locale={locale}
+        primaryMetaText={publishedText}
+        shareText={shareLabels.share}
+        viewCount={viewCount}
+        viewCountLabel={shareLabels.viewCount}
+        viewEndpoint={`/api/articles/${id}/views`}
+      />
+    }
+    sidebarItems={archiveItems.map(item => ({
+      description: item.description,
+      href: `/articles/${item.id}`,
+      isActive: item.id === id,
+      title: item.title,
+      yearText: formatYear(item.created_at, locale) ?? '-',
+    }))}
+    sidebarLabel={sectionLabels.archive}
+    tagContent={
+      <div aria-label={sectionLabels.tagList} css={tagListStyle}>
+        {tagLabels.length > 0 ? (
+          tagLabels.map(tagLabel => (
+            <button aria-disabled="true" css={tagButtonStyle} key={tagLabel} type="button">
+              #{tagLabel}
+            </button>
+          ))
         ) : (
-          <p css={emptyTextStyle}>{emptyThumbnailText}</p>
+          <button aria-disabled="true" css={tagButtonStyle} type="button">
+            #{noTagsText}
+          </button>
         )}
-      </PageSection>
-
-      <PageSection title={sectionLabels.content} titleId="article-content-heading">
-        {content ? (
-          <p css={plainContentStyle}>{content}</p>
-        ) : (
-          <p css={emptyTextStyle}>{emptyContentText}</p>
-        )}
-      </PageSection>
-    </article>
-  </PageShell>
+      </div>
+    }
+    title={title}
+  >
+    <section aria-labelledby="article-content-heading" css={contentSectionStyle}>
+      <h2 id="article-content-heading" css={sectionTitleStyle}>
+        {sectionLabels.content}
+      </h2>
+      {content ? (
+        <div css={plainContentStyle}>{content}</div>
+      ) : (
+        <p css={emptyTextStyle}>{emptyContentText}</p>
+      )}
+    </section>
+  </DetailPageShell>
 );
-
-const articleStyle = css`
-  display: grid;
-  gap: var(--space-5);
-`;
 
 const tagListStyle = css`
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-2);
 `;
 
-const tagItemStyle = css`
+const tagButtonStyle = css`
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.28);
   background-color: rgb(var(--color-surface) / 0.82);
   font-size: var(--font-size-14);
+  color: rgb(var(--color-muted));
+`;
+
+const contentSectionStyle = css`
+  display: grid;
+  gap: var(--space-6);
+`;
+
+const sectionTitleStyle = css`
+  font-size: var(--font-size-32);
+  line-height: var(--line-height-110);
+  letter-spacing: -0.04em;
 `;
 
 const emptyTextStyle = css`
   color: rgb(var(--color-muted));
-`;
-
-const thumbnailWrapStyle = css`
-  width: 100%;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid rgb(var(--color-border) / 0.2);
-  background-color: rgb(var(--color-surface-strong) / 0.36);
-`;
-
-const thumbnailStyle = css`
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
 `;
 
 const plainContentStyle = css`

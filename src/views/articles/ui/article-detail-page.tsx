@@ -1,12 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 
-import type { Article } from '@/entities/article/model/types';
+import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
-import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
-import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { ArticleDetailPageClient } from '@/views/articles/ui/article-detail-page.client';
 
 type ArticleDetailPageProps = {
+  archiveItems: ArticleDetailListItem[];
   item: Article;
   locale: string;
 };
@@ -20,33 +19,38 @@ const getArticleTagLabels = (item: Article, locale: string) =>
 /**
  * 아티클 상세 페이지 컨테이너입니다.
  */
-export const ArticleDetailPage = async ({ item, locale }: ArticleDetailPageProps) => {
+export const ArticleDetailPage = async ({ archiveItems, item, locale }: ArticleDetailPageProps) => {
   const t = await getTranslations('ArticleDetail');
-  const normalizedThumbnailUrl = normalizeImageUrl(item.thumbnail_url);
-  const thumbnailSrc = normalizedThumbnailUrl ? createImageViewerUrl(normalizedThumbnailUrl) : null;
+  const detailUi = await getTranslations('DetailUi');
   const tagLabels = getArticleTagLabels(item, locale);
   const publishedDate = item.created_at.slice(0, 10);
-  const updatedDate = item.updated_at?.slice(0, 10);
 
   return (
     <ArticleDetailPageClient
+      archiveItems={archiveItems}
       content={item.content}
       description={item.description}
+      emptyArchiveText={detailUi('emptyArchive')}
       emptyContentText={t('emptyContent')}
       emptySummaryText={t('emptySummary')}
-      emptyThumbnailText={t('emptyThumbnail')}
+      id={item.id}
+      locale={locale}
       noTagsText={t('noTags')}
       publishedText={t('publishedAt', { date: publishedDate })}
       sectionLabels={{
+        archive: t('archiveLabel'),
         content: t('contentSection'),
         tagList: t('tagSection'),
-        thumbnail: t('thumbnailSection'),
+      }}
+      shareLabels={{
+        copyFailed: detailUi('copyFailed'),
+        copied: detailUi('shareCopied'),
+        share: detailUi('share'),
+        viewCount: detailUi('viewCount'),
       }}
       tagLabels={tagLabels}
-      thumbnailAlt={t('thumbnailAlt', { title: item.title })}
-      thumbnailSrc={thumbnailSrc}
       title={item.title}
-      updatedText={updatedDate ? t('updatedAt', { date: updatedDate }) : null}
+      viewCount={Number(item.view_count ?? 0)}
     />
   );
 };

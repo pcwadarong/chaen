@@ -10,6 +10,7 @@ vi.mock('@/views/articles', () => ({
     initialCursor: null,
     initialItems: [],
     locale: 'ko',
+    searchQuery: '',
   })),
   ArticlesPage: function ArticlesPage() {
     return null;
@@ -22,11 +23,14 @@ describe('ArticlesRoute', () => {
       params: Promise.resolve({
         locale: 'ko',
       }),
+      searchParams: Promise.resolve({
+        q: 'react',
+      }),
     });
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
-    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko', query: 'react' });
     expect(element.props.initialItems).toEqual([]);
     expect(element.props.initialCursor).toBeNull();
     expect(element.props.locale).toBe('ko');

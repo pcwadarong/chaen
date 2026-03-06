@@ -20,35 +20,34 @@ describe('getArticlesPageData', () => {
           id: 'article-1',
           title: 'a1',
           description: 'd1',
-          content: 'c1',
-          tags: [],
           thumbnail_url: null,
           created_at: '2026-03-01T00:00:00.000Z',
-          updated_at: '2026-03-01T00:00:00.000Z',
         },
       ],
       nextCursor: '12',
     });
 
-    const data = await getArticlesPageData({ locale: 'ko' });
+    const data = await getArticlesPageData({ locale: 'ko', query: 'react' });
 
-    expect(getArticles).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(getArticles).toHaveBeenCalledWith({ locale: 'ko', query: 'react' });
     expect(data).toEqual({
       initialCursor: '12',
       initialItems: expect.any(Array),
       locale: 'ko',
+      searchQuery: 'react',
     });
   });
 
   it('아티클 조회 실패 시 빈 초기값으로 폴백한다', async () => {
     vi.mocked(getArticles).mockRejectedValue(new Error('temporary failure'));
 
-    const data = await getArticlesPageData({ locale: 'ko' });
+    const data = await getArticlesPageData({ locale: 'ko', query: '' });
 
     expect(data).toEqual({
       initialCursor: null,
       initialItems: [],
       locale: 'ko',
+      searchQuery: '',
     });
   });
 });

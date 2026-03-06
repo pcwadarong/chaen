@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import React from 'react';
 
-import { getArticle } from '@/entities/article/api/get-article';
-import { ArticleDetailPage } from '@/views/articles';
+import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
 
 type ArticleDetailRouteProps = {
   params: Promise<{
@@ -16,10 +15,13 @@ type ArticleDetailRouteProps = {
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const item = await getArticle(id, locale);
+  const { archiveItems, item } = await getArticleDetailPageData({
+    articleId: id,
+    locale,
+  });
   if (!item) notFound();
 
-  return <ArticleDetailPage item={item} locale={locale} />;
+  return <ArticleDetailPage archiveItems={archiveItems} item={item} locale={locale} />;
 };
 
 export default ArticleDetailRoute;
