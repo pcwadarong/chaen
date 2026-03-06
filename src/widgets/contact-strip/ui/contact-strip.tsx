@@ -21,6 +21,17 @@ export const ContactStrip = () => {
             <span>{t('focusValue')}</span>
           </li>
           <li css={metaItemStyle}>
+            <span css={metaLabelStyle}>{t('githubLabel')}</span>
+            <a
+              href={t('githubValue')}
+              target="_blank"
+              rel="noopener noreferrer"
+              css={emailLinkStyle}
+            >
+              {t('githubValue')}
+            </a>
+          </li>
+          <li css={metaItemStyle}>
             <span css={metaLabelStyle}>{t('emailLabel')}</span>
             <a href={`mailto:${t('emailValue')}`} css={emailLinkStyle}>
               {t('emailValue')}
