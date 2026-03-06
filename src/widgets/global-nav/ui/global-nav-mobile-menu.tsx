@@ -4,10 +4,10 @@ import { css } from '@emotion/react';
 import { Suspense } from 'react';
 
 import { Link } from '@/i18n/navigation';
-import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
-import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
+import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
+import { ThemeSwitcher } from '@/widgets/global-nav/ui/theme-switcher';
 
 type GlobalNavMobileMenuProps = {
   ariaLabel: string;
