@@ -518,9 +518,6 @@ export const GuestbookBoard = ({
             </p>
           ) : null}
           <div css={modalActionsStyle}>
-            <Button onClick={closeModal} tone="white" variant="ghost">
-              {t('cancel')}
-            </Button>
             <Button
               disabled={isModalSubmitting}
               onClick={() => void handleConfirmModal()}

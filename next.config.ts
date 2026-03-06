@@ -5,6 +5,23 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : null;
+const svgrLoader = {
+  loader: '@svgr/webpack',
+  options: {
+    svgoConfig: {
+      plugins: [
+        {
+          name: 'preset-default',
+          params: {
+            overrides: {
+              removeViewBox: false,
+            },
+          },
+        },
+      ],
+    },
+  },
+};
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -47,7 +64,7 @@ const nextConfig: NextConfig = {
         test: /\.svg$/i,
         issuer: fileLoaderRule.issuer,
         resourceQuery: { not: [...(fileLoaderRule.resourceQuery?.not ?? []), /url/] },
-        use: ['@svgr/webpack'],
+        use: [svgrLoader],
       },
     );
 
@@ -58,7 +75,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       '*.svg': {
-        loaders: ['@svgr/webpack'],
+        loaders: [svgrLoader],
         as: '*.js',
       },
     },
