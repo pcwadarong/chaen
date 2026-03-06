@@ -1,11 +1,11 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
 import type { Project } from '@/entities/project/model/types';
 import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
+import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
 
 export type ProjectListPageProps = {
   initialCursor: string | null;
@@ -30,40 +30,31 @@ export const ProjectListPage = ({
   const t = useTranslations('Project');
 
   return (
-    <main css={pageStyle}>
-      <section css={resumeCtaStyle}>
-        <DownloadFileButton
-          fileName={portfolioDownloadFileName}
-          href={portfolioUrl}
-          label={portfolioUrl ? portfolioButtonLabel : portfolioButtonUnavailableLabel}
-          mode="download"
-        />
-      </section>
-      <ProjectFeed
+    <PageShell>
+      <PageHeader
+        action={
+          <DownloadFileButton
+            fileName={portfolioDownloadFileName}
+            href={portfolioUrl}
+            label={portfolioUrl ? portfolioButtonLabel : portfolioButtonUnavailableLabel}
+            mode="download"
+          />
+        }
         description={t('showcaseDescription')}
-        emptyText={t('emptyProjects')}
-        initialCursor={initialCursor}
-        initialItems={initialItems}
-        loadErrorText={t('loadError')}
-        loadMoreEndText={t('loadMoreEnd')}
-        loadingText={t('loading')}
-        locale={locale}
-        retryText={t('retry')}
         title={t('showcaseTitle')}
       />
-    </main>
+      <PageSection>
+        <ProjectFeed
+          emptyText={t('emptyProjects')}
+          initialCursor={initialCursor}
+          initialItems={initialItems}
+          loadErrorText={t('loadError')}
+          loadMoreEndText={t('loadMoreEnd')}
+          loadingText={t('loading')}
+          locale={locale}
+          retryText={t('retry')}
+        />
+      </PageSection>
+    </PageShell>
   );
 };
-
-const pageStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-0) var(--space-20);
-  display: grid;
-  gap: var(--space-4);
-`;
-
-const resumeCtaStyle = css`
-  display: flex;
-  justify-content: flex-end;
-`;

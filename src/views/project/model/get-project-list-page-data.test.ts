@@ -56,4 +56,24 @@ describe('getProjectListPageData', () => {
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
     expect(data.portfolioUrl).toBe('https://example.com/portfolio.pdf');
   });
+
+  it('프로젝트 목록 조회 실패 시 빈 초기 목록으로 폴백한다', async () => {
+    const translation = ((key: string) => {
+      if (key === 'portfolioDownload') return 'Download';
+      if (key === 'portfolioDownloadUnavailable') return 'Unavailable';
+
+      return key;
+    }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
+    vi.mocked(getTranslations).mockResolvedValue(translation);
+    vi.mocked(getProjects).mockRejectedValue(new Error('temporary failure'));
+    vi.mocked(getPdfFileUrl).mockResolvedValue(null);
+    vi.mocked(getPdfFileContent).mockResolvedValue(null);
+
+    const data = await getProjectListPageData({ locale: 'ko' });
+
+    expect(data.initialItems).toEqual([]);
+    expect(data.initialCursor).toBeNull();
+    expect(data.portfolioButtonLabel).toBe('Download');
+    expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
+  });
 });

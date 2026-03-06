@@ -3,7 +3,7 @@
 commit_msg=$(cat "$1")
 
 case "$commit_msg" in
-  "✨ feat:"*|"🐛 fix:"*|"♻️ refactor:"*|"💄 style:"*|"📝 docs:"*|"🔧 chore:"*|"🔥 remove:"*|"🧪 test:"*|"⚙️ ci:"*|"🧹 lint:"*|"Merge"*)
+  "✨ feat:"*|"🐛 fix:"*|"♻️ refactor:"*|"💄 style:"*|"📝 docs:"*|"🔧 chore:"*|"🔥 remove:"*|"🧪 test:"*|"⚡ perf"*|"⚙️ ci:"*|"🧹 lint:"*|"Merge"*)
     exit 0
     ;;
   *)

@@ -17,8 +17,8 @@
     "title": "モーションを載せられる最初のフレーム。"
   },
   "Guest": {
-    "description": "インターネットは私たちが一緒につくる大切な空間です。コメントを書くときは、他者への配慮と責任を忘れずにお願いします。",
     "title": "ゲストブック",
+    "description": "入力したパスワードは、秘密投稿の閲覧・編集・削除と管理者の秘密返信に使用されます。",
     "loading": "ゲストブックを読み込み中です。",
     "loadError": "ゲストブックを読み込めませんでした。",
     "retry": "再試行",
@@ -37,8 +37,8 @@
     "composeAuthorBlogUrlLabel": "ブログホームページ（任意）",
     "composeContentLabel": "ゲストブック本文",
     "composeCharacterCountLabel": "文字数",
-    "composeContentShortcutHint": "Ctrl または Command と Enter を一緒に押すと送信できます。",
-    "composePlaceholder": "インターネットは私たちが一緒につくる大切な空間です。コメントを書くときは、他者への配慮と責任を忘れずにお願いします。秘密投稿に設定すると、入力した同じパスワードで再表示できます。管理者の秘密返信にも同じパスワードが適用されます。",
+    "composeContentShortcutHint": "Ctrl/Command + Enterで送信できます。",
+    "composePlaceholder": "配慮と責任をもってご記入ください。",
     "submit": "送信",
     "reply": "返信",
     "edit": "編集",
@@ -133,6 +133,8 @@
     "emailValue": "pcwadarong@naver.com",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
+    "githubLabel": "Github",
+    "githubValue": "https://github.com/pcwadarong",
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
     "title": "意味のある体験を一緒につくりましょう。"

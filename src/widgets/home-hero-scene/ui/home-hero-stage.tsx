@@ -33,7 +33,6 @@ const stageFrameStyle = css`
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: var(--radius-3xl);
   border: 1px solid rgb(var(--color-border) / 0.22);
   background:
     radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.08), transparent 0 32%),

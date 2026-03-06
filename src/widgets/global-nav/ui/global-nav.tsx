@@ -5,8 +5,11 @@ import { useTranslations } from 'next-intl';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { getButtonStyle } from '@/shared/ui/button/button';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
 import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
+
+const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
@@ -18,16 +21,33 @@ export const GlobalNav = () => {
   const navigationItems = [
     { href: '/', label: t('home') },
     { href: '/resume', label: t('resume') },
-    { href: '/guest', label: t('guest') },
-    { href: '/articles', label: t('articles') },
     { href: '/project', label: t('project') },
+    { href: '/articles', label: t('articles') },
+    { href: '/guest', label: t('guest') },
   ] as const;
 
   useEffect(() => {
-    lastScrollYRef.current = window.scrollY;
+    const desktopMedia = window.matchMedia(DESKTOP_FRAME_MEDIA_QUERY);
+    const viewportElement = document.querySelector<HTMLElement>(
+      '[data-app-scroll-viewport="true"]',
+    );
+
+    const getScrollBinding = () =>
+      desktopMedia.matches && viewportElement
+        ? {
+            readScrollTop: () => viewportElement.scrollTop,
+            target: viewportElement,
+          }
+        : {
+            readScrollTop: () => window.scrollY,
+            target: window,
+          };
+
+    let activeBinding = getScrollBinding();
+    lastScrollYRef.current = activeBinding.readScrollTop();
 
     const updateByDirection = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = activeBinding.readScrollTop();
       const delta = currentScrollY - lastScrollYRef.current;
       const nearTop = currentScrollY <= 8;
 
@@ -51,9 +71,28 @@ export const GlobalNav = () => {
       rafIdRef.current = window.requestAnimationFrame(updateByDirection);
     };
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const bind = () => {
+      activeBinding.target.addEventListener('scroll', onScroll, { passive: true });
+    };
+
+    const unbind = () => {
+      activeBinding.target.removeEventListener('scroll', onScroll);
+    };
+
+    const handleViewportModeChange = () => {
+      unbind();
+      activeBinding = getScrollBinding();
+      lastScrollYRef.current = activeBinding.readScrollTop();
+      setIsHidden(false);
+      bind();
+    };
+
+    bind();
+    desktopMedia.addEventListener('change', handleViewportModeChange);
+
     return () => {
-      window.removeEventListener('scroll', onScroll);
+      unbind();
+      desktopMedia.removeEventListener('change', handleViewportModeChange);
       if (rafIdRef.current !== null) {
         window.cancelAnimationFrame(rafIdRef.current);
       }
@@ -94,13 +133,20 @@ const headerStyle = css`
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(14px);
-  background-color: rgb(var(--color-bg) / 0.78);
-  border-bottom: 1px solid rgb(var(--color-border) / 0.2);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  background-color: rgb(var(--color-surface) / 0.72);
+  border-bottom: 1px solid rgb(var(--color-border) / 0.16);
+  box-shadow: 0 4px 12px rgb(var(--color-border) / 0.15);
   will-change: transform, opacity;
   transition:
     transform 240ms ease,
     opacity 240ms ease;
+
+  @media (min-width: 961px) {
+    border-top-left-radius: calc(2rem - 1px);
+    border-top-right-radius: calc(2rem - 1px);
+  }
 `;
 
 const visibleHeaderStyle = css`
@@ -150,17 +196,13 @@ const listStyle = css`
 `;
 
 const navLinkStyle = css`
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.25rem;
-  padding: var(--space-0) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.24);
+  ${getButtonStyle({
+    size: 'sm',
+    tone: 'white',
+    variant: 'ghost',
+  })};
   font-size: var(--font-size-16);
   letter-spacing: 0.04em;
-  text-decoration: none;
-  background-color: rgb(var(--color-surface) / 0.8);
-  color: rgb(var(--color-text));
 `;
 
 const controlsStyle = css`

@@ -14,7 +14,10 @@ export const getHomePageData = async ({ locale }: GetHomePageDataInput): Promise
   const projectsPage = await getProjects({
     locale,
     limit: 3,
-  });
+  }).catch(() => ({
+    items: [],
+    nextCursor: null,
+  }));
 
   return {
     items: projectsPage.items,

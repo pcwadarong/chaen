@@ -35,4 +35,14 @@ describe('getHomePageData', () => {
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko', limit: 3 });
     expect(data.items).toHaveLength(1);
   });
+
+  it('프로젝트 조회 실패 시 빈 items로 폴백한다', async () => {
+    vi.mocked(getProjects).mockRejectedValue(new Error('temporary failure'));
+
+    const data = await getHomePageData({ locale: 'ko' });
+
+    expect(data).toEqual({
+      items: [],
+    });
+  });
 });

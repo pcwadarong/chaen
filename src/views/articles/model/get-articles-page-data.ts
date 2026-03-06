@@ -12,7 +12,10 @@ type GetArticlesPageDataInput = {
 export const getArticlesPageData = async ({
   locale,
 }: GetArticlesPageDataInput): Promise<ArticlesPageProps> => {
-  const articlesPage = await getArticles({ locale });
+  const articlesPage = await getArticles({ locale }).catch(() => ({
+    items: [],
+    nextCursor: null,
+  }));
 
   return {
     initialCursor: articlesPage.nextCursor,

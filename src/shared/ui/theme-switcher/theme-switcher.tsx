@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
+import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 
 const themeOptions = ['system', 'light', 'dark'] as const;
@@ -31,18 +32,20 @@ export const ThemeSwitcher = () => {
             const isActive = activeTheme === option;
 
             return (
-              <button
+              <Button
                 aria-pressed={isActive}
                 key={option}
                 onClick={() => {
                   setTheme(option);
                   closePopover();
                 }}
-                css={[optionStyle, isActive && optionActiveStyle]}
+                css={optionStyle}
+                tone={isActive ? 'black' : 'white'}
                 type="button"
+                variant={isActive ? 'solid' : 'ghost'}
               >
                 {t(option)}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -57,21 +60,6 @@ const listStyle = css`
 `;
 
 const optionStyle = css`
-  min-height: 2.8rem;
   width: 100%;
-  padding: var(--space-3) var(--space-3);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  font-size: var(--font-size-14);
-  color: rgb(var(--color-text));
-  background-color: transparent;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-`;
-
-const optionActiveStyle = css`
-  background-color: rgb(var(--color-primary));
-  color: rgb(var(--color-primary-contrast));
+  justify-content: flex-start;
 `;

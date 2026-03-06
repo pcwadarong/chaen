@@ -29,10 +29,16 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
 
 const sectionStyle = css`
   position: relative;
-  width: 100vw;
-  min-height: 100svh;
-  height: 100svh;
-  margin-inline: calc(50% - 50vw);
+  width: 100%;
+  min-height: 100dvh;
+  height: 100dvh;
   overflow: clip;
   isolation: isolate;
+
+  @media (max-width: 960px) {
+    width: 100vw;
+    min-height: 100svh;
+    height: 100svh;
+    margin-inline: calc(50% - 50vw);
+  }
 `;

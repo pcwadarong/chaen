@@ -12,6 +12,8 @@ import { homeHeroCameraMotion } from '@/widgets/home-hero-scene/model/home-hero-
 
 gsap.registerPlugin(ScrollTrigger);
 
+const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
+
 type UseHomeHeroSceneTransitionParams = {
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
@@ -39,6 +41,9 @@ export const useHomeHeroSceneTransition = ({
     const webUiElement = webUiRef.current;
     const pivot = pivotRef.current;
     const cameraMount = cameraMountRef.current;
+    const desktopMedia = window.matchMedia(DESKTOP_FRAME_MEDIA_QUERY);
+    const frameScroller = document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]');
+    const scroller = desktopMedia.matches && frameScroller ? frameScroller : undefined;
     const motionState = {
       rotationY: homeHeroCameraMotion.initialRotationY,
       cameraOffsetX: homeHeroCameraMotion.initialCameraOffset[0],
@@ -78,6 +83,7 @@ export const useHomeHeroSceneTransition = ({
     const timeline = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
+        scroller,
         trigger: triggerRef.current,
         start: 'top top',
         end: homeHeroCameraMotion.end,

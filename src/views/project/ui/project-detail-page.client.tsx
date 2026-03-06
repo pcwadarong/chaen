@@ -3,6 +3,7 @@
 import { css } from '@emotion/react';
 
 import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-modal';
+import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
 import { ProjectDetailMediaGallery } from '@/views/project/ui/project-detail-media-gallery';
 
 type ProjectDetailMediaItem = {
@@ -49,15 +50,18 @@ export const ProjectDetailPageClient = ({
   title,
   viewerLabels,
 }: ProjectDetailPageClientProps) => (
-  <main css={pageStyle}>
+  <PageShell>
     <article css={articleStyle}>
-      <header css={heroStyle}>
-        <div css={metaStyle}>
-          <span>{periodText}</span>
-          <span>{publishedText}</span>
-        </div>
-        <h1 css={titleStyle}>{title}</h1>
-        <p css={descriptionStyle}>{description ?? emptySummaryText}</p>
+      <PageHeader
+        description={description ?? emptySummaryText}
+        meta={
+          <>
+            <span>{periodText}</span>
+            <span>{publishedText}</span>
+          </>
+        }
+        title={title}
+      >
         <ul aria-label={sectionLabels.tags} css={tagListStyle}>
           {tagLabels.length > 0 ? (
             tagLabels.map(tagLabel => (
@@ -69,73 +73,31 @@ export const ProjectDetailPageClient = ({
             <li css={tagItemStyle}>#{noTagsText}</li>
           )}
         </ul>
-      </header>
+      </PageHeader>
 
-      <section aria-labelledby="project-media-heading" css={panelStyle}>
-        <h2 id="project-media-heading" css={sectionTitleStyle}>
-          {sectionLabels.media}
-        </h2>
+      <PageSection title={sectionLabels.media} titleId="project-media-heading">
         <ProjectDetailMediaGallery
           emptyText={emptyMediaText}
           items={mediaItems}
           sectionLabel={sectionLabels.media}
           viewerLabels={viewerLabels}
         />
-      </section>
+      </PageSection>
 
-      <section aria-labelledby="project-description-heading" css={panelStyle}>
-        <h2 id="project-description-heading" css={sectionTitleStyle}>
-          {sectionLabels.description}
-        </h2>
+      <PageSection title={sectionLabels.description} titleId="project-description-heading">
         {content ? (
           <p css={plainContentStyle}>{content}</p>
         ) : (
           <p css={emptyTextStyle}>{emptyDescriptionText}</p>
         )}
-      </section>
+      </PageSection>
     </article>
-  </main>
+  </PageShell>
 );
-
-const pageStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-0) var(--space-20);
-`;
 
 const articleStyle = css`
   display: grid;
   gap: var(--space-5);
-`;
-
-const heroStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-7);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  background:
-    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
-    rgb(var(--color-surface));
-`;
-
-const metaStyle = css`
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const titleStyle = css`
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
-  line-height: var(--line-height-98);
-  letter-spacing: -0.04em;
-`;
-
-const descriptionStyle = css`
-  color: rgb(var(--color-muted));
-  max-width: 70ch;
 `;
 
 const tagListStyle = css`
@@ -150,21 +112,6 @@ const tagItemStyle = css`
   border: 1px solid rgb(var(--color-border) / 0.28);
   background-color: rgb(var(--color-surface) / 0.82);
   font-size: var(--font-size-14);
-`;
-
-const panelStyle = css`
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.2);
-  background-color: rgb(var(--color-surface) / 0.92);
-`;
-
-const sectionTitleStyle = css`
-  font-size: var(--font-size-20);
-  line-height: var(--line-height-120);
-  letter-spacing: -0.02em;
 `;
 
 const emptyTextStyle = css`

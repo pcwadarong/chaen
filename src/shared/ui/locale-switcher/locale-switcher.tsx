@@ -7,6 +7,7 @@ import { useMemo, useTransition } from 'react';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { type AppLocale, routing } from '@/i18n/routing';
+import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 
 /**
@@ -50,17 +51,19 @@ export const LocaleSwitcher = () => {
             const isActive = locale === option;
 
             return (
-              <button
+              <Button
                 aria-pressed={isActive}
                 disabled={isPending}
                 key={option}
                 onClick={() => handleLocaleChange(option, closePopover)}
-                css={[optionStyle, isActive && optionActiveStyle]}
+                css={optionStyle}
+                tone={isActive ? 'black' : 'white'}
                 type="button"
+                variant={isActive ? 'solid' : 'ghost'}
               >
                 <span css={optionCodeStyle}>{option.toUpperCase()}</span>
                 <span>{t(option)}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -75,25 +78,11 @@ const listStyle = css`
 `;
 
 const optionStyle = css`
-  min-height: 2.8rem;
   width: 100%;
-  padding: var(--space-3) var(--space-3);
-  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  font-size: var(--font-size-14);
-  color: rgb(var(--color-text));
-  background-color: transparent;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-`;
-
-const optionActiveStyle = css`
-  background-color: rgb(var(--color-text));
-  color: rgb(var(--color-bg));
 `;
 
 const optionCodeStyle = css`

@@ -1,7 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React from 'react';
+
+import { Button, getButtonStyle } from '@/shared/ui/button/button';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -30,7 +31,10 @@ export const DownloadFileButton = ({
         href={href}
         rel="noopener noreferrer"
         target="_blank"
-        css={buttonStyle}
+        css={getButtonStyle({
+          tone: 'white',
+          variant: 'solid',
+        })}
       >
         {label}
       </a>
@@ -38,24 +42,14 @@ export const DownloadFileButton = ({
   }
 
   return (
-    <button aria-disabled={isDisabled} disabled={isDisabled} css={buttonStyle} type="button">
+    <Button
+      aria-disabled={isDisabled}
+      disabled={isDisabled}
+      tone="white"
+      type="button"
+      variant="solid"
+    >
       {label}
-    </button>
+    </Button>
   );
 };
-
-const buttonStyle = css`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.875rem;
-  padding: var(--space-0) var(--space-5);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background:
-    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
-    rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
-`;

@@ -3,6 +3,8 @@
 import { css } from '@emotion/react';
 import Image from 'next/image';
 
+import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+
 type ArticleDetailPageClientProps = {
   content: string | null;
   description: string | null;
@@ -41,15 +43,18 @@ export const ArticleDetailPageClient = ({
   title,
   updatedText,
 }: ArticleDetailPageClientProps) => (
-  <main css={pageStyle}>
+  <PageShell>
     <article css={articleStyle}>
-      <header css={heroStyle}>
-        <div css={metaStyle}>
-          <span>{publishedText}</span>
-          {updatedText ? <span>{updatedText}</span> : null}
-        </div>
-        <h1 css={titleStyle}>{title}</h1>
-        <p css={descriptionStyle}>{description ?? emptySummaryText}</p>
+      <PageHeader
+        description={description ?? emptySummaryText}
+        meta={
+          <>
+            <span>{publishedText}</span>
+            {updatedText ? <span>{updatedText}</span> : null}
+          </>
+        }
+        title={title}
+      >
         <ul aria-label={sectionLabels.tagList} css={tagListStyle}>
           {tagLabels.length > 0 ? (
             tagLabels.map(tagLabel => (
@@ -61,12 +66,9 @@ export const ArticleDetailPageClient = ({
             <li css={tagItemStyle}>#{noTagsText}</li>
           )}
         </ul>
-      </header>
+      </PageHeader>
 
-      <section aria-labelledby="article-thumbnail-heading" css={panelStyle}>
-        <h2 id="article-thumbnail-heading" css={sectionTitleStyle}>
-          {sectionLabels.thumbnail}
-        </h2>
+      <PageSection title={sectionLabels.thumbnail} titleId="article-thumbnail-heading">
         {thumbnailSrc ? (
           <div css={thumbnailWrapStyle}>
             <Image
@@ -80,61 +82,22 @@ export const ArticleDetailPageClient = ({
         ) : (
           <p css={emptyTextStyle}>{emptyThumbnailText}</p>
         )}
-      </section>
+      </PageSection>
 
-      <section aria-labelledby="article-content-heading" css={panelStyle}>
-        <h2 id="article-content-heading" css={sectionTitleStyle}>
-          {sectionLabels.content}
-        </h2>
+      <PageSection title={sectionLabels.content} titleId="article-content-heading">
         {content ? (
           <p css={plainContentStyle}>{content}</p>
         ) : (
           <p css={emptyTextStyle}>{emptyContentText}</p>
         )}
-      </section>
+      </PageSection>
     </article>
-  </main>
+  </PageShell>
 );
-
-const pageStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-0) var(--space-20);
-`;
 
 const articleStyle = css`
   display: grid;
   gap: var(--space-5);
-`;
-
-const heroStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-7);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  background:
-    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
-    rgb(var(--color-surface));
-`;
-
-const metaStyle = css`
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const titleStyle = css`
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
-  line-height: var(--line-height-98);
-  letter-spacing: -0.04em;
-`;
-
-const descriptionStyle = css`
-  color: rgb(var(--color-muted));
-  max-width: 70ch;
 `;
 
 const tagListStyle = css`
@@ -149,21 +112,6 @@ const tagItemStyle = css`
   border: 1px solid rgb(var(--color-border) / 0.28);
   background-color: rgb(var(--color-surface) / 0.82);
   font-size: var(--font-size-14);
-`;
-
-const panelStyle = css`
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.2);
-  background-color: rgb(var(--color-surface) / 0.92);
-`;
-
-const sectionTitleStyle = css`
-  font-size: var(--font-size-20);
-  line-height: var(--line-height-120);
-  letter-spacing: -0.02em;
 `;
 
 const emptyTextStyle = css`

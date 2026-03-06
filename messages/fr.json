@@ -17,8 +17,8 @@
     "title": "Une ouverture pensée pour accueillir du mouvement."
   },
   "Guest": {
-    "description": "Internet est un espace précieux que nous construisons ensemble. Merci d'écrire avec respect et responsabilité envers les autres.",
     "title": "Livre d'or",
+    "description": "Le mot de passe saisi sert a consulter, modifier et supprimer les messages secrets, ainsi qu'aux reponses secretes de l'administrateur.",
     "loading": "Chargement du livre d'or.",
     "loadError": "Impossible de charger le livre d'or.",
     "retry": "Réessayer",
@@ -37,8 +37,8 @@
     "composeAuthorBlogUrlLabel": "Site de blog (optionnel)",
     "composeContentLabel": "Contenu du message",
     "composeCharacterCountLabel": "Nombre de caractères",
-    "composeContentShortcutHint": "Appuyez sur Contrôle ou Commande avec Entrée pour envoyer.",
-    "composePlaceholder": "Internet est un espace précieux que nous construisons ensemble. Merci d'écrire avec respect et responsabilité envers les autres. Si le message est secret, vous pourrez le rouvrir avec le même mot de passe. Les réponses secrètes de l'admin utilisent aussi ce mot de passe.",
+    "composeContentShortcutHint": "Envoi avec Ctrl/Command + Entrée.",
+    "composePlaceholder": "Merci d'écrire avec respect et responsabilité.",
     "submit": "Envoyer",
     "reply": "Répondre",
     "edit": "Modifier",
@@ -133,6 +133,8 @@
     "emailValue": "pcwadarong@naver.com",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
+    "githubLabel": "Github",
+    "githubValue": "https://github.com/pcwadarong",
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
     "title": "Créons ensemble des expériences porteuses de sens."

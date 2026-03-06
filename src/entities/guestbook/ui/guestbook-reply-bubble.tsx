@@ -3,7 +3,9 @@
 import { css } from '@emotion/react';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
+import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
 import { useAuth } from '@/shared/providers';
+import { Button } from '@/shared/ui/button/button';
 
 type GuestbookReplyBubbleProps = {
   actionDeleteLabel: string;
@@ -33,26 +35,42 @@ export const GuestbookReplyBubble = ({
 
   return (
     <article css={wrapperStyle}>
-      <div css={bubbleStyle}>
+      <GuestbookEntryBubble
+        align="end"
+        footer={
+          <>
+            <div css={actionRowStyle}>
+              {isAdmin && !isDeleted && (
+                <>
+                  <Button
+                    onClick={() => onEdit(entry)}
+                    css={replyActionStyle}
+                    tone="white"
+                    variant="underline"
+                  >
+                    {actionEditLabel}
+                  </Button>
+                  <Button
+                    onClick={() => onDelete(entry)}
+                    css={replyActionStyle}
+                    tone="white"
+                    variant="underline"
+                  >
+                    {actionDeleteLabel}
+                  </Button>
+                </>
+              )}
+            </div>
+            <time dateTime={entry.created_at} css={dateStyle}>
+              {dateText}
+            </time>
+          </>
+        }
+        maxWidth="min(640px, 90%)"
+        tone="inverse"
+      >
         <p css={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
-        <footer css={footerStyle}>
-          <div css={actionRowStyle}>
-            {isAdmin && !isDeleted && (
-              <>
-                <button onClick={() => onEdit(entry)} css={actionButtonStyle} type="button">
-                  {actionEditLabel}
-                </button>
-                <button onClick={() => onDelete(entry)} css={actionButtonStyle} type="button">
-                  {actionDeleteLabel}
-                </button>
-              </>
-            )}
-          </div>
-          <time dateTime={entry.created_at} css={dateStyle}>
-            {dateText}
-          </time>
-        </footer>
-      </div>
+      </GuestbookEntryBubble>
     </article>
   );
 };
@@ -63,42 +81,22 @@ const wrapperStyle = css`
   width: 100%;
 `;
 
-const bubbleStyle = css`
-  width: fit-content;
-  max-width: min(640px, 90%);
-  padding: var(--space-4) var(--space-4);
-  border-radius: var(--radius-l);
-  background-color: rgb(var(--color-text) / 0.78);
-  color: rgb(var(--color-surface));
-  display: grid;
-  gap: var(--space-2);
-`;
-
 const contentStyle = css`
   white-space: pre-wrap;
   line-height: var(--line-height-155);
 `;
 
-const footerStyle = css`
-  display: flex;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  font-size: var(--font-size-12);
-`;
-
 const actionRowStyle = css`
   display: flex;
-  gap: var(--space-1);
-`;
-
-const actionButtonStyle = css`
-  border: none;
-  text-decoration: underline;
+  gap: var(--space-3);
 `;
 
 const dateStyle = css`
   justify-self: end;
   color: rgb(var(--color-surface) / 0.65);
   font-size: var(--font-size-14);
+`;
+
+const replyActionStyle = css`
+  color: rgb(var(--color-surface) / 0.65);
 `;

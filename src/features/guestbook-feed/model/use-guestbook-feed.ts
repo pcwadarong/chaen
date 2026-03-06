@@ -14,6 +14,8 @@ type GuestbookFeedResponse = {
 };
 
 type UseGuestbookFeedOptions = {
+  initialCursor?: string | null;
+  initialItems?: GuestbookThreadItem[];
   limit?: number;
 };
 
@@ -42,11 +44,13 @@ type GuestbookEntryLike = GuestbookEntry;
  * 방명록 스레드 목록을 클라이언트에서 무한스크롤 방식으로 관리합니다.
  */
 export const useGuestbookFeed = ({
+  initialCursor = null,
+  initialItems = [],
   limit = DEFAULT_LIMIT,
 }: UseGuestbookFeedOptions = {}): UseGuestbookFeedResult => {
-  const [items, setItems] = useState<GuestbookThreadItem[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [items, setItems] = useState<GuestbookThreadItem[]>(initialItems);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
+  const [isInitialLoading, setIsInitialLoading] = useState(initialItems.length === 0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const setNormalizedError = useCallback((error: unknown) => {
@@ -155,6 +159,8 @@ export const useGuestbookFeed = ({
   }, []);
 
   useEffect(() => {
+    if (initialItems.length > 0) return;
+
     const fetchInitial = async () => {
       try {
         await requestPage(null, 'initial');
@@ -166,7 +172,7 @@ export const useGuestbookFeed = ({
     };
 
     void fetchInitial();
-  }, [requestPage, setNormalizedError]);
+  }, [initialItems.length, requestPage, setNormalizedError]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

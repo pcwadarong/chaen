@@ -39,4 +39,16 @@ describe('getArticlesPageData', () => {
       locale: 'ko',
     });
   });
+
+  it('아티클 조회 실패 시 빈 초기값으로 폴백한다', async () => {
+    vi.mocked(getArticles).mockRejectedValue(new Error('temporary failure'));
+
+    const data = await getArticlesPageData({ locale: 'ko' });
+
+    expect(data).toEqual({
+      initialCursor: null,
+      initialItems: [],
+      locale: 'ko',
+    });
+  });
 });

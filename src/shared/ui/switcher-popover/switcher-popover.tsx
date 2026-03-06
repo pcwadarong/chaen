@@ -4,6 +4,7 @@ import { css } from '@emotion/react';
 import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+import { Button } from '@/shared/ui/button/button';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type SwitcherPopoverProps = {
@@ -66,7 +67,7 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
       <span id={panelLabelId} css={srOnlyStyle}>
         {panelLabel}
       </span>
-      <button
+      <Button
         aria-controls={isOpen ? panelId : undefined}
         aria-describedby={valueId}
         aria-expanded={isOpen}
@@ -74,13 +75,16 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
         aria-labelledby={panelLabelId}
         onClick={handleToggle}
         css={triggerStyle}
+        size="sm"
+        tone="white"
         type="button"
+        variant="ghost"
       >
         <span css={triggerLabelStyle}>{label}</span>
         <span id={valueId} css={triggerValueStyle}>
           {value}
         </span>
-      </button>
+      </Button>
       {isOpen ? (
         <div
           aria-labelledby={panelLabelId}
@@ -102,13 +106,7 @@ const rootStyle = css`
 `;
 
 const triggerStyle = css`
-  min-height: 2.5rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  background-color: rgb(var(--color-surface) / 0.84);
   display: inline-flex;
-  align-items: center;
   gap: var(--space-3);
 `;
 
