@@ -23,7 +23,13 @@ export const GuestbookComposeReplyPreview = ({
   <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
     <ArrowCurveLeftRightIcon aria-hidden size="sm" />
     <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
-    <Button onClick={onReset} css={replyPreviewCloseStyle} tone="black" variant="underline">
+    <Button
+      onClick={onReset}
+      css={replyPreviewCloseStyle}
+      tone="black"
+      type="button"
+      variant="underline"
+    >
       {replyTargetResetLabel}
     </Button>
   </aside>
