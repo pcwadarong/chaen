@@ -101,4 +101,20 @@ describe('Modal', () => {
       expect(triggerButton).toBe(document.activeElement);
     });
   });
+
+  it('Escape 키를 누르면 기본 동작을 막고 모달 닫기를 호출한다', async () => {
+    const onClose = vi.fn();
+
+    render(
+      <Modal closeAriaLabel="닫기" isOpen onClose={onClose}>
+        <div>본문</div>
+      </Modal>,
+    );
+
+    await screen.findByRole('dialog');
+    const isDefaultAllowed = fireEvent.keyDown(window, { cancelable: true, key: 'Escape' });
+
+    expect(isDefaultAllowed).toBe(false);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
