@@ -1,7 +1,6 @@
 'use client';
 
 import { css } from '@emotion/react';
-import styled from '@emotion/styled';
 import React, {
   type KeyboardEvent,
   type SyntheticEvent,
@@ -139,9 +138,9 @@ export const GuestbookComposeForm = ({
           </button>
         </aside>
       ) : null}
-      <TopRow>
+      <div css={topRowStyle}>
         {!isAdmin ? (
-          <LeftFields>
+          <div css={leftFieldsStyle}>
             <label css={fieldWrapStyle} htmlFor={authorNameId}>
               <span css={srOnlyStyle}>{authorNameLabel}</span>
               <input
@@ -178,9 +177,9 @@ export const GuestbookComposeForm = ({
                 value={authorBlogUrl}
               />
             </label>
-          </LeftFields>
+          </div>
         ) : null}
-        <RightActions>
+        <div css={rightActionsStyle}>
           {!isAdmin ? (
             <label css={secretToggleStyle}>
               <input
@@ -194,8 +193,8 @@ export const GuestbookComposeForm = ({
           <button disabled={isSubmitting} css={submitButtonStyle} type="submit">
             {submitLabel}
           </button>
-        </RightActions>
-      </TopRow>
+        </div>
+      </div>
 
       <div css={textareaWrapStyle}>
         <label css={fieldWrapStyle} htmlFor={contentId}>
@@ -244,13 +243,13 @@ const formStyle = css`
   gap: var(--space-3);
 `;
 
-const TopRow = styled.div`
+const topRowStyle = css`
   display: flex;
   gap: var(--space-3);
   align-items: center;
 `;
 
-const LeftFields = styled.div`
+const leftFieldsStyle = css`
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
@@ -288,7 +287,6 @@ const replyPreviewCloseStyle = css`
 
 const inputStyle = css`
   width: 100%;
-  flex: 0 1 5rem;
   min-height: 2.5rem;
   border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.34);
@@ -298,10 +296,11 @@ const inputStyle = css`
 `;
 
 const fieldWrapStyle = css`
-  display: block;
+  display: flex;
+  flex: 0 1 9rem;
 `;
 
-const RightActions = styled.div`
+const rightActionsStyle = css`
   margin-left: auto;
   display: inline-flex;
   align-items: center;
