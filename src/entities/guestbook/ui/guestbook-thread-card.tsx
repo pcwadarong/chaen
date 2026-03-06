@@ -1,12 +1,11 @@
 'use client';
 
-import { css, keyframes } from '@emotion/react';
+import { css } from '@emotion/react';
 import React, { useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
-import { Button } from '@/shared/ui/button/button';
-import { Input } from '@/shared/ui/input/input';
+import { GuestbookThreadBubble } from '@/entities/guestbook/ui/guestbook-thread-bubble';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
@@ -32,8 +31,8 @@ type GuestbookThreadCardProps = {
 };
 
 /**
- * 방명록 원댓글 카드와 하위 대댓글 목록을 렌더링합니다.
- * 비밀글은 기본적으로 내용을 숨기고 확인하기 버튼으로 열 수 있습니다.
+ * 방명록 스레드의 상태와 reply 목록을 조합하는 컨테이너입니다.
+ * 메인 흰 버블과 관리자 답글 버블은 각각 별도 프레젠테이션 컴포넌트로 분리합니다.
  */
 export const GuestbookThreadCard = ({
   actionDeleteLabel,
@@ -62,95 +61,48 @@ export const GuestbookThreadCard = ({
   const [secretError, setSecretError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const isSecretRevealed = !entry.is_secret || !entry.is_content_masked;
-  const isDeleted = Boolean(entry.deleted_at);
 
   return (
     <article css={threadStyle}>
-      <div css={parentWrapStyle}>
-        <div css={cardStyle}>
-          <header css={headerStyle}>
-            <div css={metaLeftStyle}>
-              <strong css={nameStyle}>{entry.author_name}</strong>
-              {entry.is_secret ? <span css={secretBadgeStyle}>{secretLabel}</span> : null}
-            </div>
-            <time dateTime={entry.created_at} css={dateStyle}>
-              {dateText(entry.created_at)}
-            </time>
-          </header>
-
-          <div css={bodyStyle}>
-            {isDeleted ? (
-              <p css={deletedContentStyle}>{deletedPlaceholder}</p>
-            ) : isSecretRevealed ? (
-              <p css={contentStyle}>{entry.content}</p>
-            ) : (
-              <div css={secretContentStyle}>
-                <p css={secretTextStyle}>{secretPlaceholder}</p>
-                <Button
-                  onClick={() => setIsSecretPanelOpen(previous => !previous)}
-                  tone="white"
-                  variant="ghost"
-                  type="button"
-                >
-                  {revealLabel}
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {entry.is_secret && !isDeleted && isSecretPanelOpen && !isSecretRevealed ? (
-            <div css={revealPanelStyle}>
-              <p css={revealTitleStyle}>{revealSecretTitle}</p>
-              <Input
-                onChange={event => setPasswordInput(event.target.value)}
-                placeholder={revealSecretPasswordLabel}
-                type="password"
-                value={passwordInput}
-              />
-              <Button
-                disabled={isSecretSubmitting}
-                onClick={async () => {
-                  if (!passwordInput.trim()) return;
-                  try {
-                    setSecretError(null);
-                    setIsSecretSubmitting(true);
-                    await onRevealSecret(entry, passwordInput);
-                    setPasswordInput('');
-                    setIsSecretPanelOpen(false);
-                  } catch {
-                    setSecretError(revealSecretErrorLabel);
-                  } finally {
-                    setIsSecretSubmitting(false);
-                  }
-                }}
-                tone="black"
-                type="button"
-              >
-                {revealSecretSubmitLabel}
-              </Button>
-              {secretError ? <p css={revealErrorStyle}>{secretError}</p> : null}
-            </div>
-          ) : null}
-
-          <footer css={footerStyle}>
-            {canReply && !isDeleted ? (
-              <Button onClick={() => onReply(entry)} tone="black" variant="underline">
-                {actionReplyLabel}
-              </Button>
-            ) : null}
-            {!isDeleted ? (
-              <>
-                <Button onClick={() => onEdit(entry)} tone="black" variant="underline">
-                  {actionEditLabel}
-                </Button>
-                <Button onClick={() => onDelete(entry)} tone="black" variant="underline">
-                  {actionDeleteLabel}
-                </Button>
-              </>
-            ) : null}
-          </footer>
-        </div>
-      </div>
+      <GuestbookThreadBubble
+        actionDeleteLabel={actionDeleteLabel}
+        actionEditLabel={actionEditLabel}
+        actionReplyLabel={actionReplyLabel}
+        canReply={canReply}
+        dateText={dateText}
+        deletedPlaceholder={deletedPlaceholder}
+        entry={entry}
+        isSecretPanelOpen={isSecretPanelOpen}
+        isSecretRevealed={isSecretRevealed}
+        isSecretSubmitting={isSecretSubmitting}
+        onDelete={onDelete}
+        onEdit={onEdit}
+        onReply={onReply}
+        onRevealSecret={async (currentEntry, currentPasswordInput) => {
+          if (!currentPasswordInput.trim()) return;
+          try {
+            setSecretError(null);
+            setIsSecretSubmitting(true);
+            await onRevealSecret(currentEntry, currentPasswordInput);
+            setPasswordInput('');
+            setIsSecretPanelOpen(false);
+          } catch {
+            setSecretError(revealSecretErrorLabel);
+          } finally {
+            setIsSecretSubmitting(false);
+          }
+        }}
+        onToggleSecretPanel={() => setIsSecretPanelOpen(previous => !previous)}
+        passwordInput={passwordInput}
+        revealLabel={revealLabel}
+        revealSecretPasswordLabel={revealSecretPasswordLabel}
+        revealSecretSubmitLabel={revealSecretSubmitLabel}
+        revealSecretTitle={revealSecretTitle}
+        secretError={secretError}
+        secretLabel={secretLabel}
+        secretPlaceholder={secretPlaceholder}
+        setPasswordInput={setPasswordInput}
+      />
 
       {entry.replies.length > 0 ? (
         <div css={replyStackStyle}>
@@ -172,127 +124,10 @@ export const GuestbookThreadCard = ({
   );
 };
 
-const secretRevealAnimation = keyframes`
-  from {
-    opacity: 0;
-    filter: blur(6px);
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-`;
-
 const threadStyle = css`
   width: 100%;
   display: grid;
   gap: var(--space-2);
-`;
-
-const parentWrapStyle = css`
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const cardStyle = css`
-  width: fit-content;
-  max-width: min(760px, 92%);
-  display: grid;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-l);
-  border: 1px solid rgb(var(--color-border) / 0.25);
-  background-color: rgb(var(--color-surface) / 0.82);
-`;
-
-const headerStyle = css`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-`;
-
-const metaLeftStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-`;
-
-const nameStyle = css`
-  font-size: var(--font-size-18);
-`;
-
-const secretBadgeStyle = css`
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.7rem;
-  border-radius: var(--radius-pill);
-  padding: var(--space-0) var(--space-2);
-  background-color: rgb(var(--color-text) / 0.08);
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-12);
-  font-weight: var(--font-weight-semibold);
-`;
-
-const dateStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const bodyStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
-
-const contentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-160);
-`;
-
-const deletedContentStyle = css`
-  color: rgb(var(--color-muted));
-  font-style: italic;
-`;
-
-const secretContentStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
-
-const secretTextStyle = css`
-  color: rgb(var(--color-muted));
-`;
-
-const revealPanelStyle = css`
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-m);
-  background-color: rgb(var(--color-surface-muted) / 0.75);
-  animation: ${secretRevealAnimation} 180ms ease;
-`;
-
-const revealTitleStyle = css`
-  grid-column: 1 / -1;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const revealErrorStyle = css`
-  grid-column: 1 / -1;
-  color: rgb(var(--color-danger));
-  font-size: var(--font-size-14);
-`;
-
-const footerStyle = css`
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
 `;
 
 const replyStackStyle = css`
