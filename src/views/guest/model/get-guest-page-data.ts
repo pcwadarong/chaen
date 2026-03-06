@@ -13,10 +13,17 @@ type GetGuestPageDataInput = {
 export const getGuestPageData = async ({
   locale: _locale,
 }: GetGuestPageDataInput): Promise<GuestPageProps> => {
-  const guestbookPage = await getGuestbookThreads({});
+  try {
+    const guestbookPage = await getGuestbookThreads({});
 
-  return {
-    initialCursor: guestbookPage.nextCursor,
-    initialItems: guestbookPage.items,
-  };
+    return {
+      initialCursor: guestbookPage.nextCursor,
+      initialItems: guestbookPage.items,
+    };
+  } catch {
+    return {
+      initialCursor: null,
+      initialItems: [],
+    };
+  }
 };

@@ -42,4 +42,15 @@ describe('getGuestPageData', () => {
       initialItems: expect.any(Array),
     });
   });
+
+  it('서버 조회 실패 시 빈 초기값으로 폴백해 페이지 렌더 오류를 막는다', async () => {
+    vi.mocked(getGuestbookThreads).mockRejectedValue(new Error('temporary failure'));
+
+    const data = await getGuestPageData({ locale: 'ko' });
+
+    expect(data).toEqual({
+      initialCursor: null,
+      initialItems: [],
+    });
+  });
 });

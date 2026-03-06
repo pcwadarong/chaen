@@ -19,7 +19,10 @@ export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
   const t = await getTranslations({ locale, namespace: 'Project' });
-  const projectsPage = await getProjects({ locale });
+  const projectsPage = await getProjects({ locale }).catch(() => ({
+    items: [],
+    nextCursor: null,
+  }));
   const portfolioConfig = getPdfFileStorageConfig('portfolio');
   const portfolioUrl = await getPdfFileUrl({
     accessType: 'signed',
