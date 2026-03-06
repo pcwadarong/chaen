@@ -68,6 +68,7 @@ describe('getArticles', () => {
       'ko',
       '0',
       '12',
+      '',
     ]);
   });
 
@@ -110,5 +111,50 @@ describe('getArticles', () => {
     expect(supabaseClient.from).toHaveBeenCalledTimes(2);
     expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(koreanFallbackQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('검색어가 있으면 제목/설명 부분 일치 결과만 페이지네이션한다', async () => {
+    const articleQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'react-start',
+            title: 'React Start',
+            description: 'client rendering',
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+          },
+          {
+            id: 'css-layout',
+            title: 'CSS Layout',
+            description: 'grid and flex',
+            created_at: '2026-03-01T09:07:50.797695+00:00',
+          },
+        ],
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(articleQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticles({ locale: 'ko', query: 'react' });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.id).toBe('react-start');
+    expect(vi.mocked(unstable_cache).mock.calls.at(-1)?.[1]).toEqual([
+      'articles',
+      'list',
+      'supabase-enabled',
+      'ko',
+      '0',
+      '12',
+      'react',
+    ]);
   });
 });
