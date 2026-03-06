@@ -20,10 +20,7 @@ describe('HomeHeroScene', () => {
             id: 'motion-library',
             title: 'Motion Library',
             description: 'description',
-            content: 'content',
             thumbnail_url: null,
-            gallery_urls: null,
-            tags: ['react'],
             created_at: '2026-01-01T00:00:00.000Z',
           },
         ]}

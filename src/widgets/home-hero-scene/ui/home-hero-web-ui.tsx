@@ -4,12 +4,12 @@ import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { Project } from '@/entities/project/model/types';
+import type { ProjectListItem } from '@/entities/project/model/types';
 import { homeHeroWebUiLayout } from '@/widgets/home-hero-scene/model/home-hero-web-ui-layout';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomeHeroWebUiProps = {
-  readonly items: Project[];
+  readonly items: ProjectListItem[];
   readonly title: string;
   readonly wrapperRef?: React.RefObject<HTMLDivElement | null>;
 };
