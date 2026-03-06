@@ -18,6 +18,7 @@
   },
   "Guest": {
     "title": "ゲストブック",
+    "description": "入力したパスワードは、秘密投稿の閲覧・編集・削除と管理者の秘密返信に使用されます。",
     "loading": "ゲストブックを読み込み中です。",
     "loadError": "ゲストブックを読み込めませんでした。",
     "retry": "再試行",
@@ -37,7 +38,7 @@
     "composeContentLabel": "ゲストブック本文",
     "composeCharacterCountLabel": "文字数",
     "composeContentShortcutHint": "Ctrl/Command + Enterで送信できます。",
-    "composePlaceholder": "配慮と責任をもってご記入ください。秘密投稿は入力したパスワードで再度確認でき、管理者の秘密返信にも同じパスワードが適用されます。",
+    "composePlaceholder": "配慮と責任をもってご記入ください。",
     "submit": "送信",
     "reply": "返信",
     "edit": "編集",

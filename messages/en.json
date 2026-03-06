@@ -18,6 +18,7 @@
   },
   "Guest": {
     "title": "Guestbook",
+    "description": "The password you enter is used to view, edit, and delete secret posts, and for secret admin replies.",
     "loading": "Loading guestbook entries.",
     "loadError": "Failed to load the guestbook.",
     "retry": "Retry",
@@ -37,7 +38,7 @@
     "composeContentLabel": "Guestbook content",
     "composeCharacterCountLabel": "Character count",
     "composeContentShortcutHint": "Send with Ctrl/Command + Enter.",
-    "composePlaceholder": "Please write with care and responsibility. Secret posts can be reopened with the password you entered, and the same password also applies to secret admin replies.",
+    "composePlaceholder": "Please write with care and responsibility.",
     "submit": "Send",
     "reply": "Reply",
     "edit": "Edit",

@@ -17,7 +17,7 @@ export const GuestPage = ({ initialCursor, initialItems }: GuestPageProps) => {
 
   return (
     <PageShell width="compact">
-      <PageHeader title={t('title')} />
+      <PageHeader description={t('description')} title={t('title')} />
       <PageSection>
         <GuestbookBoard initialCursor={initialCursor} initialItems={initialItems} />
       </PageSection>

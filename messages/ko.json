@@ -18,6 +18,7 @@
   },
   "Guest": {
     "title": "안부게시판",
+    "description": "입력한 비밀번호는 비밀글 열람·수정·삭제와 관리자 비밀 답글에 사용됩니다.",
     "loading": "방명록을 불러오는 중입니다.",
     "loadError": "방명록을 불러오지 못했습니다.",
     "retry": "다시 시도",
@@ -38,7 +39,7 @@
     "composeContentLabel": "방명록 내용",
     "composeCharacterCountLabel": "본문 글자 수",
     "composeContentShortcutHint": "Ctrl/Command + Enter로 전송됩니다.",
-    "composePlaceholder": "배려와 책임을 담아 작성해주세요. 비밀글은 입력한 비밀번호로 다시 확인할 수 있으며, 관리자 비밀 답댓글에도 같은 비밀번호가 적용됩니다.",
+    "composePlaceholder": "배려와 책임을 담아 작성해주세요.",
     "submit": "전송",
     "reply": "답신하기",
     "edit": "수정",

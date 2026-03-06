@@ -43,7 +43,9 @@ describe('GuestbookComposeForm', () => {
     const describedBy = textarea.getAttribute('aria-describedby');
 
     expect(describedBy).toBeTruthy();
-    expect(screen.getByText('Ctrl 또는 Command와 Enter를 함께 누르면 전송됩니다.')).toBeTruthy();
+    expect(
+      screen.getAllByText('Ctrl 또는 Command와 Enter를 함께 누르면 전송됩니다.').length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole('status').textContent).toContain('0/3000');
   });
 

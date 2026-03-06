@@ -18,6 +18,7 @@
   },
   "Guest": {
     "title": "Livre d'or",
+    "description": "Le mot de passe saisi sert a consulter, modifier et supprimer les messages secrets, ainsi qu'aux reponses secretes de l'administrateur.",
     "loading": "Chargement du livre d'or.",
     "loadError": "Impossible de charger le livre d'or.",
     "retry": "Réessayer",
@@ -37,7 +38,7 @@
     "composeContentLabel": "Contenu du message",
     "composeCharacterCountLabel": "Nombre de caractères",
     "composeContentShortcutHint": "Envoi avec Ctrl/Command + Entrée.",
-    "composePlaceholder": "Merci d'écrire avec respect et responsabilité. Les messages secrets peuvent être rouverts avec le mot de passe saisi, et le même mot de passe s'applique aussi aux réponses secrètes de l'admin.",
+    "composePlaceholder": "Merci d'écrire avec respect et responsabilité.",
     "submit": "Envoyer",
     "reply": "Répondre",
     "edit": "Modifier",
