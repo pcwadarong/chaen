@@ -144,7 +144,7 @@ const headerStyle = css`
   -webkit-backdrop-filter: blur(18px) saturate(135%);
   background-color: rgb(var(--color-surface) / 0.72);
   border-bottom: 1px solid rgb(var(--color-border) / 0.16);
-  box-shadow: 0 8px 20px rgb(var(--color-black) / 0.14);
+  box-shadow: 0 4px 16px rgb(var(--color-black) / 0.14);
   will-change: transform, opacity;
   transition:
     transform 240ms ease,
@@ -171,7 +171,7 @@ const innerStyle = css`
   margin: 0 auto;
   padding: var(--space-4) var(--space-0);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
@@ -198,7 +198,7 @@ const brandLinkStyle = css`
 const listStyle = css`
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   flex-wrap: wrap;
 `;
 
@@ -233,7 +233,7 @@ const controlsStyle = css`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-3);
+  gap: var(--space-1);
   flex-wrap: wrap;
 `;
 

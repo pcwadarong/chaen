@@ -278,7 +278,7 @@ const formStyle = css`
   bottom: 0;
   z-index: 20;
   border-top: 1px solid rgb(var(--color-border) / 0.18);
-  box-shadow: 0 -10px 26px rgb(var(--color-black) / 0.2);
+  box-shadow: 0 -4px 16px rgb(var(--color-black) / 0.14);
   background-color: rgb(var(--color-surface) / 0.82);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
