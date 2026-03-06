@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
+import { Button } from '@/shared/ui/button/button';
+import { Input } from '@/shared/ui/input/input';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
@@ -84,13 +86,14 @@ export const GuestbookThreadCard = ({
             ) : (
               <div css={secretContentStyle}>
                 <p css={secretTextStyle}>{secretPlaceholder}</p>
-                <button
+                <Button
                   onClick={() => setIsSecretPanelOpen(previous => !previous)}
-                  css={secretButtonStyle}
+                  tone="white"
+                  variant="ghost"
                   type="button"
                 >
                   {revealLabel}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -98,14 +101,13 @@ export const GuestbookThreadCard = ({
           {entry.is_secret && !isDeleted && isSecretPanelOpen && !isSecretRevealed ? (
             <div css={revealPanelStyle}>
               <p css={revealTitleStyle}>{revealSecretTitle}</p>
-              <input
+              <Input
                 onChange={event => setPasswordInput(event.target.value)}
                 placeholder={revealSecretPasswordLabel}
-                css={revealInputStyle}
                 type="password"
                 value={passwordInput}
               />
-              <button
+              <Button
                 disabled={isSecretSubmitting}
                 onClick={async () => {
                   if (!passwordInput.trim()) return;
@@ -121,29 +123,29 @@ export const GuestbookThreadCard = ({
                     setIsSecretSubmitting(false);
                   }
                 }}
-                css={revealConfirmButtonStyle}
+                tone="black"
                 type="button"
               >
                 {revealSecretSubmitLabel}
-              </button>
+              </Button>
               {secretError ? <p css={revealErrorStyle}>{secretError}</p> : null}
             </div>
           ) : null}
 
           <footer css={footerStyle}>
             {canReply && !isDeleted ? (
-              <button onClick={() => onReply(entry)} css={actionButtonStyle} type="button">
+              <Button onClick={() => onReply(entry)} tone="black" variant="underline">
                 {actionReplyLabel}
-              </button>
+              </Button>
             ) : null}
             {!isDeleted ? (
               <>
-                <button onClick={() => onEdit(entry)} css={actionButtonStyle} type="button">
+                <Button onClick={() => onEdit(entry)} tone="black" variant="underline">
                   {actionEditLabel}
-                </button>
-                <button onClick={() => onDelete(entry)} css={actionButtonStyle} type="button">
+                </Button>
+                <Button onClick={() => onDelete(entry)} tone="black" variant="underline">
                   {actionDeleteLabel}
-                </button>
+                </Button>
               </>
             ) : null}
           </footer>
@@ -265,15 +267,6 @@ const secretTextStyle = css`
   color: rgb(var(--color-muted));
 `;
 
-const secretButtonStyle = css`
-  justify-self: start;
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: transparent;
-  border-radius: var(--radius-pill);
-  padding: var(--space-1) var(--space-4);
-  color: rgb(var(--color-text));
-`;
-
 const revealPanelStyle = css`
   display: grid;
   grid-template-columns: 1fr auto;
@@ -290,25 +283,6 @@ const revealTitleStyle = css`
   font-size: var(--font-size-14);
 `;
 
-const revealInputStyle = css`
-  min-height: 2.4rem;
-  border-radius: var(--radius-2xs);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  padding: var(--space-0) var(--space-3);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-`;
-
-const revealConfirmButtonStyle = css`
-  min-height: 2.4rem;
-  border-radius: var(--radius-2xs);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: var(--space-0) var(--space-4);
-  background-color: rgb(var(--color-surface-strong) / 0.45);
-  color: rgb(var(--color-text));
-  font-weight: var(--font-weight-semibold);
-`;
-
 const revealErrorStyle = css`
   grid-column: 1 / -1;
   color: rgb(var(--color-danger));
@@ -317,16 +291,8 @@ const revealErrorStyle = css`
 
 const footerStyle = css`
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-3);
   flex-wrap: wrap;
-`;
-
-const actionButtonStyle = css`
-  border: none;
-  background-color: transparent;
-  color: rgb(var(--color-muted));
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-14);
 `;
 
 const replyStackStyle = css`

@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 
 import type { Project } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
+import { Button } from '@/shared/ui/button/button';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type ProjectFeedProps = {
@@ -63,9 +64,9 @@ export const ProjectFeed = ({
       {errorMessage && items.length === 0 ? (
         <div css={errorPanelStyle}>
           <p css={errorTextStyle}>{loadErrorText}</p>
-          <button onClick={() => void loadMore()} css={retryButtonStyle} type="button">
+          <Button onClick={() => void loadMore()} tone="white" variant="ghost">
             {retryText}
-          </button>
+          </Button>
         </div>
       ) : (
         <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
@@ -114,13 +115,4 @@ const errorPanelStyle = css`
 const errorTextStyle = css`
   color: rgb(var(--color-danger));
   text-align: center;
-`;
-
-const retryButtonStyle = css`
-  min-height: 2.4rem;
-  padding: var(--space-0) var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: transparent;
-  color: rgb(var(--color-text));
 `;

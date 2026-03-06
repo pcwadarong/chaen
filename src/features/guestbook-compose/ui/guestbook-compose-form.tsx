@@ -11,7 +11,10 @@ import React, {
 } from 'react';
 
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
+import { Button } from '@/shared/ui/button/button';
+import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { Textarea } from '@/shared/ui/textarea/textarea';
 
 type GuestbookComposeFormProps = {
   authorBlogUrlLabel: string;
@@ -132,37 +135,34 @@ export const GuestbookComposeForm = ({
           <div css={leftFieldsStyle}>
             <label css={fieldWrapStyle} htmlFor={authorNameId}>
               <span css={srOnlyStyle}>{authorNameLabel}</span>
-              <input
+              <Input
                 id={authorNameId}
                 aria-label={authorNameLabel}
                 onChange={event => setAuthorName(event.target.value)}
                 placeholder={authorNameLabel}
                 required
-                css={inputStyle}
                 value={authorName}
               />
             </label>
             <label css={fieldWrapStyle} htmlFor={passwordId}>
               <span css={srOnlyStyle}>{passwordLabel}</span>
-              <input
+              <Input
                 id={passwordId}
                 aria-label={passwordLabel}
                 onChange={event => setPassword(event.target.value)}
                 placeholder={passwordLabel}
                 required
-                css={inputStyle}
                 type="password"
                 value={password}
               />
             </label>
             <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
               <span css={srOnlyStyle}>{authorBlogUrlLabel}</span>
-              <input
+              <Input
                 id={authorBlogUrlId}
                 aria-label={authorBlogUrlLabel}
                 onChange={event => setAuthorBlogUrl(event.target.value)}
                 placeholder={authorBlogUrlLabel}
-                css={inputStyle}
                 value={authorBlogUrl}
               />
             </label>
@@ -174,9 +174,14 @@ export const GuestbookComposeForm = ({
               ↪
             </span>
             <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
-            <button onClick={onReplyTargetReset} css={replyPreviewCloseStyle} type="button">
+            <Button
+              onClick={onReplyTargetReset}
+              css={replyPreviewCloseStyle}
+              tone="black"
+              variant="underline"
+            >
               {replyTargetResetLabel}
-            </button>
+            </Button>
           </aside>
         ) : null}
         <div css={rightActionsStyle}>
@@ -190,16 +195,16 @@ export const GuestbookComposeForm = ({
               <span>{secretLabel}</span>
             </label>
           ) : null}
-          <button disabled={isSubmitting} css={submitButtonStyle} type="submit">
+          <Button disabled={isSubmitting} tone="black" type="submit">
             {submitLabel}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div css={textareaWrapStyle}>
         <label css={fieldWrapStyle} htmlFor={contentId}>
           <span css={srOnlyStyle}>{contentLabel}</span>
-          <textarea
+          <Textarea
             aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
             aria-label={contentLabel}
             id={contentId}
@@ -208,7 +213,6 @@ export const GuestbookComposeForm = ({
             onKeyDown={handleTextareaKeyDown}
             placeholder={textPlaceholder}
             rows={5}
-            css={textareaStyle}
             value={content}
           />
         </label>
@@ -278,21 +282,7 @@ const replyPreviewTextStyle = css`
 `;
 
 const replyPreviewCloseStyle = css`
-  border: none;
-  background: transparent;
-  color: rgb(var(--color-text));
-  text-decoration: underline;
-  padding: var(--space-0);
-`;
-
-const inputStyle = css`
-  width: 100%;
-  min-height: 2.5rem;
-  border-radius: var(--radius-2xs);
-  border: 1px solid rgb(var(--color-border) / 0.34);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  padding: var(--space-0) var(--space-3);
+  justify-self: end;
 `;
 
 const fieldWrapStyle = css`
@@ -319,17 +309,6 @@ const secretToggleStyle = css`
   white-space: nowrap;
 `;
 
-const submitButtonStyle = css`
-  flex: 0 0 auto;
-  min-height: 2.5rem;
-  border-radius: var(--radius-s);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: rgb(var(--color-text) / 0.85);
-  color: rgb(var(--color-surface));
-  min-width: 5rem;
-  font-weight: var(--font-weight-bold);
-`;
-
 const textareaWrapStyle = css`
   display: grid;
   gap: var(--space-2);
@@ -341,17 +320,6 @@ const textareaMetaStyle = css`
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
-`;
-
-const textareaStyle = css`
-  width: 100%;
-  min-height: 8.5rem;
-  border-radius: var(--radius-s);
-  border: 1px solid rgb(var(--color-border) / 0.34);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  padding: var(--space-3);
-  resize: vertical;
 `;
 
 const countStyle = css`

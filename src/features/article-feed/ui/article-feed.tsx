@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import type { Article } from '@/entities/article/model/types';
 import { ArticleCard } from '@/entities/article/ui/article-card';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
+import { Button } from '@/shared/ui/button/button';
 
 type ArticleFeedProps = {
   emptyText: string;
@@ -63,9 +64,9 @@ export const ArticleFeed = ({
       {errorMessage && items.length === 0 ? (
         <div css={errorPanelStyle}>
           <p css={errorTextStyle}>{loadErrorText}</p>
-          <button onClick={() => void loadMore()} css={retryButtonStyle} type="button">
+          <Button onClick={() => void loadMore()} tone="white" variant="ghost">
             {retryText}
-          </button>
+          </Button>
         </div>
       ) : items.length > 0 ? (
         <div css={gridStyle}>
@@ -135,13 +136,4 @@ const errorPanelStyle = css`
 const errorTextStyle = css`
   color: rgb(var(--color-danger));
   text-align: center;
-`;
-
-const retryButtonStyle = css`
-  min-height: 2.4rem;
-  padding: var(--space-0) var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: transparent;
-  color: rgb(var(--color-text));
 `;

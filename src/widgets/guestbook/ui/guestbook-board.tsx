@@ -16,7 +16,10 @@ import {
 import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
 import { useAuth } from '@/shared/providers';
+import { Button } from '@/shared/ui/button/button';
+import { Input } from '@/shared/ui/input/input';
 import { Modal } from '@/shared/ui/modal/modal';
+import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 
 type ActionModalState =
@@ -430,13 +433,12 @@ export const GuestbookBoard = ({
             {modalTitle}
           </h2>
           {modalState?.mode === 'edit' ? (
-            <textarea
+            <Textarea
               aria-label={t('editModalTitle')}
               maxLength={3000}
               onChange={event => setModalContent(event.target.value)}
               ref={modalTextareaRef}
               rows={4}
-              css={modalTextareaStyle}
               value={modalContent}
             />
           ) : (
@@ -445,28 +447,27 @@ export const GuestbookBoard = ({
             </p>
           )}
           {!shouldHideModalPassword ? (
-            <input
+            <Input
               aria-label={t('password')}
               onChange={event => setModalPassword(event.target.value)}
               placeholder={t('password')}
               ref={modalPasswordInputRef}
-              css={modalInputStyle}
               type="password"
               value={modalPassword}
             />
           ) : null}
           <div css={modalActionsStyle}>
-            <button onClick={closeModal} css={modalSecondaryButtonStyle} type="button">
+            <Button onClick={closeModal} tone="white" variant="ghost">
               {t('cancel')}
-            </button>
-            <button
+            </Button>
+            <Button
               disabled={isModalSubmitting}
               onClick={() => void handleConfirmModal()}
-              css={modalPrimaryButtonStyle}
+              tone="black"
               type="button"
             >
               {modalState?.mode === 'edit' ? t('editConfirm') : t('deleteConfirm')}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -511,45 +512,8 @@ const modalHintStyle = css`
   font-size: var(--font-size-14);
 `;
 
-const modalTextareaStyle = css`
-  width: 100%;
-  border-radius: var(--radius-xs);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: var(--space-3);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  resize: vertical;
-`;
-
-const modalInputStyle = css`
-  min-height: 2.5rem;
-  border-radius: var(--radius-xs);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  padding: var(--space-0) var(--space-3);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-`;
-
 const modalActionsStyle = css`
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-`;
-
-const modalSecondaryButtonStyle = css`
-  min-height: 2.3rem;
-  padding: var(--space-0) var(--space-3);
-  border-radius: var(--radius-2xs);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: transparent;
-  color: rgb(var(--color-text));
-`;
-
-const modalPrimaryButtonStyle = css`
-  min-height: 2.3rem;
-  padding: var(--space-0) var(--space-3);
-  border-radius: var(--radius-2xs);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: rgb(var(--color-text) / 0.9);
-  color: rgb(var(--color-surface));
 `;

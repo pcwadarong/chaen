@@ -16,7 +16,7 @@ export const GuestPage = ({ initialCursor, initialItems }: GuestPageProps) => {
   const t = useTranslations('Guest');
 
   return (
-    <PageShell>
+    <PageShell width="compact">
       <PageHeader title={t('title')} />
       <PageSection>
         <GuestbookBoard initialCursor={initialCursor} initialItems={initialItems} />

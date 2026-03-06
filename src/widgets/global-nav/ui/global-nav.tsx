@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { getButtonStyle } from '@/shared/ui/button/button';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
 import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
 
@@ -18,9 +19,9 @@ export const GlobalNav = () => {
   const navigationItems = [
     { href: '/', label: t('home') },
     { href: '/resume', label: t('resume') },
-    { href: '/guest', label: t('guest') },
-    { href: '/articles', label: t('articles') },
     { href: '/project', label: t('project') },
+    { href: '/articles', label: t('articles') },
+    { href: '/guest', label: t('guest') },
   ] as const;
 
   useEffect(() => {
@@ -150,17 +151,13 @@ const listStyle = css`
 `;
 
 const navLinkStyle = css`
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.25rem;
-  padding: var(--space-0) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.24);
+  ${getButtonStyle({
+    size: 'sm',
+    tone: 'white',
+    variant: 'ghost',
+  })};
   font-size: var(--font-size-16);
   letter-spacing: 0.04em;
-  text-decoration: none;
-  background-color: rgb(var(--color-surface) / 0.8);
-  color: rgb(var(--color-text));
 `;
 
 const controlsStyle = css`

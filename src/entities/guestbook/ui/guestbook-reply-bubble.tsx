@@ -4,6 +4,7 @@ import { css } from '@emotion/react';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { useAuth } from '@/shared/providers';
+import { Button } from '@/shared/ui/button/button';
 
 type GuestbookReplyBubbleProps = {
   actionDeleteLabel: string;
@@ -39,12 +40,22 @@ export const GuestbookReplyBubble = ({
           <div css={actionRowStyle}>
             {isAdmin && !isDeleted && (
               <>
-                <button onClick={() => onEdit(entry)} css={actionButtonStyle} type="button">
+                <Button
+                  onClick={() => onEdit(entry)}
+                  css={replyActionStyle}
+                  tone="white"
+                  variant="underline"
+                >
                   {actionEditLabel}
-                </button>
-                <button onClick={() => onDelete(entry)} css={actionButtonStyle} type="button">
+                </Button>
+                <Button
+                  onClick={() => onDelete(entry)}
+                  css={replyActionStyle}
+                  tone="white"
+                  variant="underline"
+                >
                   {actionDeleteLabel}
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -81,7 +92,7 @@ const contentStyle = css`
 
 const footerStyle = css`
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-3);
   flex-wrap: wrap;
   justify-content: flex-end;
   font-size: var(--font-size-12);
@@ -89,16 +100,15 @@ const footerStyle = css`
 
 const actionRowStyle = css`
   display: flex;
-  gap: var(--space-1);
-`;
-
-const actionButtonStyle = css`
-  border: none;
-  text-decoration: underline;
+  gap: var(--space-3);
 `;
 
 const dateStyle = css`
   justify-self: end;
   color: rgb(var(--color-surface) / 0.65);
   font-size: var(--font-size-14);
+`;
+
+const replyActionStyle = css`
+  color: rgb(var(--color-surface) / 0.65);
 `;

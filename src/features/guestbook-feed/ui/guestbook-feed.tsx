@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
+import { Button } from '@/shared/ui/button/button';
 
 type GuestbookFeedProps = {
   canReply: boolean;
@@ -81,9 +82,9 @@ export const GuestbookFeed = ({
     return (
       <section css={stateWrapStyle}>
         <p css={stateTextStyle}>{t('loadError')}</p>
-        <button onClick={() => void onRetry()} css={retryButtonStyle} type="button">
+        <Button onClick={() => void onRetry()} tone="white" variant="ghost">
           {t('retry')}
-        </button>
+        </Button>
       </section>
     );
   }
@@ -179,13 +180,4 @@ const stateWrapStyle = css`
 
 const stateTextStyle = css`
   color: rgb(var(--color-muted));
-`;
-
-const retryButtonStyle = css`
-  min-height: 2.4rem;
-  padding: var(--space-0) var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-  background-color: transparent;
-  color: rgb(var(--color-text));
 `;
