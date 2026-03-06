@@ -61,4 +61,36 @@ describe('GuestbookThreadCard', () => {
     fireEvent.click(screen.getByText('삭제된 글입니다.'));
     expect(onDelete).not.toHaveBeenCalled();
   });
+
+  it('비밀글 확인 버튼을 누르면 비밀번호 입력 패널이 열린다', () => {
+    render(
+      <GuestbookThreadCard
+        actionDeleteLabel="삭제"
+        actionEditLabel="수정"
+        actionReplyLabel="답신"
+        canReply={false}
+        dateText={() => '2026-03-06'}
+        deletedPlaceholder="삭제된 글입니다."
+        entry={createThread({ is_content_masked: true, is_secret: true })}
+        onDeleteReply={vi.fn()}
+        onDelete={vi.fn()}
+        onEditReply={vi.fn()}
+        onEdit={vi.fn()}
+        onReply={vi.fn()}
+        onRevealSecret={vi.fn()}
+        revealLabel="확인하기"
+        revealSecretErrorLabel="오류"
+        revealSecretPasswordLabel="비밀번호"
+        revealSecretSubmitLabel="확인"
+        revealSecretTitle="비밀글 확인"
+        secretLabel="비밀글"
+        secretPlaceholder="비밀글입니다."
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '확인하기' }));
+
+    expect(screen.getByText('비밀글 확인')).toBeTruthy();
+    expect(screen.getByPlaceholderText('비밀번호')).toBeTruthy();
+  });
 });
