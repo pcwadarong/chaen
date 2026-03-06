@@ -212,7 +212,7 @@ export const GuestbookComposeForm = ({
             onChange={event => setContent(event.target.value)}
             onKeyDown={handleTextareaKeyDown}
             placeholder={textPlaceholder}
-            rows={5}
+            rows={1}
             value={content}
           />
         </label>
