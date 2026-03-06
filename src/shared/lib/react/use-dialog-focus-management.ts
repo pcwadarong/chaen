@@ -43,6 +43,8 @@ export const useDialogFocusManagement = ({
 
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
         onEscape();
         return;
       }
