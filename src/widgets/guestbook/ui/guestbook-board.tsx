@@ -39,6 +39,7 @@ const createOptimisticId = () =>
   `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 const ACTION_MODAL_TITLE_ID = 'guestbook-action-modal-title';
 const ACTION_MODAL_DESCRIPTION_ID = 'guestbook-action-modal-description';
+const INVALID_PASSWORD_REASON = 'invalid password';
 
 type GuestbookBoardProps = {
   initialCursor?: string | null;
@@ -77,6 +78,7 @@ export const GuestbookBoard = ({
   const [modalState, setModalState] = useState<ActionModalState>(null);
   const [modalPassword, setModalPassword] = useState('');
   const [modalContent, setModalContent] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
   const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
@@ -85,6 +87,9 @@ export const GuestbookBoard = ({
     const id = createOptimisticId();
     setToasts(previous => [...previous, { id, message, tone }]);
   }, []);
+
+  const isInvalidPasswordError = (error: unknown) =>
+    error instanceof Error && error.message === INVALID_PASSWORD_REASON;
 
   useEffect(() => {
     if (toasts.length === 0) return;
@@ -104,6 +109,7 @@ export const GuestbookBoard = ({
     setModalState(null);
     setModalPassword('');
     setModalContent('');
+    setModalError(null);
   };
 
   const handleSubmit = async (values: GuestbookComposeValues) => {
@@ -191,6 +197,11 @@ export const GuestbookBoard = ({
   };
 
   const openEditModal = (entry: GuestbookThreadItem) => {
+    if (entry.is_secret && entry.is_content_masked) {
+      pushToast(t('toastSecretUnlockRequired'), 'error');
+      return;
+    }
+
     setModalState({
       mode: 'edit',
       entry,
@@ -198,6 +209,7 @@ export const GuestbookBoard = ({
     });
     setModalPassword('');
     setModalContent(entry.content);
+    setModalError(null);
   };
 
   const openDeleteModal = (entry: GuestbookThreadItem) => {
@@ -208,9 +220,15 @@ export const GuestbookBoard = ({
     });
     setModalPassword('');
     setModalContent('');
+    setModalError(null);
   };
 
   const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    if (entry.is_secret && entry.is_content_masked) {
+      pushToast(t('toastSecretUnlockRequired'), 'error');
+      return;
+    }
+
     setModalState({
       mode: 'edit',
       entry,
@@ -218,6 +236,7 @@ export const GuestbookBoard = ({
     });
     setModalPassword('');
     setModalContent(entry.content);
+    setModalError(null);
   };
 
   const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
@@ -228,18 +247,33 @@ export const GuestbookBoard = ({
     });
     setModalPassword('');
     setModalContent('');
+    setModalError(null);
   };
 
   const handleConfirmModal = async () => {
     if (!modalState || isModalSubmitting) return;
 
-    if (modalState.mode === 'edit' && !modalContent.trim()) {
-      pushToast(t('toastEditError'), 'error');
+    const target = modalState.entry;
+    const shouldSkipPassword = target.is_admin_reply;
+    const trimmedModalContent = modalContent.trim();
+    const trimmedPassword = modalPassword.trim();
+
+    if (modalState.mode === 'edit' && !trimmedModalContent) {
+      setModalError(t('requiredField'));
       return;
     }
 
-    const target = modalState.entry;
-    const shouldSkipPassword = target.is_admin_reply;
+    if (!shouldSkipPassword && !trimmedPassword) {
+      setModalError(t('requiredField'));
+      return;
+    }
+
+    if (modalState.mode === 'edit' && trimmedModalContent === target.content.trim()) {
+      setModalError(t('editContentUnchanged'));
+      return;
+    }
+
+    setModalError(null);
     setIsModalSubmitting(true);
     try {
       if (modalState.mode === 'edit') {
@@ -249,14 +283,14 @@ export const GuestbookBoard = ({
             ...item,
             replies: item.replies.map(reply =>
               reply.id === target.id
-                ? { ...reply, content: modalContent.trim(), is_content_masked: false }
+                ? { ...reply, content: trimmedModalContent, is_content_masked: false }
                 : reply,
             ),
           }));
         } else {
           updateThreadById(target.id, item => ({
             ...item,
-            content: modalContent.trim(),
+            content: trimmedModalContent,
             is_content_masked: false,
           }));
         }
@@ -264,15 +298,15 @@ export const GuestbookBoard = ({
         try {
           const updated = await updateGuestbookEntryClient(
             target.id,
-            modalContent,
-            shouldSkipPassword ? '' : modalPassword,
+            trimmedModalContent,
+            shouldSkipPassword ? '' : trimmedPassword,
           );
           if (!modalState.parentThreadId) {
             applyServerThreadEntry(updated);
           }
           pushToast(t('toastEditSuccess'), 'success');
           closeModal();
-        } catch {
+        } catch (error) {
           if (modalState.parentThreadId) {
             updateThreadById(modalState.parentThreadId, item => ({
               ...item,
@@ -286,7 +320,11 @@ export const GuestbookBoard = ({
               content: previousContent,
             }));
           }
-          pushToast(t('toastEditError'), 'error');
+          if (isInvalidPasswordError(error)) {
+            setModalError(t('secretVerifyFailed'));
+          } else {
+            pushToast(t('toastEditError'), 'error');
+          }
         }
       }
 
@@ -311,10 +349,10 @@ export const GuestbookBoard = ({
           }));
 
           try {
-            await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : modalPassword);
+            await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : trimmedPassword);
             pushToast(t('toastDeleteSuccess'), 'success');
             closeModal();
-          } catch {
+          } catch (error) {
             updateThreadById(modalState.parentThreadId, item => ({
               ...item,
               replies: [
@@ -323,7 +361,11 @@ export const GuestbookBoard = ({
                 ...item.replies.slice(replyIndex),
               ],
             }));
-            pushToast(t('toastDeleteError'), 'error');
+            if (isInvalidPasswordError(error)) {
+              setModalError(t('secretVerifyFailed'));
+            } else {
+              pushToast(t('toastDeleteError'), 'error');
+            }
           }
 
           return;
@@ -347,12 +389,16 @@ export const GuestbookBoard = ({
           removeThreadById(target.id);
         }
         try {
-          await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : modalPassword);
+          await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : trimmedPassword);
           pushToast(t('toastDeleteSuccess'), 'success');
           closeModal();
-        } catch {
+        } catch (error) {
           applyServerThread(deletedThread);
-          pushToast(t('toastDeleteError'), 'error');
+          if (isInvalidPasswordError(error)) {
+            setModalError(t('secretVerifyFailed'));
+          } else {
+            pushToast(t('toastDeleteError'), 'error');
+          }
         }
       }
     } finally {
@@ -391,7 +437,9 @@ export const GuestbookBoard = ({
       </section>
 
       <GuestbookComposeForm
+        authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+        authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
         authorNameLabel={t('composeAuthorNameLabel')}
         characterCountLabel={t('composeCharacterCountLabel')}
         contentLabel={t('composeContentLabel')}
@@ -400,6 +448,7 @@ export const GuestbookBoard = ({
         isReplyMode={Boolean(replyTarget && isAdmin)}
         onSubmit={handleSubmit}
         onReplyTargetReset={() => setReplyTarget(null)}
+        passwordPlaceholder={t('composePasswordPlaceholder')}
         passwordLabel={t('composePasswordLabel')}
         replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
@@ -436,7 +485,10 @@ export const GuestbookBoard = ({
             <Textarea
               aria-label={t('editModalTitle')}
               maxLength={3000}
-              onChange={event => setModalContent(event.target.value)}
+              onChange={event => {
+                setModalContent(event.target.value);
+                if (modalError) setModalError(null);
+              }}
               ref={modalTextareaRef}
               rows={4}
               value={modalContent}
@@ -449,12 +501,21 @@ export const GuestbookBoard = ({
           {!shouldHideModalPassword ? (
             <Input
               aria-label={t('password')}
-              onChange={event => setModalPassword(event.target.value)}
+              onChange={event => {
+                setModalPassword(event.target.value);
+                if (modalError) setModalError(null);
+              }}
               placeholder={t('password')}
               ref={modalPasswordInputRef}
+              required
               type="password"
               value={modalPassword}
             />
+          ) : null}
+          {modalError ? (
+            <p role="alert" css={modalErrorStyle}>
+              {modalError}
+            </p>
           ) : null}
           <div css={modalActionsStyle}>
             <Button onClick={closeModal} tone="white" variant="ghost">
@@ -509,6 +570,11 @@ const modalLeadStyle = css`
 
 const modalHintStyle = css`
   color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+`;
+
+const modalErrorStyle = css`
+  color: rgb(var(--color-danger));
   font-size: var(--font-size-14);
 `;
 

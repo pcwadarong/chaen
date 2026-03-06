@@ -1,6 +1,7 @@
 'use client';
 
 import { css } from '@emotion/react';
+import Image from 'next/image';
 import React, {
   type KeyboardEvent,
   type SyntheticEvent,
@@ -11,13 +12,16 @@ import React, {
 } from 'react';
 
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
+import { normalizeComposePassword } from '@/features/guestbook-compose/model/validation';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
 type GuestbookComposeFormProps = {
+  authorBlogUrlPlaceholder: string;
   authorBlogUrlLabel: string;
+  authorNamePlaceholder: string;
   authorNameLabel: string;
   characterCountLabel: string;
   contentLabel: string;
@@ -26,6 +30,7 @@ type GuestbookComposeFormProps = {
   isReplyMode: boolean;
   onSubmit: (values: GuestbookComposeValues) => Promise<void> | void;
   onReplyTargetReset: () => void;
+  passwordPlaceholder: string;
   passwordLabel: string;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
@@ -42,7 +47,9 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
 export const GuestbookComposeForm = ({
+  authorBlogUrlPlaceholder,
   authorBlogUrlLabel,
+  authorNamePlaceholder,
   authorNameLabel,
   characterCountLabel,
   contentLabel,
@@ -51,6 +58,7 @@ export const GuestbookComposeForm = ({
   isReplyMode,
   onSubmit,
   onReplyTargetReset,
+  passwordPlaceholder,
   passwordLabel,
   replyPreviewLabel,
   replyTargetContent,
@@ -99,13 +107,13 @@ export const GuestbookComposeForm = ({
 
   const submit = async () => {
     if (!content.trim()) return;
-    if (!isAdmin && (!authorName.trim() || !password.trim())) return;
+    if (!isAdmin && (!authorName.trim() || normalizeComposePassword(password).length < 4)) return;
 
     setIsSubmitting(true);
     try {
       await onSubmit({
         authorName: isAdmin ? 'admin' : authorName.trim(),
-        password: isAdmin ? '' : password.trim(),
+        password: isAdmin ? '' : normalizeComposePassword(password),
         authorBlogUrl: isAdmin ? '' : authorBlogUrl.trim(),
         isSecret,
         content: content.trim(),
@@ -119,6 +127,7 @@ export const GuestbookComposeForm = ({
 
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
+    if (!event.currentTarget.reportValidity()) return;
     void submit();
   };
 
@@ -138,8 +147,9 @@ export const GuestbookComposeForm = ({
               <Input
                 id={authorNameId}
                 aria-label={authorNameLabel}
+                minLength={1}
                 onChange={event => setAuthorName(event.target.value)}
-                placeholder={authorNameLabel}
+                placeholder={authorNamePlaceholder}
                 required
                 value={authorName}
               />
@@ -149,8 +159,12 @@ export const GuestbookComposeForm = ({
               <Input
                 id={passwordId}
                 aria-label={passwordLabel}
-                onChange={event => setPassword(event.target.value)}
-                placeholder={passwordLabel}
+                minLength={4}
+                onChange={event => {
+                  const value = normalizeComposePassword(event.target.value);
+                  setPassword(value);
+                }}
+                placeholder={passwordPlaceholder}
                 required
                 type="password"
                 value={password}
@@ -162,7 +176,7 @@ export const GuestbookComposeForm = ({
                 id={authorBlogUrlId}
                 aria-label={authorBlogUrlLabel}
                 onChange={event => setAuthorBlogUrl(event.target.value)}
-                placeholder={authorBlogUrlLabel}
+                placeholder={authorBlogUrlPlaceholder}
                 value={authorBlogUrl}
               />
             </label>
@@ -170,9 +184,7 @@ export const GuestbookComposeForm = ({
         ) : null}
         {isReplyMode ? (
           <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
-            <span aria-hidden css={replyPreviewIconStyle}>
-              ↪
-            </span>
+            <Image alt="" aria-hidden height={16} src="/arrow-curve-left-right.svg" width={16} />
             <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
             <Button
               onClick={onReplyTargetReset}
@@ -186,16 +198,49 @@ export const GuestbookComposeForm = ({
         ) : null}
         <div css={rightActionsStyle}>
           {!isAdmin ? (
-            <label css={secretToggleStyle}>
+            <div css={secretControlGroupStyle}>
               <input
+                aria-label={secretLabel}
                 checked={isSecret}
+                css={secretCheckboxStyle}
                 onChange={event => setIsSecret(event.target.checked)}
                 type="checkbox"
               />
-              <span>{secretLabel}</span>
-            </label>
+              <Button
+                aria-label={secretLabel}
+                aria-pressed={isSecret}
+                css={secretToggleStyle}
+                onClick={() => setIsSecret(previous => !previous)}
+                tone="white"
+                type="button"
+                variant="ghost"
+              >
+                <span aria-hidden>
+                  <Image
+                    alt=""
+                    css={secretIconOpenStyle}
+                    height={16}
+                    src="/lock_open.svg"
+                    width={16}
+                  />
+                  <Image
+                    alt=""
+                    css={secretIconClosedStyle}
+                    height={16}
+                    src="/lock.svg"
+                    width={16}
+                  />
+                </span>
+              </Button>
+            </div>
           ) : null}
-          <Button disabled={isSubmitting} tone="black" type="submit">
+          <Button
+            disabled={isSubmitting}
+            leadingVisual={<Image alt="" aria-hidden height={16} src="/send.svg" width={16} />}
+            tone="black"
+            type="submit"
+            css={submitButtonStyle}
+          >
             {submitLabel}
           </Button>
         </div>
@@ -212,6 +257,7 @@ export const GuestbookComposeForm = ({
             onChange={event => setContent(event.target.value)}
             onKeyDown={handleTextareaKeyDown}
             placeholder={textPlaceholder}
+            required
             rows={1}
             value={content}
           />
@@ -236,7 +282,7 @@ const formStyle = css`
   bottom: 0;
   z-index: 20;
   border-top: 1px solid rgb(var(--color-border) / 0.18);
-  box-shadow: 0 -4px 12px rgb(var(--color-border) / 0.15);
+  box-shadow: 0 -10px 26px rgb(var(--color-black) / 0.2);
   background-color: rgb(var(--color-surface) / 0.82);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -252,10 +298,18 @@ const topRowStyle = css`
 `;
 
 const leftFieldsStyle = css`
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(11rem, 1fr));
   gap: var(--space-2);
-  flex-wrap: wrap;
   flex: 1;
+
+  @media (max-width: 920px) {
+    grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const replyPreviewStyle = css`
@@ -265,11 +319,6 @@ const replyPreviewStyle = css`
   gap: var(--space-2);
   min-height: 2.7rem;
   padding: var(--space-2) var(--space-3);
-`;
-
-const replyPreviewIconStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-16);
 `;
 
 const replyPreviewTextStyle = css`
@@ -285,7 +334,13 @@ const replyPreviewCloseStyle = css`
 
 const fieldWrapStyle = css`
   display: flex;
-  flex: 0 1 9rem;
+  min-width: 0;
+`;
+
+const secretControlGroupStyle = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 `;
 
 const rightActionsStyle = css`
@@ -299,12 +354,84 @@ const rightActionsStyle = css`
 `;
 
 const secretToggleStyle = css`
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: rgb(var(--color-text));
-  white-space: nowrap;
+  padding: var(--space-0);
+  min-height: 2.25rem;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgb(var(--color-muted));
+  border: none;
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    background: transparent;
+    color: rgb(var(--color-text));
+  }
+
+  & > span[aria-hidden='true'] {
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  & > span[aria-hidden='true'] img {
+    position: absolute;
+    inset: 0;
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    opacity: 0.8;
+    filter: grayscale(1);
+    transition: opacity 180ms ease;
+  }
+
+  [data-theme='dark'] & > span[aria-hidden='true'] img {
+    filter: grayscale(1) invert(1);
+  }
+`;
+
+const secretIconOpenStyle = css`
+  opacity: 0.8;
+
+  [aria-pressed='true'] & {
+    opacity: 0;
+  }
+
+  button:hover & {
+    opacity: 0;
+  }
+`;
+
+const secretIconClosedStyle = css`
+  opacity: 0;
+
+  [aria-pressed='true'] & {
+    opacity: 0.8;
+  }
+
+  button:hover & {
+    opacity: 0.8;
+  }
+`;
+
+const secretCheckboxStyle = css`
+  width: 1rem;
+  height: 1rem;
+  accent-color: rgb(var(--color-primary));
+`;
+
+const submitButtonStyle = css`
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+
+  & > span[aria-hidden='true'] img {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0) invert(1);
+  }
+
+  [data-theme='dark'] & > span[aria-hidden='true'] img {
+    filter: grayscale(1) brightness(0);
+  }
 `;
 
 const textareaWrapStyle = css`
@@ -322,11 +449,11 @@ const textareaMetaStyle = css`
 
 const countStyle = css`
   justify-self: end;
-  color: rgb(var(--color-muted));
+  color: rgb(var(--color-muted) / 0.82);
   font-size: var(--font-size-14);
 `;
 
 const helperTextStyle = css`
-  color: rgb(var(--color-muted));
+  color: rgb(var(--color-muted) / 0.76);
   font-size: var(--font-size-14);
 `;

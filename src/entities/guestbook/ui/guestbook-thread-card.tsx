@@ -23,10 +23,10 @@ type GuestbookThreadCardProps = {
   onReply: (entry: GuestbookThreadItem) => void;
   revealSecretErrorLabel: string;
   revealSecretPasswordLabel: string;
+  revealSecretRequiredLabel: string;
   revealSecretSubmitLabel: string;
   revealSecretTitle: string;
   revealLabel: string;
-  secretLabel: string;
   secretPlaceholder: string;
 };
 
@@ -50,10 +50,10 @@ export const GuestbookThreadCard = ({
   onReply,
   revealSecretErrorLabel,
   revealSecretPasswordLabel,
+  revealSecretRequiredLabel,
   revealSecretSubmitLabel,
   revealSecretTitle,
   revealLabel,
-  secretLabel,
   secretPlaceholder,
 }: GuestbookThreadCardProps) => {
   const [isSecretPanelOpen, setIsSecretPanelOpen] = useState(false);
@@ -79,7 +79,10 @@ export const GuestbookThreadCard = ({
         onEdit={onEdit}
         onReply={onReply}
         onRevealSecret={async (currentEntry, currentPasswordInput) => {
-          if (!currentPasswordInput.trim()) return;
+          if (!currentPasswordInput.trim()) {
+            setSecretError(revealSecretRequiredLabel);
+            return;
+          }
           try {
             setSecretError(null);
             setIsSecretSubmitting(true);
@@ -99,7 +102,6 @@ export const GuestbookThreadCard = ({
         revealSecretSubmitLabel={revealSecretSubmitLabel}
         revealSecretTitle={revealSecretTitle}
         secretError={secretError}
-        secretLabel={secretLabel}
         secretPlaceholder={secretPlaceholder}
         setPasswordInput={setPasswordInput}
       />

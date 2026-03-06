@@ -4,7 +4,9 @@ import React from 'react';
 import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
 
 const createProps = () => ({
+  authorBlogUrlPlaceholder: '홈페이지 (선택)',
   authorBlogUrlLabel: '블로그 홈페이지',
+  authorNamePlaceholder: '닉네임 1자 이상',
   authorNameLabel: '이름',
   characterCountLabel: '본문 글자 수',
   contentLabel: '방명록 내용',
@@ -13,6 +15,7 @@ const createProps = () => ({
   isReplyMode: false,
   onReplyTargetReset: vi.fn(),
   onSubmit: vi.fn(),
+  passwordPlaceholder: '비밀번호 4자 이상',
   passwordLabel: '비밀번호',
   replyPreviewLabel: '답신 대상 내용',
   replyTargetContent: null,

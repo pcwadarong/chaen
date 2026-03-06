@@ -1,6 +1,7 @@
 'use client';
 
 import { css } from '@emotion/react';
+import Image from 'next/image';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
@@ -19,7 +20,7 @@ type GuestbookReplyBubbleProps = {
 
 /**
  * 관리자 대댓글 버블을 렌더링합니다.
- * 우측 정렬 + 어두운 톤 스타일로 일반 댓글과 시각적으로 분리합니다.
+ * 우측 정렬 + primary 톤 스타일로 일반 댓글과 시각적으로 분리합니다.
  */
 export const GuestbookReplyBubble = ({
   actionDeleteLabel,
@@ -37,37 +38,43 @@ export const GuestbookReplyBubble = ({
     <article css={wrapperStyle}>
       <GuestbookEntryBubble
         align="end"
-        footer={
-          <>
-            <div css={actionRowStyle}>
-              {isAdmin && !isDeleted && (
-                <>
-                  <Button
-                    onClick={() => onEdit(entry)}
-                    css={replyActionStyle}
-                    tone="white"
-                    variant="underline"
-                  >
-                    {actionEditLabel}
-                  </Button>
-                  <Button
-                    onClick={() => onDelete(entry)}
-                    css={replyActionStyle}
-                    tone="white"
-                    variant="underline"
-                  >
-                    {actionDeleteLabel}
-                  </Button>
-                </>
-              )}
-            </div>
+        bottom={
+          <div css={actionRowStyle}>
+            {isAdmin && !isDeleted ? (
+              <>
+                <Button
+                  onClick={() => onEdit(entry)}
+                  css={actionButtonStyle}
+                  leadingVisual={
+                    <Image alt="" aria-hidden height={16} src="/edit.svg" width={16} />
+                  }
+                  tone="white"
+                  type="button"
+                  variant="underline"
+                >
+                  {actionEditLabel}
+                </Button>
+                <Button
+                  onClick={() => onDelete(entry)}
+                  css={actionButtonStyle}
+                  leadingVisual={
+                    <Image alt="" aria-hidden height={16} src="/trash.svg" width={16} />
+                  }
+                  tone="white"
+                  type="button"
+                  variant="underline"
+                >
+                  {actionDeleteLabel}
+                </Button>
+              </>
+            ) : null}
             <time dateTime={entry.created_at} css={dateStyle}>
               {dateText}
             </time>
-          </>
+          </div>
         }
         maxWidth="min(640px, 90%)"
-        tone="inverse"
+        tone="primary"
       >
         <p css={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
       </GuestbookEntryBubble>
@@ -88,15 +95,37 @@ const contentStyle = css`
 
 const actionRowStyle = css`
   display: flex;
+  align-items: center;
   gap: var(--space-3);
 `;
 
 const dateStyle = css`
-  justify-self: end;
-  color: rgb(var(--color-surface) / 0.65);
+  color: rgb(var(--color-muted));
   font-size: var(--font-size-14);
+  margin-left: auto;
 `;
 
-const replyActionStyle = css`
-  color: rgb(var(--color-surface) / 0.65);
+const actionButtonStyle = css`
+  padding: 0;
+  min-height: auto;
+  text-decoration: none;
+  color: rgb(var(--color-muted));
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    color: rgb(var(--color-text));
+    background: transparent;
+    border-color: transparent;
+  }
+
+  & > span[aria-hidden='true'] img {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    opacity: 0.8;
+    filter: grayscale(1);
+  }
+
+  [data-theme='dark'] & > span[aria-hidden='true'] img {
+    filter: grayscale(1) invert(1);
+  }
 `;

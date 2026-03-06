@@ -110,11 +110,11 @@ export const GuestbookFeed = ({
               onReply={onReply}
               revealLabel={t('secretReveal')}
               revealSecretErrorLabel={t('secretVerifyFailed')}
-              revealSecretPasswordLabel={t('password')}
-              revealSecretSubmitLabel={t('secretReveal')}
+              revealSecretPasswordLabel={t('passwordInput')}
+              revealSecretRequiredLabel={t('requiredField')}
+              revealSecretSubmitLabel={t('confirm')}
               revealSecretTitle={t('secretRevealTitle')}
               onRevealSecret={onRevealSecret}
-              secretLabel={t('secretLabel')}
               secretPlaceholder={t('secretPlaceholder')}
             />
           ))}
@@ -139,7 +139,7 @@ const sectionStyle = css`
 
 const stackStyle = css`
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-8);
 `;
 
 const emptyStyle = css`

@@ -3,15 +3,17 @@
 import { css, type SerializedStyles } from '@emotion/react';
 import React from 'react';
 
-type GuestbookEntryBubbleTone = 'inverse' | 'surface';
+type GuestbookEntryBubbleTone = 'inverse' | 'primary' | 'surface';
 type GuestbookEntryBubbleAlign = 'end' | 'start';
 
 type GuestbookEntryBubbleProps = {
   align?: GuestbookEntryBubbleAlign;
+  bottom?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
   header?: React.ReactNode;
   maxWidth: string;
+  top?: React.ReactNode;
   tone?: GuestbookEntryBubbleTone;
 };
 
@@ -21,17 +23,33 @@ type GuestbookEntryBubbleProps = {
  */
 export const GuestbookEntryBubble = ({
   align = 'start',
+  bottom,
   children,
   footer,
   header,
   maxWidth,
+  top,
   tone = 'surface',
 }: GuestbookEntryBubbleProps) => (
   <div css={[wrapperStyle, align === 'end' ? endAlignStyle : startAlignStyle]}>
-    <div css={[bubbleBaseStyle, toneStyleMap[tone], getWidthStyle(maxWidth)]}>
-      {header ? <header css={headerSlotStyle}>{header}</header> : null}
-      <div css={bodySlotStyle}>{children}</div>
-      {footer ? <footer css={footerSlotStyle}>{footer}</footer> : null}
+    <div
+      css={[
+        columnStyle,
+        align === 'end' ? endColumnStyle : startColumnStyle,
+        getWidthStyle(maxWidth),
+      ]}
+    >
+      {top ? (
+        <div css={[topSlotStyle, align === 'end' ? endSlotStyle : startSlotStyle]}>{top}</div>
+      ) : null}
+      <div css={[bubbleBaseStyle, toneStyleMap[tone]]}>
+        {header ? <header css={headerSlotStyle}>{header}</header> : null}
+        <div css={bodySlotStyle}>{children}</div>
+        {footer ? <footer css={footerSlotStyle}>{footer}</footer> : null}
+      </div>
+      {bottom ? (
+        <div css={[bottomSlotStyle, align === 'end' ? endSlotStyle : startSlotStyle]}>{bottom}</div>
+      ) : null}
     </div>
   </div>
 );
@@ -47,6 +65,20 @@ const startAlignStyle = css`
 
 const endAlignStyle = css`
   justify-content: flex-end;
+`;
+
+const columnStyle = css`
+  width: fit-content;
+  display: grid;
+  gap: var(--space-2);
+`;
+
+const startColumnStyle = css`
+  justify-items: start;
+`;
+
+const endColumnStyle = css`
+  justify-items: end;
 `;
 
 const bubbleBaseStyle = css`
@@ -67,6 +99,10 @@ const toneStyleMap: Record<GuestbookEntryBubbleTone, SerializedStyles> = {
     background-color: rgb(var(--color-text) / 0.78);
     color: rgb(var(--color-surface));
   `,
+  primary: css`
+    background-color: rgb(var(--color-primary));
+    color: rgb(var(--color-primary-contrast));
+  `,
 };
 
 const getWidthStyle = (maxWidth: string) => css`
@@ -83,6 +119,22 @@ const headerSlotStyle = css`
 const bodySlotStyle = css`
   display: grid;
   gap: var(--space-2);
+`;
+
+const topSlotStyle = css`
+  width: 100%;
+`;
+
+const bottomSlotStyle = css`
+  width: 100%;
+`;
+
+const startSlotStyle = css`
+  justify-self: start;
+`;
+
+const endSlotStyle = css`
+  justify-self: end;
 `;
 
 const footerSlotStyle = css`
