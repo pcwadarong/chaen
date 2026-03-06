@@ -1,7 +1,6 @@
 'use client';
 
 import { css } from '@emotion/react';
-import Image from 'next/image';
 import React, {
   type KeyboardEvent,
   type SyntheticEvent,
@@ -14,6 +13,12 @@ import React, {
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
 import { normalizeComposePassword } from '@/features/guestbook-compose/model/validation';
 import { Button } from '@/shared/ui/button/button';
+import {
+  ArrowCurveLeftRightIcon,
+  LockIcon,
+  LockOpenIcon,
+  SendIcon,
+} from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 import { Textarea } from '@/shared/ui/textarea/textarea';
@@ -79,6 +84,7 @@ export const GuestbookComposeForm = ({
   const contentId = useId();
   const characterCountId = useId();
   const contentShortcutHintId = useId();
+  const secretCheckboxId = useId();
 
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -184,7 +190,7 @@ export const GuestbookComposeForm = ({
         ) : null}
         {isReplyMode ? (
           <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
-            <Image alt="" aria-hidden height={16} src="/arrow-curve-left-right.svg" width={16} />
+            <ArrowCurveLeftRightIcon aria-hidden size="sm" />
             <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
             <Button
               onClick={onReplyTargetReset}
@@ -200,43 +206,33 @@ export const GuestbookComposeForm = ({
           {!isAdmin ? (
             <div css={secretControlGroupStyle}>
               <input
+                id={secretCheckboxId}
                 aria-label={secretLabel}
                 checked={isSecret}
                 css={secretCheckboxStyle}
                 onChange={event => setIsSecret(event.target.checked)}
                 type="checkbox"
               />
-              <Button
+              <label
                 aria-label={secretLabel}
-                aria-pressed={isSecret}
-                css={secretToggleStyle}
-                onClick={() => setIsSecret(previous => !previous)}
-                tone="white"
-                type="button"
-                variant="ghost"
+                css={secretToggleLabelStyle}
+                data-checked={isSecret ? 'true' : 'false'}
+                htmlFor={secretCheckboxId}
               >
-                <span aria-hidden>
-                  <Image
-                    alt=""
-                    css={secretIconOpenStyle}
-                    height={16}
-                    src="/lock_open.svg"
-                    width={16}
-                  />
-                  <Image
-                    alt=""
-                    css={secretIconClosedStyle}
-                    height={16}
-                    src="/lock.svg"
-                    width={16}
-                  />
+                <span
+                  aria-hidden
+                  css={secretIconStackStyle}
+                  data-checked={isSecret ? 'true' : 'false'}
+                >
+                  <LockOpenIcon css={secretIconOpenStyle} size="lg" />
+                  <LockIcon css={secretIconClosedStyle} size="lg" />
                 </span>
-              </Button>
+              </label>
             </div>
           ) : null}
           <Button
             disabled={isSubmitting}
-            leadingVisual={<Image alt="" aria-hidden height={16} src="/send.svg" width={16} />}
+            leadingVisual={<SendIcon aria-hidden size="md" />}
             tone="black"
             type="submit"
             css={submitButtonStyle}
@@ -299,9 +295,10 @@ const topRowStyle = css`
 
 const leftFieldsStyle = css`
   display: grid;
-  grid-template-columns: repeat(3, minmax(11rem, 1fr));
+  grid-template-columns: minmax(9rem, 0.85fr) minmax(9rem, 0.85fr) minmax(12rem, 1.3fr);
   gap: var(--space-2);
   flex: 1;
+  justify-content: start;
 
   @media (max-width: 920px) {
     grid-template-columns: repeat(2, minmax(9rem, 1fr));
@@ -340,7 +337,7 @@ const fieldWrapStyle = css`
 const secretControlGroupStyle = css`
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
 `;
 
 const rightActionsStyle = css`
@@ -350,64 +347,62 @@ const rightActionsStyle = css`
   gap: var(--space-3);
   flex: 0 0 auto;
   justify-content: flex-end;
-  align-self: flex-end;
 `;
 
-const secretToggleStyle = css`
+const secretToggleLabelStyle = css`
   padding: var(--space-0);
-  min-height: 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgb(var(--color-muted));
-  border: none;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  cursor: pointer;
+  transition: color 180ms ease;
 
-  &:hover:not(:disabled):not([aria-disabled='true']) {
+  &:hover {
     background: transparent;
     color: rgb(var(--color-text));
   }
+`;
 
-  & > span[aria-hidden='true'] {
-    position: relative;
-    width: 1rem;
-    height: 1rem;
-  }
-
-  & > span[aria-hidden='true'] img {
-    position: absolute;
-    inset: 0;
-    width: 1rem;
-    height: 1rem;
-    object-fit: contain;
-    opacity: 0.8;
-    filter: grayscale(1);
-    transition: opacity 180ms ease;
-  }
-
-  [data-theme='dark'] & > span[aria-hidden='true'] img {
-    filter: grayscale(1) invert(1);
-  }
+const secretIconStackStyle = css`
+  position: relative;
+  width: 1.125rem;
+  height: 1.125rem;
+  display: inline-block;
 `;
 
 const secretIconOpenStyle = css`
+  position: absolute;
+  inset: 0;
   opacity: 0.8;
+  transition: opacity 180ms ease;
 
-  [aria-pressed='true'] & {
+  [data-checked='true'] & {
     opacity: 0;
   }
 
-  button:hover & {
+  label:hover & {
     opacity: 0;
   }
 `;
 
 const secretIconClosedStyle = css`
+  position: absolute;
+  inset: 0;
   opacity: 0;
+  transition: opacity 180ms ease;
 
-  [aria-pressed='true'] & {
+  [data-checked='true'] & {
     opacity: 0.8;
   }
 
-  button:hover & {
+  label:hover & {
     opacity: 0.8;
   }
 `;
@@ -421,17 +416,6 @@ const secretCheckboxStyle = css`
 const submitButtonStyle = css`
   font-size: var(--font-size-16);
   font-weight: var(--font-weight-semibold);
-
-  & > span[aria-hidden='true'] img {
-    width: 1rem;
-    height: 1rem;
-    object-fit: contain;
-    filter: grayscale(1) brightness(0) invert(1);
-  }
-
-  [data-theme='dark'] & > span[aria-hidden='true'] img {
-    filter: grayscale(1) brightness(0);
-  }
 `;
 
 const textareaWrapStyle = css`

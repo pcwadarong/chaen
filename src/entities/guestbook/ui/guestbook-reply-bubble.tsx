@@ -1,12 +1,12 @@
 'use client';
 
 import { css } from '@emotion/react';
-import Image from 'next/image';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
+import { EditIcon, TrashIcon } from '@/shared/ui/icons/app-icons';
 
 type GuestbookReplyBubbleProps = {
   actionDeleteLabel: string;
@@ -45,9 +45,7 @@ export const GuestbookReplyBubble = ({
                 <Button
                   onClick={() => onEdit(entry)}
                   css={actionButtonStyle}
-                  leadingVisual={
-                    <Image alt="" aria-hidden height={16} src="/edit.svg" width={16} />
-                  }
+                  leadingVisual={<EditIcon aria-hidden size="sm" />}
                   tone="white"
                   type="button"
                   variant="underline"
@@ -57,9 +55,7 @@ export const GuestbookReplyBubble = ({
                 <Button
                   onClick={() => onDelete(entry)}
                   css={actionButtonStyle}
-                  leadingVisual={
-                    <Image alt="" aria-hidden height={16} src="/trash.svg" width={16} />
-                  }
+                  leadingVisual={<TrashIcon aria-hidden size="sm" />}
                   tone="white"
                   type="button"
                   variant="underline"
@@ -117,15 +113,7 @@ const actionButtonStyle = css`
     border-color: transparent;
   }
 
-  & > span[aria-hidden='true'] img {
-    width: 1rem;
-    height: 1rem;
-    object-fit: contain;
+  & > span[aria-hidden='true'] {
     opacity: 0.8;
-    filter: grayscale(1);
-  }
-
-  [data-theme='dark'] & > span[aria-hidden='true'] img {
-    filter: grayscale(1) invert(1);
   }
 `;

@@ -1,17 +1,18 @@
 'use client';
 
 import { css } from '@emotion/react';
-import Image from 'next/image';
 import React from 'react';
+
+import { type AppIconComponent, MoonIcon, SunIcon, SystemIcon } from '@/shared/ui/icons/app-icons';
 
 export const themeOptions = ['system', 'light', 'dark'] as const;
 
 export type ThemeOption = (typeof themeOptions)[number];
 
-const themeIconSourceMap: Record<ThemeOption, string> = {
-  dark: '/moon.svg',
-  light: '/sun.svg',
-  system: '/system.svg',
+const themeIconComponentMap: Record<ThemeOption, AppIconComponent> = {
+  dark: MoonIcon,
+  light: SunIcon,
+  system: SystemIcon,
 };
 
 const themeIconAltMap: Record<ThemeOption, string> = {
@@ -30,11 +31,12 @@ type ThemeIconProps = {
  * 테마 옵션에 대응하는 공통 아이콘을 렌더링합니다.
  */
 export const ThemeIcon = ({ className, decorative = true, theme }: ThemeIconProps) => {
-  const alt = decorative ? '' : themeIconAltMap[theme];
+  const Icon = themeIconComponentMap[theme];
+  const ariaLabel = decorative ? undefined : themeIconAltMap[theme];
 
   return (
     <span aria-hidden={decorative} className={className} css={iconFrameStyle}>
-      <Image alt={alt} height={20} src={themeIconSourceMap[theme]} width={20} />
+      <Icon aria-hidden={decorative} aria-label={ariaLabel} role={decorative ? undefined : 'img'} />
     </span>
   );
 };
@@ -47,9 +49,8 @@ const iconFrameStyle = css`
   height: 1.25rem;
   flex: 0 0 auto;
 
-  & > img {
+  & > svg {
     width: 100%;
     height: 100%;
-    object-fit: contain;
   }
 `;
