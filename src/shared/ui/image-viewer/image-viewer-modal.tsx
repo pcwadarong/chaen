@@ -96,6 +96,7 @@ export const ImageViewerModal = ({
 
   return (
     <Modal
+      ariaLabel={currentItem.alt}
       closeAriaLabel={labels.closeAriaLabel}
       frameStyle={viewerFrameStyle}
       isOpen={isOpen}

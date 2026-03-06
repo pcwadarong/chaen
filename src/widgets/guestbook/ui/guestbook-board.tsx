@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
@@ -34,6 +34,8 @@ type ActionModalState =
 
 const createOptimisticId = () =>
   `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+const ACTION_MODAL_TITLE_ID = 'guestbook-action-modal-title';
+const ACTION_MODAL_DESCRIPTION_ID = 'guestbook-action-modal-description';
 
 /**
  * 방명록 목록과 하단 고정 작성폼을 조합하는 위젯입니다.
@@ -62,6 +64,8 @@ export const GuestbookBoard = () => {
   const [modalPassword, setModalPassword] = useState('');
   const [modalContent, setModalContent] = useState('');
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
+  const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
   const pushToast = useCallback((message: string, tone: ToastItem['tone']) => {
     const id = createOptimisticId();
@@ -388,27 +392,49 @@ export const GuestbookBoard = () => {
       />
 
       <Modal
+        // 삭제 모드일 때만 '정말로 삭제하시겠습니까?' 문구 노출
+        ariaDescribedBy={modalState?.mode === 'delete' ? ACTION_MODAL_DESCRIPTION_ID : undefined}
+        // 모달이 열리자마자 스크린 리더가 '수정' 또는 '삭제'라는 제목을 읽음
+        ariaLabelledBy={ACTION_MODAL_TITLE_ID}
         closeAriaLabel={t('modalCloseAriaLabel')}
+        // 수정 모드라면 글을 바로 고칠 수 있게 'textarea'로,
+        // 삭제 모드라면 '비밀번호 입력창'으로 포커스
+        initialFocusRef={
+          modalState?.mode === 'edit'
+            ? modalTextareaRef
+            : shouldHideModalPassword
+              ? undefined
+              : modalPasswordInputRef
+        }
+        // 상태가 null이 아니면 모달 오픈
         isOpen={Boolean(modalState)}
         onClose={closeModal}
       >
         <div css={modalBodyStyle}>
-          <p css={modalLeadStyle}>{modalTitle}</p>
+          <h2 id={ACTION_MODAL_TITLE_ID} css={modalLeadStyle}>
+            {modalTitle}
+          </h2>
           {modalState?.mode === 'edit' ? (
             <textarea
+              aria-label={t('editModalTitle')}
               maxLength={3000}
               onChange={event => setModalContent(event.target.value)}
+              ref={modalTextareaRef}
               rows={4}
               css={modalTextareaStyle}
               value={modalContent}
             />
           ) : (
-            <p css={modalHintStyle}>{t('deleteModalHint')}</p>
+            <p id={ACTION_MODAL_DESCRIPTION_ID} css={modalHintStyle}>
+              {t('deleteModalHint')}
+            </p>
           )}
           {!shouldHideModalPassword ? (
             <input
+              aria-label={t('password')}
               onChange={event => setModalPassword(event.target.value)}
               placeholder={t('password')}
+              ref={modalPasswordInputRef}
               css={modalInputStyle}
               type="password"
               value={modalPassword}
