@@ -1,6 +1,7 @@
 'use client';
 
 import { css } from '@emotion/react';
+import React from 'react';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -9,30 +10,6 @@ type DownloadFileButtonProps = {
   label: string;
   mode?: DownloadFileButtonMode;
   fileName?: string;
-};
-
-/**
- * URL을 새 탭으로 엽니다.
- */
-const openInNewTab = (url: string) => {
-  window.open(url, '_blank', 'noopener,noreferrer');
-};
-
-/**
- * 브라우저 다운로드를 트리거합니다.
- */
-const triggerDownload = (url: string, fileName?: string) => {
-  const anchor = document.createElement('a');
-
-  anchor.href = url;
-  anchor.target = '_blank';
-  anchor.rel = 'noopener noreferrer';
-
-  if (fileName) anchor.download = fileName;
-
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
 };
 
 /**
@@ -46,23 +23,22 @@ export const DownloadFileButton = ({
 }: DownloadFileButtonProps) => {
   const isDisabled = !href;
 
+  if (href) {
+    return (
+      <a
+        download={mode === 'download' ? fileName : undefined}
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
+        css={buttonStyle}
+      >
+        {label}
+      </a>
+    );
+  }
+
   return (
-    <button
-      aria-disabled={isDisabled}
-      disabled={isDisabled}
-      onClick={() => {
-        if (!href) return;
-
-        if (mode === 'download') {
-          triggerDownload(href, fileName);
-          return;
-        }
-
-        openInNewTab(href);
-      }}
-      css={buttonStyle}
-      type="button"
-    >
+    <button aria-disabled={isDisabled} disabled={isDisabled} css={buttonStyle} type="button">
       {label}
     </button>
   );
