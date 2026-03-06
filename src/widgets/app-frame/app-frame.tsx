@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import styles from '@/shared/ui/app-frame/app-frame.module.css';
+import styles from '@/widgets/app-frame/app-frame.module.css';
 
 type AppFrameProps = {
   children: ReactNode;

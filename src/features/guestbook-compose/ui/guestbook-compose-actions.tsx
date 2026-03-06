@@ -1,7 +1,6 @@
 'use client';
 
 import { css } from '@emotion/react';
-import React from 'react';
 
 import { Button } from '@/shared/ui/button/button';
 import { LockIcon, LockOpenIcon, SendIcon } from '@/shared/ui/icons/app-icons';
@@ -72,7 +71,7 @@ const rightActionsStyle = css`
   display: inline-flex;
   gap: var(--space-2);
   flex: 0 0 auto;
-  margin-left: var(--space-4);
+  margin-left: auto;
   align-self: flex-end;
 `;
 
