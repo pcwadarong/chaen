@@ -27,7 +27,7 @@ body {
 }
 
 :root {
-  --app-scrollbar-size: 8px;
+  --app-scrollbar-size: 10px;
   --app-scrollbar-track: transparent;
   --app-scrollbar-thumb: rgb(var(--color-text) / 0.24);
   --app-scrollbar-thumb-hover: rgb(var(--color-text) / 0.36);

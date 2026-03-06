@@ -214,6 +214,17 @@ const formStyle = css`
   padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   display: grid;
   gap: var(--space-3);
+
+  @media (min-width: 961px) {
+    left: 50%;
+    right: auto;
+    width: calc(
+      var(--app-frame-width, min(1280px, calc(100vw - 2.5rem))) - var(--app-scrollbar-size, 10px)
+    );
+    transform: translateX(calc(-50% - (var(--app-scrollbar-size, 10px) / 2)));
+    border-bottom-left-radius: var(--app-frame-radius, 2rem);
+    border-bottom-right-radius: var(--app-frame-radius, 2rem);
+  }
 `;
 
 const topRowStyle = css`
