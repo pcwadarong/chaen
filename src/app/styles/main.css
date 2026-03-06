@@ -109,17 +109,3 @@ kbd:lang(ja),
 samp:lang(ja) {
   font-family: var(--font-mono);
 }
-
-@keyframes guestbook-secret-reveal {
-  from {
-    opacity: 0;
-    filter: blur(6px);
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-}

@@ -4,6 +4,7 @@ import { css } from '@emotion/react';
 
 import type { Project } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
+import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type ProjectShowcaseProps = {
   description: string;
@@ -76,16 +77,4 @@ const gridStyle = css`
 const emptyStyle = css`
   color: rgb(var(--color-muted));
   padding: var(--space-4) var(--space-0);
-`;
-
-const srOnlyStyle = css`
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: var(--space-0);
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 `;

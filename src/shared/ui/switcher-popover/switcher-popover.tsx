@@ -1,8 +1,10 @@
 'use client';
 
 import { css } from '@emotion/react';
-import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+
+import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type SwitcherPopoverProps = {
   children: (args: { closePopover: () => void }) => ReactNode;
@@ -17,28 +19,33 @@ type SwitcherPopoverProps = {
 export const SwitcherPopover = ({ children, label, panelLabel, value }: SwitcherPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const panelId = useId();
+  const panelLabelId = useId();
+  const valueId = useId();
 
   useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
+    const handleDocumentClick = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
+    window.addEventListener('click', handleDocumentClick);
 
     return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('click', handleDocumentClick);
     };
   }, []);
+
+  useDialogFocusManagement({
+    containerRef: panelRef,
+    initialFocusRef: undefined,
+    isEnabled: isOpen,
+    onEscape: () => {
+      setIsOpen(false);
+    },
+  });
 
   /**
    * 패널 열림 상태를 토글합니다.
@@ -56,19 +63,33 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
 
   return (
     <div ref={rootRef} css={rootStyle}>
+      <span id={panelLabelId} css={srOnlyStyle}>
+        {panelLabel}
+      </span>
       <button
+        aria-controls={isOpen ? panelId : undefined}
+        aria-describedby={valueId}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        aria-label={panelLabel}
+        aria-labelledby={panelLabelId}
         onClick={handleToggle}
         css={triggerStyle}
         type="button"
       >
         <span css={triggerLabelStyle}>{label}</span>
-        <span css={triggerValueStyle}>{value}</span>
+        <span id={valueId} css={triggerValueStyle}>
+          {value}
+        </span>
       </button>
       {isOpen ? (
-        <div aria-label={panelLabel} role="dialog" css={panelStyle}>
+        <div
+          aria-labelledby={panelLabelId}
+          id={panelId}
+          ref={panelRef}
+          role="dialog"
+          tabIndex={-1}
+          css={panelStyle}
+        >
           {children({ closePopover })}
         </div>
       ) : null}

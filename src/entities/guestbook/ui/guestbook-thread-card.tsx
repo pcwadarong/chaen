@@ -1,6 +1,6 @@
 'use client';
 
-import { css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import React, { useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -170,6 +170,20 @@ export const GuestbookThreadCard = ({
   );
 };
 
+const secretRevealAnimation = keyframes`
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+`;
+
 const threadStyle = css`
   width: 100%;
   display: grid;
@@ -267,7 +281,7 @@ const revealPanelStyle = css`
   padding: var(--space-3);
   border-radius: var(--radius-m);
   background-color: rgb(var(--color-surface-muted) / 0.75);
-  animation: guestbook-secret-reveal 180ms ease;
+  animation: ${secretRevealAnimation} 180ms ease;
 `;
 
 const revealTitleStyle = css`
