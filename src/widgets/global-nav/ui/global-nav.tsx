@@ -95,9 +95,11 @@ const headerStyle = css`
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(14px);
-  background-color: rgb(var(--color-bg) / 0.78);
-  border-bottom: 1px solid rgb(var(--color-border) / 0.2);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  background-color: rgb(var(--color-surface) / 0.72);
+  border-bottom: 1px solid rgb(var(--color-border) / 0.16);
+  box-shadow: 0 4px 12px rgb(var(--color-border) / 0.15);
   will-change: transform, opacity;
   transition:
     transform 240ms ease,

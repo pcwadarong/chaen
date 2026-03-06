@@ -235,13 +235,11 @@ const formStyle = css`
   right: 0;
   bottom: 0;
   z-index: 20;
-  border-top: 1px solid rgb(var(--color-border) / 0.24);
-  background: linear-gradient(
-    180deg,
-    rgb(var(--color-surface) / 0.94),
-    rgb(var(--color-surface) / 0.98)
-  );
-  backdrop-filter: blur(10px);
+  border-top: 1px solid rgb(var(--color-border) / 0.18);
+  box-shadow: 0 -4px 12px rgb(var(--color-border) / 0.15);
+  background-color: rgb(var(--color-surface) / 0.82);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
   padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   display: grid;
   gap: var(--space-3);
