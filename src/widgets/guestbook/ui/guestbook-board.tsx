@@ -37,10 +37,18 @@ const createOptimisticId = () =>
 const ACTION_MODAL_TITLE_ID = 'guestbook-action-modal-title';
 const ACTION_MODAL_DESCRIPTION_ID = 'guestbook-action-modal-description';
 
+type GuestbookBoardProps = {
+  initialCursor?: string | null;
+  initialItems?: GuestbookThreadItem[];
+};
+
 /**
  * 방명록 목록과 하단 고정 작성폼을 조합하는 위젯입니다.
  */
-export const GuestbookBoard = () => {
+export const GuestbookBoard = ({
+  initialCursor = null,
+  initialItems = [],
+}: GuestbookBoardProps) => {
   const t = useTranslations('Guest');
   const { isAdmin } = useAuth();
   const {
@@ -56,7 +64,10 @@ export const GuestbookBoard = () => {
     removeThreadById,
     retryInitialLoad,
     updateThreadById,
-  } = useGuestbookFeed();
+  } = useGuestbookFeed({
+    initialCursor,
+    initialItems,
+  });
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [replyTarget, setReplyTarget] = useState<GuestbookThreadItem | null>(null);

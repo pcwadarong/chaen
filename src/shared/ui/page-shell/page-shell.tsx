@@ -102,7 +102,7 @@ const headlineRowStyle = css`
 
 const titleStyle = css`
   flex: 1 1 18rem;
-  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  font-size: var(--font-size-32);
   line-height: var(--line-height-98);
   letter-spacing: -0.04em;
 `;

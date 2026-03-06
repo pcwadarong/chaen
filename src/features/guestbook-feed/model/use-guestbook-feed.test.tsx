@@ -83,6 +83,26 @@ describe('useGuestbookFeed', () => {
     expect(result.current.errorMessage).toBe('failed initial load');
   });
 
+  it('초기 데이터가 있으면 첫 마운트 fetch를 생략한다', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() =>
+      useGuestbookFeed({
+        initialCursor: '12',
+        initialItems: [createThreadFixture('entry-1')],
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.hasMore).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('다음 페이지 조회 실패 시 errorMessage를 설정한다', async () => {
     const fetchMock = vi
       .fn()
