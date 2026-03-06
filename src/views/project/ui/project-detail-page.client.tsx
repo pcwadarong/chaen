@@ -1,117 +1,117 @@
 'use client';
 
 import { css } from '@emotion/react';
+import React from 'react';
 
-import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-modal';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
-import { ProjectDetailMediaGallery } from '@/views/project/ui/project-detail-media-gallery';
-
-type ProjectDetailMediaItem = {
-  alt: string;
-  src: string;
-  unoptimized?: boolean;
-};
+import type { ProjectDetailListItem } from '@/entities/project/model/types';
+import { formatYear } from '@/shared/lib/date/format-year';
+import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 
 type ProjectDetailPageClientProps = {
+  archiveItems: ProjectDetailListItem[];
   content: string | null;
   description: string | null;
+  emptyArchiveText: string;
   emptyDescriptionText: string;
-  emptyMediaText: string;
   emptySummaryText: string;
-  mediaItems: ProjectDetailMediaItem[];
+  id: string;
+  locale: string;
   noTagsText: string;
   periodText: string;
-  publishedText: string;
   sectionLabels: {
+    archive: string;
     description: string;
-    media: string;
-    tags: string;
+    tagList: string;
+  };
+  shareLabels: {
+    copyFailed: string;
+    copied: string;
+    share: string;
   };
   tagLabels: string[];
   title: string;
-  viewerLabels: ImageViewerLabels;
 };
 
 /**
  * 프로젝트 상세 프레젠테이션 컴포넌트입니다.
  */
 export const ProjectDetailPageClient = ({
+  archiveItems,
   content,
   description,
+  emptyArchiveText,
   emptyDescriptionText,
-  emptyMediaText,
   emptySummaryText,
-  mediaItems,
+  id,
+  locale,
   noTagsText,
   periodText,
-  publishedText,
   sectionLabels,
+  shareLabels,
   tagLabels,
   title,
-  viewerLabels,
 }: ProjectDetailPageClientProps) => (
-  <PageShell>
-    <article css={articleStyle}>
-      <PageHeader
-        description={description ?? emptySummaryText}
-        meta={
-          <>
-            <span>{periodText}</span>
-            <span>{publishedText}</span>
-          </>
-        }
-        title={title}
-      >
-        <ul aria-label={sectionLabels.tags} css={tagListStyle}>
-          {tagLabels.length > 0 ? (
-            tagLabels.map(tagLabel => (
-              <li key={tagLabel} css={tagItemStyle}>
-                #{tagLabel}
-              </li>
-            ))
-          ) : (
-            <li css={tagItemStyle}>#{noTagsText}</li>
-          )}
-        </ul>
-      </PageHeader>
-
-      <PageSection title={sectionLabels.media} titleId="project-media-heading">
-        <ProjectDetailMediaGallery
-          emptyText={emptyMediaText}
-          items={mediaItems}
-          sectionLabel={sectionLabels.media}
-          viewerLabels={viewerLabels}
-        />
-      </PageSection>
-
-      <PageSection title={sectionLabels.description} titleId="project-description-heading">
-        {content ? (
-          <p css={plainContentStyle}>{content}</p>
-        ) : (
-          <p css={emptyTextStyle}>{emptyDescriptionText}</p>
-        )}
-      </PageSection>
-    </article>
-  </PageShell>
+  <DetailPageShell
+    emptyArchiveText={emptyArchiveText}
+    heroDescription={description ?? emptySummaryText}
+    metaBar={
+      <DetailMetaBar
+        copyFailedText={shareLabels.copyFailed}
+        copiedText={shareLabels.copied}
+        locale={locale}
+        primaryMetaText={periodText}
+        shareText={shareLabels.share}
+      />
+    }
+    sidebarItems={archiveItems.map(item => ({
+      description: item.description,
+      href: `/project/${item.id}`,
+      isActive: item.id === id,
+      title: item.title,
+      yearText: formatYear(item.created_at, locale) ?? '-',
+    }))}
+    sidebarLabel={sectionLabels.archive}
+    tagContent={
+      <p aria-label={sectionLabels.tagList} css={tagListTextStyle}>
+        {tagLabels.length > 0
+          ? tagLabels.map(tagLabel => `#${tagLabel}`).join(' ')
+          : `#${noTagsText}`}
+      </p>
+    }
+    title={title}
+  >
+    <section aria-labelledby="project-description-heading" css={contentSectionStyle}>
+      <h2 id="project-description-heading" css={sectionTitleStyle}>
+        {sectionLabels.description}
+      </h2>
+      {content ? (
+        <div css={plainContentStyle}>{content}</div>
+      ) : (
+        <p css={emptyTextStyle}>{emptyDescriptionText}</p>
+      )}
+    </section>
+  </DetailPageShell>
 );
 
-const articleStyle = css`
-  display: grid;
-  gap: var(--space-5);
-`;
-
-const tagListStyle = css`
+const tagListTextStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  justify-content: center;
+  gap: var(--space-3);
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-18);
 `;
 
-const tagItemStyle = css`
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.28);
-  background-color: rgb(var(--color-surface) / 0.82);
-  font-size: var(--font-size-14);
+const contentSectionStyle = css`
+  display: grid;
+  gap: var(--space-6);
+`;
+
+const sectionTitleStyle = css`
+  font-size: var(--font-size-32);
+  line-height: var(--line-height-110);
+  letter-spacing: -0.04em;
 `;
 
 const emptyTextStyle = css`

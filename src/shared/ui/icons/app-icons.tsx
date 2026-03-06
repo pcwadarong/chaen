@@ -4,11 +4,14 @@ import React from 'react';
 
 import ArrowCurveLeftRightSvg from '@/shared/assets/icons/arrow-curve-left-right.svg';
 import ArrowUpSvg from '@/shared/assets/icons/arrow-up.svg';
+import CalendarSvg from '@/shared/assets/icons/calendar.svg';
 import EditSvg from '@/shared/assets/icons/edit.svg';
+import EyeSvg from '@/shared/assets/icons/eye.svg';
 import LockSvg from '@/shared/assets/icons/lock.svg';
 import LockOpenSvg from '@/shared/assets/icons/lock_open.svg';
 import MoonSvg from '@/shared/assets/icons/moon.svg';
 import SendSvg from '@/shared/assets/icons/send.svg';
+import ShareSvg from '@/shared/assets/icons/share.svg';
 import SunSvg from '@/shared/assets/icons/sun.svg';
 import SystemSvg from '@/shared/assets/icons/system.svg';
 import TrashSvg from '@/shared/assets/icons/trash.svg';
@@ -156,11 +159,14 @@ const createAppIcon = (
 
 export const ArrowCurveLeftRightIcon = createAppIcon(ArrowCurveLeftRightSvg);
 export const ArrowUpIcon = createAppIcon(ArrowUpSvg);
+export const CalendarIcon = createAppIcon(CalendarSvg);
 export const EditIcon = createAppIcon(EditSvg);
+export const EyeIcon = createAppIcon(EyeSvg);
 export const LockIcon = createAppIcon(LockSvg);
 export const LockOpenIcon = createAppIcon(LockOpenSvg);
 export const MoonIcon = createAppIcon(MoonSvg);
 export const SendIcon = createAppIcon(SendSvg);
+export const ShareIcon = createAppIcon(ShareSvg);
 export const SunIcon = createAppIcon(SunSvg);
 export const SystemIcon = createAppIcon(SystemSvg);
 export const TrashIcon = createAppIcon(TrashSvg);
