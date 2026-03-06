@@ -81,7 +81,8 @@ const cardStyle = css`
     box-shadow 220ms ease,
     transform 220ms ease;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     box-shadow: 0 4px 16px rgb(var(--color-black) / 0.14);
     transform: translateY(-1px);
   }

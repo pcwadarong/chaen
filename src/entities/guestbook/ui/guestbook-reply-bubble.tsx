@@ -107,7 +107,8 @@ const actionButtonStyle = css`
   text-decoration: none;
   color: rgb(var(--color-muted));
 
-  &:hover:not(:disabled):not([aria-disabled='true']) {
+  &:hover:not(:disabled):not([aria-disabled='true']),
+  &:focus-visible:not(:disabled):not([aria-disabled='true']) {
     color: rgb(var(--color-text));
     background: transparent;
     border-color: transparent;

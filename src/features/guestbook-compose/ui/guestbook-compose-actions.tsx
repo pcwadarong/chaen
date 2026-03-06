@@ -1,6 +1,7 @@
 'use client';
 
 import { css } from '@emotion/react';
+import React from 'react';
 
 import { Button } from '@/shared/ui/button/button';
 import { LockIcon, LockOpenIcon, SendIcon } from '@/shared/ui/icons/app-icons';
@@ -90,7 +91,8 @@ const secretToggleLabelStyle = css`
   cursor: pointer;
   transition: color 180ms ease;
 
-  &:hover {
+  &:hover,
+  input:focus-visible + & {
     background: transparent;
     color: rgb(var(--color-text));
   }

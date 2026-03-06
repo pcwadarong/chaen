@@ -1,9 +1,10 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -32,65 +33,79 @@ export const GlobalNavMobileMenu = ({
   onToggle,
   openMenuLabel,
   pathname,
-}: GlobalNavMobileMenuProps) => (
-  <>
-    <div css={mobileControlsStyle}>
-      <Suspense fallback={<span css={switcherFallbackStyle} />}>
-        <LocaleSwitcher />
-      </Suspense>
-      <ThemeSwitcher />
-      <button
-        aria-controls={MOBILE_NAV_DRAWER_ID}
-        aria-expanded={isOpen}
-        aria-label={isOpen ? closeMenuLabel : openMenuLabel}
-        onClick={onToggle}
-        css={hamburgerButtonStyle}
-        type="button"
-      >
-        <span css={hamburgerLineStyle} />
-        <span css={hamburgerLineStyle} />
-        <span css={hamburgerLineStyle} />
-      </button>
-    </div>
-    {isOpen ? (
-      <div css={mobileOverlayStyle} onClick={onClose}>
-        <aside
-          aria-label={ariaLabel}
-          aria-modal="true"
-          css={mobileDrawerStyle}
-          id={MOBILE_NAV_DRAWER_ID}
-          onClick={event => event.stopPropagation()}
-          role="dialog"
+}: GlobalNavMobileMenuProps) => {
+  const drawerRef = useRef<HTMLElement | null>(null);
+
+  useDialogFocusManagement({
+    containerRef: drawerRef,
+    isEnabled: isOpen,
+    onEscape: onClose,
+  });
+
+  return (
+    <>
+      <div css={mobileControlsStyle}>
+        <Suspense fallback={<span css={switcherFallbackStyle} />}>
+          <LocaleSwitcher />
+        </Suspense>
+        <ThemeSwitcher />
+        <button
+          aria-controls={MOBILE_NAV_DRAWER_ID}
+          aria-expanded={isOpen}
+          aria-label={isOpen ? closeMenuLabel : openMenuLabel}
+          onClick={onToggle}
+          css={hamburgerButtonStyle}
+          type="button"
         >
-          <button
-            aria-label={closeMenuLabel}
-            onClick={onClose}
-            css={drawerCloseStyle}
-            type="button"
-          >
-            ×
-          </button>
-          <nav aria-label={ariaLabel}>
-            <ul css={mobileListStyle}>
-              {navigationItems.map(item => (
-                <li key={item.href}>
-                  <Link
-                    aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
-                    href={item.href}
-                    onClick={onClose}
-                    css={mobileNavLinkStyle}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
+          <span css={hamburgerLineStyle} />
+          <span css={hamburgerLineStyle} />
+          <span css={hamburgerLineStyle} />
+        </button>
       </div>
-    ) : null}
-  </>
-);
+      {isOpen ? (
+        <div css={mobileOverlayStyle} onClick={onClose}>
+          <aside
+            aria-label={ariaLabel}
+            aria-modal="true"
+            css={mobileDrawerStyle}
+            id={MOBILE_NAV_DRAWER_ID}
+            onClick={event => event.stopPropagation()}
+            ref={drawerRef}
+            role="dialog"
+            tabIndex={-1}
+          >
+            <button
+              aria-label={closeMenuLabel}
+              onClick={onClose}
+              css={drawerCloseStyle}
+              type="button"
+            >
+              ×
+            </button>
+            <nav aria-label={ariaLabel}>
+              <ul css={mobileListStyle}>
+                {navigationItems.map(item => (
+                  <li key={item.href}>
+                    <Link
+                      aria-current={
+                        isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
+                      }
+                      href={item.href}
+                      onClick={onClose}
+                      css={mobileNavLinkStyle}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 const mobileControlsStyle = css`
   display: none;
@@ -122,7 +137,8 @@ const hamburgerButtonStyle = css`
   gap: 0.22rem;
   cursor: pointer;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     border-color: rgb(var(--color-border) / 0.4);
   }
 `;
@@ -137,7 +153,7 @@ const hamburgerLineStyle = css`
 const mobileOverlayStyle = css`
   position: fixed;
   inset: 0;
-  z-index: 18;
+  z-index: 40;
   display: flex;
   justify-content: flex-end;
   background-color: rgb(var(--color-bg) / 0.32);
