@@ -9,6 +9,8 @@ import { getButtonStyle } from '@/shared/ui/button/button';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
 import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
 
+const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
+
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
@@ -25,10 +27,27 @@ export const GlobalNav = () => {
   ] as const;
 
   useEffect(() => {
-    lastScrollYRef.current = window.scrollY;
+    const desktopMedia = window.matchMedia(DESKTOP_FRAME_MEDIA_QUERY);
+    const viewportElement = document.querySelector<HTMLElement>(
+      '[data-app-scroll-viewport="true"]',
+    );
+
+    const getScrollBinding = () =>
+      desktopMedia.matches && viewportElement
+        ? {
+            readScrollTop: () => viewportElement.scrollTop,
+            target: viewportElement,
+          }
+        : {
+            readScrollTop: () => window.scrollY,
+            target: window,
+          };
+
+    let activeBinding = getScrollBinding();
+    lastScrollYRef.current = activeBinding.readScrollTop();
 
     const updateByDirection = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = activeBinding.readScrollTop();
       const delta = currentScrollY - lastScrollYRef.current;
       const nearTop = currentScrollY <= 8;
 
@@ -52,9 +71,28 @@ export const GlobalNav = () => {
       rafIdRef.current = window.requestAnimationFrame(updateByDirection);
     };
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const bind = () => {
+      activeBinding.target.addEventListener('scroll', onScroll, { passive: true });
+    };
+
+    const unbind = () => {
+      activeBinding.target.removeEventListener('scroll', onScroll);
+    };
+
+    const handleViewportModeChange = () => {
+      unbind();
+      activeBinding = getScrollBinding();
+      lastScrollYRef.current = activeBinding.readScrollTop();
+      setIsHidden(false);
+      bind();
+    };
+
+    bind();
+    desktopMedia.addEventListener('change', handleViewportModeChange);
+
     return () => {
-      window.removeEventListener('scroll', onScroll);
+      unbind();
+      desktopMedia.removeEventListener('change', handleViewportModeChange);
       if (rafIdRef.current !== null) {
         window.cancelAnimationFrame(rafIdRef.current);
       }
@@ -104,6 +142,11 @@ const headerStyle = css`
   transition:
     transform 240ms ease,
     opacity 240ms ease;
+
+  @media (min-width: 961px) {
+    border-top-left-radius: calc(2rem - 1px);
+    border-top-right-radius: calc(2rem - 1px);
+  }
 `;
 
 const visibleHeaderStyle = css`

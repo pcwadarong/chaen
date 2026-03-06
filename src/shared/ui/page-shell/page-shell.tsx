@@ -1,26 +1,25 @@
-'use client';
+import React, { type ReactNode } from 'react';
 
-import { css } from '@emotion/react';
-import React from 'react';
+import styles from '@/shared/ui/page-shell/page-shell.module.css';
 
 type PageShellWidth = 'compact' | 'default';
 
 type PageShellProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   width?: PageShellWidth;
 };
 
 type PageHeaderProps = {
-  action?: React.ReactNode;
-  children?: React.ReactNode;
-  description?: React.ReactNode;
-  meta?: React.ReactNode;
-  title: React.ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
+  description?: ReactNode;
+  meta?: ReactNode;
+  title: ReactNode;
 };
 
 type PageSectionProps = {
-  children: React.ReactNode;
-  title?: React.ReactNode;
+  children: ReactNode;
+  title?: ReactNode;
   titleId?: string;
 };
 
@@ -28,7 +27,9 @@ type PageSectionProps = {
  * 페이지 전반의 가로 폭과 세로 리듬을 맞추는 공통 셸입니다.
  */
 export const PageShell = ({ children, width = 'default' }: PageShellProps) => (
-  <main css={[shellStyle, width === 'compact' ? compactWidthStyle : defaultWidthStyle]}>
+  <main
+    className={`${styles.shell} ${width === 'compact' ? styles.compactWidth : styles.defaultWidth}`}
+  >
     {children}
   </main>
 );
@@ -38,13 +39,13 @@ export const PageShell = ({ children, width = 'default' }: PageShellProps) => (
  * 제목과 액션은 한 줄 플렉스에 두고, 보조 설명과 추가 메타는 아래로 쌓습니다.
  */
 export const PageHeader = ({ action, children, description, meta, title }: PageHeaderProps) => (
-  <header css={headerStyle}>
-    {meta ? <div css={metaStyle}>{meta}</div> : null}
-    <div css={headlineRowStyle}>
-      <h1 css={titleStyle}>{title}</h1>
-      {action ? <div css={actionWrapStyle}>{action}</div> : null}
+  <header className={styles.header}>
+    {meta ? <div className={styles.meta}>{meta}</div> : null}
+    <div className={styles.headlineRow}>
+      <h1 className={styles.title}>{title}</h1>
+      {action ? <div className={styles.actionWrap}>{action}</div> : null}
     </div>
-    {description ? <p css={descriptionStyle}>{description}</p> : null}
+    {description ? <p className={styles.description}>{description}</p> : null}
     {children}
   </header>
 );
@@ -53,78 +54,12 @@ export const PageHeader = ({ action, children, description, meta, title }: PageH
  * 본문 블록을 동일한 카드 표면과 `h2` 타이포그래피로 감쌉니다.
  */
 export const PageSection = ({ children, title, titleId }: PageSectionProps) => (
-  <section aria-labelledby={titleId} css={sectionStyle}>
+  <section aria-labelledby={titleId} className={styles.section}>
     {title ? (
-      <h2 id={titleId} css={sectionTitleStyle}>
+      <h2 id={titleId} className={styles.sectionTitle}>
         {title}
       </h2>
     ) : null}
     {children}
   </section>
 );
-
-const shellStyle = css`
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-4) var(--space-20);
-  display: grid;
-  gap: var(--space-5);
-`;
-
-const defaultWidthStyle = css`
-  width: min(1120px, 100%);
-`;
-
-const compactWidthStyle = css`
-  width: min(960px, 100%);
-`;
-
-const headerStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding-bottom: var(--space-7);
-`;
-
-const metaStyle = css`
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const headlineRowStyle = css`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-`;
-
-const titleStyle = css`
-  flex: 1 1 18rem;
-  font-size: var(--font-size-32);
-  line-height: var(--line-height-98);
-  letter-spacing: -0.04em;
-`;
-
-const actionWrapStyle = css`
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-`;
-
-const descriptionStyle = css`
-  max-width: 70ch;
-  color: rgb(var(--color-muted));
-`;
-
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-4);
-`;
-
-const sectionTitleStyle = css`
-  font-size: var(--font-size-20);
-  line-height: var(--line-height-120);
-  letter-spacing: -0.02em;
-`;

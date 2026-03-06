@@ -26,6 +26,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+@media (min-width: 961px) {
+  body {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 960px) {
+  body {
+    overflow: auto;
+  }
+}
+
 :lang(ja) {
   font-family: var(--font-sans-ja);
 }

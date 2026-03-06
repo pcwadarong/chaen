@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
+import { AppFrame } from '@/shared/ui/app-frame/app-frame';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
 export const metadata: Metadata = {
@@ -45,8 +46,10 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
       <ThemeProvider>
         <AuthProvider>
           <div lang={locale}>
-            <GlobalNav />
-            {children}
+            <AppFrame>
+              <GlobalNav />
+              {children}
+            </AppFrame>
           </div>
         </AuthProvider>
       </ThemeProvider>
