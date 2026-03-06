@@ -7,22 +7,22 @@ import { ProjectCard } from '@/entities/project/ui/project-card';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type ProjectShowcaseProps = {
-  description: string;
+  description?: string;
   descriptionVisibility?: 'sr-only' | 'visible';
   emptyText: string;
   items: Project[];
   hideHeader?: boolean;
-  title: string;
+  title?: string;
 };
 
 /** 프로젝트 카드 묶음을 노출하는 위젯입니다. */
 export const ProjectShowcase = ({
-  description,
+  description = '',
   descriptionVisibility = 'visible',
   emptyText,
   hideHeader = false,
   items,
-  title,
+  title = '',
 }: ProjectShowcaseProps) => (
   <section css={sectionStyle}>
     {hideHeader ? null : (

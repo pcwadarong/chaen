@@ -48,14 +48,14 @@ export const ContactStrip = () => {
 };
 
 const sectionStyle = css`
-  width: min(1120px, calc(100% - 2rem));
+  width: min(1120px, 100%);
   margin: 0 auto;
   min-height: clamp(22rem, 50svh, 36rem);
   display: flex;
   align-items: stretch;
   flex-wrap: wrap;
   gap: var(--space-4);
-  padding: var(--space-12) var(--space-0) var(--space-20);
+  padding: var(--space-12) var(--space-4) var(--space-20);
 `;
 
 const copyStyle = css`
@@ -66,8 +66,8 @@ const copyStyle = css`
 `;
 
 const titleStyle = css`
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: var(--line-height-96);
+  font-size: clamp(2.2rem, 5vw, 4.4rem);
+  line-height: var(--line-height-98);
   letter-spacing: -0.04em;
 `;
 

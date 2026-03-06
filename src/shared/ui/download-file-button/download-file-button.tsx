@@ -48,13 +48,9 @@ const buttonStyle = css`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.875rem;
-  padding: var(--space-0) var(--space-5);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.3);
-  background:
-    linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))),
-    rgb(var(--color-surface));
   color: rgb(var(--color-text));
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.01em;

@@ -17,7 +17,6 @@
     "title": "An opening frame with room for motion."
   },
   "Guest": {
-    "description": "The internet is a shared space we build together. Please write with care and responsibility for others.",
     "title": "Guestbook",
     "loading": "Loading guestbook entries.",
     "loadError": "Failed to load the guestbook.",

@@ -8,7 +8,6 @@ import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type ProjectFeedProps = {
-  description: string;
   emptyText: string;
   initialCursor: string | null;
   initialItems: Project[];
@@ -17,14 +16,12 @@ type ProjectFeedProps = {
   loadingText: string;
   locale: string;
   retryText: string;
-  title: string;
 };
 
 /**
  * 프로젝트 목록의 무한 스크롤 피드를 렌더링합니다.
  */
 export const ProjectFeed = ({
-  description,
   emptyText,
   initialCursor,
   initialItems,
@@ -33,7 +30,6 @@ export const ProjectFeed = ({
   loadingText,
   locale,
   retryText,
-  title,
 }: ProjectFeedProps) => {
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useProjectFeed({
     initialCursor,
@@ -72,12 +68,7 @@ export const ProjectFeed = ({
           </button>
         </div>
       ) : (
-        <ProjectShowcase
-          description={description}
-          emptyText={emptyText}
-          items={items}
-          title={title}
-        />
+        <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
       )}
 
       <div aria-hidden ref={sentinelRef} css={sentinelStyle} />

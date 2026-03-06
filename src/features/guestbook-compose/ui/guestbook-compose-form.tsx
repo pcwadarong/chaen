@@ -127,17 +127,6 @@ export const GuestbookComposeForm = ({
 
   return (
     <form onSubmit={handleSubmit} css={formStyle}>
-      {isReplyMode ? (
-        <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
-          <span aria-hidden css={replyPreviewIconStyle}>
-            ↪
-          </span>
-          <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
-          <button onClick={onReplyTargetReset} css={replyPreviewCloseStyle} type="button">
-            {replyTargetResetLabel}
-          </button>
-        </aside>
-      ) : null}
       <div css={topRowStyle}>
         {!isAdmin ? (
           <div css={leftFieldsStyle}>
@@ -178,6 +167,17 @@ export const GuestbookComposeForm = ({
               />
             </label>
           </div>
+        ) : null}
+        {isReplyMode ? (
+          <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
+            <span aria-hidden css={replyPreviewIconStyle}>
+              ↪
+            </span>
+            <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
+            <button onClick={onReplyTargetReset} css={replyPreviewCloseStyle} type="button">
+              {replyTargetResetLabel}
+            </button>
+          </aside>
         ) : null}
         <div css={rightActionsStyle}>
           {!isAdmin ? (

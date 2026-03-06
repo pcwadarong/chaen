@@ -358,9 +358,6 @@ export const GuestbookBoard = () => {
   return (
     <div css={boardStyle}>
       <section css={feedWrapStyle}>
-        <header css={headerStyle}>
-          <h1 css={titleStyle}>{t('title')}</h1>
-        </header>
         <GuestbookFeed
           canReply={isAdmin}
           errorMessage={errorMessage}
@@ -474,31 +471,14 @@ export const GuestbookBoard = () => {
 
 const boardStyle = css`
   width: 100%;
-  min-height: 100dvh;
   display: grid;
-  grid-template-rows: 1fr;
 `;
 
 const feedWrapStyle = css`
-  width: min(1120px, 100%);
-  justify-self: center;
-  padding: var(--space-6) var(--space-4) var(--space-72);
+  width: 100%;
+  padding: var(--space-0) var(--space-0) var(--space-72);
   display: grid;
   gap: var(--space-4);
-`;
-
-const headerStyle = css`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
-
-const titleStyle = css`
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: var(--line-height-100);
-  letter-spacing: -0.03em;
 `;
 
 const modalBodyStyle = css`
