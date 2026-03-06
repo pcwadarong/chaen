@@ -380,10 +380,17 @@ export const GuestbookBoard = () => {
       </section>
 
       <GuestbookComposeForm
+        authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+        authorNameLabel={t('composeAuthorNameLabel')}
+        characterCountLabel={t('composeCharacterCountLabel')}
+        contentLabel={t('composeContentLabel')}
+        contentShortcutHint={t('composeContentShortcutHint')}
         isAdmin={isAdmin}
         isReplyMode={Boolean(replyTarget && isAdmin)}
         onSubmit={handleSubmit}
         onReplyTargetReset={() => setReplyTarget(null)}
+        passwordLabel={t('composePasswordLabel')}
+        replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
         replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel={t('secretLabel')}

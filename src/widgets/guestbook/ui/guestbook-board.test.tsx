@@ -68,7 +68,7 @@ vi.mock('@/shared/ui/modal/modal', () => ({
   Modal: () => null,
 }));
 
-vi.mock('@/shared/ui/toast', () => ({
+vi.mock('@/shared/ui/toast/toast', () => ({
   ToastViewport: () => null,
 }));
 

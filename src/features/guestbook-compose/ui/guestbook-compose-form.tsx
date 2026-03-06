@@ -1,16 +1,30 @@
 'use client';
 
 import { css } from '@emotion/react';
-import styled from '@emotion/styled';
-import { type KeyboardEvent, type SyntheticEvent, useEffect, useMemo, useState } from 'react';
+import React, {
+  type KeyboardEvent,
+  type SyntheticEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
 
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
+import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type GuestbookComposeFormProps = {
+  authorBlogUrlLabel: string;
+  authorNameLabel: string;
+  characterCountLabel: string;
+  contentLabel: string;
+  contentShortcutHint: string;
   isAdmin: boolean;
   isReplyMode: boolean;
   onSubmit: (values: GuestbookComposeValues) => Promise<void> | void;
   onReplyTargetReset: () => void;
+  passwordLabel: string;
+  replyPreviewLabel: string;
   replyTargetContent: string | null;
   replyTargetResetLabel: string;
   secretLabel: string;
@@ -25,10 +39,17 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
 export const GuestbookComposeForm = ({
+  authorBlogUrlLabel,
+  authorNameLabel,
+  characterCountLabel,
+  contentLabel,
+  contentShortcutHint,
   isAdmin,
   isReplyMode,
   onSubmit,
   onReplyTargetReset,
+  passwordLabel,
+  replyPreviewLabel,
   replyTargetContent,
   replyTargetResetLabel,
   secretLabel,
@@ -41,6 +62,12 @@ export const GuestbookComposeForm = ({
   const [content, setContent] = useState('');
   const [isSecret, setIsSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const authorNameId = useId();
+  const passwordId = useId();
+  const authorBlogUrlId = useId();
+  const contentId = useId();
+  const characterCountId = useId();
+  const contentShortcutHintId = useId();
 
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -69,7 +96,7 @@ export const GuestbookComposeForm = ({
 
   const submit = async () => {
     if (!content.trim()) return;
-    if (!isAdmin && !authorName.trim()) return;
+    if (!isAdmin && (!authorName.trim() || !password.trim())) return;
 
     setIsSubmitting(true);
     try {
@@ -93,15 +120,15 @@ export const GuestbookComposeForm = ({
   };
 
   const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || event.shiftKey) return;
+    if (event.key !== 'Enter' || (!event.ctrlKey && !event.metaKey)) return;
     event.preventDefault();
-    void submit();
+    event.currentTarget.form?.requestSubmit();
   };
 
   return (
     <form onSubmit={handleSubmit} css={formStyle}>
       {isReplyMode ? (
-        <aside css={replyPreviewStyle}>
+        <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
           <span aria-hidden css={replyPreviewIconStyle}>
             ↪
           </span>
@@ -111,33 +138,48 @@ export const GuestbookComposeForm = ({
           </button>
         </aside>
       ) : null}
-      <TopRow>
+      <div css={topRowStyle}>
         {!isAdmin ? (
-          <LeftFields>
-            <input
-              onChange={event => setAuthorName(event.target.value)}
-              placeholder="이름"
-              required
-              css={inputStyle}
-              value={authorName}
-            />
-            <input
-              onChange={event => setPassword(event.target.value)}
-              placeholder="비밀번호"
-              required
-              css={inputStyle}
-              type="password"
-              value={password}
-            />
-            <input
-              onChange={event => setAuthorBlogUrl(event.target.value)}
-              placeholder="블로그 홈페이지(선택)"
-              css={inputStyle}
-              value={authorBlogUrl}
-            />
-          </LeftFields>
+          <div css={leftFieldsStyle}>
+            <label css={fieldWrapStyle} htmlFor={authorNameId}>
+              <span css={srOnlyStyle}>{authorNameLabel}</span>
+              <input
+                id={authorNameId}
+                aria-label={authorNameLabel}
+                onChange={event => setAuthorName(event.target.value)}
+                placeholder={authorNameLabel}
+                required
+                css={inputStyle}
+                value={authorName}
+              />
+            </label>
+            <label css={fieldWrapStyle} htmlFor={passwordId}>
+              <span css={srOnlyStyle}>{passwordLabel}</span>
+              <input
+                id={passwordId}
+                aria-label={passwordLabel}
+                onChange={event => setPassword(event.target.value)}
+                placeholder={passwordLabel}
+                required
+                css={inputStyle}
+                type="password"
+                value={password}
+              />
+            </label>
+            <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
+              <span css={srOnlyStyle}>{authorBlogUrlLabel}</span>
+              <input
+                id={authorBlogUrlId}
+                aria-label={authorBlogUrlLabel}
+                onChange={event => setAuthorBlogUrl(event.target.value)}
+                placeholder={authorBlogUrlLabel}
+                css={inputStyle}
+                value={authorBlogUrl}
+              />
+            </label>
+          </div>
         ) : null}
-        <RightActions>
+        <div css={rightActionsStyle}>
           {!isAdmin ? (
             <label css={secretToggleStyle}>
               <input
@@ -151,20 +193,33 @@ export const GuestbookComposeForm = ({
           <button disabled={isSubmitting} css={submitButtonStyle} type="submit">
             {submitLabel}
           </button>
-        </RightActions>
-      </TopRow>
+        </div>
+      </div>
 
       <div css={textareaWrapStyle}>
-        <textarea
-          maxLength={3000}
-          onChange={event => setContent(event.target.value)}
-          onKeyDown={handleTextareaKeyDown}
-          placeholder={textPlaceholder}
-          rows={5}
-          css={textareaStyle}
-          value={content}
-        />
-        <p css={countStyle}>{charCountText}</p>
+        <label css={fieldWrapStyle} htmlFor={contentId}>
+          <span css={srOnlyStyle}>{contentLabel}</span>
+          <textarea
+            aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
+            aria-label={contentLabel}
+            id={contentId}
+            maxLength={3000}
+            onChange={event => setContent(event.target.value)}
+            onKeyDown={handleTextareaKeyDown}
+            placeholder={textPlaceholder}
+            rows={5}
+            css={textareaStyle}
+            value={content}
+          />
+        </label>
+        <div css={textareaMetaStyle}>
+          <p id={contentShortcutHintId} css={helperTextStyle}>
+            {contentShortcutHint}
+          </p>
+          <p aria-live="polite" id={characterCountId} role="status" css={countStyle}>
+            {characterCountLabel}: {charCountText}
+          </p>
+        </div>
       </div>
     </form>
   );
@@ -188,13 +243,13 @@ const formStyle = css`
   gap: var(--space-3);
 `;
 
-const TopRow = styled.div`
+const topRowStyle = css`
   display: flex;
   gap: var(--space-3);
   align-items: center;
 `;
 
-const LeftFields = styled.div`
+const leftFieldsStyle = css`
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
@@ -231,7 +286,7 @@ const replyPreviewCloseStyle = css`
 `;
 
 const inputStyle = css`
-  flex: 0 1 5rem;
+  width: 100%;
   min-height: 2.5rem;
   border-radius: var(--radius-2xs);
   border: 1px solid rgb(var(--color-border) / 0.34);
@@ -240,7 +295,12 @@ const inputStyle = css`
   padding: var(--space-0) var(--space-3);
 `;
 
-const RightActions = styled.div`
+const fieldWrapStyle = css`
+  display: flex;
+  flex: 0 1 9rem;
+`;
+
+const rightActionsStyle = css`
   margin-left: auto;
   display: inline-flex;
   align-items: center;
@@ -275,6 +335,14 @@ const textareaWrapStyle = css`
   gap: var(--space-2);
 `;
 
+const textareaMetaStyle = css`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+`;
+
 const textareaStyle = css`
   width: 100%;
   min-height: 8.5rem;
@@ -288,6 +356,11 @@ const textareaStyle = css`
 
 const countStyle = css`
   justify-self: end;
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+`;
+
+const helperTextStyle = css`
   color: rgb(var(--color-muted));
   font-size: var(--font-size-14);
 `;
