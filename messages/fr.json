@@ -10,6 +10,9 @@
     "resume": "CV",
     "project": "Projets"
   },
+  "Common": {
+    "scrollToTopAriaLabel": "Retour en haut"
+  },
   "Home": {
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
     "emptyProjects": "Aucun projet n'a encore été publié.",
@@ -38,7 +41,7 @@
     "composeAuthorNamePlaceholder": "Pseudo (1 caractère min.)",
     "composePasswordLabel": "Mot de passe",
     "composePasswordPlaceholder": "Mot de passe (4 caractères min.)",
-    "passwordInput": "비밀번호 입력",
+    "passwordInput": "Saisir le mot de passe",
     "composeAuthorBlogUrlLabel": "Site web (optionnel)",
     "composeAuthorBlogUrlPlaceholder": "Site web (optionnel)",
     "composeContentLabel": "Contenu du message",

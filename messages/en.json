@@ -10,6 +10,9 @@
     "resume": "Resume",
     "project": "Project"
   },
+  "Common": {
+    "scrollToTopAriaLabel": "Back to top"
+  },
   "Home": {
     "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
     "emptyProjects": "No projects have been published yet.",
@@ -38,7 +41,7 @@
     "composeAuthorNamePlaceholder": "Nickname (1+ char)",
     "composePasswordLabel": "Password",
     "composePasswordPlaceholder": "Password (4+ chars)",
-    "passwordInput": "비밀번호 입력",
+    "passwordInput": "Enter password",
     "composeAuthorBlogUrlLabel": "Homepage (optional)",
     "composeAuthorBlogUrlPlaceholder": "Homepage (optional)",
     "composeContentLabel": "Guestbook content",
