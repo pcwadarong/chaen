@@ -3,8 +3,10 @@
     "ariaLabel": "주요 탐색",
     "articles": "기록",
     "brand": "chaen",
+    "closeMenu": "메뉴 닫기",
     "guest": "방명록",
     "home": "홈",
+    "openMenu": "메뉴 열기",
     "resume": "이력",
     "project": "프로젝트"
   },

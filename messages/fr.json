@@ -3,8 +3,10 @@
     "ariaLabel": "Navigation principale",
     "articles": "Articles",
     "brand": "chaen",
+    "closeMenu": "Fermer le menu",
     "guest": "Livre d'or",
     "home": "Accueil",
+    "openMenu": "Ouvrir le menu",
     "resume": "CV",
     "project": "Projets"
   },

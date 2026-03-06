@@ -3,8 +3,10 @@
     "ariaLabel": "主要ナビゲーション",
     "articles": "記事",
     "brand": "chaen",
+    "closeMenu": "メニューを閉じる",
     "guest": "ゲストブック",
     "home": "ホーム",
+    "openMenu": "メニューを開く",
     "resume": "履歴書",
     "project": "作品"
   },

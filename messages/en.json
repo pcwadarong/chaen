@@ -3,8 +3,10 @@
     "ariaLabel": "Primary navigation",
     "articles": "Articles",
     "brand": "chaen",
+    "closeMenu": "Close menu",
     "guest": "Guest",
     "home": "Home",
+    "openMenu": "Open menu",
     "resume": "Resume",
     "project": "Project"
   },

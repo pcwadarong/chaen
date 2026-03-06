@@ -17,6 +17,7 @@ export const GlobalNav = () => {
   const t = useTranslations('Navigation');
   const pathname = usePathname();
   const [isHidden, setIsHidden] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
 
@@ -101,38 +102,121 @@ export const GlobalNav = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
-      <div css={innerStyle}>
-        <Link href="/" css={brandLinkStyle}>
-          {t('brand')}
-        </Link>
-        <div css={contentStyle}>
-          <nav aria-label={t('ariaLabel')}>
-            <ul css={listStyle}>
-              {navigationItems.map(item => (
-                <li key={item.href}>
-                  <Link
-                    aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
-                    href={item.href}
-                    css={navLinkStyle}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <hr aria-hidden css={controlsDividerStyle} />
-          <div css={controlsStyle}>
+    <>
+      <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
+        <div css={innerStyle}>
+          <Link href="/" css={brandLinkStyle}>
+            {t('brand')}
+          </Link>
+          <div css={contentStyle}>
+            <nav aria-label={t('ariaLabel')}>
+              <ul css={listStyle}>
+                {navigationItems.map(item => (
+                  <li key={item.href}>
+                    <Link
+                      aria-current={
+                        isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
+                      }
+                      href={item.href}
+                      css={navLinkStyle}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <hr aria-hidden css={controlsDividerStyle} />
+            <div css={controlsStyle}>
+              <Suspense fallback={<span css={switcherFallbackStyle} />}>
+                <LocaleSwitcher />
+              </Suspense>
+              <ThemeSwitcher />
+            </div>
+          </div>
+          <div css={mobileControlsStyle}>
             <Suspense fallback={<span css={switcherFallbackStyle} />}>
               <LocaleSwitcher />
             </Suspense>
             <ThemeSwitcher />
+            <button
+              aria-controls="mobile-nav-drawer"
+              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuOpen ? t('closeMenu') : t('openMenu')}
+              onClick={() => setIsMobileMenuOpen(previous => !previous)}
+              css={hamburgerButtonStyle}
+              type="button"
+            >
+              <span css={hamburgerLineStyle} />
+              <span css={hamburgerLineStyle} />
+              <span css={hamburgerLineStyle} />
+            </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {isMobileMenuOpen ? (
+        <div css={mobileOverlayStyle} onClick={() => setIsMobileMenuOpen(false)}>
+          <aside
+            aria-label={t('ariaLabel')}
+            aria-modal="true"
+            css={mobileDrawerStyle}
+            id="mobile-nav-drawer"
+            onClick={event => event.stopPropagation()}
+            role="dialog"
+          >
+            <button
+              aria-label={t('closeMenu')}
+              onClick={() => setIsMobileMenuOpen(false)}
+              css={drawerCloseStyle}
+              type="button"
+            >
+              ×
+            </button>
+            <nav aria-label={t('ariaLabel')}>
+              <ul css={mobileListStyle}>
+                {navigationItems.map(item => (
+                  <li key={item.href}>
+                    <Link
+                      aria-current={
+                        isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
+                      }
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      css={mobileNavLinkStyle}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+    </>
   );
 };
 
@@ -184,6 +268,10 @@ const contentStyle = css`
   gap: var(--space-4);
   flex-wrap: wrap;
   flex: 1 1 40rem;
+
+  @media (max-width: 960px) {
+    display: none;
+  }
 `;
 
 const brandLinkStyle = css`
@@ -252,4 +340,101 @@ const switcherFallbackStyle = css`
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.18);
   background-color: rgb(var(--color-surface) / 0.5);
+`;
+
+const mobileControlsStyle = css`
+  display: none;
+
+  @media (max-width: 960px) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+  }
+`;
+
+const hamburgerButtonStyle = css`
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgb(var(--color-border) / 0.4);
+  }
+`;
+
+const hamburgerLineStyle = css`
+  width: 0.95rem;
+  height: 1.5px;
+  border-radius: 999px;
+  background-color: rgb(var(--color-text));
+`;
+
+const mobileOverlayStyle = css`
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  justify-content: flex-end;
+  background-color: rgb(var(--color-bg) / 0.32);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+`;
+
+const mobileDrawerStyle = css`
+  @keyframes slideInDrawer {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  width: min(26rem, 82vw);
+  height: 100%;
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  border-left: 1px solid rgb(var(--color-primary) / 0.48);
+  background-color: rgb(var(--color-surface));
+  box-shadow: -10px 0 28px rgb(var(--color-black) / 0.18);
+  animation: slideInDrawer 220ms ease;
+`;
+
+const drawerCloseStyle = css`
+  justify-self: end;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgb(var(--color-muted));
+  font-size: 1.9rem;
+  line-height: 1;
+  cursor: pointer;
+`;
+
+const mobileListStyle = css`
+  display: grid;
+  gap: var(--space-6);
+`;
+
+const mobileNavLinkStyle = css`
+  text-decoration: none;
+  color: rgb(var(--color-text));
+  font-size: var(--font-size-36);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+
+  &:hover,
+  &[aria-current='page'] {
+    color: rgb(var(--color-primary));
+  }
 `;
