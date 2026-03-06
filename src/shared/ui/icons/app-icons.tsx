@@ -3,6 +3,7 @@ import type { ComponentType, ReactElement, SVGProps } from 'react';
 import React from 'react';
 
 import ArrowCurveLeftRightSvg from '@/shared/assets/icons/arrow-curve-left-right.svg';
+import ArrowUpSvg from '@/shared/assets/icons/arrow-up.svg';
 import EditSvg from '@/shared/assets/icons/edit.svg';
 import LockSvg from '@/shared/assets/icons/lock.svg';
 import LockOpenSvg from '@/shared/assets/icons/lock_open.svg';
@@ -104,9 +105,12 @@ const createAppIcon = (
     const resolvedColor = resolveIconColor({ color, customColor });
 
     if (typeof Svg === 'string') {
+      const isDecorative = props['aria-hidden'] === true || props['aria-hidden'] === 'true';
+      const { role, ...restProps } = props;
+
       return (
         <svg
-          aria-hidden
+          aria-hidden={isDecorative ? true : undefined}
           css={[
             baseIconStyle,
             css`
@@ -116,12 +120,13 @@ const createAppIcon = (
             `,
             style,
           ]}
+          dangerouslySetInnerHTML={{ __html: Svg }}
           focusable="false"
           height={resolvedSize}
-          role="img"
+          role={isDecorative ? undefined : (role ?? 'img')}
           viewBox="0 0 24 24"
           width={resolvedSize}
-          {...props}
+          {...restProps}
         />
       );
     }
@@ -150,6 +155,7 @@ const createAppIcon = (
 };
 
 export const ArrowCurveLeftRightIcon = createAppIcon(ArrowCurveLeftRightSvg);
+export const ArrowUpIcon = createAppIcon(ArrowUpSvg);
 export const EditIcon = createAppIcon(EditSvg);
 export const LockIcon = createAppIcon(LockSvg);
 export const LockOpenIcon = createAppIcon(LockOpenSvg);
