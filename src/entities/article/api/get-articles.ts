@@ -1,7 +1,11 @@
 import { unstable_cache } from 'next/cache';
 
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import {
+  buildOffsetPage,
+  parseOffsetCursor,
+  parseOffsetLimit,
+} from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import {
@@ -12,10 +16,10 @@ import {
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
-import type { Article } from '../model/types';
+import type { ArticleListItem } from '../model/types';
 
 type ArticlesPage = {
-  items: Article[];
+  items: ArticleListItem[];
   nextCursor: string | null;
 };
 
@@ -23,12 +27,35 @@ type GetArticlesOptions = {
   cursor?: string | null;
   limit?: number;
   locale: string;
+  query?: string | null;
+};
+
+const SEARCH_CANDIDATE_LIMIT = 200;
+
+/**
+ * 아티클 검색어를 소문자 비교용으로 정규화합니다.
+ */
+const normalizeSearchQuery = (query?: string | null) => query?.trim().toLowerCase() ?? '';
+
+/**
+ * 아티클이 검색어를 제목/설명 기준으로 포함하는지 판단합니다.
+ */
+const matchesSearchQuery = (article: ArticleListItem, normalizedQuery: string) => {
+  if (!normalizedQuery) return true;
+
+  return [article.title, article.description ?? ''].some(text =>
+    text.toLowerCase().includes(normalizedQuery),
+  );
 };
 
 /**
  * 조회 결과 행으로부터 다음 페이지 cursor를 계산합니다.
  */
-const toArticlesPage = (rows: Article[], offset: number, pageSize: number): ArticlesPage => {
+const toArticlesPage = (
+  rows: ArticleListItem[],
+  offset: number,
+  pageSize: number,
+): ArticlesPage => {
   const hasMore = rows.length > pageSize;
   const pageItems = dedupeById(rows.slice(0, pageSize));
 
@@ -56,7 +83,7 @@ const fetchArticlesByLocale = async (
 
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id,title,description,thumbnail_url,created_at')
     .eq('locale', locale)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize);
@@ -73,7 +100,7 @@ const fetchArticlesByLocale = async (
   }
 
   return {
-    data: toArticlesPage((data ?? []) as Article[], offset, pageSize),
+    data: toArticlesPage((data ?? []) as ArticleListItem[], offset, pageSize),
     localeColumnMissing: false,
   };
 };
@@ -87,7 +114,7 @@ const fetchArticlesLegacy = async (offset: number, pageSize: number): Promise<Ar
 
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id,title,description,thumbnail_url,created_at')
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize);
 
@@ -95,7 +122,65 @@ const fetchArticlesLegacy = async (offset: number, pageSize: number): Promise<Ar
     throw new Error(`[articles] 목록 조회 실패: ${error.message}`);
   }
 
-  return toArticlesPage((data ?? []) as Article[], offset, pageSize);
+  return toArticlesPage((data ?? []) as ArticleListItem[], offset, pageSize);
+};
+
+/**
+ * 검색용 아티클 후보를 locale 기준 최신순으로 조회합니다.
+ */
+const fetchArticleSearchCandidatesByLocale = async (
+  locale: string,
+): Promise<{ data: ArticleListItem[]; localeColumnMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: [],
+      localeColumnMissing: false,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('articles')
+    .select('id,title,description,thumbnail_url,created_at')
+    .eq('locale', locale)
+    .order('created_at', { ascending: false })
+    .range(0, SEARCH_CANDIDATE_LIMIT - 1);
+
+  if (error) {
+    if (isLocaleColumnMissingError(error.message)) {
+      return {
+        data: [],
+        localeColumnMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] 검색 후보 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: dedupeById((data ?? []) as ArticleListItem[]),
+    localeColumnMissing: false,
+  };
+};
+
+/**
+ * locale 컬럼이 없는 기존 스키마용 검색 후보를 조회합니다.
+ */
+const fetchArticleSearchCandidatesLegacy = async (): Promise<ArticleListItem[]> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('articles')
+    .select('id,title,description,thumbnail_url,created_at')
+    .order('created_at', { ascending: false })
+    .range(0, SEARCH_CANDIDATE_LIMIT - 1);
+
+  if (error) {
+    throw new Error(`[articles] legacy 검색 후보 조회 실패: ${error.message}`);
+  }
+
+  return dedupeById((data ?? []) as ArticleListItem[]);
 };
 
 /**
@@ -108,16 +193,39 @@ export const getArticles = async ({
   cursor,
   limit,
   locale,
+  query,
 }: GetArticlesOptions): Promise<ArticlesPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
+  const normalizedQuery = normalizeSearchQuery(query);
   const offset = parseOffsetCursor(cursor);
   const pageSize = parseOffsetLimit(limit);
 
   const getCachedArticles = unstable_cache(
     async () => {
+      if (normalizedQuery) {
+        const candidates = await resolveLocaleAwareData<ArticleListItem[]>({
+          emptyData: [],
+          fallbackLocale: 'ko',
+          fetchByLocale: targetLocale => fetchArticleSearchCandidatesByLocale(targetLocale),
+          fetchLegacy: fetchArticleSearchCandidatesLegacy,
+          isEmptyData: items => items.length === 0,
+          targetLocale: normalizedLocale,
+        });
+
+        const matchedItems = candidates.filter(article =>
+          matchesSearchQuery(article, normalizedQuery),
+        );
+
+        return buildOffsetPage({
+          cursor,
+          items: matchedItems,
+          limit: pageSize,
+        });
+      }
+
       const isFirstPage = offset === 0;
 
       if (!isFirstPage) {
@@ -138,7 +246,15 @@ export const getArticles = async ({
         targetLocale: normalizedLocale,
       });
     },
-    ['articles', 'list', cacheScope, normalizedLocale, String(offset), String(pageSize)],
+    [
+      'articles',
+      'list',
+      cacheScope,
+      normalizedLocale,
+      String(offset),
+      String(pageSize),
+      normalizedQuery,
+    ],
     {
       tags: [ARTICLES_CACHE_TAG],
       revalidate: false,

@@ -12,10 +12,10 @@ import {
 import 'server-only';
 
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
-import type { Project } from '../model/types';
+import type { ProjectListItem } from '../model/types';
 
 type ProjectsPage = {
-  items: Project[];
+  items: ProjectListItem[];
   nextCursor: string | null;
 };
 
@@ -28,7 +28,11 @@ type GetProjectsOptions = {
 /**
  * 조회 결과 행으로부터 다음 페이지 cursor를 계산합니다.
  */
-const toProjectsPage = (rows: Project[], offset: number, pageSize: number): ProjectsPage => {
+const toProjectsPage = (
+  rows: ProjectListItem[],
+  offset: number,
+  pageSize: number,
+): ProjectsPage => {
   const hasMore = rows.length > pageSize;
   const pageItems = dedupeById(rows.slice(0, pageSize));
 
@@ -56,7 +60,7 @@ const fetchProjectsByLocale = async (
 
   const { data, error } = await supabase
     .from('projects')
-    .select('*')
+    .select('id,title,description,thumbnail_url,created_at')
     .eq('locale', locale)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize);
@@ -73,7 +77,7 @@ const fetchProjectsByLocale = async (
   }
 
   return {
-    data: toProjectsPage((data ?? []) as Project[], offset, pageSize),
+    data: toProjectsPage((data ?? []) as ProjectListItem[], offset, pageSize),
     localeColumnMissing: false,
   };
 };
@@ -87,7 +91,7 @@ const fetchProjectsLegacy = async (offset: number, pageSize: number): Promise<Pr
 
   const { data, error } = await supabase
     .from('projects')
-    .select('*')
+    .select('id,title,description,thumbnail_url,created_at')
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize);
 
@@ -95,7 +99,7 @@ const fetchProjectsLegacy = async (offset: number, pageSize: number): Promise<Pr
     throw new Error(`[projects] 목록 조회 실패: ${error.message}`);
   }
 
-  return toProjectsPage((data ?? []) as Project[], offset, pageSize);
+  return toProjectsPage((data ?? []) as ProjectListItem[], offset, pageSize);
 };
 
 /**
