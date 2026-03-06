@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 import Image from 'next/image';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { Modal } from '@/shared/ui/modal/modal';
@@ -97,6 +97,30 @@ export const ImageViewerModal = ({
       left: nextScrollLeft,
     });
   }, [currentIndex, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setCurrentIndex(previous => (previous < sanitizedItems.length - 1 ? previous + 1 : 0));
+        setZoomLevel(1);
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setCurrentIndex(previous => (previous > 0 ? previous - 1 : sanitizedItems.length - 1));
+        setZoomLevel(1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  }, [isOpen, sanitizedItems.length]);
 
   if (!isOpen || !currentItem) return null;
 
@@ -201,7 +225,10 @@ export const ImageViewerModal = ({
 
             return (
               <button
-                aria-label={`${index + 1}`}
+                aria-current={isActive ? 'true' : undefined}
+                aria-label={`${
+                  item.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer'
+                } ${index + 1}`}
                 key={`${item.src}-${index}`}
                 onClick={() => {
                   setCurrentIndex(index);
