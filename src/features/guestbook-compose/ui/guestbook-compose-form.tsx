@@ -291,13 +291,14 @@ const topRowStyle = css`
   display: flex;
   gap: var(--space-3);
   align-items: center;
+  justify-content: space-between;
 `;
 
 const leftFieldsStyle = css`
   display: grid;
   grid-template-columns: minmax(9rem, 0.85fr) minmax(9rem, 0.85fr) minmax(12rem, 1.3fr);
   gap: var(--space-2);
-  flex: 1;
+  flex: 0 1 44rem;
   justify-content: start;
 
   @media (max-width: 920px) {
@@ -337,16 +338,15 @@ const fieldWrapStyle = css`
 const secretControlGroupStyle = css`
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1);
 `;
 
 const rightActionsStyle = css`
-  margin-left: auto;
   display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   flex: 0 0 auto;
-  justify-content: flex-end;
+  margin-left: var(--space-4);
+  align-self: flex-end;
 `;
 
 const secretToggleLabelStyle = css`
@@ -375,6 +375,7 @@ const secretIconStackStyle = css`
   width: 1.125rem;
   height: 1.125rem;
   display: inline-block;
+  transform: translateY(-1px);
 `;
 
 const secretIconOpenStyle = css`
@@ -410,6 +411,8 @@ const secretIconClosedStyle = css`
 const secretCheckboxStyle = css`
   width: 1rem;
   height: 1rem;
+  margin: 0;
+  display: block;
   accent-color: rgb(var(--color-primary));
 `;
 
