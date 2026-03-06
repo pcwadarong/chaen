@@ -17,7 +17,7 @@ import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
 import { useAuth } from '@/shared/providers';
 import { Modal } from '@/shared/ui/modal/modal';
-import { type ToastItem, ToastViewport } from '@/shared/ui/toast';
+import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 
 type ActionModalState =
   | {
