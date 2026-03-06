@@ -78,4 +78,19 @@ describe('SwitcherPopover', () => {
       expect(screen.queryByRole('dialog', { name: '테마 선택' })).toBeNull();
     });
   });
+
+  it('커스텀 트리거 콘텐츠를 표시한다', () => {
+    render(
+      <SwitcherPopover
+        label="테마"
+        panelLabel="테마 선택"
+        triggerContent={<span>아이콘 전용</span>}
+      >
+        {() => <button type="button">시스템</button>}
+      </SwitcherPopover>,
+    );
+
+    expect(screen.getByRole('button', { name: '테마 선택' }).textContent).toContain('아이콘 전용');
+    expect(screen.queryByText('테마')).toBeNull();
+  });
 });

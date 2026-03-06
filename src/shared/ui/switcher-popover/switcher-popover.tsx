@@ -11,13 +11,20 @@ type SwitcherPopoverProps = {
   children: (args: { closePopover: () => void }) => ReactNode;
   label: string;
   panelLabel: string;
-  value: string;
+  triggerContent?: ReactNode;
+  value?: string;
 };
 
 /**
  * 헤더 스위처에서 공통으로 사용하는 팝오버 셸입니다.
  */
-export const SwitcherPopover = ({ children, label, panelLabel, value }: SwitcherPopoverProps) => {
+export const SwitcherPopover = ({
+  children,
+  label,
+  panelLabel,
+  triggerContent,
+  value,
+}: SwitcherPopoverProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -69,7 +76,7 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
       </span>
       <Button
         aria-controls={isOpen ? panelId : undefined}
-        aria-describedby={valueId}
+        aria-describedby={!triggerContent && value ? valueId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-labelledby={panelLabelId}
@@ -80,10 +87,16 @@ export const SwitcherPopover = ({ children, label, panelLabel, value }: Switcher
         type="button"
         variant="ghost"
       >
-        <span css={triggerLabelStyle}>{label}</span>
-        <span id={valueId} css={triggerValueStyle}>
-          {value}
-        </span>
+        {triggerContent ? (
+          triggerContent
+        ) : (
+          <>
+            <span css={triggerLabelStyle}>{label}</span>
+            <span id={valueId} css={triggerValueStyle}>
+              {value}
+            </span>
+          </>
+        )}
       </Button>
       {isOpen ? (
         <div
@@ -108,6 +121,19 @@ const rootStyle = css`
 const triggerStyle = css`
   display: inline-flex;
   gap: var(--space-3);
+  border: none;
+  background: transparent;
+  color: rgb(var(--color-text));
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    border-color: transparent;
+    background: transparent;
+    color: rgb(var(--color-primary));
+  }
+
+  &:focus-visible {
+    color: rgb(var(--color-primary));
+  }
 `;
 
 const triggerLabelStyle = css`

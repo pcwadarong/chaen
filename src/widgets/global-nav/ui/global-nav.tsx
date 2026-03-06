@@ -4,16 +4,18 @@ import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { getButtonStyle } from '@/shared/ui/button/button';
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
 import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
+import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 
 const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
+  const pathname = usePathname();
   const [isHidden, setIsHidden] = useState(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
@@ -110,13 +112,18 @@ export const GlobalNav = () => {
             <ul css={listStyle}>
               {navigationItems.map(item => (
                 <li key={item.href}>
-                  <Link href={item.href} css={navLinkStyle}>
+                  <Link
+                    aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                    href={item.href}
+                    css={navLinkStyle}
+                  >
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
+          <hr aria-hidden css={controlsDividerStyle} />
           <div css={controlsStyle}>
             <Suspense fallback={<span css={switcherFallbackStyle} />}>
               <LocaleSwitcher />
@@ -137,7 +144,7 @@ const headerStyle = css`
   -webkit-backdrop-filter: blur(18px) saturate(135%);
   background-color: rgb(var(--color-surface) / 0.72);
   border-bottom: 1px solid rgb(var(--color-border) / 0.16);
-  box-shadow: 0 4px 12px rgb(var(--color-border) / 0.15);
+  box-shadow: 0 8px 20px rgb(var(--color-black) / 0.14);
   will-change: transform, opacity;
   transition:
     transform 240ms ease,
@@ -201,8 +208,25 @@ const navLinkStyle = css`
     tone: 'white',
     variant: 'ghost',
   })};
+  border: none;
+  background: transparent;
   font-size: var(--font-size-16);
   letter-spacing: 0.04em;
+  color: rgb(var(--color-text));
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    background: transparent;
+    color: rgb(var(--color-primary));
+  }
+
+  &:focus-visible {
+    color: rgb(var(--color-primary));
+    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
+  }
+
+  &[aria-current='page'] {
+    color: rgb(var(--color-primary));
+  }
 `;
 
 const controlsStyle = css`
@@ -211,6 +235,14 @@ const controlsStyle = css`
   justify-content: flex-end;
   gap: var(--space-3);
   flex-wrap: wrap;
+`;
+
+const controlsDividerStyle = css`
+  width: 1px;
+  height: 1.4rem;
+  margin: 0;
+  border: 0;
+  background-color: rgb(var(--color-border) / 0.7);
 `;
 
 const switcherFallbackStyle = css`
