@@ -276,9 +276,4 @@ const buttonVisualStyle = css`
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-
-  & > svg {
-    width: 1.05rem;
-    height: 1.05rem;
-  }
 `;

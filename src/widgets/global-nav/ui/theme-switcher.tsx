@@ -7,8 +7,13 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
+import { ThemeIcon, type ThemeOption, themeOptions } from '@/shared/ui/theme-icon/theme-icon';
 
-const themeOptions = ['system', 'light', 'dark'] as const;
+/**
+ * 테마 문자열이 스위처에서 지원하는 옵션인지 확인합니다.
+ */
+const isThemeOption = (value: string | undefined): value is ThemeOption =>
+  Boolean(value && themeOptions.includes(value as ThemeOption));
 
 /**
  * 전역 테마를 전환하는 팝오버형 스위처입니다.
@@ -22,10 +27,20 @@ export const ThemeSwitcher = () => {
     setIsMounted(true);
   }, []);
 
-  const activeTheme = isMounted ? (theme ?? resolvedTheme ?? 'system') : 'system';
+  const activeTheme: ThemeOption = (() => {
+    if (!isMounted) return 'system';
+    if (isThemeOption(theme)) return theme;
+    if (isThemeOption(resolvedTheme)) return resolvedTheme;
+
+    return 'system';
+  })();
 
   return (
-    <SwitcherPopover label={t('label')} panelLabel={t('ariaLabel')} value={t(activeTheme)}>
+    <SwitcherPopover
+      label={t('label')}
+      panelLabel={t('ariaLabel')}
+      triggerContent={<ThemeIcon theme={activeTheme} />}
+    >
       {({ closePopover }) => (
         <div css={listStyle}>
           {themeOptions.map(option => {
@@ -43,6 +58,7 @@ export const ThemeSwitcher = () => {
                 tone={isActive ? 'black' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
+                leadingVisual={<ThemeIcon theme={option} />}
               >
                 {t(option)}
               </Button>

@@ -47,9 +47,9 @@ describe('GuestbookThreadCard', () => {
         revealLabel="확인하기"
         revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
+        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
-        secretLabel="비밀글"
         secretPlaceholder="비밀글입니다."
       />,
     );
@@ -62,7 +62,7 @@ describe('GuestbookThreadCard', () => {
     expect(onDelete).not.toHaveBeenCalled();
   });
 
-  it('비밀글 확인 버튼을 누르면 비밀번호 입력 패널이 열린다', () => {
+  it('비밀글 보기 버튼을 누르면 인라인 비밀번호 입력 폼이 나타난다', () => {
     render(
       <GuestbookThreadCard
         actionDeleteLabel="삭제"
@@ -78,19 +78,19 @@ describe('GuestbookThreadCard', () => {
         onEdit={vi.fn()}
         onReply={vi.fn()}
         onRevealSecret={vi.fn()}
-        revealLabel="확인하기"
+        revealLabel="보기"
         revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
+        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
-        secretLabel="비밀글"
         secretPlaceholder="비밀글입니다."
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '확인하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '보기' }));
 
-    expect(screen.getByText('비밀글 확인')).toBeTruthy();
-    expect(screen.getByPlaceholderText('비밀번호')).toBeTruthy();
+    expect(screen.getByLabelText('비밀번호')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '확인' })).toBeTruthy();
   });
 });

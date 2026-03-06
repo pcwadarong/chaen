@@ -3,10 +3,15 @@
     "ariaLabel": "Navigation principale",
     "articles": "Articles",
     "brand": "chaen",
+    "closeMenu": "Fermer le menu",
     "guest": "Livre d'or",
     "home": "Accueil",
+    "openMenu": "Ouvrir le menu",
     "resume": "CV",
     "project": "Projets"
+  },
+  "Common": {
+    "scrollToTopAriaLabel": "Retour en haut"
   },
   "Home": {
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
@@ -29,12 +34,16 @@
     "secretReveal": "Voir",
     "secretRevealTitle": "Saisissez le mot de passe pour voir le contenu.",
     "secretVerifyFailed": "Mot de passe incorrect.",
-    "dateFilterLabel": "Date",
     "replyTargetResetLabel": "Annuler la réponse",
+    "requiredField": "Ce champ est obligatoire.",
     "composeReplyPreviewLabel": "Aperçu du message auquel répondre",
-    "composeAuthorNameLabel": "Nom",
+    "composeAuthorNameLabel": "Pseudo",
+    "composeAuthorNamePlaceholder": "Pseudo (1 caractère min.)",
     "composePasswordLabel": "Mot de passe",
-    "composeAuthorBlogUrlLabel": "Site de blog (optionnel)",
+    "composePasswordPlaceholder": "Mot de passe (4 caractères min.)",
+    "passwordInput": "Saisir le mot de passe",
+    "composeAuthorBlogUrlLabel": "Site web (optionnel)",
+    "composeAuthorBlogUrlPlaceholder": "Site web (optionnel)",
     "composeContentLabel": "Contenu du message",
     "composeCharacterCountLabel": "Nombre de caractères",
     "composeContentShortcutHint": "Envoi avec Ctrl/Command + Entrée.",
@@ -50,6 +59,7 @@
     "editConfirm": "Appliquer",
     "deleteConfirm": "Supprimer",
     "editModalTitle": "Saisissez le contenu à modifier.",
+    "editContentUnchanged": "Veuillez modifier le contenu.",
     "deleteModalTitle": "Supprimer ce message ?",
     "deleteModalHint": "Cette action est irréversible. Saisissez le mot de passe.",
     "modalCloseAriaLabel": "Fermer la fenêtre",
@@ -62,6 +72,7 @@
     "toastDeleteSuccess": "Le message a été supprimé.",
     "toastDeleteError": "Échec de suppression du message.",
     "toastSecretVerifyError": "Échec de vérification du message privé.",
+    "toastSecretUnlockRequired": "Déverrouillez d'abord le message privé avec le mot de passe avant de le modifier.",
     "deletedPlaceholder": "Ce message a été supprimé."
   },
   "Articles": {

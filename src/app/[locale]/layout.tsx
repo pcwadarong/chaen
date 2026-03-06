@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
-import { AppFrame } from '@/shared/ui/app-frame/app-frame';
+import { AppFrame } from '@/widgets/app-frame/app-frame';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
 export const metadata: Metadata = {

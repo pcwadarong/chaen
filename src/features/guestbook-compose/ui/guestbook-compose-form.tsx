@@ -11,13 +11,16 @@ import React, {
 } from 'react';
 
 import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
-import { Button } from '@/shared/ui/button/button';
-import { Input } from '@/shared/ui/input/input';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
-import { Textarea } from '@/shared/ui/textarea/textarea';
+import { normalizeComposePassword } from '@/features/guestbook-compose/model/validation';
+import { GuestbookComposeActions } from '@/features/guestbook-compose/ui/guestbook-compose-actions';
+import { GuestbookComposeContentField } from '@/features/guestbook-compose/ui/guestbook-compose-content-field';
+import { GuestbookComposeProfileFields } from '@/features/guestbook-compose/ui/guestbook-compose-profile-fields';
+import { GuestbookComposeReplyPreview } from '@/features/guestbook-compose/ui/guestbook-compose-reply-preview';
 
 type GuestbookComposeFormProps = {
+  authorBlogUrlPlaceholder: string;
   authorBlogUrlLabel: string;
+  authorNamePlaceholder: string;
   authorNameLabel: string;
   characterCountLabel: string;
   contentLabel: string;
@@ -26,6 +29,7 @@ type GuestbookComposeFormProps = {
   isReplyMode: boolean;
   onSubmit: (values: GuestbookComposeValues) => Promise<void> | void;
   onReplyTargetReset: () => void;
+  passwordPlaceholder: string;
   passwordLabel: string;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
@@ -42,7 +46,9 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
 export const GuestbookComposeForm = ({
+  authorBlogUrlPlaceholder,
   authorBlogUrlLabel,
+  authorNamePlaceholder,
   authorNameLabel,
   characterCountLabel,
   contentLabel,
@@ -51,6 +57,7 @@ export const GuestbookComposeForm = ({
   isReplyMode,
   onSubmit,
   onReplyTargetReset,
+  passwordPlaceholder,
   passwordLabel,
   replyPreviewLabel,
   replyTargetContent,
@@ -71,6 +78,7 @@ export const GuestbookComposeForm = ({
   const contentId = useId();
   const characterCountId = useId();
   const contentShortcutHintId = useId();
+  const secretCheckboxId = useId();
 
   useEffect(() => {
     const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -85,6 +93,7 @@ export const GuestbookComposeForm = ({
     }
   }, []);
 
+  // 이름과 블로그 URL이 변경될 때마다 로컬스토리지에 저장
   useEffect(() => {
     window.localStorage.setItem(
       LOCAL_STORAGE_KEY,
@@ -99,13 +108,13 @@ export const GuestbookComposeForm = ({
 
   const submit = async () => {
     if (!content.trim()) return;
-    if (!isAdmin && (!authorName.trim() || !password.trim())) return;
+    if (!isAdmin && (!authorName.trim() || normalizeComposePassword(password).length < 4)) return;
 
     setIsSubmitting(true);
     try {
       await onSubmit({
         authorName: isAdmin ? 'admin' : authorName.trim(),
-        password: isAdmin ? '' : password.trim(),
+        password: isAdmin ? '' : normalizeComposePassword(password),
         authorBlogUrl: isAdmin ? '' : authorBlogUrl.trim(),
         isSecret,
         content: content.trim(),
@@ -119,112 +128,74 @@ export const GuestbookComposeForm = ({
 
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
+    if (!event.currentTarget.reportValidity()) return;
     void submit();
   };
 
+  // Ctrl+Enter 또는 Cmd+Enter로 폼 제출
   const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== 'Enter' || (!event.ctrlKey && !event.metaKey)) return;
     event.preventDefault();
     event.currentTarget.form?.requestSubmit();
   };
 
+  const handlePasswordChange = (value: string) => {
+    setPassword(normalizeComposePassword(value));
+  };
+
   return (
     <form onSubmit={handleSubmit} css={formStyle}>
       <div css={topRowStyle}>
         {!isAdmin ? (
-          <div css={leftFieldsStyle}>
-            <label css={fieldWrapStyle} htmlFor={authorNameId}>
-              <span css={srOnlyStyle}>{authorNameLabel}</span>
-              <Input
-                id={authorNameId}
-                aria-label={authorNameLabel}
-                onChange={event => setAuthorName(event.target.value)}
-                placeholder={authorNameLabel}
-                required
-                value={authorName}
-              />
-            </label>
-            <label css={fieldWrapStyle} htmlFor={passwordId}>
-              <span css={srOnlyStyle}>{passwordLabel}</span>
-              <Input
-                id={passwordId}
-                aria-label={passwordLabel}
-                onChange={event => setPassword(event.target.value)}
-                placeholder={passwordLabel}
-                required
-                type="password"
-                value={password}
-              />
-            </label>
-            <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
-              <span css={srOnlyStyle}>{authorBlogUrlLabel}</span>
-              <Input
-                id={authorBlogUrlId}
-                aria-label={authorBlogUrlLabel}
-                onChange={event => setAuthorBlogUrl(event.target.value)}
-                placeholder={authorBlogUrlLabel}
-                value={authorBlogUrl}
-              />
-            </label>
-          </div>
+          <GuestbookComposeProfileFields
+            authorBlogUrlId={authorBlogUrlId}
+            authorBlogUrlLabel={authorBlogUrlLabel}
+            authorBlogUrlPlaceholder={authorBlogUrlPlaceholder}
+            authorBlogUrlValue={authorBlogUrl}
+            authorNameId={authorNameId}
+            authorNameLabel={authorNameLabel}
+            authorNamePlaceholder={authorNamePlaceholder}
+            authorNameValue={authorName}
+            onAuthorBlogUrlChange={setAuthorBlogUrl}
+            onAuthorNameChange={setAuthorName}
+            onPasswordChange={handlePasswordChange}
+            passwordId={passwordId}
+            passwordLabel={passwordLabel}
+            passwordPlaceholder={passwordPlaceholder}
+            passwordValue={password}
+          />
         ) : null}
         {isReplyMode ? (
-          <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
-            <span aria-hidden css={replyPreviewIconStyle}>
-              ↪
-            </span>
-            <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
-            <Button
-              onClick={onReplyTargetReset}
-              css={replyPreviewCloseStyle}
-              tone="black"
-              variant="underline"
-            >
-              {replyTargetResetLabel}
-            </Button>
-          </aside>
-        ) : null}
-        <div css={rightActionsStyle}>
-          {!isAdmin ? (
-            <label css={secretToggleStyle}>
-              <input
-                checked={isSecret}
-                onChange={event => setIsSecret(event.target.checked)}
-                type="checkbox"
-              />
-              <span>{secretLabel}</span>
-            </label>
-          ) : null}
-          <Button disabled={isSubmitting} tone="black" type="submit">
-            {submitLabel}
-          </Button>
-        </div>
-      </div>
-
-      <div css={textareaWrapStyle}>
-        <label css={fieldWrapStyle} htmlFor={contentId}>
-          <span css={srOnlyStyle}>{contentLabel}</span>
-          <Textarea
-            aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
-            aria-label={contentLabel}
-            id={contentId}
-            maxLength={3000}
-            onChange={event => setContent(event.target.value)}
-            onKeyDown={handleTextareaKeyDown}
-            placeholder={textPlaceholder}
-            rows={1}
-            value={content}
+          <GuestbookComposeReplyPreview
+            onReset={onReplyTargetReset}
+            replyPreviewLabel={replyPreviewLabel}
+            replyTargetContent={replyTargetContent}
+            replyTargetResetLabel={replyTargetResetLabel}
           />
-        </label>
-        <div css={textareaMetaStyle}>
-          <p id={contentShortcutHintId} css={helperTextStyle}>
-            {contentShortcutHint}
-          </p>
-          <p aria-live="polite" id={characterCountId} role="status" css={countStyle}>
-            {characterCountLabel}: {charCountText}
-          </p>
-        </div>
+        ) : null}
+        <GuestbookComposeActions
+          isAdmin={isAdmin}
+          isSecret={isSecret}
+          isSubmitting={isSubmitting}
+          onSecretChange={setIsSecret}
+          secretCheckboxId={secretCheckboxId}
+          secretLabel={secretLabel}
+          submitLabel={submitLabel}
+        />
       </div>
+      <GuestbookComposeContentField
+        characterCountId={characterCountId}
+        characterCountLabel={characterCountLabel}
+        charCountText={charCountText}
+        contentId={contentId}
+        contentLabel={contentLabel}
+        contentShortcutHint={contentShortcutHint}
+        contentShortcutHintId={contentShortcutHintId}
+        onChange={setContent}
+        onKeyDown={handleTextareaKeyDown}
+        textPlaceholder={textPlaceholder}
+        value={content}
+      />
     </form>
   );
 };
@@ -236,97 +207,29 @@ const formStyle = css`
   bottom: 0;
   z-index: 20;
   border-top: 1px solid rgb(var(--color-border) / 0.18);
-  box-shadow: 0 -4px 12px rgb(var(--color-border) / 0.15);
+  box-shadow: 0 -4px 16px rgb(var(--color-black) / 0.14);
   background-color: rgb(var(--color-surface) / 0.82);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   display: grid;
   gap: var(--space-3);
+
+  @media (min-width: 961px) {
+    left: 50%;
+    right: auto;
+    width: calc(
+      var(--app-frame-width, min(1280px, calc(100vw - 2.5rem))) - var(--app-scrollbar-size, 10px)
+    );
+    transform: translateX(calc(-50% - (var(--app-scrollbar-size, 10px) / 2)));
+    border-bottom-left-radius: var(--app-frame-radius, 2rem);
+    border-bottom-right-radius: var(--app-frame-radius, 2rem);
+  }
 `;
 
 const topRowStyle = css`
   display: flex;
   gap: var(--space-3);
   align-items: center;
-`;
-
-const leftFieldsStyle = css`
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  flex: 1;
-`;
-
-const replyPreviewStyle = css`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 2.7rem;
-  padding: var(--space-2) var(--space-3);
-`;
-
-const replyPreviewIconStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-16);
-`;
-
-const replyPreviewTextStyle = css`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgb(var(--color-muted));
-`;
-
-const replyPreviewCloseStyle = css`
-  justify-self: end;
-`;
-
-const fieldWrapStyle = css`
-  display: flex;
-  flex: 0 1 9rem;
-`;
-
-const rightActionsStyle = css`
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 0 0 auto;
-  justify-content: flex-end;
-  align-self: flex-end;
-`;
-
-const secretToggleStyle = css`
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: rgb(var(--color-text));
-  white-space: nowrap;
-`;
-
-const textareaWrapStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
-
-const textareaMetaStyle = css`
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
-
-const countStyle = css`
-  justify-self: end;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const helperTextStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
 `;

@@ -10,6 +10,19 @@ import { type AppLocale, routing } from '@/i18n/routing';
 import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
 
+const headerLocaleCodeMap: Partial<Record<AppLocale, string>> = {
+  en: 'EN',
+  fr: 'FR',
+  ja: 'JA',
+  ko: 'KO',
+};
+
+/**
+ * 헤더 트리거에 표시할 locale 약어 코드를 반환합니다.
+ */
+const getHeaderLocaleCode = (locale: AppLocale) =>
+  headerLocaleCodeMap[locale] ?? locale.toUpperCase();
+
 /**
  * 현재 경로를 유지한 채 locale을 전환하는 팝오버형 스위처입니다.
  */
@@ -44,7 +57,11 @@ export const LocaleSwitcher = () => {
   };
 
   return (
-    <SwitcherPopover label={t('label')} panelLabel={t('ariaLabel')} value={t(locale)}>
+    <SwitcherPopover
+      label={t('label')}
+      panelLabel={t('ariaLabel')}
+      triggerContent={<span css={triggerCodeStyle}>{getHeaderLocaleCode(locale)}</span>}
+    >
       {({ closePopover }) => (
         <div aria-busy={isPending} css={listStyle}>
           {routing.locales.map(option => {
@@ -90,4 +107,11 @@ const optionCodeStyle = css`
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  margin-right: var(--space-3);
+`;
+
+const triggerCodeStyle = css`
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
 `;

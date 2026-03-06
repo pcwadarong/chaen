@@ -3,10 +3,15 @@
     "ariaLabel": "主要ナビゲーション",
     "articles": "記事",
     "brand": "chaen",
+    "closeMenu": "メニューを閉じる",
     "guest": "ゲストブック",
     "home": "ホーム",
+    "openMenu": "メニューを開く",
     "resume": "履歴書",
     "project": "作品"
+  },
+  "Common": {
+    "scrollToTopAriaLabel": "ページ上部へ移動"
   },
   "Home": {
     "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
@@ -29,12 +34,16 @@
     "secretReveal": "確認する",
     "secretRevealTitle": "パスワードを入力すると本文を表示できます。",
     "secretVerifyFailed": "パスワードが一致しません。",
-    "dateFilterLabel": "日付",
     "replyTargetResetLabel": "返信を取り消す",
+    "requiredField": "必須項目です。",
     "composeReplyPreviewLabel": "返信先プレビュー",
-    "composeAuthorNameLabel": "名前",
+    "composeAuthorNameLabel": "ニックネーム",
+    "composeAuthorNamePlaceholder": "ニックネーム1文字以上",
     "composePasswordLabel": "パスワード",
-    "composeAuthorBlogUrlLabel": "ブログホームページ（任意）",
+    "composePasswordPlaceholder": "パスワード4文字以上",
+    "passwordInput": "パスワード入力",
+    "composeAuthorBlogUrlLabel": "ホームページ（任意）",
+    "composeAuthorBlogUrlPlaceholder": "ホームページ（任意）",
     "composeContentLabel": "ゲストブック本文",
     "composeCharacterCountLabel": "文字数",
     "composeContentShortcutHint": "Ctrl/Command + Enterで送信できます。",
@@ -50,6 +59,7 @@
     "editConfirm": "編集を反映",
     "deleteConfirm": "削除する",
     "editModalTitle": "修正内容を入力してください。",
+    "editContentUnchanged": "内容を修正してください。",
     "deleteModalTitle": "この投稿を削除しますか？",
     "deleteModalHint": "削除後は元に戻せません。パスワードを入力してください。",
     "modalCloseAriaLabel": "モーダルを閉じる",
@@ -62,6 +72,7 @@
     "toastDeleteSuccess": "投稿を削除しました。",
     "toastDeleteError": "投稿の削除に失敗しました。",
     "toastSecretVerifyError": "秘密投稿の確認に失敗しました。",
+    "toastSecretUnlockRequired": "秘密投稿はパスワード確認で解除してから編集できます。",
     "deletedPlaceholder": "削除された投稿です。"
   },
   "Articles": {

@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
-import styles from '@/shared/ui/app-frame/app-frame.module.css';
+import styles from '@/widgets/app-frame/app-frame.module.css';
+import { AppFrameScrollTopButton } from '@/widgets/app-frame/app-frame-scroll-top-button';
 
 type AppFrameProps = {
   children: ReactNode;
@@ -16,6 +17,7 @@ export const AppFrame = ({ children }: AppFrameProps) => (
       <div className={styles.scrollViewport} data-app-scroll-viewport="true">
         {children}
       </div>
+      <AppFrameScrollTopButton />
     </div>
   </div>
 );

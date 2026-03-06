@@ -28,7 +28,7 @@ const inputStyle = css`
     background-color 160ms ease;
 
   &::placeholder {
-    color: rgb(var(--color-muted));
+    color: rgb(var(--color-muted) / 0.62);
   }
 
   &:hover:not(:disabled) {

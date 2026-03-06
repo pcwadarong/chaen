@@ -2,30 +2,33 @@
 
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { Link } from '@/i18n/navigation';
-import { getButtonStyle } from '@/shared/ui/button/button';
-import { LocaleSwitcher } from '@/shared/ui/locale-switcher/locale-switcher';
-import { ThemeSwitcher } from '@/shared/ui/theme-switcher/theme-switcher';
+import { Link, usePathname } from '@/i18n/navigation';
+import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
+import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
+import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
 
 const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
+  const pathname = usePathname();
   const [isHidden, setIsHidden] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
 
-  const navigationItems = [
+  const navigationItems: readonly GlobalNavItem[] = [
     { href: '/', label: t('home') },
     { href: '/resume', label: t('resume') },
     { href: '/project', label: t('project') },
     { href: '/articles', label: t('articles') },
     { href: '/guest', label: t('guest') },
-  ] as const;
+  ];
 
+  // 스크롤 방향과 위치에 따라 헤더의 가시성을 토글하는 효과
   useEffect(() => {
     const desktopMedia = window.matchMedia(DESKTOP_FRAME_MEDIA_QUERY);
     const viewportElement = document.querySelector<HTMLElement>(
@@ -64,10 +67,7 @@ export const GlobalNav = () => {
     };
 
     const onScroll = () => {
-      if (rafIdRef.current !== null) {
-        return;
-      }
-
+      if (rafIdRef.current !== null) return;
       rafIdRef.current = window.requestAnimationFrame(updateByDirection);
     };
 
@@ -99,31 +99,49 @@ export const GlobalNav = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
       <div css={innerStyle}>
         <Link href="/" css={brandLinkStyle}>
           {t('brand')}
         </Link>
-        <div css={contentStyle}>
-          <nav aria-label={t('ariaLabel')}>
-            <ul css={listStyle}>
-              {navigationItems.map(item => (
-                <li key={item.href}>
-                  <Link href={item.href} css={navLinkStyle}>
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div css={controlsStyle}>
-            <Suspense fallback={<span css={switcherFallbackStyle} />}>
-              <LocaleSwitcher />
-            </Suspense>
-            <ThemeSwitcher />
-          </div>
-        </div>
+        <GlobalNavDesktopContent
+          ariaLabel={t('ariaLabel')}
+          navigationItems={navigationItems}
+          pathname={pathname}
+        />
+        <GlobalNavMobileMenu
+          ariaLabel={t('ariaLabel')}
+          closeMenuLabel={t('closeMenu')}
+          isOpen={isMobileMenuOpen}
+          navigationItems={navigationItems}
+          onClose={() => setIsMobileMenuOpen(false)}
+          onToggle={() => setIsMobileMenuOpen(previous => !previous)}
+          openMenuLabel={t('openMenu')}
+          pathname={pathname}
+        />
       </div>
     </header>
   );
@@ -137,7 +155,7 @@ const headerStyle = css`
   -webkit-backdrop-filter: blur(18px) saturate(135%);
   background-color: rgb(var(--color-surface) / 0.72);
   border-bottom: 1px solid rgb(var(--color-border) / 0.16);
-  box-shadow: 0 4px 12px rgb(var(--color-border) / 0.15);
+  box-shadow: 0 4px 16px rgb(var(--color-black) / 0.14);
   will-change: transform, opacity;
   transition:
     transform 240ms ease,
@@ -164,19 +182,10 @@ const innerStyle = css`
   margin: 0 auto;
   padding: var(--space-4) var(--space-0);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
-`;
-
-const contentStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  flex: 1 1 40rem;
 `;
 
 const brandLinkStyle = css`
@@ -186,38 +195,4 @@ const brandLinkStyle = css`
   text-transform: uppercase;
   text-decoration: none;
   color: rgb(var(--color-text));
-`;
-
-const listStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-`;
-
-const navLinkStyle = css`
-  ${getButtonStyle({
-    size: 'sm',
-    tone: 'white',
-    variant: 'ghost',
-  })};
-  font-size: var(--font-size-16);
-  letter-spacing: 0.04em;
-`;
-
-const controlsStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
-
-const switcherFallbackStyle = css`
-  display: inline-flex;
-  width: 8.5rem;
-  min-height: 2.5rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background-color: rgb(var(--color-surface) / 0.5);
 `;
