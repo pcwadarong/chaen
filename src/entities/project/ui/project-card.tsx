@@ -2,14 +2,14 @@
 
 import { useLocale } from 'next-intl';
 
-import type { Project } from '@/entities/project/model/types';
+import type { ProjectListItem } from '@/entities/project/model/types';
 import { formatYear } from '@/shared/lib/date/format-year';
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { ContentCard } from '@/shared/ui/content-card/content-card';
 
 type ProjectCardProps = {
-  item: Project;
+  item: ProjectListItem;
 };
 
 /** 프로젝트 요약 카드를 렌더링합니다. */

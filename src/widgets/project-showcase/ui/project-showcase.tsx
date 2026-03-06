@@ -2,7 +2,7 @@
 
 import { css } from '@emotion/react';
 
-import type { Project } from '@/entities/project/model/types';
+import type { ProjectListItem } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
@@ -10,7 +10,7 @@ type ProjectShowcaseProps = {
   description?: string;
   descriptionVisibility?: 'sr-only' | 'visible';
   emptyText: string;
-  items: Project[];
+  items: ProjectListItem[];
   hideHeader?: boolean;
   title?: string;
 };

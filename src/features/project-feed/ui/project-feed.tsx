@@ -3,7 +3,7 @@
 import { css } from '@emotion/react';
 import { useEffect, useRef } from 'react';
 
-import type { Project } from '@/entities/project/model/types';
+import type { ProjectListItem } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
 import { Button } from '@/shared/ui/button/button';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
@@ -11,7 +11,7 @@ import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase'
 type ProjectFeedProps = {
   emptyText: string;
   initialCursor: string | null;
-  initialItems: Project[];
+  initialItems: ProjectListItem[];
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
