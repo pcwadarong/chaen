@@ -4,11 +4,12 @@ import { css } from '@emotion/react';
 import { useEffect, useRef } from 'react';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
-import { ArticleCard } from '@/entities/article/ui/article-card';
+import { ArticleListItem as ArticleWideListItem } from '@/entities/article/ui/article-list-item';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
 
 type ArticleFeedProps = {
+  activeTag: string;
   emptyText: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
@@ -24,6 +25,7 @@ type ArticleFeedProps = {
  * 아티클 목록의 무한 스크롤 피드를 렌더링합니다.
  */
 export const ArticleFeed = ({
+  activeTag,
   emptyText,
   initialCursor,
   initialItems,
@@ -35,6 +37,7 @@ export const ArticleFeed = ({
   retryText,
 }: ArticleFeedProps) => {
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useArticleFeed({
+    activeTag,
     initialCursor,
     initialItems,
     locale,
@@ -72,11 +75,13 @@ export const ArticleFeed = ({
           </Button>
         </div>
       ) : items.length > 0 ? (
-        <div css={gridStyle}>
+        <ol css={listStyle}>
           {items.map(article => (
-            <ArticleCard article={article} key={`${article.id}-${article.created_at}`} />
+            <li css={itemStyle} key={`${article.id}-${article.created_at}`}>
+              <ArticleWideListItem article={article} />
+            </li>
           ))}
-        </div>
+        </ol>
       ) : (
         <p css={emptyStyle}>{emptyText}</p>
       )}
@@ -102,12 +107,20 @@ const sectionStyle = css`
   gap: var(--space-3);
 `;
 
-const gridStyle = css`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  grid-auto-rows: 1fr;
-  align-items: stretch;
-  gap: var(--space-4);
+const listStyle = css`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid rgb(var(--color-border) / 0.3);
+`;
+
+const itemStyle = css`
+  margin: 0;
+  border-top: 1px solid rgb(var(--color-border) / 0.3);
+
+  &:first-of-type {
+    border-top: none;
+  }
 `;
 
 const emptyStyle = css`

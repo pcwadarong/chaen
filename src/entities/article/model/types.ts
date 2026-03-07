@@ -25,3 +25,18 @@ export type ArticleListItem = Pick<
   Article,
   'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'
 >;
+
+/**
+ * 아티클 목록 우측 패널에서 사용하는 인기 태그 집계 타입입니다.
+ */
+export type ArticleTagStat = {
+  article_count: number;
+  tag: string;
+};
+
+/**
+ * locale별 label이 결합된 아티클 태그 집계 타입입니다.
+ */
+export type LocalizedArticleTagStat = ArticleTagStat & {
+  label: string;
+};

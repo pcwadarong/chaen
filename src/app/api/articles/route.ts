@@ -12,6 +12,7 @@ export const GET = async (request: Request) => {
   const locale = url.searchParams.get('locale') ?? 'ko';
   const rawLimit = url.searchParams.get('limit');
   const query = url.searchParams.get('q');
+  const tag = url.searchParams.get('tag');
   const limit = rawLimit ? Number.parseInt(rawLimit, 10) : undefined;
 
   try {
@@ -20,6 +21,7 @@ export const GET = async (request: Request) => {
       limit,
       locale,
       query,
+      tag,
     });
 
     return NextResponse.json({

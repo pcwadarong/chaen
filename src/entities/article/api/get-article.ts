@@ -1,69 +1,106 @@
 import { unstable_cache } from 'next/cache';
 
+import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '../model/cache-tags';
 import type { Article } from '../model/types';
 
-/**
- * locale 컬럼을 사용하는 단일 아티클을 조회합니다.
- */
-const fetchArticleByLocale = async (
-  articleId: string,
-  locale: string,
-): Promise<{ data: Article | null; localeColumnMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: null, localeColumnMissing: false };
+const isMissingArticleShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
 
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('id', articleId)
-    .eq('locale', locale)
-    .maybeSingle<Article>();
+  return (
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
+  );
+};
 
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: null,
-        localeColumnMissing: true,
-      };
-    }
+type ArticleBaseRow = Pick<
+  Article,
+  'created_at' | 'id' | 'thumbnail_url' | 'updated_at' | 'view_count'
+>;
 
-    throw new Error(`[articles] locale 단일 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data,
-    localeColumnMissing: false,
-  };
+type ArticleTranslationRow = Pick<Article, 'content' | 'description' | 'title'> & {
+  article_id: string;
 };
 
 /**
- * locale 컬럼이 없는 기존 스키마를 위한 단일 아티클 조회입니다.
+ * content schema(`articles` + `article_translations`)에서 locale별 단일 아티클을 조회합니다.
  */
-const fetchArticleLegacy = async (articleId: string): Promise<Article | null> => {
+const fetchArticleFromShadowSchema = async (
+  articleId: string,
+  locale: string,
+): Promise<{ data: Article | null; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return null;
+  if (!supabase) return { data: null, schemaMissing: false };
 
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('id', articleId)
-    .maybeSingle<Article>();
+  const { data: translation, error: translationError } = await supabase
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .select('article_id,title,description,content')
+    .eq('article_id', articleId)
+    .eq('locale', locale)
+    .maybeSingle<ArticleTranslationRow>();
 
-  if (error) {
-    throw new Error(`[articles] 단일 조회 실패: ${error.message}`);
+  if (translationError) {
+    if (isMissingArticleShadowSchemaError(translationError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[articles] shadow 번역 조회 실패: ${translationError.message}`);
   }
 
-  return data;
+  if (!translation) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const { data: articleBase, error: articleBaseError } = await supabase
+    .from(CONTENT_SHADOW_SCHEMA.articles)
+    .select('id,thumbnail_url,created_at,updated_at,view_count')
+    .eq('id', articleId)
+    .maybeSingle<ArticleBaseRow>();
+
+  if (articleBaseError) {
+    if (isMissingArticleShadowSchemaError(articleBaseError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[articles] shadow base 조회 실패: ${articleBaseError.message}`);
+  }
+
+  if (!articleBase) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const shadowTags = await getRelatedTagSlugs({
+    entityColumn: 'article_id',
+    entityId: articleId,
+    relationTable: CONTENT_SHADOW_SCHEMA.articleTags,
+  });
+  if (shadowTags.schemaMissing) {
+    throw new Error('[articles] 태그 relation schema가 없습니다.');
+  }
+
+  return {
+    data: {
+      ...articleBase,
+      ...translation,
+      tags: shadowTags.data,
+    },
+    schemaMissing: false,
+  };
+};
+
+const fetchArticleByLocale = async (articleId: string, locale: string): Promise<Article | null> => {
+  const shadowArticle = await fetchArticleFromShadowSchema(articleId, locale);
+  if (shadowArticle.schemaMissing) {
+    throw new Error('[articles] shadow content schema가 없습니다.');
+  }
+
+  return shadowArticle.data;
 };
 
 /**
@@ -79,15 +116,12 @@ export const getArticle = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedArticle = unstable_cache(
-    async () =>
-      resolveLocaleAwareData<Article | null>({
-        emptyData: null,
-        fallbackLocale: 'ko',
-        fetchByLocale: locale => fetchArticleByLocale(articleId, locale),
-        fetchLegacy: () => fetchArticleLegacy(articleId),
-        isEmptyData: item => item === null,
-        targetLocale: normalizedLocale,
-      }),
+    async () => {
+      const localizedArticle = await fetchArticleByLocale(articleId, normalizedLocale);
+      if (localizedArticle || normalizedLocale === 'ko') return localizedArticle;
+
+      return fetchArticleByLocale(articleId, 'ko');
+    },
     ['article', cacheScope, articleId, normalizedLocale],
     {
       tags: [ARTICLES_CACHE_TAG, createArticleCacheTag(articleId)],

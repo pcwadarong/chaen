@@ -1,10 +1,14 @@
 'use client';
 
 import { css } from '@emotion/react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
+import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
+import { SearchIcon } from '@/shared/ui/icons/app-icons';
+import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
@@ -14,11 +18,16 @@ const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
+  const articlesT = useTranslations('Articles');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isHidden, setIsHidden] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
+  const isArticlesRoute = pathname === '/articles' || pathname.startsWith('/articles/');
+  const currentSearchQuery = searchParams?.get('q')?.trim() ?? '';
 
   const navigationItems: readonly GlobalNavItem[] = [
     { href: '/', label: t('home') },
@@ -104,6 +113,10 @@ export const GlobalNav = () => {
   }, [pathname]);
 
   useEffect(() => {
+    setIsMobileSearchOpen(false);
+  }, [pathname, currentSearchQuery]);
+
+  useEffect(() => {
     if (!isMobileMenuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -121,8 +134,47 @@ export const GlobalNav = () => {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    if (!isMobileSearchOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileSearchOpen(false);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMobileSearchOpen]);
+
   return (
     <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
+      {isArticlesRoute && isMobileSearchOpen ? (
+        <div css={mobileSearchOverlayStyle}>
+          <div css={mobileSearchOverlayInnerStyle}>
+            <ArticleSearchForm
+              autoFocus
+              clearText={articlesT('searchClear')}
+              fullWidth
+              onSubmitComplete={() => setIsMobileSearchOpen(false)}
+              pendingText={articlesT('loading')}
+              placeholder={articlesT('searchPlaceholder')}
+              searchMode="submit-only"
+              searchQuery={currentSearchQuery}
+              submitText={articlesT('searchSubmit')}
+            />
+            <button
+              aria-label={articlesT('searchClose')}
+              css={mobileSearchCloseStyle}
+              onClick={() => setIsMobileSearchOpen(false)}
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ) : null}
       <div css={innerStyle}>
         <Link href="/" css={brandLinkStyle}>
           {t('brand')}
@@ -136,6 +188,20 @@ export const GlobalNav = () => {
           ariaLabel={t('ariaLabel')}
           closeMenuLabel={t('closeMenu')}
           isOpen={isMobileMenuOpen}
+          leadingAction={
+            isArticlesRoute ? (
+              <button
+                aria-expanded={isMobileSearchOpen}
+                aria-label={articlesT('searchSubmit')}
+                css={mobileSearchActionStyle}
+                onClick={() => setIsMobileSearchOpen(true)}
+                type="button"
+              >
+                <SearchIcon aria-hidden color="text" size="md" />
+                <span css={srOnlyStyle}>{articlesT('searchSubmit')}</span>
+              </button>
+            ) : null
+          }
           navigationItems={navigationItems}
           onClose={() => setIsMobileMenuOpen(false)}
           onToggle={() => setIsMobileMenuOpen(previous => !previous)}
@@ -178,6 +244,7 @@ const hiddenHeaderStyle = css`
 `;
 
 const innerStyle = css`
+  position: relative;
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
   padding: var(--space-4) var(--space-0);
@@ -195,4 +262,82 @@ const brandLinkStyle = css`
   text-transform: uppercase;
   text-decoration: none;
   color: rgb(var(--color-text));
+`;
+
+const mobileSearchOverlayStyle = css`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  background-color: rgb(var(--color-surface) / 0.94);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+
+  @media (min-width: 961px) {
+    display: none;
+  }
+`;
+
+const mobileSearchOverlayInnerStyle = css`
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+`;
+
+const mobileSearchActionStyle = css`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(var(--color-text));
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    background: rgb(var(--color-text) / 0.06);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
+  }
+`;
+
+const mobileSearchCloseStyle = css`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(var(--color-text));
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    background: rgb(var(--color-text) / 0.06);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
+  }
 `;

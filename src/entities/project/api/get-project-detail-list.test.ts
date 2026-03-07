@@ -23,15 +23,12 @@ describe('getProjectDetailList', () => {
     vi.clearAllMocks();
   });
 
-  it('최신순 프로젝트 요약 목록을 keyset 정렬 기준으로 반환한다', async () => {
-    const projectQuery = {
-      eq: vi.fn().mockReturnThis(),
+  it('shadow schema 기준으로 최신순 프로젝트 요약 목록을 반환한다', async () => {
+    const projectBaseQuery = {
       limit: vi.fn().mockResolvedValue({
         data: [
           {
             id: 'funda',
-            title: 'FUNDA',
-            description: 'detail',
             created_at: '2026-03-02T00:00:00.000Z',
           },
         ],
@@ -39,10 +36,27 @@ describe('getProjectDetailList', () => {
       }),
       order: vi.fn().mockReturnThis(),
     };
-    const supabaseClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue(projectQuery),
+    const translationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({
+        data: [
+          {
+            project_id: 'funda',
+            title: 'FUNDA',
+            description: 'detail',
+          },
+        ],
+        error: null,
       }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(projectBaseQuery),
+        })
+        .mockReturnValueOnce(translationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -58,53 +72,33 @@ describe('getProjectDetailList', () => {
         created_at: '2026-03-02T00:00:00.000Z',
       },
     ]);
-    expect(projectQuery.order).toHaveBeenNthCalledWith(1, 'created_at', { ascending: false });
-    expect(projectQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: false });
+    expect(projectBaseQuery.order).toHaveBeenNthCalledWith(1, 'created_at', { ascending: false });
+    expect(projectBaseQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: false });
+    expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
     expect(unstable_cache).toHaveBeenCalledTimes(1);
   });
 
-  it('locale 컬럼이 없으면 legacy 조회로 fallback한다', async () => {
-    const localizedQuery = {
-      eq: vi.fn().mockReturnThis(),
+  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
+    const shadowBaseQuery = {
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'column projects.locale does not exist',
+          message: 'relation "public.projects" does not exist',
         },
       }),
       order: vi.fn().mockReturnThis(),
     };
-    const legacyQuery = {
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'legacy-project',
-            title: 'Legacy',
-            description: null,
-            created_at: '2025-01-01T00:00:00.000Z',
-          },
-        ],
-        error: null,
-      }),
-      order: vi.fn().mockReturnThis(),
-    };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(localizedQuery),
-        })
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(legacyQuery),
-        }),
+      from: vi.fn().mockReturnValueOnce({
+        select: vi.fn().mockReturnValue(shadowBaseQuery),
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    const result = await getProjectDetailList('ko');
-
-    expect(result[0]?.id).toBe('legacy-project');
-    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    await expect(getProjectDetailList('ko')).rejects.toThrow(
+      '[projects] shadow content schema가 없습니다.',
+    );
   });
 });

@@ -1,69 +1,107 @@
 import { unstable_cache } from 'next/cache';
 
+import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
 
-/**
- * locale 컬럼을 사용하는 프로젝트를 조회합니다.
- */
-const fetchProjectByLocale = async (
-  projectId: string,
-  locale: string,
-): Promise<{ data: Project | null; localeColumnMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: null, localeColumnMissing: false };
+const isMissingProjectShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .eq('locale', locale)
-    .maybeSingle<Project>();
+  return (
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
+  );
+};
 
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: null,
-        localeColumnMissing: true,
-      };
-    }
+type ProjectBaseRow = Pick<
+  Project,
+  'created_at' | 'id' | 'period_end' | 'period_start' | 'thumbnail_url'
+>;
 
-    throw new Error(`[projects] locale 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data,
-    localeColumnMissing: false,
-  };
+type ProjectTranslationRow = Pick<Project, 'content' | 'description' | 'title'> & {
+  project_id: string;
 };
 
 /**
- * locale 컬럼이 없는 기존 스키마를 위한 단일 프로젝트 조회입니다.
+ * content schema(`projects` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
  */
-const fetchProjectLegacy = async (projectId: string): Promise<Project | null> => {
+const fetchProjectFromShadowSchema = async (
+  projectId: string,
+  locale: string,
+): Promise<{ data: Project | null; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return null;
+  if (!supabase) return { data: null, schemaMissing: false };
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .maybeSingle<Project>();
+  const { data: translation, error: translationError } = await supabase
+    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    .select('project_id,title,description,content')
+    .eq('project_id', projectId)
+    .eq('locale', locale)
+    .maybeSingle<ProjectTranslationRow>();
 
-  if (error) {
-    throw new Error(`[projects] 단일 조회 실패: ${error.message}`);
+  if (translationError) {
+    if (isMissingProjectShadowSchemaError(translationError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[projects] shadow 번역 조회 실패: ${translationError.message}`);
   }
 
-  return data;
+  if (!translation) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const { data: projectBase, error: projectBaseError } = await supabase
+    .from(CONTENT_SHADOW_SCHEMA.projects)
+    .select('id,thumbnail_url,created_at,period_start,period_end')
+    .eq('id', projectId)
+    .maybeSingle<ProjectBaseRow>();
+
+  if (projectBaseError) {
+    if (isMissingProjectShadowSchemaError(projectBaseError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[projects] shadow base 조회 실패: ${projectBaseError.message}`);
+  }
+
+  if (!projectBase) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const shadowTags = await getRelatedTagSlugs({
+    entityColumn: 'project_id',
+    entityId: projectId,
+    relationTable: CONTENT_SHADOW_SCHEMA.projectTags,
+  });
+  if (shadowTags.schemaMissing) {
+    throw new Error('[projects] 태그 relation schema가 없습니다.');
+  }
+
+  return {
+    data: {
+      ...projectBase,
+      ...translation,
+      gallery_urls: null,
+      tags: shadowTags.data,
+    },
+    schemaMissing: false,
+  };
+};
+
+const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
+  const shadowProject = await fetchProjectFromShadowSchema(projectId, locale);
+  if (shadowProject.schemaMissing) {
+    throw new Error('[projects] shadow content schema가 없습니다.');
+  }
+
+  return shadowProject.data;
 };
 
 /**
@@ -79,15 +117,12 @@ export const getProject = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProject = unstable_cache(
-    async () =>
-      resolveLocaleAwareData<Project | null>({
-        emptyData: null,
-        fallbackLocale: 'ko',
-        fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
-        fetchLegacy: () => fetchProjectLegacy(projectId),
-        isEmptyData: item => item === null,
-        targetLocale: normalizedLocale,
-      }),
+    async () => {
+      const localizedProject = await fetchProjectByLocale(projectId, normalizedLocale);
+      if (localizedProject || normalizedLocale === 'ko') return localizedProject;
+
+      return fetchProjectByLocale(projectId, 'ko');
+    },
     ['project', cacheScope, projectId, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG, createProjectCacheTag(projectId)],

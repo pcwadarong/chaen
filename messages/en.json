@@ -81,11 +81,15 @@
     "loadError": "Failed to load articles.",
     "loadMoreEnd": "You have reached the end of the articles.",
     "loading": "Loading articles.",
+    "popularTagsEmpty": "No tags to show yet.",
+    "popularTagsTitle": "Tags",
     "searchClear": "Clear",
+    "searchClose": "Close search",
     "searchPlaceholder": "Search articles",
     "searchSubmit": "Search",
     "retry": "Retry",
-    "title": "Articles"
+    "title": "Articles",
+    "viewArticle": "View article: {title}"
   },
   "Project": {
     "deliverables": "Deliverables",

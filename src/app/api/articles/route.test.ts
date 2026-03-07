@@ -40,6 +40,7 @@ describe('GET /api/articles', () => {
       limit: 12,
       locale: 'ko',
       query: null,
+      tag: null,
     });
   });
 
@@ -58,8 +59,31 @@ describe('GET /api/articles', () => {
       limit: undefined,
       locale: 'ko',
       query: 'react',
+      tag: null,
     });
     expect(payload.totalCount).toBe(3);
+  });
+
+  it('태그가 있으면 그대로 전달한다', async () => {
+    vi.mocked(getArticles).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+      totalCount: 2,
+    });
+
+    const response = await GET(
+      new Request('http://localhost:3000/api/articles?locale=ko&tag=nextjs'),
+    );
+    const payload = await response.json();
+
+    expect(getArticles).toHaveBeenCalledWith({
+      cursor: null,
+      limit: undefined,
+      locale: 'ko',
+      query: null,
+      tag: 'nextjs',
+    });
+    expect(payload.totalCount).toBe(2);
   });
 
   it('실패 시 500과 reason을 반환한다', async () => {
