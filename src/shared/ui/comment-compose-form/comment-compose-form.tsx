@@ -10,68 +10,86 @@ import React, {
   useState,
 } from 'react';
 
-import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
-import { normalizeComposePassword } from '@/features/guestbook-compose/model/validation';
-import { GuestbookComposeActions } from '@/features/guestbook-compose/ui/guestbook-compose-actions';
-import { GuestbookComposeContentField } from '@/features/guestbook-compose/ui/guestbook-compose-content-field';
-import { GuestbookComposeProfileFields } from '@/features/guestbook-compose/ui/guestbook-compose-profile-fields';
-import { GuestbookComposeReplyPreview } from '@/features/guestbook-compose/ui/guestbook-compose-reply-preview';
+import type { CommentComposeValues } from '@/shared/lib/comment-compose';
+import {
+  hasMinCommentComposePasswordLength,
+  isValidCommentComposeAuthorName,
+  normalizeCommentComposePassword,
+} from '@/shared/lib/comment-compose';
+import { CommentComposeActions } from '@/shared/ui/comment-compose-form/comment-compose-actions';
+import { CommentComposeContentField } from '@/shared/ui/comment-compose-form/comment-compose-content-field';
+import { CommentComposeProfileFields } from '@/shared/ui/comment-compose-form/comment-compose-profile-fields';
+import { CommentComposeReplyPreview } from '@/shared/ui/comment-compose-form/comment-compose-reply-preview';
 
-type GuestbookComposeFormProps = {
+type CommentComposeFormLayout = 'embedded' | 'fixed';
+type CommentComposeAuthorMode = 'manual' | 'preset';
+
+type CommentComposeFormProps = {
+  allowSecretToggle?: boolean;
   authorBlogUrlPlaceholder: string;
   authorBlogUrlLabel: string;
+  authorMode?: CommentComposeAuthorMode;
   authorNamePlaceholder: string;
   authorNameLabel: string;
   characterCountLabel: string;
   contentLabel: string;
   contentShortcutHint: string;
-  isAdmin: boolean;
   isReplyMode: boolean;
-  onSubmit: (values: GuestbookComposeValues) => Promise<void> | void;
+  layout?: CommentComposeFormLayout;
+  onSubmit: (values: CommentComposeValues) => Promise<void> | void;
   onReplyTargetReset: () => void;
   passwordPlaceholder: string;
   passwordLabel: string;
+  presetAuthorName?: string;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
   replyTargetResetLabel: string;
   secretLabel: string;
   submitLabel: string;
+  textareaAutoResize?: boolean;
+  textareaRows?: number;
   textPlaceholder: string;
 };
 
 const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
 
 /**
- * 하단 고정 방명록 작성 폼입니다.
+ * 댓글/방명록 작성 폼입니다.
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
-export const GuestbookComposeForm = ({
+export const CommentComposeForm = ({
+  allowSecretToggle = true,
   authorBlogUrlPlaceholder,
   authorBlogUrlLabel,
+  authorMode = 'manual',
   authorNamePlaceholder,
   authorNameLabel,
   characterCountLabel,
   contentLabel,
   contentShortcutHint,
-  isAdmin,
   isReplyMode,
+  layout = 'fixed',
   onSubmit,
   onReplyTargetReset,
   passwordPlaceholder,
   passwordLabel,
+  presetAuthorName = '',
   replyPreviewLabel,
   replyTargetContent,
   replyTargetResetLabel,
   secretLabel,
   submitLabel,
+  textareaAutoResize = true,
+  textareaRows = 1,
   textPlaceholder,
-}: GuestbookComposeFormProps) => {
+}: CommentComposeFormProps) => {
   const [authorName, setAuthorName] = useState('');
   const [password, setPassword] = useState('');
   const [authorBlogUrl, setAuthorBlogUrl] = useState('');
   const [content, setContent] = useState('');
   const [isSecret, setIsSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isPresetAuthorMode = authorMode === 'preset';
   const authorNameId = useId();
   const passwordId = useId();
   const authorBlogUrlId = useId();
@@ -108,14 +126,20 @@ export const GuestbookComposeForm = ({
 
   const submit = async () => {
     if (!content.trim()) return;
-    if (!isAdmin && (!authorName.trim() || normalizeComposePassword(password).length < 4)) return;
+    if (
+      !isPresetAuthorMode &&
+      (!isValidCommentComposeAuthorName(authorName) ||
+        !hasMinCommentComposePasswordLength(password))
+    ) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       await onSubmit({
-        authorName: isAdmin ? 'admin' : authorName.trim(),
-        password: isAdmin ? '' : normalizeComposePassword(password),
-        authorBlogUrl: isAdmin ? '' : authorBlogUrl.trim(),
+        authorName: isPresetAuthorMode ? presetAuthorName : authorName.trim(),
+        password: isPresetAuthorMode ? '' : normalizeCommentComposePassword(password),
+        authorBlogUrl: isPresetAuthorMode ? '' : authorBlogUrl.trim(),
         isSecret,
         content: content.trim(),
       });
@@ -140,14 +164,14 @@ export const GuestbookComposeForm = ({
   };
 
   const handlePasswordChange = (value: string) => {
-    setPassword(normalizeComposePassword(value));
+    setPassword(normalizeCommentComposePassword(value));
   };
 
   return (
-    <form onSubmit={handleSubmit} css={formStyle}>
-      <div css={topRowStyle}>
-        {!isAdmin ? (
-          <GuestbookComposeProfileFields
+    <form onSubmit={handleSubmit} css={[formBaseStyle, layoutStyleMap[layout]]}>
+      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout]]}>
+        {!isPresetAuthorMode ? (
+          <CommentComposeProfileFields
             authorBlogUrlId={authorBlogUrlId}
             authorBlogUrlLabel={authorBlogUrlLabel}
             authorBlogUrlPlaceholder={authorBlogUrlPlaceholder}
@@ -166,15 +190,15 @@ export const GuestbookComposeForm = ({
           />
         ) : null}
         {isReplyMode ? (
-          <GuestbookComposeReplyPreview
+          <CommentComposeReplyPreview
             onReset={onReplyTargetReset}
             replyPreviewLabel={replyPreviewLabel}
             replyTargetContent={replyTargetContent}
             replyTargetResetLabel={replyTargetResetLabel}
           />
         ) : null}
-        <GuestbookComposeActions
-          isAdmin={isAdmin}
+        <CommentComposeActions
+          allowSecretToggle={allowSecretToggle}
           isSecret={isSecret}
           isSubmitting={isSubmitting}
           onSecretChange={setIsSecret}
@@ -183,7 +207,7 @@ export const GuestbookComposeForm = ({
           submitLabel={submitLabel}
         />
       </div>
-      <GuestbookComposeContentField
+      <CommentComposeContentField
         characterCountId={characterCountId}
         characterCountLabel={characterCountLabel}
         charCountText={charCountText}
@@ -193,6 +217,8 @@ export const GuestbookComposeForm = ({
         contentShortcutHintId={contentShortcutHintId}
         onChange={setContent}
         onKeyDown={handleTextareaKeyDown}
+        textareaAutoResize={textareaAutoResize}
+        textareaRows={textareaRows}
         textPlaceholder={textPlaceholder}
         value={content}
       />
@@ -200,7 +226,12 @@ export const GuestbookComposeForm = ({
   );
 };
 
-const formStyle = css`
+const formBaseStyle = css`
+  display: grid;
+  gap: var(--space-3);
+`;
+
+const fixedFormStyle = css`
   position: fixed;
   left: 0;
   right: 0;
@@ -227,9 +258,43 @@ const formStyle = css`
   }
 `;
 
-const topRowStyle = css`
+const embeddedFormStyle = css`
+  position: static;
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid rgb(var(--color-border) / 0.18);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--color-surface) / 0.96),
+      rgb(var(--color-surface-muted) / 0.76)
+    ),
+    rgb(var(--color-surface));
+`;
+
+const topRowBaseStyle = css`
   display: flex;
   gap: var(--space-3);
+`;
+
+const fixedTopRowStyle = css`
   align-items: center;
   justify-content: space-between;
 `;
+
+const embeddedTopRowStyle = css`
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+`;
+
+const layoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
+  embedded: embeddedFormStyle,
+  fixed: fixedFormStyle,
+};
+
+const topRowLayoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
+  embedded: embeddedTopRowStyle,
+  fixed: fixedTopRowStyle,
+};

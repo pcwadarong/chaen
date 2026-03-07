@@ -6,7 +6,7 @@ import React from 'react';
 import { Button } from '@/shared/ui/button/button';
 import { ArrowCurveLeftRightIcon } from '@/shared/ui/icons/app-icons';
 
-type GuestbookComposeReplyPreviewProps = {
+type CommentComposeReplyPreviewProps = {
   onReset: () => void;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
@@ -14,12 +14,12 @@ type GuestbookComposeReplyPreviewProps = {
 };
 
 /** 답신 대상 콘텐츠 미리보기와 해제 버튼을 렌더링합니다. */
-export const GuestbookComposeReplyPreview = ({
+export const CommentComposeReplyPreview = ({
   onReset,
   replyPreviewLabel,
   replyTargetContent,
   replyTargetResetLabel,
-}: GuestbookComposeReplyPreviewProps) => (
+}: CommentComposeReplyPreviewProps) => (
   <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
     <ArrowCurveLeftRightIcon aria-hidden size="sm" />
     <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
