@@ -45,7 +45,7 @@ const toArticleDetailListItems = (rows: ArticleDetailListItem[]): ArticleDetailL
   }));
 
 /**
- * shadow schema(`articles_v2` + `article_translations`) 기준 상세 아카이브 목록을 조회합니다.
+ * content schema(`articles` + `article_translations`) 기준 상세 아카이브 목록을 조회합니다.
  */
 const fetchArticleDetailListFromShadow = async (
   locale: string,

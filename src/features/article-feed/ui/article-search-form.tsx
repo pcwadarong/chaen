@@ -33,6 +33,7 @@ const createSearchHref = (
 
   if (normalizedQuery) nextSearchParams.set('q', normalizedQuery);
   else nextSearchParams.delete('q');
+  nextSearchParams.delete('tag');
 
   const nextQueryString = nextSearchParams.toString();
   return nextQueryString ? `${pathname}?${nextQueryString}` : pathname;

@@ -7,9 +7,11 @@ import ArticlesRoute from './page';
 
 vi.mock('@/views/articles', () => ({
   getArticlesPageData: vi.fn(async () => ({
+    activeTag: '',
     initialCursor: null,
     initialItems: [],
     locale: 'ko',
+    popularTags: [],
     searchQuery: '',
   })),
   ArticlesPage: function ArticlesPage() {
@@ -25,12 +27,17 @@ describe('ArticlesRoute', () => {
       }),
       searchParams: Promise.resolve({
         q: [' react ', 'vue'],
+        tag: [' nextjs ', 'react'],
       }),
     });
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
-    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko', query: [' react ', 'vue'] });
+    expect(getArticlesPageData).toHaveBeenCalledWith({
+      locale: 'ko',
+      query: [' react ', 'vue'],
+      tag: [' nextjs ', 'react'],
+    });
     expect(element.props.initialItems).toEqual([]);
     expect(element.props.initialCursor).toBeNull();
     expect(element.props.locale).toBe('ko');

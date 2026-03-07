@@ -5,6 +5,7 @@ import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 
 type UseArticleFeedOptions = {
+  activeTag: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
   locale: string;
@@ -15,6 +16,7 @@ type UseArticleFeedOptions = {
  * 아티클 목록 무한 스크롤 상태를 관리합니다.
  */
 export const useArticleFeed = ({
+  activeTag,
   initialCursor,
   initialItems,
   locale,
@@ -28,5 +30,6 @@ export const useArticleFeed = ({
     mergeItems: (previousItems, incomingItems) => dedupeById([...previousItems, ...incomingItems]),
     queryParams: {
       q: query,
+      tag: activeTag,
     },
   });

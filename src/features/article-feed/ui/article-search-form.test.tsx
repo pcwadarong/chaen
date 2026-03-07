@@ -103,6 +103,30 @@ describe('ArticleSearchForm', () => {
     expect(replaceMock).toHaveBeenCalledWith('/articles');
   });
 
+  it('검색 href를 만들 때 기존 tag 파라미터는 제거한다', () => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tag=nextjs'));
+
+    render(
+      <ArticleSearchForm
+        clearText="초기화"
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchQuery=""
+        submitText="검색"
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('searchbox', { name: '검색어 입력' }), {
+      target: { value: 'react' },
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith('/articles?q=react');
+  });
+
   it('검색 버튼은 아이콘 버튼이지만 스크린리더 텍스트를 유지한다', () => {
     render(
       <ArticleSearchForm

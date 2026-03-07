@@ -45,7 +45,7 @@ const toProjectDetailListItems = (rows: ProjectDetailListItem[]): ProjectDetailL
   }));
 
 /**
- * shadow schema(`projects_v2` + `project_translations`) 기준 상세 아카이브 목록을 조회합니다.
+ * content schema(`projects` + `project_translations`) 기준 상세 아카이브 목록을 조회합니다.
  */
 const fetchProjectDetailListFromShadow = async (
   locale: string,

@@ -86,7 +86,7 @@ const applyProjectsKeysetCursor = <
 };
 
 /**
- * shadow schema(`projects_v2` + `project_translations`)에서 locale별 목록을 조회합니다.
+ * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
  */
 const fetchProjectsByLocaleFromShadow = async (
   locale: string,

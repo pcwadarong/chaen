@@ -9,6 +9,7 @@ import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
 
 type ArticleFeedProps = {
+  activeTag: string;
   emptyText: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
@@ -24,6 +25,7 @@ type ArticleFeedProps = {
  * 아티클 목록의 무한 스크롤 피드를 렌더링합니다.
  */
 export const ArticleFeed = ({
+  activeTag,
   emptyText,
   initialCursor,
   initialItems,
@@ -35,6 +37,7 @@ export const ArticleFeed = ({
   retryText,
 }: ArticleFeedProps) => {
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useArticleFeed({
+    activeTag,
     initialCursor,
     initialItems,
     locale,

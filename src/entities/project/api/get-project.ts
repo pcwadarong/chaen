@@ -29,7 +29,7 @@ type ProjectTranslationRow = Pick<Project, 'content' | 'description' | 'title'> 
 };
 
 /**
- * shadow schema(`projects_v2` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
+ * content schema(`projects` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
  */
 const fetchProjectFromShadowSchema = async (
   projectId: string,

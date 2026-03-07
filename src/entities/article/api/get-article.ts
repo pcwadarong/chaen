@@ -29,7 +29,7 @@ type ArticleTranslationRow = Pick<Article, 'content' | 'description' | 'title'> 
 };
 
 /**
- * shadow schema(`articles_v2` + `article_translations`)에서 locale별 단일 아티클을 조회합니다.
+ * content schema(`articles` + `article_translations`)에서 locale별 단일 아티클을 조회합니다.
  */
 const fetchArticleFromShadowSchema = async (
   articleId: string,
