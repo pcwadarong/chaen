@@ -115,6 +115,7 @@ export const ArticleSearchForm = ({
 
     if (inputValue.trim() === currentQuery) return;
 
+    skipDebounceRef.current = true;
     replaceQuery(inputValue);
   };
 
@@ -130,6 +131,7 @@ export const ArticleSearchForm = ({
 
     if (!currentQuery) return;
 
+    skipDebounceRef.current = true;
     replaceQuery('');
   };
 
