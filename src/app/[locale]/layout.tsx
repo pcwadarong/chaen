@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
@@ -47,7 +47,9 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
         <AuthProvider>
           <div lang={locale}>
             <AppFrame>
-              <GlobalNav />
+              <Suspense fallback={null}>
+                <GlobalNav />
+              </Suspense>
               {children}
             </AppFrame>
           </div>
