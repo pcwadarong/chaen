@@ -90,7 +90,6 @@ describe('POST /api/guestbook/entries', () => {
       body: JSON.stringify({
         authorName: 'admin',
         content: 'reply',
-        isAdminReply: true,
         parentId: 'parent-1',
       }),
     });
@@ -105,8 +104,8 @@ describe('POST /api/guestbook/entries', () => {
       expect.objectContaining({
         authorName: 'admin',
         isAdminAuthor: true,
-        isAdminReply: true,
         password: '',
+        parentId: 'parent-1',
       }),
     );
   });
@@ -135,34 +134,5 @@ describe('POST /api/guestbook/entries', () => {
     expect(response.status).toBe(400);
     expect(payload.ok).toBe(false);
     expect(payload.reason).toBe('invalid payload');
-  });
-
-  it('관리자가 아닌 사용자가 관리자 답글을 요청하면 403을 반환한다', async () => {
-    vi.mocked(getServerAuthState).mockResolvedValue({
-      isAdmin: false,
-      isAuthenticated: false,
-      userEmail: null,
-      userId: null,
-    });
-
-    const request = new Request('http://localhost:3000/api/guestbook/entries', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        authorName: 'guest',
-        content: 'reply',
-        isAdminReply: true,
-        parentId: 'parent-1',
-      }),
-    });
-    const response = await POST(request);
-    const payload = await response.json();
-
-    expect(response.status).toBe(403);
-    expect(payload.ok).toBe(false);
-    expect(payload.reason).toBe('admin auth required');
-    expect(createGuestbookEntry).not.toHaveBeenCalled();
   });
 });

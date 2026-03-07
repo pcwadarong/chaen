@@ -14,7 +14,6 @@ type CreateEntryPayload = {
   authorName?: unknown;
   content?: unknown;
   isAdminAuthor?: unknown;
-  isAdminReply?: unknown;
   isSecret?: unknown;
   parentId?: unknown;
   password?: unknown;
@@ -28,12 +27,6 @@ export const POST = async (request: Request) => {
     const authState = await getServerAuthState();
     const payload = (await request.json()) as CreateEntryPayload;
     const parentId = typeof payload.parentId === 'string' ? payload.parentId : null;
-    const isAdminReply = Boolean(authState.isAdmin && parentId);
-    const requestedAdminReply = Boolean(payload.isAdminReply);
-
-    if (requestedAdminReply && !authState.isAdmin) {
-      throw new Error('admin auth required');
-    }
 
     const entry = await createGuestbookEntry({
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
@@ -44,7 +37,6 @@ export const POST = async (request: Request) => {
           : '',
       content: typeof payload.content === 'string' ? payload.content : '',
       isAdminAuthor: authState.isAdmin,
-      isAdminReply,
       isSecret: Boolean(payload.isSecret),
       parentId,
       password: authState.isAdmin
@@ -67,9 +59,6 @@ export const POST = async (request: Request) => {
     return createApiErrorResponse({
       defaultStatus: 400,
       error,
-      statusByReason: {
-        'admin auth required': 403,
-      },
     });
   }
 };

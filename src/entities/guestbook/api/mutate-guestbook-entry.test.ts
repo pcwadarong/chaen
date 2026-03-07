@@ -77,7 +77,6 @@ describe('createGuestbookEntry', () => {
       authorName: 'admin',
       content: 'secret reply',
       isAdminAuthor: true,
-      isAdminReply: true,
       isSecret: true,
       parentId: 'parent-1',
       password: '',
@@ -124,7 +123,6 @@ describe('createGuestbookEntry', () => {
       authorName: 'admin',
       content: 'public reply',
       isAdminAuthor: true,
-      isAdminReply: true,
       isSecret: false,
       parentId: 'parent-2',
       password: '',
@@ -148,7 +146,6 @@ describe('createGuestbookEntry', () => {
       createGuestbookEntry({
         authorName: 'guest',
         content: 'hello',
-        isAdminReply: false,
         isSecret: false,
         parentId: null,
         password: '',
@@ -188,7 +185,6 @@ describe('createGuestbookEntry', () => {
       authorName: 'admin',
       content: 'admin thread',
       isAdminAuthor: true,
-      isAdminReply: false,
       isSecret: false,
       parentId: null,
       password: '',
@@ -203,20 +199,19 @@ describe('createGuestbookEntry', () => {
     expect(hashGuestbookPassword).not.toHaveBeenCalled();
   });
 
-  it('관리자 작성자로 표시되지 않은 관리자 답댓글은 등록에 실패한다', async () => {
+  it('관리자가 아닌 사용자의 답댓글은 비밀번호 없이 등록할 수 없다', async () => {
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn(),
     } as never);
 
     await expect(
       createGuestbookEntry({
-        authorName: 'admin',
+        authorName: 'guest',
         content: 'reply',
-        isAdminReply: true,
         isSecret: false,
         parentId: 'parent-1',
         password: '',
       }),
-    ).rejects.toThrow('admin author is required for admin reply');
+    ).rejects.toThrow('password is required');
   });
 });

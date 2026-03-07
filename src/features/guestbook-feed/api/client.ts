@@ -14,7 +14,6 @@ type CreateGuestbookEntryInput = {
   authorName: string;
   content: string;
   isAdminAuthor?: boolean;
-  isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;
   password: string;

@@ -14,7 +14,6 @@ type CreateGuestbookEntryInput = {
   authorName: string;
   content: string;
   isAdminAuthor?: boolean;
-  isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;
   password?: string;
@@ -76,9 +75,6 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
-  if (input.isAdminReply && !isAdminAuthor) {
-    throw new Error('admin author is required for admin reply');
-  }
   if (!isAdminAuthor && !password) throw new Error('password is required');
   if (isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
 
@@ -88,7 +84,6 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
     content,
     isSecret: input.isSecret,
     isAdminAuthor,
-    isAdminReply,
     parentId,
     password,
   };
@@ -239,7 +234,7 @@ export const createGuestbookEntry = async (
     passwordHash = hashGuestbookPassword(normalized.password);
   }
 
-  if (normalized.isAdminReply && normalized.isSecret) {
+  if (normalized.parentId && normalized.isAdminAuthor && normalized.isSecret) {
     const { data: parent, error: parentError } = await supabase
       .from('guestbook_entries')
       .select('*')
@@ -264,7 +259,7 @@ export const createGuestbookEntry = async (
       author_name: normalized.authorName,
       content: normalized.content,
       is_admin_author: normalized.isAdminAuthor,
-      is_admin_reply: normalized.isAdminReply,
+      is_admin_reply: Boolean(normalized.parentId && normalized.isAdminAuthor),
       is_secret: normalized.isSecret,
       parent_id: normalized.parentId,
       password_hash: passwordHash,

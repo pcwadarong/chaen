@@ -67,7 +67,6 @@ export const useGuestbookComposeActions = ({
             authorName: 'admin',
             content: values.content,
             isAdminAuthor: isAdmin,
-            isAdminReply: true,
             isSecret: values.isSecret,
             parentId: replyTarget.id,
             password: '',
@@ -114,7 +113,6 @@ export const useGuestbookComposeActions = ({
           authorName: values.authorName,
           content: values.content,
           isAdminAuthor: isAdmin,
-          isAdminReply: false,
           isSecret: values.isSecret,
           password: values.password,
         });
