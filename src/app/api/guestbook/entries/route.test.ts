@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { createGuestbookEntry } from '@/entities/guestbook';
@@ -7,6 +7,7 @@ import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { POST } from './route';
 
 vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
@@ -60,6 +61,10 @@ describe('POST /api/guestbook/entries', () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/guest');
   });
 
   it('답글 생성 성공 시 부모 답글 태그도 갱신한다', async () => {
@@ -100,6 +105,7 @@ describe('POST /api/guestbook/entries', () => {
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
     expect(createGuestbookEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         authorName: 'admin',

@@ -1,12 +1,7 @@
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 import { deleteGuestbookEntry, updateGuestbookEntry } from '@/entities/guestbook';
-import {
-  createGuestbookEntryCacheTag,
-  createGuestbookRepliesCacheTag,
-  GUESTBOOK_CACHE_TAG,
-} from '@/entities/guestbook/model/cache-tags';
+import { revalidateGuestbookCache } from '@/entities/guestbook/lib/revalidate-guestbook-cache';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
@@ -35,9 +30,10 @@ export const PATCH = async (request: Request, context: { params: Promise<{ id: s
       password: typeof payload.password === 'string' ? payload.password : '',
     });
 
-    revalidateTag(GUESTBOOK_CACHE_TAG);
-    revalidateTag(createGuestbookEntryCacheTag(id));
-    revalidateTag(createGuestbookRepliesCacheTag(entry.parent_id ?? id));
+    revalidateGuestbookCache({
+      entryId: entry.parent_id ? null : id,
+      parentId: entry.parent_id,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -70,9 +66,10 @@ export const DELETE = async (request: Request, context: { params: Promise<{ id: 
       password: typeof payload.password === 'string' ? payload.password : '',
     });
 
-    revalidateTag(GUESTBOOK_CACHE_TAG);
-    revalidateTag(createGuestbookEntryCacheTag(id));
-    revalidateTag(createGuestbookRepliesCacheTag(deleted.parentId ?? id));
+    revalidateGuestbookCache({
+      entryId: deleted.parentId ? null : id,
+      parentId: deleted.parentId,
+    });
 
     return NextResponse.json({
       ok: true,
