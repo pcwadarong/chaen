@@ -224,6 +224,8 @@ export const GuestbookBoard = ({
           {modalState?.mode === 'edit' ? (
             <Textarea
               aria-label={t('editModalTitle')}
+              defaultValue={modalContent}
+              key={`${modalState.entry.id}-${modalState.entry.updated_at}-${modalState.mode}`}
               maxLength={3000}
               onChange={event => {
                 setModalContent(event.target.value);
@@ -231,7 +233,6 @@ export const GuestbookBoard = ({
               }}
               ref={modalTextareaRef}
               rows={4}
-              value={modalContent}
             />
           ) : (
             <p id={ACTION_MODAL_DESCRIPTION_ID} css={modalHintStyle}>

@@ -1,10 +1,6 @@
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
-import {
-  createGuestbookEntryCacheTag,
-  GUESTBOOK_CACHE_TAG,
-} from '@/entities/guestbook/model/cache-tags';
+import { revalidateGuestbookCache } from '@/entities/guestbook/lib/revalidate-guestbook-cache';
 
 /**
  * 방명록 캐시를 온디맨드로 무효화합니다.
@@ -31,13 +27,10 @@ export const POST = async (request: Request) => {
     // body가 없거나 JSON이 아니면 전체 방명록 태그만 갱신합니다.
   }
 
-  revalidateTag(GUESTBOOK_CACHE_TAG);
-  if (entryId) revalidateTag(createGuestbookEntryCacheTag(entryId));
+  revalidateGuestbookCache({ entryId });
 
   return NextResponse.json({
     ok: true,
-    revalidated: entryId
-      ? [GUESTBOOK_CACHE_TAG, createGuestbookEntryCacheTag(entryId)]
-      : [GUESTBOOK_CACHE_TAG],
+    revalidated: entryId ? ['guestbook', `guestbook:${entryId}`] : ['guestbook'],
   });
 };

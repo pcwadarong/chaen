@@ -2,12 +2,13 @@
 
 import { css, type Theme } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { Button } from '@/shared/ui/button/button';
+import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
 
 type GuestbookFeedProps = {
   canReply: boolean;
@@ -125,7 +126,11 @@ export const GuestbookFeed = ({
 
       <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
       {isLoadingMore ? <p css={loadingMoreStyle}>{t('loading')}</p> : null}
-      {!hasMore ? <p css={endStyle}>{t('loadMoreEnd')}</p> : null}
+      {!hasMore ? (
+        <p aria-live="polite" style={srOnlyStyleObject}>
+          {t('loadMoreEnd')}
+        </p>
+      ) : null}
       {errorMessage && items.length > 0 ? <p css={errorStyle}>{t('loadError')}</p> : null}
     </section>
   );
@@ -156,13 +161,6 @@ const loadingMoreStyle = (_theme: Theme) => css`
   color: rgb(var(--color-muted));
   text-align: center;
   padding-bottom: 0.5rem;
-`;
-
-const endStyle = css`
-  color: rgb(var(--color-muted));
-  text-align: center;
-  padding-bottom: 0.5rem;
-  font-size: var(--font-size-14);
 `;
 
 const errorStyle = css`

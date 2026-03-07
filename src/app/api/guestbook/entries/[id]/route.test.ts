@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { deleteGuestbookEntry, updateGuestbookEntry } from '@/entities/guestbook';
@@ -7,6 +7,7 @@ import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { DELETE, PATCH } from './route';
 
 vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
@@ -58,6 +59,7 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-1');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:entry-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
   });
 
   it('PATCH가 답글을 수정하면 부모 답글 태그를 갱신한다', async () => {
@@ -92,6 +94,7 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
     expect(updateGuestbookEntry).toHaveBeenCalledWith({
       content: 'updated reply',
       entryId: 'reply-1',
@@ -124,6 +127,7 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-1');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:entry-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
   });
 
   it('DELETE가 답글을 삭제하면 부모 답글 태그를 갱신한다', async () => {
@@ -147,6 +151,7 @@ describe('/api/guestbook/entries/[id]', () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
     expect(deleteGuestbookEntry).toHaveBeenCalledWith({
       entryId: 'reply-1',
       isAdminActor: true,
