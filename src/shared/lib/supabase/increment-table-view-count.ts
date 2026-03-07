@@ -4,7 +4,6 @@ import 'server-only';
 
 type IncrementTableViewCountInput = {
   id: string;
-  tableName: 'articles' | 'projects';
 };
 
 /**
@@ -12,38 +11,16 @@ type IncrementTableViewCountInput = {
  */
 export const incrementTableViewCount = async ({
   id,
-  tableName,
 }: IncrementTableViewCountInput): Promise<number> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw new Error('service role env is not configured');
 
-  const { data: current, error: currentError } = await supabase
-    .from(tableName)
-    .select('view_count')
-    .eq('id', id)
-    .maybeSingle<{ view_count?: number | null }>();
+  const { data, error } = await supabase.rpc('increment_article_view_count', {
+    target_id: id,
+  });
 
-  if (currentError) {
-    throw new Error(`[${tableName}] 조회수 현재값 조회 실패: ${currentError.message}`);
-  }
+  if (error) throw new Error(`조회수 증가 실패: ${error.message}`);
+  if (data === null || typeof data === 'undefined') throw new Error('articles item not found');
 
-  if (!current) {
-    throw new Error(`${tableName} item not found`);
-  }
-
-  const nextViewCount = Number(current.view_count ?? 0) + 1;
-  const { data, error } = await supabase
-    .from(tableName)
-    .update({
-      view_count: nextViewCount,
-    })
-    .eq('id', id)
-    .select('view_count')
-    .maybeSingle<{ view_count?: number | null }>();
-
-  if (error) {
-    throw new Error(`[${tableName}] 조회수 증가 실패: ${error.message}`);
-  }
-
-  return Number(data?.view_count ?? nextViewCount);
+  return Number(data);
 };

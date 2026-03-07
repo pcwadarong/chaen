@@ -8,5 +8,4 @@ import 'server-only';
 export const incrementArticleViewCount = async (articleId: string): Promise<number> =>
   incrementTableViewCount({
     id: articleId,
-    tableName: 'articles',
   });
