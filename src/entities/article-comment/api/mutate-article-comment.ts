@@ -12,7 +12,6 @@ type CreateArticleCommentInput = {
   authorBlogUrl?: string | null;
   authorName: string;
   content: string;
-  isSecret: boolean;
   parentId?: string | null;
   password: string;
   replyToCommentId?: string | null;
@@ -31,33 +30,13 @@ type DeleteArticleCommentInput = {
   password: string;
 };
 
-type VerifyArticleCommentSecretInput = {
-  articleId: string;
-  commentId: string;
-  password: string;
-};
-
 /**
  * API 응답용 공개 타입으로 변환합니다.
  */
-const toPublicArticleComment = (
-  comment: ArticleCommentRow,
-  revealSecret: boolean,
-): ArticleComment => {
+const toPublicArticleComment = (comment: ArticleCommentRow): ArticleComment => {
   const { password_hash: _passwordHash, ...publicComment } = comment;
 
-  if (!comment.is_secret || revealSecret) {
-    return {
-      ...publicComment,
-      is_content_masked: false,
-    };
-  }
-
-  return {
-    ...publicComment,
-    content: '',
-    is_content_masked: true,
-  };
+  return publicComment;
 };
 
 /**
@@ -117,7 +96,6 @@ const normalizeCreateInput = (input: CreateArticleCommentInput) => {
     authorBlogUrl,
     authorName,
     content,
-    isSecret: input.isSecret,
     parentId,
     password,
     replyToCommentId,
@@ -166,7 +144,6 @@ export const createArticleComment = async (
       author_blog_url: normalized.authorBlogUrl,
       author_name: normalized.authorName,
       content: normalized.content,
-      is_secret: normalized.isSecret,
       parent_id: parentId,
       password_hash: hashGuestbookPassword(normalized.password),
       reply_to_author_name: replyToAuthorName,
@@ -179,7 +156,7 @@ export const createArticleComment = async (
     throw new Error(`failed to create comment: ${error?.message ?? 'unknown error'}`);
   }
 
-  return toPublicArticleComment(data as ArticleCommentRow, true);
+  return toPublicArticleComment(data as ArticleCommentRow);
 };
 
 /**
@@ -219,7 +196,7 @@ export const updateArticleComment = async ({
     throw new Error(`failed to update comment: ${error?.message ?? 'unknown error'}`);
   }
 
-  return toPublicArticleComment(data as ArticleCommentRow, true);
+  return toPublicArticleComment(data as ArticleCommentRow);
 };
 
 /**
@@ -261,25 +238,4 @@ export const deleteArticleComment = async ({
     id: normalizedCommentId,
     parentId: currentRow.parent_id,
   };
-};
-
-/**
- * 비밀글 본문 열람을 위한 비밀번호 검증을 수행합니다.
- */
-export const verifyArticleCommentSecret = async ({
-  articleId,
-  commentId,
-  password,
-}: VerifyArticleCommentSecretInput): Promise<ArticleComment> => {
-  const normalizedArticleId = articleId.trim();
-  const normalizedCommentId = commentId.trim();
-
-  if (!normalizedArticleId) throw new Error('articleId is required');
-  if (!normalizedCommentId) throw new Error('commentId is required');
-
-  const { row } = await readActiveComment(normalizedCommentId);
-  if (row.article_id !== normalizedArticleId) throw new Error('comment does not belong to article');
-  assertPasswordMatches(password, row);
-
-  return toPublicArticleComment(row, true);
 };

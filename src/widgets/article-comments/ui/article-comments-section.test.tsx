@@ -56,8 +56,6 @@ const initialPage: ArticleCommentPage = {
       created_at: '2026-03-08T00:00:00.000Z',
       deleted_at: null,
       id: 'comment-1',
-      is_content_masked: false,
-      is_secret: false,
       parent_id: null,
       reply_to_author_name: null,
       reply_to_comment_id: null,
@@ -70,8 +68,6 @@ const initialPage: ArticleCommentPage = {
           created_at: '2026-03-08T00:10:00.000Z',
           deleted_at: null,
           id: 'reply-1',
-          is_content_masked: false,
-          is_secret: false,
           parent_id: 'comment-1',
           reply_to_author_name: 'chaen',
           reply_to_comment_id: 'comment-1',
@@ -103,7 +99,6 @@ describe('ArticleCommentsSection', () => {
         layout: 'embedded',
         textareaAutoResize: false,
         textareaRows: 4,
-        topRowWrap: 'nowrap',
       }),
     );
     expect(screen.getByRole('button', { name: 'root-compose-form' })).toBeTruthy();
@@ -157,7 +152,6 @@ describe('ArticleCommentsSection', () => {
         allowSecretToggle: false,
         isReplyMode: true,
         textPlaceholder: 'reply:chaen',
-        topRowWrap: 'nowrap',
       }),
     );
   });

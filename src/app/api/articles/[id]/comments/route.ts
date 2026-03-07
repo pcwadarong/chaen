@@ -13,7 +13,6 @@ type CreateArticleCommentPayload = {
   authorBlogUrl?: unknown;
   authorName?: unknown;
   content?: unknown;
-  isSecret?: unknown;
   parentId?: unknown;
   password?: unknown;
   replyToCommentId?: unknown;
@@ -61,7 +60,6 @@ export const POST = async (request: Request, context: { params: Promise<{ id: st
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
       authorName: typeof payload.authorName === 'string' ? payload.authorName : '',
       content: typeof payload.content === 'string' ? payload.content : '',
-      isSecret: Boolean(payload.isSecret),
       parentId: typeof payload.parentId === 'string' ? payload.parentId : null,
       password: typeof payload.password === 'string' ? payload.password : '',
       replyToCommentId:

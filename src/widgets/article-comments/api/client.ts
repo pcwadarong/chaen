@@ -11,7 +11,6 @@ type CreateArticleCommentClientInput = {
   authorBlogUrl: string;
   authorName: string;
   content: string;
-  isSecret: boolean;
   parentId?: string | null;
   password: string;
   replyToCommentId?: string | null;
@@ -116,24 +115,4 @@ export const deleteArticleCommentClient = async (
     method: 'DELETE',
     url: `/api/articles/${articleId}/comments/${commentId}`,
   });
-};
-
-/**
- * 비밀번호 검증 후 비밀 댓글 본문을 조회합니다.
- */
-export const verifyArticleCommentSecretClient = async (
-  articleId: string,
-  commentId: string,
-  password: string,
-): Promise<ArticleComment> => {
-  const payload = await requestJsonApiClient<ArticleCommentMutationResponse>({
-    body: {
-      password,
-    },
-    fallbackReason: 'failed to verify article comment secret',
-    method: 'POST',
-    url: `/api/articles/${articleId}/comments/${commentId}/verify-secret`,
-  });
-
-  return payload.comment;
 };

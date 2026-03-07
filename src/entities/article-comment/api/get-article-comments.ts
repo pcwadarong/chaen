@@ -39,26 +39,12 @@ const normalizeSort = (sort?: string | null): ArticleCommentsSort =>
   sort === 'oldest' ? 'oldest' : 'latest';
 
 /**
- * 비밀글 노출 정책에 맞춰 공개 타입으로 변환합니다.
+ * DB row를 공개 댓글 타입으로 변환합니다.
  */
-const toPublicArticleComment = (
-  comment: ArticleCommentRow,
-  includeSecret: boolean,
-): ArticleComment => {
+const toPublicArticleComment = (comment: ArticleCommentRow): ArticleComment => {
   const { password_hash: _passwordHash, ...publicComment } = comment;
 
-  if (!comment.is_secret || includeSecret) {
-    return {
-      ...publicComment,
-      is_content_masked: false,
-    };
-  }
-
-  return {
-    ...publicComment,
-    content: '',
-    is_content_masked: true,
-  };
+  return publicComment;
 };
 
 /**
@@ -123,16 +109,14 @@ const readArticleCommentThreads = async (
   const repliesByParentId = await fetchRepliesByParentIds(roots.map(root => root.id));
 
   return roots.flatMap(root => {
-    const replies = (repliesByParentId[root.id] ?? []).map(reply =>
-      toPublicArticleComment(reply, false),
-    );
+    const replies = (repliesByParentId[root.id] ?? []).map(toPublicArticleComment);
     const shouldHideDeletedRoot = Boolean(root.deleted_at) && replies.length === 0;
 
     if (shouldHideDeletedRoot) return [];
 
     return [
       {
-        ...toPublicArticleComment(root, false),
+        ...toPublicArticleComment(root),
         replies,
       },
     ];

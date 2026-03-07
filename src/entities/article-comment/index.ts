@@ -3,5 +3,4 @@ export {
   createArticleComment,
   deleteArticleComment,
   updateArticleComment,
-  verifyArticleCommentSecret,
 } from './api/mutate-article-comment';

@@ -7,7 +7,6 @@ import {
   createArticleComment,
   deleteArticleComment,
   updateArticleComment,
-  verifyArticleCommentSecret,
 } from './mutate-article-comment';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
@@ -34,7 +33,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:00:00.000Z',
         deleted_at: null,
         id: 'comment-1',
-        is_secret: false,
         parent_id: null,
         password_hash: 'hashed-password',
         reply_to_author_name: null,
@@ -58,7 +56,6 @@ describe('article comment mutations', () => {
       articleId: 'frontend',
       authorName: 'guest',
       content: 'hello',
-      isSecret: false,
       password: '1234',
     });
 
@@ -83,7 +80,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:00:00.000Z',
         deleted_at: null,
         id: 'root-1',
-        is_secret: false,
         parent_id: null,
         password_hash: 'hash',
         reply_to_author_name: null,
@@ -102,7 +98,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:01:00.000Z',
         deleted_at: null,
         id: 'reply-1',
-        is_secret: false,
         parent_id: 'root-1',
         password_hash: 'hash',
         reply_to_author_name: 'root-author',
@@ -121,7 +116,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:02:00.000Z',
         deleted_at: null,
         id: 'reply-2',
-        is_secret: false,
         parent_id: 'root-1',
         password_hash: 'hashed-password',
         reply_to_author_name: 'reply-author',
@@ -159,7 +153,6 @@ describe('article comment mutations', () => {
       articleId: 'frontend',
       authorName: 'nested-reply',
       content: 'nested',
-      isSecret: false,
       parentId: 'root-1',
       password: '1234',
       replyToCommentId: 'reply-1',
@@ -185,7 +178,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:01:00.000Z',
         deleted_at: null,
         id: 'reply-1',
-        is_secret: false,
         parent_id: 'root-1',
         password_hash: 'hash',
         reply_to_author_name: 'root-author',
@@ -209,7 +201,6 @@ describe('article comment mutations', () => {
         articleId: 'frontend',
         authorName: 'nested-reply',
         content: 'nested',
-        isSecret: false,
         parentId: 'reply-1',
         password: '1234',
       }),
@@ -226,13 +217,12 @@ describe('article comment mutations', () => {
         articleId: 'frontend',
         authorName: 'guest',
         content: 'hello',
-        isSecret: false,
         password: '',
       }),
     ).rejects.toThrow('password is required');
   });
 
-  it('수정/삭제/비밀글 확인은 비밀번호 검증을 거친다', async () => {
+  it('수정/삭제는 비밀번호 검증을 거친다', async () => {
     const single = vi.fn().mockResolvedValue({
       data: {
         article_id: 'frontend',
@@ -242,7 +232,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:00:00.000Z',
         deleted_at: null,
         id: 'comment-1',
-        is_secret: true,
         parent_id: null,
         password_hash: 'hash',
         reply_to_author_name: null,
@@ -261,7 +250,6 @@ describe('article comment mutations', () => {
         created_at: '2026-03-07T00:00:00.000Z',
         deleted_at: null,
         id: 'comment-1',
-        is_secret: true,
         parent_id: null,
         password_hash: 'hash',
         reply_to_author_name: null,
@@ -322,23 +310,6 @@ describe('article comment mutations', () => {
       password: '1234',
     });
 
-    const verifyClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        is: vi.fn().mockReturnThis(),
-        single,
-      }),
-    };
-
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(verifyClient as never);
-
-    await verifyArticleCommentSecret({
-      articleId: 'frontend',
-      commentId: 'comment-1',
-      password: '1234',
-    });
-
-    expect(verifyGuestbookPassword).toHaveBeenCalledTimes(3);
+    expect(verifyGuestbookPassword).toHaveBeenCalledTimes(2);
   });
 });

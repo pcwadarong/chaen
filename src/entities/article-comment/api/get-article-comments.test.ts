@@ -38,7 +38,7 @@ describe('getArticleComments', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('루트 댓글과 대댓글을 묶고 비밀글은 마스킹한다', async () => {
+  it('루트 댓글과 대댓글을 묶어 공개 페이지를 반환한다', async () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -53,7 +53,6 @@ describe('getArticleComments', () => {
             created_at: '2026-03-06T00:00:00.000Z',
             deleted_at: null,
             id: 'root-1',
-            is_secret: true,
             parent_id: null,
             password_hash: 'hash',
             reply_to_author_name: null,
@@ -79,7 +78,6 @@ describe('getArticleComments', () => {
             created_at: '2026-03-06T00:01:00.000Z',
             deleted_at: null,
             id: 'reply-1',
-            is_secret: false,
             parent_id: 'root-1',
             password_hash: 'hash',
             reply_to_author_name: 'guest',
@@ -104,8 +102,7 @@ describe('getArticleComments', () => {
     const result = await getArticleComments({ articleId: 'frontend' });
 
     expect(result.items).toHaveLength(1);
-    expect(result.items[0]?.content).toBe('');
-    expect(result.items[0]?.is_content_masked).toBe(true);
+    expect(result.items[0]?.content).toBe('secret root');
     expect(result.items[0]?.replies).toHaveLength(1);
     expect(result.totalCount).toBe(1);
     expect(unstable_cache).toHaveBeenCalledTimes(1);
@@ -126,7 +123,6 @@ describe('getArticleComments', () => {
             created_at: '2026-03-06T00:00:00.000Z',
             deleted_at: null,
             id: 'root-1',
-            is_secret: false,
             parent_id: null,
             password_hash: 'hash',
             reply_to_author_name: null,
@@ -141,7 +137,6 @@ describe('getArticleComments', () => {
             created_at: '2026-03-06T00:01:00.000Z',
             deleted_at: '2026-03-06T00:02:00.000Z',
             id: 'root-2',
-            is_secret: false,
             parent_id: null,
             password_hash: 'hash',
             reply_to_author_name: null,
