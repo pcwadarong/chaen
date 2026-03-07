@@ -139,12 +139,17 @@ export const GuestbookBoard = ({
   } = useGuestbookActionModal({
     applyServerThread,
     applyServerThreadEntry,
+    isAdmin,
     items,
     pushToast,
     removeThreadById,
     text: modalText,
     updateThreadById,
   });
+
+  const isReplyActionModalVisible = Boolean(modalState?.entry.is_admin_reply) && isAdmin;
+  const isThreadActionModalVisible = Boolean(modalState) && !modalState?.entry.is_admin_reply;
+  const isActionModalVisible = isThreadActionModalVisible || isReplyActionModalVisible;
 
   return (
     <div css={boardStyle}>
@@ -207,7 +212,7 @@ export const GuestbookBoard = ({
               : modalPasswordInputRef
         }
         // 상태가 null이 아니면 모달 오픈
-        isOpen={Boolean(modalState)}
+        isOpen={isActionModalVisible}
         onClose={closeModal}
       >
         <div css={modalBodyStyle}>

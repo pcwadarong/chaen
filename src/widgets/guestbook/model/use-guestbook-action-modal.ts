@@ -40,6 +40,7 @@ type GuestbookModalTextMap = {
 type UseGuestbookActionModalParams = {
   applyServerThread: (entry: GuestbookThreadItem) => void;
   applyServerThreadEntry: (entry: GuestbookThreadItem | GuestbookEntry) => void;
+  isAdmin: boolean;
   items: GuestbookThreadItem[];
   pushToast: (message: string, tone: ToastItem['tone']) => void;
   removeThreadById: (id: string) => void;
@@ -60,6 +61,7 @@ const isInvalidPasswordError = (error: unknown) =>
 export const useGuestbookActionModal = ({
   applyServerThread,
   applyServerThreadEntry,
+  isAdmin,
   items,
   pushToast,
   removeThreadById,
@@ -101,6 +103,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    if (!isAdmin) return;
+
     if (entry.is_secret && entry.is_content_masked) {
       pushToast(text.toastSecretUnlockRequired, 'error');
       return;
@@ -113,6 +117,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    if (!isAdmin) return;
+
     setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
     setModalPassword('');
     setModalContent('');
