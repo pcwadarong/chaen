@@ -238,7 +238,7 @@ const fetchSearchArticles = async (
   pageSize: number,
 ): Promise<ArticlesPage> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { items: [], nextCursor: null, totalCount: 0 };
+  if (!supabase) return { items: [], nextCursor: null, totalCount: null };
 
   const parsedCursor = parseArticleSearchCursor(cursor);
   const { data, error } = await supabase.rpc('search_articles', {
