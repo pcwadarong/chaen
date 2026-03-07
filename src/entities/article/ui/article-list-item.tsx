@@ -114,15 +114,20 @@ const dateStyle = css`
 `;
 
 const mediaStyle = css`
-  position: relative;
-  flex: 0 0 8.75rem;
-  width: 8.75rem;
-  min-width: 8.75rem;
-  aspect-ratio: 4 / 3;
-  justify-self: end;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: rgb(var(--color-muted) / 0.16);
+  display: none;
+
+  @media (min-width: 480px) {
+    display: block;
+    position: relative;
+    flex: 0 0 8.75rem;
+    width: 8.75rem;
+    min-width: 8.75rem;
+    aspect-ratio: 4 / 3;
+    justify-self: end;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: rgb(var(--color-muted) / 0.16);
+  }
 `;
 
 const imageStyle = css`
