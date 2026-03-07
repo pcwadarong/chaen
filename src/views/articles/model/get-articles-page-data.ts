@@ -14,10 +14,7 @@ export const getArticlesPageData = async ({
   locale,
   query,
 }: GetArticlesPageDataInput): Promise<ArticlesPageProps> => {
-  const articlesPage = await getArticles({ locale, query }).catch(() => ({
-    items: [],
-    nextCursor: null,
-  }));
+  const articlesPage = await getArticles({ locale, query });
 
   return {
     initialCursor: articlesPage.nextCursor,
