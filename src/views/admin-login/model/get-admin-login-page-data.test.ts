@@ -22,7 +22,7 @@ describe('getAdminLoginPageData', () => {
     });
 
     await expect(getAdminLoginPageData({ locale: 'ko' })).resolves.toEqual({
-      redirectPath: '/ko/guest',
+      redirectPath: '/ko/admin',
     });
   });
 

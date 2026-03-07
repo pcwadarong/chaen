@@ -23,7 +23,7 @@ export const AdminLoginPage = ({ locale }: AdminLoginPageProps) => {
       submitErrorMessage={t('submitError')}
       submitLabel={t('submit')}
       submitPendingLabel={t('submitPending')}
-      successRedirectPath={`/${locale}/guest`}
+      successRedirectPath={`/${locale}/admin`}
       title={t('title')}
     />
   );

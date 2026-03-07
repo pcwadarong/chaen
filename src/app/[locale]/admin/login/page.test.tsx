@@ -40,7 +40,7 @@ describe('AdminLoginRoute', () => {
 
   it('관리자 세션이면 즉시 리다이렉트한다', async () => {
     vi.mocked(getAdminLoginPageData).mockResolvedValue({
-      redirectPath: '/ko/guest',
+      redirectPath: '/ko/admin',
     });
 
     await AdminLoginRoute({
@@ -49,6 +49,6 @@ describe('AdminLoginRoute', () => {
       }),
     });
 
-    expect(redirect).toHaveBeenCalledWith('/ko/guest');
+    expect(redirect).toHaveBeenCalledWith('/ko/admin');
   });
 });

@@ -37,7 +37,7 @@ describe('AdminLoginForm', () => {
         submitLabel="로그인"
         submitPendingLabel="로그인 중"
         submitErrorMessage="로그인에 실패했습니다."
-        successRedirectPath="/ko/guest"
+        successRedirectPath="/ko/admin"
         title="관리자 로그인"
       />,
     );
@@ -55,7 +55,7 @@ describe('AdminLoginForm', () => {
         email: 'admin@example.com',
         password: 'secret-password',
       });
-      expect(replaceMock).toHaveBeenCalledWith('/ko/guest');
+      expect(replaceMock).toHaveBeenCalledWith('/ko/admin');
     });
   });
 
@@ -73,7 +73,7 @@ describe('AdminLoginForm', () => {
         submitLabel="로그인"
         submitPendingLabel="로그인 중"
         submitErrorMessage="로그인에 실패했습니다."
-        successRedirectPath="/ko/guest"
+        successRedirectPath="/ko/admin"
         title="관리자 로그인"
       />,
     );

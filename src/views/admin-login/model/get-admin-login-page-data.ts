@@ -18,7 +18,7 @@ export const getAdminLoginPageData = async ({
 
   if (authState.isAdmin) {
     return {
-      redirectPath: `/${locale}/guest`,
+      redirectPath: `/${locale}/admin`,
     };
   }
 
