@@ -52,8 +52,8 @@
 - rename cutover SQL을 실행하면서 canonical 이름으로 전환할 때
 
 현재는 이 직접 참조를 [content-shadow-schema.ts](/Users/chaen/Programming/chaen/src/shared/lib/supabase/content-shadow-schema.ts)에 모아뒀습니다.  
-그리고 이 파일 안에 `shadow/canonical` 두 주소록을 같이 두고, 현재 활성 alias만 `shadow`를 가리키게 해뒀습니다.  
-즉, cutover 직후에는 흩어진 호출부를 만지는 대신 이 파일의 활성 alias 한 줄만 `canonical`로 바꾸는 흐름으로 갈 수 있습니다.
+그리고 이 파일 안에 `shadow/canonical` 두 주소록을 같이 두고, 현재 활성 타깃만 `shadow`를 가리키게 해뒀습니다.  
+즉, cutover 직후에는 흩어진 호출부를 만지는 대신 이 파일의 `CONTENT_SCHEMA_TARGET` 값만 `canonical`로 바꾸는 흐름으로 갈 수 있습니다.
 
 ## cutover 전에 확인해야 하는 것
 
@@ -166,6 +166,7 @@ DB cutover 전에 아래 코드 정리 커밋이 먼저 필요합니다.
 최종 cutover SQL 초안은 아래 파일에 정리합니다.
 
 - [content-shadow-cutover.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-cutover.sql)
+- [content-shadow-cutover-runbook.md](/Users/chaen/Programming/chaen/docs/content-shadow-cutover-runbook.md)
 
 이 스크립트는 단순 rename만 하지 않습니다.
 
