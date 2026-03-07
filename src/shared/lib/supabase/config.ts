@@ -4,7 +4,6 @@ type SupabaseEnv = {
 };
 
 type SupabaseAdminEnv = {
-  adminEmail: string | null;
   adminUserId: string | null;
 };
 
@@ -14,7 +13,6 @@ const readSupabaseEnv = () => ({
 });
 
 const readSupabaseAdminEnv = (): SupabaseAdminEnv => ({
-  adminEmail: process.env.SUPABASE_ADMIN_EMAIL?.trim() || null,
   adminUserId: process.env.SUPABASE_ADMIN_USER_ID?.trim() || null,
 });
 
@@ -63,6 +61,6 @@ export const getSupabaseEnv = (): SupabaseEnv => {
 
 /**
  * 관리자 식별용 환경 변수를 optional하게 읽어옵니다.
- * 이메일 또는 user id 중 하나만 설정해도 관리자 판별에 사용할 수 있습니다.
+ * Supabase user id가 설정되어 있으면 관리자 판별에 사용합니다.
  */
 export const getSupabaseAdminEnvOptional = (): SupabaseAdminEnv => readSupabaseAdminEnv();

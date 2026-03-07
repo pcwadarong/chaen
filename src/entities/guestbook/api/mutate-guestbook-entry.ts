@@ -19,11 +19,13 @@ type CreateGuestbookEntryInput = {
 type UpdateGuestbookEntryInput = {
   content: string;
   entryId: string;
+  isAdminActor?: boolean;
   password: string;
 };
 
 type DeleteGuestbookEntryInput = {
   entryId: string;
+  isAdminActor?: boolean;
   password: string;
 };
 
@@ -65,6 +67,9 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
+  if (input.isAdminReply && !isAdminAuthor) {
+    throw new Error('admin author is required for admin reply');
+  }
   if (!input.isAdminReply && !isAdminAuthor && !password) throw new Error('password is required');
   if (input.isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
 
@@ -94,6 +99,7 @@ const assertPasswordMatches = (password: string, row: GuestbookEntryRow) => {
 export const updateGuestbookEntry = async ({
   content,
   entryId,
+  isAdminActor = false,
   password,
 }: UpdateGuestbookEntryInput): Promise<GuestbookEntry> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
@@ -114,6 +120,9 @@ export const updateGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
+  if (currentRow.is_admin_reply && !isAdminActor) {
+    throw new Error('admin auth required');
+  }
   if (!currentRow.is_admin_reply) {
     assertPasswordMatches(password, currentRow);
   }
@@ -139,6 +148,7 @@ export const updateGuestbookEntry = async ({
  */
 export const deleteGuestbookEntry = async ({
   entryId,
+  isAdminActor = false,
   password,
 }: DeleteGuestbookEntryInput): Promise<{ id: string; parentId: string | null }> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
@@ -156,6 +166,9 @@ export const deleteGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
+  if (currentRow.is_admin_reply && !isAdminActor) {
+    throw new Error('admin auth required');
+  }
   if (!currentRow.is_admin_reply) {
     assertPasswordMatches(password, currentRow);
   }

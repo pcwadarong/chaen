@@ -76,6 +76,7 @@ describe('createGuestbookEntry', () => {
     await createGuestbookEntry({
       authorName: 'admin',
       content: 'secret reply',
+      isAdminAuthor: true,
       isAdminReply: true,
       isSecret: true,
       parentId: 'parent-1',
@@ -122,6 +123,7 @@ describe('createGuestbookEntry', () => {
     await createGuestbookEntry({
       authorName: 'admin',
       content: 'public reply',
+      isAdminAuthor: true,
       isAdminReply: true,
       isSecret: false,
       parentId: 'parent-2',
@@ -199,5 +201,22 @@ describe('createGuestbookEntry', () => {
       }),
     );
     expect(hashGuestbookPassword).not.toHaveBeenCalled();
+  });
+
+  it('관리자 작성자로 표시되지 않은 관리자 답댓글은 등록에 실패한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn(),
+    } as never);
+
+    await expect(
+      createGuestbookEntry({
+        authorName: 'admin',
+        content: 'reply',
+        isAdminReply: true,
+        isSecret: false,
+        parentId: 'parent-1',
+        password: '',
+      }),
+    ).rejects.toThrow('admin author is required for admin reply');
   });
 });

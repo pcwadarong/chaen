@@ -1,21 +1,6 @@
 import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
 
 describe('isAdminSupabaseUser', () => {
-  it('이메일이 일치하면 관리자로 판별한다', () => {
-    expect(
-      isAdminSupabaseUser(
-        {
-          email: 'ADMIN@example.com',
-          id: 'user-1',
-        },
-        {
-          adminEmail: 'admin@example.com',
-          adminUserId: null,
-        },
-      ),
-    ).toBe(true);
-  });
-
   it('user id가 일치하면 관리자로 판별한다', () => {
     expect(
       isAdminSupabaseUser(
@@ -24,7 +9,6 @@ describe('isAdminSupabaseUser', () => {
           id: 'admin-user-id',
         },
         {
-          adminEmail: null,
           adminUserId: 'admin-user-id',
         },
       ),
@@ -39,7 +23,6 @@ describe('isAdminSupabaseUser', () => {
           id: 'user-2',
         },
         {
-          adminEmail: 'admin@example.com',
           adminUserId: 'admin-user-id',
         },
       ),
@@ -49,7 +32,6 @@ describe('isAdminSupabaseUser', () => {
   it('사용자 정보가 없으면 false를 반환한다', () => {
     expect(
       isAdminSupabaseUser(null, {
-        adminEmail: 'admin@example.com',
         adminUserId: 'admin-user-id',
       }),
     ).toBe(false);

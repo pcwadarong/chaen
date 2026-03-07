@@ -1,4 +1,5 @@
 import { getGuestbookThreads } from '@/entities/guestbook';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import type { GuestPageProps } from '../ui/guest-page';
 
@@ -14,7 +15,10 @@ export const getGuestPageData = async ({
   locale: _locale,
 }: GetGuestPageDataInput): Promise<GuestPageProps> => {
   try {
-    const guestbookPage = await getGuestbookThreads({});
+    const authState = await getServerAuthState();
+    const guestbookPage = await getGuestbookThreads({
+      includeSecret: authState.isAdmin,
+    });
 
     return {
       initialCursor: guestbookPage.nextCursor,

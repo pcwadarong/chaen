@@ -2,6 +2,7 @@ import { revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { createGuestbookEntry } from '@/entities/guestbook';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import { POST } from './route';
 
@@ -13,12 +14,22 @@ vi.mock('@/entities/guestbook', () => ({
   createGuestbookEntry: vi.fn(),
 }));
 
+vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
+  getServerAuthState: vi.fn(),
+}));
+
 describe('POST /api/guestbook/entries', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it('성공 시 entry를 반환하고 guestbook 태그를 갱신한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
     vi.mocked(createGuestbookEntry).mockResolvedValue({
       author_blog_url: null,
       author_name: 'tester',
@@ -52,6 +63,12 @@ describe('POST /api/guestbook/entries', () => {
   });
 
   it('답글 생성 성공 시 부모 답글 태그도 갱신한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-user-id',
+    });
     vi.mocked(createGuestbookEntry).mockResolvedValue({
       author_blog_url: null,
       author_name: 'admin',
@@ -84,9 +101,23 @@ describe('POST /api/guestbook/entries', () => {
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:parent-1');
+    expect(createGuestbookEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorName: 'admin',
+        isAdminAuthor: true,
+        isAdminReply: true,
+        password: '',
+      }),
+    );
   });
 
   it('실패 시 400과 에러 사유를 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
     vi.mocked(createGuestbookEntry).mockRejectedValue(new Error('invalid payload'));
 
     const request = new Request('http://localhost:3000/api/guestbook/entries', {
@@ -104,5 +135,34 @@ describe('POST /api/guestbook/entries', () => {
     expect(response.status).toBe(400);
     expect(payload.ok).toBe(false);
     expect(payload.reason).toBe('invalid payload');
+  });
+
+  it('관리자가 아닌 사용자가 관리자 답글을 요청하면 403을 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
+
+    const request = new Request('http://localhost:3000/api/guestbook/entries', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        authorName: 'guest',
+        content: 'reply',
+        isAdminReply: true,
+        parentId: 'parent-1',
+      }),
+    });
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.reason).toBe('admin auth required');
+    expect(createGuestbookEntry).not.toHaveBeenCalled();
   });
 });

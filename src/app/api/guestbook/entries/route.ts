@@ -6,6 +6,7 @@ import {
   createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
 } from '@/entities/guestbook/model/cache-tags';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type CreateEntryPayload = {
@@ -24,22 +25,33 @@ type CreateEntryPayload = {
  */
 export const POST = async (request: Request) => {
   try {
+    const authState = await getServerAuthState();
     const payload = (await request.json()) as CreateEntryPayload;
-    const isAdminReply = Boolean(payload.isAdminReply);
+    const parentId = typeof payload.parentId === 'string' ? payload.parentId : null;
+    const isAdminReply = Boolean(authState.isAdmin && parentId);
+    const requestedAdminReply = Boolean(payload.isAdminReply);
+
+    if (requestedAdminReply && !authState.isAdmin) {
+      throw new Error('admin auth required');
+    }
 
     const entry = await createGuestbookEntry({
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
-      authorName: isAdminReply
+      authorName: authState.isAdmin
         ? 'admin'
         : typeof payload.authorName === 'string'
           ? payload.authorName
           : '',
       content: typeof payload.content === 'string' ? payload.content : '',
-      isAdminAuthor: Boolean(payload.isAdminAuthor),
+      isAdminAuthor: authState.isAdmin,
       isAdminReply,
       isSecret: Boolean(payload.isSecret),
-      parentId: typeof payload.parentId === 'string' ? payload.parentId : null,
-      password: typeof payload.password === 'string' ? payload.password : '',
+      parentId,
+      password: authState.isAdmin
+        ? ''
+        : typeof payload.password === 'string'
+          ? payload.password
+          : '',
     });
 
     revalidateTag(GUESTBOOK_CACHE_TAG);
@@ -55,6 +67,9 @@ export const POST = async (request: Request) => {
     return createApiErrorResponse({
       defaultStatus: 400,
       error,
+      statusByReason: {
+        'admin auth required': 403,
+      },
     });
   }
 };
