@@ -7,6 +7,7 @@ import React from 'react';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { Button, getButtonStyle } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
+import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleSearchFormProps = {
   clearText: string;
@@ -143,10 +144,12 @@ export const ArticleSearchForm = ({
             aria-label={placeholder}
             autoComplete="off"
             css={[inputPaddingStyle, isPending ? pendingInputStyle : undefined]}
+            enterKeyHint="search"
             name="q"
             onChange={event => setInputValue(event.target.value)}
             placeholder={placeholder}
-            type="search"
+            role="searchbox"
+            type="text"
             value={inputValue}
           />
           {inputValue ? (
@@ -165,7 +168,7 @@ export const ArticleSearchForm = ({
         </Button>
       </div>
       {isPending ? (
-        <p aria-live="polite" css={pendingTextStyle}>
+        <p aria-live="polite" css={srOnlyStyle} role="status">
           {pendingText}
         </p>
       ) : null}
@@ -214,9 +217,4 @@ const clearButtonStyle = css`
 
 const pendingInputStyle = css`
   opacity: 0.7;
-`;
-
-const pendingTextStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
 `;

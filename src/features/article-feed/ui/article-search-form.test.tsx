@@ -103,7 +103,7 @@ describe('ArticleSearchForm', () => {
     expect(replaceMock).toHaveBeenCalledWith('/articles');
   });
 
-  it('pending 상태면 검색 중 UI를 노출한다', () => {
+  it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
     vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
 
     render(
@@ -116,7 +116,7 @@ describe('ArticleSearchForm', () => {
       />,
     );
 
-    expect(screen.getByText('검색 중')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('검색 중');
     expect(screen.getByRole('search').getAttribute('aria-busy')).toBe('true');
   });
 });
