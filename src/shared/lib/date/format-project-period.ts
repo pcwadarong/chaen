@@ -9,7 +9,7 @@ export const formatProjectPeriod = (item: Project, locale: string, ongoingLabel:
   const endText = formatMonthYear(item.period_end, locale);
 
   if (startText && endText) return `${startText} - ${endText}`;
-  if (startText && !endText && item.period_start) return `${startText} - ${ongoingLabel}`;
+  if (startText && !endText) return `${startText} - ${ongoingLabel}`;
   if (startText) return startText;
   return ongoingLabel;
 };
