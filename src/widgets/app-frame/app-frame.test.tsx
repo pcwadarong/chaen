@@ -3,6 +3,8 @@ import React from 'react';
 
 import { AppFrame } from '@/widgets/app-frame/app-frame';
 
+import '@testing-library/jest-dom/vitest';
+
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
@@ -82,6 +84,25 @@ describe('AppFrame', () => {
       </AppFrame>,
     );
 
+    expect(screen.getByText('© 2026.chaewonpark all rights reserved.')).toBeTruthy();
+  });
+
+  it('footer 숨김 마커가 있으면 footer를 렌더링하지 않는다', async () => {
+    const matchMediaMock = createMatchMediaMock(false);
+
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation(() => matchMediaMock),
+    });
+
+    render(
+      <AppFrame>
+        <main data-hide-app-frame-footer="true">content</main>
+      </AppFrame>,
+    );
+
+    const viewport = document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]');
+    expect(viewport?.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
     expect(screen.getByText('© 2026.chaewonpark all rights reserved.')).toBeTruthy();
   });
 

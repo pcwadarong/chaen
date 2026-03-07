@@ -6,6 +6,7 @@ type PageShellWidth = 'compact' | 'default';
 
 type PageShellProps = {
   children: ReactNode;
+  hideAppFrameFooter?: boolean;
   width?: PageShellWidth;
 };
 
@@ -26,8 +27,13 @@ type PageSectionProps = {
 /**
  * 페이지 전반의 가로 폭과 세로 리듬을 맞추는 공통 셸입니다.
  */
-export const PageShell = ({ children, width = 'default' }: PageShellProps) => (
+export const PageShell = ({
+  children,
+  hideAppFrameFooter = false,
+  width = 'default',
+}: PageShellProps) => (
   <main
+    data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
     className={`${styles.shell} ${width === 'compact' ? styles.compactWidth : styles.defaultWidth}`}
   >
     {children}

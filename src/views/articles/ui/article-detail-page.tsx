@@ -51,6 +51,7 @@ export const ArticleDetailPage = async ({
       emptyContentText={t('emptyContent')}
       guestbookCtaText={detailUi('leaveGuestbookMessage')}
       heroDescription={item.description ?? t('emptySummary')}
+      hideAppFrameFooter
       metaBar={
         <DetailMetaBar
           copyFailedText={detailUi('copyFailed')}
