@@ -53,6 +53,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
+      shiki:
+        specifier: ^4.0.1
+        version: 4.0.1
       three:
         specifier: ^0.180.0
         version: 0.180.0
