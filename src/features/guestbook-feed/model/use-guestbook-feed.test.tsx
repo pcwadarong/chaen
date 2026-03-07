@@ -14,7 +14,7 @@ const createThreadFixture = (id: string): GuestbookThreadItem => ({
   created_at: '2026-03-05T00:00:00.000Z',
   deleted_at: null,
   id,
-  is_admin_reply: false,
+  is_admin_author: false,
   is_secret: false,
   parent_id: null,
   replies: [],

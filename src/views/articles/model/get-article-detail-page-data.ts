@@ -1,6 +1,8 @@
 import { getArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
 import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
+import { getArticleComments } from '@/entities/article-comment';
+import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 
 type GetArticleDetailPageDataInput = {
   articleId: string;
@@ -9,6 +11,7 @@ type GetArticleDetailPageDataInput = {
 
 type ArticleDetailPageData = {
   archiveItems: ArticleDetailListItem[];
+  initialCommentsPage: ArticleCommentPage;
   item: Article | null;
 };
 
@@ -40,13 +43,26 @@ export const getArticleDetailPageData = async ({
   articleId,
   locale,
 }: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
-  const [item, archiveItems] = await Promise.all([
+  const [item, archiveItems, initialCommentsPage] = await Promise.all([
     getArticle(articleId, locale),
     getArticleDetailList(locale).catch(() => []),
+    getArticleComments({
+      articleId,
+      page: 1,
+      sort: 'latest',
+    }).catch(() => ({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest' as const,
+      totalCount: 0,
+      totalPages: 0,
+    })),
   ]);
 
   return {
     archiveItems: ensureCurrentArticleInArchive(item, archiveItems),
+    initialCommentsPage,
     item,
   };
 };

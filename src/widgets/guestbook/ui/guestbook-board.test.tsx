@@ -20,14 +20,19 @@ const hookState = {
   updateThreadById: vi.fn(),
 };
 
+const authState = {
+  isAdmin: false,
+};
+
+const guestbookFeedProps = vi.fn();
+const commentComposeFormProps = vi.fn();
+
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
 vi.mock('@/shared/providers', () => ({
-  useAuth: () => ({
-    isAdmin: false,
-  }),
+  useAuth: () => authState,
 }));
 
 vi.mock('@/features/guestbook-feed/model/use-guestbook-feed', () => ({
@@ -42,26 +47,33 @@ vi.mock('@/features/guestbook-feed/api/client', () => ({
 }));
 
 vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
-  GuestbookFeed: () => <div data-testid="guestbook-feed" />,
+  GuestbookFeed: (props: unknown) => {
+    guestbookFeedProps(props);
+    return <div data-testid="guestbook-feed" />;
+  },
 }));
 
-vi.mock('@/features/guestbook-compose/ui/guestbook-compose-form', () => ({
-  GuestbookComposeForm: ({ onSubmit }: { onSubmit: (values: unknown) => Promise<void> }) => (
-    <button
-      onClick={() =>
-        void onSubmit({
-          authorBlogUrl: '',
-          authorName: 'tester',
-          content: 'hello',
-          isSecret: false,
-          password: '1234',
-        })
-      }
-      type="button"
-    >
-      submit-compose
-    </button>
-  ),
+vi.mock('@/shared/ui/comment-compose-form', () => ({
+  CommentComposeForm: (props: { onSubmit: (values: unknown) => Promise<void> }) => {
+    commentComposeFormProps(props);
+
+    return (
+      <button
+        onClick={() =>
+          void props.onSubmit({
+            authorBlogUrl: '',
+            authorName: 'tester',
+            content: 'hello',
+            isSecret: false,
+            password: '1234',
+          })
+        }
+        type="button"
+      >
+        submit-compose
+      </button>
+    );
+  },
 }));
 
 vi.mock('@/shared/ui/modal/modal', () => ({
@@ -75,6 +87,7 @@ vi.mock('@/shared/ui/toast/toast', () => ({
 describe('GuestbookBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authState.isAdmin = false;
   });
 
   it('새 글 작성 요청이 실패하면 낙관적 스레드를 롤백한다', async () => {
@@ -88,5 +101,42 @@ describe('GuestbookBoard', () => {
       expect(hookState.prependLocalThread).toHaveBeenCalledTimes(1);
       expect(hookState.removeThreadById).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('일반 사용자면 답신 버튼과 관리자 전용 폼 구성을 숨긴다', () => {
+    render(<GuestbookBoard />);
+
+    expect(guestbookFeedProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canReply: false,
+      }),
+    );
+    expect(commentComposeFormProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowSecretToggle: true,
+        authorMode: 'manual',
+        isReplyMode: false,
+        replyTargetContent: null,
+      }),
+    );
+  });
+
+  it('관리자면 답신 가능 상태와 preset 작성 모드를 사용한다', () => {
+    authState.isAdmin = true;
+
+    render(<GuestbookBoard />);
+
+    expect(guestbookFeedProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canReply: true,
+      }),
+    );
+    expect(commentComposeFormProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowSecretToggle: false,
+        authorMode: 'preset',
+        presetAuthorName: 'admin',
+      }),
+    );
   });
 });

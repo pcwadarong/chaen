@@ -96,26 +96,30 @@ export const GuestbookThreadBubble = ({
                   {actionReplyLabel}
                 </Button>
               ) : null}
-              <Button
-                onClick={() => onEdit(entry)}
-                css={actionButtonStyle}
-                leadingVisual={<EditIcon aria-hidden size="sm" />}
-                tone="black"
-                type="button"
-                variant="underline"
-              >
-                {actionEditLabel}
-              </Button>
-              <Button
-                onClick={() => onDelete(entry)}
-                css={actionButtonStyle}
-                leadingVisual={<TrashIcon aria-hidden size="sm" />}
-                tone="black"
-                type="button"
-                variant="underline"
-              >
-                {actionDeleteLabel}
-              </Button>
+              {!entry.is_admin_author || canReply ? (
+                <>
+                  <Button
+                    onClick={() => onEdit(entry)}
+                    css={actionButtonStyle}
+                    leadingVisual={<EditIcon aria-hidden size="sm" />}
+                    tone="black"
+                    type="button"
+                    variant="underline"
+                  >
+                    {actionEditLabel}
+                  </Button>
+                  <Button
+                    onClick={() => onDelete(entry)}
+                    css={actionButtonStyle}
+                    leadingVisual={<TrashIcon aria-hidden size="sm" />}
+                    tone="black"
+                    type="button"
+                    variant="underline"
+                  >
+                    {actionDeleteLabel}
+                  </Button>
+                </>
+              ) : null}
             </div>
           ) : null
         }

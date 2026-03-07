@@ -7,6 +7,7 @@ import {
   createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
 } from '@/entities/guestbook/model/cache-tags';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type UpdatePayload = {
@@ -24,11 +25,13 @@ type DeletePayload = {
 export const PATCH = async (request: Request, context: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await context.params;
+    const authState = await getServerAuthState();
     const payload = (await request.json()) as UpdatePayload;
 
     const entry = await updateGuestbookEntry({
       content: typeof payload.content === 'string' ? payload.content : '',
       entryId: id,
+      isAdminActor: authState.isAdmin,
       password: typeof payload.password === 'string' ? payload.password : '',
     });
 
@@ -45,6 +48,7 @@ export const PATCH = async (request: Request, context: { params: Promise<{ id: s
       defaultStatus: 400,
       error,
       statusByReason: {
+        'admin auth required': 403,
         'invalid password': 403,
       },
     });
@@ -57,10 +61,12 @@ export const PATCH = async (request: Request, context: { params: Promise<{ id: s
 export const DELETE = async (request: Request, context: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await context.params;
+    const authState = await getServerAuthState();
     const payload = (await request.json().catch(() => ({}))) as DeletePayload;
 
     const deleted = await deleteGuestbookEntry({
       entryId: id,
+      isAdminActor: authState.isAdmin,
       password: typeof payload.password === 'string' ? payload.password : '',
     });
 
@@ -77,6 +83,7 @@ export const DELETE = async (request: Request, context: { params: Promise<{ id: 
       defaultStatus: 400,
       error,
       statusByReason: {
+        'admin auth required': 403,
         'invalid password': 403,
       },
     });

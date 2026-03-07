@@ -5,6 +5,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { type ReactNode, Suspense } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
 import { AppFrame } from '@/widgets/app-frame/app-frame';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
@@ -40,11 +41,12 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
   setRequestLocale(locale);
 
   const messages = await getMessages({ locale });
+  const authState = await getServerAuthState();
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <ThemeProvider>
-        <AuthProvider>
+        <AuthProvider value={authState}>
           <div lang={locale}>
             <AppFrame>
               <Suspense fallback={null}>

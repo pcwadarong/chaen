@@ -1,0 +1,22 @@
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+@media (min-width: 961px) {
+  .tagList {
+    gap: var(--space-3);
+  }
+}
+
+.tagButton {
+  padding: 0.35rem var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(var(--color-border) / 0.28);
+  background-color: rgb(var(--color-surface) / 0.82);
+  font-size: var(--font-size-14);
+  line-height: 1.2;
+  color: rgb(var(--color-muted));
+}

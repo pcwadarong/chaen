@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { GuestbookComposeForm } from '@/features/guestbook-compose/ui/guestbook-compose-form';
 import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
+import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
 import { Input } from '@/shared/ui/input/input';
 import { Modal } from '@/shared/ui/modal/modal';
 import { Textarea } from '@/shared/ui/textarea/textarea';
@@ -139,12 +139,19 @@ export const GuestbookBoard = ({
   } = useGuestbookActionModal({
     applyServerThread,
     applyServerThreadEntry,
+    isAdmin,
     items,
     pushToast,
     removeThreadById,
     text: modalText,
     updateThreadById,
   });
+
+  const isAdminAuthoredActionModalVisible = Boolean(modalState?.entry.is_admin_author) && isAdmin;
+  const isNonAdminAuthoredActionModalVisible =
+    Boolean(modalState) && !modalState?.entry.is_admin_author;
+  const isActionModalVisible =
+    isNonAdminAuthoredActionModalVisible || isAdminAuthoredActionModalVisible;
 
   return (
     <div css={boardStyle}>
@@ -167,20 +174,22 @@ export const GuestbookBoard = ({
         />
       </section>
 
-      <GuestbookComposeForm
+      <CommentComposeForm
+        allowSecretToggle={!isAdmin}
         authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+        authorMode={isAdmin ? 'preset' : 'manual'}
         authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
         authorNameLabel={t('composeAuthorNameLabel')}
         characterCountLabel={t('composeCharacterCountLabel')}
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
-        isAdmin={isAdmin}
         isReplyMode={Boolean(replyTarget && isAdmin)}
         onSubmit={handleSubmit}
         onReplyTargetReset={() => setReplyTarget(null)}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         passwordLabel={t('composePasswordLabel')}
+        presetAuthorName="admin"
         replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
         replyTargetResetLabel={t('replyTargetResetLabel')}
@@ -205,7 +214,7 @@ export const GuestbookBoard = ({
               : modalPasswordInputRef
         }
         // 상태가 null이 아니면 모달 오픈
-        isOpen={Boolean(modalState)}
+        isOpen={isActionModalVisible}
         onClose={closeModal}
       >
         <div css={modalBodyStyle}>

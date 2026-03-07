@@ -3,7 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
-import { ProjectDetailPageClient } from '@/views/project/ui/project-detail-page.client';
+import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
+import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
+import styles from '@/views/project/ui/project-detail-page.module.css';
 
 type ProjectDetailPageProps = {
   archiveItems: ProjectDetailListItem[];
@@ -28,28 +31,43 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
   }
 
   return (
-    <ProjectDetailPageClient
-      archiveItems={archiveItems}
+    <DetailPageShell
       content={item.content}
-      description={item.description}
       emptyArchiveText={detailUi('emptyArchive')}
-      emptyDescriptionText={t('emptyDescription')}
-      emptySummaryText={t('emptySummary')}
+      emptyContentText={t('emptyContent')}
       guestbookCtaText={detailUi('leaveGuestbookMessage')}
-      id={item.id}
-      locale={locale}
-      noTagsText={t('noTags')}
-      periodText={periodText}
-      sectionLabels={{
-        archive: t('archiveLabel'),
-        tagList: t('tagSection'),
-      }}
-      shareLabels={{
-        copyFailed: detailUi('copyFailed'),
-        copied: detailUi('shareCopied'),
-        share: detailUi('share'),
-      }}
-      tagLabels={(item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag)}
+      heroDescription={item.description ?? t('emptySummary')}
+      metaBar={
+        <DetailMetaBar
+          copyFailedText={detailUi('copyFailed')}
+          copiedText={detailUi('shareCopied')}
+          locale={locale}
+          primaryMetaText={periodText}
+          shareText={detailUi('share')}
+        />
+      }
+      sidebarItems={buildDetailArchiveLinkItems({
+        getHref: archiveItem => `/project/${archiveItem.id}`,
+        items: archiveItems,
+        locale,
+        selectedId: item.id,
+      })}
+      sidebarLabel={t('archiveLabel')}
+      tagContent={
+        <div aria-label={t('tagSection')} className={styles.tagList}>
+          {(item.tags ?? []).length > 0 ? (
+            (item.tags ?? []).map(tag => (
+              <button aria-disabled="true" className={styles.tagButton} key={tag} type="button">
+                #{tagLabelMap.data.get(tag) ?? tag}
+              </button>
+            ))
+          ) : (
+            <button aria-disabled="true" className={styles.tagButton} type="button">
+              #{t('noTags')}
+            </button>
+          )}
+        </div>
+      }
       title={item.title}
     />
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getGuestbookThreads } from '@/entities/guestbook';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 /**
@@ -14,14 +15,15 @@ export const GET = async (request: Request) => {
   const limit = rawLimit ? Number.parseInt(rawLimit, 10) : undefined;
 
   try {
+    const authState = await getServerAuthState();
     const page = await getGuestbookThreads({
       cursor,
-      includeSecret: true,
+      includeSecret: authState.isAdmin,
       limit,
     });
 
     return NextResponse.json({
-      isAdmin: true,
+      isAdmin: authState.isAdmin,
       ok: true,
       ...page,
     });

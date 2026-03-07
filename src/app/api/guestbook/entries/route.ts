@@ -6,6 +6,7 @@ import {
   createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
 } from '@/entities/guestbook/model/cache-tags';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 type CreateEntryPayload = {
@@ -13,7 +14,6 @@ type CreateEntryPayload = {
   authorName?: unknown;
   content?: unknown;
   isAdminAuthor?: unknown;
-  isAdminReply?: unknown;
   isSecret?: unknown;
   parentId?: unknown;
   password?: unknown;
@@ -24,22 +24,26 @@ type CreateEntryPayload = {
  */
 export const POST = async (request: Request) => {
   try {
+    const authState = await getServerAuthState();
     const payload = (await request.json()) as CreateEntryPayload;
-    const isAdminReply = Boolean(payload.isAdminReply);
+    const parentId = typeof payload.parentId === 'string' ? payload.parentId : null;
 
     const entry = await createGuestbookEntry({
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
-      authorName: isAdminReply
+      authorName: authState.isAdmin
         ? 'admin'
         : typeof payload.authorName === 'string'
           ? payload.authorName
           : '',
       content: typeof payload.content === 'string' ? payload.content : '',
-      isAdminAuthor: Boolean(payload.isAdminAuthor),
-      isAdminReply,
+      isAdminAuthor: authState.isAdmin,
       isSecret: Boolean(payload.isSecret),
-      parentId: typeof payload.parentId === 'string' ? payload.parentId : null,
-      password: typeof payload.password === 'string' ? payload.password : '',
+      parentId,
+      password: authState.isAdmin
+        ? ''
+        : typeof payload.password === 'string'
+          ? payload.password
+          : '',
     });
 
     revalidateTag(GUESTBOOK_CACHE_TAG);

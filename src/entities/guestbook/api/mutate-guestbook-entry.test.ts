@@ -30,7 +30,7 @@ describe('createGuestbookEntry', () => {
         password_hash: 'parent-hash',
         content: 'parent',
         is_secret: true,
-        is_admin_reply: false,
+        is_admin_author: false,
         created_at: '2026-03-05T00:00:00.000Z',
         updated_at: '2026-03-05T00:00:00.000Z',
         deleted_at: null,
@@ -47,7 +47,7 @@ describe('createGuestbookEntry', () => {
         password_hash: 'parent-hash',
         content: 'secret reply',
         is_secret: true,
-        is_admin_reply: true,
+        is_admin_author: true,
         created_at: '2026-03-05T00:10:00.000Z',
         updated_at: '2026-03-05T00:10:00.000Z',
         deleted_at: null,
@@ -76,7 +76,7 @@ describe('createGuestbookEntry', () => {
     await createGuestbookEntry({
       authorName: 'admin',
       content: 'secret reply',
-      isAdminReply: true,
+      isAdminAuthor: true,
       isSecret: true,
       parentId: 'parent-1',
       password: '',
@@ -101,7 +101,7 @@ describe('createGuestbookEntry', () => {
         password_hash: null,
         content: 'public reply',
         is_secret: false,
-        is_admin_reply: true,
+        is_admin_author: true,
         created_at: '2026-03-05T00:10:00.000Z',
         updated_at: '2026-03-05T00:10:00.000Z',
         deleted_at: null,
@@ -122,7 +122,7 @@ describe('createGuestbookEntry', () => {
     await createGuestbookEntry({
       authorName: 'admin',
       content: 'public reply',
-      isAdminReply: true,
+      isAdminAuthor: true,
       isSecret: false,
       parentId: 'parent-2',
       password: '',
@@ -146,7 +146,6 @@ describe('createGuestbookEntry', () => {
       createGuestbookEntry({
         authorName: 'guest',
         content: 'hello',
-        isAdminReply: false,
         isSecret: false,
         parentId: null,
         password: '',
@@ -164,7 +163,7 @@ describe('createGuestbookEntry', () => {
         password_hash: null,
         content: 'admin thread',
         is_secret: false,
-        is_admin_reply: false,
+        is_admin_author: true,
         created_at: '2026-03-06T00:00:00.000Z',
         updated_at: '2026-03-06T00:00:00.000Z',
         deleted_at: null,
@@ -186,7 +185,6 @@ describe('createGuestbookEntry', () => {
       authorName: 'admin',
       content: 'admin thread',
       isAdminAuthor: true,
-      isAdminReply: false,
       isSecret: false,
       parentId: null,
       password: '',
@@ -199,5 +197,21 @@ describe('createGuestbookEntry', () => {
       }),
     );
     expect(hashGuestbookPassword).not.toHaveBeenCalled();
+  });
+
+  it('관리자가 아닌 사용자의 답댓글은 비밀번호 없이 등록할 수 없다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn(),
+    } as never);
+
+    await expect(
+      createGuestbookEntry({
+        authorName: 'guest',
+        content: 'reply',
+        isSecret: false,
+        parentId: 'parent-1',
+        password: '',
+      }),
+    ).rejects.toThrow('password is required');
   });
 });
