@@ -81,6 +81,8 @@
     "loadError": "Impossible de charger les articles.",
     "loadMoreEnd": "Vous avez atteint la fin des articles.",
     "loading": "Chargement des articles.",
+    "popularTagsEmpty": "Aucun tag à afficher pour le moment.",
+    "popularTagsTitle": "Tags",
     "searchClear": "Effacer",
     "searchPlaceholder": "Rechercher des articles",
     "searchSubmit": "Rechercher",

@@ -81,6 +81,8 @@
     "loadError": "아티클을 불러오지 못했습니다.",
     "loadMoreEnd": "마지막 아티클까지 모두 확인했습니다.",
     "loading": "아티클을 불러오는 중입니다.",
+    "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
+    "popularTagsTitle": "tags",
     "searchClear": "초기화",
     "searchPlaceholder": "아티클 검색",
     "searchSubmit": "검색",
