@@ -12,6 +12,7 @@ vi.mock('@/shared/lib/http/request-json-api-client', () => ({
 
 describe('DetailMetaBar', () => {
   const clipboardWriteTextMock = vi.fn();
+  const originalClipboard = globalThis.navigator.clipboard;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,6 +20,12 @@ describe('DetailMetaBar', () => {
       clipboard: {
         writeText: clipboardWriteTextMock,
       },
+    });
+  });
+
+  afterEach(() => {
+    Object.assign(globalThis.navigator, {
+      clipboard: originalClipboard,
     });
   });
 
