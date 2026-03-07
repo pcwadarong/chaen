@@ -35,10 +35,12 @@ type GetProjectsOptions = {
   locale: string;
 };
 
-type ProjectBaseListRow = Pick<ProjectListItem, 'created_at' | 'id' | 'thumbnail_url'>;
-
 type ProjectTranslationListRow = Pick<ProjectListItem, 'description' | 'title'> & {
   project_id: string;
+};
+
+type ProjectTranslationWithBaseRow = ProjectTranslationListRow & {
+  projects: Pick<ProjectListItem, 'created_at' | 'thumbnail_url'>[] | null;
 };
 
 /**
@@ -61,29 +63,21 @@ const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectsPage
   };
 };
 
-/**
- * 내림차순 created_at + id 정렬 기준 keyset 조건을 쿼리에 적용합니다.
- */
-const applyProjectsKeysetCursor = <
-  T extends {
-    order: (column: string, options: { ascending: boolean }) => T;
-    or: (filters: string) => T;
-  },
->(
-  query: T,
-  cursor?: string | null,
-) => {
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
-  const orderedQuery = query
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false });
+const mapShadowProjectListItems = (translationRows: ProjectTranslationWithBaseRow[]) =>
+  translationRows.flatMap(row => {
+    const project = row.projects?.[0];
+    if (!project) return [];
 
-  if (!parsedCursor) return orderedQuery;
-
-  return orderedQuery.or(
-    `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
-  );
-};
+    return [
+      {
+        created_at: project.created_at,
+        description: row.description,
+        id: row.project_id,
+        thumbnail_url: project.thumbnail_url,
+        title: row.title,
+      } satisfies ProjectListItem,
+    ];
+  });
 
 /**
  * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
@@ -101,37 +95,24 @@ const fetchProjectsByLocaleFromShadow = async (
     };
   }
 
-  const baseQuery = applyProjectsKeysetCursor(
-    supabase.from(CONTENT_SHADOW_SCHEMA.projects).select('id,thumbnail_url,created_at'),
-    cursor,
-  );
-  const { data: projectBaseRows, error: projectBaseError } = await baseQuery.limit(pageSize + 1);
-
-  if (projectBaseError) {
-    if (isMissingProjectsShadowSchemaError(projectBaseError.message)) {
-      return {
-        data: { items: [], nextCursor: null },
-        schemaMissing: true,
-      };
-    }
-
-    throw new Error(`[projects] shadow base 목록 조회 실패: ${projectBaseError.message}`);
-  }
-
-  const baseRows = (projectBaseRows ?? []) as ProjectBaseListRow[];
-  if (baseRows.length === 0) {
-    return {
-      data: { items: [], nextCursor: null },
-      schemaMissing: false,
-    };
-  }
-
-  const projectIds = Array.from(new Set(baseRows.map(row => row.id)));
-  const { data: translationRows, error: translationError } = await supabase
+  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  let translationsQuery = supabase
     .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
-    .select('project_id,title,description')
+    .select('project_id,title,description,projects!inner(created_at,thumbnail_url)')
     .eq('locale', locale)
-    .in('project_id', projectIds);
+    .order('created_at', { ascending: false, referencedTable: 'projects' })
+    .order('project_id', { ascending: false });
+
+  if (parsedCursor) {
+    translationsQuery = translationsQuery.or(
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},project_id.lt.${parsedCursor.id})`,
+      { referencedTable: 'projects' },
+    );
+  }
+
+  const { data: translationRows, error: translationError } = await translationsQuery.limit(
+    pageSize + 1,
+  );
 
   if (translationError) {
     if (isMissingProjectsShadowSchemaError(translationError.message)) {
@@ -144,26 +125,9 @@ const fetchProjectsByLocaleFromShadow = async (
     throw new Error(`[projects] shadow 번역 목록 조회 실패: ${translationError.message}`);
   }
 
-  const translationMap = new Map(
-    ((translationRows ?? []) as ProjectTranslationListRow[]).map(row => [row.project_id, row]),
-  );
-
   return {
     data: toProjectsPage(
-      baseRows.flatMap(row => {
-        const translation = translationMap.get(row.id);
-        if (!translation) return [];
-
-        return [
-          {
-            created_at: row.created_at,
-            description: translation.description,
-            id: row.id,
-            thumbnail_url: row.thumbnail_url,
-            title: translation.title,
-          } satisfies ProjectListItem,
-        ];
-      }),
+      mapShadowProjectListItems((translationRows ?? []) as ProjectTranslationWithBaseRow[]),
       pageSize,
     ),
     schemaMissing: false,

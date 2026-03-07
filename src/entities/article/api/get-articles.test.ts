@@ -35,41 +35,30 @@ describe('getArticles', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('첫 페이지 조회는 shadow schema를 우선 사용하고 keyset cache key에 initial cursor를 포함한다', async () => {
-    const articleBaseQuery = {
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'typography-rhythm',
-            thumbnail_url: null,
-            created_at: '2026-03-02T09:07:50.797695+00:00',
-          },
-        ],
-        error: null,
-      }),
-      order: vi.fn().mockReturnThis(),
-    };
-    const translationsQuery = {
+  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 keyset cache key에 initial cursor를 포함한다', async () => {
+    const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             article_id: 'typography-rhythm',
             title: 'Typography Rhythm',
             description: 'line-height note',
+            articles: [
+              {
+                thumbnail_url: null,
+                created_at: '2026-03-02T09:07:50.797695+00:00',
+              },
+            ],
           },
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(articleBaseQuery),
-        })
-        .mockReturnValueOnce(translationsQuery),
+      from: vi.fn().mockReturnValue(articleTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -80,6 +69,14 @@ describe('getArticles', () => {
     expect(result.items).toHaveLength(1);
     expect(result.totalCount).toBeNull();
     expect(result.items[0]?.title).toBe('Typography Rhythm');
+    expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
+      ascending: false,
+      referencedTable: 'articles',
+    });
+    expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(2, 'article_id', {
+      ascending: false,
+    });
     expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
       'articles',
       'list',
@@ -92,19 +89,19 @@ describe('getArticles', () => {
     ]);
   });
 
-  it('비검색 다음 페이지 조회는 shadow base table에도 created_at + id keyset 조건을 사용한다', async () => {
-    const articleBaseQuery = {
+  it('비검색 다음 페이지 조회는 locale 번역 목록에도 created_at + id keyset 조건을 사용한다', async () => {
+    const articleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
       }),
       or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue(articleBaseQuery),
-      }),
+      from: vi.fn().mockReturnValue(articleTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -120,70 +117,93 @@ describe('getArticles', () => {
 
     await getArticles({ cursor, locale: 'ko' });
 
-    expect(articleBaseQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
+    expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
+      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,article_id.lt.article-9)',
+      {
+        referencedTable: 'articles',
+      },
     );
   });
 
-  it('첫 페이지에서 대상 locale 번역이 비어 있으면 ko locale로 fallback 조회한다', async () => {
-    const targetLocaleBaseQuery = {
+  it('최근 base row에 번역이 없어도 locale 번역이 있으면 ko fallback 없이 localized 목록을 반환한다', async () => {
+    const targetLocaleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
-            id: 'frontend-performance',
-            thumbnail_url: null,
-            created_at: '2026-03-02T09:07:50.797695+00:00',
+            article_id: 'older-fr-article',
+            title: 'Article FR',
+            description: 'description fr',
+            articles: [
+              {
+                thumbnail_url: null,
+                created_at: '2026-03-01T09:07:50.797695+00:00',
+              },
+            ],
           },
         ],
         error: null,
       }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(targetLocaleTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticles({ locale: 'fr' });
+
+    expect(result.items).toEqual([
+      {
+        id: 'older-fr-article',
+        title: 'Article FR',
+        description: 'description fr',
+        thumbnail_url: null,
+        created_at: '2026-03-01T09:07:50.797695+00:00',
+      },
+    ]);
+    expect(supabaseClient.from).toHaveBeenCalledTimes(1);
+    expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+  });
+
+  it('첫 페이지에서 대상 locale 번역이 정말 없으면 ko locale로 fallback 조회한다', async () => {
     const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
       }),
-      select: vi.fn().mockReturnThis(),
-    };
-    const fallbackBaseQuery = {
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'frontend-performance',
-            thumbnail_url: null,
-            created_at: '2026-03-02T09:07:50.797695+00:00',
-          },
-        ],
-        error: null,
-      }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const fallbackTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             article_id: 'frontend-performance',
             title: '한국어 글',
             description: '설명',
+            articles: [
+              {
+                thumbnail_url: null,
+                created_at: '2026-03-02T09:07:50.797695+00:00',
+              },
+            ],
           },
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
       from: vi
         .fn()
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(targetLocaleBaseQuery),
-        })
         .mockReturnValueOnce(targetLocaleTranslationsQuery)
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(fallbackBaseQuery),
-        })
         .mockReturnValueOnce(fallbackTranslationsQuery),
     };
 
@@ -273,71 +293,6 @@ describe('getArticles', () => {
     });
   });
 
-  it('태그가 있으면 shadow 태그 relation과 shadow article base를 기준으로 목록을 조회한다', async () => {
-    const tagsQuery = {
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: { id: 'tag-1' },
-        error: null,
-      }),
-      select: vi.fn().mockReturnThis(),
-    };
-    const articleTagsV2Query = {
-      eq: vi.fn().mockResolvedValue({
-        data: [{ article_id: 'article-1' }, { article_id: 'article-2' }],
-        error: null,
-      }),
-      select: vi.fn().mockReturnThis(),
-    };
-    const articleBaseQuery = {
-      in: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'article-2',
-            thumbnail_url: null,
-            created_at: '2026-03-02T09:07:50.797695+00:00',
-          },
-        ],
-        error: null,
-      }),
-      order: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-    };
-    const translationsQuery = {
-      eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({
-        data: [
-          {
-            article_id: 'article-2',
-            title: 'Article Two',
-            description: 'description',
-          },
-        ],
-        error: null,
-      }),
-      select: vi.fn().mockReturnThis(),
-    };
-    const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(tagsQuery)
-        .mockReturnValueOnce(articleTagsV2Query)
-        .mockReturnValueOnce(articleBaseQuery)
-        .mockReturnValueOnce(translationsQuery),
-    };
-
-    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
-
-    const result = await getArticles({ locale: 'ko', tag: 'nextjs' });
-
-    expect(result.items[0]?.id).toBe('article-2');
-    expect(tagsQuery.eq).toHaveBeenCalledWith('slug', 'nextjs');
-    expect(articleBaseQuery.in).toHaveBeenCalledWith('id', ['article-1', 'article-2']);
-    expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
-  });
-
   it('태그 schema가 없으면 legacy text 배열 fallback 대신 에러를 던진다', async () => {
     const tagsQuery = {
       eq: vi.fn().mockReturnThis(),
@@ -393,7 +348,8 @@ describe('getArticles', () => {
   });
 
   it('shadow content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
-    const articleBaseQuery = {
+    const articleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -401,11 +357,10 @@ describe('getArticles', () => {
         },
       }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue(articleBaseQuery),
-      }),
+      from: vi.fn().mockReturnValue(articleTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -414,5 +369,65 @@ describe('getArticles', () => {
     await expect(getArticles({ locale: 'ko' })).rejects.toThrow(
       '[articles] shadow content schema가 없습니다.',
     );
+  });
+
+  it('태그 목록도 locale 번역 기준으로 먼저 페이지네이션한다', async () => {
+    const tagsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: 'tag-1' },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: [{ article_id: 'recent-untranslated' }, { article_id: 'older-localized' }],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'older-localized',
+            title: 'Article Two',
+            description: 'description',
+            articles: [
+              {
+                thumbnail_url: null,
+                created_at: '2026-03-01T09:07:50.797695+00:00',
+              },
+            ],
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(tagsQuery)
+        .mockReturnValueOnce(articleTagsV2Query)
+        .mockReturnValueOnce(articleTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticles({ locale: 'ko', tag: 'nextjs' });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.id).toBe('older-localized');
+    expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.in).toHaveBeenCalledWith('article_id', [
+      'recent-untranslated',
+      'older-localized',
+    ]);
   });
 });

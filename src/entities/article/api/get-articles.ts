@@ -50,10 +50,12 @@ type ArticleSearchRow = ArticleListItem & {
   total_count: number;
 };
 
-type ArticleBaseListRow = Pick<ArticleListItem, 'created_at' | 'id' | 'thumbnail_url'>;
-
 type ArticleTranslationListRow = Pick<ArticleListItem, 'description' | 'title'> & {
   article_id: string;
+};
+
+type ArticleTranslationWithBaseRow = ArticleTranslationListRow & {
+  articles: Pick<ArticleListItem, 'created_at' | 'thumbnail_url'>[] | null;
 };
 
 /**
@@ -124,78 +126,25 @@ const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticlesPage
 };
 
 /**
- * 내림차순 created_at + id 정렬 기준 keyset 조건을 쿼리에 적용합니다.
- */
-const applyArticlesKeysetCursor = <
-  T extends {
-    order: (column: string, options: { ascending: boolean }) => T;
-    or: (filters: string) => T;
-  },
->(
-  query: T,
-  cursor?: string | null,
-) => {
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
-  const orderedQuery = query
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false });
-
-  if (!parsedCursor) return orderedQuery;
-
-  return orderedQuery.or(
-    `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
-  );
-};
-
-/**
  * content schema(`articles` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
  */
-const fetchShadowArticleListItems = async (
-  baseRows: ArticleBaseListRow[],
-  locale: string,
-): Promise<{ items: ArticleListItem[]; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase || baseRows.length === 0) {
-    return { items: [], schemaMissing: false };
-  }
+const mapShadowArticleListItems = (
+  translationRows: ArticleTranslationWithBaseRow[],
+): ArticleListItem[] =>
+  translationRows.flatMap(row => {
+    const article = row.articles?.[0];
+    if (!article) return [];
 
-  const articleIds = Array.from(new Set(baseRows.map(row => row.id)));
-  const { data: translationRows, error: translationError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
-    .select('article_id,title,description')
-    .eq('locale', locale)
-    .in('article_id', articleIds);
-
-  if (translationError) {
-    if (isMissingArticlesShadowSchemaError(translationError.message)) {
-      return { items: [], schemaMissing: true };
-    }
-
-    throw new Error(`[articles] shadow 번역 목록 조회 실패: ${translationError.message}`);
-  }
-
-  const translationMap = new Map(
-    ((translationRows ?? []) as ArticleTranslationListRow[]).map(row => [row.article_id, row]),
-  );
-
-  return {
-    items: baseRows.flatMap(row => {
-      const translation = translationMap.get(row.id);
-      if (!translation) return [];
-
-      return [
-        {
-          created_at: row.created_at,
-          description: translation.description,
-          id: row.id,
-          thumbnail_url: row.thumbnail_url,
-          title: translation.title,
-        } satisfies ArticleListItem,
-      ];
-    }),
-    schemaMissing: false,
-  };
-};
+    return [
+      {
+        created_at: article.created_at,
+        description: row.description,
+        id: row.article_id,
+        thumbnail_url: article.thumbnail_url,
+        title: row.title,
+      } satisfies ArticleListItem,
+    ];
+  });
 
 /**
  * content schema(`articles` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
@@ -213,41 +162,41 @@ const fetchArticlesByLocaleFromShadow = async (
     };
   }
 
-  const baseQuery = applyArticlesKeysetCursor(
-    supabase.from(CONTENT_SHADOW_SCHEMA.articles).select('id,thumbnail_url,created_at'),
-    cursor,
-  );
-  const { data: articleBaseRows, error: articleBaseError } = await baseQuery.limit(pageSize + 1);
+  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  let translationsQuery = supabase
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
+    .eq('locale', locale)
+    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('article_id', { ascending: false });
 
-  if (articleBaseError) {
-    if (isMissingArticlesShadowSchemaError(articleBaseError.message)) {
+  if (parsedCursor) {
+    translationsQuery = translationsQuery.or(
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},article_id.lt.${parsedCursor.id})`,
+      { referencedTable: 'articles' },
+    );
+  }
+
+  const { data: translationRows, error: translationsError } = await translationsQuery.limit(
+    pageSize + 1,
+  );
+
+  if (translationsError) {
+    if (isMissingArticlesShadowSchemaError(translationsError.message)) {
       return {
         data: { items: [], nextCursor: null, totalCount: null },
         schemaMissing: true,
       };
     }
 
-    throw new Error(`[articles] shadow base 목록 조회 실패: ${articleBaseError.message}`);
-  }
-
-  const baseRows = (articleBaseRows ?? []) as ArticleBaseListRow[];
-  if (baseRows.length === 0) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      schemaMissing: false,
-    };
-  }
-
-  const shadowItems = await fetchShadowArticleListItems(baseRows, locale);
-  if (shadowItems.schemaMissing) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      schemaMissing: true,
-    };
+    throw new Error(`[articles] shadow 번역 목록 조회 실패: ${translationsError.message}`);
   }
 
   return {
-    data: toArticlesPage(shadowItems.items, pageSize),
+    data: toArticlesPage(
+      mapShadowArticleListItems((translationRows ?? []) as ArticleTranslationWithBaseRow[]),
+      pageSize,
+    ),
     schemaMissing: false,
   };
 };
@@ -303,31 +252,38 @@ const fetchArticlesByTagAndLocale = async (
     return { items: [], nextCursor: null, totalCount: null };
   }
 
-  const shadowQuery = applyArticlesKeysetCursor(
-    supabase
-      .from(CONTENT_SHADOW_SCHEMA.articles)
-      .select('id,thumbnail_url,created_at')
-      .in('id', shadowArticleIds.data),
-    cursor,
-  );
-  const { data: articleBaseRows, error: articleBaseError } = await shadowQuery.limit(pageSize + 1);
+  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  let translationsQuery = supabase
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
+    .eq('locale', locale)
+    .in('article_id', shadowArticleIds.data)
+    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('article_id', { ascending: false });
 
-  if (!articleBaseError) {
-    const shadowItems = await fetchShadowArticleListItems(
-      (articleBaseRows ?? []) as ArticleBaseListRow[],
-      locale,
+  if (parsedCursor) {
+    translationsQuery = translationsQuery.or(
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},article_id.lt.${parsedCursor.id})`,
+      { referencedTable: 'articles' },
     );
+  }
 
-    if (!shadowItems.schemaMissing) {
-      return toArticlesPage(shadowItems.items, pageSize);
+  const { data: translationRows, error: translationsError } = await translationsQuery.limit(
+    pageSize + 1,
+  );
+
+  if (translationsError) {
+    if (isMissingArticlesShadowSchemaError(translationsError.message)) {
+      throw new Error('[articles] shadow content schema가 없습니다.');
     }
 
-    throw new Error('[articles] shadow content schema가 없습니다.');
-  } else if (!isMissingArticlesShadowSchemaError(articleBaseError.message)) {
-    throw new Error(`[articles] shadow 태그 목록 조회 실패: ${articleBaseError.message}`);
-  } else {
-    throw new Error('[articles] shadow content schema가 없습니다.');
+    throw new Error(`[articles] shadow 태그 목록 조회 실패: ${translationsError.message}`);
   }
+
+  return toArticlesPage(
+    mapShadowArticleListItems((translationRows ?? []) as ArticleTranslationWithBaseRow[]),
+    pageSize,
+  );
 };
 
 /**
