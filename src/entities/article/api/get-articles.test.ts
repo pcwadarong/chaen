@@ -244,38 +244,26 @@ describe('getArticles', () => {
     });
   });
 
-  it('shadow search RPC가 없으면 기존 search_articles RPC로 fallback한다', async () => {
+  it('search_article_translations RPC 에러는 그대로 surface한다', async () => {
     const supabaseClient = {
       from: vi.fn(),
-      rpc: vi
-        .fn()
-        .mockResolvedValueOnce({
-          data: null,
-          error: {
-            message: 'function public.search_article_translations does not exist',
-          },
-        })
-        .mockResolvedValueOnce({
-          data: [],
-          error: null,
-        }),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'rpc failed',
+        },
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    await getArticles({ locale: 'fr', query: 'react' });
+    await expect(getArticles({ locale: 'fr', query: 'react' })).rejects.toThrow(
+      '[articles] shadow RPC 검색 조회 실패: rpc failed',
+    );
 
     expect(supabaseClient.from).not.toHaveBeenCalled();
-    expect(supabaseClient.rpc).toHaveBeenNthCalledWith(1, 'search_article_translations', {
-      cursor_created_at: null,
-      cursor_id: null,
-      cursor_rank: null,
-      page_limit: 12,
-      search_query: 'react',
-      target_locale: 'fr',
-    });
-    expect(supabaseClient.rpc).toHaveBeenNthCalledWith(2, 'search_articles', {
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('search_article_translations', {
       cursor_created_at: null,
       cursor_id: null,
       cursor_rank: null,
