@@ -4,7 +4,11 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 
 import { hashGuestbookPassword } from '../lib/password';
 
-import { createGuestbookEntry } from './mutate-guestbook-entry';
+import {
+  createGuestbookEntry,
+  deleteGuestbookEntry,
+  updateGuestbookEntry,
+} from './mutate-guestbook-entry';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),
@@ -213,5 +217,123 @@ describe('createGuestbookEntry', () => {
         password: '',
       }),
     ).rejects.toThrow('password is required');
+  });
+});
+
+describe('guestbook entry mutations', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('수정은 updated_at을 직접 쓰지 않고 트리거에 맡긴다', async () => {
+    const currentSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'entry-1',
+        parent_id: null,
+        author_name: 'guest',
+        author_blog_url: null,
+        password_hash: 'entry-hash',
+        content: 'before',
+        is_secret: false,
+        is_admin_author: false,
+        created_at: '2026-03-05T00:00:00.000Z',
+        updated_at: '2026-03-05T00:00:00.000Z',
+        deleted_at: null,
+      },
+      error: null,
+    });
+
+    const updateSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'entry-1',
+        parent_id: null,
+        author_name: 'guest',
+        author_blog_url: null,
+        password_hash: 'entry-hash',
+        content: 'after',
+        is_secret: false,
+        is_admin_author: false,
+        created_at: '2026-03-05T00:00:00.000Z',
+        updated_at: '2026-03-05T00:01:00.000Z',
+        deleted_at: null,
+      },
+      error: null,
+    });
+
+    const client = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
+          single: currentSingle,
+        })
+        .mockReturnValueOnce({
+          update: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          single: updateSingle,
+        }),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(client as never);
+
+    await updateGuestbookEntry({
+      content: 'after',
+      entryId: 'entry-1',
+      password: '1234',
+    });
+
+    const updateCall = client.from.mock.results[1]?.value;
+    expect(updateCall.update).toHaveBeenCalledWith({
+      content: 'after',
+    });
+  });
+
+  it('삭제는 deleted_at만 직접 쓰고 updated_at은 트리거에 맡긴다', async () => {
+    const currentSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'entry-1',
+        parent_id: null,
+        author_name: 'guest',
+        author_blog_url: null,
+        password_hash: 'entry-hash',
+        content: 'before',
+        is_secret: false,
+        is_admin_author: false,
+        created_at: '2026-03-05T00:00:00.000Z',
+        updated_at: '2026-03-05T00:00:00.000Z',
+        deleted_at: null,
+      },
+      error: null,
+    });
+
+    const client = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
+          single: currentSingle,
+        })
+        .mockReturnValueOnce({
+          update: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+        }),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(client as never);
+
+    await deleteGuestbookEntry({
+      entryId: 'entry-1',
+      password: '1234',
+    });
+
+    const deleteCall = client.from.mock.results[1]?.value;
+    expect(deleteCall.update).toHaveBeenCalledWith({
+      deleted_at: expect.any(String),
+    });
   });
 });

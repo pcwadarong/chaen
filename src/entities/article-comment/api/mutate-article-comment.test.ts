@@ -286,6 +286,10 @@ describe('article comment mutations', () => {
     });
 
     expect(verifyGuestbookPassword).toHaveBeenCalledWith('1234', 'hash');
+    const updateCall = updateClient.from.mock.results[1]?.value;
+    expect(updateCall.update).toHaveBeenCalledWith({
+      content: 'updated',
+    });
 
     const deleteClient = {
       from: vi
@@ -311,5 +315,9 @@ describe('article comment mutations', () => {
     });
 
     expect(verifyGuestbookPassword).toHaveBeenCalledTimes(2);
+    const deleteCall = deleteClient.from.mock.results[1]?.value;
+    expect(deleteCall.update).toHaveBeenCalledWith({
+      deleted_at: expect.any(String),
+    });
   });
 });

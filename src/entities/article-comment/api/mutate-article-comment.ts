@@ -186,7 +186,6 @@ export const updateArticleComment = async ({
     .from('article_comments')
     .update({
       content: normalizedContent,
-      updated_at: new Date().toISOString(),
     })
     .eq('id', normalizedCommentId)
     .select('*')
@@ -222,12 +221,10 @@ export const deleteArticleComment = async ({
     throw new Error('comment does not belong to article');
   assertPasswordMatches(password, currentRow);
 
-  const now = new Date().toISOString();
   const { error } = await supabase
     .from('article_comments')
     .update({
-      deleted_at: now,
-      updated_at: now,
+      deleted_at: new Date().toISOString(),
     })
     .eq('id', normalizedCommentId);
 
