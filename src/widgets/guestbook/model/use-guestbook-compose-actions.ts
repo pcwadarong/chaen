@@ -58,7 +58,6 @@ export const useGuestbookComposeActions = ({
   const handleSubmit = useCallback(
     async (values: CommentComposeValues) => {
       const isReplySubmit = Boolean(isAdmin && replyTarget);
-      if (isReplySubmit && !replyTarget) return;
 
       // 관리자 답신은 기존 스레드의 replies 배열에 낙관적으로 추가합니다.
       if (isReplySubmit && replyTarget) {
