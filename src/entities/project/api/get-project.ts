@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -13,7 +14,8 @@ const isMissingProjectShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('projects_v2') || normalizedMessage.includes('project_translations')
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
   );
 };
 
@@ -37,7 +39,7 @@ const fetchProjectFromShadowSchema = async (
   if (!supabase) return { data: null, schemaMissing: false };
 
   const { data: translation, error: translationError } = await supabase
-    .from('project_translations')
+    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
     .select('project_id,title,description,content')
     .eq('project_id', projectId)
     .eq('locale', locale)
@@ -56,7 +58,7 @@ const fetchProjectFromShadowSchema = async (
   }
 
   const { data: projectBase, error: projectBaseError } = await supabase
-    .from('projects_v2')
+    .from(CONTENT_SHADOW_SCHEMA.projects)
     .select('id,thumbnail_url,created_at,period_start,period_end')
     .eq('id', projectId)
     .maybeSingle<ProjectBaseRow>();
@@ -76,7 +78,7 @@ const fetchProjectFromShadowSchema = async (
   const shadowTags = await getRelatedTagSlugs({
     entityColumn: 'project_id',
     entityId: projectId,
-    relationTable: 'project_tags_v2',
+    relationTable: CONTENT_SHADOW_SCHEMA.projectTags,
   });
   if (shadowTags.schemaMissing) {
     throw new Error('[projects] 태그 relation schema가 없습니다.');

@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 
 import { getAllRelatedTagIds, getTagSlugMap } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 
 import 'server-only';
 
@@ -38,7 +39,7 @@ export const getPopularArticleTags = async ({
 
   const getCachedPopularTags = unstable_cache(
     async () => {
-      const relationTagIds = await getAllRelatedTagIds('article_tags_v2');
+      const relationTagIds = await getAllRelatedTagIds(CONTENT_SHADOW_SCHEMA.articleTags);
       if (relationTagIds.schemaMissing) {
         throw new Error('[articles] 인기 태그 relation schema가 없습니다.');
       }

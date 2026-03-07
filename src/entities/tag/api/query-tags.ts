@@ -1,3 +1,4 @@
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -7,7 +8,9 @@ type TagSchemaResult<T> = {
   schemaMissing: boolean;
 };
 
-type RelationTableName = 'article_tags_v2' | 'project_tags_v2';
+type RelationTableName =
+  | typeof CONTENT_SHADOW_SCHEMA.articleTags
+  | typeof CONTENT_SHADOW_SCHEMA.projectTags;
 
 type GetRelatedEntityIdsOptions = {
   entityColumn: 'article_id' | 'project_id';
@@ -25,10 +28,8 @@ const isMissingTagSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('article_tags') ||
-    normalizedMessage.includes('project_tags') ||
-    normalizedMessage.includes('article_tags_v2') ||
-    normalizedMessage.includes('project_tags_v2') ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTags) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTags) ||
     normalizedMessage.includes('tags') ||
     normalizedMessage.includes('tag_translations')
   );
@@ -184,7 +185,9 @@ export const getRelatedTagSlugs = async ({
  * locale 없는 `*_tags_v2` shadow schema 집계를 우선 읽을 때 사용합니다.
  */
 export const getAllRelatedTagIds = async (
-  relationTable: 'article_tags_v2' | 'project_tags_v2',
+  relationTable:
+    | typeof CONTENT_SHADOW_SCHEMA.articleTags
+    | typeof CONTENT_SHADOW_SCHEMA.projectTags,
 ): Promise<TagSchemaResult<string[]>> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };

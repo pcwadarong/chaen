@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 
 import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -15,7 +16,8 @@ const isMissingArticleShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('articles_v2') || normalizedMessage.includes('article_translations')
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
   );
 };
 
@@ -52,7 +54,7 @@ const fetchArticleDetailListFromShadow = async (
   if (!supabase) return { data: [], schemaMissing: false };
 
   const { data: articleBaseRows, error: articleBaseError } = await supabase
-    .from('articles_v2')
+    .from(CONTENT_SHADOW_SCHEMA.articles)
     .select('id,created_at')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
@@ -71,7 +73,7 @@ const fetchArticleDetailListFromShadow = async (
 
   const articleIds = Array.from(new Set(baseRows.map(row => row.id)));
   const { data: translationRows, error: translationError } = await supabase
-    .from('article_translations')
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
     .select('article_id,title,description')
     .eq('locale', locale)
     .in('article_id', articleIds);

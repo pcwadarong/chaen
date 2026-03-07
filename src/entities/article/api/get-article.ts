@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -13,7 +14,8 @@ const isMissingArticleShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('articles_v2') || normalizedMessage.includes('article_translations')
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
   );
 };
 
@@ -37,7 +39,7 @@ const fetchArticleFromShadowSchema = async (
   if (!supabase) return { data: null, schemaMissing: false };
 
   const { data: translation, error: translationError } = await supabase
-    .from('article_translations')
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
     .select('article_id,title,description,content')
     .eq('article_id', articleId)
     .eq('locale', locale)
@@ -56,7 +58,7 @@ const fetchArticleFromShadowSchema = async (
   }
 
   const { data: articleBase, error: articleBaseError } = await supabase
-    .from('articles_v2')
+    .from(CONTENT_SHADOW_SCHEMA.articles)
     .select('id,thumbnail_url,created_at,updated_at,view_count')
     .eq('id', articleId)
     .maybeSingle<ArticleBaseRow>();
@@ -76,7 +78,7 @@ const fetchArticleFromShadowSchema = async (
   const shadowTags = await getRelatedTagSlugs({
     entityColumn: 'article_id',
     entityId: articleId,
-    relationTable: 'article_tags_v2',
+    relationTable: CONTENT_SHADOW_SCHEMA.articleTags,
   });
   if (shadowTags.schemaMissing) {
     throw new Error('[articles] 태그 relation schema가 없습니다.');

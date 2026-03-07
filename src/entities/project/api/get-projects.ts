@@ -7,6 +7,7 @@ import {
   parseKeysetLimit,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -18,7 +19,8 @@ const isMissingProjectsShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('projects_v2') || normalizedMessage.includes('project_translations')
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
   );
 };
 
@@ -100,7 +102,7 @@ const fetchProjectsByLocaleFromShadow = async (
   }
 
   const baseQuery = applyProjectsKeysetCursor(
-    supabase.from('projects_v2').select('id,thumbnail_url,created_at'),
+    supabase.from(CONTENT_SHADOW_SCHEMA.projects).select('id,thumbnail_url,created_at'),
     cursor,
   );
   const { data: projectBaseRows, error: projectBaseError } = await baseQuery.limit(pageSize + 1);
@@ -126,7 +128,7 @@ const fetchProjectsByLocaleFromShadow = async (
 
   const projectIds = Array.from(new Set(baseRows.map(row => row.id)));
   const { data: translationRows, error: translationError } = await supabase
-    .from('project_translations')
+    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
     .select('project_id,title,description')
     .eq('locale', locale)
     .in('project_id', projectIds);

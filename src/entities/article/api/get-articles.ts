@@ -9,6 +9,7 @@ import {
   parseKeysetLimit,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -20,7 +21,8 @@ const isMissingArticlesShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes('articles_v2') || normalizedMessage.includes('article_translations')
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
   );
 };
 
@@ -161,7 +163,7 @@ const fetchShadowArticleListItems = async (
 
   const articleIds = Array.from(new Set(baseRows.map(row => row.id)));
   const { data: translationRows, error: translationError } = await supabase
-    .from('article_translations')
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
     .select('article_id,title,description')
     .eq('locale', locale)
     .in('article_id', articleIds);
@@ -214,7 +216,7 @@ const fetchArticlesByLocaleFromShadow = async (
   }
 
   const baseQuery = applyArticlesKeysetCursor(
-    supabase.from('articles_v2').select('id,thumbnail_url,created_at'),
+    supabase.from(CONTENT_SHADOW_SCHEMA.articles).select('id,thumbnail_url,created_at'),
     cursor,
   );
   const { data: articleBaseRows, error: articleBaseError } = await baseQuery.limit(pageSize + 1);
@@ -292,7 +294,7 @@ const fetchArticlesByTagAndLocale = async (
 
   const shadowArticleIds = await getRelatedEntityIdsByTagId({
     entityColumn: 'article_id',
-    relationTable: 'article_tags_v2',
+    relationTable: CONTENT_SHADOW_SCHEMA.articleTags,
     tagId: resolvedTagId.data,
   });
   if (shadowArticleIds.schemaMissing) {
@@ -305,7 +307,7 @@ const fetchArticlesByTagAndLocale = async (
 
   const shadowQuery = applyArticlesKeysetCursor(
     supabase
-      .from('articles_v2')
+      .from(CONTENT_SHADOW_SCHEMA.articles)
       .select('id,thumbnail_url,created_at')
       .in('id', shadowArticleIds.data),
     cursor,
@@ -368,7 +370,7 @@ const fetchSearchArticles = async (
   if (!supabase) return { items: [], nextCursor: null, totalCount: null };
 
   const parsedCursor = parseArticleSearchCursor(cursor);
-  const { data, error } = await supabase.rpc('search_article_translations', {
+  const { data, error } = await supabase.rpc(CONTENT_SHADOW_SCHEMA.articleSearchRpc, {
     cursor_created_at: parsedCursor?.createdAt ?? null,
     cursor_id: parsedCursor?.id ?? null,
     cursor_rank: parsedCursor?.rank ?? null,
