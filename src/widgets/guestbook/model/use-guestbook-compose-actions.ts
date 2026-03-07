@@ -57,17 +57,15 @@ export const useGuestbookComposeActions = ({
 
   const handleSubmit = useCallback(
     async (values: CommentComposeValues) => {
-      const isAdminReply = Boolean(isAdmin && replyTarget);
-      if (isAdminReply && !replyTarget) return;
+      const isReplySubmit = Boolean(isAdmin && replyTarget);
 
       // 관리자 답신은 기존 스레드의 replies 배열에 낙관적으로 추가합니다.
-      if (isAdminReply && replyTarget) {
+      if (isReplySubmit && replyTarget) {
         try {
           const createdReply = await createGuestbookEntryClient({
             authorName: 'admin',
             content: values.content,
             isAdminAuthor: isAdmin,
-            isAdminReply: true,
             isSecret: values.isSecret,
             parentId: replyTarget.id,
             password: '',
@@ -96,7 +94,7 @@ export const useGuestbookComposeActions = ({
         created_at: now,
         deleted_at: null,
         id: optimisticId,
-        is_admin_reply: false,
+        is_admin_author: isAdmin,
         is_content_masked: false,
         is_secret: values.isSecret,
         parent_id: null,
@@ -113,7 +111,6 @@ export const useGuestbookComposeActions = ({
           authorName: values.authorName,
           content: values.content,
           isAdminAuthor: isAdmin,
-          isAdminReply: false,
           isSecret: values.isSecret,
           password: values.password,
         });

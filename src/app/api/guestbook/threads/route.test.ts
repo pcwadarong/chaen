@@ -1,11 +1,16 @@
 import { vi } from 'vitest';
 
 import { getGuestbookThreads } from '@/entities/guestbook';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import { GET } from './route';
 
 vi.mock('@/entities/guestbook', () => ({
   getGuestbookThreads: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
+  getServerAuthState: vi.fn(),
 }));
 
 describe('GET /api/guestbook/threads', () => {
@@ -14,6 +19,12 @@ describe('GET /api/guestbook/threads', () => {
   });
 
   it('성공 시 목록과 nextCursor를 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-user-id',
+    });
     vi.mocked(getGuestbookThreads).mockResolvedValue({
       items: [],
       nextCursor: '12',
@@ -36,6 +47,12 @@ describe('GET /api/guestbook/threads', () => {
   });
 
   it('실패 시 500과 사유를 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
     vi.mocked(getGuestbookThreads).mockRejectedValue(new Error('db failed'));
 
     const response = await GET(new Request('http://localhost:3000/api/guestbook/threads'));
@@ -44,5 +61,29 @@ describe('GET /api/guestbook/threads', () => {
     expect(response.status).toBe(500);
     expect(payload.ok).toBe(false);
     expect(payload.reason).toBe('db failed');
+  });
+
+  it('관리자가 아니면 비밀글을 마스킹한 목록을 조회한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
+    vi.mocked(getGuestbookThreads).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+
+    const response = await GET(new Request('http://localhost:3000/api/guestbook/threads'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.isAdmin).toBe(false);
+    expect(getGuestbookThreads).toHaveBeenCalledWith({
+      cursor: null,
+      includeSecret: false,
+      limit: undefined,
+    });
   });
 });

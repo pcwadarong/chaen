@@ -40,6 +40,7 @@ type GuestbookModalTextMap = {
 type UseGuestbookActionModalParams = {
   applyServerThread: (entry: GuestbookThreadItem) => void;
   applyServerThreadEntry: (entry: GuestbookThreadItem | GuestbookEntry) => void;
+  isAdmin: boolean;
   items: GuestbookThreadItem[];
   pushToast: (message: string, tone: ToastItem['tone']) => void;
   removeThreadById: (id: string) => void;
@@ -60,6 +61,7 @@ const isInvalidPasswordError = (error: unknown) =>
 export const useGuestbookActionModal = ({
   applyServerThread,
   applyServerThreadEntry,
+  isAdmin,
   items,
   pushToast,
   removeThreadById,
@@ -82,6 +84,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openEditModal = (entry: GuestbookThreadItem) => {
+    if (entry.is_admin_author && !isAdmin) return;
+
     if (entry.is_secret && entry.is_content_masked) {
       pushToast(text.toastSecretUnlockRequired, 'error');
       return;
@@ -94,6 +98,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openDeleteModal = (entry: GuestbookThreadItem) => {
+    if (entry.is_admin_author && !isAdmin) return;
+
     setModalState({ mode: 'delete', entry, parentThreadId: null });
     setModalPassword('');
     setModalContent('');
@@ -101,6 +107,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    if (!isAdmin) return;
+
     if (entry.is_secret && entry.is_content_masked) {
       pushToast(text.toastSecretUnlockRequired, 'error');
       return;
@@ -113,6 +121,8 @@ export const useGuestbookActionModal = ({
   };
 
   const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+    if (!isAdmin) return;
+
     setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
     setModalPassword('');
     setModalContent('');
@@ -123,7 +133,7 @@ export const useGuestbookActionModal = ({
     if (!modalState || isModalSubmitting) return;
 
     const target = modalState.entry;
-    const shouldSkipPassword = target.is_admin_reply;
+    const shouldSkipPassword = Boolean(isAdmin || target.is_admin_author);
     const trimmedModalContent = modalContent.trim();
     const trimmedPassword = modalPassword.trim();
 
@@ -284,7 +294,7 @@ export const useGuestbookActionModal = ({
     return modalState.mode === 'edit' ? text.editModalTitle : text.deleteModalTitle;
   }, [modalState, text.deleteModalTitle, text.editModalTitle]);
 
-  const shouldHideModalPassword = Boolean(modalState?.entry.is_admin_reply);
+  const shouldHideModalPassword = Boolean(modalState?.entry.is_admin_author && isAdmin);
 
   return {
     closeModal,

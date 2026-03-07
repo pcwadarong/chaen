@@ -348,7 +348,6 @@ export const ArticleCommentsSection = ({
         textareaAutoResize={false}
         textareaRows={4}
         textPlaceholder={t('composePlaceholder')}
-        topRowWrap="nowrap"
       />
 
       {errorMessage && pageData.items.length === 0 ? (
@@ -444,7 +443,6 @@ export const ArticleCommentsSection = ({
                       textPlaceholder={t('composeReplyPlaceholder', {
                         authorName: replyTarget.authorName,
                       })}
-                      topRowWrap="nowrap"
                     />
                   </div>
                 ) : null}

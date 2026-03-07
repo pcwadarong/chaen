@@ -9,7 +9,7 @@ export type GuestbookEntryRow = {
   password_hash: string | null;
   content: string;
   is_secret: boolean;
-  is_admin_reply: boolean;
+  is_admin_author: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

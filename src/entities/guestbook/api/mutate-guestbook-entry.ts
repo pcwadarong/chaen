@@ -5,12 +5,12 @@ import 'server-only';
 import { hashGuestbookPassword, verifyGuestbookPassword } from '../lib/password';
 import type { GuestbookEntry, GuestbookEntryRow } from '../model/types';
 
+const isAdminAuthoredEntry = (entry: GuestbookEntryRow) => Boolean(entry.is_admin_author);
 type CreateGuestbookEntryInput = {
   authorBlogUrl?: string | null;
   authorName: string;
   content: string;
   isAdminAuthor?: boolean;
-  isAdminReply?: boolean;
   isSecret: boolean;
   parentId?: string | null;
   password?: string;
@@ -19,11 +19,13 @@ type CreateGuestbookEntryInput = {
 type UpdateGuestbookEntryInput = {
   content: string;
   entryId: string;
+  isAdminActor?: boolean;
   password: string;
 };
 
 type DeleteGuestbookEntryInput = {
   entryId: string;
+  isAdminActor?: boolean;
   password: string;
 };
 
@@ -40,6 +42,7 @@ const toPublicEntry = (entry: GuestbookEntryRow, revealSecret: boolean): Guestbo
   if (!entry.is_secret || revealSecret) {
     return {
       ...publicEntry,
+      is_admin_author: isAdminAuthoredEntry(entry),
       is_content_masked: false,
     };
   }
@@ -47,6 +50,7 @@ const toPublicEntry = (entry: GuestbookEntryRow, revealSecret: boolean): Guestbo
   return {
     ...publicEntry,
     content: '',
+    is_admin_author: isAdminAuthoredEntry(entry),
     is_content_masked: true,
   };
 };
@@ -61,12 +65,10 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   const authorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
   const isAdminAuthor = Boolean(input.isAdminAuthor);
-
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
-  if (!input.isAdminReply && !isAdminAuthor && !password) throw new Error('password is required');
-  if (input.isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
+  if (!isAdminAuthor && !password) throw new Error('password is required');
 
   return {
     authorBlogUrl,
@@ -74,7 +76,6 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
     content,
     isSecret: input.isSecret,
     isAdminAuthor,
-    isAdminReply: Boolean(input.isAdminReply),
     parentId,
     password,
   };
@@ -94,6 +95,7 @@ const assertPasswordMatches = (password: string, row: GuestbookEntryRow) => {
 export const updateGuestbookEntry = async ({
   content,
   entryId,
+  isAdminActor = false,
   password,
 }: UpdateGuestbookEntryInput): Promise<GuestbookEntry> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
@@ -114,7 +116,10 @@ export const updateGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
-  if (!currentRow.is_admin_reply) {
+  if (isAdminAuthoredEntry(currentRow) && !isAdminActor) {
+    throw new Error('admin auth required');
+  }
+  if (!isAdminActor) {
     assertPasswordMatches(password, currentRow);
   }
 
@@ -139,6 +144,7 @@ export const updateGuestbookEntry = async ({
  */
 export const deleteGuestbookEntry = async ({
   entryId,
+  isAdminActor = false,
   password,
 }: DeleteGuestbookEntryInput): Promise<{ id: string; parentId: string | null }> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
@@ -156,7 +162,10 @@ export const deleteGuestbookEntry = async ({
 
   if (currentError || !current) throw new Error('entry not found');
   const currentRow = current as GuestbookEntryRow;
-  if (!currentRow.is_admin_reply) {
+  if (isAdminAuthoredEntry(currentRow) && !isAdminActor) {
+    throw new Error('admin auth required');
+  }
+  if (!isAdminActor) {
     assertPasswordMatches(password, currentRow);
   }
 
@@ -213,11 +222,11 @@ export const createGuestbookEntry = async (
   const normalized = normalizeCreateInput(input);
   let passwordHash: string | null = null;
 
-  if (!normalized.isAdminReply && !normalized.isAdminAuthor && normalized.password) {
+  if (!normalized.isAdminAuthor && normalized.password) {
     passwordHash = hashGuestbookPassword(normalized.password);
   }
 
-  if (normalized.isAdminReply && normalized.isSecret) {
+  if (normalized.parentId && normalized.isAdminAuthor && normalized.isSecret) {
     const { data: parent, error: parentError } = await supabase
       .from('guestbook_entries')
       .select('*')
@@ -241,7 +250,7 @@ export const createGuestbookEntry = async (
       author_blog_url: normalized.authorBlogUrl,
       author_name: normalized.authorName,
       content: normalized.content,
-      is_admin_reply: normalized.isAdminReply,
+      is_admin_author: normalized.isAdminAuthor,
       is_secret: normalized.isSecret,
       parent_id: normalized.parentId,
       password_hash: passwordHash,

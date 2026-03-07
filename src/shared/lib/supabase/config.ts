@@ -3,9 +3,17 @@ type SupabaseEnv = {
   supabaseUrl: string;
 };
 
+type SupabaseAdminEnv = {
+  adminUserId: string | null;
+};
+
 const readSupabaseEnv = () => ({
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+});
+
+const readSupabaseAdminEnv = (): SupabaseAdminEnv => ({
+  adminUserId: process.env.SUPABASE_ADMIN_USER_ID?.trim() || null,
 });
 
 /**
@@ -50,3 +58,9 @@ export const getSupabaseEnv = (): SupabaseEnv => {
     supabaseAnonKey: env.supabaseAnonKey,
   };
 };
+
+/**
+ * 관리자 식별용 환경 변수를 optional하게 읽어옵니다.
+ * Supabase user id가 설정되어 있으면 관리자 판별에 사용합니다.
+ */
+export const getSupabaseAdminEnvOptional = (): SupabaseAdminEnv => readSupabaseAdminEnv();
