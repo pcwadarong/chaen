@@ -6,14 +6,19 @@ import { getAdminLoginPageData } from '@/views/admin-login';
 
 import AdminLoginRoute from './page';
 
+const { adminLoginPageMock, redirectError } = vi.hoisted(() => ({
+  adminLoginPageMock: vi.fn(() => null),
+  redirectError: new Error('NEXT_REDIRECT'),
+}));
+
 vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
+  redirect: vi.fn(() => {
+    throw redirectError;
+  }),
 }));
 
 vi.mock('@/views/admin-login', () => ({
-  AdminLoginPage: function AdminLoginPage() {
-    return null;
-  },
+  AdminLoginPage: adminLoginPageMock,
   getAdminLoginPageData: vi.fn(),
 }));
 
@@ -34,7 +39,7 @@ describe('AdminLoginRoute', () => {
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(element.type.name).toBe('AdminLoginPage');
+    expect(element.type).toBe(adminLoginPageMock);
     expect(getAdminLoginPageData).toHaveBeenCalledWith({ locale: 'ko' });
   });
 
@@ -43,12 +48,15 @@ describe('AdminLoginRoute', () => {
       redirectPath: '/ko/admin',
     });
 
-    await AdminLoginRoute({
-      params: Promise.resolve({
-        locale: 'ko',
+    await expect(
+      AdminLoginRoute({
+        params: Promise.resolve({
+          locale: 'ko',
+        }),
       }),
-    });
+    ).rejects.toThrow(redirectError);
 
     expect(redirect).toHaveBeenCalledWith('/ko/admin');
+    expect(adminLoginPageMock).not.toHaveBeenCalled();
   });
 });
