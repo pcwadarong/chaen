@@ -131,6 +131,10 @@ from public.search_article_translations(
 
 를 잠시 유지한 뒤, 충분히 안정화되면 별도 cleanup SQL로 제거합니다.
 
+실행 파일:
+
+- [content-shadow-legacy-cleanup.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-legacy-cleanup.sql)
+
 ## Rollback 관점
 
 이 단계는 “전시장 이름표 교체”에 가깝습니다.

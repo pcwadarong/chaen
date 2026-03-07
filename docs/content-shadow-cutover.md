@@ -135,6 +135,7 @@ cutover 이후 남은 작업은 아래 정도입니다.
 실행한 cutover SQL과 runbook은 아래 파일에 정리합니다.
 
 - [content-shadow-cutover.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-cutover.sql)
+- [content-shadow-legacy-cleanup.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-legacy-cleanup.sql)
 - [content-shadow-cutover-runbook.md](/Users/chaen/Programming/chaen/docs/content-shadow-cutover-runbook.md)
 
 이미 실행된 cutover는 단순 rename만 하지 않습니다.
@@ -142,6 +143,10 @@ cutover 이후 남은 작업은 아래 정도입니다.
 - `articles_v2/projects_v2/article_tags_v2/project_tags_v2`를 canonical 이름으로 바꿉니다.
 - `search_article_translations`가 더 이상 `articles_v2`를 보지 않도록 canonical `articles` 기준으로 다시 정의합니다.
 - legacy `search_articles`, `get_popular_article_tags` RPC를 정리합니다.
+
+안정화 기간이 끝나면 `_legacy` 테이블 제거는 아래 SQL로 분리해 수행합니다.
+
+- [content-shadow-legacy-cleanup.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-legacy-cleanup.sql)
 
 ## 한 줄 요약
 
