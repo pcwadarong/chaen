@@ -30,7 +30,7 @@ export const ProjectListPage = ({
   const t = useTranslations('Project');
 
   return (
-    <PageShell>
+    <PageShell hideAppFrameFooter>
       <PageHeader
         action={
           <DownloadFileButton

@@ -37,6 +37,7 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
       emptyContentText={t('emptyContent')}
       guestbookCtaText={detailUi('leaveGuestbookMessage')}
       heroDescription={item.description ?? t('emptySummary')}
+      hideAppFrameFooter
       metaBar={
         <DetailMetaBar
           copyFailedText={detailUi('copyFailed')}

@@ -30,7 +30,7 @@ export const ArticlesPage = ({
   const t = useTranslations('Articles');
 
   return (
-    <PageShell>
+    <PageShell hideAppFrameFooter>
       <PageHeader description={t('description')} title={t('title')} />
       <PageSection>
         <div css={layoutStyle}>

@@ -1,9 +1,10 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { POST } from './route';
 
 vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
@@ -30,6 +31,10 @@ describe('POST /api/revalidate/guestbook', () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/guest');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/guest');
   });
 
   it('entryId가 있으면 단일 항목 태그까지 무효화한다', async () => {
@@ -50,6 +55,7 @@ describe('POST /api/revalidate/guestbook', () => {
     expect(response.status).toBe(200);
     expect(revalidateTag).toHaveBeenCalledWith('guestbook');
     expect(revalidateTag).toHaveBeenCalledWith('guestbook:entry-001');
+    expect(revalidateTag).toHaveBeenCalledWith('guestbook:replies:entry-001');
   });
 
   it('secret이 다르면 401을 반환한다', async () => {

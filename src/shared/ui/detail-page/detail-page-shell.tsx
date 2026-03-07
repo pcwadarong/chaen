@@ -21,6 +21,7 @@ type DetailPageShellProps = {
   emptyContentText?: string;
   guestbookCtaText: string;
   heroDescription: string;
+  hideAppFrameFooter?: boolean;
   metaBar: ReactNode;
   sidebarItems: DetailArchiveLinkItem[];
   sidebarLabel: string;
@@ -39,6 +40,7 @@ export const DetailPageShell = async ({
   emptyContentText,
   guestbookCtaText,
   heroDescription,
+  hideAppFrameFooter = false,
   metaBar,
   sidebarItems,
   sidebarLabel,
@@ -53,7 +55,11 @@ export const DetailPageShell = async ({
     );
 
   return (
-    <main className={styles.page}>
+    <main
+      className={styles.page}
+      data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
+      data-page-scroll-mode="independent"
+    >
       <aside aria-label={sidebarLabel} className={styles.sidebar}>
         <div className={styles.sidebarViewport} data-scroll-region="true">
           {sidebarItems.length > 0 ? (
