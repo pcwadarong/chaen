@@ -26,7 +26,7 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
     <DetailPageShell
       content={item.content}
       emptyArchiveText={detailUi('emptyArchive')}
-      emptyContentText={t('emptyDescription')}
+      emptyContentText={t('emptyContent')}
       guestbookCtaText={detailUi('leaveGuestbookMessage')}
       heroDescription={item.description ?? t('emptySummary')}
       metaBar={

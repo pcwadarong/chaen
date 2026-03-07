@@ -102,6 +102,7 @@
   },
   "ProjectDetail": {
     "archiveLabel": "プロジェクトアーカイブ",
+    "emptyContent": "本文はまだ登録されていません。",
     "emptyDescription": "詳細説明はまだ登録されていません。",
     "emptySummary": "概要はまだありません。",
     "errorTitle": "プロジェクトの読み込み中に問題が発生しました。",
