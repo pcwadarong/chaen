@@ -45,6 +45,7 @@ describe('MarkdownRenderer', () => {
     expect(html).toContain('> answer<');
     expect(html).toContain('&#x27;42&#x27;');
     expect(html).not.toContain(`class="${styles.inlineCode}" data-language="ts"`);
+    expect(html).toContain(`class="${styles.codeBlockPre}"`);
   });
 
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {

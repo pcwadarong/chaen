@@ -91,7 +91,7 @@ const markdownComponents: Components = {
   h1: ({ children }) => <h1 className={styles.h1}>{children}</h1>,
   h2: ({ children }) => <h2 className={styles.h2}>{children}</h2>,
   h3: ({ children }) => <h3 className={styles.h3}>{children}</h3>,
-  pre: ({ children, ...props }) => (
+  pre: ({ children, className, ...props }) => (
     <div className={styles.codeBlockFrame}>
       <div className={styles.codeBlockHeader}>
         <div aria-hidden className={styles.trafficLightRow}>
@@ -101,7 +101,10 @@ const markdownComponents: Components = {
         </div>
         <span className={styles.codeBlockLanguage}>{getCodeBlockLanguage(children)}</span>
       </div>
-      <pre className={styles.codeBlockPre} {...props}>
+      <pre
+        className={className ? `${styles.codeBlockPre} ${className}` : styles.codeBlockPre}
+        {...props}
+      >
         {children}
       </pre>
     </div>
