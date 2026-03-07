@@ -33,6 +33,7 @@ describe('ArticleDetailPageClient', () => {
         emptyArchiveText="비어있음"
         emptyContentText="본문 없음"
         emptySummaryText="요약 없음"
+        guestbookCtaText="방명록에 글 남기고 가기"
         id="frontend"
         locale="ko"
         noTagsText="태그없음"
@@ -55,6 +56,7 @@ describe('ArticleDetailPageClient', () => {
 
     expect(screen.getByRole('button', { name: '#React' })).toBeTruthy();
     expect(screen.getByText('아티클 본문')).toBeTruthy();
+    expect(screen.getByRole('link', { name: '방명록에 글 남기고 가기' })).toBeTruthy();
     expect(screen.queryByText(/수정일/)).toBeNull();
     expect(screen.queryByText(/대표 이미지/)).toBeNull();
   });

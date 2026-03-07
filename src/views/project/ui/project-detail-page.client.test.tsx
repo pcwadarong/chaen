@@ -33,6 +33,7 @@ describe('ProjectDetailPageClient', () => {
         emptyArchiveText="비어있음"
         emptyDescriptionText="본문 없음"
         emptySummaryText="요약 없음"
+        guestbookCtaText="방명록에 글 남기고 가기"
         id="funda"
         locale="ko"
         noTagsText="태그없음"
@@ -54,6 +55,7 @@ describe('ProjectDetailPageClient', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'FUNDA' })).toBeTruthy();
     expect(screen.getByText('프로젝트 설명')).toBeTruthy();
     expect(screen.getByTestId('detail-meta-bar')).toBeTruthy();
+    expect(screen.getByRole('link', { name: '방명록에 글 남기고 가기' })).toBeTruthy();
     expect(screen.queryByText(/등록일/)).toBeNull();
   });
 });

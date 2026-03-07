@@ -18,6 +18,7 @@ describe('DetailPageShell', () => {
       <DetailPageShell
         content="상세 본문"
         emptyArchiveText="비어있음"
+        guestbookCtaText="방명록에 글 남기고 가기"
         heroDescription="설명"
         metaBar={<div data-testid="detail-meta-bar">메타 바</div>}
         sidebarItems={[]}
@@ -34,6 +35,9 @@ describe('DetailPageShell', () => {
     expect(metaBar.closest('header')).toBeNull();
     expect(title.compareDocumentPosition(metaBar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(metaBar.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('link', { name: '방명록에 글 남기고 가기' }).getAttribute('href')).toBe(
+      '/guest',
+    );
     expect(screen.queryByRole('separator')).toBeNull();
   });
 });

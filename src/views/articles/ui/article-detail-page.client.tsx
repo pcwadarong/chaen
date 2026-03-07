@@ -15,6 +15,7 @@ type ArticleDetailPageClientProps = {
   emptyArchiveText: string;
   emptyContentText: string;
   emptySummaryText: string;
+  guestbookCtaText: string;
   id: string;
   locale: string;
   noTagsText: string;
@@ -44,6 +45,7 @@ export const ArticleDetailPageClient = ({
   emptyArchiveText,
   emptyContentText,
   emptySummaryText,
+  guestbookCtaText,
   id,
   locale,
   noTagsText,
@@ -58,6 +60,7 @@ export const ArticleDetailPageClient = ({
     content={content}
     emptyArchiveText={emptyArchiveText}
     emptyContentText={emptyContentText}
+    guestbookCtaText={guestbookCtaText}
     heroDescription={description ?? emptySummaryText}
     metaBar={
       <DetailMetaBar

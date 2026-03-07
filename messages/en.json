@@ -129,6 +129,7 @@
   "DetailUi": {
     "copyFailed": "Failed to copy the link.",
     "emptyArchive": "No items to display.",
+    "leaveGuestbookMessage": "Leave a message in the guestbook",
     "share": "Share",
     "shareCopied": "Copied",
     "viewCount": "Views"

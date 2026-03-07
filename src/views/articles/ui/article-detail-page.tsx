@@ -33,6 +33,7 @@ export const ArticleDetailPage = async ({ archiveItems, item, locale }: ArticleD
       emptyArchiveText={detailUi('emptyArchive')}
       emptyContentText={t('emptyContent')}
       emptySummaryText={t('emptySummary')}
+      guestbookCtaText={detailUi('leaveGuestbookMessage')}
       id={item.id}
       locale={locale}
       noTagsText={t('noTags')}

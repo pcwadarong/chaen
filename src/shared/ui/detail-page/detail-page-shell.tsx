@@ -4,6 +4,8 @@ import { css } from '@emotion/react';
 import React, { type ReactNode } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { getButtonStyle } from '@/shared/ui/button/button';
+import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 
 export type DetailArchiveLinkItem = {
   description: string | null;
@@ -18,6 +20,7 @@ type DetailPageShellProps = {
   content?: string | null;
   emptyArchiveText: string;
   emptyContentText?: string;
+  guestbookCtaText: string;
   heroDescription: string;
   metaBar: ReactNode;
   sidebarItems: DetailArchiveLinkItem[];
@@ -34,6 +37,7 @@ export const DetailPageShell = ({
   content,
   emptyArchiveText,
   emptyContentText,
+  guestbookCtaText,
   heroDescription,
   metaBar,
   sidebarItems,
@@ -90,6 +94,14 @@ export const DetailPageShell = ({
             children
           )}
         </section>
+        <div css={guestbookCtaWrapStyle}>
+          <Link href="/guest" css={guestbookCtaStyle}>
+            <span>{guestbookCtaText}</span>
+            <span aria-hidden css={guestbookCtaIconMotionStyle}>
+              <ArrowUpIcon color="current" css={guestbookCtaIconStyle} size="sm" />
+            </span>
+          </Link>
+        </div>
       </div>
     </article>
   </main>
@@ -294,6 +306,38 @@ const contentSectionStyle = css`
 
   @media (min-width: 961px) {
     gap: var(--space-5);
+  }
+`;
+
+const guestbookCtaWrapStyle = css`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+`;
+
+const guestbookCtaIconStyle = css`
+  transform: rotate(90deg);
+`;
+
+const guestbookCtaIconMotionStyle = css`
+  display: inline-flex;
+  transition: transform 180ms ease;
+  transform: translateX(var(--arrow-move, 0));
+`;
+
+const guestbookCtaStyle = css`
+  ${getButtonStyle({
+    size: 'sm',
+    tone: 'primary',
+    variant: 'solid',
+  })};
+  min-height: 2.25rem;
+  gap: var(--space-1);
+  padding-inline: var(--space-3);
+
+  &:hover,
+  &:focus-visible {
+    --arrow-move: 2px;
   }
 `;
 

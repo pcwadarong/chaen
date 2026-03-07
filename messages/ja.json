@@ -129,6 +129,7 @@
   "DetailUi": {
     "copyFailed": "リンクのコピーに失敗しました。",
     "emptyArchive": "表示する項目がありません。",
+    "leaveGuestbookMessage": "ゲストブックにメッセージを残す",
     "share": "共有する",
     "shareCopied": "コピー済み",
     "viewCount": "閲覧数"

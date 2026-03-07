@@ -15,6 +15,7 @@ type ProjectDetailPageClientProps = {
   emptyArchiveText: string;
   emptyDescriptionText: string;
   emptySummaryText: string;
+  guestbookCtaText: string;
   id: string;
   locale: string;
   noTagsText: string;
@@ -42,6 +43,7 @@ export const ProjectDetailPageClient = ({
   emptyArchiveText,
   emptyDescriptionText,
   emptySummaryText,
+  guestbookCtaText,
   id,
   locale,
   noTagsText,
@@ -55,6 +57,7 @@ export const ProjectDetailPageClient = ({
     content={content}
     emptyArchiveText={emptyArchiveText}
     emptyContentText={emptyDescriptionText}
+    guestbookCtaText={guestbookCtaText}
     heroDescription={description ?? emptySummaryText}
     metaBar={
       <DetailMetaBar
@@ -77,7 +80,7 @@ export const ProjectDetailPageClient = ({
         {tagLabels.length > 0 ? (
           tagLabels.map(tagLabel => <span key={tagLabel}># {tagLabel}</span>)
         ) : (
-          <span>#{noTagsText}</span>
+          <span>{noTagsText}</span>
         )}
       </p>
     }
