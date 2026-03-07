@@ -4,7 +4,7 @@ import { getArticles } from '@/entities/article/api/get-articles';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 /**
- * 아티클 목록을 cursor(offset) 기반으로 페이지 조회합니다.
+ * 아티클 목록을 keyset cursor 기반으로 페이지 조회합니다.
  */
 export const GET = async (request: Request) => {
   const url = new URL(request.url);
