@@ -14,6 +14,11 @@ import type {
   GuestbookThreadPage,
 } from '../model/types';
 
+const toDerivedAdminFlags = (entry: GuestbookEntryRow) => ({
+  is_admin_author: Boolean(entry.is_admin_author),
+  is_admin_reply: Boolean(entry.parent_id && entry.is_admin_author),
+});
+
 type GetGuestbookThreadsOptions = {
   cursor?: string | null;
   includeSecret?: boolean;
@@ -99,6 +104,7 @@ const toPublicGuestbookEntry = (
   if (!entry.is_secret || includeSecret) {
     return {
       ...publicEntry,
+      ...toDerivedAdminFlags(entry),
       is_content_masked: false,
     };
   }
@@ -106,6 +112,7 @@ const toPublicGuestbookEntry = (
   return {
     ...publicEntry,
     content: '',
+    ...toDerivedAdminFlags(entry),
     is_content_masked: true,
   };
 };

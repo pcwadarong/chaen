@@ -96,6 +96,7 @@ export const useGuestbookComposeActions = ({
         created_at: now,
         deleted_at: null,
         id: optimisticId,
+        is_admin_author: isAdmin,
         is_admin_reply: false,
         is_content_masked: false,
         is_secret: values.isSecret,

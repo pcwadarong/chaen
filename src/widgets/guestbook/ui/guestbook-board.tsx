@@ -147,9 +147,11 @@ export const GuestbookBoard = ({
     updateThreadById,
   });
 
-  const isReplyActionModalVisible = Boolean(modalState?.entry.is_admin_reply) && isAdmin;
-  const isThreadActionModalVisible = Boolean(modalState) && !modalState?.entry.is_admin_reply;
-  const isActionModalVisible = isThreadActionModalVisible || isReplyActionModalVisible;
+  const isAdminAuthoredActionModalVisible = Boolean(modalState?.entry.is_admin_author) && isAdmin;
+  const isNonAdminAuthoredActionModalVisible =
+    Boolean(modalState) && !modalState?.entry.is_admin_author;
+  const isActionModalVisible =
+    isNonAdminAuthoredActionModalVisible || isAdminAuthoredActionModalVisible;
 
   return (
     <div css={boardStyle}>
