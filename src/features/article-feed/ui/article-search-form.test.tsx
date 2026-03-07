@@ -141,6 +141,33 @@ describe('ArticleSearchForm', () => {
     expect(screen.getByRole('button', { name: '검색' })).toBeTruthy();
   });
 
+  it('submit-only 모드에서는 입력만으로는 이동하지 않고 제출 시에만 이동한다', () => {
+    render(
+      <ArticleSearchForm
+        clearText="초기화"
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchMode="submit-only"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('searchbox', { name: '검색어 입력' }), {
+      target: { value: 'react' },
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    fireEvent.submit(screen.getByRole('search'));
+
+    expect(replaceMock).toHaveBeenCalledWith('/articles?q=react');
+  });
+
   it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
     vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
 

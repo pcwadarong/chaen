@@ -84,6 +84,7 @@
     "popularTagsEmpty": "表示できるタグがまだありません。",
     "popularTagsTitle": "tags",
     "searchClear": "クリア",
+    "searchClose": "検索を閉じる",
     "searchPlaceholder": "記事を検索",
     "searchSubmit": "検索",
     "retry": "再試行",

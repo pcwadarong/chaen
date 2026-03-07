@@ -84,6 +84,7 @@
     "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
     "popularTagsTitle": "tags",
     "searchClear": "초기화",
+    "searchClose": "검색 닫기",
     "searchPlaceholder": "아티클 검색",
     "searchSubmit": "검색",
     "retry": "다시 시도",

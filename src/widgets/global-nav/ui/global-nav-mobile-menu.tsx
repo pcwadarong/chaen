@@ -1,7 +1,7 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Link } from '@/i18n/navigation';
@@ -15,6 +15,7 @@ type GlobalNavMobileMenuProps = {
   ariaLabel: string;
   closeMenuLabel: string;
   isOpen: boolean;
+  leadingAction?: ReactNode;
   navigationItems: readonly GlobalNavItem[];
   onClose: () => void;
   onToggle: () => void;
@@ -29,6 +30,7 @@ export const GlobalNavMobileMenu = ({
   ariaLabel,
   closeMenuLabel,
   isOpen,
+  leadingAction,
   navigationItems,
   onClose,
   onToggle,
@@ -51,6 +53,7 @@ export const GlobalNavMobileMenu = ({
   return (
     <>
       <div css={mobileControlsStyle}>
+        {leadingAction}
         <Suspense fallback={<span css={switcherFallbackStyle} />}>
           <LocaleSwitcher />
         </Suspense>

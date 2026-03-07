@@ -11,10 +11,14 @@ import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleSearchFormProps = {
+  autoFocus?: boolean;
   clearText: string;
+  fullWidth?: boolean;
+  onSubmitComplete?: () => void;
   pendingText: string;
   placeholder: string;
   searchQuery: string;
+  searchMode?: 'debounced' | 'submit-only';
   submitText: string;
 };
 
@@ -45,10 +49,14 @@ const createSearchHref = (
  * URL을 단일 진실 공급원으로 두고 입력값은 URL 상태를 따라가는 controlled input으로 유지합니다.
  */
 export const ArticleSearchForm = ({
+  autoFocus = false,
   clearText,
+  fullWidth = false,
+  onSubmitComplete,
   pendingText,
   placeholder,
   searchQuery,
+  searchMode = 'debounced',
   submitText,
 }: ArticleSearchFormProps) => {
   const pathname = usePathname();
@@ -84,6 +92,8 @@ export const ArticleSearchForm = ({
    * 사용자가 직접 입력한 변경만 debounce 검색으로 반영합니다.
    */
   React.useEffect(() => {
+    if (searchMode !== 'debounced') return;
+
     if (skipDebounceRef.current) {
       skipDebounceRef.current = false;
       return;
@@ -104,7 +114,7 @@ export const ArticleSearchForm = ({
         window.clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [currentQuery, inputValue, replaceQuery]);
+  }, [currentQuery, inputValue, replaceQuery, searchMode]);
 
   /**
    * Enter 제출 시 debounce를 기다리지 않고 즉시 검색을 반영합니다.
@@ -116,10 +126,14 @@ export const ArticleSearchForm = ({
       window.clearTimeout(debounceTimerRef.current);
     }
 
-    if (inputValue.trim() === currentQuery) return;
+    if (inputValue.trim() === currentQuery) {
+      onSubmitComplete?.();
+      return;
+    }
 
     skipDebounceRef.current = true;
     replaceQuery(inputValue);
+    onSubmitComplete?.();
   };
 
   /**
@@ -132,6 +146,7 @@ export const ArticleSearchForm = ({
 
     setInputValue('');
 
+    if (searchMode === 'submit-only') return;
     if (!currentQuery) return;
 
     skipDebounceRef.current = true;
@@ -139,11 +154,17 @@ export const ArticleSearchForm = ({
   };
 
   return (
-    <form aria-busy={isPending} css={formStyle} onSubmit={handleSubmit} role="search">
+    <form
+      aria-busy={isPending}
+      css={[formStyle, fullWidth ? fullWidthStyle : undefined]}
+      onSubmit={handleSubmit}
+      role="search"
+    >
       <div css={inputWrapStyle}>
         <Input
           aria-label={placeholder}
           autoComplete="off"
+          autoFocus={autoFocus}
           css={[inputPaddingStyle, isPending ? pendingInputStyle : undefined]}
           enterKeyHint="search"
           name="q"
@@ -174,6 +195,10 @@ export const ArticleSearchForm = ({
 
 const formStyle = css`
   width: min(100%, 18rem);
+`;
+
+const fullWidthStyle = css`
+  width: 100%;
 `;
 
 const inputWrapStyle = css`

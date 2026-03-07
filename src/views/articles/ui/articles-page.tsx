@@ -51,13 +51,15 @@ export const ArticlesPage = ({
           </div>
           <aside css={sidebarStyle}>
             <div css={sidebarPanelStyle}>
-              <ArticleSearchForm
-                clearText={t('searchClear')}
-                pendingText={t('loading')}
-                placeholder={t('searchPlaceholder')}
-                searchQuery={searchQuery}
-                submitText={t('searchSubmit')}
-              />
+              <div css={desktopSearchFormStyle}>
+                <ArticleSearchForm
+                  clearText={t('searchClear')}
+                  pendingText={t('loading')}
+                  placeholder={t('searchPlaceholder')}
+                  searchQuery={searchQuery}
+                  submitText={t('searchSubmit')}
+                />
+              </div>
               <ArticleTagFilterList
                 activeTag={activeTag}
                 emptyText={t('popularTagsEmpty')}
@@ -104,4 +106,12 @@ const sidebarStyle = css`
 const sidebarPanelStyle = css`
   display: grid;
   gap: var(--space-4);
+`;
+
+const desktopSearchFormStyle = css`
+  display: none;
+
+  @media (min-width: 961px) {
+    display: block;
+  }
 `;
