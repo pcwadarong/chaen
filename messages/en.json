@@ -102,6 +102,7 @@
   },
   "ProjectDetail": {
     "archiveLabel": "Project archive",
+    "emptyContent": "Project content has not been added yet.",
     "emptyDescription": "Detailed description has not been added yet.",
     "emptySummary": "Summary is not available.",
     "errorTitle": "Something went wrong while loading the project.",

@@ -102,6 +102,7 @@
   },
   "ProjectDetail": {
     "archiveLabel": "프로젝트 아카이브",
+    "emptyContent": "아직 등록된 본문이 없습니다.",
     "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
     "emptySummary": "요약이 비어 있습니다.",
     "errorTitle": "프로젝트를 불러오는 중 문제가 발생했습니다.",

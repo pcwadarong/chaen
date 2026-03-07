@@ -2,7 +2,10 @@ import { getTranslations } from 'next-intl/server';
 
 import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
-import { ArticleDetailPageClient } from '@/views/articles/ui/article-detail-page.client';
+import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
+import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
+import styles from '@/views/articles/ui/article-detail-page.module.css';
 
 type ArticleDetailPageProps = {
   archiveItems: ArticleDetailListItem[];
@@ -26,31 +29,52 @@ export const ArticleDetailPage = async ({ archiveItems, item, locale }: ArticleD
   const publishedDate = item.created_at.slice(0, 10);
 
   return (
-    <ArticleDetailPageClient
-      archiveItems={archiveItems}
+    <DetailPageShell
       content={item.content}
-      description={item.description}
       emptyArchiveText={detailUi('emptyArchive')}
       emptyContentText={t('emptyContent')}
-      emptySummaryText={t('emptySummary')}
       guestbookCtaText={detailUi('leaveGuestbookMessage')}
-      id={item.id}
-      locale={locale}
-      noTagsText={t('noTags')}
-      publishedText={t('publishedAt', { date: publishedDate })}
-      sectionLabels={{
-        archive: t('archiveLabel'),
-        tagList: t('tagSection'),
-      }}
-      shareLabels={{
-        copyFailed: detailUi('copyFailed'),
-        copied: detailUi('shareCopied'),
-        share: detailUi('share'),
-        viewCount: detailUi('viewCount'),
-      }}
-      tagLabels={tagLabels}
+      heroDescription={item.description ?? t('emptySummary')}
+      metaBar={
+        <DetailMetaBar
+          copyFailedText={detailUi('copyFailed')}
+          copiedText={detailUi('shareCopied')}
+          locale={locale}
+          primaryMetaText={t('publishedAt', { date: publishedDate })}
+          shareText={detailUi('share')}
+          viewCount={Number(item.view_count ?? 0)}
+          viewCountLabel={detailUi('viewCount')}
+          viewEndpoint={`/api/articles/${item.id}/views`}
+        />
+      }
+      sidebarItems={buildDetailArchiveLinkItems({
+        getHref: archiveItem => `/articles/${archiveItem.id}`,
+        items: archiveItems,
+        locale,
+        selectedId: item.id,
+      })}
+      sidebarLabel={t('archiveLabel')}
+      tagContent={
+        <div aria-label={t('tagSection')} className={styles.tagList}>
+          {tagLabels.length > 0 ? (
+            tagLabels.map(tagLabel => (
+              <button
+                aria-disabled="true"
+                className={styles.tagButton}
+                key={tagLabel}
+                type="button"
+              >
+                #{tagLabel}
+              </button>
+            ))
+          ) : (
+            <button aria-disabled="true" className={styles.tagButton} type="button">
+              #{t('noTags')}
+            </button>
+          )}
+        </div>
+      }
       title={item.title}
-      viewCount={Number(item.view_count ?? 0)}
     />
   );
 };
