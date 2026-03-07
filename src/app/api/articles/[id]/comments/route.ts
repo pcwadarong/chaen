@@ -24,6 +24,7 @@ type CreateArticleCommentPayload = {
 export const GET = async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params;
   const url = new URL(request.url);
+  const fresh = url.searchParams.get('fresh') === '1';
   const rawPage = url.searchParams.get('page');
   const sort = url.searchParams.get('sort');
   const page = rawPage ? Number.parseInt(rawPage, 10) : undefined;
@@ -31,6 +32,7 @@ export const GET = async (request: Request, context: { params: Promise<{ id: str
   try {
     const payload = await getArticleComments({
       articleId: id,
+      bypassCache: fresh,
       page,
       sort: sort === 'oldest' ? 'oldest' : 'latest',
     });

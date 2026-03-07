@@ -17,6 +17,7 @@ type CreateArticleCommentClientInput = {
 };
 
 type GetArticleCommentsClientParams = {
+  fresh?: boolean;
   page: number;
   sort: ArticleCommentsSort;
 };
@@ -35,9 +36,10 @@ type ArticleCommentPageResponse = ArticleCommentPage & {
  */
 export const getArticleCommentsPageClient = async (
   articleId: string,
-  { page, sort }: GetArticleCommentsClientParams,
+  { fresh = false, page, sort }: GetArticleCommentsClientParams,
 ): Promise<ArticleCommentPage> => {
   const url = new URL(`/api/articles/${articleId}/comments`, window.location.origin);
+  if (fresh) url.searchParams.set('fresh', '1');
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort', sort);
 

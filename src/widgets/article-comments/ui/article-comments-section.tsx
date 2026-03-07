@@ -128,12 +128,19 @@ export const ArticleCommentsSection = ({
    * 지정된 페이지/정렬 기준으로 댓글 페이지를 다시 조회합니다.
    */
   const loadPage = useCallback(
-    async (nextPage: number, nextSort: ArticleCommentsSort) => {
+    async (
+      nextPage: number,
+      nextSort: ArticleCommentsSort,
+      options?: {
+        fresh?: boolean;
+      },
+    ) => {
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
         const payload = await getArticleCommentsPageClient(articleId, {
+          fresh: options?.fresh,
           page: nextPage,
           sort: nextSort,
         });
@@ -172,7 +179,9 @@ export const ArticleCommentsSection = ({
     try {
       await createArticleCommentClient(articleId, values);
       pushToast(t('toastCreateSuccess'), 'success');
-      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort);
+      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
+        fresh: true,
+      });
     } catch {
       pushToast(t('toastCreateError'), 'error');
     }
@@ -189,7 +198,9 @@ export const ArticleCommentsSection = ({
       });
       setReplyTarget(null);
       pushToast(t('toastReplySuccess'), 'success');
-      await loadPage(pageData.page, pageData.sort);
+      await loadPage(pageData.page, pageData.sort, {
+        fresh: true,
+      });
     } catch {
       pushToast(t('toastReplyError'), 'error');
     }
@@ -257,7 +268,9 @@ export const ArticleCommentsSection = ({
       }
 
       closeModal();
-      await loadPage(pageData.page, pageData.sort);
+      await loadPage(pageData.page, pageData.sort, {
+        fresh: true,
+      });
     } catch (error) {
       if (isInvalidPasswordError(error)) {
         setModalError(t('secretVerifyFailed'));

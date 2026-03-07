@@ -18,6 +18,7 @@ const DEFAULT_PAGE_SIZE = 10;
 
 type GetArticleCommentsOptions = {
   articleId: string;
+  bypassCache?: boolean;
   page?: number;
   pageSize?: number;
   sort?: ArticleCommentsSort;
@@ -128,6 +129,7 @@ const readArticleCommentThreads = async (
  */
 export const getArticleComments = async ({
   articleId,
+  bypassCache = false,
   page,
   pageSize = DEFAULT_PAGE_SIZE,
   sort = 'latest',
@@ -147,16 +149,13 @@ export const getArticleComments = async ({
     };
   }
 
-  const getCachedThreads = unstable_cache(
-    () => readArticleCommentThreads(normalizedArticleId, normalizedSort),
-    ['article-comments', normalizedArticleId, normalizedSort],
-    {
-      tags: [ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(normalizedArticleId)],
-      revalidate: false,
-    },
-  );
-
-  const threads = await getCachedThreads();
+  const readThreads = () => readArticleCommentThreads(normalizedArticleId, normalizedSort);
+  const threads = bypassCache
+    ? await readThreads()
+    : await unstable_cache(readThreads, ['article-comments', normalizedArticleId, normalizedSort], {
+        tags: [ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(normalizedArticleId)],
+        revalidate: false,
+      })();
   const totalCount = threads.length;
   const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / pageSize);
   const currentPage = totalPages === 0 ? 1 : Math.min(normalizedPage, totalPages);

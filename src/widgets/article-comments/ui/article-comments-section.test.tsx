@@ -2,7 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-import { getArticleCommentsPageClient } from '@/widgets/article-comments/api/client';
+import {
+  createArticleCommentClient,
+  getArticleCommentsPageClient,
+} from '@/widgets/article-comments/api/client';
 
 import { ArticleCommentsSection } from './article-comments-section';
 
@@ -30,9 +33,31 @@ vi.mock('@/shared/ui/comment-compose-form', () => ({
     composeFormSpy(props);
 
     return (
-      <button type="button">
-        {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
-      </button>
+      <div>
+        <button type="button">
+          {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
+        </button>
+        <button
+          onClick={() =>
+            void (
+              props.onSubmit as (values: {
+                authorBlogUrl: string;
+                authorName: string;
+                content: string;
+                password: string;
+              }) => Promise<void>
+            )({
+              authorBlogUrl: '',
+              authorName: 'guest',
+              content: 'new comment',
+              password: '1234',
+            })
+          }
+          type="button"
+        >
+          {props.isReplyMode ? 'submit-reply-compose-form' : 'submit-root-compose-form'}
+        </button>
+      </div>
     );
   },
 }));
@@ -154,5 +179,37 @@ describe('ArticleCommentsSection', () => {
         textPlaceholder: 'reply:chaen',
       }),
     );
+  });
+
+  it('댓글 작성 성공 후 fresh 재조회로 최신 목록을 다시 읽는다', async () => {
+    vi.mocked(createArticleCommentClient).mockResolvedValue({
+      article_id: 'article-1',
+      author_blog_url: null,
+      author_name: 'guest',
+      content: 'new comment',
+      created_at: '2026-03-08T00:20:00.000Z',
+      deleted_at: null,
+      id: 'comment-2',
+      parent_id: null,
+      reply_to_author_name: null,
+      reply_to_comment_id: null,
+      updated_at: '2026-03-08T00:20:00.000Z',
+    });
+    vi.mocked(getArticleCommentsPageClient).mockResolvedValue({
+      ...initialPage,
+      totalCount: 13,
+    });
+
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'submit-root-compose-form' }));
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageClient).toHaveBeenCalledWith('article-1', {
+        fresh: true,
+        page: 1,
+        sort: 'latest',
+      });
+    });
   });
 });

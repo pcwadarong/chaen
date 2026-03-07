@@ -182,4 +182,44 @@ describe('getArticleComments', () => {
     expect(result.totalCount).toBe(1);
     expect(result.totalPages).toBe(1);
   });
+
+  it('bypassCache가 true면 unstable_cache를 거치지 않고 fresh read를 수행한다', async () => {
+    const rootQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend',
+            author_blog_url: null,
+            author_name: 'guest',
+            content: 'fresh root',
+            created_at: '2026-03-06T00:00:00.000Z',
+            deleted_at: null,
+            id: 'root-1',
+            parent_id: null,
+            password_hash: 'hash',
+            reply_to_author_name: null,
+            reply_to_comment_id: null,
+            updated_at: '2026-03-06T00:00:00.000Z',
+          },
+        ],
+        error: null,
+      }),
+    };
+
+    const supabaseClient = {
+      from: vi.fn(() => rootQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticleComments({ articleId: 'frontend', bypassCache: true });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.id).toBe('root-1');
+    expect(unstable_cache).not.toHaveBeenCalled();
+  });
 });
