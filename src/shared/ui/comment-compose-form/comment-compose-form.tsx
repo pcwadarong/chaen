@@ -23,7 +23,6 @@ import { CommentComposeReplyPreview } from '@/shared/ui/comment-compose-form/com
 
 type CommentComposeFormLayout = 'embedded' | 'fixed';
 type CommentComposeAuthorMode = 'manual' | 'preset';
-type CommentComposeTopRowWrap = 'nowrap' | 'wrap';
 
 type CommentComposeFormProps = {
   allowSecretToggle?: boolean;
@@ -50,7 +49,6 @@ type CommentComposeFormProps = {
   textareaAutoResize?: boolean;
   textareaRows?: number;
   textPlaceholder: string;
-  topRowWrap?: CommentComposeTopRowWrap;
 };
 
 const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
@@ -84,7 +82,6 @@ export const CommentComposeForm = ({
   textareaAutoResize = true,
   textareaRows = 1,
   textPlaceholder,
-  topRowWrap = 'wrap',
 }: CommentComposeFormProps) => {
   const [authorName, setAuthorName] = useState('');
   const [password, setPassword] = useState('');
@@ -172,7 +169,7 @@ export const CommentComposeForm = ({
 
   return (
     <form onSubmit={handleSubmit} css={[formBaseStyle, layoutStyleMap[layout]]}>
-      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout], topRowWrapStyleMap[topRowWrap]]}>
+      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout]]}>
         {!isPresetAuthorMode ? (
           <CommentComposeProfileFields
             authorBlogUrlId={authorBlogUrlId}
@@ -264,32 +261,20 @@ const fixedFormStyle = css`
 const embeddedFormStyle = css`
   position: static;
   width: 100%;
-  padding: var(--space-4);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  border-radius: var(--radius-xl);
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--color-surface) / 0.96),
-      rgb(var(--color-surface-muted) / 0.76)
-    ),
-    rgb(var(--color-surface));
 `;
 
 const topRowBaseStyle = css`
   display: flex;
   gap: var(--space-3);
+  justify-content: space-between;
 `;
 
 const fixedTopRowStyle = css`
   align-items: center;
-  justify-content: space-between;
 `;
 
 const embeddedTopRowStyle = css`
   align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
 `;
 
 const layoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
@@ -300,13 +285,4 @@ const layoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> =
 const topRowLayoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
   embedded: embeddedTopRowStyle,
   fixed: fixedTopRowStyle,
-};
-
-const topRowWrapStyleMap: Record<CommentComposeTopRowWrap, ReturnType<typeof css>> = {
-  nowrap: css`
-    flex-wrap: nowrap;
-  `,
-  wrap: css`
-    flex-wrap: wrap;
-  `,
 };
