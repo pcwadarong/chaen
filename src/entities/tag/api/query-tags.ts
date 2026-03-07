@@ -1,4 +1,4 @@
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
+import type { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -36,13 +36,10 @@ type GetRelatedTagIdsOptions = {
 
 const isMissingTagSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
+  const missingRelationOrFunctionPattern =
+    /(relation|function)\s+"?[^"]*(article_tags|project_tags|tags|tag_translations)[^"]*"?\s+does\s+not\s+exist/iu;
 
-  return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTags) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTags) ||
-    normalizedMessage.includes('tags') ||
-    normalizedMessage.includes('tag_translations')
-  );
+  return missingRelationOrFunctionPattern.test(normalizedMessage);
 };
 
 /**

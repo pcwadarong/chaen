@@ -14,6 +14,12 @@ vi.mock('@/i18n/navigation', () => ({
     createElement('a', { href, ...props }, children),
 }));
 
+vi.mock('next/image', () => ({
+  __esModule: true,
+  default: ({ alt, src, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) =>
+    createElement('img', { alt, src, ...props }),
+}));
+
 describe('ArticleListItem', () => {
   it('정확한 연월일 포맷으로 날짜를 렌더링한다', () => {
     render(
@@ -28,7 +34,23 @@ describe('ArticleListItem', () => {
       />,
     );
 
-    expect(screen.getByText('2026. 02. 24')).toBeTruthy();
+    expect(screen.getByText('2026-02-24')).toBeTruthy();
     expect(screen.getByRole('link', { name: '제목 article detail' })).toBeTruthy();
+  });
+
+  it('썸네일 이미지는 링크가 이미 라벨을 가지므로 장식용 alt를 사용한다', () => {
+    const { container } = render(
+      <ArticleListItem
+        article={{
+          created_at: '2026-02-24T09:00:00+00:00',
+          description: '설명',
+          id: 'article-1',
+          thumbnail_url: 'https://example.com/thumbnail.png',
+          title: '제목',
+        }}
+      />,
+    );
+
+    expect(container.querySelector('img')?.getAttribute('alt')).toBe('');
   });
 });

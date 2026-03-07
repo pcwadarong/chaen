@@ -44,13 +44,7 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
         </div>
         <div css={mediaStyle}>
           {previewThumbnailSrc ? (
-            <Image
-              alt={`${article.title} thumbnail`}
-              css={imageStyle}
-              fill
-              sizes="8.75rem"
-              src={previewThumbnailSrc}
-            />
+            <Image alt="" css={imageStyle} fill sizes="8.75rem" src={previewThumbnailSrc} />
           ) : (
             <div aria-hidden css={imageFallbackStyle} />
           )}
