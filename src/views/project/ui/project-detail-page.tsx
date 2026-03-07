@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
-import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { ProjectDetailPageClient } from '@/views/project/ui/project-detail-page.client';
 
@@ -18,6 +18,14 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
   const t = await getTranslations('ProjectDetail');
   const detailUi = await getTranslations('DetailUi');
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: item.tags ?? [],
+  });
+
+  if (tagLabelMap.schemaMissing) {
+    throw new Error('[projects] 태그 label schema가 없습니다.');
+  }
 
   return (
     <ProjectDetailPageClient
@@ -41,7 +49,7 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
         copied: detailUi('shareCopied'),
         share: detailUi('share'),
       }}
-      tagLabels={(item.tags ?? []).map(tag => getTagLabelByLocale(tag, locale))}
+      tagLabels={(item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag)}
       title={item.title}
     />
   );

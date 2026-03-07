@@ -8,6 +8,16 @@ type TagSchemaResult<T> = {
   schemaMissing: boolean;
 };
 
+type TagRow = {
+  id: string;
+  slug: string;
+};
+
+type TagTranslationRow = {
+  label: string;
+  tag_id: string;
+};
+
 type RelationTableName =
   | typeof CONTENT_SHADOW_SCHEMA.articleTags
   | typeof CONTENT_SHADOW_SCHEMA.projectTags;
@@ -38,7 +48,8 @@ const isMissingTagSchemaError = (message: string) => {
 /**
  * canonical slug로 태그 id를 조회합니다.
  *
- * 관계형 태그 스키마가 아직 배포되지 않은 환경에서는 schemaMissing으로 복구합니다.
+ * 현재 런타임은 관계형 태그 스키마를 전제로 동작하므로,
+ * 태그 테이블이 없으면 `schemaMissing`으로 상위 호출부에 전달합니다.
  */
 export const getTagIdBySlug = async (slug: string): Promise<TagSchemaResult<string | null>> => {
   const supabase = createOptionalPublicServerSupabaseClient();
@@ -149,6 +160,83 @@ export const getTagSlugMap = async (
 };
 
 /**
+ * canonical slug 목록을 locale별 표시 라벨 맵으로 변환합니다.
+ */
+export const getTagLabelMapBySlugs = async ({
+  locale,
+  slugs,
+}: {
+  locale: string;
+  slugs: string[];
+}): Promise<TagSchemaResult<Map<string, string>>> => {
+  const normalizedSlugs = Array.from(
+    new Set(
+      slugs
+        .map(slug => slug.trim().toLowerCase())
+        .filter((slug): slug is string => slug.length > 0),
+    ),
+  );
+
+  if (normalizedSlugs.length === 0) {
+    return { data: new Map(), schemaMissing: false };
+  }
+
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: new Map(), schemaMissing: false };
+
+  const { data: tagRows, error: tagError } = await supabase
+    .from('tags')
+    .select('id,slug')
+    .in('slug', normalizedSlugs);
+
+  if (tagError) {
+    if (isMissingTagSchemaError(tagError.message)) {
+      return { data: new Map(), schemaMissing: true };
+    }
+
+    throw new Error(`[tags] slug 목록 조회 실패: ${tagError.message}`);
+  }
+
+  const typedTagRows = (tagRows ?? []) as TagRow[];
+  if (typedTagRows.length === 0) {
+    return { data: new Map(), schemaMissing: false };
+  }
+
+  const { data: translationRows, error: translationError } = await supabase
+    .from('tag_translations')
+    .select('tag_id,label')
+    .eq('locale', locale.toLowerCase())
+    .in(
+      'tag_id',
+      typedTagRows.map(row => row.id),
+    );
+
+  if (translationError) {
+    if (isMissingTagSchemaError(translationError.message)) {
+      return { data: new Map(), schemaMissing: true };
+    }
+
+    throw new Error(`[tags] label 목록 조회 실패: ${translationError.message}`);
+  }
+
+  const slugById = new Map(typedTagRows.map(row => [row.id, row.slug]));
+
+  return {
+    data: new Map(
+      ((translationRows ?? []) as TagTranslationRow[])
+        .map(row => {
+          const slug = slugById.get(row.tag_id);
+          if (!slug) return null;
+
+          return [slug, row.label] as const;
+        })
+        .filter((entry): entry is readonly [string, string] => entry !== null),
+    ),
+    schemaMissing: false,
+  };
+};
+
+/**
  * 엔터티에 연결된 태그 slug 목록을 relation table 기준으로 조회합니다.
  */
 export const getRelatedTagSlugs = async ({
@@ -182,7 +270,7 @@ export const getRelatedTagSlugs = async ({
 /**
  * relation table 전체에서 연결된 tag id를 가져옵니다.
  *
- * locale 없는 `*_tags_v2` shadow schema 집계를 우선 읽을 때 사용합니다.
+ * locale 없는 canonical relation 집계를 계산할 때 사용합니다.
  */
 export const getAllRelatedTagIds = async (
   relationTable:

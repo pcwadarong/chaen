@@ -3,15 +3,13 @@
 import { css } from '@emotion/react';
 import React from 'react';
 
-import type { ArticleTagStat } from '@/entities/article/model/types';
-import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
+import type { LocalizedArticleTagStat } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
 
 type ArticleTagFilterListProps = {
   activeTag: string;
   emptyText: string;
-  items: ArticleTagStat[];
-  locale: string;
+  items: LocalizedArticleTagStat[];
   title: string;
 };
 
@@ -30,7 +28,6 @@ export const ArticleTagFilterList = ({
   activeTag,
   emptyText,
   items,
-  locale,
   title,
 }: ArticleTagFilterListProps) => (
   <section aria-labelledby="article-tag-filter-title" css={sectionStyle}>
@@ -41,7 +38,6 @@ export const ArticleTagFilterList = ({
       <div css={listStyle}>
         {items.map(item => {
           const isActive = item.tag === activeTag;
-          const label = getTagLabelByLocale(item.tag, locale);
 
           return (
             <Link
@@ -50,7 +46,7 @@ export const ArticleTagFilterList = ({
               href={createTagHref(item.tag, activeTag)}
               key={item.tag}
             >
-              <span>{label}</span>
+              <span>{item.label}</span>
               <span css={countStyle}>{item.article_count}</span>
             </Link>
           );

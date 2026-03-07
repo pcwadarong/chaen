@@ -3,7 +3,7 @@
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
-import type { ArticleListItem, ArticleTagStat } from '@/entities/article/model/types';
+import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
 import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
@@ -14,7 +14,7 @@ export type ArticlesPageProps = {
   initialCursor: string | null;
   initialItems: ArticleListItem[];
   locale: string;
-  popularTags: ArticleTagStat[];
+  popularTags: LocalizedArticleTagStat[];
   searchQuery: string;
 };
 
@@ -62,7 +62,6 @@ export const ArticlesPage = ({
                 activeTag={activeTag}
                 emptyText={t('popularTagsEmpty')}
                 items={popularTags}
-                locale={locale}
                 title={t('popularTagsTitle')}
               />
             </div>

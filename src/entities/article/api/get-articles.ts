@@ -1,6 +1,5 @@
 import { unstable_cache } from 'next/cache';
 
-import { getCanonicalTagSlug } from '@/entities/project/model/tag-map';
 import { getRelatedEntityIdsByTagId, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
@@ -65,10 +64,9 @@ type ArticleTranslationListRow = Pick<ArticleListItem, 'description' | 'title'> 
 const normalizeSearchQuery = (query?: string | null) => query?.trim() ?? '';
 
 /**
- * 태그 필터를 목록 조회용으로 정규화합니다.
+ * 태그 필터를 slug 기준으로 정규화합니다.
  */
-const normalizeArticleTag = (tag?: string | null) =>
-  tag?.trim() ? getCanonicalTagSlug(tag.trim()) : '';
+const normalizeArticleTag = (tag?: string | null) => (tag?.trim() ? tag.trim().toLowerCase() : '');
 
 /**
  * 검색 결과용 rank + created_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
@@ -150,7 +148,7 @@ const applyArticlesKeysetCursor = <
 };
 
 /**
- * shadow schema(`articles_v2` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
+ * content schema(`articles` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
  */
 const fetchShadowArticleListItems = async (
   baseRows: ArticleBaseListRow[],
@@ -200,7 +198,7 @@ const fetchShadowArticleListItems = async (
 };
 
 /**
- * shadow schema(`articles_v2` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
+ * content schema(`articles` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
  */
 const fetchArticlesByLocaleFromShadow = async (
   locale: string,
@@ -268,9 +266,9 @@ const fetchArticlesByLocale = async (
 };
 
 /**
- * locale 컬럼을 사용하는 태그 필터 목록 조회입니다.
+ * canonical tag relation을 기준으로 현재 locale 번역 목록을 조회합니다.
  *
- * 태그 필터는 현재 locale 범위에서만 동작하며 검색처럼 fallback을 사용하지 않습니다.
+ * 태그 필터는 검색 RPC를 거치지 않고, relation 조회 후 content 목록을 조합합니다.
  */
 const fetchArticlesByTagAndLocale = async (
   locale: string,
@@ -391,7 +389,7 @@ const fetchSearchArticles = async (
  *
  * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
  * - 검색 목록은 `rank + created_at + id` 기준 keyset pagination을 사용합니다.
- * - locale 우선 조회 후, 비검색 첫 페이지에서만 `ko` fallback을 시도합니다.
+ * - locale 우선 조회 후, 비검색 첫 페이지에서만 번역 fallback으로 `ko`를 한 번 더 조회합니다.
  * - 반환 shape는 검색 여부와 상관없이 `items/nextCursor/totalCount`로 고정합니다.
  */
 export const getArticles = async ({

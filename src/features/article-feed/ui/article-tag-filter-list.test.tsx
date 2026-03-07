@@ -19,10 +19,9 @@ describe('ArticleTagFilterList', () => {
         activeTag="nextjs"
         emptyText="비어 있음"
         items={[
-          { article_count: 4, tag: 'nextjs' },
-          { article_count: 2, tag: 'react' },
+          { article_count: 4, label: 'Next.js', tag: 'nextjs' },
+          { article_count: 2, label: 'React', tag: 'react' },
         ]}
-        locale="ko"
         title="tags"
       />,
     );
