@@ -19,6 +19,9 @@ const EMPTY_AUTH_STATE: AuthState = {
   userId: null,
 };
 
+const isMissingSessionError = (message: string | null | undefined) =>
+  message?.toLowerCase().includes('auth session missing') ?? false;
+
 /**
  * 현재 요청의 Supabase 세션을 읽어 관리자 여부를 포함한 인증 상태를 반환합니다.
  */
@@ -31,7 +34,9 @@ export const getServerAuthState = async (): Promise<AuthState> => {
     error,
   } = await supabase.auth.getUser();
 
-  if (error) throw new Error(`[auth] 사용자 조회 실패: ${error.message}`);
+  if (error && !isMissingSessionError(error.message)) {
+    throw new Error(`[auth] 사용자 조회 실패: ${error.message}`);
+  }
   if (!user) return EMPTY_AUTH_STATE;
 
   const adminIdentity = getSupabaseAdminEnvOptional();
