@@ -30,6 +30,11 @@ type LocaleLayoutProps = Readonly<{
   }>;
 }>;
 
+const navFallbackStyle = {
+  minHeight: '5.5625rem',
+  width: '100%',
+} as const;
+
 /**
  * locale별 루트 레이아웃입니다.
  */
@@ -49,7 +54,7 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
         <AuthProvider value={authState}>
           <div lang={locale}>
             <AppFrame>
-              <Suspense fallback={null}>
+              <Suspense fallback={<div aria-hidden style={navFallbackStyle} />}>
                 <GlobalNav />
               </Suspense>
               {children}

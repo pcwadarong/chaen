@@ -122,23 +122,25 @@ export const GlobalNav = () => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsMobileMenuOpen(false);
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', onKeyDown);
     };
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    if (!isMobileSearchOpen) return;
+    if (!isMobileMenuOpen && !isMobileSearchOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsMobileSearchOpen(false);
+      if (event.key !== 'Escape') return;
+
+      if (isMobileSearchOpen) {
+        setIsMobileSearchOpen(false);
+        return;
+      }
+
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -146,7 +148,7 @@ export const GlobalNav = () => {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isMobileSearchOpen]);
+  }, [isMobileMenuOpen, isMobileSearchOpen]);
 
   return (
     <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>

@@ -63,6 +63,7 @@ export const ArticleSearchForm = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = React.useTransition();
+  const [isAwaitingSubmitCompletion, setIsAwaitingSubmitCompletion] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(searchQuery);
   const debounceTimerRef = React.useRef<number | null>(null);
   const skipDebounceRef = React.useRef(false);
@@ -86,6 +87,13 @@ export const ArticleSearchForm = ({
     skipDebounceRef.current = true;
     setInputValue(currentQuery);
   }, [currentQuery]);
+
+  React.useEffect(() => {
+    if (!isAwaitingSubmitCompletion || isPending) return;
+
+    setIsAwaitingSubmitCompletion(false);
+    onSubmitComplete?.();
+  }, [isAwaitingSubmitCompletion, isPending, onSubmitComplete]);
 
   /**
    * URL 동기화로 바뀐 값은 다시 검색하지 않고,
@@ -132,8 +140,8 @@ export const ArticleSearchForm = ({
     }
 
     skipDebounceRef.current = true;
+    setIsAwaitingSubmitCompletion(true);
     replaceQuery(inputValue);
-    onSubmitComplete?.();
   };
 
   /**

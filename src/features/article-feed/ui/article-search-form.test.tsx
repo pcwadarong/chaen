@@ -142,9 +142,12 @@ describe('ArticleSearchForm', () => {
   });
 
   it('submit-only 모드에서는 입력만으로는 이동하지 않고 제출 시에만 이동한다', () => {
+    const onSubmitComplete = vi.fn();
+
     render(
       <ArticleSearchForm
         clearText="초기화"
+        onSubmitComplete={onSubmitComplete}
         pendingText="검색 중"
         placeholder="검색어 입력"
         searchMode="submit-only"
@@ -166,6 +169,28 @@ describe('ArticleSearchForm', () => {
     fireEvent.submit(screen.getByRole('search'));
 
     expect(replaceMock).toHaveBeenCalledWith('/articles?q=react');
+    expect(onSubmitComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('현재 query와 같은 값을 제출하면 onSubmitComplete를 즉시 호출한다', () => {
+    const onSubmitComplete = vi.fn();
+
+    render(
+      <ArticleSearchForm
+        clearText="초기화"
+        onSubmitComplete={onSubmitComplete}
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchMode="submit-only"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    fireEvent.submit(screen.getByRole('search'));
+
+    expect(replaceMock).not.toHaveBeenCalled();
+    expect(onSubmitComplete).toHaveBeenCalledTimes(1);
   });
 
   it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
