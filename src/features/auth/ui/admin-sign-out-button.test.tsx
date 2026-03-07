@@ -29,7 +29,7 @@ describe('AdminSignOutButton', () => {
     render(
       <AdminSignOutButton
         errorMessage="로그아웃에 실패했습니다."
-        redirectPath="/ko/admin/login"
+        redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
       />,
@@ -39,7 +39,7 @@ describe('AdminSignOutButton', () => {
 
     await waitFor(() => {
       expect(signOutAdmin).toHaveBeenCalledTimes(1);
-      expect(replaceMock).toHaveBeenCalledWith('/ko/admin/login');
+      expect(replaceMock).toHaveBeenCalledWith('/admin/login');
     });
   });
 
@@ -49,7 +49,7 @@ describe('AdminSignOutButton', () => {
     render(
       <AdminSignOutButton
         errorMessage="로그아웃에 실패했습니다."
-        redirectPath="/ko/admin/login"
+        redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
       />,

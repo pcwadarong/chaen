@@ -7,6 +7,6 @@ type AdminLoginPageProps = {
 /**
  * 관리자 로그인 페이지를 렌더링합니다.
  */
-export const AdminLoginPage = ({ locale }: AdminLoginPageProps) => (
-  <AdminLoginForm successRedirectPath={`/${locale}/admin`} />
+export const AdminLoginPage = ({ locale: _locale }: AdminLoginPageProps) => (
+  <AdminLoginForm successRedirectPath="/admin" />
 );

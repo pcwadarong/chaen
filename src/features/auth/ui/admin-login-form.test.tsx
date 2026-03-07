@@ -23,10 +23,10 @@ describe('AdminLoginForm', () => {
     vi.clearAllMocks();
   });
 
-  it('이메일과 비밀번호를 제출하면 로그인 후 guest로 이동한다', async () => {
+  it('이메일과 비밀번호를 제출하면 로그인 후 관리자 페이지로 이동한다', async () => {
     vi.mocked(signInAdmin).mockResolvedValue(undefined);
 
-    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
+    render(<AdminLoginForm successRedirectPath="/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },
@@ -41,14 +41,14 @@ describe('AdminLoginForm', () => {
         email: 'admin@example.com',
         password: 'secret-password',
       });
-      expect(replaceMock).toHaveBeenCalledWith('/ko/admin');
+      expect(replaceMock).toHaveBeenCalledWith('/admin');
     });
   });
 
   it('로그인 실패 시 에러 메시지를 노출한다', async () => {
     vi.mocked(signInAdmin).mockRejectedValue(new Error('invalid credentials'));
 
-    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
+    render(<AdminLoginForm successRedirectPath="/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },

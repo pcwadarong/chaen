@@ -1,3 +1,5 @@
+'use client';
+
 import { css } from '@emotion/react';
 
 import { AdminSignOutButton } from '@/features/auth/ui/admin-sign-out-button';
@@ -9,7 +11,7 @@ type AdminPageProps = {
 /**
  * 현재 관리자 세션 상태를 확인하고 로그아웃할 수 있는 최소 관리자 페이지입니다.
  */
-export const AdminPage = ({ locale }: AdminPageProps) => (
+export const AdminPage = ({ locale: _locale }: AdminPageProps) => (
   <main css={pageStyle}>
     <section aria-labelledby="admin-page-title" css={panelStyle}>
       <h1 css={titleStyle} id="admin-page-title">
@@ -17,7 +19,7 @@ export const AdminPage = ({ locale }: AdminPageProps) => (
       </h1>
       <AdminSignOutButton
         errorMessage="로그아웃에 실패했습니다."
-        redirectPath={`/${locale}/admin/login`}
+        redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
       />
