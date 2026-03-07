@@ -49,6 +49,60 @@ const toPublicArticleComment = (comment: ArticleCommentRow): ArticleComment => {
 };
 
 /**
+ * 화면에 노출되는 댓글 엔트리 수를 계산합니다.
+ * 루트 댓글 1개와 그 아래 대댓글 개수를 함께 합산합니다.
+ */
+const countVisibleEntries = (thread: ArticleCommentThreadItem) => 1 + thread.replies.length;
+
+/**
+ * 스레드를 끊지 않으면서 화면 엔트리 수 기준으로 페이지를 분할합니다.
+ */
+const paginateThreadsByVisibleEntries = (
+  threads: ArticleCommentThreadItem[],
+  pageSize: number,
+  page: number,
+) => {
+  if (threads.length === 0) {
+    return {
+      currentPage: 1,
+      items: [],
+      totalCount: 0,
+      totalPages: 0,
+    };
+  }
+
+  const pages = threads.reduce<ArticleCommentThreadItem[][]>((accumulator, thread) => {
+    const visibleEntryCount = countVisibleEntries(thread);
+    const currentPageItems = accumulator.at(-1);
+
+    if (!currentPageItems) return [[thread]];
+
+    const currentPageCount = currentPageItems.reduce(
+      (count, pageThread) => count + countVisibleEntries(pageThread),
+      0,
+    );
+
+    if (currentPageItems.length > 0 && currentPageCount + visibleEntryCount > pageSize) {
+      accumulator.push([thread]);
+      return accumulator;
+    }
+
+    currentPageItems.push(thread);
+    return accumulator;
+  }, []);
+  const totalCount = threads.reduce((count, thread) => count + countVisibleEntries(thread), 0);
+  const totalPages = pages.length;
+  const currentPage = Math.min(page, totalPages);
+
+  return {
+    currentPage,
+    items: pages[currentPage - 1] ?? [],
+    totalCount,
+    totalPages,
+  };
+};
+
+/**
  * 아티클의 루트 댓글을 정렬 순서에 맞춰 모두 조회합니다.
  */
 const fetchArticleCommentRoots = async (
@@ -156,11 +210,11 @@ export const getArticleComments = async ({
         tags: [ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(normalizedArticleId)],
         revalidate: false,
       })();
-  const totalCount = threads.length;
-  const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / pageSize);
-  const currentPage = totalPages === 0 ? 1 : Math.min(normalizedPage, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const items = threads.slice(startIndex, startIndex + pageSize);
+  const { currentPage, items, totalCount, totalPages } = paginateThreadsByVisibleEntries(
+    threads,
+    pageSize,
+    normalizedPage,
+  );
 
   return {
     items,
