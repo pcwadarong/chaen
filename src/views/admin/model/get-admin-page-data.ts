@@ -6,7 +6,6 @@ type GetAdminPageDataInput = {
 
 type AdminPageData = {
   redirectPath: string | null;
-  userEmail: string | null;
 };
 
 /**
@@ -20,12 +19,10 @@ export const getAdminPageData = async ({
   if (!authState.isAdmin) {
     return {
       redirectPath: `/${locale}/admin/login`,
-      userEmail: null,
     };
   }
 
   return {
     redirectPath: null,
-    userEmail: authState.userEmail,
   };
 };

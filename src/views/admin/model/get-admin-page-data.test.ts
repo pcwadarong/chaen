@@ -23,7 +23,6 @@ describe('getAdminPageData', () => {
 
     await expect(getAdminPageData({ locale: 'ko' })).resolves.toEqual({
       redirectPath: '/ko/admin/login',
-      userEmail: null,
     });
   });
 
@@ -37,7 +36,6 @@ describe('getAdminPageData', () => {
 
     await expect(getAdminPageData({ locale: 'ko' })).resolves.toEqual({
       redirectPath: null,
-      userEmail: 'admin@example.com',
     });
   });
 });

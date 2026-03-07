@@ -13,18 +13,6 @@
   "Common": {
     "scrollToTopAriaLabel": "Retour en haut"
   },
-  "AdminLogin": {
-    "title": "Connexion administrateur",
-    "description": "Créez une session administrateur avec Supabase Authentication. Après connexion, vous pourrez utiliser les réponses administrateur dans le livre d'or.",
-    "emailLabel": "E-mail",
-    "emailPlaceholder": "admin@example.com",
-    "passwordLabel": "Mot de passe",
-    "passwordPlaceholder": "Saisissez votre mot de passe.",
-    "submit": "Se connecter",
-    "submitPending": "Connexion en cours...",
-    "invalidCredentials": "Vérifiez votre e-mail ou votre mot de passe.",
-    "submitError": "Une erreur est survenue pendant la connexion. Veuillez réessayer dans un instant."
-  },
   "Home": {
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
     "emptyProjects": "Aucun projet n'a encore été publié.",

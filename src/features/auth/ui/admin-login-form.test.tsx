@@ -26,21 +26,7 @@ describe('AdminLoginForm', () => {
   it('이메일과 비밀번호를 제출하면 로그인 후 guest로 이동한다', async () => {
     vi.mocked(signInAdmin).mockResolvedValue(undefined);
 
-    render(
-      <AdminLoginForm
-        description="관리자 전용 로그인"
-        emailLabel="이메일"
-        emailPlaceholder="admin@example.com"
-        invalidCredentialsMessage="로그인 정보를 확인해주세요."
-        passwordLabel="비밀번호"
-        passwordPlaceholder="비밀번호"
-        submitLabel="로그인"
-        submitPendingLabel="로그인 중"
-        submitErrorMessage="로그인에 실패했습니다."
-        successRedirectPath="/ko/admin"
-        title="관리자 로그인"
-      />,
-    );
+    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },
@@ -62,21 +48,7 @@ describe('AdminLoginForm', () => {
   it('로그인 실패 시 에러 메시지를 노출한다', async () => {
     vi.mocked(signInAdmin).mockRejectedValue(new Error('invalid credentials'));
 
-    render(
-      <AdminLoginForm
-        description="관리자 전용 로그인"
-        emailLabel="이메일"
-        emailPlaceholder="admin@example.com"
-        invalidCredentialsMessage="로그인 정보를 확인해주세요."
-        passwordLabel="비밀번호"
-        passwordPlaceholder="비밀번호"
-        submitLabel="로그인"
-        submitPendingLabel="로그인 중"
-        submitErrorMessage="로그인에 실패했습니다."
-        successRedirectPath="/ko/admin"
-        title="관리자 로그인"
-      />,
-    );
+    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },
@@ -87,7 +59,9 @@ describe('AdminLoginForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert').textContent).toBe('로그인 정보를 확인해주세요.');
+      expect(screen.getByRole('alert').textContent).toBe(
+        '이메일 또는 비밀번호를 다시 확인해주세요.',
+      );
       expect(replaceMock).not.toHaveBeenCalled();
     });
   });

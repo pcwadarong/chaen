@@ -13,18 +13,6 @@
   "Common": {
     "scrollToTopAriaLabel": "Back to top"
   },
-  "AdminLogin": {
-    "title": "Admin login",
-    "description": "Create an admin session with Supabase Authentication. After signing in, you can use admin reply features in the guestbook.",
-    "emailLabel": "Email",
-    "emailPlaceholder": "admin@example.com",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Enter your password.",
-    "submit": "Sign in",
-    "submitPending": "Signing in...",
-    "invalidCredentials": "Check your email or password and try again.",
-    "submitError": "Something went wrong while signing in. Please try again shortly."
-  },
   "Home": {
     "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
     "emptyProjects": "No projects have been published yet.",

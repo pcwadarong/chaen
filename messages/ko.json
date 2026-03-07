@@ -13,18 +13,6 @@
   "Common": {
     "scrollToTopAriaLabel": "맨 위로 이동"
   },
-  "AdminLogin": {
-    "title": "관리자 로그인",
-    "description": "Supabase Authentication으로 관리자 세션을 생성합니다. 로그인 후 방명록에서 관리자 답글 기능을 사용할 수 있습니다.",
-    "emailLabel": "이메일",
-    "emailPlaceholder": "admin@example.com",
-    "passwordLabel": "비밀번호",
-    "passwordPlaceholder": "비밀번호를 입력해주세요.",
-    "submit": "로그인",
-    "submitPending": "로그인 중...",
-    "invalidCredentials": "이메일 또는 비밀번호를 다시 확인해주세요.",
-    "submitError": "로그인 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
-  },
   "Home": {
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",

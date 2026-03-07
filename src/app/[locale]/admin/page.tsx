@@ -20,7 +20,7 @@ const AdminRoute = async ({
     redirect(pageData.redirectPath);
   }
 
-  return <AdminPage locale={locale} userEmail={pageData.userEmail} />;
+  return <AdminPage locale={locale} />;
 };
 
 export default AdminRoute;
