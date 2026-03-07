@@ -118,6 +118,7 @@
     "notFoundDescription": "Please check the project ID again, or return to the project list and select it again.",
     "notFoundTitle": "The requested project could not be found.",
     "ongoing": "Ongoing",
+    "periodLabel": "Work period",
     "retry": "Retry",
     "tagSection": "Tags"
   },
@@ -131,6 +132,7 @@
     "notFoundDescription": "Please check the article ID again, or return to the article list and select it again.",
     "notFoundTitle": "The requested article could not be found.",
     "publishedAt": "Published {date}",
+    "publishedAtLabel": "Published",
     "retry": "Retry",
     "tagSection": "Tags"
   },

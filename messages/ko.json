@@ -118,6 +118,7 @@
     "notFoundDescription": "프로젝트 ID를 다시 확인하거나 목록 페이지에서 다시 선택해 주세요.",
     "notFoundTitle": "요청한 프로젝트를 찾을 수 없습니다.",
     "ongoing": "진행 중",
+    "periodLabel": "작업기한",
     "retry": "다시 시도",
     "tagSection": "태그"
   },
@@ -130,7 +131,8 @@
     "noTags": "태그없음",
     "notFoundDescription": "기록 ID를 다시 확인하거나 목록 페이지에서 다시 선택해 주세요.",
     "notFoundTitle": "요청한 기록을 찾을 수 없습니다.",
-    "publishedAt": "등록일 {date}",
+    "publishedAt": "등록일",
+    "publishedAtLabel": "등록일",
     "retry": "다시 시도",
     "tagSection": "태그"
   },

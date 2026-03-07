@@ -118,6 +118,7 @@
     "notFoundDescription": "プロジェクト ID を確認するか、一覧ページからもう一度選択してください。",
     "notFoundTitle": "指定したプロジェクトが見つかりません。",
     "ongoing": "進行中",
+    "periodLabel": "作業期間",
     "retry": "再試行",
     "tagSection": "タグ"
   },
@@ -131,6 +132,7 @@
     "notFoundDescription": "記事 ID を確認するか、一覧ページからもう一度選択してください。",
     "notFoundTitle": "指定した記事が見つかりません。",
     "publishedAt": "公開日 {date}",
+    "publishedAtLabel": "公開日",
     "retry": "再試行",
     "tagSection": "タグ"
   },
