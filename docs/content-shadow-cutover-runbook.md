@@ -147,7 +147,7 @@ from public.search_article_translations(
 
 1. SQL이 아직 실행되지 않았다면 앱 코드는 그대로 둡니다.
 2. SQL이 실행됐지만 앱 배포 전이면 [content-shadow-schema.ts](/Users/chaen/Programming/chaen/src/shared/lib/supabase/content-shadow-schema.ts)를 canonical로 바꿔 배포합니다.
-3. 더 큰 rollback이 필요하면 `_legacy` 테이블을 기준으로 별도 복구 SQL을 준비해야 합니다.
+3. 더 큰 rollback이 필요하면 [content-shadow-rollback.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-rollback.sql)을 기준으로 복구합니다.
 
 ## 한 줄 요약
 

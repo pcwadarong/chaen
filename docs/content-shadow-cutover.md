@@ -136,6 +136,7 @@ cutover 이후 남은 작업은 아래 정도입니다.
 
 - [content-shadow-cutover.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-cutover.sql)
 - [content-shadow-legacy-cleanup.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-legacy-cleanup.sql)
+- [content-shadow-rollback.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-rollback.sql)
 - [content-shadow-cutover-runbook.md](/Users/chaen/Programming/chaen/docs/content-shadow-cutover-runbook.md)
 
 이미 실행된 cutover는 단순 rename만 하지 않습니다.
@@ -147,6 +148,10 @@ cutover 이후 남은 작업은 아래 정도입니다.
 안정화 기간이 끝나면 `_legacy` 테이블 제거는 아래 SQL로 분리해 수행합니다.
 
 - [content-shadow-legacy-cleanup.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-legacy-cleanup.sql)
+
+rollback이 필요하면 아래 SQL로 canonical 이름을 shadow + legacy 상태로 되돌립니다.
+
+- [content-shadow-rollback.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-rollback.sql)
 
 ## 한 줄 요약
 
