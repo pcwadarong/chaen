@@ -166,6 +166,12 @@ DB cutover 전에 아래 코드 정리 커밋이 먼저 필요합니다.
 
 - [content-shadow-cutover.sql](/Users/chaen/Programming/chaen/docs/sql/content-shadow-cutover.sql)
 
+이 스크립트는 단순 rename만 하지 않습니다.
+
+- `articles_v2/projects_v2/article_tags_v2/project_tags_v2`를 canonical 이름으로 바꿉니다.
+- `search_article_translations`가 더 이상 `articles_v2`를 보지 않도록 canonical `articles` 기준으로 다시 정의합니다.
+- legacy `search_articles`, `get_popular_article_tags` RPC를 정리합니다.
+
 ## 한 줄 요약
 
 지금은 “이사 짐을 새 집에 옮겨둔 상태”이고,  
