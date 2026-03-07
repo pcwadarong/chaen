@@ -377,10 +377,7 @@ const fetchArticlesByTagAndLocale = async (
 
   const resolvedTagId = await getTagIdBySlug(tag);
   if (resolvedTagId.schemaMissing) {
-    return {
-      data: await fetchArticlesByTagLegacy(tag, cursor, pageSize),
-      localeColumnMissing: false,
-    };
+    throw new Error('[articles] 태그 schema가 없습니다.');
   }
 
   if (!resolvedTagId.data) {
@@ -406,10 +403,7 @@ const fetchArticlesByTagAndLocale = async (
     : shadowArticleIds;
 
   if (relatedArticleIds.schemaMissing) {
-    return {
-      data: await fetchArticlesByTagLegacy(tag, cursor, pageSize),
-      localeColumnMissing: false,
-    };
+    throw new Error('[articles] 태그 relation schema가 없습니다.');
   }
 
   if (relatedArticleIds.data.length === 0) {
@@ -469,33 +463,6 @@ const fetchArticlesByTagAndLocale = async (
     data: toArticlesPage((data ?? []) as ArticleListItem[], pageSize),
     localeColumnMissing: false,
   };
-};
-
-/**
- * locale 컬럼이 없는 스키마를 위한 태그 필터 fallback 조회입니다.
- */
-const fetchArticlesByTagLegacy = async (
-  tag: string,
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<ArticlesPage> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { items: [], nextCursor: null, totalCount: null };
-
-  const query = applyArticlesKeysetCursor(
-    supabase
-      .from('articles')
-      .select('id,title,description,thumbnail_url,created_at')
-      .contains('tags', [tag]),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    throw new Error(`[articles] 레거시 태그 목록 조회 실패: ${error.message}`);
-  }
-
-  return toArticlesPage((data ?? []) as ArticleListItem[], pageSize);
 };
 
 /**
@@ -660,7 +627,7 @@ export const getArticles = async ({
         );
 
         if (taggedResult.localeColumnMissing) {
-          return fetchArticlesByTagLegacy(normalizedTag, cursor, pageSize);
+          throw new Error('[articles] 태그 목록 locale schema가 없습니다.');
         }
 
         return taggedResult.data;

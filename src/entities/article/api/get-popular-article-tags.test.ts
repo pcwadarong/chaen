@@ -70,7 +70,7 @@ describe('getPopularArticleTags', () => {
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
   });
 
-  it('shadow와 legacy relation table이 모두 없으면 RPC fallback을 사용한다', async () => {
+  it('shadow와 legacy relation table이 모두 없으면 에러를 던진다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
         data: null,
@@ -90,17 +90,13 @@ describe('getPopularArticleTags', () => {
     };
     const supabaseClient = {
       from: vi.fn().mockReturnValueOnce(articleTagsV2Query).mockReturnValueOnce(articleTagsQuery),
-      rpc: vi.fn().mockResolvedValue({
-        data: [{ article_count: 3, tag: 'nextjs' }],
-        error: null,
-      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    await expect(getPopularArticleTags({ locale: 'ko' })).resolves.toEqual([
-      { article_count: 3, tag: 'nextjs' },
-    ]);
+    await expect(getPopularArticleTags({ locale: 'ko' })).rejects.toThrow(
+      '[articles] 인기 태그 relation schema가 없습니다.',
+    );
   });
 });

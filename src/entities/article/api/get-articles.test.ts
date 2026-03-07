@@ -349,4 +349,28 @@ describe('getArticles', () => {
     expect(articleBaseQuery.in).toHaveBeenCalledWith('id', ['article-1', 'article-2']);
     expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
+
+  it('태그 schema가 없으면 legacy text 배열 fallback 대신 에러를 던진다', async () => {
+    const tagsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.tags" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(tagsQuery),
+      rpc: vi.fn(),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticles({ locale: 'ko', tag: 'nextjs' })).rejects.toThrow(
+      '[articles] 태그 schema가 없습니다.',
+    );
+  });
 });
