@@ -18,6 +18,14 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/views/articles', () => ({
   getArticleDetailPageData: vi.fn(async () => ({
     archiveItems: [],
+    initialCommentsPage: {
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest',
+      totalCount: 0,
+      totalPages: 0,
+    },
     item: null,
   })),
   ArticleDetailPage: function ArticleDetailPage() {
@@ -29,6 +37,14 @@ describe('ArticleDetailRoute', () => {
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getArticleDetailPageData).mockResolvedValueOnce({
       archiveItems: [],
+      initialCommentsPage: {
+        items: [],
+        page: 1,
+        pageSize: 10,
+        sort: 'latest',
+        totalCount: 0,
+        totalPages: 0,
+      },
       item: {
         id: 'frontend-performance',
         title: 'Frontend Performance',
@@ -51,6 +67,7 @@ describe('ArticleDetailRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticleDetailPage');
     expect(element.props.locale).toBe('ko');
+    expect(element.props.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleDetailPageData).toHaveBeenCalledWith({
       articleId: 'frontend-performance',
       locale: 'ko',
@@ -60,6 +77,14 @@ describe('ArticleDetailRoute', () => {
   it('데이터가 없으면 notFound를 호출한다', async () => {
     vi.mocked(getArticleDetailPageData).mockResolvedValueOnce({
       archiveItems: [],
+      initialCommentsPage: {
+        items: [],
+        page: 1,
+        pageSize: 10,
+        sort: 'latest',
+        totalCount: 0,
+        totalPages: 0,
+      },
       item: null,
     });
 

@@ -6,7 +6,7 @@ import React from 'react';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
-type GuestbookComposeProfileFieldsProps = {
+type CommentComposeProfileFieldsProps = {
   authorBlogUrlId: string;
   authorBlogUrlLabel: string;
   authorBlogUrlPlaceholder: string;
@@ -25,7 +25,7 @@ type GuestbookComposeProfileFieldsProps = {
 };
 
 /** 작성자 프로필(닉네임/비밀번호/홈페이지) 입력 필드를 렌더링합니다. */
-export const GuestbookComposeProfileFields = ({
+export const CommentComposeProfileFields = ({
   authorBlogUrlId,
   authorBlogUrlLabel,
   authorBlogUrlPlaceholder,
@@ -41,7 +41,7 @@ export const GuestbookComposeProfileFields = ({
   passwordLabel,
   passwordPlaceholder,
   passwordValue,
-}: GuestbookComposeProfileFieldsProps) => (
+}: CommentComposeProfileFieldsProps) => (
   <div css={leftFieldsStyle}>
     <label css={fieldWrapStyle} htmlFor={authorNameId}>
       <span css={srOnlyStyle}>{authorNameLabel}</span>

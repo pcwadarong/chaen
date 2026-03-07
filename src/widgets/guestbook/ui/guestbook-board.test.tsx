@@ -45,8 +45,8 @@ vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
   GuestbookFeed: () => <div data-testid="guestbook-feed" />,
 }));
 
-vi.mock('@/features/guestbook-compose/ui/guestbook-compose-form', () => ({
-  GuestbookComposeForm: ({ onSubmit }: { onSubmit: (values: unknown) => Promise<void> }) => (
+vi.mock('@/shared/ui/comment-compose-form', () => ({
+  CommentComposeForm: ({ onSubmit }: { onSubmit: (values: unknown) => Promise<void> }) => (
     <button
       onClick={() =>
         void onSubmit({

@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 
 import { getArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
+import { getArticleComments } from '@/entities/article-comment';
 
 import { getArticleDetailPageData } from './get-article-detail-page-data';
 
@@ -11,6 +12,10 @@ vi.mock('@/entities/article/api/get-article', () => ({
 
 vi.mock('@/entities/article/api/get-article-detail-list', () => ({
   getArticleDetailList: vi.fn(),
+}));
+
+vi.mock('@/entities/article-comment', () => ({
+  getArticleComments: vi.fn(),
 }));
 
 describe('getArticleDetailPageData', () => {
@@ -38,6 +43,14 @@ describe('getArticleDetailPageData', () => {
         created_at: '2026-03-01T00:00:00.000Z',
       },
     ]);
+    vi.mocked(getArticleComments).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest',
+      totalCount: 0,
+      totalPages: 0,
+    });
 
     const result = await getArticleDetailPageData({
       articleId: 'frontend',
@@ -46,5 +59,11 @@ describe('getArticleDetailPageData', () => {
 
     expect(result.archiveItems[0]?.id).toBe('frontend');
     expect(result.item?.id).toBe('frontend');
+    expect(result.initialCommentsPage.pageSize).toBe(10);
+    expect(getArticleComments).toHaveBeenCalledWith({
+      articleId: 'frontend',
+      page: 1,
+      sort: 'latest',
+    });
   });
 });

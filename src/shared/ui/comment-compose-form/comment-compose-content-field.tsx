@@ -7,7 +7,7 @@ import React from 'react';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
-type GuestbookComposeContentFieldProps = {
+type CommentComposeContentFieldProps = {
   characterCountId: string;
   characterCountLabel: string;
   charCountText: string;
@@ -17,12 +17,14 @@ type GuestbookComposeContentFieldProps = {
   contentShortcutHintId: string;
   onChange: (value: string) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  textareaAutoResize?: boolean;
+  textareaRows?: number;
   textPlaceholder: string;
   value: string;
 };
 
 /** 본문 입력과 보조 메타(단축키/글자 수)를 렌더링합니다. */
-export const GuestbookComposeContentField = ({
+export const CommentComposeContentField = ({
   characterCountId,
   characterCountLabel,
   charCountText,
@@ -32,22 +34,25 @@ export const GuestbookComposeContentField = ({
   contentShortcutHintId,
   onChange,
   onKeyDown,
+  textareaAutoResize = true,
+  textareaRows = 1,
   textPlaceholder,
   value,
-}: GuestbookComposeContentFieldProps) => (
+}: CommentComposeContentFieldProps) => (
   <div css={textareaWrapStyle}>
     <label css={fieldWrapStyle} htmlFor={contentId}>
       <span css={srOnlyStyle}>{contentLabel}</span>
       <Textarea
         aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
         aria-label={contentLabel}
+        autoResize={textareaAutoResize}
         id={contentId}
         maxLength={3000}
         onChange={event => onChange(event.target.value)}
         onKeyDown={onKeyDown}
         placeholder={textPlaceholder}
         required
-        rows={1}
+        rows={textareaRows}
         value={value}
       />
     </label>

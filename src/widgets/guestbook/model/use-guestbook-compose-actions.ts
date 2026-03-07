@@ -3,11 +3,11 @@
 import { useCallback } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import type { GuestbookComposeValues } from '@/features/guestbook-compose/model/types';
 import {
   createGuestbookEntryClient,
   verifyGuestbookSecretClient,
 } from '@/features/guestbook-feed/api/client';
+import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import type { ToastItem } from '@/shared/ui/toast/toast';
 
 const createOptimisticId = () =>
@@ -56,7 +56,7 @@ export const useGuestbookComposeActions = ({
     feedMutations;
 
   const handleSubmit = useCallback(
-    async (values: GuestbookComposeValues) => {
+    async (values: CommentComposeValues) => {
       const isAdminReply = Boolean(isAdmin && replyTarget);
       if (isAdminReply && !replyTarget) return;
 

@@ -230,6 +230,16 @@
   margin-top: var(--space-8);
 }
 
+.bottomSection {
+  margin-top: var(--space-10);
+}
+
+@media (min-width: 961px) {
+  .bottomSection {
+    margin-top: var(--space-12);
+  }
+}
+
 .guestbookCta {
   appearance: none;
   border: 1px solid transparent;

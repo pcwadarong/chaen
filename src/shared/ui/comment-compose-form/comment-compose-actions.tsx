@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/button/button';
 import { LockIcon, LockOpenIcon, SendIcon } from '@/shared/ui/icons/app-icons';
 
 type GuestbookComposeActionsProps = {
-  isAdmin: boolean;
+  allowSecretToggle: boolean;
   isSecret: boolean;
   isSubmitting: boolean;
   onSecretChange: (checked: boolean) => void;
@@ -17,8 +17,8 @@ type GuestbookComposeActionsProps = {
 };
 
 /** 비밀글 토글과 전송 버튼 액션 영역을 렌더링합니다. */
-export const GuestbookComposeActions = ({
-  isAdmin,
+export const CommentComposeActions = ({
+  allowSecretToggle,
   isSecret,
   isSubmitting,
   onSecretChange,
@@ -27,7 +27,7 @@ export const GuestbookComposeActions = ({
   submitLabel,
 }: GuestbookComposeActionsProps) => (
   <div css={rightActionsStyle}>
-    {!isAdmin ? (
+    {allowSecretToggle ? (
       <div css={secretControlGroupStyle}>
         <input
           id={secretCheckboxId}
