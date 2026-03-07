@@ -133,7 +133,7 @@ const topActionSlotStyle = css`
 `;
 
 const bubbleBaseStyle = css`
-  width: fit-content;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
