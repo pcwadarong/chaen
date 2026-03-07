@@ -2,18 +2,29 @@ import { unstable_cache } from 'next/cache';
 
 import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleDetailListItem } from '../model/types';
 
+import {
+  mapShadowArticleDetailListItems,
+  type ShadowArticleTranslationRow,
+} from './map-shadow-article';
+
 const DETAIL_LIST_LIMIT = 200;
+
+const isMissingArticleShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
+    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
+  );
+};
 
 /**
  * 아티클 상세 아카이브용 요약 목록을 keyset 정렬 기준으로 정규화합니다.
@@ -33,68 +44,45 @@ const toArticleDetailListItems = (rows: ArticleDetailListItem[]): ArticleDetailL
   }));
 
 /**
- * keyset 정렬 기준으로 아티클 요약 목록 쿼리를 구성합니다.
+ * content schema(`articles` + `article_translations`) 기준 상세 아카이브 목록을 조회합니다.
  */
-const createArticleDetailListQuery = (locale?: string) => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return null;
-
-  const baseQuery = supabase
-    .from('articles')
-    .select('id,title,description,created_at')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false });
-
-  return locale ? baseQuery.eq('locale', locale) : baseQuery;
-};
-
-/**
- * locale 컬럼을 사용하는 아티클 요약 목록을 조회합니다.
- */
-const fetchArticleDetailListByLocale = async (
+const fetchArticleDetailListFromShadow = async (
   locale: string,
-): Promise<{ data: ArticleDetailListItem[]; localeColumnMissing: boolean }> => {
-  const query = createArticleDetailListQuery(locale);
-  if (!query) {
-    return {
-      data: [],
-      localeColumnMissing: false,
-    };
-  }
+): Promise<{ data: ArticleDetailListItem[]; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
 
-  const { data, error } = await query.limit(DETAIL_LIST_LIMIT + 1);
+  const { data: translationRows, error: translationError } = await supabase
+    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .select('article_id,title,description,articles!inner(created_at)')
+    .eq('locale', locale)
+    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('article_id', { ascending: false })
+    .limit(DETAIL_LIST_LIMIT + 1);
 
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: [],
-        localeColumnMissing: true,
-      };
+  if (translationError) {
+    if (isMissingArticleShadowSchemaError(translationError.message)) {
+      return { data: [], schemaMissing: true };
     }
 
-    throw new Error(`[articles] 상세 목록 조회 실패: ${error.message}`);
+    throw new Error(`[articles] shadow 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
   return {
-    data: toArticleDetailListItems((data ?? []) as ArticleDetailListItem[]),
-    localeColumnMissing: false,
+    data: toArticleDetailListItems(
+      mapShadowArticleDetailListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
+    ),
+    schemaMissing: false,
   };
 };
 
-/**
- * locale 컬럼이 없는 기존 스키마를 위한 아티클 요약 목록을 조회합니다.
- */
-const fetchArticleDetailListLegacy = async (): Promise<ArticleDetailListItem[]> => {
-  const query = createArticleDetailListQuery();
-  if (!query) return [];
-
-  const { data, error } = await query.limit(DETAIL_LIST_LIMIT + 1);
-
-  if (error) {
-    throw new Error(`[articles] 상세 목록 legacy 조회 실패: ${error.message}`);
+const fetchArticleDetailListByLocale = async (locale: string): Promise<ArticleDetailListItem[]> => {
+  const shadowList = await fetchArticleDetailListFromShadow(locale);
+  if (shadowList.schemaMissing) {
+    throw new Error('[articles] shadow content schema가 없습니다.');
   }
 
-  return toArticleDetailListItems((data ?? []) as ArticleDetailListItem[]);
+  return shadowList.data;
 };
 
 /**
@@ -108,15 +96,12 @@ export const getArticleDetailList = async (locale: string): Promise<ArticleDetai
 
   const normalizedLocale = locale.toLowerCase();
   const getCachedArticleDetailList = unstable_cache(
-    async () =>
-      resolveLocaleAwareData<ArticleDetailListItem[]>({
-        emptyData: [],
-        fallbackLocale: 'ko',
-        fetchByLocale: targetLocale => fetchArticleDetailListByLocale(targetLocale),
-        fetchLegacy: fetchArticleDetailListLegacy,
-        isEmptyData: items => items.length === 0,
-        targetLocale: normalizedLocale,
-      }),
+    async () => {
+      const localizedItems = await fetchArticleDetailListByLocale(normalizedLocale);
+      if (localizedItems.length > 0 || normalizedLocale === 'ko') return localizedItems;
+
+      return fetchArticleDetailListByLocale('ko');
+    },
     ['articles', 'detail-list', cacheScope, normalizedLocale, 'keyset'],
     {
       tags: [ARTICLES_CACHE_TAG],

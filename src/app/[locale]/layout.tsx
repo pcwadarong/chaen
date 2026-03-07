@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 
 import { isValidLocale, routing } from '@/i18n/routing';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
@@ -30,6 +30,11 @@ type LocaleLayoutProps = Readonly<{
   }>;
 }>;
 
+const navFallbackStyle = {
+  minHeight: '5.5625rem',
+  width: '100%',
+} as const;
+
 /**
  * locale별 루트 레이아웃입니다.
  */
@@ -49,7 +54,9 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
         <AuthProvider value={authState}>
           <div lang={locale}>
             <AppFrame>
-              <GlobalNav />
+              <Suspense fallback={<div aria-hidden style={navFallbackStyle} />}>
+                <GlobalNav />
+              </Suspense>
               {children}
             </AppFrame>
           </div>

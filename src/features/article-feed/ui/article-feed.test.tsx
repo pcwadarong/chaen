@@ -10,8 +10,10 @@ vi.mock('@/features/article-feed/model/use-article-feed', () => ({
   useArticleFeed: vi.fn(),
 }));
 
-vi.mock('@/entities/article/ui/article-card', () => ({
-  ArticleCard: ({ article }: { article: { title: string } }) => <article>{article.title}</article>,
+vi.mock('@/entities/article/ui/article-list-item', () => ({
+  ArticleListItem: ({ article }: { article: { title: string } }) => (
+    <article>{article.title}</article>
+  ),
 }));
 
 /**
@@ -55,6 +57,7 @@ describe('ArticleFeed', () => {
 
     render(
       <ArticleFeed
+        activeTag=""
         emptyText="비어 있음"
         initialCursor={null}
         initialItems={[]}

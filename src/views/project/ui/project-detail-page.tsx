@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
-import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
@@ -21,6 +21,14 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
   const t = await getTranslations('ProjectDetail');
   const detailUi = await getTranslations('DetailUi');
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: item.tags ?? [],
+  });
+
+  if (tagLabelMap.schemaMissing) {
+    throw new Error('[projects] 태그 label schema가 없습니다.');
+  }
 
   return (
     <DetailPageShell
@@ -47,15 +55,19 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
       })}
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <p aria-label={t('tagSection')} className={styles.tagList}>
+        <div aria-label={t('tagSection')} className={styles.tagList}>
           {(item.tags ?? []).length > 0 ? (
             (item.tags ?? []).map(tag => (
-              <span key={tag}># {getTagLabelByLocale(tag, locale)}</span>
+              <button aria-disabled="true" className={styles.tagButton} key={tag} type="button">
+                #{tagLabelMap.data.get(tag) ?? tag}
+              </button>
             ))
           ) : (
-            <span>{t('noTags')}</span>
+            <button aria-disabled="true" className={styles.tagButton} type="button">
+              #{t('noTags')}
+            </button>
           )}
-        </p>
+        </div>
       }
       title={item.title}
     />

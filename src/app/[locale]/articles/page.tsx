@@ -12,11 +12,12 @@ const ArticlesRoute = async ({
   }>;
   searchParams: Promise<{
     q?: string | string[];
+    tag?: string | string[];
   }>;
 }) => {
   const { locale } = await params;
-  const { q } = await searchParams;
-  const pageData = await getArticlesPageData({ locale, query: q });
+  const { q, tag } = await searchParams;
+  const pageData = await getArticlesPageData({ locale, query: q, tag });
 
   return <ArticlesPage {...pageData} />;
 };

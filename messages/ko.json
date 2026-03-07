@@ -81,11 +81,15 @@
     "loadError": "아티클을 불러오지 못했습니다.",
     "loadMoreEnd": "마지막 아티클까지 모두 확인했습니다.",
     "loading": "아티클을 불러오는 중입니다.",
+    "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
+    "popularTagsTitle": "tags",
     "searchClear": "초기화",
+    "searchClose": "검색 닫기",
     "searchPlaceholder": "아티클 검색",
     "searchSubmit": "검색",
     "retry": "다시 시도",
-    "title": "기록"
+    "title": "기록",
+    "viewArticle": "{title} 상세 보기"
   },
   "Project": {
     "deliverables": "주요 산출물",

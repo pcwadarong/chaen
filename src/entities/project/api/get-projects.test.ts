@@ -34,25 +34,28 @@ describe('getProjects', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('첫 페이지 조회는 keyset cache key에 initial cursor를 포함한다', async () => {
-    const projectQuery = {
+  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 cache key에 initial cursor를 포함한다', async () => {
+    const projectTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
-            id: 'funda-project',
-            created_at: '2026-03-02T09:07:50.797695+00:00',
-            locale: 'ko',
+            project_id: 'funda-project',
+            title: 'Funda Project',
+            description: 'project description',
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
       }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue(projectQuery),
-      }),
+      from: vi.fn().mockReturnValue(projectTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -61,7 +64,15 @@ describe('getProjects', () => {
     const result = await getProjects({ locale: 'ko' });
 
     expect(result.items).toHaveLength(1);
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
+    expect(result.items[0]?.title).toBe('Funda Project');
+    expect(projectTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(projectTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
+      ascending: false,
+      referencedTable: 'projects',
+    });
+    expect(projectTranslationsQuery.order).toHaveBeenNthCalledWith(2, 'project_id', {
+      ascending: false,
+    });
     expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
       'projects',
       'list',
@@ -72,28 +83,19 @@ describe('getProjects', () => {
     ]);
   });
 
-  it('다음 페이지 조회는 keyset 조건과 opaque cursor를 사용한다', async () => {
-    const projectQuery = {
+  it('다음 페이지 조회는 locale 번역 목록에도 keyset 조건을 적용한다', async () => {
+    const projectTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'project-2',
-            title: 'p2',
-            description: null,
-            thumbnail_url: null,
-            created_at: '2026-03-01T09:07:50.797695+00:00',
-          },
-        ],
+        data: [],
         error: null,
       }),
       or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue(projectQuery),
-      }),
+      from: vi.fn().mockReturnValue(projectTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -109,51 +111,33 @@ describe('getProjects', () => {
 
     await getProjects({ cursor, locale: 'ko' });
 
-    expect(projectQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
+    expect(projectTranslationsQuery.or).toHaveBeenCalledWith(
+      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,project_id.lt.project-9)',
     );
-    expect(vi.mocked(unstable_cache).mock.calls.at(-1)?.[1]).toEqual([
-      'projects',
-      'list',
-      'supabase-enabled',
-      'ko',
-      '2026-03-02T09:07:50.797695+00:00:project-9',
-      '12',
-    ]);
   });
 
-  it('첫 페이지에서 대상 locale 결과가 비어 있으면 ko locale로 fallback 조회한다', async () => {
-    const targetLocaleQuery = {
-      eq: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-      order: vi.fn().mockReturnThis(),
-    };
-    const koreanFallbackQuery = {
+  it('최근 base row에 번역이 없어도 locale 번역이 있으면 ko fallback 없이 localized 목록을 반환한다', async () => {
+    const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
-            id: 'funda-project',
-            created_at: '2026-03-02T09:07:50.797695+00:00',
-            locale: 'ko',
+            project_id: 'older-fr-project',
+            title: 'Projet FR',
+            description: 'description fr',
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-01T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
       }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(targetLocaleQuery),
-        })
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(koreanFallbackQuery),
-        }),
+      from: vi.fn().mockReturnValue(targetLocaleTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -161,10 +145,86 @@ describe('getProjects', () => {
 
     const result = await getProjects({ locale: 'fr' });
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]?.id).toBe('funda-project');
-    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
-    expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
-    expect(koreanFallbackQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(result.items).toEqual([
+      {
+        id: 'older-fr-project',
+        title: 'Projet FR',
+        description: 'description fr',
+        thumbnail_url: null,
+        created_at: '2026-03-01T09:07:50.797695+00:00',
+      },
+    ]);
+    expect(supabaseClient.from).toHaveBeenCalledTimes(1);
+    expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+  });
+
+  it('첫 페이지에서 대상 locale 번역이 정말 없으면 ko locale로 fallback 조회한다', async () => {
+    const targetLocaleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const fallbackTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            project_id: 'funda-project',
+            title: '한국어 프로젝트',
+            description: '설명',
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(targetLocaleTranslationsQuery)
+        .mockReturnValueOnce(fallbackTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProjects({ locale: 'fr' });
+
+    expect(result.items[0]?.title).toBe('한국어 프로젝트');
+    expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
+    const projectTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.projects" does not exist',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(projectTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProjects({ locale: 'ko' })).rejects.toThrow(
+      '[projects] shadow content schema가 없습니다.',
+    );
   });
 });
