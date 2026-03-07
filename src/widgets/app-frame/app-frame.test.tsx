@@ -68,6 +68,23 @@ describe('AppFrame', () => {
     expect(screen.queryByRole('button', { name: 'scrollToTopAriaLabel' })).toBeNull();
   });
 
+  it('전역 footer 문구를 렌더링한다', () => {
+    const matchMediaMock = createMatchMediaMock(false);
+
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation(() => matchMediaMock),
+    });
+
+    render(
+      <AppFrame>
+        <div>content</div>
+      </AppFrame>,
+    );
+
+    expect(screen.getByText('© 2026.chaewonpark all rights reserved.')).toBeTruthy();
+  });
+
   it('모바일 스크롤이 threshold를 넘으면 버튼을 노출하고 window를 최상단으로 이동시킨다', async () => {
     const matchMediaMock = createMatchMediaMock(false);
     const scrollToSpy = vi.fn();

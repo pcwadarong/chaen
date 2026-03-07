@@ -11,10 +11,26 @@
   min-height: 100dvh;
   margin: 0 auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .scrollViewport {
-  min-height: 100dvh;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.footer {
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom));
+}
+
+.footerText {
+  display: block;
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-160);
+  text-align: center;
 }
 
 .scrollTopButton {
@@ -79,17 +95,27 @@
   }
 
   .scrollViewport {
-    height: 100%;
     display: flex;
     flex-direction: column;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
   }
 
+  .scrollViewport:has([data-page-scroll-mode='independent']) {
+    overflow-y: hidden;
+    scrollbar-gutter: auto;
+  }
+
+  .footer {
+    margin-top: var(--space-8);
+    padding: var(--space-3) var(--space-5);
+  }
+
   .scrollTopButton {
     position: absolute;
     right: 1.25rem;
-    bottom: 1.25rem;
+    bottom: calc(1.25rem + 3rem);
   }
 }
