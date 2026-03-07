@@ -4,7 +4,7 @@ import { getProjects } from '@/entities/project/api/get-projects';
 import { createApiErrorResponse } from '@/shared/lib/http/create-api-error-response';
 
 /**
- * 프로젝트 목록을 cursor(offset) 기반으로 페이지 조회합니다.
+ * 프로젝트 목록을 created_at + id keyset cursor 기반으로 페이지 조회합니다.
  */
 export const GET = async (request: Request) => {
   const url = new URL(request.url);

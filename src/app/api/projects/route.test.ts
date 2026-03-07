@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 
 import { getProjects } from '@/entities/project/api/get-projects';
+import { serializeCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 
 import { GET } from './route';
 
@@ -14,9 +15,14 @@ describe('GET /api/projects', () => {
   });
 
   it('성공 시 items와 nextCursor를 반환한다', async () => {
+    const nextCursor = serializeCreatedAtIdCursor({
+      createdAt: '2026-03-02T09:07:50.797695+00:00',
+      id: 'project-2',
+    });
+
     vi.mocked(getProjects).mockResolvedValue({
       items: [],
-      nextCursor: '12',
+      nextCursor,
     });
 
     const response = await GET(
@@ -26,7 +32,7 @@ describe('GET /api/projects', () => {
 
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
-    expect(payload.nextCursor).toBe('12');
+    expect(payload.nextCursor).toBe(nextCursor);
     expect(getProjects).toHaveBeenCalledWith({
       cursor: null,
       limit: 12,

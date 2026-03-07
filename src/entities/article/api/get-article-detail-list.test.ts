@@ -23,12 +23,10 @@ describe('getArticleDetailList', () => {
     vi.clearAllMocks();
   });
 
-  it('최신순 아티클 요약 목록을 반환한다', async () => {
+  it('최신순 아티클 요약 목록을 keyset 정렬 기준으로 반환한다', async () => {
     const articleQuery = {
-      select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             id: 'frontend',
@@ -39,9 +37,12 @@ describe('getArticleDetailList', () => {
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue(articleQuery),
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue(articleQuery),
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -57,25 +58,24 @@ describe('getArticleDetailList', () => {
         created_at: '2026-03-02T00:00:00.000Z',
       },
     ]);
+    expect(articleQuery.order).toHaveBeenNthCalledWith(1, 'created_at', { ascending: false });
+    expect(articleQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: false });
     expect(unstable_cache).toHaveBeenCalledTimes(1);
   });
 
   it('locale 컬럼이 없으면 legacy 조회로 fallback한다', async () => {
     const localizedQuery = {
-      select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
           message: 'column articles.locale does not exist',
         },
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const legacyQuery = {
-      select: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             id: 'legacy-article',
@@ -86,9 +86,17 @@ describe('getArticleDetailList', () => {
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(localizedQuery).mockReturnValueOnce(legacyQuery),
+      from: vi
+        .fn()
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(localizedQuery),
+        })
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(legacyQuery),
+        }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

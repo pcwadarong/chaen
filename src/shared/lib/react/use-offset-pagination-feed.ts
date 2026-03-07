@@ -10,6 +10,7 @@ type OffsetFeedResponse<T> = {
   items: T[];
   nextCursor: string | null;
   reason?: string;
+  totalCount?: number | null;
 };
 
 type UseOffsetPaginationFeedOptions<T> = {

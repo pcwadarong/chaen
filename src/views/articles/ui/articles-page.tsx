@@ -29,11 +29,13 @@ export const ArticlesPage = ({
       <PageSection>
         <ArticleSearchForm
           clearText={t('searchClear')}
+          pendingText={t('loading')}
           placeholder={t('searchPlaceholder')}
           searchQuery={searchQuery}
           submitText={t('searchSubmit')}
         />
         <ArticleFeed
+          key={`${locale}:${searchQuery}`}
           emptyText={t('emptyItems')}
           initialCursor={initialCursor}
           initialItems={initialItems}
