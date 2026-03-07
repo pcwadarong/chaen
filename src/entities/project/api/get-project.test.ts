@@ -121,8 +121,24 @@ describe('getProject', () => {
         error: null,
       }),
     };
+    const projectTagsQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+    };
+    projectTagsQuery.eq.mockReturnValueOnce(projectTagsQuery).mockReturnValueOnce(
+      Promise.resolve({
+        data: null,
+        error: {
+          message: 'relation "public.project_tags" does not exist',
+        },
+      }),
+    );
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(targetLocaleQuery).mockReturnValueOnce(koreanFallbackQuery),
+      from: vi
+        .fn()
+        .mockReturnValueOnce(targetLocaleQuery)
+        .mockReturnValueOnce(koreanFallbackQuery)
+        .mockReturnValueOnce(projectTagsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -131,8 +147,58 @@ describe('getProject', () => {
     const result = await getProject('funda-project', 'fr');
 
     expect(result?.id).toBe('funda-project');
-    expect(supabaseClient.from).toHaveBeenCalledTimes(2);
+    expect(supabaseClient.from).toHaveBeenCalledTimes(3);
     expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(koreanFallbackQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('관계형 태그 스키마가 있으면 project_tags 기준 태그 slug를 병합한다', async () => {
+    const projectQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'funda-project',
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+          locale: 'ko',
+          tags: null,
+        },
+        error: null,
+      }),
+    };
+    const projectTagsQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+    };
+    const tagsQuery = {
+      in: vi.fn().mockResolvedValue({
+        data: [
+          { id: 'tag-1', slug: 'react' },
+          { id: 'tag-2', slug: 'nextjs' },
+        ],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    projectTagsQuery.eq.mockReturnValueOnce(projectTagsQuery).mockReturnValueOnce(
+      Promise.resolve({
+        data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
+        error: null,
+      }),
+    );
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(projectQuery)
+        .mockReturnValueOnce(projectTagsQuery)
+        .mockReturnValueOnce(tagsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProject('funda-project', 'ko');
+
+    expect(result?.tags).toEqual(['react', 'nextjs']);
   });
 });

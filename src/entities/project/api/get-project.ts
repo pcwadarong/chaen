@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
+import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import {
@@ -40,8 +41,22 @@ const fetchProjectByLocale = async (
     throw new Error(`[projects] locale 조회 실패: ${error.message}`);
   }
 
+  if (!data) {
+    return {
+      data,
+      localeColumnMissing: false,
+    };
+  }
+
+  const relatedTags = await getRelatedTagSlugs({
+    entityColumn: 'project_id',
+    entityId: projectId,
+    locale,
+    relationTable: 'project_tags',
+  });
+
   return {
-    data,
+    data: relatedTags.schemaMissing ? data : { ...data, tags: relatedTags.data },
     localeColumnMissing: false,
   };
 };

@@ -1,5 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
+import { getCanonicalTagSlug } from '@/entities/project/model/tag-map';
+import { getRelatedEntityIdsByTagId, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
   buildCreatedAtIdPage,
@@ -29,6 +31,7 @@ type GetArticlesOptions = {
   limit?: number;
   locale: string;
   query?: string | null;
+  tag?: string | null;
 };
 
 type ArticleSearchCursor = {
@@ -49,6 +52,12 @@ type ArticleSearchRow = ArticleListItem & {
  * 캐시 키와 RPC 파라미터가 같은 문자열을 바라보도록 trim만 수행합니다.
  */
 const normalizeSearchQuery = (query?: string | null) => query?.trim() ?? '';
+
+/**
+ * 태그 필터를 목록 조회용으로 정규화합니다.
+ */
+const normalizeArticleTag = (tag?: string | null) =>
+  tag?.trim() ? getCanonicalTagSlug(tag.trim()) : '';
 
 /**
  * 검색 결과용 rank + created_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
@@ -200,6 +209,115 @@ const fetchArticlesLegacy = async (
 };
 
 /**
+ * locale 컬럼을 사용하는 태그 필터 목록 조회입니다.
+ *
+ * 태그 필터는 현재 locale 범위에서만 동작하며 검색처럼 fallback을 사용하지 않습니다.
+ */
+const fetchArticlesByTagAndLocale = async (
+  locale: string,
+  tag: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      localeColumnMissing: false,
+    };
+  }
+
+  const resolvedTagId = await getTagIdBySlug(tag);
+  if (resolvedTagId.schemaMissing) {
+    return {
+      data: await fetchArticlesByTagLegacy(tag, cursor, pageSize),
+      localeColumnMissing: false,
+    };
+  }
+
+  if (!resolvedTagId.data) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      localeColumnMissing: false,
+    };
+  }
+
+  const relatedArticleIds = await getRelatedEntityIdsByTagId({
+    entityColumn: 'article_id',
+    locale,
+    relationTable: 'article_tags',
+    tagId: resolvedTagId.data,
+  });
+
+  if (relatedArticleIds.schemaMissing) {
+    return {
+      data: await fetchArticlesByTagLegacy(tag, cursor, pageSize),
+      localeColumnMissing: false,
+    };
+  }
+
+  if (relatedArticleIds.data.length === 0) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      localeColumnMissing: false,
+    };
+  }
+
+  const query = applyArticlesKeysetCursor(
+    supabase
+      .from('articles')
+      .select('id,title,description,thumbnail_url,created_at')
+      .eq('locale', locale)
+      .in('id', relatedArticleIds.data),
+    cursor,
+  );
+  const { data, error } = await query.limit(pageSize + 1);
+
+  if (error) {
+    if (isLocaleColumnMissingError(error.message)) {
+      return {
+        data: { items: [], nextCursor: null, totalCount: null },
+        localeColumnMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] 태그 목록 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: toArticlesPage((data ?? []) as ArticleListItem[], pageSize),
+    localeColumnMissing: false,
+  };
+};
+
+/**
+ * locale 컬럼이 없는 스키마를 위한 태그 필터 fallback 조회입니다.
+ */
+const fetchArticlesByTagLegacy = async (
+  tag: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<ArticlesPage> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { items: [], nextCursor: null, totalCount: null };
+
+  const query = applyArticlesKeysetCursor(
+    supabase
+      .from('articles')
+      .select('id,title,description,thumbnail_url,created_at')
+      .contains('tags', [tag]),
+    cursor,
+  );
+  const { data, error } = await query.limit(pageSize + 1);
+
+  if (error) {
+    throw new Error(`[articles] 레거시 태그 목록 조회 실패: ${error.message}`);
+  }
+
+  return toArticlesPage((data ?? []) as ArticleListItem[], pageSize);
+};
+
+/**
  * RPC 검색 결과를 rank + created_at + id keyset 페이지 형태로 변환합니다.
  *
  * RPC는 각 행마다 동일한 `total_count`를 포함하므로 첫 행의 메타데이터를 사용합니다.
@@ -271,6 +389,7 @@ export const getArticles = async ({
   limit,
   locale,
   query,
+  tag,
 }: GetArticlesOptions): Promise<ArticlesPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') {
@@ -279,6 +398,7 @@ export const getArticles = async ({
 
   const normalizedLocale = locale.toLowerCase();
   const normalizedQuery = normalizeSearchQuery(query);
+  const normalizedTag = normalizedQuery ? '' : normalizeArticleTag(tag);
   const pageSize = parseKeysetLimit(limit);
   const parsedCursor = normalizedQuery
     ? parseArticleSearchCursor(cursor)
@@ -289,6 +409,21 @@ export const getArticles = async ({
     async () => {
       if (normalizedQuery) {
         return fetchSearchArticles(normalizedQuery, normalizedLocale, cursor, pageSize);
+      }
+
+      if (normalizedTag) {
+        const taggedResult = await fetchArticlesByTagAndLocale(
+          normalizedLocale,
+          normalizedTag,
+          cursor,
+          pageSize,
+        );
+
+        if (taggedResult.localeColumnMissing) {
+          return fetchArticlesByTagLegacy(normalizedTag, cursor, pageSize);
+        }
+
+        return taggedResult.data;
       }
 
       const isFirstPage = !parsedCursor;
@@ -319,6 +454,7 @@ export const getArticles = async ({
       cacheCursor,
       String(pageSize),
       normalizedQuery,
+      normalizedTag,
     ],
     {
       tags: [ARTICLES_CACHE_TAG],

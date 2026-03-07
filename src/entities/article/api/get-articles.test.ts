@@ -71,6 +71,7 @@ describe('getArticles', () => {
       'initial',
       '12',
       '',
+      '',
     ]);
   });
 
@@ -226,5 +227,54 @@ describe('getArticles', () => {
       search_query: 'react',
       target_locale: 'fr',
     });
+  });
+
+  it('태그가 있으면 관계형 태그 테이블 기준으로 목록을 조회한다', async () => {
+    const tagsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: 'tag-1' },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articleTagsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articleQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+    };
+    articleTagsQuery.eq.mockReturnValueOnce(articleTagsQuery).mockReturnValueOnce(
+      Promise.resolve({
+        data: [{ article_id: 'article-1' }, { article_id: 'article-2' }],
+        error: null,
+      }),
+    );
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(tagsQuery)
+        .mockReturnValueOnce(articleTagsQuery)
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(articleQuery),
+        }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await getArticles({ locale: 'ko', tag: 'nextjs' });
+
+    expect(tagsQuery.eq).toHaveBeenCalledWith('slug', 'nextjs');
+    expect(articleTagsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleQuery.in).toHaveBeenCalledWith('id', ['article-1', 'article-2']);
   });
 });

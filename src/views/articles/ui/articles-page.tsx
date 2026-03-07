@@ -3,23 +3,28 @@
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 
-import type { ArticleListItem } from '@/entities/article/model/types';
+import type { ArticleListItem, ArticleTagStat } from '@/entities/article/model/types';
 import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
+import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
 import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
 
 export type ArticlesPageProps = {
+  activeTag: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
   locale: string;
+  popularTags: ArticleTagStat[];
   searchQuery: string;
 };
 
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
 export const ArticlesPage = ({
+  activeTag,
   initialCursor,
   initialItems,
   locale,
+  popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
   const t = useTranslations('Articles');
@@ -31,7 +36,8 @@ export const ArticlesPage = ({
         <div css={layoutStyle}>
           <div css={feedColumnStyle}>
             <ArticleFeed
-              key={`${locale}:${searchQuery}`}
+              activeTag={activeTag}
+              key={`${locale}:${searchQuery}:${activeTag}`}
               emptyText={t('emptyItems')}
               initialCursor={initialCursor}
               initialItems={initialItems}
@@ -51,6 +57,13 @@ export const ArticlesPage = ({
                 placeholder={t('searchPlaceholder')}
                 searchQuery={searchQuery}
                 submitText={t('searchSubmit')}
+              />
+              <ArticleTagFilterList
+                activeTag={activeTag}
+                emptyText={t('popularTagsEmpty')}
+                items={popularTags}
+                locale={locale}
+                title={t('popularTagsTitle')}
               />
             </div>
           </aside>
