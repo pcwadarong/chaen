@@ -17,6 +17,7 @@ describe('GET /api/articles', () => {
     vi.mocked(getArticles).mockResolvedValue({
       items: [],
       nextCursor: '12',
+      totalCount: null,
     });
 
     const response = await GET(
@@ -27,6 +28,7 @@ describe('GET /api/articles', () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(payload.nextCursor).toBe('12');
+    expect(payload.totalCount).toBeNull();
     expect(getArticles).toHaveBeenCalledWith({
       cursor: null,
       limit: 12,
@@ -39,9 +41,11 @@ describe('GET /api/articles', () => {
     vi.mocked(getArticles).mockResolvedValue({
       items: [],
       nextCursor: null,
+      totalCount: 3,
     });
 
-    await GET(new Request('http://localhost:3000/api/articles?locale=ko&q=react'));
+    const response = await GET(new Request('http://localhost:3000/api/articles?locale=ko&q=react'));
+    const payload = await response.json();
 
     expect(getArticles).toHaveBeenCalledWith({
       cursor: null,
@@ -49,6 +53,7 @@ describe('GET /api/articles', () => {
       locale: 'ko',
       query: 'react',
     });
+    expect(payload.totalCount).toBe(3);
   });
 
   it('실패 시 500과 reason을 반환한다', async () => {
