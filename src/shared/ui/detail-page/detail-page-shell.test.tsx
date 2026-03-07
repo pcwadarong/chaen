@@ -17,6 +17,7 @@ vi.mock('@/i18n/navigation', () => ({
  */
 const renderServerHtml = async () => {
   const element = await DetailPageShell({
+    bottomContent: <section data-testid="detail-bottom-content">댓글 영역</section>,
     content: '상세 본문',
     emptyArchiveText: '비어있음',
     emptyContentText: '본문 없음',
@@ -45,5 +46,8 @@ describe('DetailPageShell', () => {
     );
     expect(html.indexOf('data-testid="detail-meta-bar"')).toBeLessThan(html.indexOf('상세 본문'));
     expect(html).toContain('href="/guest"');
+    expect(html.indexOf('href="/guest"')).toBeLessThan(
+      html.indexOf('data-testid="detail-bottom-content"'),
+    );
   });
 });

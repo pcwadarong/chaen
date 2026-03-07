@@ -15,13 +15,20 @@ type ArticleDetailRouteProps = {
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archiveItems, item } = await getArticleDetailPageData({
+  const { archiveItems, initialCommentsPage, item } = await getArticleDetailPageData({
     articleId: id,
     locale,
   });
   if (!item) notFound();
 
-  return <ArticleDetailPage archiveItems={archiveItems} item={item} locale={locale} />;
+  return (
+    <ArticleDetailPage
+      archiveItems={archiveItems}
+      initialCommentsPage={initialCommentsPage}
+      item={item}
+      locale={locale}
+    />
+  );
 };
 
 export default ArticleDetailRoute;

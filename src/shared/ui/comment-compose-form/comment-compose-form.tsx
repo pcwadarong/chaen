@@ -23,6 +23,7 @@ import { CommentComposeReplyPreview } from '@/shared/ui/comment-compose-form/com
 
 type CommentComposeFormLayout = 'embedded' | 'fixed';
 type CommentComposeAuthorMode = 'manual' | 'preset';
+type CommentComposeTopRowWrap = 'nowrap' | 'wrap';
 
 type CommentComposeFormProps = {
   allowSecretToggle?: boolean;
@@ -49,6 +50,7 @@ type CommentComposeFormProps = {
   textareaAutoResize?: boolean;
   textareaRows?: number;
   textPlaceholder: string;
+  topRowWrap?: CommentComposeTopRowWrap;
 };
 
 const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
@@ -82,6 +84,7 @@ export const CommentComposeForm = ({
   textareaAutoResize = true,
   textareaRows = 1,
   textPlaceholder,
+  topRowWrap = 'wrap',
 }: CommentComposeFormProps) => {
   const [authorName, setAuthorName] = useState('');
   const [password, setPassword] = useState('');
@@ -169,7 +172,7 @@ export const CommentComposeForm = ({
 
   return (
     <form onSubmit={handleSubmit} css={[formBaseStyle, layoutStyleMap[layout]]}>
-      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout]]}>
+      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout], topRowWrapStyleMap[topRowWrap]]}>
         {!isPresetAuthorMode ? (
           <CommentComposeProfileFields
             authorBlogUrlId={authorBlogUrlId}
@@ -297,4 +300,13 @@ const layoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> =
 const topRowLayoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
   embedded: embeddedTopRowStyle,
   fixed: fixedTopRowStyle,
+};
+
+const topRowWrapStyleMap: Record<CommentComposeTopRowWrap, ReturnType<typeof css>> = {
+  nowrap: css`
+    flex-wrap: nowrap;
+  `,
+  wrap: css`
+    flex-wrap: wrap;
+  `,
 };

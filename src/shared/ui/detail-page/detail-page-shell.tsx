@@ -14,6 +14,7 @@ export type DetailArchiveLinkItem = {
 };
 
 type DetailPageShellProps = {
+  bottomContent?: ReactNode;
   children?: ReactNode;
   content?: string | null;
   emptyArchiveText: string;
@@ -31,6 +32,7 @@ type DetailPageShellProps = {
  * 좌측 아카이브 목록과 우측 상세 본문을 함께 배치하는 공용 디테일 셸입니다.
  */
 export const DetailPageShell = async ({
+  bottomContent,
   children,
   content,
   emptyArchiveText,
@@ -98,6 +100,9 @@ export const DetailPageShell = async ({
               </span>
             </Link>
           </div>
+          {bottomContent ? (
+            <section className={styles.bottomSection}>{bottomContent}</section>
+          ) : null}
         </div>
       </article>
     </main>
