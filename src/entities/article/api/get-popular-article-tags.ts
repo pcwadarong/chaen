@@ -1,6 +1,10 @@
 import { unstable_cache } from 'next/cache';
 
-import { getRelatedTagIdsByLocale, getTagSlugMap } from '@/entities/tag/api/query-tags';
+import {
+  getAllRelatedTagIds,
+  getRelatedTagIdsByLocale,
+  getTagSlugMap,
+} from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -42,7 +46,11 @@ export const getPopularArticleTags = async ({
 
   const getCachedPopularTags = unstable_cache(
     async () => {
-      const relationTagIds = await getRelatedTagIdsByLocale('article_tags', normalizedLocale);
+      const shadowRelationTagIds = await getAllRelatedTagIds('article_tags_v2');
+      const relationTagIds = shadowRelationTagIds.schemaMissing
+        ? await getRelatedTagIdsByLocale('article_tags', normalizedLocale)
+        : shadowRelationTagIds;
+
       if (!relationTagIds.schemaMissing) {
         const tagCounts = new Map<string, number>();
 

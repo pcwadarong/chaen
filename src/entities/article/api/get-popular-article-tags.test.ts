@@ -30,10 +30,12 @@ describe('getPopularArticleTags', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('locale과 limit를 RPC로 전달한다', async () => {
-    const articleTagsQuery = {
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
+  it('shadow relation table이 있으면 locale 조건 없이 article_tags_v2를 집계한다', async () => {
+    const articleTagsV2Query = {
+      select: vi.fn().mockResolvedValue({
+        data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
+        error: null,
+      }),
     };
     const tagsQuery = {
       in: vi.fn().mockResolvedValue({
@@ -46,16 +48,12 @@ describe('getPopularArticleTags', () => {
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(articleTagsQuery).mockReturnValueOnce(tagsQuery),
+      from: vi.fn().mockReturnValueOnce(articleTagsV2Query).mockReturnValueOnce(tagsQuery),
       rpc: vi.fn(),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
-    articleTagsQuery.eq.mockResolvedValue({
-      data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
-      error: null,
-    });
 
     await expect(getPopularArticleTags({ limit: 8, locale: 'ko' })).resolves.toEqual([
       {
@@ -67,19 +65,31 @@ describe('getPopularArticleTags', () => {
         tag: 'react',
       },
     ]);
-    expect(supabaseClient.from).toHaveBeenCalledWith('article_tags');
-    expect(articleTagsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(supabaseClient.from).toHaveBeenCalledWith('article_tags_v2');
     expect(tagsQuery.in).toHaveBeenCalledWith('id', ['tag-1', 'tag-2']);
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
   });
 
-  it('관계형 태그 스키마가 아직 없으면 RPC fallback을 사용한다', async () => {
+  it('shadow와 legacy relation table이 모두 없으면 RPC fallback을 사용한다', async () => {
+    const articleTagsV2Query = {
+      select: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.article_tags_v2" does not exist',
+        },
+      }),
+    };
     const articleTagsQuery = {
-      eq: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.article_tags" does not exist',
+        },
+      }),
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue(articleTagsQuery),
+      from: vi.fn().mockReturnValueOnce(articleTagsV2Query).mockReturnValueOnce(articleTagsQuery),
       rpc: vi.fn().mockResolvedValue({
         data: [{ article_count: 3, tag: 'nextjs' }],
         error: null,
@@ -88,12 +98,6 @@ describe('getPopularArticleTags', () => {
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
-    articleTagsQuery.eq.mockResolvedValue({
-      data: null,
-      error: {
-        message: 'relation "public.article_tags" does not exist',
-      },
-    });
 
     await expect(getPopularArticleTags({ locale: 'ko' })).resolves.toEqual([
       { article_count: 3, tag: 'nextjs' },

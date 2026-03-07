@@ -13,10 +13,100 @@ import 'server-only';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
 
+const isMissingProjectShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('projects_v2') || normalizedMessage.includes('project_translations')
+  );
+};
+
+type ProjectBaseRow = Pick<
+  Project,
+  'created_at' | 'id' | 'period_end' | 'period_start' | 'thumbnail_url'
+>;
+
+type ProjectTranslationRow = Pick<Project, 'content' | 'description' | 'title'> & {
+  project_id: string;
+};
+
+/**
+ * shadow schema(`projects_v2` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
+ */
+const fetchProjectFromShadowSchema = async (
+  projectId: string,
+  locale: string,
+): Promise<{ data: Project | null; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: null, schemaMissing: false };
+
+  const { data: translation, error: translationError } = await supabase
+    .from('project_translations')
+    .select('project_id,title,description,content')
+    .eq('project_id', projectId)
+    .eq('locale', locale)
+    .maybeSingle<ProjectTranslationRow>();
+
+  if (translationError) {
+    if (isMissingProjectShadowSchemaError(translationError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[projects] shadow 번역 조회 실패: ${translationError.message}`);
+  }
+
+  if (!translation) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const { data: projectBase, error: projectBaseError } = await supabase
+    .from('projects_v2')
+    .select('id,thumbnail_url,created_at,period_start,period_end')
+    .eq('id', projectId)
+    .maybeSingle<ProjectBaseRow>();
+
+  if (projectBaseError) {
+    if (isMissingProjectShadowSchemaError(projectBaseError.message)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[projects] shadow base 조회 실패: ${projectBaseError.message}`);
+  }
+
+  if (!projectBase) {
+    return { data: null, schemaMissing: false };
+  }
+
+  const shadowTags = await getRelatedTagSlugs({
+    entityColumn: 'project_id',
+    entityId: projectId,
+    relationTable: 'project_tags_v2',
+  });
+
+  const legacyTags = shadowTags.schemaMissing
+    ? await getRelatedTagSlugs({
+        entityColumn: 'project_id',
+        entityId: projectId,
+        locale,
+        relationTable: 'project_tags',
+      })
+    : shadowTags;
+
+  return {
+    data: {
+      ...projectBase,
+      ...translation,
+      gallery_urls: null,
+      tags: legacyTags.schemaMissing ? null : legacyTags.data,
+    },
+    schemaMissing: false,
+  };
+};
+
 /**
  * locale 컬럼을 사용하는 프로젝트를 조회합니다.
  */
-const fetchProjectByLocale = async (
+const fetchProjectByLocaleLegacy = async (
   projectId: string,
   locale: string,
 ): Promise<{ data: Project | null; localeColumnMissing: boolean }> => {
@@ -59,6 +149,24 @@ const fetchProjectByLocale = async (
     data: relatedTags.schemaMissing ? data : { ...data, tags: relatedTags.data },
     localeColumnMissing: false,
   };
+};
+
+/**
+ * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
+ */
+const fetchProjectByLocale = async (
+  projectId: string,
+  locale: string,
+): Promise<{ data: Project | null; localeColumnMissing: boolean }> => {
+  const shadowProject = await fetchProjectFromShadowSchema(projectId, locale);
+  if (!shadowProject.schemaMissing) {
+    return {
+      data: shadowProject.data,
+      localeColumnMissing: false,
+    };
+  }
+
+  return fetchProjectByLocaleLegacy(projectId, locale);
 };
 
 /**

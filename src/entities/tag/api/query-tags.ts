@@ -7,18 +7,20 @@ type TagSchemaResult<T> = {
   schemaMissing: boolean;
 };
 
+type RelationTableName = 'article_tags' | 'project_tags' | 'article_tags_v2' | 'project_tags_v2';
+
 type GetRelatedEntityIdsOptions = {
   entityColumn: 'article_id' | 'project_id';
-  locale: string;
-  relationTable: 'article_tags' | 'project_tags';
+  locale?: string;
+  relationTable: RelationTableName;
   tagId: string;
 };
 
 type GetRelatedTagIdsOptions = {
   entityColumn: 'article_id' | 'project_id';
   entityId: string;
-  locale: string;
-  relationTable: 'article_tags' | 'project_tags';
+  locale?: string;
+  relationTable: RelationTableName;
 };
 
 const isMissingTagSchemaError = (message: string) => {
@@ -27,10 +29,18 @@ const isMissingTagSchemaError = (message: string) => {
   return (
     normalizedMessage.includes('article_tags') ||
     normalizedMessage.includes('project_tags') ||
+    normalizedMessage.includes('article_tags_v2') ||
+    normalizedMessage.includes('project_tags_v2') ||
     normalizedMessage.includes('tags') ||
     normalizedMessage.includes('tag_translations')
   );
 };
+
+/**
+ * relation table이 locale 컬럼을 포함하는지 판별합니다.
+ */
+const hasLocaleColumn = (relationTable: RelationTableName) =>
+  relationTable === 'article_tags' || relationTable === 'project_tags';
 
 /**
  * canonical slug로 태그 id를 조회합니다.
@@ -68,11 +78,10 @@ export const getRelatedTagIds = async ({
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };
 
-  const { data, error } = await supabase
-    .from(relationTable)
-    .select('tag_id')
-    .eq(entityColumn, entityId)
-    .eq('locale', locale);
+  const query = supabase.from(relationTable).select('tag_id').eq(entityColumn, entityId);
+
+  const { data, error } =
+    locale && hasLocaleColumn(relationTable) ? await query.eq('locale', locale) : await query;
 
   if (error) {
     if (isMissingTagSchemaError(error.message)) {
@@ -100,11 +109,10 @@ export const getRelatedEntityIdsByTagId = async ({
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };
 
-  const { data, error } = await supabase
-    .from(relationTable)
-    .select(entityColumn)
-    .eq('locale', locale)
-    .eq('tag_id', tagId);
+  const query = supabase.from(relationTable).select(entityColumn).eq('tag_id', tagId);
+
+  const { data, error } =
+    locale && hasLocaleColumn(relationTable) ? await query.eq('locale', locale) : await query;
 
   if (error) {
     if (isMissingTagSchemaError(error.message)) {
@@ -200,6 +208,33 @@ export const getRelatedTagIdsByLocale = async (
     }
 
     throw new Error(`[tags] locale tag id 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: (data ?? []).map(row => (row as { tag_id: string }).tag_id),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * relation table 전체에서 연결된 tag id를 가져옵니다.
+ *
+ * locale 없는 `*_tags_v2` shadow schema 집계를 우선 읽을 때 사용합니다.
+ */
+export const getAllRelatedTagIds = async (
+  relationTable: 'article_tags_v2' | 'project_tags_v2',
+): Promise<TagSchemaResult<string[]>> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
+
+  const { data, error } = await supabase.from(relationTable).select('tag_id');
+
+  if (error) {
+    if (isMissingTagSchemaError(error.message)) {
+      return { data: [], schemaMissing: true };
+    }
+
+    throw new Error(`[tags] 전체 relation tag id 조회 실패: ${error.message}`);
   }
 
   return {

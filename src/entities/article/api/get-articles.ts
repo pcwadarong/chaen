@@ -20,6 +20,14 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleListItem } from '../model/types';
 
+const isMissingArticlesShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('articles_v2') || normalizedMessage.includes('article_translations')
+  );
+};
+
 type ArticlesPage = {
   items: ArticleListItem[];
   nextCursor: string | null;
@@ -44,6 +52,12 @@ type ArticleSearchRow = ArticleListItem & {
   content: string | null;
   search_rank: number;
   total_count: number;
+};
+
+type ArticleBaseListRow = Pick<ArticleListItem, 'created_at' | 'id' | 'thumbnail_url'>;
+
+type ArticleTranslationListRow = Pick<ArticleListItem, 'description' | 'title'> & {
+  article_id: string;
 };
 
 /**
@@ -144,7 +158,7 @@ const applyArticlesKeysetCursor = <
  * 비검색 목록에서는 기존 locale fallback 정책을 유지해야 하므로
  * RPC 대신 일반 select 쿼리를 사용합니다.
  */
-const fetchArticlesByLocale = async (
+const fetchArticlesByLocaleLegacy = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
@@ -181,6 +195,130 @@ const fetchArticlesByLocale = async (
     data: toArticlesPage((data ?? []) as ArticleListItem[], pageSize),
     localeColumnMissing: false,
   };
+};
+
+/**
+ * shadow schema(`articles_v2` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
+ */
+const fetchShadowArticleListItems = async (
+  baseRows: ArticleBaseListRow[],
+  locale: string,
+): Promise<{ items: ArticleListItem[]; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase || baseRows.length === 0) {
+    return { items: [], schemaMissing: false };
+  }
+
+  const articleIds = Array.from(new Set(baseRows.map(row => row.id)));
+  const { data: translationRows, error: translationError } = await supabase
+    .from('article_translations')
+    .select('article_id,title,description')
+    .eq('locale', locale)
+    .in('article_id', articleIds);
+
+  if (translationError) {
+    if (isMissingArticlesShadowSchemaError(translationError.message)) {
+      return { items: [], schemaMissing: true };
+    }
+
+    throw new Error(`[articles] shadow 번역 목록 조회 실패: ${translationError.message}`);
+  }
+
+  const translationMap = new Map(
+    ((translationRows ?? []) as ArticleTranslationListRow[]).map(row => [row.article_id, row]),
+  );
+
+  return {
+    items: baseRows.flatMap(row => {
+      const translation = translationMap.get(row.id);
+      if (!translation) return [];
+
+      return [
+        {
+          created_at: row.created_at,
+          description: translation.description,
+          id: row.id,
+          thumbnail_url: row.thumbnail_url,
+          title: translation.title,
+        } satisfies ArticleListItem,
+      ];
+    }),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * shadow schema(`articles_v2` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
+ */
+const fetchArticlesByLocaleFromShadow = async (
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ArticlesPage; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      schemaMissing: false,
+    };
+  }
+
+  const baseQuery = applyArticlesKeysetCursor(
+    supabase.from('articles_v2').select('id,thumbnail_url,created_at'),
+    cursor,
+  );
+  const { data: articleBaseRows, error: articleBaseError } = await baseQuery.limit(pageSize + 1);
+
+  if (articleBaseError) {
+    if (isMissingArticlesShadowSchemaError(articleBaseError.message)) {
+      return {
+        data: { items: [], nextCursor: null, totalCount: null },
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] shadow base 목록 조회 실패: ${articleBaseError.message}`);
+  }
+
+  const baseRows = (articleBaseRows ?? []) as ArticleBaseListRow[];
+  if (baseRows.length === 0) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      schemaMissing: false,
+    };
+  }
+
+  const shadowItems = await fetchShadowArticleListItems(baseRows, locale);
+  if (shadowItems.schemaMissing) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      schemaMissing: true,
+    };
+  }
+
+  return {
+    data: toArticlesPage(shadowItems.items, pageSize),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
+ */
+const fetchArticlesByLocale = async (
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
+  const shadowArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
+  if (!shadowArticles.schemaMissing) {
+    return {
+      data: shadowArticles.data,
+      localeColumnMissing: false,
+    };
+  }
+
+  return fetchArticlesByLocaleLegacy(locale, cursor, pageSize);
 };
 
 /**
@@ -242,12 +380,20 @@ const fetchArticlesByTagAndLocale = async (
     };
   }
 
-  const relatedArticleIds = await getRelatedEntityIdsByTagId({
+  const shadowArticleIds = await getRelatedEntityIdsByTagId({
     entityColumn: 'article_id',
-    locale,
-    relationTable: 'article_tags',
+    relationTable: 'article_tags_v2',
     tagId: resolvedTagId.data,
   });
+
+  const relatedArticleIds = shadowArticleIds.schemaMissing
+    ? await getRelatedEntityIdsByTagId({
+        entityColumn: 'article_id',
+        locale,
+        relationTable: 'article_tags',
+        tagId: resolvedTagId.data,
+      })
+    : shadowArticleIds;
 
   if (relatedArticleIds.schemaMissing) {
     return {
@@ -261,6 +407,31 @@ const fetchArticlesByTagAndLocale = async (
       data: { items: [], nextCursor: null, totalCount: null },
       localeColumnMissing: false,
     };
+  }
+
+  const shadowQuery = applyArticlesKeysetCursor(
+    supabase
+      .from('articles_v2')
+      .select('id,thumbnail_url,created_at')
+      .in('id', relatedArticleIds.data),
+    cursor,
+  );
+  const { data: articleBaseRows, error: articleBaseError } = await shadowQuery.limit(pageSize + 1);
+
+  if (!articleBaseError) {
+    const shadowItems = await fetchShadowArticleListItems(
+      (articleBaseRows ?? []) as ArticleBaseListRow[],
+      locale,
+    );
+
+    if (!shadowItems.schemaMissing) {
+      return {
+        data: toArticlesPage(shadowItems.items, pageSize),
+        localeColumnMissing: false,
+      };
+    }
+  } else if (!isMissingArticlesShadowSchemaError(articleBaseError.message)) {
+    throw new Error(`[articles] shadow 태그 목록 조회 실패: ${articleBaseError.message}`);
   }
 
   const query = applyArticlesKeysetCursor(

@@ -18,6 +18,14 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectListItem } from '../model/types';
 
+const isMissingProjectsShadowSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('projects_v2') || normalizedMessage.includes('project_translations')
+  );
+};
+
 type ProjectsPage = {
   items: ProjectListItem[];
   nextCursor: string | null;
@@ -27,6 +35,12 @@ type GetProjectsOptions = {
   cursor?: string | null;
   limit?: number;
   locale: string;
+};
+
+type ProjectBaseListRow = Pick<ProjectListItem, 'created_at' | 'id' | 'thumbnail_url'>;
+
+type ProjectTranslationListRow = Pick<ProjectListItem, 'description' | 'title'> & {
+  project_id: string;
 };
 
 /**
@@ -79,7 +93,7 @@ const applyProjectsKeysetCursor = <
  * 첫 페이지와 다음 페이지 모두 동일한 keyset 정렬을 사용하고,
  * 첫 페이지 locale fallback 여부만 상위 로직에서 결정합니다.
  */
-const fetchProjectsByLocale = async (
+const fetchProjectsByLocaleLegacy = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
@@ -116,6 +130,110 @@ const fetchProjectsByLocale = async (
     data: toProjectsPage((data ?? []) as ProjectListItem[], pageSize),
     localeColumnMissing: false,
   };
+};
+
+/**
+ * shadow schema(`projects_v2` + `project_translations`)에서 locale별 목록을 조회합니다.
+ */
+const fetchProjectsByLocaleFromShadow = async (
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ProjectsPage; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: { items: [], nextCursor: null },
+      schemaMissing: false,
+    };
+  }
+
+  const baseQuery = applyProjectsKeysetCursor(
+    supabase.from('projects_v2').select('id,thumbnail_url,created_at'),
+    cursor,
+  );
+  const { data: projectBaseRows, error: projectBaseError } = await baseQuery.limit(pageSize + 1);
+
+  if (projectBaseError) {
+    if (isMissingProjectsShadowSchemaError(projectBaseError.message)) {
+      return {
+        data: { items: [], nextCursor: null },
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[projects] shadow base 목록 조회 실패: ${projectBaseError.message}`);
+  }
+
+  const baseRows = (projectBaseRows ?? []) as ProjectBaseListRow[];
+  if (baseRows.length === 0) {
+    return {
+      data: { items: [], nextCursor: null },
+      schemaMissing: false,
+    };
+  }
+
+  const projectIds = Array.from(new Set(baseRows.map(row => row.id)));
+  const { data: translationRows, error: translationError } = await supabase
+    .from('project_translations')
+    .select('project_id,title,description')
+    .eq('locale', locale)
+    .in('project_id', projectIds);
+
+  if (translationError) {
+    if (isMissingProjectsShadowSchemaError(translationError.message)) {
+      return {
+        data: { items: [], nextCursor: null },
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[projects] shadow 번역 목록 조회 실패: ${translationError.message}`);
+  }
+
+  const translationMap = new Map(
+    ((translationRows ?? []) as ProjectTranslationListRow[]).map(row => [row.project_id, row]),
+  );
+
+  return {
+    data: toProjectsPage(
+      baseRows.flatMap(row => {
+        const translation = translationMap.get(row.id);
+        if (!translation) return [];
+
+        return [
+          {
+            created_at: row.created_at,
+            description: translation.description,
+            id: row.id,
+            thumbnail_url: row.thumbnail_url,
+            title: translation.title,
+          } satisfies ProjectListItem,
+        ];
+      }),
+      pageSize,
+    ),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
+ */
+const fetchProjectsByLocale = async (
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ProjectsPage; localeColumnMissing: boolean }> => {
+  const shadowProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
+  if (!shadowProjects.schemaMissing) {
+    return {
+      data: shadowProjects.data,
+      localeColumnMissing: false,
+    };
+  }
+
+  return fetchProjectsByLocaleLegacy(locale, cursor, pageSize);
 };
 
 /**
