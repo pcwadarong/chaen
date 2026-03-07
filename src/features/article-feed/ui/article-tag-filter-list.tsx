@@ -47,7 +47,7 @@ export const ArticleTagFilterList = ({
               key={item.tag}
             >
               <span>{item.label}</span>
-              <span css={countStyle}>{item.article_count}</span>
+              <span css={countStyle}>({item.article_count})</span>
             </Link>
           );
         })}
@@ -71,30 +71,26 @@ const titleStyle = css`
 const listStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
 `;
 
 const tagLinkStyle = css`
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  min-height: 2.25rem;
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.22);
-  background: rgb(var(--color-surface-muted) / 0.36);
-  color: rgb(var(--color-text));
+  gap: 0.2rem;
+  min-height: 1.75rem;
+  padding: 0;
+  color: rgb(var(--color-muted));
   font-size: var(--font-size-14);
+  line-height: 1.35;
   text-decoration: none;
   transition:
-    background-color 160ms ease,
-    border-color 160ms ease,
     color 160ms ease,
+    opacity 160ms ease,
     box-shadow 160ms ease;
 
   &:hover {
-    border-color: rgb(var(--color-border) / 0.38);
-    background: rgb(var(--color-surface-muted) / 0.58);
+    color: rgb(var(--color-primary));
   }
 
   &:focus-visible {
@@ -104,14 +100,13 @@ const tagLinkStyle = css`
 `;
 
 const activeTagLinkStyle = css`
-  border-color: rgb(var(--color-primary) / 0.24);
-  background: rgb(var(--color-primary) / 0.1);
   color: rgb(var(--color-primary));
 `;
 
 const countStyle = css`
   color: rgb(var(--color-muted));
-  font-size: var(--font-size-12);
+  font-size: 0.6875rem;
+  letter-spacing: -0.01em;
 `;
 
 const emptyStyle = css`
