@@ -11,12 +11,14 @@ import type {
   ArticleCommentThreadItem,
 } from '@/entities/article-comment/model/types';
 import type { CommentComposeValues } from '@/shared/lib/comment-compose';
+import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
 import {
   ArrowCurveLeftRightIcon,
-  CalendarIcon,
   EditIcon,
+  LinkExternalIcon,
+  ReportIcon,
   TrashIcon,
 } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
@@ -396,6 +398,8 @@ export const ArticleCommentsSection = ({
                 <CommentEntryCard
                   actionDeleteLabel={t('delete')}
                   actionEditLabel={t('edit')}
+                  actionMenuLabel={t('actionMenuLabel')}
+                  actionMenuPanelLabel={t('actionMenuPanelLabel')}
                   actionReplyLabel={t('reply')}
                   dateText={formatCommentDate(thread.created_at, locale)}
                   deletedPlaceholder={t('deletedPlaceholder')}
@@ -414,6 +418,8 @@ export const ArticleCommentsSection = ({
                         <CommentEntryCard
                           actionDeleteLabel={t('delete')}
                           actionEditLabel={t('edit')}
+                          actionMenuLabel={t('actionMenuLabel')}
+                          actionMenuPanelLabel={t('actionMenuPanelLabel')}
                           actionReplyLabel={t('reply')}
                           dateText={formatCommentDate(reply.created_at, locale)}
                           deletedPlaceholder={t('deletedPlaceholder')}
@@ -549,6 +555,8 @@ export const ArticleCommentsSection = ({
 type CommentEntryCardProps = {
   actionDeleteLabel: string;
   actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
   actionReplyLabel: string;
   dateText: string;
   deletedPlaceholder: string;
@@ -566,6 +574,8 @@ type CommentEntryCardProps = {
 const CommentEntryCard = ({
   actionDeleteLabel,
   actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
   actionReplyLabel,
   dateText,
   deletedPlaceholder,
@@ -577,13 +587,42 @@ const CommentEntryCard = ({
   reportLabel,
 }: CommentEntryCardProps) => {
   const isDeleted = Boolean(entry.deleted_at);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
 
   return (
     <div css={[entryCardStyle, isReply ? replyEntryCardStyle : undefined]}>
       <div css={entryHeaderStyle}>
         <div css={authorMetaStyle}>
-          <strong css={authorNameStyle}>{entry.author_name}</strong>
+          {entry.author_blog_url ? (
+            <a
+              css={authorLinkStyle}
+              href={entry.author_blog_url}
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              <strong css={authorNameStyle}>{entry.author_name}</strong>
+              <LinkExternalIcon aria-hidden color="primary" size="sm" />
+            </a>
+          ) : (
+            <strong css={authorNameStyle}>{entry.author_name}</strong>
+          )}
+          <time css={timeStyle} dateTime={entry.created_at}>
+            <span>{dateText}</span>
+          </time>
         </div>
+        {!isDeleted ? (
+          <CommentActionPopover
+            actionDeleteLabel={actionDeleteLabel}
+            actionEditLabel={actionEditLabel}
+            actionMenuLabel={actionMenuLabel}
+            actionMenuPanelLabel={actionMenuPanelLabel}
+            isOpen={isActionMenuOpen}
+            onDelete={() => onDelete(entry)}
+            onEdit={() => onEdit(entry)}
+            onOpenChange={setIsActionMenuOpen}
+            reportLabel={reportLabel}
+          />
+        ) : null}
       </div>
 
       <div css={entryBodyStyle}>
@@ -599,60 +638,77 @@ const CommentEntryCard = ({
         )}
       </div>
 
-      <div css={entryFooterStyle}>
-        <time css={timeStyle} dateTime={entry.created_at}>
-          <CalendarIcon aria-hidden size="sm" />
-          <span>{dateText}</span>
-        </time>
-        {!isDeleted ? (
-          <div css={actionRowStyle}>
-            <ActionButton
-              icon={<ArrowCurveLeftRightIcon aria-hidden size="sm" />}
-              label={actionReplyLabel}
-              onClick={() => onReply(entry)}
-            />
-            <ActionButton
-              icon={<EditIcon aria-hidden size="sm" />}
-              label={actionEditLabel}
-              onClick={() => onEdit(entry)}
-            />
-            <ActionButton
-              icon={<TrashIcon aria-hidden size="sm" />}
-              label={actionDeleteLabel}
-              onClick={() => onDelete(entry)}
-            />
-            <ActionButton ariaDisabled icon={null} label={reportLabel} />
-          </div>
-        ) : null}
-      </div>
+      {!isDeleted ? (
+        <div css={entryFooterStyle}>
+          <ActionMenuButton
+            icon={<ArrowCurveLeftRightIcon aria-hidden size="sm" />}
+            label={actionReplyLabel}
+            onClick={() => onReply(entry)}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };
 
-type ActionButtonProps = {
-  ariaDisabled?: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
+type CommentActionPopoverProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
+  isOpen: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  onOpenChange: (nextOpen: boolean) => void;
+  reportLabel: string;
 };
 
 /**
- * 댓글 액션 행에서 사용하는 심플 텍스트 버튼입니다.
+ * 댓글 버블 우측 kebab 버튼으로 여는 액션 팝오버입니다.
  */
-const ActionButton = ({ ariaDisabled = false, icon, label, onClick }: ActionButtonProps) => (
-  <button
-    aria-disabled={ariaDisabled ? 'true' : undefined}
-    css={actionButtonStyle}
-    onClick={ariaDisabled ? undefined : onClick}
-    type="button"
+const CommentActionPopover = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
+  isOpen,
+  onDelete,
+  onEdit,
+  onOpenChange,
+  reportLabel,
+}: CommentActionPopoverProps) => (
+  <ActionPopover
+    isOpen={isOpen}
+    onOpenChange={onOpenChange}
+    panelLabel={actionMenuPanelLabel}
+    triggerLabel={actionMenuLabel}
   >
-    {icon ? (
-      <span aria-hidden css={actionIconStyle}>
-        {icon}
-      </span>
-    ) : null}
-    <span>{label}</span>
-  </button>
+    {({ closePopover }) => (
+      <>
+        <ActionMenuButton
+          icon={<EditIcon aria-hidden size="sm" />}
+          label={actionEditLabel}
+          onClick={() => {
+            closePopover();
+            onEdit();
+          }}
+        />
+        <ActionMenuButton
+          icon={<TrashIcon aria-hidden size="sm" />}
+          label={actionDeleteLabel}
+          onClick={() => {
+            closePopover();
+            onDelete();
+          }}
+        />
+        <ActionMenuButton
+          ariaDisabled
+          icon={<ReportIcon aria-hidden size="sm" />}
+          label={reportLabel}
+        />
+      </>
+    )}
+  </ActionPopover>
 );
 
 const sectionStyle = css`
@@ -814,7 +870,7 @@ const replyEntryCardStyle = css`
 
 const entryHeaderStyle = css`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
 `;
@@ -824,6 +880,21 @@ const authorMetaStyle = css`
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  min-width: 0;
+`;
+
+const authorLinkStyle = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: rgb(var(--color-primary));
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
 `;
 
 const authorNameStyle = css`
@@ -854,7 +925,7 @@ const placeholderTextStyle = css`
 const entryFooterStyle = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-3);
   flex-wrap: wrap;
 `;
@@ -862,49 +933,8 @@ const entryFooterStyle = css`
 const timeStyle = css`
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
   color: rgb(var(--color-muted));
   font-size: var(--font-size-13);
-`;
-
-const actionRowStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-`;
-
-const actionButtonStyle = css`
-  border: 0;
-  background: transparent;
-  color: rgb(var(--color-muted));
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-13);
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover:not([aria-disabled='true']),
-  &:focus-visible:not([aria-disabled='true']) {
-    outline: none;
-    color: rgb(var(--color-primary));
-    background: rgb(var(--color-primary) / 0.08);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-
-  &[aria-disabled='true'] {
-    cursor: default;
-    opacity: 0.72;
-  }
-`;
-
-const actionIconStyle = css`
-  display: inline-flex;
 `;
 
 const footerPaginationWrapStyle = css`

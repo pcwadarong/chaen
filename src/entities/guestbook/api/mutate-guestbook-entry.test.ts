@@ -157,6 +157,46 @@ describe('createGuestbookEntry', () => {
     ).rejects.toThrow('password is required');
   });
 
+  it('일반 사용자의 비밀 원댓글은 생성 직후 본문을 숨겨 반환한다', async () => {
+    const insertSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'thread-secret-1',
+        parent_id: null,
+        author_name: 'guest',
+        author_blog_url: null,
+        password_hash: 'hashed-password',
+        content: 'secret body',
+        is_secret: true,
+        is_admin_author: false,
+        created_at: '2026-03-06T00:00:00.000Z',
+        updated_at: '2026-03-06T00:00:00.000Z',
+        deleted_at: null,
+      },
+      error: null,
+    });
+
+    const client = {
+      from: vi.fn().mockReturnValue({
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: insertSingle,
+      }),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(client as never);
+
+    const created = await createGuestbookEntry({
+      authorName: 'guest',
+      content: 'secret body',
+      isSecret: true,
+      parentId: null,
+      password: '1234',
+    });
+
+    expect(created.content).toBe('');
+    expect(created.is_content_masked).toBe(true);
+  });
+
   it('관리자 원댓글은 비밀번호 없이 등록할 수 있다', async () => {
     const insertSingle = vi.fn().mockResolvedValue({
       data: {

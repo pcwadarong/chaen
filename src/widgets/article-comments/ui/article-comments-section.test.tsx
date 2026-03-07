@@ -75,7 +75,7 @@ const initialPage: ArticleCommentPage = {
   items: [
     {
       article_id: 'article-1',
-      author_blog_url: null,
+      author_blog_url: 'https://example.com',
       author_name: 'chaen',
       content: 'root content',
       created_at: '2026-03-08T00:00:00.000Z',
@@ -128,7 +128,9 @@ describe('ArticleCommentsSection', () => {
     );
     expect(screen.getByRole('button', { name: 'root-compose-form' })).toBeTruthy();
     expect(screen.getAllByRole('button', { name: 'reply' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('button', { name: 'report' }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: 'chaen' }).getAttribute('href')).toBe(
+      'https://example.com',
+    );
   });
 
   it('정렬과 페이지 이동 시 댓글 목록을 다시 조회한다', async () => {
@@ -179,6 +181,19 @@ describe('ArticleCommentsSection', () => {
         textPlaceholder: 'reply:chaen',
       }),
     );
+  });
+
+  it('kebab 메뉴를 열면 수정/삭제/신고 액션을 노출한다', async () => {
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'actionMenuLabel' })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: 'actionMenuPanelLabel' })).toBeTruthy();
+    });
+    expect(screen.getByRole('button', { name: 'edit' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'delete' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'report' })).toBeTruthy();
   });
 
   it('댓글 작성 성공 후 fresh 재조회로 최신 목록을 다시 읽는다', async () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -26,6 +26,23 @@ const createThread = (overrides?: Partial<GuestbookThreadItem>): GuestbookThread
 });
 
 describe('GuestbookThreadCard', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        addEventListener: vi.fn(),
+        addListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        matches: query.includes('pointer: coarse'),
+        media: query,
+        onchange: null,
+        removeEventListener: vi.fn(),
+        removeListener: vi.fn(),
+      })),
+      writable: true,
+    });
+  });
+
   it('삭제된 원댓글은 삭제 문구를 보여주고 액션을 숨긴다', () => {
     const onDelete = vi.fn();
 
@@ -33,6 +50,8 @@ describe('GuestbookThreadCard', () => {
       <GuestbookThreadCard
         actionDeleteLabel="삭제"
         actionEditLabel="수정"
+        actionMenuLabel="메뉴 열기"
+        actionMenuPanelLabel="방명록 액션 메뉴"
         actionReplyLabel="답신"
         canReply
         dateText={() => '2026-03-06'}
@@ -44,6 +63,7 @@ describe('GuestbookThreadCard', () => {
         onEdit={vi.fn()}
         onReply={vi.fn()}
         onRevealSecret={vi.fn()}
+        reportLabel="신고"
         revealLabel="확인하기"
         revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
@@ -67,6 +87,8 @@ describe('GuestbookThreadCard', () => {
       <GuestbookThreadCard
         actionDeleteLabel="삭제"
         actionEditLabel="수정"
+        actionMenuLabel="메뉴 열기"
+        actionMenuPanelLabel="방명록 액션 메뉴"
         actionReplyLabel="답신"
         canReply={false}
         dateText={() => '2026-03-06'}
@@ -78,6 +100,7 @@ describe('GuestbookThreadCard', () => {
         onEdit={vi.fn()}
         onReply={vi.fn()}
         onRevealSecret={vi.fn()}
+        reportLabel="신고"
         revealLabel="보기"
         revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
@@ -92,5 +115,89 @@ describe('GuestbookThreadCard', () => {
 
     expect(screen.getByLabelText('비밀번호')).toBeTruthy();
     expect(screen.getByRole('button', { name: '확인' })).toBeTruthy();
+  });
+
+  it('외부 링크가 있으면 이름 옆 아이콘 링크를 노출하고 kebab 메뉴를 연다', () => {
+    render(
+      <GuestbookThreadCard
+        actionDeleteLabel="삭제"
+        actionEditLabel="수정"
+        actionMenuLabel="메뉴 열기"
+        actionMenuPanelLabel="방명록 액션 메뉴"
+        actionReplyLabel="답신"
+        canReply
+        dateText={() => '2026-03-06'}
+        deletedPlaceholder="삭제된 글입니다."
+        entry={createThread({ author_blog_url: 'https://example.com' })}
+        onDeleteReply={vi.fn()}
+        onDelete={vi.fn()}
+        onEditReply={vi.fn()}
+        onEdit={vi.fn()}
+        onReply={vi.fn()}
+        onRevealSecret={vi.fn()}
+        reportLabel="신고"
+        revealLabel="보기"
+        revealSecretErrorLabel="오류"
+        revealSecretPasswordLabel="비밀번호"
+        revealSecretRequiredLabel="필수 입력입니다."
+        revealSecretSubmitLabel="확인"
+        revealSecretTitle="비밀글 확인"
+        secretPlaceholder="비밀글입니다."
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'guest' }).getAttribute('href')).toBe(
+      'https://example.com',
+    );
+    expect(screen.queryByRole('button', { name: '답신' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }));
+
+    expect(screen.getByRole('dialog', { name: '방명록 액션 메뉴' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '답신' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '수정' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '삭제' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '신고' })).toBeTruthy();
+  });
+
+  it('coarse pointer 환경에서는 long press로 메뉴를 연다', () => {
+    vi.useFakeTimers();
+
+    render(
+      <GuestbookThreadCard
+        actionDeleteLabel="삭제"
+        actionEditLabel="수정"
+        actionMenuLabel="메뉴 열기"
+        actionMenuPanelLabel="방명록 액션 메뉴"
+        actionReplyLabel="답신"
+        canReply
+        dateText={() => '2026-03-06'}
+        deletedPlaceholder="삭제된 글입니다."
+        entry={createThread()}
+        onDeleteReply={vi.fn()}
+        onDelete={vi.fn()}
+        onEditReply={vi.fn()}
+        onEdit={vi.fn()}
+        onReply={vi.fn()}
+        onRevealSecret={vi.fn()}
+        reportLabel="신고"
+        revealLabel="보기"
+        revealSecretErrorLabel="오류"
+        revealSecretPasswordLabel="비밀번호"
+        revealSecretRequiredLabel="필수 입력입니다."
+        revealSecretSubmitLabel="확인"
+        revealSecretTitle="비밀글 확인"
+        secretPlaceholder="비밀글입니다."
+      />,
+    );
+
+    fireEvent.pointerDown(screen.getByText('hello'), { pointerType: 'touch' });
+    act(() => {
+      vi.advanceTimersByTime(430);
+    });
+
+    expect(screen.getByRole('dialog', { name: '방명록 액션 메뉴' })).toBeTruthy();
+
+    vi.useRealTimers();
   });
 });

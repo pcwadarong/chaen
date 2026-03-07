@@ -98,6 +98,8 @@ export const GuestbookFeed = ({
             <GuestbookThreadCard
               actionDeleteLabel={t('delete')}
               actionEditLabel={t('edit')}
+              actionMenuLabel={t('actionMenuLabel')}
+              actionMenuPanelLabel={t('actionMenuPanelLabel')}
               actionReplyLabel={t('reply')}
               canReply={canReply}
               dateText={formatDateText}
@@ -109,6 +111,7 @@ export const GuestbookFeed = ({
               onEditReply={onEditReply}
               onEdit={onEdit}
               onReply={onReply}
+              reportLabel={t('report')}
               revealLabel={t('secretReveal')}
               revealSecretErrorLabel={t('secretVerifyFailed')}
               revealSecretPasswordLabel={t('passwordInput')}

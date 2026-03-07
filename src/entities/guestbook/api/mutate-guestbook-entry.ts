@@ -258,5 +258,5 @@ export const createGuestbookEntry = async (
   if (error || !data)
     throw new Error(`failed to create entry: ${error?.message ?? 'unknown error'}`);
 
-  return toPublicEntry(data as GuestbookEntryRow, true);
+  return toPublicEntry(data as GuestbookEntryRow, normalized.isAdminAuthor);
 };
