@@ -101,8 +101,6 @@ const createAppIcon = (
     const iconStyle: React.CSSProperties = {
       ...baseIconStyle,
       color: resolvedColor,
-      height: resolvedSize,
-      width: resolvedSize,
       ...style,
     };
 
