@@ -140,16 +140,25 @@ const tagStyle = css`
 
 const bodyStyle = css`
   display: grid;
+  min-width: 0;
   gap: var(--space-3);
 `;
 
 const titleStyle = css`
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: var(--font-size-20);
   line-height: var(--line-height-120);
   letter-spacing: -0.03em;
 `;
 
 const descriptionStyle = css`
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: rgb(var(--color-muted));
 `;
 

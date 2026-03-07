@@ -75,16 +75,22 @@ const articleStyle = css`
 
 const contentStyle = css`
   display: grid;
+  min-width: 0;
   gap: var(--space-4);
   align-content: center;
 `;
 
 const bodyStyle = css`
   display: grid;
+  min-width: 0;
   gap: var(--space-3);
 `;
 
 const titleStyle = css`
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: rgb(var(--color-primary));
   font-size: 1.5rem;
   line-height: 1.12;
@@ -92,6 +98,10 @@ const titleStyle = css`
 `;
 
 const descriptionStyle = css`
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: rgb(var(--color-text));
   font-size: 1rem;
   line-height: 1.5;
