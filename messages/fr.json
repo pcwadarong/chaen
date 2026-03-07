@@ -85,7 +85,8 @@
     "searchPlaceholder": "Rechercher des articles",
     "searchSubmit": "Rechercher",
     "retry": "Réessayer",
-    "title": "Articles"
+    "title": "Articles",
+    "viewArticle": "Voir l'article : {title}"
   },
   "Project": {
     "deliverables": "Livrables",

@@ -85,7 +85,8 @@
     "searchPlaceholder": "아티클 검색",
     "searchSubmit": "검색",
     "retry": "다시 시도",
-    "title": "기록"
+    "title": "기록",
+    "viewArticle": "{title} 상세 보기"
   },
   "Project": {
     "deliverables": "주요 산출물",

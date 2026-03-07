@@ -85,7 +85,8 @@
     "searchPlaceholder": "記事を検索",
     "searchSubmit": "検索",
     "retry": "再試行",
-    "title": "記事"
+    "title": "記事",
+    "viewArticle": "{title} の詳細を見る"
   },
   "Project": {
     "deliverables": "成果物",

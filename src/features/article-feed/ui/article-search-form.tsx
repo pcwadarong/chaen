@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { Button, getButtonStyle } from '@/shared/ui/button/button';
+import { getButtonStyle } from '@/shared/ui/button/button';
+import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
@@ -138,34 +139,28 @@ export const ArticleSearchForm = ({
 
   return (
     <form aria-busy={isPending} css={formStyle} onSubmit={handleSubmit} role="search">
-      <div css={searchRowStyle}>
-        <div css={inputWrapStyle}>
-          <Input
-            aria-label={placeholder}
-            autoComplete="off"
-            css={[inputPaddingStyle, isPending ? pendingInputStyle : undefined]}
-            enterKeyHint="search"
-            name="q"
-            onChange={event => setInputValue(event.target.value)}
-            placeholder={placeholder}
-            role="searchbox"
-            type="text"
-            value={inputValue}
-          />
-          {inputValue ? (
-            <button
-              aria-label={clearText}
-              css={clearButtonStyle}
-              onClick={handleClear}
-              type="button"
-            >
-              ×
-            </button>
-          ) : null}
-        </div>
-        <Button disabled={isPending} type="submit" tone="black">
-          {submitText}
-        </Button>
+      <div css={inputWrapStyle}>
+        <Input
+          aria-label={placeholder}
+          autoComplete="off"
+          css={[inputPaddingStyle, isPending ? pendingInputStyle : undefined]}
+          enterKeyHint="search"
+          name="q"
+          onChange={event => setInputValue(event.target.value)}
+          placeholder={placeholder}
+          role="searchbox"
+          type="text"
+          value={inputValue}
+        />
+        {inputValue ? (
+          <button aria-label={clearText} css={clearButtonStyle} onClick={handleClear} type="button">
+            ×
+          </button>
+        ) : null}
+        <button aria-label={submitText} css={submitButtonStyle} disabled={isPending} type="submit">
+          <SearchIcon aria-hidden color="text" size="md" />
+          <span css={srOnlyStyle}>{submitText}</span>
+        </button>
       </div>
       {isPending ? (
         <p aria-live="polite" css={srOnlyStyle} role="status">
@@ -177,18 +172,7 @@ export const ArticleSearchForm = ({
 };
 
 const formStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
-
-const searchRowStyle = css`
-  display: grid;
-  gap: var(--space-3);
-
-  @media (min-width: 961px) {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
+  width: min(100%, 18rem);
 `;
 
 const inputWrapStyle = css`
@@ -196,7 +180,8 @@ const inputWrapStyle = css`
 `;
 
 const inputPaddingStyle = css`
-  padding-right: 3.5rem;
+  min-height: 3rem;
+  padding-right: 6.5rem;
 `;
 
 const clearButtonStyle = css`
@@ -207,12 +192,49 @@ const clearButtonStyle = css`
   line-height: 1;
   position: absolute;
   top: 50%;
-  right: var(--space-2);
+  right: 3.6rem;
   min-width: 2rem;
   min-height: 2rem;
   padding: 0;
   transform: translateY(-50%);
   border-radius: 999px;
+`;
+
+const submitButtonStyle = css`
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgb(var(--color-text));
+  cursor: pointer;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgb(var(--color-text) / 0.06);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+  }
 `;
 
 const pendingInputStyle = css`

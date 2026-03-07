@@ -85,7 +85,8 @@
     "searchPlaceholder": "Search articles",
     "searchSubmit": "Search",
     "retry": "Retry",
-    "title": "Articles"
+    "title": "Articles",
+    "viewArticle": "View article: {title}"
   },
   "Project": {
     "deliverables": "Deliverables",

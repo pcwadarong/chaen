@@ -103,6 +103,20 @@ describe('ArticleSearchForm', () => {
     expect(replaceMock).toHaveBeenCalledWith('/articles');
   });
 
+  it('검색 버튼은 아이콘 버튼이지만 스크린리더 텍스트를 유지한다', () => {
+    render(
+      <ArticleSearchForm
+        clearText="초기화"
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '검색' })).toBeTruthy();
+  });
+
   it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
     vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
 
