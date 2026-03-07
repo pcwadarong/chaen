@@ -1,31 +1,24 @@
 'use client';
 
-import { createContext, type ReactNode, useContext, useMemo } from 'react';
+import { createContext, type ReactNode, useContext } from 'react';
 
-type AuthContextValue = {
-  isAdmin: boolean;
-};
+import type { AuthState } from '@/shared/lib/auth/get-server-auth-state';
+
+type AuthContextValue = AuthState;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 type AuthProviderProps = {
   children: ReactNode;
+  value: AuthContextValue;
 };
 
 /**
- * 전역 인증 상태를 제공하는 프로바이더입니다.
- * 현재 단계에서는 관리자 여부를 고정값으로 제공합니다.
+ * 서버에서 계산한 인증 상태를 클라이언트 트리에 주입하는 프로바이더입니다.
  */
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      isAdmin: true,
-    }),
-    [],
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+export const AuthProvider = ({ children, value }: AuthProviderProps) => (
+  <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+);
 
 /**
  * 전역 인증 상태를 읽는 훅입니다.
