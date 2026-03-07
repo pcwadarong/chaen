@@ -1,4 +1,3 @@
-import { css } from '@emotion/react';
 import type { ComponentType, ReactElement, SVGProps } from 'react';
 import React from 'react';
 
@@ -50,17 +49,11 @@ export type AppIconProps = Omit<SVGProps<SVGSVGElement>, 'color' | 'height' | 'w
 };
 export type AppIconComponent = (props: AppIconProps) => ReactElement;
 
-const baseIconStyle = css`
-  display: block;
-  flex: 0 0 auto;
-  vertical-align: middle;
-`;
-
-const strokeColorStyle = css`
-  & * {
-    stroke: currentColor;
-  }
-`;
+const baseIconStyle: React.CSSProperties = {
+  display: 'block',
+  flex: '0 0 auto',
+  verticalAlign: 'middle',
+};
 
 /**
  * 아이콘 사이즈 토큰(sm/md/lg) 또는 숫자 값을 실제 픽셀 크기로 변환합니다.
@@ -88,10 +81,8 @@ const createAppIcon = (
   Svg: ComponentType<SVGProps<SVGSVGElement>> | string,
   {
     defaultSize = 16,
-    style,
   }: {
     defaultSize?: number;
-    style?: ReturnType<typeof css>;
   } = {},
 ) => {
   /**
@@ -102,10 +93,18 @@ const createAppIcon = (
     color = 'current',
     customColor,
     size = defaultSize,
+    style,
     ...props
   }: AppIconProps) => {
     const resolvedSize = resolveIconSize(size);
     const resolvedColor = resolveIconColor({ color, customColor });
+    const iconStyle: React.CSSProperties = {
+      ...baseIconStyle,
+      color: resolvedColor,
+      height: resolvedSize,
+      width: resolvedSize,
+      ...style,
+    };
 
     if (typeof Svg === 'string') {
       const isDecorative = props['aria-hidden'] === true || props['aria-hidden'] === 'true';
@@ -114,19 +113,11 @@ const createAppIcon = (
       return (
         <svg
           aria-hidden={isDecorative ? true : undefined}
-          css={[
-            baseIconStyle,
-            css`
-              color: ${resolvedColor};
-              width: ${resolvedSize}px;
-              height: ${resolvedSize}px;
-            `,
-            style,
-          ]}
           dangerouslySetInnerHTML={{ __html: Svg }}
           focusable="false"
           height={resolvedSize}
           role={isDecorative ? undefined : (role ?? 'img')}
+          style={iconStyle}
           viewBox="0 0 24 24"
           width={resolvedSize}
           {...restProps}
@@ -136,18 +127,9 @@ const createAppIcon = (
 
     return (
       <Svg
-        css={[
-          baseIconStyle,
-          strokeColorStyle,
-          css`
-            color: ${resolvedColor};
-            width: ${resolvedSize}px;
-            height: ${resolvedSize}px;
-          `,
-          style,
-        ]}
         focusable="false"
         height={resolvedSize}
+        style={iconStyle}
         width={resolvedSize}
         {...props}
       />
