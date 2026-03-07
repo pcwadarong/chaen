@@ -6,9 +6,6 @@ import { hashGuestbookPassword, verifyGuestbookPassword } from '../lib/password'
 import type { GuestbookEntry, GuestbookEntryRow } from '../model/types';
 
 const isAdminAuthoredEntry = (entry: GuestbookEntryRow) => Boolean(entry.is_admin_author);
-const isAdminReplyEntry = (entry: Pick<GuestbookEntryRow, 'is_admin_author' | 'parent_id'>) =>
-  Boolean(entry.parent_id && entry.is_admin_author);
-
 type CreateGuestbookEntryInput = {
   authorBlogUrl?: string | null;
   authorName: string;
@@ -46,7 +43,6 @@ const toPublicEntry = (entry: GuestbookEntryRow, revealSecret: boolean): Guestbo
     return {
       ...publicEntry,
       is_admin_author: isAdminAuthoredEntry(entry),
-      is_admin_reply: isAdminReplyEntry(entry),
       is_content_masked: false,
     };
   }
@@ -55,7 +51,6 @@ const toPublicEntry = (entry: GuestbookEntryRow, revealSecret: boolean): Guestbo
     ...publicEntry,
     content: '',
     is_admin_author: isAdminAuthoredEntry(entry),
-    is_admin_reply: isAdminReplyEntry(entry),
     is_content_masked: true,
   };
 };
@@ -70,13 +65,10 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   const authorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
   const isAdminAuthor = Boolean(input.isAdminAuthor);
-  const isAdminReply = Boolean(isAdminAuthor && parentId);
-
   if (!authorName) throw new Error('authorName is required');
   if (!content) throw new Error('content is required');
   if (content.length > 3000) throw new Error('content length must be 3000 or less');
   if (!isAdminAuthor && !password) throw new Error('password is required');
-  if (isAdminReply && !parentId) throw new Error('parentId is required for admin reply');
 
   return {
     authorBlogUrl,

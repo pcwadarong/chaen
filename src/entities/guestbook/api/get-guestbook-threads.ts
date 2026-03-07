@@ -16,7 +16,6 @@ import type {
 
 const toDerivedAdminFlags = (entry: GuestbookEntryRow) => ({
   is_admin_author: Boolean(entry.is_admin_author),
-  is_admin_reply: Boolean(entry.parent_id && entry.is_admin_author),
 });
 
 type GetGuestbookThreadsOptions = {

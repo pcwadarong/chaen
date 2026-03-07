@@ -20,7 +20,7 @@ export type GuestbookEntryRow = {
  * 클라이언트에 공개되는 방명록 항목(원댓글/대댓글 공통) 타입입니다.
  * 비밀글이 숨김 상태일 때는 `is_content_masked=true`이며 `content`는 빈 문자열입니다.
  */
-export type GuestbookEntry = Omit<GuestbookEntryRow, 'password_hash'> & {
+export type GuestbookEntry = Omit<GuestbookEntryRow, 'is_admin_reply' | 'password_hash'> & {
   is_content_masked?: boolean;
 };
 
