@@ -30,7 +30,7 @@ describe('getPopularArticleTags', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('shadow relation table이 있으면 locale 조건 없이 article_tags_v2를 집계한다', async () => {
+  it('canonical relation table을 기준으로 인기 태그를 집계한다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
         data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
@@ -65,7 +65,7 @@ describe('getPopularArticleTags', () => {
         tag: 'react',
       },
     ]);
-    expect(supabaseClient.from).toHaveBeenCalledWith('article_tags_v2');
+    expect(supabaseClient.from).toHaveBeenCalledWith('article_tags');
     expect(tagsQuery.in).toHaveBeenCalledWith('id', ['tag-1', 'tag-2']);
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe('getPopularArticleTags', () => {
       select: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.article_tags_v2" does not exist',
+          message: 'relation "public.article_tags" does not exist',
         },
       }),
     };

@@ -362,12 +362,42 @@ describe('getArticles', () => {
     );
   });
 
+  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const tagsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: 'tag-1' },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.article_tags" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(tagsQuery).mockReturnValueOnce(articleTagsV2Query),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticles({ locale: 'ko', tag: 'nextjs' })).rejects.toThrow(
+      '[articles] 태그 relation schema가 없습니다.',
+    );
+  });
+
   it('shadow content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
     const articleBaseQuery = {
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.articles_v2" does not exist',
+          message: 'relation "public.articles" does not exist',
         },
       }),
       order: vi.fn().mockReturnThis(),

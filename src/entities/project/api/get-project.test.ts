@@ -221,7 +221,7 @@ describe('getProject', () => {
       eq: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.project_tags_v2" does not exist',
+          message: 'relation "public.project_tags" does not exist',
         },
       }),
       select: vi.fn().mockReturnThis(),

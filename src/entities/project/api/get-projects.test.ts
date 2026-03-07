@@ -192,4 +192,28 @@ describe('getProjects', () => {
     expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
+
+  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
+    const projectBaseQuery = {
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.projects" does not exist',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue(projectBaseQuery),
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProjects({ locale: 'ko' })).rejects.toThrow(
+      '[projects] shadow content schema가 없습니다.',
+    );
+  });
 });

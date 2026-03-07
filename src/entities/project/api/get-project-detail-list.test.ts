@@ -83,7 +83,7 @@ describe('getProjectDetailList', () => {
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.projects_v2" does not exist',
+          message: 'relation "public.projects" does not exist',
         },
       }),
       order: vi.fn().mockReturnThis(),

@@ -31,6 +31,6 @@ export const CONTENT_SCHEMA_NAMES = {
  * maintenance window에서 cutover SQL을 실행한 직후,
  * 아래 타깃 값만 `canonical`로 바꾸는 것을 기준으로 삼습니다.
  */
-export const CONTENT_SCHEMA_TARGET = 'shadow' as const;
+export const CONTENT_SCHEMA_TARGET = 'canonical' as const;
 
 export const CONTENT_SHADOW_SCHEMA = CONTENT_SCHEMA_NAMES[CONTENT_SCHEMA_TARGET];
