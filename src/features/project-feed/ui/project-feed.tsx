@@ -1,11 +1,12 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
 import { Button } from '@/shared/ui/button/button';
+import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type ProjectFeedProps = {
@@ -78,7 +79,11 @@ export const ProjectFeed = ({
           {loadingText}
         </p>
       ) : null}
-      {!hasMore && items.length > 0 ? <p css={stateTextStyle}>{loadMoreEndText}</p> : null}
+      {!hasMore && items.length > 0 ? (
+        <p aria-live="polite" style={srOnlyStyleObject}>
+          {loadMoreEndText}
+        </p>
+      ) : null}
       {errorMessage && items.length > 0 ? (
         <p aria-live="polite" css={errorTextStyle}>
           {loadErrorText}

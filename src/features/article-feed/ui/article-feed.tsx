@@ -1,12 +1,13 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleCard } from '@/entities/article/ui/article-card';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
+import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleFeedProps = {
   emptyText: string;
@@ -87,7 +88,11 @@ export const ArticleFeed = ({
           {loadingText}
         </p>
       ) : null}
-      {!hasMore && items.length > 0 ? <p css={stateTextStyle}>{loadMoreEndText}</p> : null}
+      {!hasMore && items.length > 0 ? (
+        <p aria-live="polite" style={srOnlyStyleObject}>
+          {loadMoreEndText}
+        </p>
+      ) : null}
       {errorMessage && items.length > 0 ? (
         <p aria-live="polite" css={errorTextStyle}>
           {loadErrorText}
