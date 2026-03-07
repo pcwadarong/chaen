@@ -3,10 +3,6 @@ import { unstable_cache } from 'next/cache';
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -103,90 +99,13 @@ const fetchProjectFromShadowSchema = async (
   };
 };
 
-/**
- * locale 컬럼을 사용하는 프로젝트를 조회합니다.
- */
-const fetchProjectByLocaleLegacy = async (
-  projectId: string,
-  locale: string,
-): Promise<{ data: Project | null; localeColumnMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: null, localeColumnMissing: false };
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .eq('locale', locale)
-    .maybeSingle<Project>();
-
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: null,
-        localeColumnMissing: true,
-      };
-    }
-
-    throw new Error(`[projects] locale 조회 실패: ${error.message}`);
-  }
-
-  if (!data) {
-    return {
-      data,
-      localeColumnMissing: false,
-    };
-  }
-
-  const relatedTags = await getRelatedTagSlugs({
-    entityColumn: 'project_id',
-    entityId: projectId,
-    locale,
-    relationTable: 'project_tags',
-  });
-
-  return {
-    data: relatedTags.schemaMissing ? data : { ...data, tags: relatedTags.data },
-    localeColumnMissing: false,
-  };
-};
-
-/**
- * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
- */
-const fetchProjectByLocale = async (
-  projectId: string,
-  locale: string,
-): Promise<{ data: Project | null; localeColumnMissing: boolean }> => {
+const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
   const shadowProject = await fetchProjectFromShadowSchema(projectId, locale);
-  if (!shadowProject.schemaMissing) {
-    return {
-      data: shadowProject.data,
-      localeColumnMissing: false,
-    };
+  if (shadowProject.schemaMissing) {
+    throw new Error('[projects] shadow content schema가 없습니다.');
   }
 
-  return fetchProjectByLocaleLegacy(projectId, locale);
-};
-
-/**
- * locale 컬럼이 없는 기존 스키마를 위한 단일 프로젝트 조회입니다.
- */
-const fetchProjectLegacy = async (projectId: string): Promise<Project | null> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', projectId)
-    .maybeSingle<Project>();
-
-  if (error) {
-    throw new Error(`[projects] 단일 조회 실패: ${error.message}`);
-  }
-
-  return data;
+  return shadowProject.data;
 };
 
 /**
@@ -202,15 +121,12 @@ export const getProject = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProject = unstable_cache(
-    async () =>
-      resolveLocaleAwareData<Project | null>({
-        emptyData: null,
-        fallbackLocale: 'ko',
-        fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
-        fetchLegacy: () => fetchProjectLegacy(projectId),
-        isEmptyData: item => item === null,
-        targetLocale: normalizedLocale,
-      }),
+    async () => {
+      const localizedProject = await fetchProjectByLocale(projectId, normalizedLocale);
+      if (localizedProject || normalizedLocale === 'ko') return localizedProject;
+
+      return fetchProjectByLocale(projectId, 'ko');
+    },
     ['project', cacheScope, projectId, normalizedLocale],
     {
       tags: [PROJECTS_CACHE_TAG, createProjectCacheTag(projectId)],

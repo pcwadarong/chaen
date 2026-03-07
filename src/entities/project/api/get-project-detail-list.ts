@@ -3,10 +3,6 @@ import { unstable_cache } from 'next/cache';
 import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -45,55 +41,6 @@ const toProjectDetailListItems = (rows: ProjectDetailListItem[]): ProjectDetailL
     id: row.id,
     title: row.title,
   }));
-
-/**
- * keyset 정렬 기준으로 프로젝트 요약 목록 쿼리를 구성합니다.
- */
-const createProjectDetailListQuery = (locale?: string) => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return null;
-
-  const baseQuery = supabase
-    .from('projects')
-    .select('id,title,description,created_at')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false });
-
-  return locale ? baseQuery.eq('locale', locale) : baseQuery;
-};
-
-/**
- * locale 컬럼을 사용하는 기존 스키마 프로젝트 요약 목록을 조회합니다.
- */
-const fetchProjectDetailListByLocaleLegacy = async (
-  locale: string,
-): Promise<{ data: ProjectDetailListItem[]; localeColumnMissing: boolean }> => {
-  const query = createProjectDetailListQuery(locale);
-  if (!query) {
-    return {
-      data: [],
-      localeColumnMissing: false,
-    };
-  }
-
-  const { data, error } = await query.limit(DETAIL_LIST_LIMIT + 1);
-
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: [],
-        localeColumnMissing: true,
-      };
-    }
-
-    throw new Error(`[projects] 상세 목록 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data: toProjectDetailListItems((data ?? []) as ProjectDetailListItem[]),
-    localeColumnMissing: false,
-  };
-};
 
 /**
  * shadow schema(`projects_v2` + `project_translations`) 기준 상세 아카이브 목록을 조회합니다.
@@ -161,37 +108,13 @@ const fetchProjectDetailListFromShadow = async (
   };
 };
 
-/**
- * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
- */
-const fetchProjectDetailListByLocale = async (
-  locale: string,
-): Promise<{ data: ProjectDetailListItem[]; localeColumnMissing: boolean }> => {
+const fetchProjectDetailListByLocale = async (locale: string): Promise<ProjectDetailListItem[]> => {
   const shadowList = await fetchProjectDetailListFromShadow(locale);
-  if (!shadowList.schemaMissing) {
-    return {
-      data: shadowList.data,
-      localeColumnMissing: false,
-    };
+  if (shadowList.schemaMissing) {
+    throw new Error('[projects] shadow content schema가 없습니다.');
   }
 
-  return fetchProjectDetailListByLocaleLegacy(locale);
-};
-
-/**
- * locale 컬럼이 없는 기존 스키마를 위한 프로젝트 요약 목록을 조회합니다.
- */
-const fetchProjectDetailListLegacy = async (): Promise<ProjectDetailListItem[]> => {
-  const query = createProjectDetailListQuery();
-  if (!query) return [];
-
-  const { data, error } = await query.limit(DETAIL_LIST_LIMIT + 1);
-
-  if (error) {
-    throw new Error(`[projects] 상세 목록 legacy 조회 실패: ${error.message}`);
-  }
-
-  return toProjectDetailListItems((data ?? []) as ProjectDetailListItem[]);
+  return shadowList.data;
 };
 
 /**
@@ -205,15 +128,12 @@ export const getProjectDetailList = async (locale: string): Promise<ProjectDetai
 
   const normalizedLocale = locale.toLowerCase();
   const getCachedProjectDetailList = unstable_cache(
-    async () =>
-      resolveLocaleAwareData<ProjectDetailListItem[]>({
-        emptyData: [],
-        fallbackLocale: 'ko',
-        fetchByLocale: targetLocale => fetchProjectDetailListByLocale(targetLocale),
-        fetchLegacy: fetchProjectDetailListLegacy,
-        isEmptyData: items => items.length === 0,
-        targetLocale: normalizedLocale,
-      }),
+    async () => {
+      const localizedItems = await fetchProjectDetailListByLocale(normalizedLocale);
+      if (localizedItems.length > 0 || normalizedLocale === 'ko') return localizedItems;
+
+      return fetchProjectDetailListByLocale('ko');
+    },
     ['projects', 'detail-list', cacheScope, normalizedLocale, 'keyset'],
     {
       tags: [PROJECTS_CACHE_TAG],

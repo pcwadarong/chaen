@@ -10,10 +10,6 @@ import {
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -152,51 +148,6 @@ const applyArticlesKeysetCursor = <
 };
 
 /**
- * locale 컬럼을 사용하는 아티클 목록 페이지 조회입니다.
- *
- * 비검색 목록에서는 기존 locale fallback 정책을 유지해야 하므로
- * RPC 대신 일반 select 쿼리를 사용합니다.
- */
-const fetchArticlesByLocaleLegacy = async (
-  locale: string,
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      localeColumnMissing: false,
-    };
-  }
-
-  const query = applyArticlesKeysetCursor(
-    supabase
-      .from('articles')
-      .select('id,title,description,thumbnail_url,created_at')
-      .eq('locale', locale),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: { items: [], nextCursor: null, totalCount: null },
-        localeColumnMissing: true,
-      };
-    }
-
-    throw new Error(`[articles] locale 목록 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data: toArticlesPage((data ?? []) as ArticleListItem[], pageSize),
-    localeColumnMissing: false,
-  };
-};
-
-/**
  * shadow schema(`articles_v2` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
  */
 const fetchShadowArticleListItems = async (
@@ -301,48 +252,17 @@ const fetchArticlesByLocaleFromShadow = async (
   };
 };
 
-/**
- * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
- */
 const fetchArticlesByLocale = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
-  const shadowArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
-  if (!shadowArticles.schemaMissing) {
-    return {
-      data: shadowArticles.data,
-      localeColumnMissing: false,
-    };
-  }
-
-  return fetchArticlesByLocaleLegacy(locale, cursor, pageSize);
-};
-
-/**
- * locale 컬럼이 없는 기존 스키마를 위한 아티클 목록 페이지 조회입니다.
- *
- * 이전 스키마 호환성을 깨지 않기 위한 fallback 경로입니다.
- */
-const fetchArticlesLegacy = async (
-  cursor: string | null | undefined,
-  pageSize: number,
 ): Promise<ArticlesPage> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { items: [], nextCursor: null, totalCount: null };
-
-  const query = applyArticlesKeysetCursor(
-    supabase.from('articles').select('id,title,description,thumbnail_url,created_at'),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    throw new Error(`[articles] 목록 조회 실패: ${error.message}`);
+  const shadowArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
+  if (shadowArticles.schemaMissing) {
+    throw new Error('[articles] shadow content schema가 없습니다.');
   }
 
-  return toArticlesPage((data ?? []) as ArticleListItem[], pageSize);
+  return shadowArticles.data;
 };
 
 /**
@@ -355,13 +275,10 @@ const fetchArticlesByTagAndLocale = async (
   tag: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ArticlesPage; localeColumnMissing: boolean }> => {
+): Promise<ArticlesPage> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      localeColumnMissing: false,
-    };
+    return { items: [], nextCursor: null, totalCount: null };
   }
 
   const resolvedTagId = await getTagIdBySlug(tag);
@@ -370,10 +287,7 @@ const fetchArticlesByTagAndLocale = async (
   }
 
   if (!resolvedTagId.data) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      localeColumnMissing: false,
-    };
+    return { items: [], nextCursor: null, totalCount: null };
   }
 
   const shadowArticleIds = await getRelatedEntityIdsByTagId({
@@ -396,10 +310,7 @@ const fetchArticlesByTagAndLocale = async (
   }
 
   if (relatedArticleIds.data.length === 0) {
-    return {
-      data: { items: [], nextCursor: null, totalCount: null },
-      localeColumnMissing: false,
-    };
+    return { items: [], nextCursor: null, totalCount: null };
   }
 
   const shadowQuery = applyArticlesKeysetCursor(
@@ -418,40 +329,15 @@ const fetchArticlesByTagAndLocale = async (
     );
 
     if (!shadowItems.schemaMissing) {
-      return {
-        data: toArticlesPage(shadowItems.items, pageSize),
-        localeColumnMissing: false,
-      };
+      return toArticlesPage(shadowItems.items, pageSize);
     }
+
+    throw new Error('[articles] shadow content schema가 없습니다.');
   } else if (!isMissingArticlesShadowSchemaError(articleBaseError.message)) {
     throw new Error(`[articles] shadow 태그 목록 조회 실패: ${articleBaseError.message}`);
+  } else {
+    throw new Error('[articles] shadow content schema가 없습니다.');
   }
-
-  const query = applyArticlesKeysetCursor(
-    supabase
-      .from('articles')
-      .select('id,title,description,thumbnail_url,created_at')
-      .eq('locale', locale)
-      .in('id', relatedArticleIds.data),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: { items: [], nextCursor: null, totalCount: null },
-        localeColumnMissing: true,
-      };
-    }
-
-    throw new Error(`[articles] 태그 목록 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data: toArticlesPage((data ?? []) as ArticleListItem[], pageSize),
-    localeColumnMissing: false,
-  };
 };
 
 /**
@@ -514,7 +400,6 @@ const fetchSearchArticles = async (
  * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
  * - 검색 목록은 `rank + created_at + id` 기준 keyset pagination을 사용합니다.
  * - locale 우선 조회 후, 비검색 첫 페이지에서만 `ko` fallback을 시도합니다.
- * - locale 컬럼 미존재 스키마에서는 legacy 조회로 자동 전환합니다.
  * - 반환 shape는 검색 여부와 상관없이 `items/nextCursor/totalCount`로 고정합니다.
  */
 export const getArticles = async ({
@@ -545,39 +430,21 @@ export const getArticles = async ({
       }
 
       if (normalizedTag) {
-        const taggedResult = await fetchArticlesByTagAndLocale(
-          normalizedLocale,
-          normalizedTag,
-          cursor,
-          pageSize,
-        );
-
-        if (taggedResult.localeColumnMissing) {
-          throw new Error('[articles] 태그 목록 locale schema가 없습니다.');
-        }
-
-        return taggedResult.data;
+        return fetchArticlesByTagAndLocale(normalizedLocale, normalizedTag, cursor, pageSize);
       }
 
       const isFirstPage = !parsedCursor;
 
       if (!isFirstPage) {
-        const localizedResult = await fetchArticlesByLocale(normalizedLocale, cursor, pageSize);
-        if (localizedResult.localeColumnMissing) {
-          return fetchArticlesLegacy(cursor, pageSize);
-        }
-
-        return localizedResult.data;
+        return fetchArticlesByLocale(normalizedLocale, cursor, pageSize);
       }
 
-      return resolveLocaleAwareData<ArticlesPage>({
-        emptyData: { items: [], nextCursor: null, totalCount: null },
-        fallbackLocale: 'ko',
-        fetchByLocale: targetLocale => fetchArticlesByLocale(targetLocale, cursor, pageSize),
-        fetchLegacy: () => fetchArticlesLegacy(cursor, pageSize),
-        isEmptyData: page => page.items.length === 0,
-        targetLocale: normalizedLocale,
-      });
+      const localizedArticles = await fetchArticlesByLocale(normalizedLocale, cursor, pageSize);
+      if (localizedArticles.items.length > 0 || normalizedLocale === 'ko') {
+        return localizedArticles;
+      }
+
+      return fetchArticlesByLocale('ko', cursor, pageSize);
     },
     [
       'articles',

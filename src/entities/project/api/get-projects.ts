@@ -8,10 +8,6 @@ import {
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import {
-  isLocaleColumnMissingError,
-  resolveLocaleAwareData,
-} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -85,51 +81,6 @@ const applyProjectsKeysetCursor = <
   return orderedQuery.or(
     `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
   );
-};
-
-/**
- * locale 컬럼을 사용하는 프로젝트 목록 페이지 조회입니다.
- *
- * 첫 페이지와 다음 페이지 모두 동일한 keyset 정렬을 사용하고,
- * 첫 페이지 locale fallback 여부만 상위 로직에서 결정합니다.
- */
-const fetchProjectsByLocaleLegacy = async (
-  locale: string,
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<{ data: ProjectsPage; localeColumnMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) {
-    return {
-      data: { items: [], nextCursor: null },
-      localeColumnMissing: false,
-    };
-  }
-
-  const query = applyProjectsKeysetCursor(
-    supabase
-      .from('projects')
-      .select('id,title,description,thumbnail_url,created_at')
-      .eq('locale', locale),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    if (isLocaleColumnMissingError(error.message)) {
-      return {
-        data: { items: [], nextCursor: null },
-        localeColumnMissing: true,
-      };
-    }
-
-    throw new Error(`[projects] locale 목록 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data: toProjectsPage((data ?? []) as ProjectListItem[], pageSize),
-    localeColumnMissing: false,
-  };
 };
 
 /**
@@ -217,53 +168,23 @@ const fetchProjectsByLocaleFromShadow = async (
   };
 };
 
-/**
- * shadow schema를 우선 사용하고, 미배포 환경에서는 기존 locale row 스키마로 fallback합니다.
- */
 const fetchProjectsByLocale = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ProjectsPage; localeColumnMissing: boolean }> => {
-  const shadowProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
-  if (!shadowProjects.schemaMissing) {
-    return {
-      data: shadowProjects.data,
-      localeColumnMissing: false,
-    };
-  }
-
-  return fetchProjectsByLocaleLegacy(locale, cursor, pageSize);
-};
-
-/**
- * locale 컬럼이 없는 기존 스키마를 위한 프로젝트 목록 페이지 조회입니다.
- */
-const fetchProjectsLegacy = async (
-  cursor: string | null | undefined,
-  pageSize: number,
 ): Promise<ProjectsPage> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { items: [], nextCursor: null };
-
-  const query = applyProjectsKeysetCursor(
-    supabase.from('projects').select('id,title,description,thumbnail_url,created_at'),
-    cursor,
-  );
-  const { data, error } = await query.limit(pageSize + 1);
-
-  if (error) {
-    throw new Error(`[projects] 목록 조회 실패: ${error.message}`);
+  const shadowProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
+  if (shadowProjects.schemaMissing) {
+    throw new Error('[projects] shadow content schema가 없습니다.');
   }
 
-  return toProjectsPage((data ?? []) as ProjectListItem[], pageSize);
+  return shadowProjects.data;
 };
 
 /**
  * 프로젝트 목록을 created_at + id keyset cursor 기반 페이지 단위로 조회합니다.
  *
  * - locale 우선 조회 후, 첫 페이지에서만 `ko` fallback을 시도합니다.
- * - locale 컬럼 미존재 스키마에서는 legacy 조회로 자동 전환합니다.
  */
 export const getProjects = async ({
   cursor,
@@ -283,22 +204,15 @@ export const getProjects = async ({
       const isFirstPage = !parsedCursor;
 
       if (!isFirstPage) {
-        const localizedResult = await fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
-        if (localizedResult.localeColumnMissing) {
-          return fetchProjectsLegacy(cursor, pageSize);
-        }
-
-        return localizedResult.data;
+        return fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
       }
 
-      return resolveLocaleAwareData<ProjectsPage>({
-        emptyData: { items: [], nextCursor: null },
-        fallbackLocale: 'ko',
-        fetchByLocale: targetLocale => fetchProjectsByLocale(targetLocale, cursor, pageSize),
-        fetchLegacy: () => fetchProjectsLegacy(cursor, pageSize),
-        isEmptyData: page => page.items.length === 0,
-        targetLocale: normalizedLocale,
-      });
+      const localizedProjects = await fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
+      if (localizedProjects.items.length > 0 || normalizedLocale === 'ko') {
+        return localizedProjects;
+      }
+
+      return fetchProjectsByLocale('ko', cursor, pageSize);
     },
     ['projects', 'list', cacheScope, normalizedLocale, cacheCursor, String(pageSize)],
     {

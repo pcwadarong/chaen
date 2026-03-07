@@ -104,7 +104,7 @@ describe('getProject', () => {
     ]);
   });
 
-  it('shadow schema가 없으면 기존 locale row 조회로 fallback한다', async () => {
+  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
     const shadowTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -115,50 +115,16 @@ describe('getProject', () => {
         },
       }),
     };
-    const legacyProjectQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'funda-project',
-          title: 'Legacy Project',
-          description: null,
-          content: null,
-          thumbnail_url: null,
-          tags: ['legacy'],
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          locale: 'ko',
-        },
-        error: null,
-      }),
-    };
-    const legacyTagsQuery = {
-      eq: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-    };
-    legacyTagsQuery.eq.mockReturnValueOnce(legacyTagsQuery).mockReturnValueOnce(
-      Promise.resolve({
-        data: null,
-        error: {
-          message: 'relation "public.project_tags" does not exist',
-        },
-      }),
-    );
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(shadowTranslationQuery)
-        .mockReturnValueOnce(legacyProjectQuery)
-        .mockReturnValueOnce(legacyTagsQuery),
+      from: vi.fn().mockReturnValueOnce(shadowTranslationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    const result = await getProject('funda-project', 'ko');
-
-    expect(result?.title).toBe('Legacy Project');
-    expect(legacyProjectQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
+      '[projects] shadow content schema가 없습니다.',
+    );
   });
 
   it('대상 locale 번역이 없으면 shadow schema에서도 ko locale로 fallback 조회한다', async () => {

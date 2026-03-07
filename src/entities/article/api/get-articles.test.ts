@@ -361,4 +361,28 @@ describe('getArticles', () => {
       '[articles] 태그 schema가 없습니다.',
     );
   });
+
+  it('shadow content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
+    const articleBaseQuery = {
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.articles_v2" does not exist',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue(articleBaseQuery),
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticles({ locale: 'ko' })).rejects.toThrow(
+      '[articles] shadow content schema가 없습니다.',
+    );
+  });
 });
