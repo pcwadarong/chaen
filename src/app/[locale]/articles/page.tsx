@@ -11,12 +11,12 @@ const ArticlesRoute = async ({
     locale: string;
   }>;
   searchParams: Promise<{
-    q?: string;
+    q?: string | string[];
   }>;
 }) => {
   const { locale } = await params;
   const { q } = await searchParams;
-  const pageData = await getArticlesPageData({ locale, query: q?.trim() ?? '' });
+  const pageData = await getArticlesPageData({ locale, query: q });
 
   return <ArticlesPage {...pageData} />;
 };

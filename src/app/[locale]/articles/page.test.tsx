@@ -24,13 +24,13 @@ describe('ArticlesRoute', () => {
         locale: 'ko',
       }),
       searchParams: Promise.resolve({
-        q: 'react',
+        q: [' react ', 'vue'],
       }),
     });
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
-    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko', query: 'react' });
+    expect(getArticlesPageData).toHaveBeenCalledWith({ locale: 'ko', query: [' react ', 'vue'] });
     expect(element.props.initialItems).toEqual([]);
     expect(element.props.initialCursor).toBeNull();
     expect(element.props.locale).toBe('ko');

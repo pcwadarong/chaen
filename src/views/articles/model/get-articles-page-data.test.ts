@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 import { getArticles } from '@/entities/article/api/get-articles';
 
-import { getArticlesPageData } from './get-articles-page-data';
+import { getArticlesPageData, normalizeSearchParams } from './get-articles-page-data';
 
 vi.mock('@/entities/article/api/get-articles', () => ({
   getArticles: vi.fn(),
@@ -25,6 +25,7 @@ describe('getArticlesPageData', () => {
         },
       ],
       nextCursor: '12',
+      totalCount: 1,
     });
 
     const data = await getArticlesPageData({ locale: 'ko', query: 'react' });
@@ -44,5 +45,14 @@ describe('getArticlesPageData', () => {
     await expect(getArticlesPageData({ locale: 'ko', query: '' })).rejects.toThrow(
       'temporary failure',
     );
+  });
+
+  it('배열 searchParams는 첫 번째 값만 trim하여 사용한다', () => {
+    expect(normalizeSearchParams([' react ', 'vue'])).toBe('react');
+  });
+
+  it('비어 있거나 없는 searchParams는 빈 문자열로 정규화한다', () => {
+    expect(normalizeSearchParams('   ')).toBe('');
+    expect(normalizeSearchParams(undefined)).toBe('');
   });
 });
