@@ -251,7 +251,6 @@ export const createGuestbookEntry = async (
       author_name: normalized.authorName,
       content: normalized.content,
       is_admin_author: normalized.isAdminAuthor,
-      is_admin_reply: Boolean(normalized.parentId && normalized.isAdminAuthor),
       is_secret: normalized.isSecret,
       parent_id: normalized.parentId,
       password_hash: passwordHash,
