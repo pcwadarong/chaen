@@ -14,12 +14,17 @@ type GetGuestPageDataInput = {
 export const getGuestPageData = async ({
   locale: _locale,
 }: GetGuestPageDataInput): Promise<GuestPageProps> => {
+  let includeSecret = false;
+
   try {
     const authState = await getServerAuthState();
-    const guestbookPage = await getGuestbookThreads({
-      includeSecret: authState.isAdmin,
-    });
+    includeSecret = Boolean(authState.isAdmin);
+  } catch {
+    includeSecret = false;
+  }
 
+  try {
+    const guestbookPage = await getGuestbookThreads({ includeSecret });
     return {
       initialCursor: guestbookPage.nextCursor,
       initialItems: guestbookPage.items,

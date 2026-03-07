@@ -26,7 +26,7 @@ describe('getAdminPageData', () => {
     });
   });
 
-  it('관리자 세션이면 현재 사용자 정보를 반환한다', async () => {
+  it('관리자 세션이면 리다이렉트 없이 접근을 허용한다', async () => {
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,

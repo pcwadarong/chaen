@@ -72,4 +72,37 @@ describe('getGuestPageData', () => {
       initialItems: [],
     });
   });
+
+  it('인증 상태 조회에 실패해도 공개 방명록 조회는 계속 시도한다', async () => {
+    vi.mocked(getServerAuthState).mockRejectedValue(new Error('auth failure'));
+    vi.mocked(getGuestbookThreads).mockResolvedValue({
+      items: [
+        {
+          author_blog_url: null,
+          author_name: 'guest',
+          content: 'public hello',
+          created_at: '2026-03-06T00:00:00.000Z',
+          deleted_at: null,
+          id: 'entry-2',
+          is_admin_author: false,
+          is_content_masked: false,
+          is_secret: false,
+          parent_id: null,
+          replies: [],
+          updated_at: '2026-03-06T00:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    });
+
+    const data = await getGuestPageData({ locale: 'ko' });
+
+    expect(getGuestbookThreads).toHaveBeenCalledWith({
+      includeSecret: false,
+    });
+    expect(data).toEqual({
+      initialCursor: null,
+      initialItems: expect.any(Array),
+    });
+  });
 });
