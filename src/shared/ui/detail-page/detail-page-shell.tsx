@@ -43,7 +43,7 @@ export const DetailPageShell = ({
 }: DetailPageShellProps) => (
   <main css={pageStyle}>
     <aside aria-label={sidebarLabel} css={sidebarStyle}>
-      <div css={sidebarViewportStyle} data-app-scroll-viewport="true">
+      <div css={sidebarViewportStyle} data-scroll-region="true">
         {sidebarItems.length > 0 ? (
           <ul css={sidebarListStyle}>
             {sidebarItems.map(item => (
@@ -69,7 +69,7 @@ export const DetailPageShell = ({
         )}
       </div>
     </aside>
-    <article css={contentStyle}>
+    <article css={contentStyle} data-scroll-region="true">
       <header css={heroStyle}>
         <div css={heroTextStyle}>
           <h1 css={titleStyle}>{title}</h1>
@@ -102,7 +102,10 @@ const pageStyle = css`
     display: grid;
     grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
     gap: 0;
-    min-height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
   }
 `;
 
@@ -110,20 +113,23 @@ const sidebarStyle = css`
   display: none;
 
   @media (min-width: 961px) {
-    display: block;
-    position: sticky;
-    top: 0;
-    align-self: start;
-    min-height: 100dvh;
+    display: flex;
+    min-height: 0;
+    height: 100%;
     border-right: 1px solid rgb(var(--color-border) / 0.18);
     background: rgb(var(--color-surface) / 0.16);
   }
 `;
 
 const sidebarViewportStyle = css`
-  max-height: 100dvh;
-  overflow-y: auto;
   padding: var(--space-7) 0;
+
+  @media (min-width: 961px) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 
   @media (min-width: 1200px) {
     padding: var(--space-8) 0;
@@ -208,6 +214,16 @@ const contentStyle = css`
   display: flex;
   flex-direction: column;
   padding: var(--space-10) var(--space-0) var(--space-24);
+
+  @media (min-width: 961px) {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-bottom: 0;
+  }
 `;
 
 const heroStyle = css`
@@ -265,7 +281,11 @@ const bodyStyle = css`
   width: 100%;
   max-width: 48rem;
   margin: 0 auto;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-4) var(--space-24);
+
+  @media (min-width: 961px) {
+    padding-bottom: var(--space-24);
+  }
 `;
 
 const contentSectionStyle = css`
