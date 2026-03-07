@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
@@ -48,6 +48,13 @@ export const useOffsetPaginationFeed = <T>({
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setItems(initialItems);
+    setNextCursor(initialCursor);
+    setIsLoadingMore(false);
+    setErrorMessage(null);
+  }, [initialCursor, initialItems]);
 
   const appendItems = useCallback(
     (incomingItems: T[]) => {

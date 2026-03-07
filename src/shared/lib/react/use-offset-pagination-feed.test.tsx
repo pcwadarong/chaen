@@ -81,4 +81,38 @@ describe('useOffsetPaginationFeed', () => {
       expect(result.current.errorMessage).toBe('load failed');
     });
   });
+
+  it('초기 props가 바뀌면 items와 nextCursor를 새 값으로 재동기화한다', async () => {
+    type HookProps = {
+      initialCursor: string | null;
+      initialItems: { id: string }[];
+    };
+    const initialProps: HookProps = {
+      initialCursor: '1',
+      initialItems: [{ id: 'a' }],
+    };
+
+    const { result, rerender } = renderHook(
+      ({ initialCursor, initialItems }: HookProps) =>
+        useOffsetPaginationFeed<{ id: string }>({
+          endpoint: '/api/test',
+          initialCursor,
+          initialItems,
+          locale: 'ko',
+        }),
+      {
+        initialProps,
+      },
+    );
+
+    rerender({
+      initialCursor: null,
+      initialItems: [{ id: 'b' }],
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual([{ id: 'b' }]);
+    });
+    expect(result.current.hasMore).toBe(false);
+  });
 });
