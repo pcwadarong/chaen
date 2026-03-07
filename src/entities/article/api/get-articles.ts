@@ -49,9 +49,19 @@ type ArticleSearchCursor = {
 };
 
 type ArticleSearchRow = ArticleListItem & {
-  content: string | null;
   search_rank: number;
   total_count: number;
+};
+
+const isMissingShadowSearchSchemaError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('search_article_translations') ||
+    normalizedMessage.includes('article_translations') ||
+    normalizedMessage.includes('articles_v2') ||
+    normalizedMessage.includes('fts_vector')
+  );
 };
 
 type ArticleBaseListRow = Pick<ArticleListItem, 'created_at' | 'id' | 'thumbnail_url'>;
@@ -500,9 +510,7 @@ const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): Artic
   const lastItem = items.at(-1);
 
   return {
-    items: items.map(
-      ({ content: _content, search_rank: _rank, total_count: _totalCount, ...article }) => article,
-    ),
+    items: items.map(({ search_rank: _rank, total_count: _totalCount, ...article }) => article),
     nextCursor:
       hasMore && lastItem
         ? serializeArticleSearchCursor({
@@ -516,11 +524,11 @@ const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): Artic
 };
 
 /**
- * 검색어가 있을 때 Supabase RPC로 아티클을 조회합니다.
+ * 기존 locale-row 스키마의 `search_articles` RPC를 사용합니다.
  *
- * 검색 경로에서는 locale fallback 없이 요청 locale만 서버로 전달합니다.
+ * shadow search schema 미배포 환경을 위한 fallback 경로입니다.
  */
-const fetchSearchArticles = async (
+const fetchSearchArticlesLegacy = async (
   query: string,
   locale: string,
   cursor: string | null | undefined,
@@ -544,6 +552,67 @@ const fetchSearchArticles = async (
   }
 
   return toSearchArticlesPage((data ?? []) as ArticleSearchRow[], pageSize);
+};
+
+/**
+ * shadow schema의 `search_article_translations` RPC로 아티클을 검색합니다.
+ */
+const fetchSearchArticlesFromShadow = async (
+  query: string,
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ArticlesPage; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: { items: [], nextCursor: null, totalCount: null },
+      schemaMissing: false,
+    };
+  }
+
+  const parsedCursor = parseArticleSearchCursor(cursor);
+  const { data, error } = await supabase.rpc('search_article_translations', {
+    cursor_created_at: parsedCursor?.createdAt ?? null,
+    cursor_id: parsedCursor?.id ?? null,
+    cursor_rank: parsedCursor?.rank ?? null,
+    page_limit: pageSize,
+    search_query: query,
+    target_locale: locale,
+  });
+
+  if (error) {
+    if (isMissingShadowSearchSchemaError(error.message)) {
+      return {
+        data: { items: [], nextCursor: null, totalCount: null },
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] shadow RPC 검색 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: toSearchArticlesPage((data ?? []) as ArticleSearchRow[], pageSize),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * 검색 경로는 shadow search RPC를 우선 사용하고, 미배포 환경에서는 legacy RPC로 fallback합니다.
+ */
+const fetchSearchArticles = async (
+  query: string,
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<ArticlesPage> => {
+  const shadowSearch = await fetchSearchArticlesFromShadow(query, locale, cursor, pageSize);
+  if (!shadowSearch.schemaMissing) {
+    return shadowSearch.data;
+  }
+
+  return fetchSearchArticlesLegacy(query, locale, cursor, pageSize);
 };
 
 /**

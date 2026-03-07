@@ -198,7 +198,7 @@ describe('getArticles', () => {
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
 
-  it('검색어가 있으면 rank + created_at + id keyset cursor로 RPC 검색을 호출한다', async () => {
+  it('검색어가 있으면 shadow search RPC를 우선 호출한다', async () => {
     const supabaseClient = {
       rpc: vi.fn().mockResolvedValue({
         data: [
@@ -206,7 +206,6 @@ describe('getArticles', () => {
             id: 'react-start',
             title: 'React Start',
             description: 'client rendering',
-            content: '...',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             search_rank: 0.9,
@@ -216,7 +215,6 @@ describe('getArticles', () => {
             id: 'react-next',
             title: 'React Next',
             description: 'server components',
-            content: '...',
             thumbnail_url: null,
             created_at: '2026-03-01T09:07:50.797695+00:00',
             search_rank: 0.7,
@@ -236,7 +234,7 @@ describe('getArticles', () => {
     expect(result.items[0]?.id).toBe('react-start');
     expect(result.totalCount).toBe(19);
     expect(result.nextCursor).not.toBeNull();
-    expect(supabaseClient.rpc).toHaveBeenCalledWith('search_articles', {
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('search_article_translations', {
       cursor_created_at: null,
       cursor_id: null,
       cursor_rank: null,
@@ -246,13 +244,21 @@ describe('getArticles', () => {
     });
   });
 
-  it('검색어가 있으면 locale fallback 없이 target locale만 RPC에 전달한다', async () => {
+  it('shadow search RPC가 없으면 기존 search_articles RPC로 fallback한다', async () => {
     const supabaseClient = {
       from: vi.fn(),
-      rpc: vi.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
+      rpc: vi
+        .fn()
+        .mockResolvedValueOnce({
+          data: null,
+          error: {
+            message: 'function public.search_article_translations does not exist',
+          },
+        })
+        .mockResolvedValueOnce({
+          data: [],
+          error: null,
+        }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -261,7 +267,15 @@ describe('getArticles', () => {
     await getArticles({ locale: 'fr', query: 'react' });
 
     expect(supabaseClient.from).not.toHaveBeenCalled();
-    expect(supabaseClient.rpc).toHaveBeenCalledWith('search_articles', {
+    expect(supabaseClient.rpc).toHaveBeenNthCalledWith(1, 'search_article_translations', {
+      cursor_created_at: null,
+      cursor_id: null,
+      cursor_rank: null,
+      page_limit: 12,
+      search_query: 'react',
+      target_locale: 'fr',
+    });
+    expect(supabaseClient.rpc).toHaveBeenNthCalledWith(2, 'search_articles', {
       cursor_created_at: null,
       cursor_id: null,
       cursor_rank: null,
