@@ -15,6 +15,8 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectListItem } from '../model/types';
 
+import { mapShadowProjectListItems, type ShadowProjectTranslationRow } from './map-shadow-project';
+
 const isMissingProjectsShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
@@ -33,14 +35,6 @@ type GetProjectsOptions = {
   cursor?: string | null;
   limit?: number;
   locale: string;
-};
-
-type ProjectTranslationListRow = Pick<ProjectListItem, 'description' | 'title'> & {
-  project_id: string;
-};
-
-type ProjectTranslationWithBaseRow = ProjectTranslationListRow & {
-  projects: Pick<ProjectListItem, 'created_at' | 'thumbnail_url'>[] | null;
 };
 
 /**
@@ -62,22 +56,6 @@ const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectsPage
     nextCursor: page.nextCursor,
   };
 };
-
-const mapShadowProjectListItems = (translationRows: ProjectTranslationWithBaseRow[]) =>
-  translationRows.flatMap(row => {
-    const project = row.projects?.[0];
-    if (!project) return [];
-
-    return [
-      {
-        created_at: project.created_at,
-        description: row.description,
-        id: row.project_id,
-        thumbnail_url: project.thumbnail_url,
-        title: row.title,
-      } satisfies ProjectListItem,
-    ];
-  });
 
 /**
  * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
@@ -106,7 +84,6 @@ const fetchProjectsByLocaleFromShadow = async (
   if (parsedCursor) {
     translationsQuery = translationsQuery.or(
       `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},project_id.lt.${parsedCursor.id})`,
-      { referencedTable: 'projects' },
     );
   }
 
@@ -127,7 +104,7 @@ const fetchProjectsByLocaleFromShadow = async (
 
   return {
     data: toProjectsPage(
-      mapShadowProjectListItems((translationRows ?? []) as ProjectTranslationWithBaseRow[]),
+      mapShadowProjectListItems((translationRows ?? []) as ShadowProjectTranslationRow[]),
       pageSize,
     ),
     schemaMissing: false,

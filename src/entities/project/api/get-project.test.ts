@@ -41,20 +41,13 @@ describe('getProject', () => {
           title: 'Funda Project',
           description: 'project description',
           content: 'project content',
-        },
-        error: null,
-      }),
-    };
-    const projectBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'funda-project',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          period_start: '2025-01-01',
-          period_end: null,
+          projects: {
+            id: 'funda-project',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            period_start: '2025-01-01',
+            period_end: null,
+          },
         },
         error: null,
       }),
@@ -80,7 +73,6 @@ describe('getProject', () => {
       from: vi
         .fn()
         .mockReturnValueOnce(translationQuery)
-        .mockReturnValueOnce(projectBaseQuery)
         .mockReturnValueOnce(projectTagsV2Query)
         .mockReturnValueOnce(tagsQuery),
     };
@@ -93,7 +85,6 @@ describe('getProject', () => {
     expect(result).toMatchObject({
       id: 'funda-project',
       title: 'Funda Project',
-      gallery_urls: null,
       tags: ['react', 'nextjs'],
     });
     expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
@@ -145,20 +136,13 @@ describe('getProject', () => {
           title: '한국어 프로젝트',
           description: '설명',
           content: '본문',
-        },
-        error: null,
-      }),
-    };
-    const projectBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'funda-project',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          period_start: null,
-          period_end: null,
+          projects: {
+            id: 'funda-project',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            period_start: null,
+            period_end: null,
+          },
         },
         error: null,
       }),
@@ -175,7 +159,6 @@ describe('getProject', () => {
         .fn()
         .mockReturnValueOnce(targetLocaleTranslationQuery)
         .mockReturnValueOnce(koreanTranslationQuery)
-        .mockReturnValueOnce(projectBaseQuery)
         .mockReturnValueOnce(projectTagsV2Query),
     };
 
@@ -199,20 +182,13 @@ describe('getProject', () => {
           title: 'Funda Project',
           description: 'project description',
           content: 'project content',
-        },
-        error: null,
-      }),
-    };
-    const projectBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'funda-project',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          period_start: '2025-01-01',
-          period_end: null,
+          projects: {
+            id: 'funda-project',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            period_start: '2025-01-01',
+            period_end: null,
+          },
         },
         error: null,
       }),
@@ -227,11 +203,7 @@ describe('getProject', () => {
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(translationQuery)
-        .mockReturnValueOnce(projectBaseQuery)
-        .mockReturnValueOnce(projectTagsV2Query),
+      from: vi.fn().mockReturnValueOnce(translationQuery).mockReturnValueOnce(projectTagsV2Query),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

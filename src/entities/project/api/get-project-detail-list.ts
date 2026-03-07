@@ -10,6 +10,11 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectDetailListItem } from '../model/types';
 
+import {
+  mapShadowProjectDetailListItems,
+  type ShadowProjectTranslationRow,
+} from './map-shadow-project';
+
 const DETAIL_LIST_LIMIT = 200;
 
 const isMissingProjectShadowSchemaError = (message: string) => {
@@ -19,12 +24,6 @@ const isMissingProjectShadowSchemaError = (message: string) => {
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
   );
-};
-
-type ProjectDetailBaseRow = Pick<ProjectDetailListItem, 'created_at' | 'id'>;
-
-type ProjectDetailTranslationRow = Pick<ProjectDetailListItem, 'description' | 'title'> & {
-  project_id: string;
 };
 
 /**
@@ -53,30 +52,13 @@ const fetchProjectDetailListFromShadow = async (
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };
 
-  const { data: projectBaseRows, error: projectBaseError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.projects)
-    .select('id,created_at')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(DETAIL_LIST_LIMIT + 1);
-
-  if (projectBaseError) {
-    if (isMissingProjectShadowSchemaError(projectBaseError.message)) {
-      return { data: [], schemaMissing: true };
-    }
-
-    throw new Error(`[projects] shadow 상세 목록 base 조회 실패: ${projectBaseError.message}`);
-  }
-
-  const baseRows = (projectBaseRows ?? []) as ProjectDetailBaseRow[];
-  if (baseRows.length === 0) return { data: [], schemaMissing: false };
-
-  const projectIds = Array.from(new Set(baseRows.map(row => row.id)));
   const { data: translationRows, error: translationError } = await supabase
     .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
-    .select('project_id,title,description')
+    .select('project_id,title,description,projects!inner(created_at)')
     .eq('locale', locale)
-    .in('project_id', projectIds);
+    .order('created_at', { ascending: false, referencedTable: 'projects' })
+    .order('project_id', { ascending: false })
+    .limit(DETAIL_LIST_LIMIT + 1);
 
   if (translationError) {
     if (isMissingProjectShadowSchemaError(translationError.message)) {
@@ -86,25 +68,9 @@ const fetchProjectDetailListFromShadow = async (
     throw new Error(`[projects] shadow 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
-  const translationMap = new Map(
-    ((translationRows ?? []) as ProjectDetailTranslationRow[]).map(row => [row.project_id, row]),
-  );
-
   return {
     data: toProjectDetailListItems(
-      baseRows.flatMap(row => {
-        const translation = translationMap.get(row.id);
-        if (!translation) return [];
-
-        return [
-          {
-            created_at: row.created_at,
-            description: translation.description,
-            id: row.id,
-            title: translation.title,
-          } satisfies ProjectDetailListItem,
-        ];
-      }),
+      mapShadowProjectDetailListItems((translationRows ?? []) as ShadowProjectTranslationRow[]),
     ),
     schemaMissing: false,
   };

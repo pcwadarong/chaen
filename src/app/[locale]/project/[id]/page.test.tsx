@@ -35,7 +35,6 @@ describe('ProjectDetailRoute', () => {
         description: 'detail',
         content: '# heading',
         thumbnail_url: null,
-        gallery_urls: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
       },

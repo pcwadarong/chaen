@@ -43,12 +43,10 @@ describe('getProjects', () => {
             project_id: 'funda-project',
             title: 'Funda Project',
             description: 'project description',
-            projects: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-02T09:07:50.797695+00:00',
-              },
-            ],
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
@@ -115,9 +113,6 @@ describe('getProjects', () => {
 
     expect(projectTranslationsQuery.or).toHaveBeenCalledWith(
       'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,project_id.lt.project-9)',
-      {
-        referencedTable: 'projects',
-      },
     );
   });
 
@@ -130,12 +125,10 @@ describe('getProjects', () => {
             project_id: 'older-fr-project',
             title: 'Projet FR',
             description: 'description fr',
-            projects: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-01T09:07:50.797695+00:00',
-              },
-            ],
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-01T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
@@ -183,12 +176,10 @@ describe('getProjects', () => {
             project_id: 'funda-project',
             title: '한국어 프로젝트',
             description: '설명',
-            projects: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-02T09:07:50.797695+00:00',
-              },
-            ],
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,

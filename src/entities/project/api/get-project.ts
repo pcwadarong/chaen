@@ -10,6 +10,8 @@ import 'server-only';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
 
+import { mapShadowProject, type ShadowProjectTranslationRow } from './map-shadow-project';
+
 const isMissingProjectShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
@@ -17,15 +19,6 @@ const isMissingProjectShadowSchemaError = (message: string) => {
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
   );
-};
-
-type ProjectBaseRow = Pick<
-  Project,
-  'created_at' | 'id' | 'period_end' | 'period_start' | 'thumbnail_url'
->;
-
-type ProjectTranslationRow = Pick<Project, 'content' | 'description' | 'title'> & {
-  project_id: string;
 };
 
 /**
@@ -40,10 +33,12 @@ const fetchProjectFromShadowSchema = async (
 
   const { data: translation, error: translationError } = await supabase
     .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
-    .select('project_id,title,description,content')
+    .select(
+      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end)',
+    )
     .eq('project_id', projectId)
     .eq('locale', locale)
-    .maybeSingle<ProjectTranslationRow>();
+    .maybeSingle<ShadowProjectTranslationRow>();
 
   if (translationError) {
     if (isMissingProjectShadowSchemaError(translationError.message)) {
@@ -57,24 +52,6 @@ const fetchProjectFromShadowSchema = async (
     return { data: null, schemaMissing: false };
   }
 
-  const { data: projectBase, error: projectBaseError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.projects)
-    .select('id,thumbnail_url,created_at,period_start,period_end')
-    .eq('id', projectId)
-    .maybeSingle<ProjectBaseRow>();
-
-  if (projectBaseError) {
-    if (isMissingProjectShadowSchemaError(projectBaseError.message)) {
-      return { data: null, schemaMissing: true };
-    }
-
-    throw new Error(`[projects] shadow base 조회 실패: ${projectBaseError.message}`);
-  }
-
-  if (!projectBase) {
-    return { data: null, schemaMissing: false };
-  }
-
   const shadowTags = await getRelatedTagSlugs({
     entityColumn: 'project_id',
     entityId: projectId,
@@ -85,11 +62,7 @@ const fetchProjectFromShadowSchema = async (
   }
 
   return {
-    data: {
-      ...projectBase,
-      ...translation,
-      tags: shadowTags.data,
-    },
+    data: mapShadowProject(translation, shadowTags.data),
     schemaMissing: false,
   };
 };
