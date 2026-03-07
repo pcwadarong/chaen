@@ -34,12 +34,10 @@ describe('getProjects', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('Supabase env가 있으면 캐시 키에 scope/offset/limit를 포함해 조회한다', async () => {
+  it('첫 페이지 조회는 keyset cache key에 initial cursor를 포함한다', async () => {
     const projectQuery = {
-      select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             id: 'funda-project',
@@ -49,9 +47,12 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValue(projectQuery),
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue(projectQuery),
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -66,26 +67,73 @@ describe('getProjects', () => {
       'list',
       'supabase-enabled',
       'ko',
-      '0',
+      'initial',
+      '12',
+    ]);
+  });
+
+  it('다음 페이지 조회는 keyset 조건과 opaque cursor를 사용한다', async () => {
+    const projectQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'project-2',
+            title: 'p2',
+            description: null,
+            thumbnail_url: null,
+            created_at: '2026-03-01T09:07:50.797695+00:00',
+          },
+        ],
+        error: null,
+      }),
+      or: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue(projectQuery),
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const cursor = Buffer.from(
+      JSON.stringify({
+        createdAt: '2026-03-02T09:07:50.797695+00:00',
+        id: 'project-9',
+      }),
+      'utf-8',
+    ).toString('base64url');
+
+    await getProjects({ cursor, locale: 'ko' });
+
+    expect(projectQuery.or).toHaveBeenCalledWith(
+      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
+    );
+    expect(vi.mocked(unstable_cache).mock.calls.at(-1)?.[1]).toEqual([
+      'projects',
+      'list',
+      'supabase-enabled',
+      'ko',
+      '2026-03-02T09:07:50.797695+00:00:project-9',
       '12',
     ]);
   });
 
   it('첫 페이지에서 대상 locale 결과가 비어 있으면 ko locale로 fallback 조회한다', async () => {
     const targetLocaleQuery = {
-      select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const koreanFallbackQuery = {
-      select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             id: 'funda-project',
@@ -95,9 +143,17 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(targetLocaleQuery).mockReturnValueOnce(koreanFallbackQuery),
+      from: vi
+        .fn()
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(targetLocaleQuery),
+        })
+        .mockReturnValueOnce({
+          select: vi.fn().mockReturnValue(koreanFallbackQuery),
+        }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
