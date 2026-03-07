@@ -146,22 +146,14 @@ const metaBarWrapStyle = css`
 
 const metaBarStyle = css`
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
-  min-height: 3.75rem;
-  padding: var(--space-3) var(--space-5);
+  min-height: 3.25rem;
+  padding: 0 var(--space-6);
   border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.16);
-  background: rgb(var(--color-surface) / 0.9);
-  box-shadow: 0 12px 30px rgb(var(--color-black) / 0.08);
-
-  @media (max-width: 960px) {
-    width: 100%;
-    border-radius: var(--radius-lg);
-    justify-content: flex-start;
-  }
+  border: 1px solid rgb(var(--color-border) / 0.15);
+  background: rgb(var(--color-surface-muted));
 `;
 
 const metaItemStyle = css`
@@ -169,7 +161,11 @@ const metaItemStyle = css`
   align-items: center;
   gap: var(--space-2);
   color: rgb(var(--color-text));
-  font-size: var(--font-size-16);
+  font-size: var(--font-size-14);
+
+  @media (min-width: 961px) {
+    font-size: var(--font-size-16);
+  }
 `;
 
 const dividerStyle = css`
@@ -184,11 +180,14 @@ const shareButtonStyle = css`
   gap: var(--space-2);
   padding: 0;
   color: rgb(var(--color-text));
-  font-size: var(--font-size-16);
+  font-size: var(--font-size-14);
 
+  @media (min-width: 961px) {
+    font-size: var(--font-size-16);
+  }
+
+  &:hover,
   &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-    border-radius: var(--radius-sm);
+    color: rgb(var(--color-primary));
   }
 `;

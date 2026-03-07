@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import React from 'react';
 
 import type { ProjectDetailListItem } from '@/entities/project/model/types';
-import { formatYear } from '@/shared/lib/date/format-year';
+import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 
@@ -21,7 +21,6 @@ type ProjectDetailPageClientProps = {
   periodText: string;
   sectionLabels: {
     archive: string;
-    description: string;
     tagList: string;
   };
   shareLabels: {
@@ -53,7 +52,9 @@ export const ProjectDetailPageClient = ({
   title,
 }: ProjectDetailPageClientProps) => (
   <DetailPageShell
+    content={content}
     emptyArchiveText={emptyArchiveText}
+    emptyContentText={emptyDescriptionText}
     heroDescription={description ?? emptySummaryText}
     metaBar={
       <DetailMetaBar
@@ -64,61 +65,39 @@ export const ProjectDetailPageClient = ({
         shareText={shareLabels.share}
       />
     }
-    sidebarItems={archiveItems.map(item => ({
-      description: item.description,
-      href: `/project/${item.id}`,
-      isActive: item.id === id,
-      title: item.title,
-      yearText: formatYear(item.created_at, locale) ?? '-',
-    }))}
+    sidebarItems={buildDetailArchiveLinkItems({
+      getHref: item => `/project/${item.id}`,
+      items: archiveItems,
+      locale,
+      selectedId: id,
+    })}
     sidebarLabel={sectionLabels.archive}
     tagContent={
       <p aria-label={sectionLabels.tagList} css={tagListTextStyle}>
-        {tagLabels.length > 0
-          ? tagLabels.map(tagLabel => `#${tagLabel}`).join(' ')
-          : `#${noTagsText}`}
+        {tagLabels.length > 0 ? (
+          tagLabels.map(tagLabel => <span key={tagLabel}># {tagLabel}</span>)
+        ) : (
+          <span>#{noTagsText}</span>
+        )}
       </p>
     }
     title={title}
-  >
-    <section aria-labelledby="project-description-heading" css={contentSectionStyle}>
-      <h2 id="project-description-heading" css={sectionTitleStyle}>
-        {sectionLabels.description}
-      </h2>
-      {content ? (
-        <div css={plainContentStyle}>{content}</div>
-      ) : (
-        <p css={emptyTextStyle}>{emptyDescriptionText}</p>
-      )}
-    </section>
-  </DetailPageShell>
+  />
 );
 
 const tagListTextStyle = css`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
   color: rgb(var(--color-muted));
-  font-size: var(--font-size-18);
-`;
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-140);
 
-const contentSectionStyle = css`
-  display: grid;
-  gap: var(--space-6);
-`;
-
-const sectionTitleStyle = css`
-  font-size: var(--font-size-32);
-  line-height: var(--line-height-110);
-  letter-spacing: -0.04em;
-`;
-
-const emptyTextStyle = css`
-  color: rgb(var(--color-muted));
-`;
-
-const plainContentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-170);
+  @media (min-width: 961px) {
+    gap: var(--space-1) var(--space-3);
+    font-size: var(--font-size-14);
+  }
 `;

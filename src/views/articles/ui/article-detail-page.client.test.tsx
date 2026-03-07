@@ -39,7 +39,6 @@ describe('ArticleDetailPageClient', () => {
         publishedText="등록일 2026-03-02"
         sectionLabels={{
           archive: '기록 아카이브',
-          content: '본문',
           tagList: '태그',
         }}
         shareLabels={{
@@ -55,7 +54,6 @@ describe('ArticleDetailPageClient', () => {
     );
 
     expect(screen.getByRole('button', { name: '#React' })).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 2, name: '본문' })).toBeTruthy();
     expect(screen.getByText('아티클 본문')).toBeTruthy();
     expect(screen.queryByText(/수정일/)).toBeNull();
     expect(screen.queryByText(/대표 이미지/)).toBeNull();

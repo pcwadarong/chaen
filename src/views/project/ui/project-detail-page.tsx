@@ -2,35 +2,13 @@ import { getTranslations } from 'next-intl/server';
 
 import { getTagLabelByLocale } from '@/entities/project/model/tag-map';
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
-import { formatMonthYear } from '@/shared/lib/date/format-month-year';
+import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { ProjectDetailPageClient } from '@/views/project/ui/project-detail-page.client';
 
 type ProjectDetailPageProps = {
   archiveItems: ProjectDetailListItem[];
   item: Project;
   locale: string;
-};
-
-/**
- * 기간 텍스트를 생성합니다.
- */
-const formatProjectPeriod = (item: Project, locale: string, ongoingLabel: string) => {
-  const startText = formatMonthYear(item.period_start ?? item.created_at, locale);
-  const endText = formatMonthYear(item.period_end, locale);
-
-  if (startText && endText) {
-    return `${startText} - ${endText}`;
-  }
-
-  if (startText && !endText && item.period_start) {
-    return `${startText} - ${ongoingLabel}`;
-  }
-
-  if (startText) {
-    return startText;
-  }
-
-  return ongoingLabel;
 };
 
 /**
@@ -54,7 +32,6 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
       noTagsText={t('noTags')}
       periodText={periodText}
       sectionLabels={{
-        description: t('descriptionSection'),
         archive: t('archiveLabel'),
         tagList: t('tagSection'),
       }}

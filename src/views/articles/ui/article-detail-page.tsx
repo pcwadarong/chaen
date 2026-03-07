@@ -39,7 +39,6 @@ export const ArticleDetailPage = async ({ archiveItems, item, locale }: ArticleD
       publishedText={t('publishedAt', { date: publishedDate })}
       sectionLabels={{
         archive: t('archiveLabel'),
-        content: t('contentSection'),
         tagList: t('tagSection'),
       }}
       shareLabels={{

@@ -102,7 +102,6 @@
   },
   "ProjectDetail": {
     "archiveLabel": "Archive des projets",
-    "descriptionSection": "Description détaillée",
     "emptyDescription": "La description détaillée n'a pas encore été ajoutée.",
     "emptySummary": "Le résumé n'est pas disponible.",
     "errorTitle": "Un problème est survenu lors du chargement du projet.",
@@ -116,7 +115,6 @@
   },
   "ArticleDetail": {
     "archiveLabel": "Archive des articles",
-    "contentSection": "Contenu",
     "emptyContent": "Le contenu de l'article n'a pas encore été ajouté.",
     "emptySummary": "Le résumé n'est pas disponible.",
     "errorTitle": "Un problème est survenu lors du chargement de l'article.",

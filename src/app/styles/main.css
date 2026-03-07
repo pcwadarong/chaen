@@ -75,15 +75,13 @@ body::-webkit-scrollbar-thumb:active,
   background-color: var(--app-scrollbar-thumb-active);
 }
 
+body {
+  overflow: auto;
+}
+
 @media (min-width: 961px) {
   body {
     overflow: hidden;
-  }
-}
-
-@media (max-width: 960px) {
-  body {
-    overflow: auto;
   }
 }
 

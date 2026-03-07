@@ -1,9 +1,10 @@
 'use client';
 
 import { css } from '@emotion/react';
+import React from 'react';
 
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/shared/ui/button/button';
+import { Button, getButtonStyle } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 
 type ArticleSearchFormProps = {
@@ -31,11 +32,13 @@ export const ArticleSearchForm = ({
       type="search"
     />
     <div css={actionsStyle}>
-      <Button type="submit">{submitText}</Button>
+      <Button type="submit" tone="black">
+        {submitText}
+      </Button>
       {searchQuery ? (
-        <Button asChild tone="white" variant="ghost">
-          <Link href="/articles">{clearText}</Link>
-        </Button>
+        <Link href="/articles" css={clearLinkStyle}>
+          {clearText}
+        </Link>
       ) : null}
     </div>
   </form>
@@ -45,7 +48,7 @@ const formStyle = css`
   display: grid;
   gap: var(--space-3);
 
-  @media (min-width: 721px) {
+  @media (min-width: 961px) {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
@@ -55,4 +58,11 @@ const actionsStyle = css`
   display: flex;
   gap: var(--space-2);
   justify-content: flex-end;
+`;
+
+const clearLinkStyle = css`
+  ${getButtonStyle({
+    tone: 'white',
+    variant: 'ghost',
+  })};
 `;

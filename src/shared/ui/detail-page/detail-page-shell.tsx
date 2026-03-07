@@ -14,8 +14,10 @@ export type DetailArchiveLinkItem = {
 };
 
 type DetailPageShellProps = {
-  children: ReactNode;
+  children?: ReactNode;
+  content?: string | null;
   emptyArchiveText: string;
+  emptyContentText?: string;
   heroDescription: string;
   metaBar: ReactNode;
   sidebarItems: DetailArchiveLinkItem[];
@@ -29,7 +31,9 @@ type DetailPageShellProps = {
  */
 export const DetailPageShell = ({
   children,
+  content,
   emptyArchiveText,
+  emptyContentText,
   heroDescription,
   metaBar,
   sidebarItems,
@@ -72,9 +76,21 @@ export const DetailPageShell = ({
           <p css={descriptionStyle}>{heroDescription}</p>
         </div>
         {tagContent ? <div css={tagWrapStyle}>{tagContent}</div> : null}
-        {metaBar}
       </header>
-      <div css={bodyStyle}>{children}</div>
+      <div css={metaBarSectionStyle}>{metaBar}</div>
+      <div css={bodyStyle}>
+        <section css={contentSectionStyle}>
+          {typeof content !== 'undefined' ? (
+            content ? (
+              <div css={plainContentStyle}>{content}</div>
+            ) : (
+              <p css={emptyTextStyle}>{emptyContentText}</p>
+            )
+          ) : (
+            children
+          )}
+        </section>
+      </div>
     </article>
   </main>
 );
@@ -107,7 +123,11 @@ const sidebarStyle = css`
 const sidebarViewportStyle = css`
   max-height: 100dvh;
   overflow-y: auto;
-  padding: var(--space-8) 0;
+  padding: var(--space-7) 0;
+
+  @media (min-width: 1200px) {
+    padding: var(--space-8) 0;
+  }
 `;
 
 const sidebarListStyle = css`
@@ -117,7 +137,7 @@ const sidebarListStyle = css`
 const sidebarLinkStyle = css`
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-5) + 3px);
+  padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-4) + 3px);
   border-left: 3px solid transparent;
   border-bottom: 1px solid rgb(var(--color-border) / 0.16);
   color: rgb(var(--color-text));
@@ -134,6 +154,10 @@ const sidebarLinkStyle = css`
     background: rgb(var(--color-surface-muted) / 0.58);
     box-shadow: inset 0 0 0 2px rgb(var(--color-primary) / 0.16);
   }
+
+  @media (min-width: 1200px) {
+    padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-5) + 3px);
+  }
 `;
 
 const activeSidebarLinkStyle = css`
@@ -146,7 +170,7 @@ const sidebarMetaRowStyle = css`
   align-items: center;
   justify-content: space-between;
   color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
+  font-size: var(--font-size-12);
 `;
 
 const sidebarTitleStyle = css`
@@ -154,9 +178,13 @@ const sidebarTitleStyle = css`
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: var(--font-size-24);
+  font-size: var(--font-size-20);
   line-height: var(--line-height-120);
   letter-spacing: -0.03em;
+
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-20);
+  }
 `;
 
 const sidebarDescriptionStyle = css`
@@ -164,6 +192,11 @@ const sidebarDescriptionStyle = css`
   text-overflow: ellipsis;
   white-space: nowrap;
   color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-14);
+  }
 `;
 
 const emptyArchiveStyle = css`
@@ -172,39 +205,46 @@ const emptyArchiveStyle = css`
 `;
 
 const contentStyle = css`
-  display: grid;
-  gap: var(--space-12);
-  padding: var(--space-10) var(--space-4) var(--space-16);
-
-  @media (min-width: 961px) {
-    padding: var(--space-12) var(--space-10) var(--space-20);
-  }
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-10) var(--space-0) var(--space-24);
 `;
 
 const heroStyle = css`
-  display: grid;
-  gap: var(--space-6);
-  padding-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: var(--space-10);
+  border-bottom: 1px solid rgb(var(--color-border) / 0.24);
+
+  @media (min-width: 961px) {
+    padding-bottom: var(--space-12);
+  }
 `;
 
 const heroTextStyle = css`
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
-  justify-items: center;
+  align-items: center;
   text-align: center;
+  margin-bottom: var(--space-8);
+  padding: 0 var(--space-4);
 `;
 
 const titleStyle = css`
-  font-size: clamp(2.5rem, 6vw, 4.75rem);
-  line-height: 0.98;
-  letter-spacing: -0.06em;
+  font-size: var(--font-size-32);
+  font-weight: 800;
+  line-height: var(--line-height-110);
+  letter-spacing: -0.04em;
+  word-break: keep-all;
 `;
 
 const descriptionStyle = css`
-  max-width: 42rem;
   color: rgb(var(--color-muted));
-  font-size: clamp(1rem, 2vw, 1.75rem);
-  line-height: var(--line-height-140);
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-160);
+  word-break: keep-all;
 `;
 
 const tagWrapStyle = css`
@@ -212,7 +252,43 @@ const tagWrapStyle = css`
   justify-content: center;
 `;
 
+const metaBarSectionStyle = css`
+  width: 100%;
+  padding: var(--space-6) 0 var(--space-10);
+
+  @media (min-width: 961px) {
+    padding: var(--space-7) 0 var(--space-12);
+  }
+`;
+
 const bodyStyle = css`
-  width: min(100%, 52rem);
+  width: 100%;
+  max-width: 48rem;
   margin: 0 auto;
+  padding: 0 var(--space-4);
+`;
+
+const contentSectionStyle = css`
+  display: grid;
+  gap: var(--space-4);
+
+  @media (min-width: 961px) {
+    gap: var(--space-5);
+  }
+`;
+
+const emptyTextStyle = css`
+  color: rgb(var(--color-muted));
+`;
+
+const plainContentStyle = css`
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: var(--font-size-16);
+  color: rgb(var(--color-text) / 0.92);
+  letter-spacing: -0.01em;
+
+  @media (min-width: 961px) {
+    font-size: var(--font-size-17);
+  }
 `;

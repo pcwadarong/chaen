@@ -39,7 +39,6 @@ describe('ProjectDetailPageClient', () => {
         periodText="2026년 1월 - 2026년 2월"
         sectionLabels={{
           archive: '프로젝트 아카이브',
-          description: '상세 설명',
           tagList: '태그',
         }}
         shareLabels={{
@@ -53,7 +52,6 @@ describe('ProjectDetailPageClient', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1, name: 'FUNDA' })).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 2, name: '상세 설명' })).toBeTruthy();
     expect(screen.getByText('프로젝트 설명')).toBeTruthy();
     expect(screen.getByTestId('detail-meta-bar')).toBeTruthy();
     expect(screen.queryByText(/등록일/)).toBeNull();

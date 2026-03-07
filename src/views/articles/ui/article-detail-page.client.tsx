@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import React from 'react';
 
 import type { ArticleDetailListItem } from '@/entities/article/model/types';
-import { formatYear } from '@/shared/lib/date/format-year';
+import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 
@@ -21,7 +21,6 @@ type ArticleDetailPageClientProps = {
   publishedText: string;
   sectionLabels: {
     archive: string;
-    content: string;
     tagList: string;
   };
   shareLabels: {
@@ -56,7 +55,9 @@ export const ArticleDetailPageClient = ({
   viewCount,
 }: ArticleDetailPageClientProps) => (
   <DetailPageShell
+    content={content}
     emptyArchiveText={emptyArchiveText}
+    emptyContentText={emptyContentText}
     heroDescription={description ?? emptySummaryText}
     metaBar={
       <DetailMetaBar
@@ -70,13 +71,12 @@ export const ArticleDetailPageClient = ({
         viewEndpoint={`/api/articles/${id}/views`}
       />
     }
-    sidebarItems={archiveItems.map(item => ({
-      description: item.description,
-      href: `/articles/${item.id}`,
-      isActive: item.id === id,
-      title: item.title,
-      yearText: formatYear(item.created_at, locale) ?? '-',
-    }))}
+    sidebarItems={buildDetailArchiveLinkItems({
+      getHref: item => `/articles/${item.id}`,
+      items: archiveItems,
+      locale,
+      selectedId: id,
+    })}
     sidebarLabel={sectionLabels.archive}
     tagContent={
       <div aria-label={sectionLabels.tagList} css={tagListStyle}>
@@ -94,18 +94,7 @@ export const ArticleDetailPageClient = ({
       </div>
     }
     title={title}
-  >
-    <section aria-labelledby="article-content-heading" css={contentSectionStyle}>
-      <h2 id="article-content-heading" css={sectionTitleStyle}>
-        {sectionLabels.content}
-      </h2>
-      {content ? (
-        <div css={plainContentStyle}>{content}</div>
-      ) : (
-        <p css={emptyTextStyle}>{emptyContentText}</p>
-      )}
-    </section>
-  </DetailPageShell>
+  />
 );
 
 const tagListStyle = css`
@@ -113,33 +102,18 @@ const tagListStyle = css`
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-2);
+
+  @media (min-width: 961px) {
+    gap: var(--space-3);
+  }
 `;
 
 const tagButtonStyle = css`
-  padding: var(--space-1) var(--space-3);
+  padding: 0.35rem var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid rgb(var(--color-border) / 0.28);
   background-color: rgb(var(--color-surface) / 0.82);
   font-size: var(--font-size-14);
+  line-height: 1.2;
   color: rgb(var(--color-muted));
-`;
-
-const contentSectionStyle = css`
-  display: grid;
-  gap: var(--space-6);
-`;
-
-const sectionTitleStyle = css`
-  font-size: var(--font-size-32);
-  line-height: var(--line-height-110);
-  letter-spacing: -0.04em;
-`;
-
-const emptyTextStyle = css`
-  color: rgb(var(--color-muted));
-`;
-
-const plainContentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-170);
 `;
