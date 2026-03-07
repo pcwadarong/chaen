@@ -188,4 +188,57 @@ describe('getProject', () => {
     expect(targetLocaleTranslationQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
+
+  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const translationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          project_id: 'funda-project',
+          title: 'Funda Project',
+          description: 'project description',
+          content: 'project content',
+        },
+        error: null,
+      }),
+    };
+    const projectBaseQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'funda-project',
+          thumbnail_url: null,
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+          period_start: '2025-01-01',
+          period_end: null,
+        },
+        error: null,
+      }),
+    };
+    const projectTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.project_tags_v2" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(translationQuery)
+        .mockReturnValueOnce(projectBaseQuery)
+        .mockReturnValueOnce(projectTagsV2Query),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
+      '[projects] 태그 relation schema가 없습니다.',
+    );
+  });
 });

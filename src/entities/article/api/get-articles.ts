@@ -295,21 +295,11 @@ const fetchArticlesByTagAndLocale = async (
     relationTable: 'article_tags_v2',
     tagId: resolvedTagId.data,
   });
-
-  const relatedArticleIds = shadowArticleIds.schemaMissing
-    ? await getRelatedEntityIdsByTagId({
-        entityColumn: 'article_id',
-        locale,
-        relationTable: 'article_tags',
-        tagId: resolvedTagId.data,
-      })
-    : shadowArticleIds;
-
-  if (relatedArticleIds.schemaMissing) {
+  if (shadowArticleIds.schemaMissing) {
     throw new Error('[articles] 태그 relation schema가 없습니다.');
   }
 
-  if (relatedArticleIds.data.length === 0) {
+  if (shadowArticleIds.data.length === 0) {
     return { items: [], nextCursor: null, totalCount: null };
   }
 
@@ -317,7 +307,7 @@ const fetchArticlesByTagAndLocale = async (
     supabase
       .from('articles_v2')
       .select('id,thumbnail_url,created_at')
-      .in('id', relatedArticleIds.data),
+      .in('id', shadowArticleIds.data),
     cursor,
   );
   const { data: articleBaseRows, error: articleBaseError } = await shadowQuery.limit(pageSize + 1);

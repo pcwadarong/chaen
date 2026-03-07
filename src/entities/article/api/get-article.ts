@@ -78,21 +78,15 @@ const fetchArticleFromShadowSchema = async (
     entityId: articleId,
     relationTable: 'article_tags_v2',
   });
-
-  const legacyTags = shadowTags.schemaMissing
-    ? await getRelatedTagSlugs({
-        entityColumn: 'article_id',
-        entityId: articleId,
-        locale,
-        relationTable: 'article_tags',
-      })
-    : shadowTags;
+  if (shadowTags.schemaMissing) {
+    throw new Error('[articles] 태그 relation schema가 없습니다.');
+  }
 
   return {
     data: {
       ...articleBase,
       ...translation,
-      tags: legacyTags.schemaMissing ? null : legacyTags.data,
+      tags: shadowTags.data,
     },
     schemaMissing: false,
   };

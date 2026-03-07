@@ -78,22 +78,16 @@ const fetchProjectFromShadowSchema = async (
     entityId: projectId,
     relationTable: 'project_tags_v2',
   });
-
-  const legacyTags = shadowTags.schemaMissing
-    ? await getRelatedTagSlugs({
-        entityColumn: 'project_id',
-        entityId: projectId,
-        locale,
-        relationTable: 'project_tags',
-      })
-    : shadowTags;
+  if (shadowTags.schemaMissing) {
+    throw new Error('[projects] 태그 relation schema가 없습니다.');
+  }
 
   return {
     data: {
       ...projectBase,
       ...translation,
       gallery_urls: null,
-      tags: legacyTags.schemaMissing ? null : legacyTags.data,
+      tags: shadowTags.data,
     },
     schemaMissing: false,
   };

@@ -1,10 +1,6 @@
 import { unstable_cache } from 'next/cache';
 
-import {
-  getAllRelatedTagIds,
-  getRelatedTagIdsByLocale,
-  getTagSlugMap,
-} from '@/entities/tag/api/query-tags';
+import { getAllRelatedTagIds, getTagSlugMap } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 
 import 'server-only';
@@ -29,7 +25,7 @@ const normalizeTagLimit = (limit?: number) => {
 };
 
 /**
- * locale 기준 인기 아티클 태그를 빈도순으로 조회합니다.
+ * shadow relation table 기준 인기 아티클 태그를 빈도순으로 조회합니다.
  */
 export const getPopularArticleTags = async ({
   limit,
@@ -38,16 +34,11 @@ export const getPopularArticleTags = async ({
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') return [];
 
-  const normalizedLocale = locale.toLowerCase();
   const normalizedLimit = normalizeTagLimit(limit);
 
   const getCachedPopularTags = unstable_cache(
     async () => {
-      const shadowRelationTagIds = await getAllRelatedTagIds('article_tags_v2');
-      const relationTagIds = shadowRelationTagIds.schemaMissing
-        ? await getRelatedTagIdsByLocale('article_tags', normalizedLocale)
-        : shadowRelationTagIds;
-
+      const relationTagIds = await getAllRelatedTagIds('article_tags_v2');
       if (relationTagIds.schemaMissing) {
         throw new Error('[articles] 인기 태그 relation schema가 없습니다.');
       }
@@ -78,7 +69,7 @@ export const getPopularArticleTags = async ({
         })
         .slice(0, normalizedLimit);
     },
-    ['articles', 'popular-tags', cacheScope, normalizedLocale, String(normalizedLimit)],
+    ['articles', 'popular-tags', cacheScope, locale.toLowerCase(), String(normalizedLimit)],
     {
       tags: [ARTICLES_CACHE_TAG],
       revalidate: false,

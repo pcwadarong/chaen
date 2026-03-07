@@ -70,7 +70,7 @@ describe('getPopularArticleTags', () => {
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
   });
 
-  it('shadow와 legacy relation table이 모두 없으면 에러를 던진다', async () => {
+  it('shadow relation table이 없으면 명시적 에러를 던진다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
         data: null,
@@ -79,17 +79,8 @@ describe('getPopularArticleTags', () => {
         },
       }),
     };
-    const articleTagsQuery = {
-      eq: vi.fn().mockResolvedValue({
-        data: null,
-        error: {
-          message: 'relation "public.article_tags" does not exist',
-        },
-      }),
-      select: vi.fn().mockReturnThis(),
-    };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(articleTagsV2Query).mockReturnValueOnce(articleTagsQuery),
+      from: vi.fn().mockReturnValueOnce(articleTagsV2Query),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

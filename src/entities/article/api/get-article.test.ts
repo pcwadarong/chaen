@@ -188,4 +188,57 @@ describe('getArticle', () => {
     expect(targetLocaleTranslationQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
+
+  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const translationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          article_id: 'frontend-performance',
+          title: 'Frontend Performance',
+          description: 'rendering memo',
+          content: '...',
+        },
+        error: null,
+      }),
+    };
+    const articleBaseQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          id: 'frontend-performance',
+          thumbnail_url: null,
+          created_at: '2026-03-02T09:07:50.797695+00:00',
+          updated_at: '2026-03-03T09:07:50.797695+00:00',
+          view_count: 12,
+        },
+        error: null,
+      }),
+    };
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.article_tags_v2" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(translationQuery)
+        .mockReturnValueOnce(articleBaseQuery)
+        .mockReturnValueOnce(articleTagsV2Query),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
+      '[articles] 태그 relation schema가 없습니다.',
+    );
+  });
 });
