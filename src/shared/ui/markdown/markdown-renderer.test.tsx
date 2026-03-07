@@ -14,25 +14,40 @@ const renderServerHtml = async (markdown: string) => {
   return new Response(stream).text();
 };
 
+/**
+ * 서버 렌더링 결과를 DOM으로 파싱합니다.
+ */
+const renderServerDocument = async (markdown: string) => {
+  const html = await renderServerHtml(markdown);
+
+  return new DOMParser().parseFromString(html, 'text/html');
+};
+
 describe('MarkdownRenderer', () => {
   it('GFM과 코드 블럭 스타일을 포함한 markdown를 렌더링한다', async () => {
-    const html = await renderServerHtml(
-      [
-        '# 제목',
-        '',
-        '> 인용문',
-        '',
-        '[외부 링크](https://example.com)',
-        '',
-        '| 이름 | 설명 |',
-        '| --- | --- |',
-        '| Markdown | Renderer |',
-        '',
-        '```ts',
-        "const answer = '42';",
-        '```',
-      ].join('\n'),
-    );
+    const markdown = [
+      '# 제목',
+      '',
+      '> 인용문',
+      '',
+      '[외부 링크](https://example.com)',
+      '',
+      '| 이름 | 설명 |',
+      '| --- | --- |',
+      '| Markdown | Renderer |',
+      '',
+      '```ts',
+      "const answer = '42';",
+      '```',
+    ].join('\n');
+    const html = await renderServerHtml(markdown);
+    const document = await renderServerDocument(markdown);
+    const highlightedPre = document.querySelector('pre[data-language="ts"]');
+
+    expect(highlightedPre).toBeTruthy();
+    expect(highlightedPre?.className).toContain(styles.codeBlockPre);
+    expect(highlightedPre?.textContent).toContain("const answer = '42';");
+    expect(html).not.toContain(`class="${styles.inlineCode}" data-language="ts"`);
 
     expect(html).toContain('<h1');
     expect(html).toContain('제목</h1>');
@@ -40,12 +55,6 @@ describe('MarkdownRenderer', () => {
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('<table');
-    expect(html).toContain('>ts<');
-    expect(html).toContain('>const<');
-    expect(html).toContain('> answer<');
-    expect(html).toContain('&#x27;42&#x27;');
-    expect(html).not.toContain(`class="${styles.inlineCode}" data-language="ts"`);
-    expect(html).toContain(`class="${styles.codeBlockPre}"`);
   });
 
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {
