@@ -88,7 +88,6 @@ const fetchProjectFromShadowSchema = async (
     data: {
       ...projectBase,
       ...translation,
-      gallery_urls: null,
       tags: shadowTags.data,
     },
     schemaMissing: false,

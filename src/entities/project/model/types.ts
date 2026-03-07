@@ -7,7 +7,6 @@ export type Project = {
   description: string | null;
   content: string | null;
   thumbnail_url: string | null;
-  gallery_urls: string[] | null;
   tags: string[] | null;
   created_at: string;
   period_start?: string | null;
