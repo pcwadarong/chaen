@@ -24,39 +24,26 @@ describe('getArticleDetailList', () => {
   });
 
   it('shadow schema 기준으로 최신순 아티클 요약 목록을 반환한다', async () => {
-    const articleBaseQuery = {
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'frontend',
-            created_at: '2026-03-02T00:00:00.000Z',
-          },
-        ],
-        error: null,
-      }),
-      order: vi.fn().mockReturnThis(),
-    };
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
-      in: vi.fn().mockResolvedValue({
+      limit: vi.fn().mockResolvedValue({
         data: [
           {
             article_id: 'frontend',
             title: 'Frontend',
             description: 'detail',
+            articles: {
+              created_at: '2026-03-02T00:00:00.000Z',
+            },
           },
         ],
         error: null,
       }),
+      order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue(articleBaseQuery),
-        })
-        .mockReturnValueOnce(translationsQuery),
+      from: vi.fn().mockReturnValueOnce(translationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -72,14 +59,58 @@ describe('getArticleDetailList', () => {
         created_at: '2026-03-02T00:00:00.000Z',
       },
     ]);
-    expect(articleBaseQuery.order).toHaveBeenNthCalledWith(1, 'created_at', { ascending: false });
-    expect(articleBaseQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: false });
     expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(translationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
+      ascending: false,
+      referencedTable: 'articles',
+    });
+    expect(translationsQuery.order).toHaveBeenNthCalledWith(2, 'article_id', {
+      ascending: false,
+    });
     expect(unstable_cache).toHaveBeenCalledTimes(1);
   });
 
+  it('최근 base row에 번역이 없어도 locale 번역이 있는 아카이브 항목을 반환한다', async () => {
+    const translationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'older-fr-article',
+            title: 'Frontend FR',
+            description: 'detail fr',
+            articles: {
+              created_at: '2026-03-01T00:00:00.000Z',
+            },
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticleDetailList('fr');
+
+    expect(result).toEqual([
+      {
+        id: 'older-fr-article',
+        title: 'Frontend FR',
+        description: 'detail fr',
+        created_at: '2026-03-01T00:00:00.000Z',
+      },
+    ]);
+  });
+
   it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
-    const shadowBaseQuery = {
+    const shadowTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -87,11 +118,10 @@ describe('getArticleDetailList', () => {
         },
       }),
       order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce({
-        select: vi.fn().mockReturnValue(shadowBaseQuery),
-      }),
+      from: vi.fn().mockReturnValueOnce(shadowTranslationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

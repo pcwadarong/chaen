@@ -10,6 +10,8 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '../model/cache-tags';
 import type { Article } from '../model/types';
 
+import { mapShadowArticle, type ShadowArticleTranslationRow } from './map-shadow-article';
+
 const isMissingArticleShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
@@ -17,15 +19,6 @@ const isMissingArticleShadowSchemaError = (message: string) => {
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
   );
-};
-
-type ArticleBaseRow = Pick<
-  Article,
-  'created_at' | 'id' | 'thumbnail_url' | 'updated_at' | 'view_count'
->;
-
-type ArticleTranslationRow = Pick<Article, 'content' | 'description' | 'title'> & {
-  article_id: string;
 };
 
 /**
@@ -40,10 +33,12 @@ const fetchArticleFromShadowSchema = async (
 
   const { data: translation, error: translationError } = await supabase
     .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
-    .select('article_id,title,description,content')
+    .select(
+      'article_id,title,description,content,articles!inner(id,thumbnail_url,created_at,updated_at,view_count)',
+    )
     .eq('article_id', articleId)
     .eq('locale', locale)
-    .maybeSingle<ArticleTranslationRow>();
+    .maybeSingle<ShadowArticleTranslationRow>();
 
   if (translationError) {
     if (isMissingArticleShadowSchemaError(translationError.message)) {
@@ -57,24 +52,6 @@ const fetchArticleFromShadowSchema = async (
     return { data: null, schemaMissing: false };
   }
 
-  const { data: articleBase, error: articleBaseError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.articles)
-    .select('id,thumbnail_url,created_at,updated_at,view_count')
-    .eq('id', articleId)
-    .maybeSingle<ArticleBaseRow>();
-
-  if (articleBaseError) {
-    if (isMissingArticleShadowSchemaError(articleBaseError.message)) {
-      return { data: null, schemaMissing: true };
-    }
-
-    throw new Error(`[articles] shadow base 조회 실패: ${articleBaseError.message}`);
-  }
-
-  if (!articleBase) {
-    return { data: null, schemaMissing: false };
-  }
-
   const shadowTags = await getRelatedTagSlugs({
     entityColumn: 'article_id',
     entityId: articleId,
@@ -85,11 +62,7 @@ const fetchArticleFromShadowSchema = async (
   }
 
   return {
-    data: {
-      ...articleBase,
-      ...translation,
-      tags: shadowTags.data,
-    },
+    data: mapShadowArticle(translation, shadowTags.data),
     schemaMissing: false,
   };
 };

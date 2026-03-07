@@ -41,20 +41,13 @@ describe('getArticle', () => {
           title: 'Frontend Performance',
           description: 'rendering memo',
           content: '...',
-        },
-        error: null,
-      }),
-    };
-    const articleBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'frontend-performance',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          updated_at: '2026-03-03T09:07:50.797695+00:00',
-          view_count: 12,
+          articles: {
+            id: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: '2026-03-03T09:07:50.797695+00:00',
+            view_count: 12,
+          },
         },
         error: null,
       }),
@@ -80,7 +73,6 @@ describe('getArticle', () => {
       from: vi
         .fn()
         .mockReturnValueOnce(translationQuery)
-        .mockReturnValueOnce(articleBaseQuery)
         .mockReturnValueOnce(articleTagsV2Query)
         .mockReturnValueOnce(tagsQuery),
     };
@@ -145,20 +137,13 @@ describe('getArticle', () => {
           title: '한국어 글',
           description: '설명',
           content: '본문',
-        },
-        error: null,
-      }),
-    };
-    const articleBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'frontend-performance',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          updated_at: null,
-          view_count: 3,
+          articles: {
+            id: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: null,
+            view_count: 3,
+          },
         },
         error: null,
       }),
@@ -175,7 +160,6 @@ describe('getArticle', () => {
         .fn()
         .mockReturnValueOnce(targetLocaleTranslationQuery)
         .mockReturnValueOnce(koreanTranslationQuery)
-        .mockReturnValueOnce(articleBaseQuery)
         .mockReturnValueOnce(articleTagsV2Query),
     };
 
@@ -199,20 +183,13 @@ describe('getArticle', () => {
           title: 'Frontend Performance',
           description: 'rendering memo',
           content: '...',
-        },
-        error: null,
-      }),
-    };
-    const articleBaseQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 'frontend-performance',
-          thumbnail_url: null,
-          created_at: '2026-03-02T09:07:50.797695+00:00',
-          updated_at: '2026-03-03T09:07:50.797695+00:00',
-          view_count: 12,
+          articles: {
+            id: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: '2026-03-03T09:07:50.797695+00:00',
+            view_count: 12,
+          },
         },
         error: null,
       }),
@@ -227,11 +204,7 @@ describe('getArticle', () => {
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(translationQuery)
-        .mockReturnValueOnce(articleBaseQuery)
-        .mockReturnValueOnce(articleTagsV2Query),
+      from: vi.fn().mockReturnValueOnce(translationQuery).mockReturnValueOnce(articleTagsV2Query),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

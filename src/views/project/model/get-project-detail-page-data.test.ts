@@ -25,7 +25,6 @@ describe('getProjectDetailPageData', () => {
       description: 'cs',
       content: 'detail',
       thumbnail_url: null,
-      gallery_urls: null,
       tags: [],
       created_at: '2026-03-02T00:00:00.000Z',
     });

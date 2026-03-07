@@ -44,12 +44,10 @@ describe('getArticles', () => {
             article_id: 'typography-rhythm',
             title: 'Typography Rhythm',
             description: 'line-height note',
-            articles: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-02T09:07:50.797695+00:00',
-              },
-            ],
+            articles: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
@@ -134,12 +132,10 @@ describe('getArticles', () => {
             article_id: 'older-fr-article',
             title: 'Article FR',
             description: 'description fr',
-            articles: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-01T09:07:50.797695+00:00',
-              },
-            ],
+            articles: {
+              thumbnail_url: null,
+              created_at: '2026-03-01T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
@@ -187,12 +183,10 @@ describe('getArticles', () => {
             article_id: 'frontend-performance',
             title: '한국어 글',
             description: '설명',
-            articles: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-02T09:07:50.797695+00:00',
-              },
-            ],
+            articles: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,
@@ -396,12 +390,10 @@ describe('getArticles', () => {
             article_id: 'older-localized',
             title: 'Article Two',
             description: 'description',
-            articles: [
-              {
-                thumbnail_url: null,
-                created_at: '2026-03-01T09:07:50.797695+00:00',
-              },
-            ],
+            articles: {
+              thumbnail_url: null,
+              created_at: '2026-03-01T09:07:50.797695+00:00',
+            },
           },
         ],
         error: null,

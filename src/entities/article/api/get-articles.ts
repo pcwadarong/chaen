@@ -16,6 +16,8 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleListItem } from '../model/types';
 
+import { mapShadowArticleListItems, type ShadowArticleTranslationRow } from './map-shadow-article';
+
 const isMissingArticlesShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
@@ -48,14 +50,6 @@ type ArticleSearchCursor = {
 type ArticleSearchRow = ArticleListItem & {
   search_rank: number;
   total_count: number;
-};
-
-type ArticleTranslationListRow = Pick<ArticleListItem, 'description' | 'title'> & {
-  article_id: string;
-};
-
-type ArticleTranslationWithBaseRow = ArticleTranslationListRow & {
-  articles: Pick<ArticleListItem, 'created_at' | 'thumbnail_url'>[] | null;
 };
 
 /**
@@ -126,27 +120,6 @@ const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticlesPage
 };
 
 /**
- * content schema(`articles` + `article_translations`) 결과를 목록 아이템으로 조합합니다.
- */
-const mapShadowArticleListItems = (
-  translationRows: ArticleTranslationWithBaseRow[],
-): ArticleListItem[] =>
-  translationRows.flatMap(row => {
-    const article = row.articles?.[0];
-    if (!article) return [];
-
-    return [
-      {
-        created_at: article.created_at,
-        description: row.description,
-        id: row.article_id,
-        thumbnail_url: article.thumbnail_url,
-        title: row.title,
-      } satisfies ArticleListItem,
-    ];
-  });
-
-/**
  * content schema(`articles` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
  */
 const fetchArticlesByLocaleFromShadow = async (
@@ -194,7 +167,7 @@ const fetchArticlesByLocaleFromShadow = async (
 
   return {
     data: toArticlesPage(
-      mapShadowArticleListItems((translationRows ?? []) as ArticleTranslationWithBaseRow[]),
+      mapShadowArticleListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
       pageSize,
     ),
     schemaMissing: false,
@@ -281,7 +254,7 @@ const fetchArticlesByTagAndLocale = async (
   }
 
   return toArticlesPage(
-    mapShadowArticleListItems((translationRows ?? []) as ArticleTranslationWithBaseRow[]),
+    mapShadowArticleListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
     pageSize,
   );
 };

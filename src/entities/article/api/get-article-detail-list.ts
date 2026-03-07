@@ -10,6 +10,11 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleDetailListItem } from '../model/types';
 
+import {
+  mapShadowArticleDetailListItems,
+  type ShadowArticleTranslationRow,
+} from './map-shadow-article';
+
 const DETAIL_LIST_LIMIT = 200;
 
 const isMissingArticleShadowSchemaError = (message: string) => {
@@ -19,12 +24,6 @@ const isMissingArticleShadowSchemaError = (message: string) => {
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
     normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
   );
-};
-
-type ArticleDetailBaseRow = Pick<ArticleDetailListItem, 'created_at' | 'id'>;
-
-type ArticleDetailTranslationRow = Pick<ArticleDetailListItem, 'description' | 'title'> & {
-  article_id: string;
 };
 
 /**
@@ -53,30 +52,13 @@ const fetchArticleDetailListFromShadow = async (
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };
 
-  const { data: articleBaseRows, error: articleBaseError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.articles)
-    .select('id,created_at')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(DETAIL_LIST_LIMIT + 1);
-
-  if (articleBaseError) {
-    if (isMissingArticleShadowSchemaError(articleBaseError.message)) {
-      return { data: [], schemaMissing: true };
-    }
-
-    throw new Error(`[articles] shadow 상세 목록 base 조회 실패: ${articleBaseError.message}`);
-  }
-
-  const baseRows = (articleBaseRows ?? []) as ArticleDetailBaseRow[];
-  if (baseRows.length === 0) return { data: [], schemaMissing: false };
-
-  const articleIds = Array.from(new Set(baseRows.map(row => row.id)));
   const { data: translationRows, error: translationError } = await supabase
     .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
-    .select('article_id,title,description')
+    .select('article_id,title,description,articles!inner(created_at)')
     .eq('locale', locale)
-    .in('article_id', articleIds);
+    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('article_id', { ascending: false })
+    .limit(DETAIL_LIST_LIMIT + 1);
 
   if (translationError) {
     if (isMissingArticleShadowSchemaError(translationError.message)) {
@@ -86,25 +68,9 @@ const fetchArticleDetailListFromShadow = async (
     throw new Error(`[articles] shadow 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
-  const translationMap = new Map(
-    ((translationRows ?? []) as ArticleDetailTranslationRow[]).map(row => [row.article_id, row]),
-  );
-
   return {
     data: toArticleDetailListItems(
-      baseRows.flatMap(row => {
-        const translation = translationMap.get(row.id);
-        if (!translation) return [];
-
-        return [
-          {
-            created_at: row.created_at,
-            description: translation.description,
-            id: row.id,
-            title: translation.title,
-          } satisfies ArticleDetailListItem,
-        ];
-      }),
+      mapShadowArticleDetailListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
     ),
     schemaMissing: false,
   };
