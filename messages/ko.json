@@ -81,6 +81,9 @@
     "loadError": "아티클을 불러오지 못했습니다.",
     "loadMoreEnd": "마지막 아티클까지 모두 확인했습니다.",
     "loading": "아티클을 불러오는 중입니다.",
+    "searchClear": "초기화",
+    "searchPlaceholder": "아티클 검색",
+    "searchSubmit": "검색",
     "retry": "다시 시도",
     "title": "기록"
   },
@@ -98,27 +101,22 @@
     "viewProject": "프로젝트 보기"
   },
   "ProjectDetail": {
-    "descriptionSection": "상세 설명",
+    "archiveLabel": "프로젝트 아카이브",
     "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
-    "emptyMedia": "표시할 미디어가 없습니다.",
     "emptySummary": "요약이 비어 있습니다.",
     "errorTitle": "프로젝트를 불러오는 중 문제가 발생했습니다.",
     "loading": "프로젝트 상세 정보를 불러오는 중입니다.",
-    "mediaAlt": "{title} 미리보기 {index}",
-    "mediaSection": "주요 미디어",
     "noTags": "태그없음",
     "notFoundDescription": "프로젝트 ID를 다시 확인하거나 목록 페이지에서 다시 선택해 주세요.",
     "notFoundTitle": "요청한 프로젝트를 찾을 수 없습니다.",
     "ongoing": "진행 중",
-    "publishedAt": "등록일 {date}",
     "retry": "다시 시도",
     "tagSection": "태그"
   },
   "ArticleDetail": {
-    "contentSection": "본문",
+    "archiveLabel": "기록 아카이브",
     "emptyContent": "아직 등록된 본문이 없습니다.",
     "emptySummary": "요약이 비어 있습니다.",
-    "emptyThumbnail": "표시할 대표 이미지가 없습니다.",
     "errorTitle": "기록을 불러오는 중 문제가 발생했습니다.",
     "loading": "기록 상세 정보를 불러오는 중입니다.",
     "noTags": "태그없음",
@@ -126,10 +124,15 @@
     "notFoundTitle": "요청한 기록을 찾을 수 없습니다.",
     "publishedAt": "등록일 {date}",
     "retry": "다시 시도",
-    "tagSection": "태그",
-    "thumbnailAlt": "{title} 대표 이미지",
-    "thumbnailSection": "대표 이미지",
-    "updatedAt": "수정일 {date}"
+    "tagSection": "태그"
+  },
+  "DetailUi": {
+    "copyFailed": "링크 복사에 실패했습니다.",
+    "emptyArchive": "표시할 항목이 없습니다.",
+    "leaveGuestbookMessage": "방명록에 글 남기고 가기",
+    "share": "공유하기",
+    "shareCopied": "복사됨",
+    "viewCount": "조회수"
   },
   "ImageViewer": {
     "closeAriaLabel": "이미지 뷰어 닫기",

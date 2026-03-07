@@ -11,6 +11,7 @@ export const GET = async (request: Request) => {
   const cursor = url.searchParams.get('cursor');
   const locale = url.searchParams.get('locale') ?? 'ko';
   const rawLimit = url.searchParams.get('limit');
+  const query = url.searchParams.get('q');
   const limit = rawLimit ? Number.parseInt(rawLimit, 10) : undefined;
 
   try {
@@ -18,6 +19,7 @@ export const GET = async (request: Request) => {
       cursor,
       limit,
       locale,
+      query,
     });
 
     return NextResponse.json({

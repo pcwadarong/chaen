@@ -80,6 +80,8 @@
 
   .scrollViewport {
     height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;

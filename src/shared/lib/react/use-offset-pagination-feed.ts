@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
@@ -19,6 +19,7 @@ type UseOffsetPaginationFeedOptions<T> = {
   limit?: number;
   locale: string;
   mergeItems?: (previousItems: T[], incomingItems: T[]) => T[];
+  queryParams?: Record<string, string | null | undefined>;
 };
 
 type UseOffsetPaginationFeedResult<T> = {
@@ -41,11 +42,19 @@ export const useOffsetPaginationFeed = <T>({
   limit = DEFAULT_LIMIT,
   locale,
   mergeItems,
+  queryParams,
 }: UseOffsetPaginationFeedOptions<T>): UseOffsetPaginationFeedResult<T> => {
   const [items, setItems] = useState<T[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setItems(initialItems);
+    setNextCursor(initialCursor);
+    setIsLoadingMore(false);
+    setErrorMessage(null);
+  }, [initialCursor, initialItems]);
 
   const appendItems = useCallback(
     (incomingItems: T[]) => {
@@ -69,6 +78,10 @@ export const useOffsetPaginationFeed = <T>({
       url.searchParams.set('locale', locale);
       url.searchParams.set('limit', String(limit));
       url.searchParams.set('cursor', nextCursor);
+      Object.entries(queryParams ?? {}).forEach(([key, value]) => {
+        if (!value) return;
+        url.searchParams.set(key, value);
+      });
 
       const payload = await requestJsonApiClient<OffsetFeedResponse<T>>({
         fallbackReason: 'failed to fetch list',
@@ -86,7 +99,7 @@ export const useOffsetPaginationFeed = <T>({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [appendItems, endpoint, isLoadingMore, limit, locale, nextCursor]);
+  }, [appendItems, endpoint, isLoadingMore, limit, locale, nextCursor, queryParams]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

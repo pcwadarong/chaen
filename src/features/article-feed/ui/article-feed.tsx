@@ -3,7 +3,7 @@
 import { css } from '@emotion/react';
 import { useEffect, useRef } from 'react';
 
-import type { Article } from '@/entities/article/model/types';
+import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleCard } from '@/entities/article/ui/article-card';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
@@ -11,11 +11,12 @@ import { Button } from '@/shared/ui/button/button';
 type ArticleFeedProps = {
   emptyText: string;
   initialCursor: string | null;
-  initialItems: Article[];
+  initialItems: ArticleListItem[];
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
   locale: string;
+  query: string;
   retryText: string;
 };
 
@@ -30,12 +31,14 @@ export const ArticleFeed = ({
   loadMoreEndText,
   loadingText,
   locale,
+  query,
   retryText,
 }: ArticleFeedProps) => {
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useArticleFeed({
     initialCursor,
     initialItems,
     locale,
+    query,
   });
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 

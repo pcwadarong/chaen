@@ -2,14 +2,14 @@
 
 import { useLocale } from 'next-intl';
 
-import type { Article } from '@/entities/article/model/types';
+import type { ArticleListItem } from '@/entities/article/model/types';
 import { formatYear } from '@/shared/lib/date/format-year';
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { ContentCard } from '@/shared/ui/content-card/content-card';
 
 type ArticleCardProps = {
-  article: Article;
+  article: ArticleListItem;
 };
 
 /** 아티클 목록용 요약 카드를 렌더링합니다. */

@@ -10,4 +10,18 @@ export type Article = {
   tags: string[] | null;
   created_at: string;
   updated_at?: string | null;
+  view_count?: number | null;
 };
+
+/**
+ * 아티클 상세 좌측 아카이브 목록에 필요한 최소 요약 타입입니다.
+ */
+export type ArticleDetailListItem = Pick<Article, 'id' | 'title' | 'description' | 'created_at'>;
+
+/**
+ * 아티클 목록 카드/피드에 필요한 요약 타입입니다.
+ */
+export type ArticleListItem = Pick<
+  Article,
+  'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'
+>;

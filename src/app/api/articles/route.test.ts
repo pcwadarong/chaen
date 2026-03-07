@@ -31,6 +31,23 @@ describe('GET /api/articles', () => {
       cursor: null,
       limit: 12,
       locale: 'ko',
+      query: null,
+    });
+  });
+
+  it('검색어가 있으면 그대로 전달한다', async () => {
+    vi.mocked(getArticles).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+
+    await GET(new Request('http://localhost:3000/api/articles?locale=ko&q=react'));
+
+    expect(getArticles).toHaveBeenCalledWith({
+      cursor: null,
+      limit: undefined,
+      locale: 'ko',
+      query: 'react',
     });
   });
 

@@ -4,6 +4,7 @@ import type { ArticlesPageProps } from '../ui/articles-page';
 
 type GetArticlesPageDataInput = {
   locale: string;
+  query: string;
 };
 
 /**
@@ -11,15 +12,14 @@ type GetArticlesPageDataInput = {
  */
 export const getArticlesPageData = async ({
   locale,
+  query,
 }: GetArticlesPageDataInput): Promise<ArticlesPageProps> => {
-  const articlesPage = await getArticles({ locale }).catch(() => ({
-    items: [],
-    nextCursor: null,
-  }));
+  const articlesPage = await getArticles({ locale, query });
 
   return {
     initialCursor: articlesPage.nextCursor,
     initialItems: articlesPage.items,
     locale,
+    searchQuery: query,
   };
 };

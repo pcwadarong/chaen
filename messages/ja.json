@@ -81,6 +81,9 @@
     "loadError": "記事の読み込みに失敗しました。",
     "loadMoreEnd": "最後の記事まで表示しました。",
     "loading": "記事を読み込み中です。",
+    "searchClear": "クリア",
+    "searchPlaceholder": "記事を検索",
+    "searchSubmit": "検索",
     "retry": "再試行",
     "title": "記事"
   },
@@ -98,27 +101,22 @@
     "viewProject": "プロジェクトを見る"
   },
   "ProjectDetail": {
-    "descriptionSection": "詳細説明",
+    "archiveLabel": "プロジェクトアーカイブ",
     "emptyDescription": "詳細説明はまだ登録されていません。",
-    "emptyMedia": "表示できるメディアがありません。",
     "emptySummary": "概要はまだありません。",
     "errorTitle": "プロジェクトの読み込み中に問題が発生しました。",
     "loading": "プロジェクト詳細を読み込み中です。",
-    "mediaAlt": "{title} プレビュー {index}",
-    "mediaSection": "主要メディア",
     "noTags": "タグなし",
     "notFoundDescription": "プロジェクト ID を確認するか、一覧ページからもう一度選択してください。",
     "notFoundTitle": "指定したプロジェクトが見つかりません。",
     "ongoing": "進行中",
-    "publishedAt": "公開日 {date}",
     "retry": "再試行",
     "tagSection": "タグ"
   },
   "ArticleDetail": {
-    "contentSection": "本文",
+    "archiveLabel": "記録アーカイブ",
     "emptyContent": "本文はまだ登録されていません。",
     "emptySummary": "概要はまだありません。",
-    "emptyThumbnail": "表示できるサムネイルがありません。",
     "errorTitle": "記事の読み込み中に問題が発生しました。",
     "loading": "記事詳細を読み込み中です。",
     "noTags": "タグなし",
@@ -126,10 +124,15 @@
     "notFoundTitle": "指定した記事が見つかりません。",
     "publishedAt": "公開日 {date}",
     "retry": "再試行",
-    "tagSection": "タグ",
-    "thumbnailAlt": "{title} のサムネイル",
-    "thumbnailSection": "サムネイル",
-    "updatedAt": "更新日 {date}"
+    "tagSection": "タグ"
+  },
+  "DetailUi": {
+    "copyFailed": "リンクのコピーに失敗しました。",
+    "emptyArchive": "表示する項目がありません。",
+    "leaveGuestbookMessage": "ゲストブックにメッセージを残す",
+    "share": "共有する",
+    "shareCopied": "コピー済み",
+    "viewCount": "閲覧数"
   },
   "ImageViewer": {
     "closeAriaLabel": "画像ビューアーを閉じる",

@@ -1,7 +1,8 @@
 'use client';
 
 import { css } from '@emotion/react';
-import { Suspense, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { Link } from '@/i18n/navigation';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
@@ -35,6 +36,11 @@ export const GlobalNavMobileMenu = ({
   pathname,
 }: GlobalNavMobileMenuProps) => {
   const drawerRef = useRef<HTMLElement | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useDialogFocusManagement({
     containerRef: drawerRef,
@@ -62,47 +68,50 @@ export const GlobalNavMobileMenu = ({
           <span css={hamburgerLineStyle} />
         </button>
       </div>
-      {isOpen ? (
-        <div css={mobileOverlayStyle} onClick={onClose}>
-          <aside
-            aria-label={ariaLabel}
-            aria-modal="true"
-            css={mobileDrawerStyle}
-            id={MOBILE_NAV_DRAWER_ID}
-            onClick={event => event.stopPropagation()}
-            ref={drawerRef}
-            role="dialog"
-            tabIndex={-1}
-          >
-            <button
-              aria-label={closeMenuLabel}
-              onClick={onClose}
-              css={drawerCloseStyle}
-              type="button"
-            >
-              ×
-            </button>
-            <nav aria-label={ariaLabel}>
-              <ul css={mobileListStyle}>
-                {navigationItems.map(item => (
-                  <li key={item.href}>
-                    <Link
-                      aria-current={
-                        isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
-                      }
-                      href={item.href}
-                      onClick={onClose}
-                      css={mobileNavLinkStyle}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </aside>
-        </div>
-      ) : null}
+      {isOpen && isMounted
+        ? createPortal(
+            <div css={mobileOverlayStyle} onClick={onClose}>
+              <aside
+                aria-label={ariaLabel}
+                aria-modal="true"
+                css={mobileDrawerStyle}
+                id={MOBILE_NAV_DRAWER_ID}
+                onClick={event => event.stopPropagation()}
+                ref={drawerRef}
+                role="dialog"
+                tabIndex={-1}
+              >
+                <button
+                  aria-label={closeMenuLabel}
+                  onClick={onClose}
+                  css={drawerCloseStyle}
+                  type="button"
+                >
+                  ×
+                </button>
+                <nav aria-label={ariaLabel}>
+                  <ul css={mobileListStyle}>
+                    {navigationItems.map(item => (
+                      <li key={item.href}>
+                        <Link
+                          aria-current={
+                            isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
+                          }
+                          href={item.href}
+                          onClick={onClose}
+                          css={mobileNavLinkStyle}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 };

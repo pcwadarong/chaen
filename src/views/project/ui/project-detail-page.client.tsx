@@ -1,124 +1,106 @@
 'use client';
 
 import { css } from '@emotion/react';
+import React from 'react';
 
-import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-modal';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
-import { ProjectDetailMediaGallery } from '@/views/project/ui/project-detail-media-gallery';
-
-type ProjectDetailMediaItem = {
-  alt: string;
-  src: string;
-  unoptimized?: boolean;
-};
+import type { ProjectDetailListItem } from '@/entities/project/model/types';
+import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
+import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 
 type ProjectDetailPageClientProps = {
+  archiveItems: ProjectDetailListItem[];
   content: string | null;
   description: string | null;
+  emptyArchiveText: string;
   emptyDescriptionText: string;
-  emptyMediaText: string;
   emptySummaryText: string;
-  mediaItems: ProjectDetailMediaItem[];
+  guestbookCtaText: string;
+  id: string;
+  locale: string;
   noTagsText: string;
   periodText: string;
-  publishedText: string;
   sectionLabels: {
-    description: string;
-    media: string;
-    tags: string;
+    archive: string;
+    tagList: string;
+  };
+  shareLabels: {
+    copyFailed: string;
+    copied: string;
+    share: string;
   };
   tagLabels: string[];
   title: string;
-  viewerLabels: ImageViewerLabels;
 };
 
 /**
  * 프로젝트 상세 프레젠테이션 컴포넌트입니다.
  */
 export const ProjectDetailPageClient = ({
+  archiveItems,
   content,
   description,
+  emptyArchiveText,
   emptyDescriptionText,
-  emptyMediaText,
   emptySummaryText,
-  mediaItems,
+  guestbookCtaText,
+  id,
+  locale,
   noTagsText,
   periodText,
-  publishedText,
   sectionLabels,
+  shareLabels,
   tagLabels,
   title,
-  viewerLabels,
 }: ProjectDetailPageClientProps) => (
-  <PageShell>
-    <article css={articleStyle}>
-      <PageHeader
-        description={description ?? emptySummaryText}
-        meta={
-          <>
-            <span>{periodText}</span>
-            <span>{publishedText}</span>
-          </>
-        }
-        title={title}
-      >
-        <ul aria-label={sectionLabels.tags} css={tagListStyle}>
-          {tagLabels.length > 0 ? (
-            tagLabels.map(tagLabel => (
-              <li key={tagLabel} css={tagItemStyle}>
-                #{tagLabel}
-              </li>
-            ))
-          ) : (
-            <li css={tagItemStyle}>#{noTagsText}</li>
-          )}
-        </ul>
-      </PageHeader>
-
-      <PageSection title={sectionLabels.media} titleId="project-media-heading">
-        <ProjectDetailMediaGallery
-          emptyText={emptyMediaText}
-          items={mediaItems}
-          sectionLabel={sectionLabels.media}
-          viewerLabels={viewerLabels}
-        />
-      </PageSection>
-
-      <PageSection title={sectionLabels.description} titleId="project-description-heading">
-        {content ? (
-          <p css={plainContentStyle}>{content}</p>
+  <DetailPageShell
+    content={content}
+    emptyArchiveText={emptyArchiveText}
+    emptyContentText={emptyDescriptionText}
+    guestbookCtaText={guestbookCtaText}
+    heroDescription={description ?? emptySummaryText}
+    metaBar={
+      <DetailMetaBar
+        copyFailedText={shareLabels.copyFailed}
+        copiedText={shareLabels.copied}
+        locale={locale}
+        primaryMetaText={periodText}
+        shareText={shareLabels.share}
+      />
+    }
+    sidebarItems={buildDetailArchiveLinkItems({
+      getHref: item => `/project/${item.id}`,
+      items: archiveItems,
+      locale,
+      selectedId: id,
+    })}
+    sidebarLabel={sectionLabels.archive}
+    tagContent={
+      <p aria-label={sectionLabels.tagList} css={tagListTextStyle}>
+        {tagLabels.length > 0 ? (
+          tagLabels.map(tagLabel => <span key={tagLabel}># {tagLabel}</span>)
         ) : (
-          <p css={emptyTextStyle}>{emptyDescriptionText}</p>
+          <span>{noTagsText}</span>
         )}
-      </PageSection>
-    </article>
-  </PageShell>
+      </p>
+    }
+    title={title}
+  />
 );
 
-const articleStyle = css`
-  display: grid;
-  gap: var(--space-5);
-`;
-
-const tagListStyle = css`
+const tagListTextStyle = css`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-`;
-
-const tagItemStyle = css`
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.28);
-  background-color: rgb(var(--color-surface) / 0.82);
-  font-size: var(--font-size-14);
-`;
-
-const emptyTextStyle = css`
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
   color: rgb(var(--color-muted));
-`;
+  font-size: var(--font-size-13);
+  line-height: var(--line-height-140);
 
-const plainContentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-170);
+  @media (min-width: 961px) {
+    gap: var(--space-1) var(--space-3);
+    font-size: var(--font-size-14);
+  }
 `;
