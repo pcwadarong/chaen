@@ -123,6 +123,11 @@
   padding: 1rem;
 }
 
+.codeBlockPre:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: -2px;
+}
+
 .codeBlockPre code {
   display: grid;
   font-family: var(--font-mono), monospace;
@@ -132,6 +137,11 @@
 
 .tableScroll {
   overflow-x: auto;
+}
+
+.tableScroll:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
 }
 
 .table {

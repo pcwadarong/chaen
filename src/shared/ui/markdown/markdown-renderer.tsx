@@ -48,6 +48,12 @@ const getCodeBlockLanguage = (children: ReactNode) => {
 };
 
 /**
+ * 코드 블럭 스크롤 영역에 제공할 접근성 라벨을 생성합니다.
+ */
+const getCodeBlockAriaLabel = (children: ReactNode) =>
+  `Code block: ${getCodeBlockLanguage(children)}`;
+
+/**
  * 현재 code 노드가 블록 코드 내부인지 판별합니다.
  */
 const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
@@ -102,7 +108,9 @@ const markdownComponents: Components = {
         <span className={styles.codeBlockLanguage}>{getCodeBlockLanguage(children)}</span>
       </div>
       <pre
+        aria-label={getCodeBlockAriaLabel(children)}
         className={className ? `${styles.codeBlockPre} ${className}` : styles.codeBlockPre}
+        tabIndex={0}
         {...props}
       >
         {children}
@@ -110,7 +118,7 @@ const markdownComponents: Components = {
     </div>
   ),
   table: ({ children }) => (
-    <div className={styles.tableScroll}>
+    <div aria-label="Markdown table" className={styles.tableScroll} tabIndex={0}>
       <table className={styles.table}>{children}</table>
     </div>
   ),

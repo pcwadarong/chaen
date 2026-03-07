@@ -43,10 +43,15 @@ describe('MarkdownRenderer', () => {
     const html = await renderServerHtml(markdown);
     const document = await renderServerDocument(markdown);
     const highlightedPre = document.querySelector('pre[data-language="ts"]');
+    const markdownTable = document.querySelector('div[aria-label="Markdown table"]');
 
     expect(highlightedPre).toBeTruthy();
     expect(highlightedPre?.className).toContain(styles.codeBlockPre);
+    expect(highlightedPre?.getAttribute('tabindex')).toBe('0');
+    expect(highlightedPre?.getAttribute('aria-label')).toBe('Code block: ts');
     expect(highlightedPre?.textContent).toContain("const answer = '42';");
+    expect(markdownTable).toBeTruthy();
+    expect(markdownTable?.getAttribute('tabindex')).toBe('0');
     expect(html).not.toContain(`class="${styles.inlineCode}" data-language="ts"`);
 
     expect(html).toContain('<h1');
