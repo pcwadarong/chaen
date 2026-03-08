@@ -759,7 +759,7 @@ const sortButtonStyle = css`
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgb(var(--color-muted));
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-medium);
   transition:
