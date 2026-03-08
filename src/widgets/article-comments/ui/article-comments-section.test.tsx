@@ -159,6 +159,12 @@ describe('ArticleCommentsSection', () => {
     });
   });
 
+  it('페이지네이션은 하단에만 한 번 렌더링한다', () => {
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    expect(screen.getAllByRole('navigation', { name: 'paginationLabel' })).toHaveLength(1);
+  });
+
   it('비밀글 UI 없이 댓글 내용을 바로 노출한다', () => {
     render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
 

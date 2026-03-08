@@ -173,7 +173,7 @@ const actionButtonStyle = css`
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-13);
+  font-size: var(--font-size-14);
   transition:
     color 160ms ease,
     background-color 160ms ease,

@@ -5,8 +5,8 @@ import { vi } from 'vitest';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 
 vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn(async () => (key: string, values?: Record<string, string>) => {
-    if (key === 'publishedAt') return `published:${values?.date ?? ''}`;
+  getTranslations: vi.fn(async () => (key: string) => {
+    if (key === 'publishedAtLabel') return 'published';
 
     return key;
   }),
@@ -67,5 +67,7 @@ describe('ArticleDetailPage', () => {
 
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');
+    expect(html).toContain('2026-03-08');
+    expect(html).toContain('published 2026-03-08');
   });
 });

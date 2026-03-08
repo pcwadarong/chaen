@@ -302,42 +302,6 @@ export const ArticleCommentsSection = ({
           </h2>
           <p css={descriptionStyle}>{t('description')}</p>
         </div>
-        <div css={toolbarStyle}>
-          <div aria-label={t('sortLabel')} css={sortGroupStyle} role="tablist">
-            <button
-              aria-selected={pageData.sort === 'latest'}
-              css={[
-                sortButtonStyle,
-                pageData.sort === 'latest' ? activeSortButtonStyle : undefined,
-              ]}
-              onClick={() => handleChangeSort('latest')}
-              role="tab"
-              type="button"
-            >
-              {t('sortLatest')}
-            </button>
-            <button
-              aria-selected={pageData.sort === 'oldest'}
-              css={[
-                sortButtonStyle,
-                pageData.sort === 'oldest' ? activeSortButtonStyle : undefined,
-              ]}
-              onClick={() => handleChangeSort('oldest')}
-              role="tab"
-              type="button"
-            >
-              {t('sortOldest')}
-            </button>
-          </div>
-          <Pagination
-            ariaLabel={t('paginationLabel')}
-            currentPage={pageData.page}
-            onPageChange={page => {
-              void loadPage(page, pageData.sort);
-            }}
-            totalPages={pageData.totalPages}
-          />
-        </div>
       </div>
 
       <CommentComposeForm
@@ -364,6 +328,29 @@ export const ArticleCommentsSection = ({
         textareaRows={4}
         textPlaceholder={t('composePlaceholder')}
       />
+
+      <div css={listToolbarStyle}>
+        <div aria-label={t('sortLabel')} css={sortGroupStyle} role="tablist">
+          <button
+            aria-selected={pageData.sort === 'latest'}
+            css={[sortButtonStyle, pageData.sort === 'latest' ? activeSortButtonStyle : undefined]}
+            onClick={() => handleChangeSort('latest')}
+            role="tab"
+            type="button"
+          >
+            {t('sortLatest')}
+          </button>
+          <button
+            aria-selected={pageData.sort === 'oldest'}
+            css={[sortButtonStyle, pageData.sort === 'oldest' ? activeSortButtonStyle : undefined]}
+            onClick={() => handleChangeSort('oldest')}
+            role="tab"
+            type="button"
+          >
+            {t('sortOldest')}
+          </button>
+        </div>
+      </div>
 
       {errorMessage && pageData.items.length === 0 ? (
         <div css={stateCardStyle} role="alert">
@@ -640,11 +627,12 @@ const CommentEntryCard = ({
 
       {!isDeleted ? (
         <div css={entryFooterStyle}>
-          <ActionMenuButton
-            icon={<ArrowCurveLeftRightIcon aria-hidden size="sm" />}
-            label={actionReplyLabel}
-            onClick={() => onReply(entry)}
-          />
+          <button css={replyButtonStyle} onClick={() => onReply(entry)} type="button">
+            <span aria-hidden css={replyButtonIconMotionStyle}>
+              <ArrowCurveLeftRightIcon aria-hidden size="sm" />
+            </span>
+            <span>{actionReplyLabel}</span>
+          </button>
         </div>
       ) : null}
     </div>
@@ -736,7 +724,7 @@ const headerTextStyle = css`
 `;
 
 const titleStyle = css`
-  font-size: var(--font-size-28);
+  font-size: var(--font-size-24);
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.03em;
 `;
@@ -747,25 +735,23 @@ const descriptionStyle = css`
   word-break: keep-all;
 `;
 
-const toolbarStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  flex: 0 0 auto;
-
-  @media (min-width: 721px) {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-  }
+const listToolbarStyle = css`
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-2) 0 var(--space-1);
+  margin-top: var(--space-1);
 `;
 
 const sortGroupStyle = css`
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  width: fit-content;
+  max-width: 100%;
   padding: var(--space-1);
   border-radius: var(--radius-pill);
   background: rgb(var(--color-surface-muted) / 0.72);
+  border: 1px solid rgb(var(--color-border) / 0.16);
 `;
 
 const sortButtonStyle = css`
@@ -811,24 +797,21 @@ const stateTextStyle = css`
 
 const threadListStyle = css`
   display: grid;
-  gap: var(--space-4);
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: var(--space-2) 0 0;
 `;
 
 const threadCardStyle = css`
   display: grid;
-  gap: var(--space-3);
+  gap: 0;
 `;
 
 const replyListStyle = css`
   display: grid;
-  gap: var(--space-3);
   list-style: none;
   padding: 0 0 0 var(--space-4);
-  margin: 0;
-  border-left: 1px solid rgb(var(--color-border) / 0.2);
+  margin: var(--space-1) 0 0;
 
   @media (min-width: 721px) {
     padding-left: var(--space-6);
@@ -837,6 +820,7 @@ const replyListStyle = css`
 
 const replyComposeWrapStyle = css`
   padding-left: var(--space-4);
+  margin-top: var(--space-1);
 
   @media (min-width: 721px) {
     padding-left: var(--space-6);
@@ -845,32 +829,18 @@ const replyComposeWrapStyle = css`
 
 const entryCardStyle = css`
   display: grid;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--color-surface) / 0.96),
-      rgb(var(--color-surface-muted) / 0.68)
-    ),
-    rgb(var(--color-surface));
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-top: 1px solid rgb(var(--color-border) / 0.18);
 `;
 
 const replyEntryCardStyle = css`
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--color-surface-muted) / 0.62),
-      rgb(var(--color-surface) / 0.96)
-    ),
-    rgb(var(--color-surface));
+  padding-left: var(--space-2);
 `;
 
 const entryHeaderStyle = css`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 `;
@@ -898,13 +868,13 @@ const authorLinkStyle = css`
 `;
 
 const authorNameStyle = css`
-  font-size: var(--font-size-18);
+  font-size: var(--font-size-16);
   font-weight: var(--font-weight-semibold);
 `;
 
 const entryBodyStyle = css`
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
 `;
 
 const contentTextStyle = css`
@@ -930,16 +900,46 @@ const entryFooterStyle = css`
   flex-wrap: wrap;
 `;
 
+const replyButtonStyle = css`
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+  line-height: 1.4;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    color: rgb(var(--color-primary));
+  }
+
+  &:hover > span:first-of-type,
+  &:focus-visible > span:first-of-type {
+    transform: translateX(2px);
+  }
+`;
+
+const replyButtonIconMotionStyle = css`
+  display: inline-flex;
+  transition: transform 180ms ease;
+`;
+
 const timeStyle = css`
   display: inline-flex;
   align-items: center;
   color: rgb(var(--color-muted));
-  font-size: var(--font-size-13);
+  font-size: var(--font-size-12);
+  line-height: 1.2;
 `;
 
 const footerPaginationWrapStyle = css`
   display: flex;
   justify-content: center;
+  padding-top: var(--space-2);
 `;
 
 const modalBodyStyle = css`
