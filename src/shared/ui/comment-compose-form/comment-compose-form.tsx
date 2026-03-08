@@ -13,6 +13,7 @@ import React, {
 import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import {
   hasMinCommentComposePasswordLength,
+  isValidCommentComposeAuthorBlogUrl,
   isValidCommentComposeAuthorName,
   normalizeCommentComposePassword,
 } from '@/shared/lib/comment-compose';
@@ -26,8 +27,9 @@ type CommentComposeAuthorMode = 'manual' | 'preset';
 
 type CommentComposeFormProps = {
   allowSecretToggle?: boolean;
-  authorBlogUrlPlaceholder: string;
   authorBlogUrlLabel: string;
+  authorBlogUrlInvalidMessage: string;
+  authorBlogUrlPlaceholder: string;
   authorMode?: CommentComposeAuthorMode;
   authorNamePlaceholder: string;
   authorNameLabel: string;
@@ -59,8 +61,9 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  */
 export const CommentComposeForm = ({
   allowSecretToggle = true,
-  authorBlogUrlPlaceholder,
   authorBlogUrlLabel,
+  authorBlogUrlInvalidMessage,
+  authorBlogUrlPlaceholder,
   authorMode = 'manual',
   authorNamePlaceholder,
   authorNameLabel,
@@ -86,6 +89,7 @@ export const CommentComposeForm = ({
   const [authorName, setAuthorName] = useState('');
   const [password, setPassword] = useState('');
   const [authorBlogUrl, setAuthorBlogUrl] = useState('');
+  const [authorBlogUrlError, setAuthorBlogUrlError] = useState<string | null>(null);
   const [content, setContent] = useState('');
   const [isSecret, setIsSecret] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,6 +97,7 @@ export const CommentComposeForm = ({
   const authorNameId = useId();
   const passwordId = useId();
   const authorBlogUrlId = useId();
+  const authorBlogUrlErrorId = useId();
   const contentId = useId();
   const characterCountId = useId();
   const contentShortcutHintId = useId();
@@ -152,6 +157,12 @@ export const CommentComposeForm = ({
 
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
+    if (!isValidCommentComposeAuthorBlogUrl(authorBlogUrl)) {
+      setAuthorBlogUrlError(authorBlogUrlInvalidMessage);
+      return;
+    }
+
+    setAuthorBlogUrlError(null);
     if (!event.currentTarget.reportValidity()) return;
     void submit();
   };
@@ -167,11 +178,22 @@ export const CommentComposeForm = ({
     setPassword(normalizeCommentComposePassword(value));
   };
 
+  const handleAuthorBlogUrlChange = (value: string) => {
+    setAuthorBlogUrl(value);
+
+    if (!authorBlogUrlError) return;
+    if (isValidCommentComposeAuthorBlogUrl(value)) {
+      setAuthorBlogUrlError(null);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} css={[formBaseStyle, layoutStyleMap[layout]]}>
       <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout]]}>
         {!isPresetAuthorMode ? (
           <CommentComposeProfileFields
+            authorBlogUrlDescribedBy={authorBlogUrlError ? authorBlogUrlErrorId : undefined}
+            authorBlogUrlErrorMessage={authorBlogUrlError}
             authorBlogUrlId={authorBlogUrlId}
             authorBlogUrlLabel={authorBlogUrlLabel}
             authorBlogUrlPlaceholder={authorBlogUrlPlaceholder}
@@ -180,7 +202,7 @@ export const CommentComposeForm = ({
             authorNameLabel={authorNameLabel}
             authorNamePlaceholder={authorNamePlaceholder}
             authorNameValue={authorName}
-            onAuthorBlogUrlChange={setAuthorBlogUrl}
+            onAuthorBlogUrlChange={handleAuthorBlogUrlChange}
             onAuthorNameChange={setAuthorName}
             onPasswordChange={handlePasswordChange}
             passwordId={passwordId}

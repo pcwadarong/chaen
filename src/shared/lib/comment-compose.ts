@@ -1,3 +1,5 @@
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
+
 /**
  * 공통 댓글/방명록 작성 폼이 제출하는 값 타입입니다.
  */
@@ -34,3 +36,13 @@ export const hasEmojiInCommentComposePassword = (password: string) => EMOJI_PATT
  */
 export const hasMinCommentComposePasswordLength = (password: string) =>
   normalizeCommentComposePassword(password).length >= 4;
+
+/**
+ * 작성자 블로그 URL이 비어 있거나 `http/https` URL인지 확인합니다.
+ */
+export const isValidCommentComposeAuthorBlogUrl = (authorBlogUrl: string) => {
+  const trimmed = authorBlogUrl.trim();
+  if (!trimmed) return true;
+
+  return Boolean(normalizeHttpUrl(trimmed));
+};

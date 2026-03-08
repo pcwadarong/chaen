@@ -7,6 +7,8 @@ import { Input } from '@/shared/ui/input/input';
 import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
 
 type CommentComposeProfileFieldsProps = {
+  authorBlogUrlDescribedBy?: string;
+  authorBlogUrlErrorMessage?: string | null;
   authorBlogUrlId: string;
   authorBlogUrlLabel: string;
   authorBlogUrlPlaceholder: string;
@@ -26,6 +28,8 @@ type CommentComposeProfileFieldsProps = {
 
 /** 작성자 프로필(닉네임/비밀번호/홈페이지) 입력 필드를 렌더링합니다. */
 export const CommentComposeProfileFields = ({
+  authorBlogUrlDescribedBy,
+  authorBlogUrlErrorMessage,
   authorBlogUrlId,
   authorBlogUrlLabel,
   authorBlogUrlPlaceholder,
@@ -71,12 +75,19 @@ export const CommentComposeProfileFields = ({
     <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
       <span css={srOnlyStyle}>{authorBlogUrlLabel}</span>
       <Input
+        aria-describedby={authorBlogUrlDescribedBy}
+        aria-invalid={authorBlogUrlErrorMessage ? 'true' : 'false'}
         id={authorBlogUrlId}
         aria-label={authorBlogUrlLabel}
         onChange={event => onAuthorBlogUrlChange(event.target.value)}
         placeholder={authorBlogUrlPlaceholder}
         value={authorBlogUrlValue}
       />
+      {authorBlogUrlErrorMessage ? (
+        <p css={fieldErrorTextStyle} id={authorBlogUrlDescribedBy} role="alert">
+          {authorBlogUrlErrorMessage}
+        </p>
+      ) : null}
     </label>
   </div>
 );
@@ -98,6 +109,14 @@ const leftFieldsStyle = css`
 `;
 
 const fieldWrapStyle = css`
-  display: flex;
+  display: grid;
+  gap: var(--space-1);
   min-width: 0;
+`;
+
+const fieldErrorTextStyle = css`
+  margin: 0;
+  color: rgb(var(--color-danger, 208 61 61));
+  font-size: 0.8125rem;
+  line-height: 1.4;
 `;

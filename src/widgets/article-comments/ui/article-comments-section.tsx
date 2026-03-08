@@ -307,6 +307,7 @@ export const ArticleCommentsSection = ({
       <CommentComposeForm
         allowSecretToggle={false}
         authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+        authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
         authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorNameLabel={t('composeAuthorNameLabel')}
         authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
@@ -427,6 +428,7 @@ export const ArticleCommentsSection = ({
                     <CommentComposeForm
                       allowSecretToggle={false}
                       authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+                      authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
                       authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
                       authorNameLabel={t('composeAuthorNameLabel')}
                       authorNamePlaceholder={t('composeAuthorNamePlaceholder')}

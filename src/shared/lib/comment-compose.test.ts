@@ -1,6 +1,7 @@
 import {
   hasEmojiInCommentComposePassword,
   hasMinCommentComposePasswordLength,
+  isValidCommentComposeAuthorBlogUrl,
   isValidCommentComposeAuthorName,
   normalizeCommentComposePassword,
 } from '@/shared/lib/comment-compose';
@@ -23,5 +24,13 @@ describe('comment compose validation', () => {
   it('비밀번호 내 이모지 포함 여부를 감지한다', () => {
     expect(hasEmojiInCommentComposePassword('abcd')).toBe(false);
     expect(hasEmojiInCommentComposePassword('ab😀cd')).toBe(true);
+  });
+
+  it('작성자 블로그 URL은 비어 있거나 http/https만 허용한다', () => {
+    expect(isValidCommentComposeAuthorBlogUrl('')).toBe(true);
+    expect(isValidCommentComposeAuthorBlogUrl('https://example.com')).toBe(true);
+    expect(isValidCommentComposeAuthorBlogUrl('http://example.com')).toBe(true);
+    expect(isValidCommentComposeAuthorBlogUrl('javascript:alert(1)')).toBe(false);
+    expect(isValidCommentComposeAuthorBlogUrl('not-a-url')).toBe(false);
   });
 });

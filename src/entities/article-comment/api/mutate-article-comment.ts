@@ -1,5 +1,6 @@
 import { hashGuestbookPassword, verifyGuestbookPassword } from '@/entities/guestbook/lib/password';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 import 'server-only';
 
@@ -79,7 +80,7 @@ const normalizeCreateInput = (input: CreateArticleCommentInput) => {
   const authorName = input.authorName.trim();
   const content = input.content.trim();
   const password = input.password.trim();
-  const authorBlogUrl = input.authorBlogUrl?.trim() || null;
+  const rawAuthorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
   const replyToCommentId = input.replyToCommentId?.trim() || null;
 
@@ -90,6 +91,11 @@ const normalizeCreateInput = (input: CreateArticleCommentInput) => {
   if (!password) throw new Error('password is required');
   if (!parentId && replyToCommentId)
     throw new Error('replyToCommentId is only allowed for replies');
+
+  const authorBlogUrl = rawAuthorBlogUrl ? normalizeHttpUrl(rawAuthorBlogUrl) : null;
+  if (rawAuthorBlogUrl && !authorBlogUrl) {
+    throw new Error('authorBlogUrl must be a valid http/https URL');
+  }
 
   return {
     articleId,

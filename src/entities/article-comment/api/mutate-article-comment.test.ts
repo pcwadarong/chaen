@@ -222,6 +222,22 @@ describe('article comment mutations', () => {
     ).rejects.toThrow('password is required');
   });
 
+  it('위험한 블로그 URL은 저장하지 않도록 등록을 거부한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn(),
+    } as never);
+
+    await expect(
+      createArticleComment({
+        articleId: 'frontend',
+        authorBlogUrl: 'javascript:alert(1)',
+        authorName: 'guest',
+        content: 'hello',
+        password: '1234',
+      }),
+    ).rejects.toThrow('authorBlogUrl must be a valid http/https URL');
+  });
+
   it('수정/삭제는 비밀번호 검증을 거친다', async () => {
     const single = vi.fn().mockResolvedValue({
       data: {

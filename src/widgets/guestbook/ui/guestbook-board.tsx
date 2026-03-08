@@ -176,8 +176,9 @@ export const GuestbookBoard = ({
 
       <CommentComposeForm
         allowSecretToggle={!isAdmin}
-        authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
+        authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
+        authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorMode={isAdmin ? 'preset' : 'manual'}
         authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
         authorNameLabel={t('composeAuthorNameLabel')}

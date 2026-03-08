@@ -4,9 +4,10 @@ import React from 'react';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form/comment-compose-form';
 
 const createProps = () => ({
-  allowSecretToggle: true,
-  authorBlogUrlPlaceholder: '홈페이지 (선택)',
   authorBlogUrlLabel: '블로그 홈페이지',
+  authorBlogUrlInvalidMessage: '홈페이지 주소는 http:// 또는 https://로 시작해야 합니다.',
+  authorBlogUrlPlaceholder: '홈페이지 (선택)',
+  allowSecretToggle: true,
   authorMode: 'manual' as const,
   authorNamePlaceholder: '닉네임 1자 이상',
   authorNameLabel: '이름',
@@ -72,6 +73,37 @@ describe('CommentComposeForm', () => {
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('위험한 블로그 URL은 클라이언트에서 제출 전에 막고 검증 메시지를 노출한다', async () => {
+    const onSubmit = vi.fn();
+
+    render(<CommentComposeForm {...createProps()} onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText('이름'), { target: { value: 'chaen' } });
+    fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByLabelText('블로그 홈페이지'), {
+      target: { value: 'javascript:alert(1)' },
+    });
+    fireEvent.change(screen.getByLabelText('방명록 내용'), { target: { value: '안녕하세요' } });
+    fireEvent.click(screen.getByRole('button', { name: '전송' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toBe(
+        '홈페이지 주소는 http:// 또는 https://로 시작해야 합니다.',
+      );
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('블로그 홈페이지'), {
+      target: { value: 'https://example.com' },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('홈페이지 주소는 http:// 또는 https://로 시작해야 합니다.'),
+      ).toBeNull();
     });
   });
 
