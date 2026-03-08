@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import React from 'react';
 
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
@@ -43,6 +44,7 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
           copyFailedText={detailUi('copyFailed')}
           copiedText={detailUi('shareCopied')}
           locale={locale}
+          primaryMetaScreenReaderText={`${t('periodLabel')} ${periodText}`}
           primaryMetaText={periodText}
           shareText={detailUi('share')}
         />

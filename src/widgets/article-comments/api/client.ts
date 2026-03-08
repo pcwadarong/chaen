@@ -11,13 +11,13 @@ type CreateArticleCommentClientInput = {
   authorBlogUrl: string;
   authorName: string;
   content: string;
-  isSecret: boolean;
   parentId?: string | null;
   password: string;
   replyToCommentId?: string | null;
 };
 
 type GetArticleCommentsClientParams = {
+  fresh?: boolean;
   page: number;
   sort: ArticleCommentsSort;
 };
@@ -36,9 +36,10 @@ type ArticleCommentPageResponse = ArticleCommentPage & {
  */
 export const getArticleCommentsPageClient = async (
   articleId: string,
-  { page, sort }: GetArticleCommentsClientParams,
+  { fresh = false, page, sort }: GetArticleCommentsClientParams,
 ): Promise<ArticleCommentPage> => {
   const url = new URL(`/api/articles/${articleId}/comments`, window.location.origin);
+  if (fresh) url.searchParams.set('fresh', '1');
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort', sort);
 
@@ -116,24 +117,4 @@ export const deleteArticleCommentClient = async (
     method: 'DELETE',
     url: `/api/articles/${articleId}/comments/${commentId}`,
   });
-};
-
-/**
- * 비밀번호 검증 후 비밀 댓글 본문을 조회합니다.
- */
-export const verifyArticleCommentSecretClient = async (
-  articleId: string,
-  commentId: string,
-  password: string,
-): Promise<ArticleComment> => {
-  const payload = await requestJsonApiClient<ArticleCommentMutationResponse>({
-    body: {
-      password,
-    },
-    fallbackReason: 'failed to verify article comment secret',
-    method: 'POST',
-    url: `/api/articles/${articleId}/comments/${commentId}/verify-secret`,
-  });
-
-  return payload.comment;
 };

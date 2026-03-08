@@ -3,15 +3,18 @@
 import { css } from '@emotion/react';
 import React from 'react';
 
+import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/lib/use-guestbook-bubble-action-menu';
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import { GuestbookEntryActionMenu } from '@/entities/guestbook/ui/guestbook-entry-action-menu';
 import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
 import { Button } from '@/shared/ui/button/button';
-import { ArrowCurveLeftRightIcon, EditIcon, TrashIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
 
 type GuestbookThreadBubbleProps = {
   actionDeleteLabel: string;
   actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
   actionReplyLabel: string;
   canReply: boolean;
   dateText: (isoDate: string) => string;
@@ -30,6 +33,7 @@ type GuestbookThreadBubbleProps = {
   revealSecretPasswordLabel: string;
   revealSecretSubmitLabel: string;
   revealSecretTitle: string;
+  reportLabel: string;
   secretError: string | null;
   secretPlaceholder: string;
   setPasswordInput: (value: string) => void;
@@ -41,6 +45,8 @@ type GuestbookThreadBubbleProps = {
 export const GuestbookThreadBubble = ({
   actionDeleteLabel,
   actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
   actionReplyLabel,
   canReply,
   dateText,
@@ -59,126 +65,103 @@ export const GuestbookThreadBubble = ({
   revealSecretPasswordLabel,
   revealSecretSubmitLabel,
   revealSecretTitle,
+  reportLabel,
   secretError,
   secretPlaceholder,
   setPasswordInput,
 }: GuestbookThreadBubbleProps) => {
   const isDeleted = Boolean(entry.deleted_at);
+  const { isOpen, longPressHandlers, setIsOpen } = useGuestbookBubbleActionMenu({
+    enabled: !isDeleted,
+  });
   const isRevealInlineFormVisible =
     entry.is_secret && !isDeleted && isSecretPanelOpen && !isSecretRevealed;
+  const canManageEntry = !entry.is_admin_author || canReply;
 
   return (
-    <article css={threadShellStyle}>
+    <article css={threadShellStyle} {...longPressHandlers}>
       <GuestbookEntryBubble
-        maxWidth="min(760px, 92%)"
-        top={
-          <div css={metaRowStyle}>
-            <div css={metaLeftStyle}>
-              <strong css={nameStyle}>{entry.author_name}</strong>
-              <time dateTime={entry.created_at} css={dateStyle}>
-                {dateText(entry.created_at)}
-              </time>
-            </div>
-          </div>
-        }
-        bottom={
+        action={
           !isDeleted ? (
-            <div css={actionRowStyle}>
-              {canReply ? (
-                <Button
-                  onClick={() => onReply(entry)}
-                  css={actionButtonStyle}
-                  leadingVisual={<ArrowCurveLeftRightIcon aria-hidden size="sm" />}
-                  tone="black"
-                  type="button"
-                  variant="underline"
-                >
-                  {actionReplyLabel}
-                </Button>
-              ) : null}
-              {!entry.is_admin_author || canReply ? (
-                <>
-                  <Button
-                    onClick={() => onEdit(entry)}
-                    css={actionButtonStyle}
-                    leadingVisual={<EditIcon aria-hidden size="sm" />}
-                    tone="black"
-                    type="button"
-                    variant="underline"
-                  >
-                    {actionEditLabel}
-                  </Button>
-                  <Button
-                    onClick={() => onDelete(entry)}
-                    css={actionButtonStyle}
-                    leadingVisual={<TrashIcon aria-hidden size="sm" />}
-                    tone="black"
-                    type="button"
-                    variant="underline"
-                  >
-                    {actionDeleteLabel}
-                  </Button>
-                </>
-              ) : null}
-            </div>
+            <GuestbookEntryActionMenu
+              actionDeleteLabel={actionDeleteLabel}
+              actionEditLabel={actionEditLabel}
+              actionMenuLabel={actionMenuLabel}
+              actionMenuPanelLabel={actionMenuPanelLabel}
+              actionReplyLabel={canReply ? actionReplyLabel : undefined}
+              isOpen={isOpen}
+              onDelete={canManageEntry ? () => onDelete(entry) : undefined}
+              onEdit={canManageEntry ? () => onEdit(entry) : undefined}
+              onOpenChange={setIsOpen}
+              onReply={canReply ? () => onReply(entry) : undefined}
+              reportLabel={reportLabel}
+            />
           ) : null
         }
+        actionSide="end"
+        actionVerticalAlign="end"
+        meta={{
+          authorName: entry.author_name,
+          authorUrl: entry.author_blog_url,
+          dateText: dateText(entry.created_at),
+          dateTime: entry.created_at,
+          position: 'top',
+        }}
+        variant="thread"
       >
-        <div css={bodyStyle}>
-          {isDeleted ? (
-            <p css={deletedContentStyle}>{deletedPlaceholder}</p>
-          ) : isSecretRevealed ? (
-            <p css={contentStyle}>{entry.content}</p>
-          ) : (
-            <div css={secretContentStyle}>
-              {!isRevealInlineFormVisible ? (
-                <>
-                  <p css={secretTextStyle}>{secretPlaceholder}</p>
-                  <Button
-                    onClick={onToggleSecretPanel}
-                    css={revealButtonStyle}
-                    tone="white"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {revealLabel}
-                  </Button>
-                </>
-              ) : (
-                <form
-                  aria-label={revealSecretTitle}
-                  onSubmit={event => {
-                    event.preventDefault();
-                    void onRevealSecret(entry, passwordInput);
-                  }}
-                  css={inlineRevealFormStyle}
+        {isDeleted ? (
+          <p css={deletedContentStyle}>{deletedPlaceholder}</p>
+        ) : isSecretRevealed ? (
+          <p css={contentStyle}>{entry.content}</p>
+        ) : (
+          <div css={secretContentStyle}>
+            {!isRevealInlineFormVisible ? (
+              <>
+                <p css={secretTextStyle}>{secretPlaceholder}</p>
+                <Button
+                  onClick={onToggleSecretPanel}
+                  css={revealButtonStyle}
+                  tone="white"
+                  type="button"
+                  variant="ghost"
                 >
-                  <Input
-                    aria-label={revealSecretPasswordLabel}
-                    onChange={event => setPasswordInput(event.target.value)}
-                    placeholder={revealSecretPasswordLabel}
-                    type="password"
-                    value={passwordInput}
-                    css={inlineRevealInputStyle}
-                  />
-                  <Button
-                    disabled={isSecretSubmitting}
-                    tone="black"
-                    type="submit"
-                    css={inlineRevealSubmitStyle}
-                  >
-                    {revealSecretSubmitLabel}
-                  </Button>
-                </form>
-              )}
-            </div>
-          )}
-          {secretError && isRevealInlineFormVisible ? (
-            <p role="alert" css={revealErrorStyle}>
-              {secretError}
-            </p>
-          ) : null}
-        </div>
+                  {revealLabel}
+                </Button>
+              </>
+            ) : (
+              <form
+                aria-label={revealSecretTitle}
+                onSubmit={event => {
+                  event.preventDefault();
+                  void onRevealSecret(entry, passwordInput);
+                }}
+                css={inlineRevealFormStyle}
+              >
+                <Input
+                  aria-label={revealSecretPasswordLabel}
+                  onChange={event => setPasswordInput(event.target.value)}
+                  placeholder={revealSecretPasswordLabel}
+                  type="password"
+                  value={passwordInput}
+                  css={inlineRevealInputStyle}
+                />
+                <Button
+                  disabled={isSecretSubmitting}
+                  tone="black"
+                  type="submit"
+                  css={inlineRevealSubmitStyle}
+                >
+                  {revealSecretSubmitLabel}
+                </Button>
+              </form>
+            )}
+          </div>
+        )}
+        {secretError && isRevealInlineFormVisible ? (
+          <p role="alert" css={revealErrorStyle}>
+            {secretError}
+          </p>
+        ) : null}
       </GuestbookEntryBubble>
     </article>
   );
@@ -188,44 +171,18 @@ const threadShellStyle = css`
   width: 100%;
 `;
 
-const metaLeftStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
-
-const nameStyle = css`
-  font-size: var(--font-size-18);
-  font-weight: var(--font-weight-semibold);
-`;
-
-const dateStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
-
-const metaRowStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-`;
-
-const bodyStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
-
 const contentStyle = css`
   white-space: pre-wrap;
   line-height: var(--line-height-160);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const deletedContentStyle = css`
   color: rgb(var(--color-muted));
   font-style: italic;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const secretContentStyle = css`
@@ -251,6 +208,8 @@ const inlineRevealFormStyle = css`
 
 const secretTextStyle = css`
   color: rgb(var(--color-muted));
+  word-break: break-word;
+  overflow-wrap: anywhere;
 `;
 
 const inlineRevealInputStyle = css`
@@ -274,28 +233,4 @@ const inlineRevealSubmitStyle = css`
 const revealErrorStyle = css`
   color: rgb(var(--color-danger));
   font-size: var(--font-size-14);
-`;
-
-const actionRowStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
-
-const actionButtonStyle = css`
-  padding: 0;
-  min-height: auto;
-  text-decoration: none;
-  color: rgb(var(--color-muted));
-
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    color: rgb(var(--color-text));
-    background: transparent;
-    border-color: transparent;
-  }
-
-  & > span[aria-hidden='true'] {
-    opacity: 0.8;
-  }
 `;

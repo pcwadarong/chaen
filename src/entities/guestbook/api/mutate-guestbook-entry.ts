@@ -127,7 +127,6 @@ export const updateGuestbookEntry = async ({
     .from('guestbook_entries')
     .update({
       content: normalizedContent,
-      updated_at: new Date().toISOString(),
     })
     .eq('id', normalizedEntryId)
     .select('*')
@@ -169,12 +168,10 @@ export const deleteGuestbookEntry = async ({
     assertPasswordMatches(password, currentRow);
   }
 
-  const now = new Date().toISOString();
   const { error } = await supabase
     .from('guestbook_entries')
     .update({
-      deleted_at: now,
-      updated_at: now,
+      deleted_at: new Date().toISOString(),
     })
     .eq('id', normalizedEntryId);
 
@@ -261,5 +258,5 @@ export const createGuestbookEntry = async (
   if (error || !data)
     throw new Error(`failed to create entry: ${error?.message ?? 'unknown error'}`);
 
-  return toPublicEntry(data as GuestbookEntryRow, true);
+  return toPublicEntry(data as GuestbookEntryRow, normalized.isAdminAuthor);
 };

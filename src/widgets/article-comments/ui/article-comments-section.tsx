@@ -11,12 +11,14 @@ import type {
   ArticleCommentThreadItem,
 } from '@/entities/article-comment/model/types';
 import type { CommentComposeValues } from '@/shared/lib/comment-compose';
+import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
 import {
   ArrowCurveLeftRightIcon,
-  CalendarIcon,
   EditIcon,
+  LinkExternalIcon,
+  ReportIcon,
   TrashIcon,
 } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
@@ -128,12 +130,19 @@ export const ArticleCommentsSection = ({
    * 지정된 페이지/정렬 기준으로 댓글 페이지를 다시 조회합니다.
    */
   const loadPage = useCallback(
-    async (nextPage: number, nextSort: ArticleCommentsSort) => {
+    async (
+      nextPage: number,
+      nextSort: ArticleCommentsSort,
+      options?: {
+        fresh?: boolean;
+      },
+    ) => {
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
         const payload = await getArticleCommentsPageClient(articleId, {
+          fresh: options?.fresh,
           page: nextPage,
           sort: nextSort,
         });
@@ -172,7 +181,9 @@ export const ArticleCommentsSection = ({
     try {
       await createArticleCommentClient(articleId, values);
       pushToast(t('toastCreateSuccess'), 'success');
-      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort);
+      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
+        fresh: true,
+      });
     } catch {
       pushToast(t('toastCreateError'), 'error');
     }
@@ -189,7 +200,9 @@ export const ArticleCommentsSection = ({
       });
       setReplyTarget(null);
       pushToast(t('toastReplySuccess'), 'success');
-      await loadPage(pageData.page, pageData.sort);
+      await loadPage(pageData.page, pageData.sort, {
+        fresh: true,
+      });
     } catch {
       pushToast(t('toastReplyError'), 'error');
     }
@@ -257,7 +270,9 @@ export const ArticleCommentsSection = ({
       }
 
       closeModal();
-      await loadPage(pageData.page, pageData.sort);
+      await loadPage(pageData.page, pageData.sort, {
+        fresh: true,
+      });
     } catch (error) {
       if (isInvalidPasswordError(error)) {
         setModalError(t('secretVerifyFailed'));
@@ -287,42 +302,6 @@ export const ArticleCommentsSection = ({
           </h2>
           <p css={descriptionStyle}>{t('description')}</p>
         </div>
-        <div css={toolbarStyle}>
-          <div aria-label={t('sortLabel')} css={sortGroupStyle} role="tablist">
-            <button
-              aria-selected={pageData.sort === 'latest'}
-              css={[
-                sortButtonStyle,
-                pageData.sort === 'latest' ? activeSortButtonStyle : undefined,
-              ]}
-              onClick={() => handleChangeSort('latest')}
-              role="tab"
-              type="button"
-            >
-              {t('sortLatest')}
-            </button>
-            <button
-              aria-selected={pageData.sort === 'oldest'}
-              css={[
-                sortButtonStyle,
-                pageData.sort === 'oldest' ? activeSortButtonStyle : undefined,
-              ]}
-              onClick={() => handleChangeSort('oldest')}
-              role="tab"
-              type="button"
-            >
-              {t('sortOldest')}
-            </button>
-          </div>
-          <Pagination
-            ariaLabel={t('paginationLabel')}
-            currentPage={pageData.page}
-            onPageChange={page => {
-              void loadPage(page, pageData.sort);
-            }}
-            totalPages={pageData.totalPages}
-          />
-        </div>
       </div>
 
       <CommentComposeForm
@@ -349,6 +328,29 @@ export const ArticleCommentsSection = ({
         textareaRows={4}
         textPlaceholder={t('composePlaceholder')}
       />
+
+      <div css={listToolbarStyle}>
+        <div aria-label={t('sortLabel')} css={sortGroupStyle} role="tablist">
+          <button
+            aria-selected={pageData.sort === 'latest'}
+            css={[sortButtonStyle, pageData.sort === 'latest' ? activeSortButtonStyle : undefined]}
+            onClick={() => handleChangeSort('latest')}
+            role="tab"
+            type="button"
+          >
+            {t('sortLatest')}
+          </button>
+          <button
+            aria-selected={pageData.sort === 'oldest'}
+            css={[sortButtonStyle, pageData.sort === 'oldest' ? activeSortButtonStyle : undefined]}
+            onClick={() => handleChangeSort('oldest')}
+            role="tab"
+            type="button"
+          >
+            {t('sortOldest')}
+          </button>
+        </div>
+      </div>
 
       {errorMessage && pageData.items.length === 0 ? (
         <div css={stateCardStyle} role="alert">
@@ -383,6 +385,8 @@ export const ArticleCommentsSection = ({
                 <CommentEntryCard
                   actionDeleteLabel={t('delete')}
                   actionEditLabel={t('edit')}
+                  actionMenuLabel={t('actionMenuLabel')}
+                  actionMenuPanelLabel={t('actionMenuPanelLabel')}
                   actionReplyLabel={t('reply')}
                   dateText={formatCommentDate(thread.created_at, locale)}
                   deletedPlaceholder={t('deletedPlaceholder')}
@@ -401,6 +405,8 @@ export const ArticleCommentsSection = ({
                         <CommentEntryCard
                           actionDeleteLabel={t('delete')}
                           actionEditLabel={t('edit')}
+                          actionMenuLabel={t('actionMenuLabel')}
+                          actionMenuPanelLabel={t('actionMenuPanelLabel')}
                           actionReplyLabel={t('reply')}
                           dateText={formatCommentDate(reply.created_at, locale)}
                           deletedPlaceholder={t('deletedPlaceholder')}
@@ -536,6 +542,8 @@ export const ArticleCommentsSection = ({
 type CommentEntryCardProps = {
   actionDeleteLabel: string;
   actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
   actionReplyLabel: string;
   dateText: string;
   deletedPlaceholder: string;
@@ -553,6 +561,8 @@ type CommentEntryCardProps = {
 const CommentEntryCard = ({
   actionDeleteLabel,
   actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
   actionReplyLabel,
   dateText,
   deletedPlaceholder,
@@ -564,13 +574,42 @@ const CommentEntryCard = ({
   reportLabel,
 }: CommentEntryCardProps) => {
   const isDeleted = Boolean(entry.deleted_at);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
 
   return (
     <div css={[entryCardStyle, isReply ? replyEntryCardStyle : undefined]}>
       <div css={entryHeaderStyle}>
         <div css={authorMetaStyle}>
-          <strong css={authorNameStyle}>{entry.author_name}</strong>
+          {entry.author_blog_url ? (
+            <a
+              css={authorLinkStyle}
+              href={entry.author_blog_url}
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              <strong css={authorNameStyle}>{entry.author_name}</strong>
+              <LinkExternalIcon aria-hidden color="primary" size="sm" />
+            </a>
+          ) : (
+            <strong css={authorNameStyle}>{entry.author_name}</strong>
+          )}
+          <time css={timeStyle} dateTime={entry.created_at}>
+            <span>{dateText}</span>
+          </time>
         </div>
+        {!isDeleted ? (
+          <CommentActionPopover
+            actionDeleteLabel={actionDeleteLabel}
+            actionEditLabel={actionEditLabel}
+            actionMenuLabel={actionMenuLabel}
+            actionMenuPanelLabel={actionMenuPanelLabel}
+            isOpen={isActionMenuOpen}
+            onDelete={() => onDelete(entry)}
+            onEdit={() => onEdit(entry)}
+            onOpenChange={setIsActionMenuOpen}
+            reportLabel={reportLabel}
+          />
+        ) : null}
       </div>
 
       <div css={entryBodyStyle}>
@@ -586,60 +625,78 @@ const CommentEntryCard = ({
         )}
       </div>
 
-      <div css={entryFooterStyle}>
-        <time css={timeStyle} dateTime={entry.created_at}>
-          <CalendarIcon aria-hidden size="sm" />
-          <span>{dateText}</span>
-        </time>
-        {!isDeleted ? (
-          <div css={actionRowStyle}>
-            <ActionButton
-              icon={<ArrowCurveLeftRightIcon aria-hidden size="sm" />}
-              label={actionReplyLabel}
-              onClick={() => onReply(entry)}
-            />
-            <ActionButton
-              icon={<EditIcon aria-hidden size="sm" />}
-              label={actionEditLabel}
-              onClick={() => onEdit(entry)}
-            />
-            <ActionButton
-              icon={<TrashIcon aria-hidden size="sm" />}
-              label={actionDeleteLabel}
-              onClick={() => onDelete(entry)}
-            />
-            <ActionButton ariaDisabled icon={null} label={reportLabel} />
-          </div>
-        ) : null}
-      </div>
+      {!isDeleted ? (
+        <div css={entryFooterStyle}>
+          <button css={replyButtonStyle} onClick={() => onReply(entry)} type="button">
+            <span aria-hidden css={replyButtonIconMotionStyle}>
+              <ArrowCurveLeftRightIcon aria-hidden size="sm" />
+            </span>
+            <span>{actionReplyLabel}</span>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 };
 
-type ActionButtonProps = {
-  ariaDisabled?: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
+type CommentActionPopoverProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
+  isOpen: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  onOpenChange: (nextOpen: boolean) => void;
+  reportLabel: string;
 };
 
 /**
- * 댓글 액션 행에서 사용하는 심플 텍스트 버튼입니다.
+ * 댓글 버블 우측 kebab 버튼으로 여는 액션 팝오버입니다.
  */
-const ActionButton = ({ ariaDisabled = false, icon, label, onClick }: ActionButtonProps) => (
-  <button
-    aria-disabled={ariaDisabled ? 'true' : undefined}
-    css={actionButtonStyle}
-    onClick={ariaDisabled ? undefined : onClick}
-    type="button"
+const CommentActionPopover = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
+  isOpen,
+  onDelete,
+  onEdit,
+  onOpenChange,
+  reportLabel,
+}: CommentActionPopoverProps) => (
+  <ActionPopover
+    isOpen={isOpen}
+    onOpenChange={onOpenChange}
+    panelLabel={actionMenuPanelLabel}
+    triggerLabel={actionMenuLabel}
   >
-    {icon ? (
-      <span aria-hidden css={actionIconStyle}>
-        {icon}
-      </span>
-    ) : null}
-    <span>{label}</span>
-  </button>
+    {({ closePopover }) => (
+      <>
+        <ActionMenuButton
+          icon={<EditIcon aria-hidden size="sm" />}
+          label={actionEditLabel}
+          onClick={() => {
+            closePopover();
+            onEdit();
+          }}
+        />
+        <ActionMenuButton
+          icon={<TrashIcon aria-hidden size="sm" />}
+          label={actionDeleteLabel}
+          onClick={() => {
+            closePopover();
+            onDelete();
+          }}
+        />
+        <ActionMenuButton
+          ariaDisabled
+          icon={<ReportIcon aria-hidden size="sm" />}
+          label={reportLabel}
+        />
+      </>
+    )}
+  </ActionPopover>
 );
 
 const sectionStyle = css`
@@ -667,7 +724,7 @@ const headerTextStyle = css`
 `;
 
 const titleStyle = css`
-  font-size: var(--font-size-28);
+  font-size: var(--font-size-24);
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.03em;
 `;
@@ -678,25 +735,23 @@ const descriptionStyle = css`
   word-break: keep-all;
 `;
 
-const toolbarStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  flex: 0 0 auto;
-
-  @media (min-width: 721px) {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-  }
+const listToolbarStyle = css`
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-2) 0 var(--space-1);
+  margin-top: var(--space-1);
 `;
 
 const sortGroupStyle = css`
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  width: fit-content;
+  max-width: 100%;
   padding: var(--space-1);
   border-radius: var(--radius-pill);
   background: rgb(var(--color-surface-muted) / 0.72);
+  border: 1px solid rgb(var(--color-border) / 0.16);
 `;
 
 const sortButtonStyle = css`
@@ -704,7 +759,7 @@ const sortButtonStyle = css`
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgb(var(--color-muted));
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-medium);
   transition:
@@ -742,24 +797,21 @@ const stateTextStyle = css`
 
 const threadListStyle = css`
   display: grid;
-  gap: var(--space-4);
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: var(--space-2) 0 0;
 `;
 
 const threadCardStyle = css`
   display: grid;
-  gap: var(--space-3);
+  gap: 0;
 `;
 
 const replyListStyle = css`
   display: grid;
-  gap: var(--space-3);
   list-style: none;
   padding: 0 0 0 var(--space-4);
-  margin: 0;
-  border-left: 1px solid rgb(var(--color-border) / 0.2);
+  margin: var(--space-1) 0 0;
 
   @media (min-width: 721px) {
     padding-left: var(--space-6);
@@ -768,6 +820,7 @@ const replyListStyle = css`
 
 const replyComposeWrapStyle = css`
   padding-left: var(--space-4);
+  margin-top: var(--space-1);
 
   @media (min-width: 721px) {
     padding-left: var(--space-6);
@@ -776,27 +829,13 @@ const replyComposeWrapStyle = css`
 
 const entryCardStyle = css`
   display: grid;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--color-surface) / 0.96),
-      rgb(var(--color-surface-muted) / 0.68)
-    ),
-    rgb(var(--color-surface));
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-top: 1px solid rgb(var(--color-border) / 0.18);
 `;
 
 const replyEntryCardStyle = css`
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--color-surface-muted) / 0.62),
-      rgb(var(--color-surface) / 0.96)
-    ),
-    rgb(var(--color-surface));
+  padding-left: var(--space-2);
 `;
 
 const entryHeaderStyle = css`
@@ -811,16 +850,31 @@ const authorMetaStyle = css`
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  min-width: 0;
+`;
+
+const authorLinkStyle = css`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: rgb(var(--color-primary));
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
 `;
 
 const authorNameStyle = css`
-  font-size: var(--font-size-18);
+  font-size: var(--font-size-16);
   font-weight: var(--font-weight-semibold);
 `;
 
 const entryBodyStyle = css`
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
 `;
 
 const contentTextStyle = css`
@@ -841,62 +895,51 @@ const placeholderTextStyle = css`
 const entryFooterStyle = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-3);
   flex-wrap: wrap;
+`;
+
+const replyButtonStyle = css`
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  color: rgb(var(--color-muted));
+  font-size: var(--font-size-14);
+  line-height: 1.4;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    color: rgb(var(--color-primary));
+  }
+
+  &:hover > span:first-of-type,
+  &:focus-visible > span:first-of-type {
+    transform: translateX(2px);
+  }
+`;
+
+const replyButtonIconMotionStyle = css`
+  display: inline-flex;
+  transition: transform 180ms ease;
 `;
 
 const timeStyle = css`
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
   color: rgb(var(--color-muted));
-  font-size: var(--font-size-13);
-`;
-
-const actionRowStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-`;
-
-const actionButtonStyle = css`
-  border: 0;
-  background: transparent;
-  color: rgb(var(--color-muted));
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-13);
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover:not([aria-disabled='true']),
-  &:focus-visible:not([aria-disabled='true']) {
-    outline: none;
-    color: rgb(var(--color-primary));
-    background: rgb(var(--color-primary) / 0.08);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-
-  &[aria-disabled='true'] {
-    cursor: default;
-    opacity: 0.72;
-  }
-`;
-
-const actionIconStyle = css`
-  display: inline-flex;
+  font-size: var(--font-size-12);
+  line-height: 1.2;
 `;
 
 const footerPaginationWrapStyle = css`
   display: flex;
   justify-content: center;
+  padding-top: var(--space-2);
 `;
 
 const modalBodyStyle = css`

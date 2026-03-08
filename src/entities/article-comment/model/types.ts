@@ -11,7 +11,6 @@ export type ArticleCommentRow = {
   created_at: string;
   deleted_at: string | null;
   id: string;
-  is_secret: boolean;
   parent_id: string | null;
   password_hash: string | null;
   reply_to_author_name: string | null;
@@ -21,11 +20,8 @@ export type ArticleCommentRow = {
 
 /**
  * 클라이언트에 공개되는 댓글 타입입니다.
- * 비밀글이 잠겨 있으면 `content`는 빈 문자열로 전달됩니다.
  */
-export type ArticleComment = Omit<ArticleCommentRow, 'password_hash'> & {
-  is_content_masked?: boolean;
-};
+export type ArticleComment = Omit<ArticleCommentRow, 'password_hash'>;
 
 /**
  * 루트 댓글과 대댓글 묶음 타입입니다.

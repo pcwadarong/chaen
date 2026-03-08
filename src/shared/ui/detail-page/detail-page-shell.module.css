@@ -100,6 +100,7 @@
   font-size: var(--font-size-20);
   line-height: var(--line-height-120);
   letter-spacing: -0.03em;
+  color: rgb(var(--color-muted));
 }
 
 @media (min-width: 1200px) {

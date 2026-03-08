@@ -13,7 +13,6 @@ type CreateArticleCommentPayload = {
   authorBlogUrl?: unknown;
   authorName?: unknown;
   content?: unknown;
-  isSecret?: unknown;
   parentId?: unknown;
   password?: unknown;
   replyToCommentId?: unknown;
@@ -25,6 +24,7 @@ type CreateArticleCommentPayload = {
 export const GET = async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params;
   const url = new URL(request.url);
+  const fresh = url.searchParams.get('fresh') === '1';
   const rawPage = url.searchParams.get('page');
   const sort = url.searchParams.get('sort');
   const page = rawPage ? Number.parseInt(rawPage, 10) : undefined;
@@ -32,6 +32,7 @@ export const GET = async (request: Request, context: { params: Promise<{ id: str
   try {
     const payload = await getArticleComments({
       articleId: id,
+      bypassCache: fresh,
       page,
       sort: sort === 'oldest' ? 'oldest' : 'latest',
     });
@@ -61,7 +62,6 @@ export const POST = async (request: Request, context: { params: Promise<{ id: st
       authorBlogUrl: typeof payload.authorBlogUrl === 'string' ? payload.authorBlogUrl : null,
       authorName: typeof payload.authorName === 'string' ? payload.authorName : '',
       content: typeof payload.content === 'string' ? payload.content : '',
-      isSecret: Boolean(payload.isSecret),
       parentId: typeof payload.parentId === 'string' ? payload.parentId : null,
       password: typeof payload.password === 'string' ? payload.password : '',
       replyToCommentId:

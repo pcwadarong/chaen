@@ -89,4 +89,20 @@ describe('DetailMetaBar', () => {
       expect(screen.getByRole('button', { name: '복사됨' })).toBeTruthy();
     });
   });
+
+  it('보조 메타 텍스트가 있으면 화면에는 primaryMetaText만 노출한다', () => {
+    render(
+      <DetailMetaBar
+        copyFailedText="복사 실패"
+        copiedText="복사됨"
+        locale="ko"
+        primaryMetaScreenReaderText="등록일 2026-03-08"
+        primaryMetaText="2026-03-08"
+        shareText="공유하기"
+      />,
+    );
+
+    expect(screen.getByText('2026-03-08')).toBeTruthy();
+    expect(screen.getByText('등록일 2026-03-08')).toBeTruthy();
+  });
 });

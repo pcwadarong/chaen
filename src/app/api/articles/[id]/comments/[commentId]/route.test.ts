@@ -28,8 +28,6 @@ describe('/api/articles/[id]/comments/[commentId]', () => {
       created_at: '2026-03-07T00:00:00.000Z',
       deleted_at: null,
       id: 'comment-1',
-      is_content_masked: false,
-      is_secret: false,
       parent_id: null,
       reply_to_author_name: null,
       reply_to_comment_id: null,

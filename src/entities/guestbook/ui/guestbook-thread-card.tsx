@@ -10,6 +10,8 @@ import { GuestbookThreadBubble } from '@/entities/guestbook/ui/guestbook-thread-
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
   actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
   actionReplyLabel: string;
   canReply: boolean;
   dateText: (isoDate: string) => string;
@@ -21,6 +23,7 @@ type GuestbookThreadCardProps = {
   onEdit: (entry: GuestbookThreadItem) => void;
   onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
   onReply: (entry: GuestbookThreadItem) => void;
+  reportLabel: string;
   revealSecretErrorLabel: string;
   revealSecretPasswordLabel: string;
   revealSecretRequiredLabel: string;
@@ -37,6 +40,8 @@ type GuestbookThreadCardProps = {
 export const GuestbookThreadCard = ({
   actionDeleteLabel,
   actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
   actionReplyLabel,
   canReply,
   dateText,
@@ -48,6 +53,7 @@ export const GuestbookThreadCard = ({
   onEdit,
   onRevealSecret,
   onReply,
+  reportLabel,
   revealSecretErrorLabel,
   revealSecretPasswordLabel,
   revealSecretRequiredLabel,
@@ -67,6 +73,8 @@ export const GuestbookThreadCard = ({
       <GuestbookThreadBubble
         actionDeleteLabel={actionDeleteLabel}
         actionEditLabel={actionEditLabel}
+        actionMenuLabel={actionMenuLabel}
+        actionMenuPanelLabel={actionMenuPanelLabel}
         actionReplyLabel={actionReplyLabel}
         canReply={canReply}
         dateText={dateText}
@@ -101,6 +109,7 @@ export const GuestbookThreadCard = ({
         revealSecretPasswordLabel={revealSecretPasswordLabel}
         revealSecretSubmitLabel={revealSecretSubmitLabel}
         revealSecretTitle={revealSecretTitle}
+        reportLabel={reportLabel}
         secretError={secretError}
         secretPlaceholder={secretPlaceholder}
         setPasswordInput={setPasswordInput}
@@ -111,6 +120,8 @@ export const GuestbookThreadCard = ({
           {entry.replies.map(reply => (
             <GuestbookReplyBubble
               actionDeleteLabel={actionDeleteLabel}
+              actionMenuLabel={actionMenuLabel}
+              actionMenuPanelLabel={actionMenuPanelLabel}
               deletedPlaceholder={deletedPlaceholder}
               actionEditLabel={actionEditLabel}
               dateText={dateText(reply.created_at)}
@@ -118,6 +129,7 @@ export const GuestbookThreadCard = ({
               key={reply.id}
               onDelete={replyEntry => onDeleteReply(replyEntry, entry)}
               onEdit={replyEntry => onEditReply(replyEntry, entry)}
+              reportLabel={reportLabel}
             />
           ))}
         </div>

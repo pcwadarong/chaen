@@ -11,6 +11,7 @@ type DetailMetaBarProps = {
   copyFailedText: string;
   copiedText: string;
   locale: string;
+  primaryMetaScreenReaderText?: string;
   primaryMetaText: string;
   shareText: string;
   viewCountLabel?: string;
@@ -30,6 +31,7 @@ export const DetailMetaBar = ({
   copyFailedText,
   copiedText,
   locale,
+  primaryMetaScreenReaderText,
   primaryMetaText,
   shareText,
   viewCount,
@@ -113,7 +115,12 @@ export const DetailMetaBar = ({
       <div css={metaBarStyle}>
         <span css={metaItemStyle}>
           <CalendarIcon aria-hidden color="muted" size="md" />
-          <span>{primaryMetaText}</span>
+          <span>
+            {primaryMetaScreenReaderText ? (
+              <span css={srOnlyStyle}>{primaryMetaScreenReaderText}</span>
+            ) : null}
+            <span aria-hidden={Boolean(primaryMetaScreenReaderText)}>{primaryMetaText}</span>
+          </span>
         </span>
         {typeof viewCount === 'number' && viewCountLabel ? (
           <>

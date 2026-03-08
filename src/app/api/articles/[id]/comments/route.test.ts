@@ -39,8 +39,33 @@ describe('/api/articles/[id]/comments', () => {
     expect(payload.ok).toBe(true);
     expect(getArticleComments).toHaveBeenCalledWith({
       articleId: 'frontend',
+      bypassCache: false,
       page: 2,
       sort: 'oldest',
+    });
+  });
+
+  it('GET fresh=1 이면 댓글 캐시를 우회한다', async () => {
+    vi.mocked(getArticleComments).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest',
+      totalCount: 0,
+      totalPages: 0,
+    });
+
+    const response = await GET(
+      new Request('http://localhost:3000/api/articles/frontend/comments?fresh=1'),
+      { params: Promise.resolve({ id: 'frontend' }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(getArticleComments).toHaveBeenCalledWith({
+      articleId: 'frontend',
+      bypassCache: true,
+      page: undefined,
+      sort: 'latest',
     });
   });
 
@@ -53,8 +78,6 @@ describe('/api/articles/[id]/comments', () => {
       created_at: '2026-03-07T00:00:00.000Z',
       deleted_at: null,
       id: 'comment-1',
-      is_content_masked: false,
-      is_secret: false,
       parent_id: null,
       reply_to_author_name: null,
       reply_to_comment_id: null,
