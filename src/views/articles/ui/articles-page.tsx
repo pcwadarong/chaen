@@ -1,7 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
+import { css } from 'styled-system/css';
 
 import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
 import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
@@ -33,8 +31,8 @@ export const ArticlesPage = ({
     <PageShell hideAppFrameFooter>
       <PageHeader description={t('description')} title={t('title')} />
       <PageSection>
-        <div css={layoutStyle}>
-          <div css={feedColumnStyle}>
+        <div className={layoutClass}>
+          <div className={feedColumnClass}>
             <ArticleFeed
               activeTag={activeTag}
               key={`${locale}:${searchQuery}:${activeTag}`}
@@ -49,9 +47,9 @@ export const ArticlesPage = ({
               retryText={t('retry')}
             />
           </div>
-          <aside css={sidebarStyle}>
-            <div css={sidebarPanelStyle}>
-              <div css={desktopSearchFormStyle}>
+          <aside className={sidebarClass}>
+            <div className={sidebarPanelClass}>
+              <div className={desktopSearchFormClass}>
                 <ArticleSearchForm
                   clearText={t('searchClear')}
                   pendingText={t('loading')}
@@ -74,44 +72,40 @@ export const ArticlesPage = ({
   );
 };
 
-const layoutStyle = css`
-  display: grid;
-  gap: var(--space-6);
+const layoutClass = css({
+  display: 'grid',
+  gap: '6',
+  '@media (min-width: 961px)': {
+    gridTemplateColumns: '[minmax(0, 1fr) 18rem]',
+    alignItems: 'start',
+  },
+});
 
-  @media (min-width: 961px) {
-    grid-template-columns: minmax(0, 1fr) 18rem;
-    align-items: start;
-  }
-`;
+const feedColumnClass = css({
+  minWidth: '0',
+  order: '2',
+  '@media (min-width: 961px)': {
+    order: '1',
+  },
+});
 
-const feedColumnStyle = css`
-  min-width: 0;
-  order: 2;
+const sidebarClass = css({
+  order: '1',
+  '@media (min-width: 961px)': {
+    position: 'sticky',
+    top: '8',
+    order: '2',
+  },
+});
 
-  @media (min-width: 961px) {
-    order: 1;
-  }
-`;
+const sidebarPanelClass = css({
+  display: 'grid',
+  gap: '4',
+});
 
-const sidebarStyle = css`
-  order: 1;
-
-  @media (min-width: 961px) {
-    position: sticky;
-    top: var(--space-8);
-    order: 2;
-  }
-`;
-
-const sidebarPanelStyle = css`
-  display: grid;
-  gap: var(--space-4);
-`;
-
-const desktopSearchFormStyle = css`
-  display: none;
-
-  @media (min-width: 961px) {
-    display: block;
-  }
-`;
+const desktopSearchFormClass = css({
+  display: 'none',
+  '@media (min-width: 961px)': {
+    display: 'block',
+  },
+});

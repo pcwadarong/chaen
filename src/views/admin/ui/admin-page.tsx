@@ -1,6 +1,4 @@
-'use client';
-
-import { css } from '@emotion/react';
+import { css } from 'styled-system/css';
 
 import { AdminSignOutButton } from '@/features/auth/ui/admin-sign-out-button';
 
@@ -12,9 +10,9 @@ type AdminPageProps = {
  * 현재 관리자 세션 상태를 확인하고 로그아웃할 수 있는 최소 관리자 페이지입니다.
  */
 export const AdminPage = ({ locale: _locale }: AdminPageProps) => (
-  <main css={pageStyle}>
-    <section aria-labelledby="admin-page-title" css={panelStyle}>
-      <h1 css={titleStyle} id="admin-page-title">
+  <main className={pageClass}>
+    <section aria-labelledby="admin-page-title" className={panelClass}>
+      <h1 className={titleClass} id="admin-page-title">
         관리자
       </h1>
       <AdminSignOutButton
@@ -27,20 +25,21 @@ export const AdminPage = ({ locale: _locale }: AdminPageProps) => (
   </main>
 );
 
-const pageStyle = css`
-  width: 100%;
-  padding: var(--space-8) var(--space-4);
-`;
+const pageClass = css({
+  width: 'full',
+  px: '4',
+  py: '8',
+});
 
-const panelStyle = css`
-  width: min(100%, 24rem);
-  display: grid;
-  gap: var(--space-4);
-  margin: 0 auto;
-`;
+const panelClass = css({
+  width: '[min(100%, 24rem)]',
+  display: 'grid',
+  gap: '4',
+  mx: 'auto',
+});
 
-const titleStyle = css`
-  margin: 0;
-  font-size: var(--font-size-24);
-  line-height: 1.2;
-`;
+const titleClass = css({
+  m: '0',
+  fontSize: '24',
+  lineHeight: '120',
+});

@@ -1,5 +1,3 @@
-'use client';
-
 import { useLocale } from 'next-intl';
 
 import type { ProjectListItem } from '@/entities/project/model/types';

@@ -1,7 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
+import { css, cx } from 'styled-system/css';
 
 /**
  * 아티클 상세 로딩 상태 UI입니다.
@@ -10,50 +8,42 @@ const ArticleDetailLoading = () => {
   const t = useTranslations('ArticleDetail');
 
   return (
-    <main css={pageStyle}>
-      <section aria-busy="true" aria-label={t('loading')} aria-live="polite" css={panelStyle}>
-        <div css={lineLgStyle} />
-        <div css={lineMdStyle} />
-        <div css={lineSmStyle} />
+    <main className={pageClass}>
+      <section aria-busy="true" aria-label={t('loading')} aria-live="polite" className={panelClass}>
+        <div className={lineLgClass} />
+        <div className={lineMdClass} />
+        <div className={lineSmClass} />
       </section>
     </main>
   );
 };
 
-const pageStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-0) var(--space-20);
-`;
+const pageClass = css({
+  width: '[min(1120px, calc(100% - 2rem))]',
+  mx: 'auto',
+  pt: '12',
+  pb: '20',
+});
 
-const panelStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-7);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.2);
-  background-color: rgb(var(--color-surface) / 0.9);
-`;
+const panelClass = css({
+  display: 'grid',
+  gap: '3',
+  p: '7',
+  borderRadius: 'lg',
+  border: '[1px solid rgb(var(--color-border) / 0.2)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.9)]',
+});
 
-const lineBaseStyle = css`
-  height: 1rem;
-  border-radius: var(--radius-pill);
-  background-color: rgb(var(--color-surface-muted));
-`;
+const lineBaseClass = css({
+  height: '4',
+  borderRadius: 'pill',
+  backgroundColor: 'surfaceMuted',
+});
 
-const lineLgStyle = css`
-  ${lineBaseStyle};
-  width: 62%;
-`;
+const lineLgClass = cx(lineBaseClass, css({ width: '[62%]' }));
 
-const lineMdStyle = css`
-  ${lineBaseStyle};
-  width: 82%;
-`;
+const lineMdClass = cx(lineBaseClass, css({ width: '[82%]' }));
 
-const lineSmStyle = css`
-  ${lineBaseStyle};
-  width: 45%;
-`;
+const lineSmClass = cx(lineBaseClass, css({ width: '[45%]' }));
 
 export default ArticleDetailLoading;

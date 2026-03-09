@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
+import { css } from 'styled-system/css';
 
 type ProjectDetailErrorProps = {
   error: Error & { digest?: string };
@@ -15,11 +15,11 @@ const ProjectDetailError = ({ error, reset }: ProjectDetailErrorProps) => {
   const t = useTranslations('ProjectDetail');
 
   return (
-    <main css={pageStyle}>
-      <section role="alert" css={panelStyle}>
-        <h1 css={titleStyle}>{t('errorTitle')}</h1>
-        <p css={descriptionStyle}>{error.message}</p>
-        <button onClick={reset} css={buttonStyle} type="button">
+    <main className={pageClass}>
+      <section className={panelClass} role="alert">
+        <h1 className={titleClass}>{t('errorTitle')}</h1>
+        <p className={descriptionClass}>{error.message}</p>
+        <button className={buttonClass} onClick={reset} type="button">
           {t('retry')}
         </button>
       </section>
@@ -27,38 +27,40 @@ const ProjectDetailError = ({ error, reset }: ProjectDetailErrorProps) => {
   );
 };
 
-const pageStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-0) var(--space-20);
-`;
+const pageClass = css({
+  width: '[min(1120px, calc(100% - 2rem))]',
+  mx: 'auto',
+  pt: '12',
+  pb: '20',
+});
 
-const panelStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-7);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: rgb(var(--color-surface) / 0.92);
-`;
+const panelClass = css({
+  display: 'grid',
+  gap: '3',
+  p: '7',
+  borderRadius: 'lg',
+  border: '[1px solid rgb(var(--color-border) / 0.3)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.92)]',
+});
 
-const titleStyle = css`
-  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
-  line-height: var(--line-height-110);
-  letter-spacing: -0.03em;
-`;
+const titleClass = css({
+  fontSize: '[clamp(1.6rem, 3.2vw, 2.2rem)]',
+  lineHeight: '110',
+  letterSpacing: '[-0.03em]',
+});
 
-const descriptionStyle = css`
-  color: rgb(var(--color-muted));
-`;
+const descriptionClass = css({
+  color: 'muted',
+});
 
-const buttonStyle = css`
-  width: fit-content;
-  min-height: 2.7rem;
-  padding: var(--space-0) var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: rgb(var(--color-surface) / 0.95);
-`;
+const buttonClass = css({
+  width: '[fit-content]',
+  minHeight: '[2.7rem]',
+  px: '4',
+  py: '0',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-border) / 0.3)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.95)]',
+});
 
 export default ProjectDetailError;
