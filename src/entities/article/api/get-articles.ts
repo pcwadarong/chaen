@@ -13,7 +13,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
-import type { ArticleListItem } from '../model/types';
+import type { ArticleListItem, ArticleListPage } from '../model/types';
 
 import { type ArticleTranslationRow, mapArticleListItems } from './map-article-translation';
 
@@ -23,12 +23,6 @@ const isMissingArticlesShadowSchemaError = (message: string) => {
   return (
     normalizedMessage.includes('articles') || normalizedMessage.includes('article_translations')
   );
-};
-
-type ArticlesPage = {
-  items: ArticleListItem[];
-  nextCursor: string | null;
-  totalCount: number | null;
 };
 
 type GetArticlesOptions = {
@@ -99,7 +93,7 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
 /**
  * created_at + id keyset 페이지 결과를 아티클 목록 응답 shape로 변환합니다.
  */
-const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticlesPage => {
+const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticleListPage => {
   const page = buildCreatedAtIdPage({
     limit: pageSize,
     rows: rows.map(row => ({
@@ -124,7 +118,7 @@ const fetchArticlesByLocaleFromShadow = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ArticlesPage; schemaMissing: boolean }> => {
+): Promise<{ data: ArticleListPage; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
@@ -176,7 +170,7 @@ const fetchArticlesByLocale = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<ArticlesPage> => {
+): Promise<ArticleListPage> => {
   const localizedArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
   if (localizedArticles.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
@@ -195,7 +189,7 @@ const fetchArticlesByTagAndLocale = async (
   tag: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<ArticlesPage> => {
+): Promise<ArticleListPage> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return { items: [], nextCursor: null, totalCount: null };
@@ -262,7 +256,7 @@ const fetchArticlesByTagAndLocale = async (
  *
  * RPC는 각 행마다 동일한 `total_count`를 포함하므로 첫 행의 메타데이터를 사용합니다.
  */
-const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): ArticlesPage => {
+const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): ArticleListPage => {
   const totalCount = rows[0]?.total_count ?? 0;
   const hasMore = rows.length > pageSize;
   const items = rows.slice(0, pageSize);
@@ -290,7 +284,7 @@ const fetchSearchArticles = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<ArticlesPage> => {
+): Promise<ArticleListPage> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { items: [], nextCursor: null, totalCount: null };
 
@@ -325,7 +319,7 @@ export const getArticles = async ({
   locale,
   query,
   tag,
-}: GetArticlesOptions): Promise<ArticlesPage> => {
+}: GetArticlesOptions): Promise<ArticleListPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') {
     return { items: [], nextCursor: null, totalCount: null };

@@ -1,13 +1,13 @@
 import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
+import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '../model/cache-tags';
-import { buildArticleLocaleFallbackChain } from '../model/locale-fallback';
 import type { Article } from '../model/types';
 
 import {
@@ -98,7 +98,7 @@ export const getArticle = async (
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedArticle = unstable_cache(
     async () => {
-      const localeFallbackChain = buildArticleLocaleFallbackChain(normalizedLocale);
+      const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
       const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
       if (article) return article;
 

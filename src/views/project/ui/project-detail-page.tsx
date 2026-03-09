@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
+import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
@@ -10,7 +10,7 @@ import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 import styles from '@/views/project/ui/project-detail-page.module.css';
 
 type ProjectDetailPageProps = {
-  archiveItems: ProjectDetailListItem[];
+  archivePage: ProjectArchivePage;
   item: Project;
   locale: string;
 };
@@ -18,7 +18,7 @@ type ProjectDetailPageProps = {
 /**
  * 프로젝트 상세 페이지 컨테이너입니다.
  */
-export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectDetailPageProps) => {
+export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDetailPageProps) => {
   const t = await getTranslations('ProjectDetail');
   const detailUi = await getTranslations('DetailUi');
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
@@ -51,7 +51,7 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
       }
       sidebarItems={buildDetailArchiveLinkItems({
         getHref: archiveItem => `/project/${archiveItem.id}`,
-        items: archiveItems,
+        items: archivePage.items,
         locale,
         selectedId: item.id,
       })}

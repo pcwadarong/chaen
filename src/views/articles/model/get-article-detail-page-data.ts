@@ -1,6 +1,10 @@
 import { getArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
-import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
+import type {
+  Article,
+  ArticleArchivePage,
+  ArticleDetailListItem,
+} from '@/entities/article/model/types';
 import { getArticleComments } from '@/entities/article-comment';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 
@@ -10,7 +14,7 @@ type GetArticleDetailPageDataInput = {
 };
 
 type ArticleDetailPageData = {
-  archiveItems: ArticleDetailListItem[];
+  archivePage: ArticleArchivePage;
   initialCommentsPage: ArticleCommentPage;
   item: Article | null;
 };
@@ -20,20 +24,26 @@ type ArticleDetailPageData = {
  */
 const ensureCurrentArticleInArchive = (
   item: Article | null,
-  archiveItems: ArticleDetailListItem[],
-): ArticleDetailListItem[] => {
-  if (!item) return archiveItems;
-  if (archiveItems.some(archiveItem => archiveItem.id === item.id)) return archiveItems;
+  archivePage: ArticleArchivePage,
+): ArticleArchivePage => {
+  if (!item) return archivePage;
+  if (archivePage.items.some(archiveItem => archiveItem.id === item.id)) return archivePage;
+  const remainingItemCount = Math.max(archivePage.items.length - 1, 0);
 
-  return [
+  const nextItems: ArticleDetailListItem[] = [
     {
       created_at: item.created_at,
       description: item.description,
       id: item.id,
       title: item.title,
     },
-    ...archiveItems.slice(0, 199),
+    ...archivePage.items.slice(0, remainingItemCount),
   ];
+
+  return {
+    ...archivePage,
+    items: nextItems,
+  };
 };
 
 /**
@@ -43,9 +53,9 @@ export const getArticleDetailPageData = async ({
   articleId,
   locale,
 }: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
-  const [item, archiveItems, initialCommentsPage] = await Promise.all([
+  const [item, archivePage, initialCommentsPage] = await Promise.all([
     getArticle(articleId, locale),
-    getArticleDetailList(locale),
+    getArticleDetailList({ locale }),
     getArticleComments({
       articleId,
       page: 1,
@@ -61,7 +71,7 @@ export const getArticleDetailPageData = async ({
   ]);
 
   return {
-    archiveItems: ensureCurrentArticleInArchive(item, archiveItems),
+    archivePage: ensureCurrentArticleInArchive(item, archivePage),
     initialCommentsPage,
     item,
   };

@@ -3,6 +3,10 @@ export type CreatedAtIdCursor = {
   id: string;
 };
 
+export type LocaleAwareCreatedAtIdCursor = CreatedAtIdCursor & {
+  locale: string;
+};
+
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 30;
 
@@ -27,6 +31,36 @@ export const parseCreatedAtIdCursor = (cursor?: string | null): CreatedAtIdCurso
     return {
       createdAt: parsed.createdAt,
       id: parsed.id,
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * keyset cursor 문자열을 created_at + id + locale 조합으로 복원합니다.
+ */
+export const parseLocaleAwareCreatedAtIdCursor = (
+  cursor?: string | null,
+): LocaleAwareCreatedAtIdCursor | null => {
+  if (!cursor) return null;
+
+  try {
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf-8');
+    const parsed = JSON.parse(decoded) as Partial<LocaleAwareCreatedAtIdCursor>;
+
+    if (
+      typeof parsed.createdAt !== 'string' ||
+      typeof parsed.id !== 'string' ||
+      typeof parsed.locale !== 'string'
+    ) {
+      return null;
+    }
+
+    return {
+      createdAt: parsed.createdAt,
+      id: parsed.id,
+      locale: parsed.locale,
     };
   } catch {
     return null;
@@ -66,3 +100,13 @@ export const buildCreatedAtIdPage = <T extends CreatedAtIdCursor>({
     nextCursor: hasMore && lastItem ? serializeCreatedAtIdCursor(lastItem) : null,
   };
 };
+
+/**
+ * created_at + id + locale 조합을 URL에 안전한 keyset cursor 문자열로 직렬화합니다.
+ */
+export const serializeLocaleAwareCreatedAtIdCursor = ({
+  createdAt,
+  id,
+  locale,
+}: LocaleAwareCreatedAtIdCursor): string =>
+  Buffer.from(JSON.stringify({ createdAt, id, locale }), 'utf-8').toString('base64url');

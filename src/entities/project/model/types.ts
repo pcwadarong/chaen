@@ -19,9 +19,25 @@ export type Project = {
 export type ProjectDetailListItem = Pick<Project, 'id' | 'title' | 'description' | 'created_at'>;
 
 /**
+ * 프로젝트 상세 좌측 아카이브 목록의 cursor 기반 페이지 응답입니다.
+ */
+export type ProjectArchivePage = {
+  items: ProjectDetailListItem[];
+  nextCursor: string | null;
+};
+
+/**
  * 프로젝트 목록 카드/피드에 필요한 요약 타입입니다.
  */
 export type ProjectListItem = Pick<
   Project,
   'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'
 >;
+
+/**
+ * 프로젝트 목록 페이지의 cursor 기반 응답입니다.
+ */
+export type ProjectListPage = {
+  items: ProjectListItem[];
+  nextCursor: string | null;
+};

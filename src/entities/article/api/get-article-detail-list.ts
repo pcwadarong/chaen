@@ -1,17 +1,30 @@
 import { unstable_cache } from 'next/cache';
 
+import {
+  buildContentLocaleFallbackChain,
+  resolveFirstAvailableLocaleValue,
+} from '@/shared/lib/i18n/content-locale-fallback';
+import {
+  buildCreatedAtIdPage,
+  parseKeysetLimit,
+  parseLocaleAwareCreatedAtIdCursor,
+  serializeLocaleAwareCreatedAtIdCursor,
+} from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
-import { buildArticleLocaleFallbackChain } from '../model/locale-fallback';
-import type { ArticleDetailListItem } from '../model/types';
+import type { ArticleArchivePage, ArticleDetailListItem } from '../model/types';
 
 import { type ArticleTranslationRow, mapArticleDetailListItems } from './map-article-translation';
 
-const DETAIL_LIST_LIMIT = 200;
+type GetArticleDetailListOptions = {
+  cursor?: string | null;
+  limit?: number;
+  locale: string;
+};
 
 const isMissingArticleContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
@@ -26,34 +39,70 @@ const isMissingArticleContentSchemaError = (message: string) => {
  */
 const fetchArticleDetailListFromContentSchema = async (
   locale: string,
-): Promise<{ data: ArticleDetailListItem[]; schemaMissing: boolean }> => {
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<{ data: ArticleArchivePage; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: [], schemaMissing: false };
+  if (!supabase) return { data: { items: [], nextCursor: null }, schemaMissing: false };
 
-  const { data: translationRows, error: translationError } = await supabase
+  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
+  let translationsQuery = supabase
     .from('article_translations')
     .select('article_id,title,description,articles!inner(created_at)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
-    .order('article_id', { ascending: false })
-    .limit(DETAIL_LIST_LIMIT);
+    .order('article_id', { ascending: false });
+
+  if (parsedCursor) {
+    translationsQuery = translationsQuery.or(
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
+      { referencedTable: 'articles' },
+    );
+  }
+
+  const { data: translationRows, error: translationError } = await translationsQuery.limit(
+    pageSize + 1,
+  );
 
   if (translationError) {
     if (isMissingArticleContentSchemaError(translationError.message)) {
-      return { data: [], schemaMissing: true };
+      return { data: { items: [], nextCursor: null }, schemaMissing: true };
     }
 
     throw new Error(`[articles] 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
+  const rows = mapArticleDetailListItems((translationRows ?? []) as ArticleTranslationRow[]);
+  const page = buildCreatedAtIdPage({
+    limit: pageSize,
+    rows: rows.map(row => ({
+      ...row,
+      createdAt: row.created_at,
+    })),
+  });
+
   return {
-    data: mapArticleDetailListItems((translationRows ?? []) as ArticleTranslationRow[]),
+    data: {
+      items: page.items.map(({ createdAt: _createdAt, ...item }) => item as ArticleDetailListItem),
+      nextCursor:
+        page.nextCursor && page.items.at(-1)
+          ? serializeLocaleAwareCreatedAtIdCursor({
+              createdAt: page.items.at(-1)?.createdAt ?? '',
+              id: page.items.at(-1)?.id ?? '',
+              locale,
+            })
+          : null,
+    },
     schemaMissing: false,
   };
 };
 
-const fetchArticleDetailListByLocale = async (locale: string): Promise<ArticleDetailListItem[]> => {
-  const articleDetailList = await fetchArticleDetailListFromContentSchema(locale);
+const fetchArticleDetailListByLocale = async (
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<ArticleArchivePage> => {
+  const articleDetailList = await fetchArticleDetailListFromContentSchema(locale, cursor, pageSize);
   if (articleDetailList.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
   }
@@ -62,26 +111,44 @@ const fetchArticleDetailListByLocale = async (locale: string): Promise<ArticleDe
 };
 
 /**
- * 아티클 상세 좌측 아카이브 목록을 가져옵니다.
- *
- * 현재 UI는 첫 페이지만 사용하지만, 조회 자체는 keyset 정렬 기준으로 통일합니다.
+ * 아티클 상세 좌측 아카이브 목록의 cursor 기반 페이지를 가져옵니다.
  */
-export const getArticleDetailList = async (locale: string): Promise<ArticleDetailListItem[]> => {
+export const getArticleDetailList = async ({
+  cursor,
+  limit,
+  locale,
+}: GetArticleDetailListOptions): Promise<ArticleArchivePage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return [];
+  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
-  const localeFallbackChain = buildArticleLocaleFallbackChain(normalizedLocale);
+  const pageSize = parseKeysetLimit(limit);
+  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
+  const localeFallbackChain = parsedCursor
+    ? [parsedCursor.locale]
+    : buildContentLocaleFallbackChain(normalizedLocale);
+  const cacheCursor = parsedCursor ? JSON.stringify(parsedCursor) : 'initial';
+
   const getCachedArticleDetailList = unstable_cache(
     async () => {
-      for (const candidateLocale of localeFallbackChain) {
-        const localizedItems = await fetchArticleDetailListByLocale(candidateLocale);
-        if (localizedItems.length > 0) return localizedItems;
-      }
+      const page = await resolveFirstAvailableLocaleValue({
+        fetchByLocale: candidateLocale =>
+          fetchArticleDetailListByLocale(candidateLocale, cursor, pageSize),
+        hasValue: value => value.items.length > 0,
+        locales: localeFallbackChain,
+      });
 
-      return [];
+      return page ?? { items: [], nextCursor: null };
     },
-    ['articles', 'detail-list', cacheScope, normalizedLocale, localeFallbackChain.join('>')],
+    [
+      'articles',
+      'detail-list',
+      cacheScope,
+      normalizedLocale,
+      cacheCursor,
+      String(pageSize),
+      localeFallbackChain.join('>'),
+    ],
     {
       tags: [ARTICLES_CACHE_TAG],
       revalidate: false,

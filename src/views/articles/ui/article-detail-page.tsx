@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
+import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
@@ -11,7 +11,7 @@ import styles from '@/views/articles/ui/article-detail-page.module.css';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
-  archiveItems: ArticleDetailListItem[];
+  archivePage: ArticleArchivePage;
   initialCommentsPage: ArticleCommentPage;
   item: Article;
   locale: string;
@@ -37,7 +37,7 @@ const getArticleTagLabels = async (item: Article, locale: string) => {
  * 아티클 상세 페이지 컨테이너입니다.
  */
 export const ArticleDetailPage = async ({
-  archiveItems,
+  archivePage,
   initialCommentsPage,
   item,
   locale,
@@ -77,7 +77,7 @@ export const ArticleDetailPage = async ({
       }
       sidebarItems={buildDetailArchiveLinkItems({
         getHref: archiveItem => `/articles/${archiveItem.id}`,
-        items: archiveItems,
+        items: archivePage.items,
         locale,
         selectedId: item.id,
       })}

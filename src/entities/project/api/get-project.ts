@@ -1,6 +1,10 @@
 import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
+import {
+  buildContentLocaleFallbackChain,
+  resolveFirstAvailableLocaleValue,
+} from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -88,10 +92,13 @@ export const getProject = async (
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedProject = unstable_cache(
     async () => {
-      const localizedProject = await fetchProjectByLocale(projectId, normalizedLocale);
-      if (localizedProject || normalizedLocale === 'ko') return localizedProject;
+      const project = await resolveFirstAvailableLocaleValue({
+        fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
+        hasValue: value => Boolean(value),
+        locales: buildContentLocaleFallbackChain(normalizedLocale),
+      });
 
-      return fetchProjectByLocale(projectId, 'ko');
+      return project;
     },
     ['project', cacheScope, projectId, normalizedLocale],
     {

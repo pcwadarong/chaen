@@ -19,12 +19,29 @@ export type Article = {
 export type ArticleDetailListItem = Pick<Article, 'id' | 'title' | 'description' | 'created_at'>;
 
 /**
+ * 아티클 상세 좌측 아카이브 목록의 cursor 기반 페이지 응답입니다.
+ */
+export type ArticleArchivePage = {
+  items: ArticleDetailListItem[];
+  nextCursor: string | null;
+};
+
+/**
  * 아티클 목록 카드/피드에 필요한 요약 타입입니다.
  */
 export type ArticleListItem = Pick<
   Article,
   'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'
 >;
+
+/**
+ * 아티클 목록 페이지의 cursor 기반 응답입니다.
+ */
+export type ArticleListPage = {
+  items: ArticleListItem[];
+  nextCursor: string | null;
+  totalCount: number | null;
+};
 
 /**
  * 아티클 목록 우측 패널에서 사용하는 인기 태그 집계 타입입니다.

@@ -118,7 +118,7 @@ describe('getProject', () => {
     );
   });
 
-  it('대상 locale 번역이 없으면 content schema에서도 ko locale로 fallback 조회한다', async () => {
+  it('대상 locale 번역이 없으면 공통 locale fallback 체인 순서로 조회한다', async () => {
     const targetLocaleTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -170,6 +170,70 @@ describe('getProject', () => {
     expect(result?.title).toBe('한국어 프로젝트');
     expect(targetLocaleTranslationQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('ko도 없으면 다음 fallback locale을 이어서 조회한다', async () => {
+    const targetLocaleTranslationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    };
+    const koreanTranslationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    };
+    const englishTranslationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          project_id: 'funda-project',
+          title: 'English Project',
+          description: 'summary',
+          content: 'body',
+          projects: {
+            id: 'funda-project',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            period_start: null,
+            period_end: null,
+          },
+        },
+        error: null,
+      }),
+    };
+    const projectTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(targetLocaleTranslationQuery)
+        .mockReturnValueOnce(koreanTranslationQuery)
+        .mockReturnValueOnce(englishTranslationQuery)
+        .mockReturnValueOnce(projectTagsV2Query),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProject('funda-project', 'fr');
+
+    expect(result?.title).toBe('English Project');
+    expect(targetLocaleTranslationQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(englishTranslationQuery.eq).toHaveBeenCalledWith('locale', 'en');
   });
 
   it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {

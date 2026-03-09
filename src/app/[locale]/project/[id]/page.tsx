@@ -15,13 +15,13 @@ type ProjectDetailRouteProps = {
  */
 const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archiveItems, item } = await getProjectDetailPageData({
+  const { archivePage, item } = await getProjectDetailPageData({
     locale,
     projectId: id,
   });
   if (!item) notFound();
 
-  return <ProjectDetailPage archiveItems={archiveItems} item={item} locale={locale} />;
+  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale} />;
 };
 
 export default ProjectDetailRoute;

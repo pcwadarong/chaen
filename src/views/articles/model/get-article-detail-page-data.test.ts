@@ -35,14 +35,17 @@ describe('getArticleDetailPageData', () => {
       updated_at: null,
       view_count: 0,
     });
-    vi.mocked(getArticleDetailList).mockResolvedValue([
-      {
-        id: 'archive-1',
-        title: 'Archive',
-        description: null,
-        created_at: '2026-03-01T00:00:00.000Z',
-      },
-    ]);
+    vi.mocked(getArticleDetailList).mockResolvedValue({
+      items: [
+        {
+          id: 'archive-1',
+          title: 'Archive',
+          description: null,
+          created_at: '2026-03-01T00:00:00.000Z',
+        },
+      ],
+      nextCursor: 'cursor-1',
+    });
     vi.mocked(getArticleComments).mockResolvedValue({
       items: [],
       page: 1,
@@ -57,7 +60,8 @@ describe('getArticleDetailPageData', () => {
       locale: 'ko',
     });
 
-    expect(result.archiveItems[0]?.id).toBe('frontend');
+    expect(result.archivePage.items[0]?.id).toBe('frontend');
+    expect(result.archivePage.nextCursor).toBe('cursor-1');
     expect(result.item?.id).toBe('frontend');
     expect(result.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleComments).toHaveBeenCalledWith({

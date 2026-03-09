@@ -1,6 +1,10 @@
 import { getProject } from '@/entities/project/api/get-project';
 import { getProjectDetailList } from '@/entities/project/api/get-project-detail-list';
-import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
+import type {
+  Project,
+  ProjectArchivePage,
+  ProjectDetailListItem,
+} from '@/entities/project/model/types';
 
 type GetProjectDetailPageDataInput = {
   locale: string;
@@ -8,7 +12,7 @@ type GetProjectDetailPageDataInput = {
 };
 
 type ProjectDetailPageData = {
-  archiveItems: ProjectDetailListItem[];
+  archivePage: ProjectArchivePage;
   item: Project | null;
 };
 
@@ -17,20 +21,26 @@ type ProjectDetailPageData = {
  */
 const ensureCurrentProjectInArchive = (
   item: Project | null,
-  archiveItems: ProjectDetailListItem[],
-): ProjectDetailListItem[] => {
-  if (!item) return archiveItems;
-  if (archiveItems.some(archiveItem => archiveItem.id === item.id)) return archiveItems;
+  archivePage: ProjectArchivePage,
+): ProjectArchivePage => {
+  if (!item) return archivePage;
+  if (archivePage.items.some(archiveItem => archiveItem.id === item.id)) return archivePage;
+  const remainingItemCount = Math.max(archivePage.items.length - 1, 0);
 
-  return [
+  const nextItems: ProjectDetailListItem[] = [
     {
       created_at: item.created_at,
       description: item.description,
       id: item.id,
       title: item.title,
     },
-    ...archiveItems.slice(0, 199),
+    ...archivePage.items.slice(0, remainingItemCount),
   ];
+
+  return {
+    ...archivePage,
+    items: nextItems,
+  };
 };
 
 /**
@@ -40,13 +50,13 @@ export const getProjectDetailPageData = async ({
   locale,
   projectId,
 }: GetProjectDetailPageDataInput): Promise<ProjectDetailPageData> => {
-  const [item, archiveItems] = await Promise.all([
+  const [item, archivePage] = await Promise.all([
     getProject(projectId, locale),
-    getProjectDetailList(locale),
+    getProjectDetailList({ locale }),
   ]);
 
   return {
-    archiveItems: ensureCurrentProjectInArchive(item, archiveItems),
+    archivePage: ensureCurrentProjectInArchive(item, archivePage),
     item,
   };
 };

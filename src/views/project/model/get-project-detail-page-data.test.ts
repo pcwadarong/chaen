@@ -28,21 +28,25 @@ describe('getProjectDetailPageData', () => {
       tags: [],
       created_at: '2026-03-02T00:00:00.000Z',
     });
-    vi.mocked(getProjectDetailList).mockResolvedValue([
-      {
-        id: 'archive-1',
-        title: 'Archive',
-        description: null,
-        created_at: '2026-03-01T00:00:00.000Z',
-      },
-    ]);
+    vi.mocked(getProjectDetailList).mockResolvedValue({
+      items: [
+        {
+          id: 'archive-1',
+          title: 'Archive',
+          description: null,
+          created_at: '2026-03-01T00:00:00.000Z',
+        },
+      ],
+      nextCursor: 'cursor-1',
+    });
 
     const result = await getProjectDetailPageData({
       locale: 'ko',
       projectId: 'funda',
     });
 
-    expect(result.archiveItems[0]?.id).toBe('funda');
+    expect(result.archivePage.items[0]?.id).toBe('funda');
+    expect(result.archivePage.nextCursor).toBe('cursor-1');
     expect(result.item?.id).toBe('funda');
   });
 

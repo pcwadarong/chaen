@@ -218,7 +218,7 @@ describe('getArticle', () => {
     );
   });
 
-  it('en 요청은 ko까지만 fallback 조회한다', async () => {
+  it('en 요청도 공통 locale fallback 체인을 RPC에 전달한다', async () => {
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -255,7 +255,7 @@ describe('getArticle', () => {
 
     expect(result?.title).toBe('한국어 글');
     expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
-      fallback_locales: ['en', 'ko'],
+      fallback_locales: ['en', 'ko', 'ja', 'fr'],
       target_article_id: 'frontend-performance',
     });
   });

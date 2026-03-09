@@ -161,7 +161,7 @@ describe('getProjects', () => {
     expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
   });
 
-  it('첫 페이지에서 대상 locale 번역이 정말 없으면 ko locale로 fallback 조회한다', async () => {
+  it('첫 페이지에서 대상 locale 번역이 정말 없으면 공통 locale fallback 체인으로 조회한다', async () => {
     const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -205,6 +205,63 @@ describe('getProjects', () => {
     expect(result.items[0]?.title).toBe('한국어 프로젝트');
     expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('ko도 없으면 다음 fallback locale 목록을 조회한다', async () => {
+    const targetLocaleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const fallbackKoTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const fallbackEnTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            project_id: 'english-project',
+            title: 'English Project',
+            description: 'summary',
+            projects: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(targetLocaleTranslationsQuery)
+        .mockReturnValueOnce(fallbackKoTranslationsQuery)
+        .mockReturnValueOnce(fallbackEnTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProjects({ locale: 'fr' });
+
+    expect(result.items[0]?.title).toBe('English Project');
+    expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(fallbackKoTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(fallbackEnTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'en');
   });
 
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
