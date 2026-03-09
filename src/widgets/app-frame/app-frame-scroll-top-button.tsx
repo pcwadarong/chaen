@@ -2,9 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useRef, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
-import { appFrameScrollTopButtonClass } from '@/widgets/app-frame/app-frame.styles';
 
 // 데스크탑 기준
 const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
@@ -121,3 +121,37 @@ export const AppFrameScrollTopButton = () => {
     </button>
   );
 };
+
+const appFrameScrollTopButtonClass = css({
+  position: 'fixed',
+  right: '[max(1rem, env(safe-area-inset-right))]',
+  bottom: '[max(1rem, env(safe-area-inset-bottom))]',
+  zIndex: '11',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '[3rem]',
+  height: '[3rem]',
+  border: '[1px solid rgb(var(--color-border) / 0.24)]',
+  borderRadius: 'pill',
+  background: 'surface',
+  color: 'text',
+  boxShadow: '[0 18px 32px rgb(var(--color-black) / 0.18)]',
+  transition:
+    '[transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease]',
+  _hover: {
+    transform: 'translateY(-2px)',
+    borderColor: '[rgb(var(--color-border) / 0.4)]',
+    boxShadow: '[0 22px 40px rgb(var(--color-black) / 0.22)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    boxShadow:
+      '[0 0 0 3px rgb(var(--color-primary) / 0.2), 0 18px 32px rgb(var(--color-black) / 0.18)]',
+  },
+  '@media (min-width: 961px)': {
+    position: 'absolute',
+    right: '[1.25rem]',
+    bottom: '[calc(1.25rem + 3rem)]',
+  },
+});

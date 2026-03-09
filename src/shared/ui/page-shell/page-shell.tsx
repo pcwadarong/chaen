@@ -1,16 +1,5 @@
 import React, { type ReactNode } from 'react';
-
-import {
-  pageHeaderActionWrapClass,
-  pageHeaderClass,
-  pageHeaderDescriptionClass,
-  pageHeaderHeadlineRowClass,
-  pageHeaderMetaClass,
-  pageHeaderTitleClass,
-  pageSectionClass,
-  pageSectionTitleClass,
-  pageShellClass,
-} from '@/shared/ui/page-shell/page-shell.styles';
+import { css, cva } from 'styled-system/css';
 
 type PageShellWidth = 'compact' | 'default';
 
@@ -79,3 +68,78 @@ export const PageSection = ({ children, title, titleId }: PageSectionProps) => (
     {children}
   </section>
 );
+
+const pageShellClass = cva({
+  base: {
+    mx: 'auto',
+    px: '4',
+    pt: '12',
+    pb: '20',
+    display: 'grid',
+    gap: '5',
+  },
+  variants: {
+    width: {
+      compact: {
+        width: '[min(820px, 100%)]',
+      },
+      default: {
+        width: '[min(980px, 100%)]',
+      },
+    },
+  },
+  defaultVariants: {
+    width: 'default',
+  },
+});
+
+const pageHeaderClass = css({
+  display: 'grid',
+  gap: '3',
+  pb: '7',
+});
+
+const pageHeaderMetaClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '3',
+  color: 'muted',
+  fontSize: '14',
+});
+
+const pageHeaderHeadlineRowClass = css({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: '4',
+  flexWrap: 'wrap',
+});
+
+const pageHeaderTitleClass = css({
+  flex: '[1 1 18rem]',
+  fontSize: '32',
+  lineHeight: '98',
+  letterSpacing: '[-0.04em]',
+});
+
+const pageHeaderActionWrapClass = css({
+  flex: '[0 0 auto]',
+  display: 'inline-flex',
+  alignItems: 'center',
+});
+
+const pageHeaderDescriptionClass = css({
+  flex: '1',
+  color: 'muted',
+});
+
+const pageSectionClass = css({
+  display: 'grid',
+  gap: '4',
+});
+
+const pageSectionTitleClass = css({
+  fontSize: '20',
+  lineHeight: '120',
+  letterSpacing: '[-0.02em]',
+});
