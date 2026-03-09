@@ -5,13 +5,8 @@ import styles from '@/shared/ui/detail-page/detail-page-shell.module.css';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 
-export type DetailArchiveLinkItem = {
-  description: string | null;
-  href: string;
-  isActive: boolean;
-  title: string;
-  yearText: string;
-};
+import { DetailArchiveList } from './detail-archive-list';
+import type { DetailArchiveLinkItem } from './detail-archive-types';
 
 type DetailPageShellProps = {
   bottomContent?: ReactNode;
@@ -23,7 +18,8 @@ type DetailPageShellProps = {
   heroDescription: string;
   hideAppFrameFooter?: boolean;
   metaBar: ReactNode;
-  sidebarItems: DetailArchiveLinkItem[];
+  sidebarContent?: ReactNode;
+  sidebarItems?: DetailArchiveLinkItem[];
   sidebarLabel: string;
   tagContent?: ReactNode;
   title: string;
@@ -42,7 +38,8 @@ export const DetailPageShell = async ({
   heroDescription,
   hideAppFrameFooter = false,
   metaBar,
-  sidebarItems,
+  sidebarContent,
+  sidebarItems = [],
   sidebarLabel,
   tagContent,
   title,
@@ -61,31 +58,11 @@ export const DetailPageShell = async ({
       data-page-scroll-mode="independent"
     >
       <aside aria-label={sidebarLabel} className={styles.sidebar}>
-        <div className={styles.sidebarViewport} data-scroll-region="true">
-          {sidebarItems.length > 0 ? (
-            <ul className={styles.sidebarList}>
-              {sidebarItems.map(item => (
-                <li key={item.href}>
-                  <Link
-                    aria-current={item.isActive ? 'page' : undefined}
-                    className={`${styles.sidebarLink} ${item.isActive ? styles.activeSidebarLink : ''}`}
-                    href={item.href}
-                  >
-                    <div className={styles.sidebarMetaRow}>
-                      <span>{item.yearText}</span>
-                    </div>
-                    <strong className={styles.sidebarTitle}>{item.title}</strong>
-                    {item.description ? (
-                      <p className={styles.sidebarDescription}>{item.description}</p>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.emptyArchive}>{emptyArchiveText}</p>
-          )}
-        </div>
+        {sidebarContent ?? (
+          <div className={styles.sidebarViewport} data-scroll-region="true">
+            <DetailArchiveList emptyText={emptyArchiveText} items={sidebarItems} />
+          </div>
+        )}
       </aside>
       <article className={styles.content} data-scroll-region="true">
         <header className={styles.hero}>

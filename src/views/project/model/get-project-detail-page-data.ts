@@ -5,6 +5,7 @@ import type {
   ProjectArchivePage,
   ProjectDetailListItem,
 } from '@/entities/project/model/types';
+import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetProjectDetailPageDataInput = {
   locale: string;
@@ -22,26 +23,8 @@ type ProjectDetailPageData = {
 const ensureCurrentProjectInArchive = (
   item: Project | null,
   archivePage: ProjectArchivePage,
-): ProjectArchivePage => {
-  if (!item) return archivePage;
-  if (archivePage.items.some(archiveItem => archiveItem.id === item.id)) return archivePage;
-  const remainingItemCount = Math.max(archivePage.items.length - 1, 0);
-
-  const nextItems: ProjectDetailListItem[] = [
-    {
-      created_at: item.created_at,
-      description: item.description,
-      id: item.id,
-      title: item.title,
-    },
-    ...archivePage.items.slice(0, remainingItemCount),
-  ];
-
-  return {
-    ...archivePage,
-    items: nextItems,
-  };
-};
+): ProjectArchivePage =>
+  prependCurrentArchiveItem<ProjectDetailListItem, Project>(item, archivePage);
 
 /**
  * 프로젝트 상세 페이지에 필요한 데이터 묶음을 조회합니다.

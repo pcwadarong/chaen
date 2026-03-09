@@ -51,4 +51,23 @@ describe('DetailPageShell', () => {
       html.indexOf('data-testid="detail-bottom-content"'),
     );
   });
+
+  it('sidebarContent가 있으면 기본 아카이브 목록 대신 해당 노드를 렌더링한다', async () => {
+    const element = await DetailPageShell({
+      content: '상세 본문',
+      emptyArchiveText: '비어있음',
+      emptyContentText: '본문 없음',
+      guestbookCtaText: '방명록에 글 남기고 가기',
+      heroDescription: '설명',
+      metaBar: <div data-testid="detail-meta-bar">메타 바</div>,
+      sidebarContent: <div data-testid="custom-sidebar">커스텀</div>,
+      sidebarLabel: '아카이브',
+      title: '상세 제목',
+    });
+    const stream = await renderToReadableStream(element);
+    const html = await new Response(stream).text();
+
+    expect(html).toContain('data-testid="custom-sidebar"');
+    expect(html).not.toContain('비어있음');
+  });
 });

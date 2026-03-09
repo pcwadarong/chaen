@@ -7,6 +7,7 @@ import type {
 } from '@/entities/article/model/types';
 import { getArticleComments } from '@/entities/article-comment';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
+import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetArticleDetailPageDataInput = {
   articleId: string;
@@ -25,26 +26,8 @@ type ArticleDetailPageData = {
 const ensureCurrentArticleInArchive = (
   item: Article | null,
   archivePage: ArticleArchivePage,
-): ArticleArchivePage => {
-  if (!item) return archivePage;
-  if (archivePage.items.some(archiveItem => archiveItem.id === item.id)) return archivePage;
-  const remainingItemCount = Math.max(archivePage.items.length - 1, 0);
-
-  const nextItems: ArticleDetailListItem[] = [
-    {
-      created_at: item.created_at,
-      description: item.description,
-      id: item.id,
-      title: item.title,
-    },
-    ...archivePage.items.slice(0, remainingItemCount),
-  ];
-
-  return {
-    ...archivePage,
-    items: nextItems,
-  };
-};
+): ArticleArchivePage =>
+  prependCurrentArchiveItem<ArticleDetailListItem, Article>(item, archivePage);
 
 /**
  * 아티클 상세 페이지에 필요한 데이터 묶음을 조회합니다.
