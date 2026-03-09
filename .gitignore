@@ -65,3 +65,5 @@ public/**/*.map
 # Misc
 *.pem
 .vercel/
+
+styled-system/
