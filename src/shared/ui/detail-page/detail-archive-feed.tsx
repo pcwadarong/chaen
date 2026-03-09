@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
+import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
@@ -45,10 +46,46 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   retryText,
   selectedId,
 }: DetailArchiveFeedProps<TItem>) => {
+  const loadPage = useCallback(
+    async ({
+      cursor,
+      limit,
+      locale: nextLocale,
+    }: {
+      cursor: string;
+      limit: number;
+      locale: string;
+    }) => {
+      const url = new URL(endpoint, window.location.origin);
+      url.searchParams.set('locale', nextLocale);
+      url.searchParams.set('limit', String(limit));
+      url.searchParams.set('cursor', cursor);
+
+      const payload = await requestJsonApiClient<{
+        items: TItem[];
+        nextCursor: string | null;
+        ok: true;
+      }>({
+        fallbackReason: 'failed to fetch list',
+        init: {
+          cache: 'no-store',
+        },
+        method: 'GET',
+        url: url.toString(),
+      });
+
+      return {
+        items: payload.items,
+        nextCursor: payload.nextCursor,
+      };
+    },
+    [endpoint],
+  );
+
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
-    endpoint,
     initialCursor: initialPage.nextCursor,
     initialItems: initialPage.items,
+    loadPage,
     locale,
     mergeItems: (previousItems, incomingItems) => {
       const seenIds = new Set(previousItems.map(item => item.id));

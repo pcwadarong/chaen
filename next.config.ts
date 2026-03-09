@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
   compiler: {
     emotion: true,
   },
+  experimental: {
+    useCache: true,
+  },
   images: {
     remotePatterns: [
       {
