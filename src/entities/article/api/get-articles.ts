@@ -8,7 +8,6 @@ import {
   parseKeysetLimit,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -16,14 +15,13 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleListItem } from '../model/types';
 
-import { mapShadowArticleListItems, type ShadowArticleTranslationRow } from './map-shadow-article';
+import { type ArticleTranslationRow, mapArticleListItems } from './map-article-translation';
 
 const isMissingArticlesShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    normalizedMessage.includes('articles') || normalizedMessage.includes('article_translations')
   );
 };
 
@@ -137,7 +135,7 @@ const fetchArticlesByLocaleFromShadow = async (
 
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
-    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .from('article_translations')
     .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
@@ -162,12 +160,12 @@ const fetchArticlesByLocaleFromShadow = async (
       };
     }
 
-    throw new Error(`[articles] shadow 번역 목록 조회 실패: ${translationsError.message}`);
+    throw new Error(`[articles] 번역 목록 조회 실패: ${translationsError.message}`);
   }
 
   return {
     data: toArticlesPage(
-      mapShadowArticleListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
+      mapArticleListItems((translationRows ?? []) as ArticleTranslationRow[]),
       pageSize,
     ),
     schemaMissing: false,
@@ -179,16 +177,16 @@ const fetchArticlesByLocale = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ArticlesPage> => {
-  const shadowArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
-  if (shadowArticles.schemaMissing) {
-    throw new Error('[articles] shadow content schema가 없습니다.');
+  const localizedArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
+  if (localizedArticles.schemaMissing) {
+    throw new Error('[articles] content schema가 없습니다.');
   }
 
-  return shadowArticles.data;
+  return localizedArticles.data;
 };
 
 /**
- * canonical tag relation을 기준으로 현재 locale 번역 목록을 조회합니다.
+ * 태그 relation table을 기준으로 현재 locale 번역 목록을 조회합니다.
  *
  * 태그 필터는 검색 RPC를 거치지 않고, relation 조회 후 content 목록을 조합합니다.
  */
@@ -212,25 +210,25 @@ const fetchArticlesByTagAndLocale = async (
     return { items: [], nextCursor: null, totalCount: null };
   }
 
-  const shadowArticleIds = await getRelatedEntityIdsByTagId({
+  const articleIdsByTag = await getRelatedEntityIdsByTagId({
     entityColumn: 'article_id',
-    relationTable: CONTENT_SHADOW_SCHEMA.articleTags,
+    relationTable: 'article_tags',
     tagId: resolvedTagId.data,
   });
-  if (shadowArticleIds.schemaMissing) {
+  if (articleIdsByTag.schemaMissing) {
     throw new Error('[articles] 태그 relation schema가 없습니다.');
   }
 
-  if (shadowArticleIds.data.length === 0) {
+  if (articleIdsByTag.data.length === 0) {
     return { items: [], nextCursor: null, totalCount: null };
   }
 
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
-    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .from('article_translations')
     .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
     .eq('locale', locale)
-    .in('article_id', shadowArticleIds.data)
+    .in('article_id', articleIdsByTag.data)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });
 
@@ -247,14 +245,14 @@ const fetchArticlesByTagAndLocale = async (
 
   if (translationsError) {
     if (isMissingArticlesShadowSchemaError(translationsError.message)) {
-      throw new Error('[articles] shadow content schema가 없습니다.');
+      throw new Error('[articles] content schema가 없습니다.');
     }
 
-    throw new Error(`[articles] shadow 태그 목록 조회 실패: ${translationsError.message}`);
+    throw new Error(`[articles] 태그 목록 조회 실패: ${translationsError.message}`);
   }
 
   return toArticlesPage(
-    mapShadowArticleListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
+    mapArticleListItems((translationRows ?? []) as ArticleTranslationRow[]),
     pageSize,
   );
 };
@@ -297,7 +295,7 @@ const fetchSearchArticles = async (
   if (!supabase) return { items: [], nextCursor: null, totalCount: null };
 
   const parsedCursor = parseArticleSearchCursor(cursor);
-  const { data, error } = await supabase.rpc(CONTENT_SHADOW_SCHEMA.articleSearchRpc, {
+  const { data, error } = await supabase.rpc('search_article_translations', {
     cursor_created_at: parsedCursor?.createdAt ?? null,
     cursor_id: parsedCursor?.id ?? null,
     cursor_rank: parsedCursor?.rank ?? null,
@@ -307,7 +305,7 @@ const fetchSearchArticles = async (
   });
 
   if (error) {
-    throw new Error(`[articles] shadow RPC 검색 조회 실패: ${error.message}`);
+    throw new Error(`[articles] 검색 조회 실패: ${error.message}`);
   }
 
   return toSearchArticlesPage((data ?? []) as ArticleSearchRow[], pageSize);

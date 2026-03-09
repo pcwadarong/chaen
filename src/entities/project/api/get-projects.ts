@@ -7,7 +7,6 @@ import {
   parseKeysetLimit,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -15,14 +14,13 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectListItem } from '../model/types';
 
-import { mapShadowProjectListItems, type ShadowProjectTranslationRow } from './map-shadow-project';
+import { mapProjectListItems, type ProjectTranslationRow } from './map-project-translation';
 
 const isMissingProjectsShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
   );
 };
 
@@ -75,7 +73,7 @@ const fetchProjectsByLocaleFromShadow = async (
 
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
-    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    .from('project_translations')
     .select('project_id,title,description,projects!inner(created_at,thumbnail_url)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'projects' })
@@ -99,12 +97,12 @@ const fetchProjectsByLocaleFromShadow = async (
       };
     }
 
-    throw new Error(`[projects] shadow 번역 목록 조회 실패: ${translationError.message}`);
+    throw new Error(`[projects] 번역 목록 조회 실패: ${translationError.message}`);
   }
 
   return {
     data: toProjectsPage(
-      mapShadowProjectListItems((translationRows ?? []) as ShadowProjectTranslationRow[]),
+      mapProjectListItems((translationRows ?? []) as ProjectTranslationRow[]),
       pageSize,
     ),
     schemaMissing: false,
@@ -116,12 +114,12 @@ const fetchProjectsByLocale = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectsPage> => {
-  const shadowProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
-  if (shadowProjects.schemaMissing) {
-    throw new Error('[projects] shadow content schema가 없습니다.');
+  const localizedProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
+  if (localizedProjects.schemaMissing) {
+    throw new Error('[projects] content schema가 없습니다.');
   }
 
-  return shadowProjects.data;
+  return localizedProjects.data;
 };
 
 /**

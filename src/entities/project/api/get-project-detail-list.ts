@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache';
 
 import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -10,10 +9,7 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectDetailListItem } from '../model/types';
 
-import {
-  mapShadowProjectDetailListItems,
-  type ShadowProjectTranslationRow,
-} from './map-shadow-project';
+import { mapProjectDetailListItems, type ProjectTranslationRow } from './map-project-translation';
 
 const DETAIL_LIST_LIMIT = 200;
 
@@ -21,8 +17,7 @@ const isMissingProjectShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
   );
 };
 
@@ -53,7 +48,7 @@ const fetchProjectDetailListFromShadow = async (
   if (!supabase) return { data: [], schemaMissing: false };
 
   const { data: translationRows, error: translationError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    .from('project_translations')
     .select('project_id,title,description,projects!inner(created_at)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'projects' })
@@ -65,24 +60,24 @@ const fetchProjectDetailListFromShadow = async (
       return { data: [], schemaMissing: true };
     }
 
-    throw new Error(`[projects] shadow 상세 목록 번역 조회 실패: ${translationError.message}`);
+    throw new Error(`[projects] 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
   return {
     data: toProjectDetailListItems(
-      mapShadowProjectDetailListItems((translationRows ?? []) as ShadowProjectTranslationRow[]),
+      mapProjectDetailListItems((translationRows ?? []) as ProjectTranslationRow[]),
     ),
     schemaMissing: false,
   };
 };
 
 const fetchProjectDetailListByLocale = async (locale: string): Promise<ProjectDetailListItem[]> => {
-  const shadowList = await fetchProjectDetailListFromShadow(locale);
-  if (shadowList.schemaMissing) {
-    throw new Error('[projects] shadow content schema가 없습니다.');
+  const projectDetailList = await fetchProjectDetailListFromShadow(locale);
+  if (projectDetailList.schemaMissing) {
+    throw new Error('[projects] content schema가 없습니다.');
   }
 
-  return shadowList.data;
+  return projectDetailList.data;
 };
 
 /**

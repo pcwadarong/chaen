@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -10,14 +9,13 @@ import 'server-only';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
 
-import { mapShadowProject, type ShadowProjectTranslationRow } from './map-shadow-project';
+import { mapProject, type ProjectTranslationRow } from './map-project-translation';
 
 const isMissingProjectShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
   );
 };
 
@@ -32,48 +30,48 @@ const fetchProjectFromShadowSchema = async (
   if (!supabase) return { data: null, schemaMissing: false };
 
   const { data: translation, error: translationError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    .from('project_translations')
     .select(
       'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end)',
     )
     .eq('project_id', projectId)
     .eq('locale', locale)
-    .maybeSingle<ShadowProjectTranslationRow>();
+    .maybeSingle<ProjectTranslationRow>();
 
   if (translationError) {
     if (isMissingProjectShadowSchemaError(translationError.message)) {
       return { data: null, schemaMissing: true };
     }
 
-    throw new Error(`[projects] shadow 번역 조회 실패: ${translationError.message}`);
+    throw new Error(`[projects] 번역 조회 실패: ${translationError.message}`);
   }
 
   if (!translation) {
     return { data: null, schemaMissing: false };
   }
 
-  const shadowTags = await getRelatedTagSlugs({
+  const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'project_id',
     entityId: projectId,
-    relationTable: CONTENT_SHADOW_SCHEMA.projectTags,
+    relationTable: 'project_tags',
   });
-  if (shadowTags.schemaMissing) {
+  if (relatedTags.schemaMissing) {
     throw new Error('[projects] 태그 relation schema가 없습니다.');
   }
 
   return {
-    data: mapShadowProject(translation, shadowTags.data),
+    data: mapProject(translation, relatedTags.data),
     schemaMissing: false,
   };
 };
 
 const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
-  const shadowProject = await fetchProjectFromShadowSchema(projectId, locale);
-  if (shadowProject.schemaMissing) {
-    throw new Error('[projects] shadow content schema가 없습니다.');
+  const projectResult = await fetchProjectFromShadowSchema(projectId, locale);
+  if (projectResult.schemaMissing) {
+    throw new Error('[projects] content schema가 없습니다.');
   }
 
-  return shadowProject.data;
+  return projectResult.data;
 };
 
 /**

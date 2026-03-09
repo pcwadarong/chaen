@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache';
 
 import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -10,10 +9,7 @@ import 'server-only';
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleDetailListItem } from '../model/types';
 
-import {
-  mapShadowArticleDetailListItems,
-  type ShadowArticleTranslationRow,
-} from './map-shadow-article';
+import { type ArticleTranslationRow, mapArticleDetailListItems } from './map-article-translation';
 
 const DETAIL_LIST_LIMIT = 200;
 
@@ -21,8 +17,7 @@ const isMissingArticleShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    normalizedMessage.includes('articles') || normalizedMessage.includes('article_translations')
   );
 };
 
@@ -53,7 +48,7 @@ const fetchArticleDetailListFromShadow = async (
   if (!supabase) return { data: [], schemaMissing: false };
 
   const { data: translationRows, error: translationError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    .from('article_translations')
     .select('article_id,title,description,articles!inner(created_at)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
@@ -65,24 +60,24 @@ const fetchArticleDetailListFromShadow = async (
       return { data: [], schemaMissing: true };
     }
 
-    throw new Error(`[articles] shadow 상세 목록 번역 조회 실패: ${translationError.message}`);
+    throw new Error(`[articles] 상세 목록 번역 조회 실패: ${translationError.message}`);
   }
 
   return {
     data: toArticleDetailListItems(
-      mapShadowArticleDetailListItems((translationRows ?? []) as ShadowArticleTranslationRow[]),
+      mapArticleDetailListItems((translationRows ?? []) as ArticleTranslationRow[]),
     ),
     schemaMissing: false,
   };
 };
 
 const fetchArticleDetailListByLocale = async (locale: string): Promise<ArticleDetailListItem[]> => {
-  const shadowList = await fetchArticleDetailListFromShadow(locale);
-  if (shadowList.schemaMissing) {
-    throw new Error('[articles] shadow content schema가 없습니다.');
+  const articleDetailList = await fetchArticleDetailListFromShadow(locale);
+  if (articleDetailList.schemaMissing) {
+    throw new Error('[articles] content schema가 없습니다.');
   }
 
-  return shadowList.data;
+  return articleDetailList.data;
 };
 
 /**
