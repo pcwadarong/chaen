@@ -14,8 +14,8 @@
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "panda:codegen": "panda codegen",
-    "prepare": "panda codegen",
+    "panda:codegen": "panda codegen && panda cssgen --outfile styled-system/styles.css",
+    "prepare": "pnpm panda:codegen",
     "postinstall": "husky"
   },
   "lint-staged": {

@@ -1,3 +1,5 @@
-@import './styles/token/index.css';
-@import './styles/theme.css';
+@layer reset, base, tokens, recipes, utilities, legacy;
+
+@import '../../styled-system/styles.css';
+@import './styles/panda-legacy-aliases.css';
 @import './styles/main.css';

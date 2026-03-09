@@ -4,7 +4,8 @@
 
 1. Panda CSS 도입을 위한 Foundation 설정 추가
 2. `styled-system` 생성 경로와 PostCSS 파이프라인 연결
-3. Emotion 제거 단계 진행용 PR 문서 생성 및 체크리스트 정리
+3. Panda 토큰과 글로벌 alias layer 도입으로 legacy CSS 변수 경로 유지
+4. Emotion 제거 단계 진행용 PR 문서 생성 및 체크리스트 정리
 
 <br/>
 
@@ -15,11 +16,14 @@
 ### 문제
 
 - Emotion 기반 스타일과 Panda CSS를 한동안 공존시켜야 해서, 도입 초기에 빌드 파이프라인이 흔들리면 이후 단계 전체가 막힘
+- 기존 `rgb(var(--color-*)))` 기반 스타일을 한 번에 바꾸기 어려워 토큰 소스를 바꾸면서도 legacy 변수 계약을 유지해야 함
 
 ### 해결 과정
 
 - Panda 설정은 아직 스타일을 직접 사용하지 않는 최소 구성만 추가하고, Emotion compiler 제거는 마지막 단계로 미룸
-- `prepare` 스크립트에서 `panda codegen`이 실행되도록 연결해 이후 slice에서 타입 생성 흐름을 고정
+- `prepare` 스크립트에서 `panda codegen`과 `cssgen`이 함께 실행되도록 연결해 이후 slice에서 타입/CSS 생성 흐름을 고정
+- `panda-legacy-aliases.css`에서 기존 CSS 변수명을 임시 호환하되, 색상 팔레트는 Panda 내장 `gray`/`blue`/`green`/`red`를 기준으로 단순화
+- spacing은 Panda 표준 토큰을 그대로 쓰고, 마이그레이션 종료 시 임시 호환 레이어와 도입 과정용 설정을 최종 검토 후 삭제 대상으로 다시 정리
 
 <br/>
 
@@ -29,13 +33,15 @@
 
 - https://panda-css.com/docs/installation/nextjs
 - https://panda-css.com/docs/references/config
+- https://panda-css.com/docs/theming/tokens
+- https://panda-css.com/docs/concepts/cascade-layers
 
 <br/>
 
 ## ✅ 진행 체크
 
 - [x] 1단계 Foundation
-- [ ] 2단계 Token System + Global Layer
+- [x] 2단계 Token System + Global Layer
 - [ ] 3단계 Shared Primitives
 - [ ] 4단계 Wrapper / Client Shell
 - [ ] 5단계 View / Simple Page
@@ -49,3 +55,6 @@
 - [x] `pnpm panda:codegen`
 - [x] `pnpm lint`
 - [x] `pnpm typecheck`
+- [ ] `pnpm test`
+
+`pnpm test`는 전체 테스트 로그가 green으로 진행됐지만, Vitest 프로세스가 종료 신호를 반환하지 않아 이 단계에서는 완료 체크를 보류합니다.
