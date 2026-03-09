@@ -1,5 +1,3 @@
-'use client';
-
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 

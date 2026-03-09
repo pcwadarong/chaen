@@ -14,6 +14,7 @@
 10. 남아 있던 `module.css` 기반 server component 스타일을 Panda `css()` 파일로 통일
 11. 스타일 때문에 분리됐던 leaf client component를 공용/server component로 다시 합침
 12. Emotion 의존성, Next compiler 설정, css-prop 타입 선언 제거
+13. 남아 있던 `use client` 파일을 재검토해 불필요한 client boundary를 추가로 축소
 
 <br/>
 
@@ -46,6 +47,9 @@
 - `CommentComposeActions`, `CommentComposeProfileFields`, `CommentComposeContentField`, `CommentComposeReplyPreview`, `GlobalNavDesktopContent`, `GuestbookEntryBubble`, `GuestPage`, `ContactStrip`은 불필요한 `use client`를 제거해 server/shared component로 복구
 - 최종 단계에서 `@emotion/react`, `@emotion/styled`, `next.config.ts`의 Emotion compiler, `emotion-css-prop.d.ts`를 삭제해 Emotion runtime 의존을 0건으로 정리
 - `panda-legacy-aliases.css`는 아직 `main.css`와 일부 Panda raw style에서 `var(--color-*)` 계열을 참조하고 있어 유지함. 마이그레이션용 임시 파일인 점은 동일하며, 남은 legacy 변수 참조를 정리한 뒤 제거 대상임
+- 이후 추가 점검으로 `GuestbookEntryActionMenu`, `HomeHeroWebUi`, `DownloadFileButton`, auth/guestbook/article client helper 모듈에서 불필요한 `use client`를 제거해 client file 수를 48 -> 41로 축소
+- project/article 영역 이름 충돌은 경로 기준으로 재검색했지만 안전하게 바꿔야 할 실질적 오명명 사례는 확인되지 않아 이번 커밋에서는 리네임하지 않음
+- lint/typecheck 기준으로 남아 있는 미사용 코드나 죽은 export는 추가로 발견되지 않았고, 마이그레이션 과정에서 생긴 `*.styles.ts` 임시 파일은 모두 제거 완료
 
 <br/>
 
