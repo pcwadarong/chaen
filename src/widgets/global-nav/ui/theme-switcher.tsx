@@ -1,10 +1,9 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { css as pandaCss } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
@@ -43,7 +42,7 @@ export const ThemeSwitcher = () => {
       triggerContent={<ThemeIcon theme={activeTheme} />}
     >
       {({ closePopover }) => (
-        <div css={listStyle}>
+        <div className={listClass}>
           {themeOptions.map(option => {
             const isActive = activeTheme === option;
 
@@ -71,12 +70,12 @@ export const ThemeSwitcher = () => {
   );
 };
 
-const listStyle = css`
-  display: grid;
-  gap: var(--space-1);
-`;
+const listClass = css({
+  display: 'grid',
+  gap: '1',
+});
 
-const optionClass = pandaCss({
+const optionClass = css({
   width: 'full',
   justifyContent: 'flex-start',
 });

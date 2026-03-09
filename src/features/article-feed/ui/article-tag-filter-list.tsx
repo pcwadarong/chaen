@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React from 'react';
+import { css, cx } from 'styled-system/css';
 
 import type { LocalizedArticleTagStat } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
@@ -30,86 +30,82 @@ export const ArticleTagFilterList = ({
   items,
   title,
 }: ArticleTagFilterListProps) => (
-  <section aria-labelledby="article-tag-filter-title" css={sectionStyle}>
-    <h2 css={titleStyle} id="article-tag-filter-title">
+  <section aria-labelledby="article-tag-filter-title" className={sectionClass}>
+    <h2 className={titleClass} id="article-tag-filter-title">
       {title}
     </h2>
     {items.length > 0 ? (
-      <div css={listStyle}>
+      <div className={listClass}>
         {items.map(item => {
           const isActive = item.tag === activeTag;
 
           return (
             <Link
               aria-current={isActive ? 'page' : undefined}
-              css={[tagLinkStyle, isActive ? activeTagLinkStyle : undefined]}
+              className={cx(tagLinkClass, isActive ? activeTagLinkClass : undefined)}
               href={createTagHref(item.tag, activeTag)}
               key={item.tag}
             >
               <span>{item.label}</span>
-              <span css={countStyle}>({item.article_count})</span>
+              <span className={countClass}>({item.article_count})</span>
             </Link>
           );
         })}
       </div>
     ) : (
-      <p css={emptyStyle}>{emptyText}</p>
+      <p className={emptyClass}>{emptyText}</p>
     )}
   </section>
 );
 
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
+const sectionClass = css({
+  display: 'grid',
+  gap: '3',
+});
 
-const titleStyle = css`
-  font-size: var(--font-size-16);
-  letter-spacing: -0.02em;
-`;
+const titleClass = css({
+  fontSize: '16',
+  letterSpacing: '[-0.02em]',
+});
 
-const listStyle = css`
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-`;
+const listClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  rowGap: '1',
+  columnGap: '2',
+});
 
-const tagLinkStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  min-height: 1.75rem;
-  padding: 0;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-  line-height: 1.35;
-  text-decoration: none;
-  transition:
-    color 160ms ease,
-    opacity 160ms ease,
-    box-shadow 160ms ease;
+const tagLinkClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '[0.2rem]',
+  minHeight: '[1.75rem]',
+  p: '0',
+  color: 'muted',
+  fontSize: '14',
+  lineHeight: '[1.35]',
+  textDecoration: 'none',
+  transition: '[color 160ms ease, opacity 160ms ease, box-shadow 160ms ease]',
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    outline: 'none',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+  },
+});
 
-  &:hover {
-    color: rgb(var(--color-primary));
-  }
+const activeTagLinkClass = css({
+  color: 'primary',
+});
 
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-  }
-`;
+const countClass = css({
+  color: 'muted',
+  fontSize: '[0.6875rem]',
+  letterSpacing: '[-0.01em]',
+});
 
-const activeTagLinkStyle = css`
-  color: rgb(var(--color-primary));
-`;
-
-const countStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: 0.6875rem;
-  letter-spacing: -0.01em;
-`;
-
-const emptyStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
+const emptyClass = css({
+  color: 'muted',
+  fontSize: '14',
+});

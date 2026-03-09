@@ -1,8 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
@@ -154,8 +154,8 @@ export const GuestbookBoard = ({
     isNonAdminAuthoredActionModalVisible || isAdminAuthoredActionModalVisible;
 
   return (
-    <div css={boardStyle}>
-      <section css={feedWrapStyle}>
+    <div className={boardClass}>
+      <section className={feedWrapClass}>
         <GuestbookFeed
           canReply={isAdmin}
           errorMessage={errorMessage}
@@ -218,8 +218,8 @@ export const GuestbookBoard = ({
         isOpen={isActionModalVisible}
         onClose={closeModal}
       >
-        <div css={modalBodyStyle}>
-          <h2 id={ACTION_MODAL_TITLE_ID} css={modalLeadStyle}>
+        <div className={modalBodyClass}>
+          <h2 className={modalLeadClass} id={ACTION_MODAL_TITLE_ID}>
             {modalTitle}
           </h2>
           {modalState?.mode === 'edit' ? (
@@ -236,7 +236,7 @@ export const GuestbookBoard = ({
               rows={4}
             />
           ) : (
-            <p id={ACTION_MODAL_DESCRIPTION_ID} css={modalHintStyle}>
+            <p className={modalHintClass} id={ACTION_MODAL_DESCRIPTION_ID}>
               {t('deleteModalHint')}
             </p>
           )}
@@ -255,11 +255,11 @@ export const GuestbookBoard = ({
             />
           ) : null}
           {modalError ? (
-            <p role="alert" css={modalErrorStyle}>
+            <p className={modalErrorClass} role="alert">
               {modalError}
             </p>
           ) : null}
-          <div css={modalActionsStyle}>
+          <div className={modalActionsClass}>
             <Button
               disabled={isModalSubmitting}
               onClick={() => void handleConfirmModal()}
@@ -281,44 +281,46 @@ export const GuestbookBoard = ({
   );
 };
 
-const boardStyle = css`
-  width: 100%;
-  display: grid;
-`;
+const boardClass = css({
+  width: 'full',
+  display: 'grid',
+});
 
-const feedWrapStyle = css`
-  width: 100%;
-  padding: var(--space-0) var(--space-0) var(--space-72);
-  display: grid;
-  gap: var(--space-4);
-`;
+const feedWrapClass = css({
+  width: 'full',
+  pb: '72',
+  display: 'grid',
+  gap: '4',
+});
 
-const modalBodyStyle = css`
-  width: min(26rem, 90vw);
-  padding: var(--space-10) var(--space-4) var(--space-4);
-  display: grid;
-  gap: var(--space-3);
-  background-color: rgb(var(--color-surface));
-  border-radius: var(--radius-m);
-  border: 1px solid rgb(var(--color-border) / 0.35);
-`;
+const modalBodyClass = css({
+  width: '[min(26rem, 90vw)]',
+  px: '4',
+  pt: '10',
+  pb: '4',
+  display: 'grid',
+  gap: '3',
+  backgroundColor: 'surface',
+  borderRadius: 'm',
+  border: '[1px solid rgb(var(--color-border) / 0.35)]',
+});
 
-const modalLeadStyle = css`
-  font-weight: var(--font-weight-bold);
-`;
+const modalLeadClass = css({
+  fontWeight: 'bold',
+});
 
-const modalHintStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
+const modalHintClass = css({
+  color: 'muted',
+  fontSize: '14',
+});
 
-const modalErrorStyle = css`
-  color: rgb(var(--color-danger));
-  font-size: var(--font-size-14);
-`;
+const modalErrorClass = css({
+  color: 'danger',
+  fontSize: '14',
+});
 
-const modalActionsStyle = css`
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-`;
+const modalActionsClass = css({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: '2',
+});

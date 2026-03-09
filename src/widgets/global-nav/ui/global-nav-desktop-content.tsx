@@ -1,8 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { Suspense } from 'react';
-import { css as pandaCss, cx } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { buttonRecipe } from '@/shared/ui/button/button.recipe';
@@ -23,9 +22,9 @@ export const GlobalNavDesktopContent = ({
   navigationItems,
   pathname,
 }: GlobalNavDesktopContentProps) => (
-  <div css={contentStyle}>
+  <div className={contentClass}>
     <nav aria-label={ariaLabel}>
-      <ul css={listStyle}>
+      <ul className={listClass}>
         {navigationItems.map(item => (
           <li key={item.href}>
             <Link
@@ -46,9 +45,9 @@ export const GlobalNavDesktopContent = ({
         ))}
       </ul>
     </nav>
-    <hr aria-hidden css={controlsDividerStyle} />
-    <div css={controlsStyle}>
-      <Suspense fallback={<span css={switcherFallbackStyle} />}>
+    <hr aria-hidden className={controlsDividerClass} />
+    <div className={controlsClass}>
+      <Suspense fallback={<span className={switcherFallbackClass} />}>
         <LocaleSwitcher />
       </Suspense>
       <ThemeSwitcher />
@@ -56,27 +55,26 @@ export const GlobalNavDesktopContent = ({
   </div>
 );
 
-const contentStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  flex: 1 1 40rem;
+const contentClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '4',
+  flexWrap: 'wrap',
+  flex: '[1 1 40rem]',
+  '@media (max-width: 960px)': {
+    display: 'none',
+  },
+});
 
-  @media (max-width: 960px) {
-    display: none;
-  }
-`;
+const listClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1',
+  flexWrap: 'wrap',
+});
 
-const listStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-`;
-
-const navLinkClass = pandaCss({
+const navLinkClass = css({
   border: 'none',
   background: 'transparent',
   fontSize: '16',
@@ -94,27 +92,27 @@ const navLinkClass = pandaCss({
   },
 });
 
-const controlsStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-`;
+const controlsClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '1',
+  flexWrap: 'wrap',
+});
 
-const controlsDividerStyle = css`
-  width: 1px;
-  height: 1.4rem;
-  margin: 0;
-  border: 0;
-  background-color: rgb(var(--color-border) / 0.7);
-`;
+const controlsDividerClass = css({
+  width: '[1px]',
+  height: '[1.4rem]',
+  m: '0',
+  border: 'none',
+  backgroundColor: '[rgb(var(--color-border) / 0.7)]',
+});
 
-const switcherFallbackStyle = css`
-  display: inline-flex;
-  width: 8.5rem;
-  min-height: 2.5rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background-color: rgb(var(--color-surface) / 0.5);
-`;
+const switcherFallbackClass = css({
+  display: 'inline-flex',
+  width: '[8.5rem]',
+  minHeight: '[2.5rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-border) / 0.18)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.5)]',
+});

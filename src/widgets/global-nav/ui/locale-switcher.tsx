@@ -1,10 +1,9 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useTransition } from 'react';
-import { css as pandaCss } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { type AppLocale, routing } from '@/i18n/routing';
@@ -61,10 +60,10 @@ export const LocaleSwitcher = () => {
     <SwitcherPopover
       label={t('label')}
       panelLabel={t('ariaLabel')}
-      triggerContent={<span css={triggerCodeStyle}>{getHeaderLocaleCode(locale)}</span>}
+      triggerContent={<span className={triggerCodeClass}>{getHeaderLocaleCode(locale)}</span>}
     >
       {({ closePopover }) => (
-        <div aria-busy={isPending} css={listStyle}>
+        <div aria-busy={isPending} className={listClass}>
           {routing.locales.map(option => {
             const isActive = locale === option;
 
@@ -79,7 +78,7 @@ export const LocaleSwitcher = () => {
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
               >
-                <span css={optionCodeStyle}>{option.toUpperCase()}</span>
+                <span className={optionCodeClass}>{option.toUpperCase()}</span>
                 <span>{t(option)}</span>
               </Button>
             );
@@ -90,26 +89,26 @@ export const LocaleSwitcher = () => {
   );
 };
 
-const listStyle = css`
-  display: grid;
-  gap: var(--space-1);
-`;
+const listClass = css({
+  display: 'grid',
+  gap: '1',
+});
 
-const optionCodeStyle = css`
-  font-size: var(--font-size-12);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-right: var(--space-3);
-`;
+const optionCodeClass = css({
+  fontSize: '12',
+  fontWeight: 'bold',
+  letterSpacing: '[0.12em]',
+  textTransform: 'uppercase',
+  marginRight: '3',
+});
 
-const triggerCodeStyle = css`
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.05em;
-`;
+const triggerCodeClass = css({
+  fontSize: '16',
+  fontWeight: 'semibold',
+  letterSpacing: '[0.05em]',
+});
 
-const optionClass = pandaCss({
+const optionClass = css({
   width: 'full',
   display: 'flex',
   alignItems: 'center',

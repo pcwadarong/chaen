@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { startTransition, useState, useTransition } from 'react';
+import { css } from 'styled-system/css';
 
 import { signOutAdmin } from '@/features/auth/api/sign-out-admin';
 import { useRouter } from '@/i18n/navigation';
@@ -42,12 +42,12 @@ export const AdminSignOutButton = ({
   };
 
   return (
-    <div css={wrapperStyle}>
+    <div className={wrapperClass}>
       <Button disabled={isPending} onClick={handleClick} tone="black" type="button">
         {isPending ? submitPendingLabel : submitLabel}
       </Button>
       {message ? (
-        <p aria-live="polite" css={messageStyle} role="alert">
+        <p aria-live="polite" className={messageClass} role="alert">
           {message}
         </p>
       ) : null}
@@ -55,13 +55,13 @@ export const AdminSignOutButton = ({
   );
 };
 
-const wrapperStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
+const wrapperClass = css({
+  display: 'grid',
+  gap: '2',
+});
 
-const messageStyle = css`
-  margin: 0;
-  color: rgb(190 24 93);
-  font-size: var(--font-size-14);
-`;
+const messageClass = css({
+  m: '0',
+  color: '[rgb(190 24 93)]',
+  fontSize: '14',
+});

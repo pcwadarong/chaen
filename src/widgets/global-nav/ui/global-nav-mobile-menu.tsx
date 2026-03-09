@@ -1,8 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
@@ -52,9 +52,9 @@ export const GlobalNavMobileMenu = ({
 
   return (
     <>
-      <div css={mobileControlsStyle}>
+      <div className={mobileControlsClass}>
         {leadingAction}
-        <Suspense fallback={<span css={switcherFallbackStyle} />}>
+        <Suspense fallback={<span className={switcherFallbackClass} />}>
           <LocaleSwitcher />
         </Suspense>
         <ThemeSwitcher />
@@ -62,22 +62,22 @@ export const GlobalNavMobileMenu = ({
           aria-controls={MOBILE_NAV_DRAWER_ID}
           aria-expanded={isOpen}
           aria-label={isOpen ? closeMenuLabel : openMenuLabel}
+          className={hamburgerButtonClass}
           onClick={onToggle}
-          css={hamburgerButtonStyle}
           type="button"
         >
-          <span css={hamburgerLineStyle} />
-          <span css={hamburgerLineStyle} />
-          <span css={hamburgerLineStyle} />
+          <span className={hamburgerLineClass} />
+          <span className={hamburgerLineClass} />
+          <span className={hamburgerLineClass} />
         </button>
       </div>
       {isOpen && isMounted
         ? createPortal(
-            <div css={mobileOverlayStyle} onClick={onClose}>
+            <div className={mobileOverlayClass} onClick={onClose}>
               <aside
                 aria-label={ariaLabel}
                 aria-modal="true"
-                css={mobileDrawerStyle}
+                className={mobileDrawerClass}
                 id={MOBILE_NAV_DRAWER_ID}
                 onClick={event => event.stopPropagation()}
                 ref={drawerRef}
@@ -86,23 +86,23 @@ export const GlobalNavMobileMenu = ({
               >
                 <button
                   aria-label={closeMenuLabel}
+                  className={drawerCloseClass}
                   onClick={onClose}
-                  css={drawerCloseStyle}
                   type="button"
                 >
                   ×
                 </button>
                 <nav aria-label={ariaLabel}>
-                  <ul css={mobileListStyle}>
+                  <ul className={mobileListClass}>
                     {navigationItems.map(item => (
                       <li key={item.href}>
                         <Link
                           aria-current={
                             isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
                           }
+                          className={mobileNavLinkClass}
                           href={item.href}
                           onClick={onClose}
-                          css={mobileNavLinkStyle}
                         >
                           {item.label}
                         </Link>
@@ -119,109 +119,100 @@ export const GlobalNavMobileMenu = ({
   );
 };
 
-const mobileControlsStyle = css`
-  display: none;
+const mobileControlsClass = css({
+  display: 'none',
+  '@media (max-width: 960px)': {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2',
+    marginLeft: 'auto',
+  },
+});
 
-  @media (max-width: 960px) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-left: auto;
-  }
-`;
+const switcherFallbackClass = css({
+  display: 'inline-flex',
+  width: '[8.5rem]',
+  minHeight: '[2.5rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-border) / 0.18)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.5)]',
+});
 
-const switcherFallbackStyle = css`
-  display: inline-flex;
-  width: 8.5rem;
-  min-height: 2.5rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background-color: rgb(var(--color-surface) / 0.5);
-`;
+const hamburgerButtonClass = css({
+  width: '[2.5rem]',
+  height: '[2.5rem]',
+  display: 'inline-flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '[0.22rem]',
+  cursor: 'pointer',
+  _hover: {
+    borderColor: '[rgb(var(--color-border) / 0.4)]',
+  },
+  _focusVisible: {
+    borderColor: '[rgb(var(--color-border) / 0.4)]',
+  },
+});
 
-const hamburgerButtonStyle = css`
-  width: 2.5rem;
-  height: 2.5rem;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.22rem;
-  cursor: pointer;
+const hamburgerLineClass = css({
+  width: '[0.95rem]',
+  height: '[1.5px]',
+  borderRadius: 'pill',
+  backgroundColor: 'text',
+});
 
-  &:hover,
-  &:focus-visible {
-    border-color: rgb(var(--color-border) / 0.4);
-  }
-`;
+const mobileOverlayClass = css({
+  position: 'fixed',
+  inset: '0',
+  zIndex: '40',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  backgroundColor: '[rgb(var(--color-bg) / 0.32)]',
+  backdropFilter: '[blur(8px) saturate(120%)]',
+});
 
-const hamburgerLineStyle = css`
-  width: 0.95rem;
-  height: 1.5px;
-  border-radius: 999px;
-  background-color: rgb(var(--color-text));
-`;
+const mobileDrawerClass = css({
+  width: '[min(26rem, 82vw)]',
+  height: 'full',
+  display: 'grid',
+  alignContent: 'start',
+  gap: '6',
+  px: '5',
+  py: '6',
+  borderLeft: '[1px solid rgb(var(--color-primary) / 0.48)]',
+  backgroundColor: 'surface',
+  boxShadow: '[-10px 0 28px rgb(var(--color-black) / 0.18)]',
+});
 
-const mobileOverlayStyle = css`
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  justify-content: flex-end;
-  background-color: rgb(var(--color-bg) / 0.32);
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-`;
+const drawerCloseClass = css({
+  justifySelf: 'end',
+  width: '[2.25rem]',
+  height: '[2.25rem]',
+  border: 'none',
+  borderRadius: 'pill',
+  background: 'transparent',
+  color: 'muted',
+  fontSize: '[1.9rem]',
+  lineHeight: '100',
+  cursor: 'pointer',
+});
 
-const mobileDrawerStyle = css`
-  @keyframes slideInDrawer {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
+const mobileListClass = css({
+  display: 'grid',
+  gap: '6',
+});
 
-  width: min(26rem, 82vw);
-  height: 100%;
-  display: grid;
-  align-content: start;
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-5);
-  border-left: 1px solid rgb(var(--color-primary) / 0.48);
-  background-color: rgb(var(--color-surface));
-  box-shadow: -10px 0 28px rgb(var(--color-black) / 0.18);
-  animation: slideInDrawer 220ms ease;
-`;
-
-const drawerCloseStyle = css`
-  justify-self: end;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: rgb(var(--color-muted));
-  font-size: 1.9rem;
-  line-height: 1;
-  cursor: pointer;
-`;
-
-const mobileListStyle = css`
-  display: grid;
-  gap: var(--space-6);
-`;
-
-const mobileNavLinkStyle = css`
-  text-decoration: none;
-  color: rgb(var(--color-text));
-  font-size: var(--font-size-36);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-
-  &:hover,
-  &[aria-current='page'] {
-    color: rgb(var(--color-primary));
-  }
-`;
+const mobileNavLinkClass = css({
+  textDecoration: 'none',
+  color: 'text',
+  fontSize: '36',
+  lineHeight: '[1.05]',
+  letterSpacing: '[-0.02em]',
+  _hover: {
+    color: 'primary',
+  },
+  '&[aria-current="page"]': {
+    color: 'primary',
+  },
+});

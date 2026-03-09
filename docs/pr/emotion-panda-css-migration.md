@@ -10,6 +10,7 @@
 6. `srOnly` 계약을 Panda 클래스 기반으로 통일하고 관련 테스트/alias를 정리
 7. Wrapper / Client Shell의 정적 프레임을 Panda class 기반으로 전환
 8. View / Simple Page와 detail fallback 화면을 Panda `css()` 기반으로 전환하고 server component를 복구
+9. Interactive feature와 global nav의 Emotion 프레임 스타일을 Panda class 기반으로 전환
 
 <br/>
 
@@ -36,6 +37,8 @@
 - `ResumePage`, `ArticlesPage`, `ProjectListPage`, `HomePage`, `AdminPage`, `ProjectShowcase`, `ArticleListItem`은 스타일만으로 붙어 있던 `use client`를 제거하고 Panda `css()` 클래스로 치환
 - `ArticleCard`, `ProjectCard`는 API 변경 없이 shared 컴포넌트로 복구했고, `useLocale()`는 server/client 공용 훅으로 그대로 유지
 - `app/[locale]/articles/[id]`, `app/[locale]/project/[id]`의 `loading.tsx`, `not-found.tsx`는 server component로 복구하고 `error.tsx`만 client 제약을 유지한 채 Panda class로 교체
+- `ArticleFeed`, `ArticleSearchForm`, `ArticleTagFilterList`, `ProjectFeed`, `GuestbookFeed`, `GuestbookBoard`, `AdminLoginForm`, `AdminSignOutButton`의 정적 스타일을 Panda `css()`/`cx()` 기반으로 교체
+- `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`의 interactive shell을 Panda class 기반으로 전환하고 버튼 확장은 `buttonRecipe + className` 패턴으로 고정
 
 <br/>
 
@@ -57,7 +60,7 @@
 - [x] 3단계 Shared Primitives
 - [x] 4단계 Wrapper / Client Shell
 - [x] 5단계 View / Simple Page
-- [ ] 6단계 Interactive Features
+- [x] 6단계 Interactive Features
 - [ ] 7단계 Emotion Removal
 
 <br/>
@@ -81,4 +84,6 @@
 - `ResumePage`, `ArticlesPage`, `ProjectListPage`, `HomePage`, `AdminPage`, `ProjectShowcase`, `ArticleListItem`는 Panda `css()` 기반으로 전환 완료
 - `ArticleCard`, `ProjectCard`는 `use client`를 제거한 shared 컴포넌트로 복구 완료
 - `articles/[id]`, `project/[id]`의 `loading`/`not-found`는 server component로, `error`는 client component로 역할 분리 완료
+- `ArticleFeed`, `ArticleSearchForm`, `ArticleTagFilterList`, `ProjectFeed`, `GuestbookFeed`, `GuestbookBoard`, `AdminLoginForm`, `AdminSignOutButton`는 Panda class 기반으로 전환 완료
+- `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`는 Emotion 없이 Panda class와 shared recipe 조합만 사용하도록 정리 완료
 - 마이그레이션 종료 시 `panda-legacy-aliases.css`, `prepare` 자동 codegen, 테스트 alias 등 임시 호환/운영 보조 장치는 실제 필요성을 다시 검토하고 삭제 대상을 최종 정리해야 함

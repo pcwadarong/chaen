@@ -1,9 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
-import { css as pandaCss, cx } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { buttonRecipe } from '@/shared/ui/button/button.recipe';
@@ -165,11 +164,11 @@ export const ArticleSearchForm = ({
   return (
     <form
       aria-busy={isPending}
-      css={[formStyle, fullWidth ? fullWidthStyle : undefined]}
+      className={cx(formClass, fullWidth ? fullWidthClass : undefined)}
       onSubmit={handleSubmit}
       role="search"
     >
-      <div css={inputWrapStyle}>
+      <div className={inputWrapClass}>
         <Input
           aria-label={placeholder}
           autoComplete="off"
@@ -212,24 +211,24 @@ export const ArticleSearchForm = ({
   );
 };
 
-const formStyle = css`
-  width: min(100%, 18rem);
-`;
+const formClass = css({
+  width: '[min(100%, 18rem)]',
+});
 
-const fullWidthStyle = css`
-  width: 100%;
-`;
+const fullWidthClass = css({
+  width: 'full',
+});
 
-const inputWrapStyle = css`
-  position: relative;
-`;
+const inputWrapClass = css({
+  position: 'relative',
+});
 
-const inputPaddingClass = pandaCss({
+const inputPaddingClass = css({
   minHeight: '12',
   paddingRight: '[6.5rem]',
 });
 
-const clearButtonClass = pandaCss({
+const clearButtonClass = css({
   position: 'absolute',
   top: '[50%]',
   right: '[3.6rem]',
@@ -240,7 +239,7 @@ const clearButtonClass = pandaCss({
   borderRadius: 'pill',
 });
 
-const submitButtonClass = pandaCss({
+const submitButtonClass = css({
   position: 'absolute',
   top: '[50%]',
   right: '1',
@@ -254,6 +253,6 @@ const submitButtonClass = pandaCss({
   borderRadius: 'pill',
 });
 
-const pendingInputClass = pandaCss({
+const pendingInputClass = css({
   opacity: 0.7,
 });

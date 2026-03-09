@@ -1,9 +1,9 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
@@ -151,10 +151,10 @@ export const GlobalNav = () => {
   }, [isMobileMenuOpen, isMobileSearchOpen]);
 
   return (
-    <header css={[headerStyle, isHidden ? hiddenHeaderStyle : visibleHeaderStyle]}>
+    <header className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}>
       {isArticlesRoute && isMobileSearchOpen ? (
-        <div css={mobileSearchOverlayStyle}>
-          <div css={mobileSearchOverlayInnerStyle}>
+        <div className={mobileSearchOverlayClass}>
+          <div className={mobileSearchOverlayInnerClass}>
             <ArticleSearchForm
               autoFocus
               clearText={articlesT('searchClear')}
@@ -168,7 +168,7 @@ export const GlobalNav = () => {
             />
             <button
               aria-label={articlesT('searchClose')}
-              css={mobileSearchCloseStyle}
+              className={mobileSearchCloseClass}
               onClick={() => setIsMobileSearchOpen(false)}
               type="button"
             >
@@ -177,8 +177,8 @@ export const GlobalNav = () => {
           </div>
         </div>
       ) : null}
-      <div css={innerStyle}>
-        <Link href="/" css={brandLinkStyle}>
+      <div className={innerClass}>
+        <Link className={brandLinkClass} href="/">
           {t('brand')}
         </Link>
         <GlobalNavDesktopContent
@@ -195,7 +195,7 @@ export const GlobalNav = () => {
               <button
                 aria-expanded={isMobileSearchOpen}
                 aria-label={articlesT('searchSubmit')}
-                css={mobileSearchActionStyle}
+                className={mobileSearchActionClass}
                 onClick={() => setIsMobileSearchOpen(true)}
                 type="button"
               >
@@ -215,131 +215,117 @@ export const GlobalNav = () => {
   );
 };
 
-const headerStyle = css`
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
-  background-color: rgb(var(--color-surface) / 0.72);
-  border-bottom: 1px solid rgb(var(--color-border) / 0.16);
-  box-shadow: 0 4px 16px rgb(var(--color-black) / 0.14);
-  will-change: transform, opacity;
-  transition:
-    transform 240ms ease,
-    opacity 240ms ease;
+const headerClass = css({
+  position: 'sticky',
+  top: '0',
+  zIndex: '10',
+  backdropFilter: '[blur(18px) saturate(135%)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.72)]',
+  borderBottom: '[1px solid rgb(var(--color-border) / 0.16)]',
+  boxShadow: '[0 4px 16px rgb(var(--color-black) / 0.14)]',
+  willChange: 'transform, opacity',
+  transition: '[transform 240ms ease, opacity 240ms ease]',
+  '@media (min-width: 961px)': {
+    borderTopLeftRadius: '[calc(2rem - 1px)]',
+    borderTopRightRadius: '[calc(2rem - 1px)]',
+  },
+});
 
-  @media (min-width: 961px) {
-    border-top-left-radius: calc(2rem - 1px);
-    border-top-right-radius: calc(2rem - 1px);
-  }
-`;
+const visibleHeaderClass = css({
+  transform: 'translateY(0)',
+  opacity: '1',
+});
 
-const visibleHeaderStyle = css`
-  transform: translateY(0);
-  opacity: 1;
-`;
+const hiddenHeaderClass = css({
+  transform: '[translateY(calc(-100% - 0.5rem))]',
+  opacity: '0',
+});
 
-const hiddenHeaderStyle = css`
-  transform: translateY(calc(-100% - 0.5rem));
-  opacity: 0;
-`;
+const innerClass = css({
+  position: 'relative',
+  width: '[min(1120px, calc(100% - 2rem))]',
+  mx: 'auto',
+  py: '4',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '4',
+  flexWrap: 'wrap',
+});
 
-const innerStyle = css`
-  position: relative;
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-0);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-`;
+const brandLinkClass = css({
+  fontSize: '16',
+  fontWeight: 'bold',
+  letterSpacing: '[0.18em]',
+  textTransform: 'uppercase',
+  textDecoration: 'none',
+  color: 'text',
+});
 
-const brandLinkStyle = css`
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: rgb(var(--color-text));
-`;
+const mobileSearchOverlayClass = css({
+  position: 'absolute',
+  inset: '0',
+  zIndex: '2',
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: '[rgb(var(--color-surface) / 0.94)]',
+  backdropFilter: '[blur(18px) saturate(135%)]',
+  '@media (min-width: 961px)': {
+    display: 'none',
+  },
+});
 
-const mobileSearchOverlayStyle = css`
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  background-color: rgb(var(--color-surface) / 0.94);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+const mobileSearchOverlayInnerClass = css({
+  width: '[min(1120px, calc(100% - 2rem))]',
+  mx: 'auto',
+  display: 'grid',
+  gridTemplateColumns: '[minmax(0, 1fr) auto]',
+  alignItems: 'center',
+  gap: '2',
+});
 
-  @media (min-width: 961px) {
-    display: none;
-  }
-`;
+const mobileSearchActionClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '[2.5rem]',
+  height: '[2.5rem]',
+  p: '0',
+  border: 'none',
+  borderRadius: 'pill',
+  background: 'transparent',
+  color: 'text',
+  cursor: 'pointer',
+  transition: '[background-color 160ms ease, box-shadow 160ms ease]',
+  _hover: {
+    background: '[rgb(var(--color-text) / 0.06)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+  },
+});
 
-const mobileSearchOverlayInnerStyle = css`
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2);
-`;
-
-const mobileSearchActionStyle = css`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: rgb(var(--color-text));
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover {
-    background: rgb(var(--color-text) / 0.06);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-  }
-`;
-
-const mobileSearchCloseStyle = css`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: rgb(var(--color-text));
-  cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover {
-    background: rgb(var(--color-text) / 0.06);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-  }
-`;
+const mobileSearchCloseClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '[2.5rem]',
+  height: '[2.5rem]',
+  p: '0',
+  border: 'none',
+  borderRadius: 'pill',
+  background: 'transparent',
+  color: 'text',
+  cursor: 'pointer',
+  fontSize: '[1.5rem]',
+  lineHeight: '100',
+  transition: '[background-color 160ms ease, box-shadow 160ms ease]',
+  _hover: {
+    background: '[rgb(var(--color-text) / 0.06)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+  },
+});
