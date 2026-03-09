@@ -30,7 +30,7 @@ describe('getPopularArticleTags', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('canonical relation table을 기준으로 인기 태그를 집계한다', async () => {
+  it('relation table을 기준으로 인기 태그를 집계한다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
         data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
@@ -70,7 +70,7 @@ describe('getPopularArticleTags', () => {
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
   });
 
-  it('shadow relation table이 없으면 명시적 에러를 던진다', async () => {
+  it('relation table이 없으면 명시적 에러를 던진다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
         data: null,

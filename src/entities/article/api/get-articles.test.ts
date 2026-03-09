@@ -212,7 +212,7 @@ describe('getArticles', () => {
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
 
-  it('검색어가 있으면 shadow search RPC를 우선 호출한다', async () => {
+  it('검색어가 있으면 검색 RPC를 우선 호출한다', async () => {
     const supabaseClient = {
       rpc: vi.fn().mockResolvedValue({
         data: [
@@ -273,7 +273,7 @@ describe('getArticles', () => {
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticles({ locale: 'fr', query: 'react' })).rejects.toThrow(
-      '[articles] shadow RPC 검색 조회 실패: rpc failed',
+      '[articles] 검색 조회 실패: rpc failed',
     );
 
     expect(supabaseClient.from).not.toHaveBeenCalled();
@@ -311,7 +311,7 @@ describe('getArticles', () => {
     );
   });
 
-  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
+  it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
     const tagsQuery = {
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
@@ -341,7 +341,7 @@ describe('getArticles', () => {
     );
   });
 
-  it('shadow content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
+  it('content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -361,7 +361,7 @@ describe('getArticles', () => {
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticles({ locale: 'ko' })).rejects.toThrow(
-      '[articles] shadow content schema가 없습니다.',
+      '[articles] content schema가 없습니다.',
     );
   });
 

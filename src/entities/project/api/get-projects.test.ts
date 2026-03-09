@@ -204,7 +204,7 @@ describe('getProjects', () => {
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
 
-  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
+  it('content schema가 없으면 명시적 에러를 던진다', async () => {
     const projectTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -224,7 +224,7 @@ describe('getProjects', () => {
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProjects({ locale: 'ko' })).rejects.toThrow(
-      '[projects] shadow content schema가 없습니다.',
+      '[projects] content schema가 없습니다.',
     );
   });
 });

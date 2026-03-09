@@ -23,7 +23,7 @@ describe('getArticleDetailList', () => {
     vi.clearAllMocks();
   });
 
-  it('shadow schema 기준으로 최신순 아티클 요약 목록을 반환한다', async () => {
+  it('content schema 기준으로 최신순 아티클 요약 목록을 반환한다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -108,8 +108,8 @@ describe('getArticleDetailList', () => {
     ]);
   });
 
-  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
-    const shadowTranslationsQuery = {
+  it('content schema가 없으면 명시적 에러를 던진다', async () => {
+    const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
@@ -121,14 +121,14 @@ describe('getArticleDetailList', () => {
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(shadowTranslationsQuery),
+      from: vi.fn().mockReturnValueOnce(translationsQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticleDetailList('ko')).rejects.toThrow(
-      '[articles] shadow content schema가 없습니다.',
+      '[articles] content schema가 없습니다.',
     );
   });
 });

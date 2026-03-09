@@ -31,7 +31,7 @@ describe('getProject', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('shadow schema를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
+  it('content schema를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -95,8 +95,8 @@ describe('getProject', () => {
     ]);
   });
 
-  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
-    const shadowTranslationQuery = {
+  it('content schema가 없으면 명시적 에러를 던진다', async () => {
+    const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
@@ -107,18 +107,18 @@ describe('getProject', () => {
       }),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(shadowTranslationQuery),
+      from: vi.fn().mockReturnValueOnce(translationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
-      '[projects] shadow content schema가 없습니다.',
+      '[projects] content schema가 없습니다.',
     );
   });
 
-  it('대상 locale 번역이 없으면 shadow schema에서도 ko locale로 fallback 조회한다', async () => {
+  it('대상 locale 번역이 없으면 content schema에서도 ko locale로 fallback 조회한다', async () => {
     const targetLocaleTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -172,7 +172,7 @@ describe('getProject', () => {
     expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });
 
-  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
+  it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
