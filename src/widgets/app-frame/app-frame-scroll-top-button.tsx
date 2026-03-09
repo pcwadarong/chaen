@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
-import styles from '@/widgets/app-frame/app-frame.module.css';
+import { appFrameScrollTopButtonClass } from '@/widgets/app-frame/app-frame.styles';
 
 // 데스크탑 기준
 const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
@@ -113,7 +113,7 @@ export const AppFrameScrollTopButton = () => {
   return (
     <button
       aria-label={t('scrollToTopAriaLabel')}
-      className={styles.scrollTopButton}
+      className={appFrameScrollTopButtonClass}
       onClick={handleScrollTop}
       type="button"
     >

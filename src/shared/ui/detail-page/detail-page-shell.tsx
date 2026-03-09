@@ -1,7 +1,32 @@
 import React, { type ReactNode } from 'react';
+import { cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import styles from '@/shared/ui/detail-page/detail-page-shell.module.css';
+import {
+  detailPageBodyClass,
+  detailPageBottomSectionClass,
+  detailPageContentClass,
+  detailPageContentSectionClass,
+  detailPageDescriptionClass,
+  detailPageEmptyArchiveClass,
+  detailPageGuestbookCtaClass,
+  detailPageGuestbookCtaIconClass,
+  detailPageGuestbookCtaIconMotionClass,
+  detailPageGuestbookCtaWrapClass,
+  detailPageHeroClass,
+  detailPageHeroTextClass,
+  detailPageMetaBarSectionClass,
+  detailPageShellClass,
+  detailPageSidebarClass,
+  detailPageSidebarDescriptionClass,
+  detailPageSidebarLinkClass,
+  detailPageSidebarListClass,
+  detailPageSidebarMetaRowClass,
+  detailPageSidebarTitleClass,
+  detailPageSidebarViewportClass,
+  detailPageTagWrapClass,
+  detailPageTitleClass,
+} from '@/shared/ui/detail-page/detail-page-shell.styles';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 
@@ -56,58 +81,62 @@ export const DetailPageShell = async ({
 
   return (
     <main
-      className={styles.page}
+      className={detailPageShellClass}
       data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
       data-page-scroll-mode="independent"
     >
-      <aside aria-label={sidebarLabel} className={styles.sidebar}>
-        <div className={styles.sidebarViewport} data-scroll-region="true">
+      <aside aria-label={sidebarLabel} className={detailPageSidebarClass}>
+        <div className={detailPageSidebarViewportClass} data-scroll-region="true">
           {sidebarItems.length > 0 ? (
-            <ul className={styles.sidebarList}>
+            <ul className={detailPageSidebarListClass}>
               {sidebarItems.map(item => (
                 <li key={item.href}>
                   <Link
                     aria-current={item.isActive ? 'page' : undefined}
-                    className={`${styles.sidebarLink} ${item.isActive ? styles.activeSidebarLink : ''}`}
+                    className={detailPageSidebarLinkClass({ active: item.isActive })}
                     href={item.href}
                   >
-                    <div className={styles.sidebarMetaRow}>
+                    <div className={detailPageSidebarMetaRowClass}>
                       <span>{item.yearText}</span>
                     </div>
-                    <strong className={styles.sidebarTitle}>{item.title}</strong>
+                    <strong className={detailPageSidebarTitleClass}>{item.title}</strong>
                     {item.description ? (
-                      <p className={styles.sidebarDescription}>{item.description}</p>
+                      <p className={detailPageSidebarDescriptionClass}>{item.description}</p>
                     ) : null}
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className={styles.emptyArchive}>{emptyArchiveText}</p>
+            <p className={detailPageEmptyArchiveClass}>{emptyArchiveText}</p>
           )}
         </div>
       </aside>
-      <article className={styles.content} data-scroll-region="true">
-        <header className={styles.hero}>
-          <div className={styles.heroText}>
-            <h1 className={styles.title}>{title}</h1>
-            <p className={styles.description}>{heroDescription}</p>
+      <article className={detailPageContentClass} data-scroll-region="true">
+        <header className={detailPageHeroClass}>
+          <div className={detailPageHeroTextClass}>
+            <h1 className={detailPageTitleClass}>{title}</h1>
+            <p className={detailPageDescriptionClass}>{heroDescription}</p>
           </div>
-          {tagContent ? <div className={styles.tagWrap}>{tagContent}</div> : null}
+          {tagContent ? <div className={detailPageTagWrapClass}>{tagContent}</div> : null}
         </header>
-        <div className={styles.metaBarSection}>{metaBar}</div>
-        <div className={styles.body}>
-          <section className={styles.contentSection}>{contentNode}</section>
-          <div className={styles.guestbookCtaWrap}>
-            <Link className={styles.guestbookCta} href="/guest">
+        <div className={detailPageMetaBarSectionClass}>{metaBar}</div>
+        <div className={detailPageBodyClass}>
+          <section className={detailPageContentSectionClass}>{contentNode}</section>
+          <div className={detailPageGuestbookCtaWrapClass}>
+            <Link className={cx(detailPageGuestbookCtaClass, 'group')} href="/guest">
               <span>{guestbookCtaText}</span>
-              <span aria-hidden className={styles.guestbookCtaIconMotion}>
-                <ArrowUpIcon className={styles.guestbookCtaIcon} color="current" size="sm" />
+              <span aria-hidden className={detailPageGuestbookCtaIconMotionClass}>
+                <ArrowUpIcon
+                  className={detailPageGuestbookCtaIconClass}
+                  color="current"
+                  size="sm"
+                />
               </span>
             </Link>
           </div>
           {bottomContent ? (
-            <section className={styles.bottomSection}>{bottomContent}</section>
+            <section className={detailPageBottomSectionClass}>{bottomContent}</section>
           ) : null}
         </div>
       </article>

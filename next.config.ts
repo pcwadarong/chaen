@@ -25,9 +25,6 @@ const svgrLoader = {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  compiler: {
-    emotion: true,
-  },
   images: {
     remotePatterns: [
       {

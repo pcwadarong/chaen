@@ -1,8 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import React from 'react';
-import { css as pandaCss } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { LockIcon, LockOpenIcon, SendIcon } from '@/shared/ui/icons/app-icons';
@@ -27,24 +24,28 @@ export const CommentComposeActions = ({
   secretLabel,
   submitLabel,
 }: GuestbookComposeActionsProps) => (
-  <div css={rightActionsStyle}>
+  <div className={rightActionsClass}>
     {allowSecretToggle ? (
-      <div css={secretControlGroupStyle}>
+      <div className={secretControlGroupClass}>
         <input
           id={secretCheckboxId}
           aria-label={secretLabel}
           checked={isSecret}
-          css={secretCheckboxStyle}
+          className={secretCheckboxClass}
           onChange={event => onSecretChange(event.target.checked)}
           type="checkbox"
         />
         <label
           aria-label={secretLabel}
-          css={secretToggleLabelStyle}
+          className={secretToggleLabelClass}
           data-checked={isSecret ? 'true' : 'false'}
           htmlFor={secretCheckboxId}
         >
-          <span aria-hidden css={secretIconStackStyle} data-checked={isSecret ? 'true' : 'false'}>
+          <span
+            aria-hidden
+            className={secretIconStackClass}
+            data-checked={isSecret ? 'true' : 'false'}
+          >
             <LockOpenIcon className={secretIconOpenClass} size="lg" />
             <LockIcon className={secretIconClosedClass} size="lg" />
           </span>
@@ -63,51 +64,53 @@ export const CommentComposeActions = ({
   </div>
 );
 
-const secretControlGroupStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-`;
+const secretControlGroupClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+});
 
-const rightActionsStyle = css`
-  display: inline-flex;
-  gap: var(--space-2);
-  flex: 0 0 auto;
-  margin-left: auto;
-  align-self: flex-end;
-`;
+const rightActionsClass = css({
+  display: 'inline-flex',
+  gap: '2',
+  flex: '[0 0 auto]',
+  marginLeft: 'auto',
+  alignSelf: 'flex-end',
+});
 
-const secretToggleLabelStyle = css`
-  padding: var(--space-0);
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: rgb(var(--color-muted));
-  border: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-  cursor: pointer;
-  transition: color 180ms ease;
+const secretToggleLabelClass = css({
+  p: '0',
+  width: '[2.25rem]',
+  height: '[2.25rem]',
+  borderRadius: 'pill',
+  background: 'transparent',
+  color: 'muted',
+  border: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  lineHeight: '[0]',
+  cursor: 'pointer',
+  transition: '[color 180ms ease]',
+  _hover: {
+    background: 'transparent',
+    color: 'text',
+  },
+  'input:focus-visible + &': {
+    background: 'transparent',
+    color: 'text',
+  },
+});
 
-  &:hover,
-  input:focus-visible + & {
-    background: transparent;
-    color: rgb(var(--color-text));
-  }
-`;
+const secretIconStackClass = css({
+  position: 'relative',
+  width: '[1.125rem]',
+  height: '[1.125rem]',
+  display: 'inline-block',
+  transform: 'translateY(-1px)',
+});
 
-const secretIconStackStyle = css`
-  position: relative;
-  width: 1.125rem;
-  height: 1.125rem;
-  display: inline-block;
-  transform: translateY(-1px);
-`;
-
-const secretIconOpenClass = pandaCss({
+const secretIconOpenClass = css({
   position: 'absolute',
   inset: '0',
   opacity: '0.8',
@@ -120,7 +123,7 @@ const secretIconOpenClass = pandaCss({
   },
 });
 
-const secretIconClosedClass = pandaCss({
+const secretIconClosedClass = css({
   position: 'absolute',
   inset: '0',
   opacity: '0',
@@ -133,15 +136,15 @@ const secretIconClosedClass = pandaCss({
   },
 });
 
-const secretCheckboxStyle = css`
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  display: block;
-  accent-color: rgb(var(--color-primary));
-`;
+const secretCheckboxClass = css({
+  width: '4',
+  height: '4',
+  m: '0',
+  display: 'block',
+  accentColor: 'primary',
+});
 
-const submitButtonClass = pandaCss({
+const submitButtonClass = css({
   fontSize: '16',
   fontWeight: 'semibold',
 });

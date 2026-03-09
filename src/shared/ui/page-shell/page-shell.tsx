@@ -1,6 +1,16 @@
 import React, { type ReactNode } from 'react';
 
-import styles from '@/shared/ui/page-shell/page-shell.module.css';
+import {
+  pageHeaderActionWrapClass,
+  pageHeaderClass,
+  pageHeaderDescriptionClass,
+  pageHeaderHeadlineRowClass,
+  pageHeaderMetaClass,
+  pageHeaderTitleClass,
+  pageSectionClass,
+  pageSectionTitleClass,
+  pageShellClass,
+} from '@/shared/ui/page-shell/page-shell.styles';
 
 type PageShellWidth = 'compact' | 'default';
 
@@ -34,7 +44,7 @@ export const PageShell = ({
 }: PageShellProps) => (
   <main
     data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
-    className={`${styles.shell} ${width === 'compact' ? styles.compactWidth : styles.defaultWidth}`}
+    className={pageShellClass({ width })}
   >
     {children}
   </main>
@@ -45,13 +55,13 @@ export const PageShell = ({
  * 제목과 액션은 한 줄 플렉스에 두고, 보조 설명과 추가 메타는 아래로 쌓습니다.
  */
 export const PageHeader = ({ action, children, description, meta, title }: PageHeaderProps) => (
-  <header className={styles.header}>
-    {meta ? <div className={styles.meta}>{meta}</div> : null}
-    <div className={styles.headlineRow}>
-      <h1 className={styles.title}>{title}</h1>
-      {action ? <div className={styles.actionWrap}>{action}</div> : null}
+  <header className={pageHeaderClass}>
+    {meta ? <div className={pageHeaderMetaClass}>{meta}</div> : null}
+    <div className={pageHeaderHeadlineRowClass}>
+      <h1 className={pageHeaderTitleClass}>{title}</h1>
+      {action ? <div className={pageHeaderActionWrapClass}>{action}</div> : null}
     </div>
-    {description ? <p className={styles.description}>{description}</p> : null}
+    {description ? <p className={pageHeaderDescriptionClass}>{description}</p> : null}
     {children}
   </header>
 );
@@ -60,9 +70,9 @@ export const PageHeader = ({ action, children, description, meta, title }: PageH
  * 본문 블록을 동일한 카드 표면과 `h2` 타이포그래피로 감쌉니다.
  */
 export const PageSection = ({ children, title, titleId }: PageSectionProps) => (
-  <section aria-labelledby={titleId} className={styles.section}>
+  <section aria-labelledby={titleId} className={pageSectionClass}>
     {title ? (
-      <h2 id={titleId} className={styles.sectionTitle}>
+      <h2 id={titleId} className={pageSectionTitleClass}>
         {title}
       </h2>
     ) : null}

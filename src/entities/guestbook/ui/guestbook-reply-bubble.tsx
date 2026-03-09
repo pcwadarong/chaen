@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/lib/use-guestbook-bubble-action-menu';
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
@@ -72,15 +72,15 @@ export const GuestbookReplyBubble = ({
         }}
         variant="reply"
       >
-        <p css={contentStyle}>{isDeleted ? deletedPlaceholder : entry.content}</p>
+        <p className={contentClass}>{isDeleted ? deletedPlaceholder : entry.content}</p>
       </GuestbookEntryBubble>
     </article>
   );
 };
 
-const contentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-155);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-`;
+const contentClass = css({
+  whiteSpace: 'pre-wrap',
+  lineHeight: '155',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+});

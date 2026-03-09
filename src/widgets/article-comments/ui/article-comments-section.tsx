@@ -1,8 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { css, cx } from 'styled-system/css';
 
 import type {
   ArticleComment,
@@ -294,13 +294,13 @@ export const ArticleCommentsSection = ({
   }, [modalState, t]);
 
   return (
-    <section aria-labelledby={titleId} css={sectionStyle}>
-      <div css={headerStyle}>
-        <div css={headerTextStyle}>
-          <h2 css={titleStyle} id={titleId}>
+    <section aria-labelledby={titleId} className={sectionClass}>
+      <div className={headerClass}>
+        <div className={headerTextClass}>
+          <h2 className={titleClass} id={titleId}>
             {t('title')}
           </h2>
-          <p css={descriptionStyle}>{t('description')}</p>
+          <p className={descriptionClass}>{t('description')}</p>
         </div>
       </div>
 
@@ -330,11 +330,14 @@ export const ArticleCommentsSection = ({
         textPlaceholder={t('composePlaceholder')}
       />
 
-      <div css={listToolbarStyle}>
-        <div aria-label={t('sortLabel')} css={sortGroupStyle} role="tablist">
+      <div className={listToolbarClass}>
+        <div aria-label={t('sortLabel')} className={sortGroupClass} role="tablist">
           <button
             aria-selected={pageData.sort === 'latest'}
-            css={[sortButtonStyle, pageData.sort === 'latest' ? activeSortButtonStyle : undefined]}
+            className={cx(
+              sortButtonClass,
+              pageData.sort === 'latest' ? activeSortButtonClass : undefined,
+            )}
             onClick={() => handleChangeSort('latest')}
             role="tab"
             type="button"
@@ -343,7 +346,10 @@ export const ArticleCommentsSection = ({
           </button>
           <button
             aria-selected={pageData.sort === 'oldest'}
-            css={[sortButtonStyle, pageData.sort === 'oldest' ? activeSortButtonStyle : undefined]}
+            className={cx(
+              sortButtonClass,
+              pageData.sort === 'oldest' ? activeSortButtonClass : undefined,
+            )}
             onClick={() => handleChangeSort('oldest')}
             role="tab"
             type="button"
@@ -354,8 +360,8 @@ export const ArticleCommentsSection = ({
       </div>
 
       {errorMessage && pageData.items.length === 0 ? (
-        <div css={stateCardStyle} role="alert">
-          <p css={stateTextStyle}>{errorMessage}</p>
+        <div className={stateCardClass} role="alert">
+          <p className={stateTextClass}>{errorMessage}</p>
           <Button
             onClick={() => void loadPage(pageData.page, pageData.sort)}
             tone="white"
@@ -367,22 +373,22 @@ export const ArticleCommentsSection = ({
       ) : null}
 
       {!errorMessage && isLoading && pageData.items.length === 0 ? (
-        <div css={stateCardStyle}>
-          <p css={stateTextStyle}>{t('loading')}</p>
+        <div className={stateCardClass}>
+          <p className={stateTextClass}>{t('loading')}</p>
         </div>
       ) : null}
 
       {!isLoading && !errorMessage && pageData.items.length === 0 ? (
-        <div css={stateCardStyle}>
-          <p css={stateTextStyle}>{t('emptyItems')}</p>
+        <div className={stateCardClass}>
+          <p className={stateTextClass}>{t('emptyItems')}</p>
         </div>
       ) : null}
 
       {pageData.items.length > 0 ? (
-        <ol css={threadListStyle}>
+        <ol className={threadListClass}>
           {pageData.items.map(thread => (
             <li key={thread.id}>
-              <article css={threadCardStyle}>
+              <article className={threadCardClass}>
                 <CommentEntryCard
                   actionDeleteLabel={t('delete')}
                   actionEditLabel={t('edit')}
@@ -400,7 +406,7 @@ export const ArticleCommentsSection = ({
                 />
 
                 {thread.replies.length > 0 ? (
-                  <ol css={replyListStyle}>
+                  <ol className={replyListClass}>
                     {thread.replies.map(reply => (
                       <li key={reply.id}>
                         <CommentEntryCard
@@ -424,7 +430,7 @@ export const ArticleCommentsSection = ({
                 ) : null}
 
                 {replyTarget?.parentId === thread.id ? (
-                  <div css={replyComposeWrapStyle}>
+                  <div className={replyComposeWrapClass}>
                     <CommentComposeForm
                       allowSecretToggle={false}
                       authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
@@ -461,7 +467,7 @@ export const ArticleCommentsSection = ({
       ) : null}
 
       {pageData.items.length > 0 && pageData.totalPages > 1 ? (
-        <div css={footerPaginationWrapStyle}>
+        <div className={footerPaginationWrapClass}>
           <Pagination
             ariaLabel={t('paginationLabel')}
             currentPage={pageData.page}
@@ -481,8 +487,8 @@ export const ArticleCommentsSection = ({
         isOpen={Boolean(modalState)}
         onClose={closeModal}
       >
-        <div css={modalBodyStyle}>
-          <h3 css={modalTitleStyle} id={modalTitleId}>
+        <div className={modalBodyClass}>
+          <h3 className={modalTitleClass} id={modalTitleId}>
             {modalTitle}
           </h3>
           {modalState?.mode === 'edit' ? (
@@ -498,7 +504,7 @@ export const ArticleCommentsSection = ({
               value={modalContent}
             />
           ) : (
-            <p css={modalDescriptionStyle} id={modalDescriptionId}>
+            <p className={modalDescriptionClass} id={modalDescriptionId}>
               {t('deleteModalHint')}
             </p>
           )}
@@ -515,11 +521,11 @@ export const ArticleCommentsSection = ({
             value={modalPassword}
           />
           {modalError ? (
-            <p css={modalErrorStyle} role="alert">
+            <p className={modalErrorClass} role="alert">
               {modalError}
             </p>
           ) : null}
-          <div css={modalActionsStyle}>
+          <div className={modalActionsClass}>
             <Button
               disabled={isModalSubmitting}
               onClick={() => void handleConfirmModal()}
@@ -579,23 +585,23 @@ const CommentEntryCard = ({
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
 
   return (
-    <div css={[entryCardStyle, isReply ? replyEntryCardStyle : undefined]}>
-      <div css={entryHeaderStyle}>
-        <div css={authorMetaStyle}>
+    <div className={cx(entryCardClass, isReply ? replyEntryCardClass : undefined)}>
+      <div className={entryHeaderClass}>
+        <div className={authorMetaClass}>
           {entry.author_blog_url ? (
             <a
-              css={authorLinkStyle}
+              className={authorLinkClass}
               href={entry.author_blog_url}
               rel="noreferrer noopener"
               target="_blank"
             >
-              <strong css={authorNameStyle}>{entry.author_name}</strong>
+              <strong className={authorNameClass}>{entry.author_name}</strong>
               <LinkExternalIcon aria-hidden color="primary" size="sm" />
             </a>
           ) : (
-            <strong css={authorNameStyle}>{entry.author_name}</strong>
+            <strong className={authorNameClass}>{entry.author_name}</strong>
           )}
-          <time css={timeStyle} dateTime={entry.created_at}>
+          <time className={timeClass} dateTime={entry.created_at}>
             <span>{dateText}</span>
           </time>
         </div>
@@ -614,13 +620,13 @@ const CommentEntryCard = ({
         ) : null}
       </div>
 
-      <div css={entryBodyStyle}>
+      <div className={entryBodyClass}>
         {isDeleted ? (
-          <p css={placeholderTextStyle}>{deletedPlaceholder}</p>
+          <p className={placeholderTextClass}>{deletedPlaceholder}</p>
         ) : (
-          <p css={contentTextStyle}>
+          <p className={contentTextClass}>
             {entry.reply_to_author_name ? (
-              <span css={mentionTextStyle}>@{entry.reply_to_author_name} </span>
+              <span className={mentionTextClass}>@{entry.reply_to_author_name} </span>
             ) : null}
             {entry.content}
           </p>
@@ -628,9 +634,9 @@ const CommentEntryCard = ({
       </div>
 
       {!isDeleted ? (
-        <div css={entryFooterStyle}>
-          <button css={replyButtonStyle} onClick={() => onReply(entry)} type="button">
-            <span aria-hidden css={replyButtonIconMotionStyle}>
+        <div className={entryFooterClass}>
+          <button className={replyButtonClass} onClick={() => onReply(entry)} type="button">
+            <span aria-hidden className={replyButtonIconMotionClass}>
               <ArrowCurveLeftRightIcon aria-hidden size="sm" />
             </span>
             <span>{actionReplyLabel}</span>
@@ -701,270 +707,276 @@ const CommentActionPopover = ({
   </ActionPopover>
 );
 
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-6);
-`;
+const sectionClass = css({
+  display: 'grid',
+  gap: '6',
+});
 
-const headerStyle = css`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+const headerClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4',
+  '@media (min-width: 721px)': {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+});
 
-  @media (min-width: 721px) {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-`;
+const headerTextClass = css({
+  display: 'grid',
+  gap: '2',
+  minWidth: '0',
+  flexGrow: '1',
+  flexShrink: '1',
+  flexBasis: '[auto]',
+});
 
-const headerTextStyle = css`
-  display: grid;
-  gap: var(--space-2);
-  min-width: 0;
-  flex: 1 1 auto;
-`;
+const titleClass = css({
+  fontSize: '6xl',
+  fontWeight: 'semibold',
+  letterSpacing: '[-0.03em]',
+});
 
-const titleStyle = css`
-  font-size: var(--font-size-24);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.03em;
-`;
+const descriptionClass = css({
+  color: 'muted',
+  lineHeight: '[var(--line-height-160)]',
+  wordBreak: 'keep-all',
+});
 
-const descriptionStyle = css`
-  color: rgb(var(--color-muted));
-  line-height: var(--line-height-160);
-  word-break: keep-all;
-`;
+const listToolbarClass = css({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  paddingTop: '2',
+  paddingBottom: '1',
+  marginTop: '1',
+});
 
-const listToolbarStyle = css`
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--space-2) 0 var(--space-1);
-  margin-top: var(--space-1);
-`;
+const sortGroupClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  width: '[fit-content]',
+  maxWidth: 'full',
+  p: '1',
+  borderRadius: 'full',
+  background: '[rgb(var(--color-surface-muted) / 0.72)]',
+  border: '[1px solid rgb(var(--color-border) / 0.16)]',
+});
 
-const sortGroupStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  width: fit-content;
-  max-width: 100%;
-  padding: var(--space-1);
-  border-radius: var(--radius-pill);
-  background: rgb(var(--color-surface-muted) / 0.72);
-  border: 1px solid rgb(var(--color-border) / 0.16);
-`;
+const sortButtonClass = css({
+  border: 'none',
+  borderRadius: 'full',
+  background: 'transparent',
+  color: 'muted',
+  paddingX: '3',
+  paddingY: '1',
+  fontSize: 'md',
+  fontWeight: 'medium',
+  transition: '[background-color 160ms ease, color 160ms ease, box-shadow 160ms ease]',
+  _hover: {
+    color: 'primary',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    color: 'primary',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+});
 
-const sortButtonStyle = css`
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: rgb(var(--color-muted));
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-medium);
-  transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+const activeSortButtonClass = css({
+  background: 'surface',
+  color: 'text',
+});
 
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    color: rgb(var(--color-primary));
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-`;
+const stateCardClass = css({
+  display: 'grid',
+  justifyItems: 'center',
+  gap: '3',
+  p: '6',
+  borderRadius: 'xl',
+  border: '[1px solid rgb(var(--color-border) / 0.18)]',
+  background: '[rgb(var(--color-surface-muted) / 0.4)]',
+});
 
-const activeSortButtonStyle = css`
-  background: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-`;
+const stateTextClass = css({
+  color: 'muted',
+  textAlign: 'center',
+});
 
-const stateCardStyle = css`
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-6);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgb(var(--color-border) / 0.18);
-  background: rgb(var(--color-surface-muted) / 0.4);
-`;
+const threadListClass = css({
+  display: 'grid',
+  listStyle: 'none',
+  p: '0',
+  marginTop: '2',
+});
 
-const stateTextStyle = css`
-  color: rgb(var(--color-muted));
-  text-align: center;
-`;
+const threadCardClass = css({
+  display: 'grid',
+  gap: '0',
+});
 
-const threadListStyle = css`
-  display: grid;
-  list-style: none;
-  padding: 0;
-  margin: var(--space-2) 0 0;
-`;
+const replyListClass = css({
+  display: 'grid',
+  listStyle: 'none',
+  paddingTop: '0',
+  paddingRight: '0',
+  paddingBottom: '0',
+  paddingLeft: '4',
+  marginTop: '1',
+  '@media (min-width: 721px)': {
+    paddingLeft: '6',
+  },
+});
 
-const threadCardStyle = css`
-  display: grid;
-  gap: 0;
-`;
+const replyComposeWrapClass = css({
+  paddingLeft: '4',
+  marginTop: '1',
+  '@media (min-width: 721px)': {
+    paddingLeft: '6',
+  },
+});
 
-const replyListStyle = css`
-  display: grid;
-  list-style: none;
-  padding: 0 0 0 var(--space-4);
-  margin: var(--space-1) 0 0;
+const entryCardClass = css({
+  display: 'grid',
+  gap: '3',
+  paddingY: '4',
+  borderTop: '[1px solid rgb(var(--color-border) / 0.18)]',
+});
 
-  @media (min-width: 721px) {
-    padding-left: var(--space-6);
-  }
-`;
+const replyEntryCardClass = css({
+  paddingLeft: '2',
+});
 
-const replyComposeWrapStyle = css`
-  padding-left: var(--space-4);
-  margin-top: var(--space-1);
+const entryHeaderClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '3',
+});
 
-  @media (min-width: 721px) {
-    padding-left: var(--space-6);
-  }
-`;
+const authorMetaClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '2',
+  flexWrap: 'wrap',
+  minWidth: '0',
+});
 
-const entryCardStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4) 0;
-  border-top: 1px solid rgb(var(--color-border) / 0.18);
-`;
+const authorLinkClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  color: 'primary',
+  textDecoration: 'none',
+  _hover: {
+    textDecoration: 'underline',
+  },
+  _focusVisible: {
+    outline: 'none',
+    textDecoration: 'underline',
+  },
+});
 
-const replyEntryCardStyle = css`
-  padding-left: var(--space-2);
-`;
+const authorNameClass = css({
+  fontSize: 'lg',
+  fontWeight: 'semibold',
+});
 
-const entryHeaderStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-`;
+const entryBodyClass = css({
+  display: 'grid',
+  gap: '1',
+});
 
-const authorMetaStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  min-width: 0;
-`;
+const contentTextClass = css({
+  whiteSpace: 'pre-wrap',
+  lineHeight: '[var(--line-height-160)]',
+  wordBreak: 'break-word',
+});
 
-const authorLinkStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: rgb(var(--color-primary));
-  text-decoration: none;
+const mentionTextClass = css({
+  color: 'primary',
+  fontWeight: 'medium',
+});
 
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline;
-    outline: none;
-  }
-`;
+const placeholderTextClass = css({
+  color: 'muted',
+});
 
-const authorNameStyle = css`
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
-`;
+const entryFooterClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  gap: '3',
+  flexWrap: 'wrap',
+});
 
-const entryBodyStyle = css`
-  display: grid;
-  gap: var(--space-1);
-`;
+const replyButtonClass = css({
+  border: 'none',
+  background: 'transparent',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  p: '0',
+  color: 'muted',
+  fontSize: 'md',
+  lineHeight: '[1.4]',
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    outline: 'none',
+    color: 'primary',
+  },
+  '&:hover > span:first-of-type': {
+    transform: 'translateX(2px)',
+  },
+  '&:focus-visible > span:first-of-type': {
+    transform: 'translateX(2px)',
+  },
+});
 
-const contentTextStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-160);
-  word-break: break-word;
-`;
+const replyButtonIconMotionClass = css({
+  display: 'inline-flex',
+  transition: '[transform 180ms ease]',
+});
 
-const mentionTextStyle = css`
-  color: rgb(var(--color-primary));
-  font-weight: var(--font-weight-medium);
-`;
+const timeClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  color: 'muted',
+  fontSize: 'sm',
+  lineHeight: '[1.2]',
+});
 
-const placeholderTextStyle = css`
-  color: rgb(var(--color-muted));
-`;
+const footerPaginationWrapClass = css({
+  display: 'flex',
+  justifyContent: 'center',
+  paddingTop: '2',
+});
 
-const entryFooterStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
+const modalBodyClass = css({
+  display: 'grid',
+  gap: '4',
+});
 
-const replyButtonStyle = css`
-  border: 0;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-  line-height: 1.4;
+const modalTitleClass = css({
+  fontSize: '2xl',
+  fontWeight: 'semibold',
+});
 
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    color: rgb(var(--color-primary));
-  }
+const modalDescriptionClass = css({
+  color: 'muted',
+  lineHeight: '[var(--line-height-155)]',
+});
 
-  &:hover > span:first-of-type,
-  &:focus-visible > span:first-of-type {
-    transform: translateX(2px);
-  }
-`;
+const modalErrorClass = css({
+  color: 'danger',
+  fontSize: 'md',
+});
 
-const replyButtonIconMotionStyle = css`
-  display: inline-flex;
-  transition: transform 180ms ease;
-`;
-
-const timeStyle = css`
-  display: inline-flex;
-  align-items: center;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-12);
-  line-height: 1.2;
-`;
-
-const footerPaginationWrapStyle = css`
-  display: flex;
-  justify-content: center;
-  padding-top: var(--space-2);
-`;
-
-const modalBodyStyle = css`
-  display: grid;
-  gap: var(--space-4);
-`;
-
-const modalTitleStyle = css`
-  font-size: var(--font-size-18);
-  font-weight: var(--font-weight-semibold);
-`;
-
-const modalDescriptionStyle = css`
-  color: rgb(var(--color-muted));
-  line-height: var(--line-height-155);
-`;
-
-const modalErrorStyle = css`
-  color: rgb(var(--color-danger));
-  font-size: var(--font-size-14);
-`;
-
-const modalActionsStyle = css`
-  display: flex;
-  justify-content: flex-end;
-`;
+const modalActionsClass = css({
+  display: 'flex',
+  justifyContent: 'flex-end',
+});

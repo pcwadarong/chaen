@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import type { Article, ArticleDetailListItem } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
@@ -7,7 +8,6 @@ import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
-import styles from '@/views/articles/ui/article-detail-page.module.css';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
@@ -83,20 +83,15 @@ export const ArticleDetailPage = async ({
       })}
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <div aria-label={t('tagSection')} className={styles.tagList}>
+        <div aria-label={t('tagSection')} className={tagListClass}>
           {tagLabels.length > 0 ? (
             tagLabels.map(tagLabel => (
-              <button
-                aria-disabled="true"
-                className={styles.tagButton}
-                key={tagLabel}
-                type="button"
-              >
+              <button aria-disabled="true" className={tagButtonClass} key={tagLabel} type="button">
                 #{tagLabel}
               </button>
             ))
           ) : (
-            <button aria-disabled="true" className={styles.tagButton} type="button">
+            <button aria-disabled="true" className={tagButtonClass} type="button">
               #{t('noTags')}
             </button>
           )}
@@ -106,3 +101,24 @@ export const ArticleDetailPage = async ({
     />
   );
 };
+
+const tagListClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  gap: '2',
+  '@media (min-width: 961px)': {
+    gap: '3',
+  },
+});
+
+const tagButtonClass = css({
+  px: '3',
+  py: '[0.35rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-border) / 0.28)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.82)]',
+  fontSize: '14',
+  lineHeight: '120',
+  color: 'muted',
+});

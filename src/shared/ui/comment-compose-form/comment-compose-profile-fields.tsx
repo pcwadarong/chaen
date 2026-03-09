@@ -1,7 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
@@ -46,8 +44,8 @@ export const CommentComposeProfileFields = ({
   passwordPlaceholder,
   passwordValue,
 }: CommentComposeProfileFieldsProps) => (
-  <div css={leftFieldsStyle}>
-    <label css={fieldWrapStyle} htmlFor={authorNameId}>
+  <div className={leftFieldsClass}>
+    <label className={fieldWrapClass} htmlFor={authorNameId}>
       <span className={srOnlyClass}>{authorNameLabel}</span>
       <Input
         id={authorNameId}
@@ -59,7 +57,7 @@ export const CommentComposeProfileFields = ({
         value={authorNameValue}
       />
     </label>
-    <label css={fieldWrapStyle} htmlFor={passwordId}>
+    <label className={fieldWrapClass} htmlFor={passwordId}>
       <span className={srOnlyClass}>{passwordLabel}</span>
       <Input
         id={passwordId}
@@ -72,7 +70,7 @@ export const CommentComposeProfileFields = ({
         value={passwordValue}
       />
     </label>
-    <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
+    <label className={fieldWrapClass} htmlFor={authorBlogUrlId}>
       <span className={srOnlyClass}>{authorBlogUrlLabel}</span>
       <Input
         aria-describedby={authorBlogUrlDescribedBy}
@@ -84,7 +82,7 @@ export const CommentComposeProfileFields = ({
         value={authorBlogUrlValue}
       />
       {authorBlogUrlErrorMessage ? (
-        <p css={fieldErrorTextStyle} id={authorBlogUrlDescribedBy} role="alert">
+        <p className={fieldErrorTextClass} id={authorBlogUrlDescribedBy} role="alert">
           {authorBlogUrlErrorMessage}
         </p>
       ) : null}
@@ -92,31 +90,29 @@ export const CommentComposeProfileFields = ({
   </div>
 );
 
-const leftFieldsStyle = css`
-  display: grid;
-  grid-template-columns: minmax(9rem, 0.85fr) minmax(9rem, 0.85fr) minmax(12rem, 1.3fr);
-  gap: var(--space-2);
-  flex: 0 1 44rem;
-  justify-content: start;
+const leftFieldsClass = css({
+  display: 'grid',
+  gridTemplateColumns: '[minmax(9rem, 0.85fr) minmax(9rem, 0.85fr) minmax(12rem, 1.3fr)]',
+  gap: '2',
+  flex: '[0 1 44rem]',
+  justifyContent: 'start',
+  '@media (max-width: 920px)': {
+    gridTemplateColumns: '[repeat(2, minmax(9rem, 1fr))]',
+  },
+  '@media (max-width: 640px)': {
+    gridTemplateColumns: '1fr',
+  },
+});
 
-  @media (max-width: 920px) {
-    grid-template-columns: repeat(2, minmax(9rem, 1fr));
-  }
+const fieldWrapClass = css({
+  display: 'grid',
+  gap: '1',
+  minWidth: '0',
+});
 
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const fieldWrapStyle = css`
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-`;
-
-const fieldErrorTextStyle = css`
-  margin: 0;
-  color: rgb(var(--color-danger, 208 61 61));
-  font-size: 0.8125rem;
-  line-height: 1.4;
-`;
+const fieldErrorTextClass = css({
+  m: '0',
+  color: '[rgb(var(--color-danger, 208 61 61))]',
+  fontSize: '[0.8125rem]',
+  lineHeight: '[1.4]',
+});

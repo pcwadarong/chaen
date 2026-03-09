@@ -11,6 +11,9 @@
 7. Wrapper / Client Shell의 정적 프레임을 Panda class 기반으로 전환
 8. View / Simple Page와 detail fallback 화면을 Panda `css()` 기반으로 전환하고 server component를 복구
 9. Interactive feature와 global nav의 Emotion 프레임 스타일을 Panda class 기반으로 전환
+10. 남아 있던 `module.css` 기반 server component 스타일을 Panda `css()` 파일로 통일
+11. 스타일 때문에 분리됐던 leaf client component를 공용/server component로 다시 합침
+12. Emotion 의존성, Next compiler 설정, css-prop 타입 선언 제거
 
 <br/>
 
@@ -39,6 +42,10 @@
 - `app/[locale]/articles/[id]`, `app/[locale]/project/[id]`의 `loading.tsx`, `not-found.tsx`는 server component로 복구하고 `error.tsx`만 client 제약을 유지한 채 Panda class로 교체
 - `ArticleFeed`, `ArticleSearchForm`, `ArticleTagFilterList`, `ProjectFeed`, `GuestbookFeed`, `GuestbookBoard`, `AdminLoginForm`, `AdminSignOutButton`의 정적 스타일을 Panda `css()`/`cx()` 기반으로 교체
 - `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`의 interactive shell을 Panda class 기반으로 전환하고 버튼 확장은 `buttonRecipe + className` 패턴으로 고정
+- `PageShell`, `AppFrame`, `DetailPageShell`, `MarkdownRenderer`, article/project detail page의 `module.css`를 Panda 스타일 파일로 교체해 스타일 레이어를 단일화
+- `CommentComposeActions`, `CommentComposeProfileFields`, `CommentComposeContentField`, `CommentComposeReplyPreview`, `GlobalNavDesktopContent`, `GuestbookEntryBubble`, `GuestPage`, `ContactStrip`은 불필요한 `use client`를 제거해 server/shared component로 복구
+- 최종 단계에서 `@emotion/react`, `@emotion/styled`, `next.config.ts`의 Emotion compiler, `emotion-css-prop.d.ts`를 삭제해 Emotion runtime 의존을 0건으로 정리
+- `panda-legacy-aliases.css`는 아직 `main.css`와 일부 Panda raw style에서 `var(--color-*)` 계열을 참조하고 있어 유지함. 마이그레이션용 임시 파일인 점은 동일하며, 남은 legacy 변수 참조를 정리한 뒤 제거 대상임
 
 <br/>
 
@@ -61,7 +68,7 @@
 - [x] 4단계 Wrapper / Client Shell
 - [x] 5단계 View / Simple Page
 - [x] 6단계 Interactive Features
-- [ ] 7단계 Emotion Removal
+- [x] 7단계 Emotion Removal
 
 <br/>
 
@@ -70,9 +77,10 @@
 - [x] `pnpm panda:codegen`
 - [x] `pnpm lint`
 - [x] `pnpm typecheck`
+- [x] `pnpm build`
 - [ ] `pnpm test`
 
-`pnpm test`는 Slice 3 반영 후 전체 테스트가 실패 0건으로 끝까지 진행되는 로그를 확인했지만, Vitest 프로세스가 마지막 종료 신호를 반환하지 않아 완료 체크는 보류합니다.
+`pnpm test`는 최종 정리 후 전체 스위트가 실패 로그 없이 끝까지 진행되는 것을 다시 확인했고, `article-comments-section`, `comment-compose-form` 영향 범위는 별도 재실행으로 green 확인했습니다. 다만 Vitest 프로세스가 마지막 종료 신호를 반환하지 않는 기존 문제가 남아 있어 완료 체크는 보류합니다.
 
 추가 메모:
 
@@ -86,4 +94,7 @@
 - `articles/[id]`, `project/[id]`의 `loading`/`not-found`는 server component로, `error`는 client component로 역할 분리 완료
 - `ArticleFeed`, `ArticleSearchForm`, `ArticleTagFilterList`, `ProjectFeed`, `GuestbookFeed`, `GuestbookBoard`, `AdminLoginForm`, `AdminSignOutButton`는 Panda class 기반으로 전환 완료
 - `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`는 Emotion 없이 Panda class와 shared recipe 조합만 사용하도록 정리 완료
-- 마이그레이션 종료 시 `panda-legacy-aliases.css`, `prepare` 자동 codegen, 테스트 alias 등 임시 호환/운영 보조 장치는 실제 필요성을 다시 검토하고 삭제 대상을 최종 정리해야 함
+- `PageShell`, `AppFrame`, `DetailPageShell`, `MarkdownRenderer`, article/project detail page의 `module.css`는 모두 제거 완료
+- Emotion import 검색 결과는 `src`, `next.config.ts`, `package.json`, `pnpm-lock.yaml` 기준 0건
+- `build`는 최종 기준 통과, 테스트 중 기존 Next/Image `fill` 경고 1건은 별도 잔여 이슈로 유지
+- `panda-legacy-aliases.css`, `prepare` 자동 codegen, 테스트 alias 등 임시 호환/운영 보조 장치는 Emotion 제거 이후에도 남아 있으므로 실제 필요성을 계속 검토하고 삭제 대상을 후속 정리해야 함

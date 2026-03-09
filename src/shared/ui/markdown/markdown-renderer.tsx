@@ -8,8 +8,29 @@ import React, {
 import { type Components, MarkdownAsync } from 'react-markdown';
 import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from 'rehype-pretty-code';
 import remarkGfm from 'remark-gfm';
+import { cx } from 'styled-system/css';
 
-import styles from './markdown-renderer.module.css';
+import {
+  markdownBlockquoteClass,
+  markdownCodeBlockFrameClass,
+  markdownCodeBlockHeaderClass,
+  markdownCodeBlockLanguageClass,
+  markdownCodeBlockPreClass,
+  markdownEmptyTextClass,
+  markdownH1Class,
+  markdownH2Class,
+  markdownH3Class,
+  markdownInlineCodeClass,
+  markdownLinkClass,
+  markdownRootClass,
+  markdownTableClass,
+  markdownTableScrollClass,
+  markdownTrafficLightClass,
+  markdownTrafficLightGreenClass,
+  markdownTrafficLightRedClass,
+  markdownTrafficLightRowClass,
+  markdownTrafficLightYellowClass,
+} from './markdown-renderer.styles';
 
 type MarkdownRendererProps = {
   emptyText?: string;
@@ -70,7 +91,7 @@ const markdownComponents: Components = {
   a: ({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       href={href}
-      className={styles.link}
+      className={markdownLinkClass}
       rel={isExternalHref(href) ? 'noreferrer noopener' : undefined}
       target={isExternalHref(href) ? '_blank' : undefined}
       {...props}
@@ -78,7 +99,9 @@ const markdownComponents: Components = {
       {children}
     </a>
   ),
-  blockquote: ({ children }) => <blockquote className={styles.blockquote}>{children}</blockquote>,
+  blockquote: ({ children }) => (
+    <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
+  ),
   code: ({ children, className, ...props }) => {
     if (isBlockCode(className, props as Record<string, unknown>)) {
       return (
@@ -89,27 +112,29 @@ const markdownComponents: Components = {
     }
 
     return (
-      <code className={styles.inlineCode} {...props}>
+      <code className={markdownInlineCodeClass} {...props}>
         {children}
       </code>
     );
   },
-  h1: ({ children }) => <h1 className={styles.h1}>{children}</h1>,
-  h2: ({ children }) => <h2 className={styles.h2}>{children}</h2>,
-  h3: ({ children }) => <h3 className={styles.h3}>{children}</h3>,
+  h1: ({ children }) => <h1 className={markdownH1Class}>{children}</h1>,
+  h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
+  h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
   pre: ({ children, className, ...props }) => (
-    <div className={styles.codeBlockFrame}>
-      <div className={styles.codeBlockHeader}>
-        <div aria-hidden className={styles.trafficLightRow}>
-          <span className={`${styles.trafficLight} ${styles.trafficLightRed}`} />
-          <span className={`${styles.trafficLight} ${styles.trafficLightYellow}`} />
-          <span className={`${styles.trafficLight} ${styles.trafficLightGreen}`} />
+    <div className={markdownCodeBlockFrameClass}>
+      <div className={markdownCodeBlockHeaderClass}>
+        <div aria-hidden className={markdownTrafficLightRowClass}>
+          <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
+          <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
+          <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
         </div>
-        <span className={styles.codeBlockLanguage}>{getCodeBlockLanguage(children)}</span>
+        <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
       </div>
       <pre
         aria-label={getCodeBlockAriaLabel(children)}
-        className={className ? `${styles.codeBlockPre} ${className}` : styles.codeBlockPre}
+        className={
+          className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
+        }
         tabIndex={0}
         {...props}
       >
@@ -118,8 +143,8 @@ const markdownComponents: Components = {
     </div>
   ),
   table: ({ children }) => (
-    <div aria-label="Markdown table" className={styles.tableScroll} tabIndex={0}>
-      <table className={styles.table}>{children}</table>
+    <div aria-label="Markdown table" className={markdownTableScrollClass} tabIndex={0}>
+      <table className={markdownTableClass}>{children}</table>
     </div>
   ),
 };
@@ -128,10 +153,10 @@ const markdownComponents: Components = {
  * Markdown 문자열을 SSR 친화적인 React 노드로 렌더링합니다.
  */
 export const MarkdownRenderer = async ({ emptyText, markdown }: MarkdownRendererProps) => {
-  if (!markdown) return emptyText ? <p className={styles.emptyText}>{emptyText}</p> : null;
+  if (!markdown) return emptyText ? <p className={markdownEmptyTextClass}>{emptyText}</p> : null;
 
   return (
-    <div className={styles.root}>
+    <div className={markdownRootClass}>
       <MarkdownAsync
         components={markdownComponents}
         rehypePlugins={[[rehypePrettyCode, prettyCodeOptions]]}

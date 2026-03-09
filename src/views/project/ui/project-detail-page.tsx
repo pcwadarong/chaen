@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
@@ -7,7 +8,6 @@ import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
-import styles from '@/views/project/ui/project-detail-page.module.css';
 
 type ProjectDetailPageProps = {
   archiveItems: ProjectDetailListItem[];
@@ -57,15 +57,15 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
       })}
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <div aria-label={t('tagSection')} className={styles.tagList}>
+        <div aria-label={t('tagSection')} className={tagListClass}>
           {(item.tags ?? []).length > 0 ? (
             (item.tags ?? []).map(tag => (
-              <button aria-disabled="true" className={styles.tagButton} key={tag} type="button">
+              <button aria-disabled="true" className={tagButtonClass} key={tag} type="button">
                 #{tagLabelMap.data.get(tag) ?? tag}
               </button>
             ))
           ) : (
-            <button aria-disabled="true" className={styles.tagButton} type="button">
+            <button aria-disabled="true" className={tagButtonClass} type="button">
               #{t('noTags')}
             </button>
           )}
@@ -75,3 +75,31 @@ export const ProjectDetailPage = async ({ archiveItems, item, locale }: ProjectD
     />
   );
 };
+
+const tagListClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  alignItems: 'center',
+  rowGap: '1',
+  columnGap: '2',
+  m: '0',
+  color: 'muted',
+  fontSize: '12',
+  lineHeight: '140',
+  '@media (min-width: 961px)': {
+    columnGap: '3',
+    fontSize: '14',
+  },
+});
+
+const tagButtonClass = css({
+  px: '3',
+  py: '[0.35rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-border) / 0.28)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.82)]',
+  fontSize: '[inherit]',
+  lineHeight: '120',
+  color: 'muted',
+});

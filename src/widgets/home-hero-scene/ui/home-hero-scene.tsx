@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
@@ -20,25 +20,24 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
   const sectionRef = triggerRef ?? localSectionRef;
 
   return (
-    <section ref={sectionRef} css={sectionStyle}>
+    <section className={sectionClass} ref={sectionRef}>
       <HomeHeroStage triggerRef={sectionRef} webUiRef={webUiRef} />
       <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
     </section>
   );
 };
 
-const sectionStyle = css`
-  position: relative;
-  width: 100%;
-  min-height: 100dvh;
-  height: 100dvh;
-  overflow: clip;
-  isolation: isolate;
-
-  @media (max-width: 960px) {
-    width: 100vw;
-    min-height: 100svh;
-    height: 100svh;
-    margin-inline: calc(50% - 50vw);
-  }
-`;
+const sectionClass = css({
+  position: 'relative',
+  width: 'full',
+  minHeight: '[100dvh]',
+  height: '[100dvh]',
+  overflow: 'clip',
+  isolation: 'isolate',
+  '@media (max-width: 960px)': {
+    width: '[100vw]',
+    minHeight: 'svh',
+    height: 'svh',
+    marginInline: '[calc(50% - 50vw)]',
+  },
+});
