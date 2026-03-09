@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache';
 
 import { getAllRelatedTagIds, getTagSlugMap } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 
 import 'server-only';
 
@@ -26,7 +25,7 @@ const normalizeTagLimit = (limit?: number) => {
 };
 
 /**
- * shadow relation table 기준 인기 아티클 태그를 빈도순으로 조회합니다.
+ * relation table 기준 인기 아티클 태그를 빈도순으로 조회합니다.
  */
 export const getPopularArticleTags = async ({
   limit,
@@ -39,7 +38,7 @@ export const getPopularArticleTags = async ({
 
   const getCachedPopularTags = unstable_cache(
     async () => {
-      const relationTagIds = await getAllRelatedTagIds(CONTENT_SHADOW_SCHEMA.articleTags);
+      const relationTagIds = await getAllRelatedTagIds('article_tags');
       if (relationTagIds.schemaMissing) {
         throw new Error('[articles] 인기 태그 relation schema가 없습니다.');
       }

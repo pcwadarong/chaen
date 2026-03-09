@@ -25,7 +25,10 @@ vi.mock('@/i18n/navigation', () => ({
 const renderServerHtml = async () => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
   const element = await ProjectDetailPage({
-    archiveItems: [],
+    archivePage: {
+      items: [],
+      nextCursor: null,
+    },
     item: {
       id: 'project-1',
       title: 'Project 1',

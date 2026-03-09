@@ -11,7 +11,7 @@ type ProjectTranslationFields = Pick<Project, 'content' | 'description' | 'title
   project_id: string;
 };
 
-export type ShadowProjectTranslationRow = ProjectTranslationFields & {
+export type ProjectTranslationRow = ProjectTranslationFields & {
   projects: EmbeddedProjectBaseRow;
 };
 
@@ -37,9 +37,7 @@ export const getEmbeddedProjectBaseRow = (
  * @param row - `project_translations`와 `projects`를 조인한 응답 행
  * @returns 목록 렌더링에 사용할 프로젝트 요약 또는 null
  */
-export const mapShadowProjectListItem = (
-  row: ShadowProjectTranslationRow,
-): ProjectListItem | null => {
+export const mapProjectListItem = (row: ProjectTranslationRow): ProjectListItem | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
 
@@ -58,9 +56,9 @@ export const mapShadowProjectListItem = (
  * @param rows - `project_translations` 조인 응답 배열
  * @returns 비어 있지 않은 목록 아이템 배열
  */
-export const mapShadowProjectListItems = (rows: ShadowProjectTranslationRow[]): ProjectListItem[] =>
+export const mapProjectListItems = (rows: ProjectTranslationRow[]): ProjectListItem[] =>
   rows.flatMap(row => {
-    const item = mapShadowProjectListItem(row);
+    const item = mapProjectListItem(row);
     return item ? [item] : [];
   });
 
@@ -70,8 +68,8 @@ export const mapShadowProjectListItems = (rows: ShadowProjectTranslationRow[]): 
  * @param row - `project_translations`와 `projects`를 조인한 응답 행
  * @returns 상세 아카이브 아이템 또는 null
  */
-export const mapShadowProjectDetailListItem = (
-  row: ShadowProjectTranslationRow,
+export const mapProjectDetailListItem = (
+  row: ProjectTranslationRow,
 ): ProjectDetailListItem | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
@@ -90,11 +88,9 @@ export const mapShadowProjectDetailListItem = (
  * @param rows - `project_translations` 조인 응답 배열
  * @returns 상세 아카이브 목록 배열
  */
-export const mapShadowProjectDetailListItems = (
-  rows: ShadowProjectTranslationRow[],
-): ProjectDetailListItem[] =>
+export const mapProjectDetailListItems = (rows: ProjectTranslationRow[]): ProjectDetailListItem[] =>
   rows.flatMap(row => {
-    const item = mapShadowProjectDetailListItem(row);
+    const item = mapProjectDetailListItem(row);
     return item ? [item] : [];
   });
 
@@ -102,13 +98,10 @@ export const mapShadowProjectDetailListItems = (
  * 번역 + base join 응답 한 행을 최종 Project 타입으로 조합합니다.
  *
  * @param row - `project_translations`와 `projects`를 조인한 단일 응답 행
- * @param tags - relation table에서 조회한 canonical tag slug 목록
+ * @param tags - relation table에서 조회한 tag slug 목록
  * @returns 화면에서 사용할 완성된 프로젝트 또는 null
  */
-export const mapShadowProject = (
-  row: ShadowProjectTranslationRow,
-  tags: string[],
-): Project | null => {
+export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
 

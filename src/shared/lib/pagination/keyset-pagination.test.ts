@@ -2,7 +2,9 @@ import {
   buildCreatedAtIdPage,
   parseCreatedAtIdCursor,
   parseKeysetLimit,
+  parseLocaleAwareCreatedAtIdCursor,
   serializeCreatedAtIdCursor,
+  serializeLocaleAwareCreatedAtIdCursor,
 } from './keyset-pagination';
 
 describe('keyset pagination', () => {
@@ -21,6 +23,20 @@ describe('keyset pagination', () => {
   it('유효하지 않은 cursor는 null로 정규화한다', () => {
     expect(parseCreatedAtIdCursor(undefined)).toBeNull();
     expect(parseCreatedAtIdCursor('invalid')).toBeNull();
+  });
+
+  it('created_at + id + locale cursor를 직렬화하고 복원한다', () => {
+    const cursor = serializeLocaleAwareCreatedAtIdCursor({
+      createdAt: '2026-03-02T09:07:50.797695+00:00',
+      id: 'article-1',
+      locale: 'ko',
+    });
+
+    expect(parseLocaleAwareCreatedAtIdCursor(cursor)).toEqual({
+      createdAt: '2026-03-02T09:07:50.797695+00:00',
+      id: 'article-1',
+      locale: 'ko',
+    });
   });
 
   it('limit + 1개 결과에서 다음 cursor를 계산한다', () => {
@@ -44,8 +60,8 @@ describe('keyset pagination', () => {
   });
 
   it('limit은 기존 페이지네이션 규칙과 같은 범위로 정규화한다', () => {
-    expect(parseKeysetLimit(undefined)).toBe(12);
-    expect(parseKeysetLimit(0)).toBe(12);
+    expect(parseKeysetLimit(undefined)).toBe(10);
+    expect(parseKeysetLimit(0)).toBe(10);
     expect(parseKeysetLimit(99)).toBe(30);
   });
 });

@@ -49,7 +49,7 @@ describe('useOffsetPaginationFeed', () => {
     expect(result.current.items).toEqual([{ id: 'a' }, { id: 'b' }]);
     expect(result.current.hasMore).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/test?locale=ko&limit=12&cursor=1');
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/test?locale=ko&limit=10&cursor=1');
   });
 
   it('요청 실패 시 errorMessage를 설정한다', async () => {

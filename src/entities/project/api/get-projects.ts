@@ -2,33 +2,30 @@ import { unstable_cache } from 'next/cache';
 
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
+  buildContentLocaleFallbackChain,
+  resolveFirstAvailableLocaleValue,
+} from '@/shared/lib/i18n/content-locale-fallback';
+import {
   buildCreatedAtIdPage,
   parseCreatedAtIdCursor,
   parseKeysetLimit,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
-import type { ProjectListItem } from '../model/types';
+import type { ProjectListItem, ProjectListPage } from '../model/types';
 
-import { mapShadowProjectListItems, type ShadowProjectTranslationRow } from './map-shadow-project';
+import { mapProjectListItems, type ProjectTranslationRow } from './map-project-translation';
 
-const isMissingProjectsShadowSchemaError = (message: string) => {
+const isMissingProjectsContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projects) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
   );
-};
-
-type ProjectsPage = {
-  items: ProjectListItem[];
-  nextCursor: string | null;
 };
 
 type GetProjectsOptions = {
@@ -40,7 +37,7 @@ type GetProjectsOptions = {
 /**
  * keyset 페이지 결과를 프로젝트 목록 응답 shape로 변환합니다.
  */
-const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectsPage => {
+const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectListPage => {
   const page = buildCreatedAtIdPage({
     limit: pageSize,
     rows: rows.map(row => ({
@@ -60,11 +57,11 @@ const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectsPage
 /**
  * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
  */
-const fetchProjectsByLocaleFromShadow = async (
+const fetchProjectsByLocaleFromContentSchema = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ProjectsPage; schemaMissing: boolean }> => {
+): Promise<{ data: ProjectListPage; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
@@ -75,7 +72,7 @@ const fetchProjectsByLocaleFromShadow = async (
 
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
-    .from(CONTENT_SHADOW_SCHEMA.projectTranslations)
+    .from('project_translations')
     .select('project_id,title,description,projects!inner(created_at,thumbnail_url)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'projects' })
@@ -83,7 +80,8 @@ const fetchProjectsByLocaleFromShadow = async (
 
   if (parsedCursor) {
     translationsQuery = translationsQuery.or(
-      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},project_id.lt.${parsedCursor.id})`,
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
+      { referencedTable: 'projects' },
     );
   }
 
@@ -92,19 +90,19 @@ const fetchProjectsByLocaleFromShadow = async (
   );
 
   if (translationError) {
-    if (isMissingProjectsShadowSchemaError(translationError.message)) {
+    if (isMissingProjectsContentSchemaError(translationError.message)) {
       return {
         data: { items: [], nextCursor: null },
         schemaMissing: true,
       };
     }
 
-    throw new Error(`[projects] shadow 번역 목록 조회 실패: ${translationError.message}`);
+    throw new Error(`[projects] 번역 목록 조회 실패: ${translationError.message}`);
   }
 
   return {
     data: toProjectsPage(
-      mapShadowProjectListItems((translationRows ?? []) as ShadowProjectTranslationRow[]),
+      mapProjectListItems((translationRows ?? []) as ProjectTranslationRow[]),
       pageSize,
     ),
     schemaMissing: false,
@@ -115,13 +113,13 @@ const fetchProjectsByLocale = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<ProjectsPage> => {
-  const shadowProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
-  if (shadowProjects.schemaMissing) {
-    throw new Error('[projects] shadow content schema가 없습니다.');
+): Promise<ProjectListPage> => {
+  const localizedProjects = await fetchProjectsByLocaleFromContentSchema(locale, cursor, pageSize);
+  if (localizedProjects.schemaMissing) {
+    throw new Error('[projects] content schema가 없습니다.');
   }
 
-  return shadowProjects.data;
+  return localizedProjects.data;
 };
 
 /**
@@ -133,7 +131,7 @@ export const getProjects = async ({
   cursor,
   limit,
   locale,
-}: GetProjectsOptions): Promise<ProjectsPage> => {
+}: GetProjectsOptions): Promise<ProjectListPage> => {
   const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
   if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
 
@@ -150,12 +148,13 @@ export const getProjects = async ({
         return fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
       }
 
-      const localizedProjects = await fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
-      if (localizedProjects.items.length > 0 || normalizedLocale === 'ko') {
-        return localizedProjects;
-      }
+      const page = await resolveFirstAvailableLocaleValue({
+        fetchByLocale: candidateLocale => fetchProjectsByLocale(candidateLocale, cursor, pageSize),
+        hasValue: value => value.items.length > 0,
+        locales: buildContentLocaleFallbackChain(normalizedLocale),
+      });
 
-      return fetchProjectsByLocale('ko', cursor, pageSize);
+      return page ?? { items: [], nextCursor: null };
     },
     ['projects', 'list', cacheScope, normalizedLocale, cacheCursor, String(pageSize)],
     {
