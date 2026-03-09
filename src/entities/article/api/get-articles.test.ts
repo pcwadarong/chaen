@@ -81,7 +81,7 @@ describe('getArticles', () => {
       'supabase-enabled',
       'ko',
       'initial',
-      '12',
+      '10',
       '',
       '',
     ]);
@@ -116,7 +116,7 @@ describe('getArticles', () => {
     await getArticles({ cursor, locale: 'ko' });
 
     expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,article_id.lt.article-9)',
+      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
       {
         referencedTable: 'articles',
       },
@@ -281,7 +281,7 @@ describe('getArticles', () => {
       cursor_created_at: null,
       cursor_id: null,
       cursor_rank: null,
-      page_limit: 12,
+      page_limit: 10,
       search_query: 'react',
       target_locale: 'fr',
     });

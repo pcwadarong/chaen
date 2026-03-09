@@ -79,7 +79,7 @@ describe('getProjects', () => {
       'supabase-enabled',
       'ko',
       'initial',
-      '12',
+      '10',
     ]);
   });
 
@@ -112,7 +112,10 @@ describe('getProjects', () => {
     await getProjects({ cursor, locale: 'ko' });
 
     expect(projectTranslationsQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,project_id.lt.project-9)',
+      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
+      {
+        referencedTable: 'projects',
+      },
     );
   });
 

@@ -16,7 +16,7 @@ import {
   mapArticleFallbackRpcRow,
 } from './map-article-translation';
 
-const isMissingArticleShadowSchemaError = (message: string) => {
+const isMissingArticleContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
@@ -29,7 +29,7 @@ const isMissingArticleShadowSchemaError = (message: string) => {
 /**
  * content schema RPC에서 fallback 우선순위가 반영된 단일 아티클 번역을 조회합니다.
  */
-const fetchArticleFromShadowSchema = async (
+const fetchArticleFromContentSchema = async (
   articleId: string,
   localeFallbackChain: string[],
 ): Promise<{ data: Article | null; schemaMissing: boolean }> => {
@@ -45,7 +45,7 @@ const fetchArticleFromShadowSchema = async (
   );
 
   if (translationError) {
-    if (isMissingArticleShadowSchemaError(translationError.message)) {
+    if (isMissingArticleContentSchemaError(translationError.message)) {
       return { data: null, schemaMissing: true };
     }
 
@@ -76,7 +76,7 @@ const fetchArticleByLocaleFallbackChain = async (
   articleId: string,
   localeFallbackChain: string[],
 ): Promise<Article | null> => {
-  const articleResult = await fetchArticleFromShadowSchema(articleId, localeFallbackChain);
+  const articleResult = await fetchArticleFromContentSchema(articleId, localeFallbackChain);
   if (articleResult.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
   }

@@ -143,7 +143,7 @@ const fetchArticlesByLocaleFromShadow = async (
 
   if (parsedCursor) {
     translationsQuery = translationsQuery.or(
-      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},article_id.lt.${parsedCursor.id})`,
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
       { referencedTable: 'articles' },
     );
   }
@@ -234,7 +234,7 @@ const fetchArticlesByTagAndLocale = async (
 
   if (parsedCursor) {
     translationsQuery = translationsQuery.or(
-      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},article_id.lt.${parsedCursor.id})`,
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
       { referencedTable: 'articles' },
     );
   }

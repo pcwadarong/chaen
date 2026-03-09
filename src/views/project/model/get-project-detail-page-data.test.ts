@@ -45,4 +45,16 @@ describe('getProjectDetailPageData', () => {
     expect(result.archiveItems[0]?.id).toBe('funda');
     expect(result.item?.id).toBe('funda');
   });
+
+  it('아카이브 목록 조회 실패는 그대로 surface한다', async () => {
+    vi.mocked(getProject).mockResolvedValue(null);
+    vi.mocked(getProjectDetailList).mockRejectedValue(new Error('archive failed'));
+
+    await expect(
+      getProjectDetailPageData({
+        locale: 'ko',
+        projectId: 'funda',
+      }),
+    ).rejects.toThrow('archive failed');
+  });
 });

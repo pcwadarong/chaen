@@ -45,7 +45,7 @@ export const getArticleDetailPageData = async ({
 }: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
   const [item, archiveItems, initialCommentsPage] = await Promise.all([
     getArticle(articleId, locale),
-    getArticleDetailList(locale).catch(() => []),
+    getArticleDetailList(locale),
     getArticleComments({
       articleId,
       page: 1,

@@ -16,7 +16,7 @@ import type { ProjectListItem } from '../model/types';
 
 import { mapProjectListItems, type ProjectTranslationRow } from './map-project-translation';
 
-const isMissingProjectsShadowSchemaError = (message: string) => {
+const isMissingProjectsContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
@@ -58,7 +58,7 @@ const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectsPage
 /**
  * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
  */
-const fetchProjectsByLocaleFromShadow = async (
+const fetchProjectsByLocaleFromContentSchema = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
@@ -81,7 +81,8 @@ const fetchProjectsByLocaleFromShadow = async (
 
   if (parsedCursor) {
     translationsQuery = translationsQuery.or(
-      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},project_id.lt.${parsedCursor.id})`,
+      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
+      { referencedTable: 'projects' },
     );
   }
 
@@ -90,7 +91,7 @@ const fetchProjectsByLocaleFromShadow = async (
   );
 
   if (translationError) {
-    if (isMissingProjectsShadowSchemaError(translationError.message)) {
+    if (isMissingProjectsContentSchemaError(translationError.message)) {
       return {
         data: { items: [], nextCursor: null },
         schemaMissing: true,
@@ -114,7 +115,7 @@ const fetchProjectsByLocale = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectsPage> => {
-  const localizedProjects = await fetchProjectsByLocaleFromShadow(locale, cursor, pageSize);
+  const localizedProjects = await fetchProjectsByLocaleFromContentSchema(locale, cursor, pageSize);
   if (localizedProjects.schemaMissing) {
     throw new Error('[projects] content schema가 없습니다.');
   }

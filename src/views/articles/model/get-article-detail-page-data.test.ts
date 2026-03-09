@@ -66,4 +66,24 @@ describe('getArticleDetailPageData', () => {
       sort: 'latest',
     });
   });
+
+  it('아카이브 목록 조회 실패는 그대로 surface한다', async () => {
+    vi.mocked(getArticle).mockResolvedValue(null);
+    vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
+    vi.mocked(getArticleComments).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest',
+      totalCount: 0,
+      totalPages: 0,
+    });
+
+    await expect(
+      getArticleDetailPageData({
+        articleId: 'frontend',
+        locale: 'ko',
+      }),
+    ).rejects.toThrow('archive failed');
+  });
 });

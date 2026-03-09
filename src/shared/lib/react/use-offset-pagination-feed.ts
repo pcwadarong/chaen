@@ -31,7 +31,7 @@ type UseOffsetPaginationFeedResult<T> = {
   loadMore: () => Promise<void>;
 };
 
-const DEFAULT_LIMIT = 12;
+const DEFAULT_LIMIT = 10;
 
 /**
  * offset(cursor) 기반 API를 사용하는 무한 스크롤 리스트 상태를 공통 관리합니다.

@@ -1,19 +1,19 @@
 import { unstable_cache } from 'next/cache';
 
-import { buildCreatedAtIdPage } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
+import { buildArticleLocaleFallbackChain } from '../model/locale-fallback';
 import type { ArticleDetailListItem } from '../model/types';
 
 import { type ArticleTranslationRow, mapArticleDetailListItems } from './map-article-translation';
 
 const DETAIL_LIST_LIMIT = 200;
 
-const isMissingArticleShadowSchemaError = (message: string) => {
+const isMissingArticleContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
@@ -22,26 +22,9 @@ const isMissingArticleShadowSchemaError = (message: string) => {
 };
 
 /**
- * 아티클 상세 아카이브용 요약 목록을 keyset 정렬 기준으로 정규화합니다.
- */
-const toArticleDetailListItems = (rows: ArticleDetailListItem[]): ArticleDetailListItem[] =>
-  buildCreatedAtIdPage({
-    limit: DETAIL_LIST_LIMIT,
-    rows: rows.map(row => ({
-      ...row,
-      createdAt: row.created_at,
-    })),
-  }).items.map(({ createdAt: _createdAt, ...row }) => ({
-    created_at: row.created_at,
-    description: row.description,
-    id: row.id,
-    title: row.title,
-  }));
-
-/**
  * content schema(`articles` + `article_translations`) 기준 상세 아카이브 목록을 조회합니다.
  */
-const fetchArticleDetailListFromShadow = async (
+const fetchArticleDetailListFromContentSchema = async (
   locale: string,
 ): Promise<{ data: ArticleDetailListItem[]; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
@@ -53,10 +36,10 @@ const fetchArticleDetailListFromShadow = async (
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false })
-    .limit(DETAIL_LIST_LIMIT + 1);
+    .limit(DETAIL_LIST_LIMIT);
 
   if (translationError) {
-    if (isMissingArticleShadowSchemaError(translationError.message)) {
+    if (isMissingArticleContentSchemaError(translationError.message)) {
       return { data: [], schemaMissing: true };
     }
 
@@ -64,15 +47,13 @@ const fetchArticleDetailListFromShadow = async (
   }
 
   return {
-    data: toArticleDetailListItems(
-      mapArticleDetailListItems((translationRows ?? []) as ArticleTranslationRow[]),
-    ),
+    data: mapArticleDetailListItems((translationRows ?? []) as ArticleTranslationRow[]),
     schemaMissing: false,
   };
 };
 
 const fetchArticleDetailListByLocale = async (locale: string): Promise<ArticleDetailListItem[]> => {
-  const articleDetailList = await fetchArticleDetailListFromShadow(locale);
+  const articleDetailList = await fetchArticleDetailListFromContentSchema(locale);
   if (articleDetailList.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
   }
@@ -90,14 +71,17 @@ export const getArticleDetailList = async (locale: string): Promise<ArticleDetai
   if (cacheScope === 'supabase-disabled') return [];
 
   const normalizedLocale = locale.toLowerCase();
+  const localeFallbackChain = buildArticleLocaleFallbackChain(normalizedLocale);
   const getCachedArticleDetailList = unstable_cache(
     async () => {
-      const localizedItems = await fetchArticleDetailListByLocale(normalizedLocale);
-      if (localizedItems.length > 0 || normalizedLocale === 'ko') return localizedItems;
+      for (const candidateLocale of localeFallbackChain) {
+        const localizedItems = await fetchArticleDetailListByLocale(candidateLocale);
+        if (localizedItems.length > 0) return localizedItems;
+      }
 
-      return fetchArticleDetailListByLocale('ko');
+      return [];
     },
-    ['articles', 'detail-list', cacheScope, normalizedLocale, 'keyset'],
+    ['articles', 'detail-list', cacheScope, normalizedLocale, localeFallbackChain.join('>')],
     {
       tags: [ARTICLES_CACHE_TAG],
       revalidate: false,

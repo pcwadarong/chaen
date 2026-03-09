@@ -11,7 +11,7 @@ import type { Project } from '../model/types';
 
 import { mapProject, type ProjectTranslationRow } from './map-project-translation';
 
-const isMissingProjectShadowSchemaError = (message: string) => {
+const isMissingProjectContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
@@ -22,7 +22,7 @@ const isMissingProjectShadowSchemaError = (message: string) => {
 /**
  * content schema(`projects` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
  */
-const fetchProjectFromShadowSchema = async (
+const fetchProjectFromContentSchema = async (
   projectId: string,
   locale: string,
 ): Promise<{ data: Project | null; schemaMissing: boolean }> => {
@@ -39,7 +39,7 @@ const fetchProjectFromShadowSchema = async (
     .maybeSingle<ProjectTranslationRow>();
 
   if (translationError) {
-    if (isMissingProjectShadowSchemaError(translationError.message)) {
+    if (isMissingProjectContentSchemaError(translationError.message)) {
       return { data: null, schemaMissing: true };
     }
 
@@ -66,7 +66,7 @@ const fetchProjectFromShadowSchema = async (
 };
 
 const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
-  const projectResult = await fetchProjectFromShadowSchema(projectId, locale);
+  const projectResult = await fetchProjectFromContentSchema(projectId, locale);
   if (projectResult.schemaMissing) {
     throw new Error('[projects] content schema가 없습니다.');
   }

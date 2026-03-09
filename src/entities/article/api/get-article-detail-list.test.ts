@@ -108,6 +108,69 @@ describe('getArticleDetailList', () => {
     ]);
   });
 
+  it('요청 locale과 ko가 비어 있으면 다음 fallback locale 아카이브 항목을 반환한다', async () => {
+    const emptyTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const emptyKoTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const fallbackTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'english-archive',
+            title: 'English Archive',
+            description: 'detail en',
+            articles: {
+              created_at: '2026-03-03T00:00:00.000Z',
+            },
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(emptyTranslationsQuery)
+        .mockReturnValueOnce(emptyKoTranslationsQuery)
+        .mockReturnValueOnce(fallbackTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticleDetailList('fr');
+
+    expect(result).toEqual([
+      {
+        id: 'english-archive',
+        title: 'English Archive',
+        description: 'detail en',
+        created_at: '2026-03-03T00:00:00.000Z',
+      },
+    ]);
+    expect(emptyTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
+    expect(emptyKoTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'en');
+  });
+
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),

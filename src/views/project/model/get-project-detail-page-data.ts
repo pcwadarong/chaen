@@ -42,7 +42,7 @@ export const getProjectDetailPageData = async ({
 }: GetProjectDetailPageDataInput): Promise<ProjectDetailPageData> => {
   const [item, archiveItems] = await Promise.all([
     getProject(projectId, locale),
-    getProjectDetailList(locale).catch(() => []),
+    getProjectDetailList(locale),
   ]);
 
   return {
