@@ -1,8 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
-import { css as pandaCss } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
@@ -71,7 +70,7 @@ export const SwitcherPopover = ({
   };
 
   return (
-    <div ref={rootRef} css={rootStyle}>
+    <div className={rootClass} ref={rootRef}>
       <span className={srOnlyClass} id={panelLabelId}>
         {panelLabel}
       </span>
@@ -81,7 +80,7 @@ export const SwitcherPopover = ({
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-labelledby={panelLabelId}
-        className={triggerClass}
+        className={triggerButtonClass}
         onClick={handleToggle}
         size="sm"
         tone="white"
@@ -92,8 +91,8 @@ export const SwitcherPopover = ({
           triggerContent
         ) : (
           <>
-            <span css={triggerLabelStyle}>{label}</span>
-            <span id={valueId} css={triggerValueStyle}>
+            <span className={triggerLabelClass}>{label}</span>
+            <span className={triggerValueClass} id={valueId}>
               {value}
             </span>
           </>
@@ -106,7 +105,7 @@ export const SwitcherPopover = ({
           ref={panelRef}
           role="dialog"
           tabIndex={-1}
-          css={panelStyle}
+          className={panelClass}
         >
           {children({ closePopover })}
         </div>
@@ -115,11 +114,11 @@ export const SwitcherPopover = ({
   );
 };
 
-const rootStyle = css`
-  position: relative;
-`;
+const rootClass = css({
+  position: 'relative',
+});
 
-const triggerClass = pandaCss({
+const triggerButtonClass = css({
   display: 'inline-flex',
   gap: '3',
   border: 'none',
@@ -135,30 +134,30 @@ const triggerClass = pandaCss({
   },
 });
 
-const triggerLabelStyle = css`
-  font-size: var(--font-size-12);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgb(var(--color-muted));
-`;
+const triggerLabelClass = css({
+  fontSize: '12',
+  fontWeight: 'bold',
+  letterSpacing: '[0.12em]',
+  textTransform: 'uppercase',
+  color: 'muted',
+});
 
-const triggerValueStyle = css`
-  font-size: var(--font-size-14);
-  color: rgb(var(--color-text));
-`;
+const triggerValueClass = css({
+  fontSize: '14',
+  color: 'text',
+});
 
-const panelStyle = css`
-  position: absolute;
-  top: calc(100% + 0.55rem);
-  right: 0;
-  min-width: 12rem;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.22);
-  background-color: rgb(var(--color-surface) / 0.98);
-  box-shadow: 0 18px 42px rgb(var(--color-black) / 0.12);
-  display: grid;
-  gap: var(--space-1);
-  z-index: 30;
-`;
+const panelClass = css({
+  position: 'absolute',
+  top: '[calc(100% + 0.55rem)]',
+  right: '0',
+  minWidth: '48',
+  p: '2',
+  borderRadius: 'md',
+  border: '[1px solid rgb(var(--color-border) / 0.22)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.98)]',
+  boxShadow: '[0 18px 42px rgb(var(--color-black) / 0.12)]',
+  display: 'grid',
+  gap: '1',
+  zIndex: '30',
+});

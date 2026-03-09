@@ -1,8 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import Image from 'next/image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { Modal } from '@/shared/ui/modal/modal';
@@ -128,42 +128,33 @@ export const ImageViewerModal = ({
     <Modal
       ariaLabel={resolvedDialogAriaLabel}
       closeAriaLabel={labels.closeAriaLabel}
-      frameStyle={viewerFrameStyle}
+      frameClassName={viewerFrameClass}
       isOpen={isOpen}
       onClose={onClose}
     >
-      <div css={viewerContentStyle}>
-        <div css={imageStageStyle}>
+      <div className={viewerContentClass}>
+        <div className={imageStageClass}>
           <button
             aria-label={labels.previousAriaLabel}
+            className={cx(sideButtonClass, sideButtonLeftClass)}
             onClick={() => {
               const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
               setCurrentIndex(nextIndex);
               setZoomLevel(1);
             }}
-            css={[
-              sideButtonStyle,
-              css`
-                left: 0.55rem;
-              `,
-            ]}
             type="button"
           >
             ‹
           </button>
 
-          <div css={imageViewportStyle}>
-            <div css={imageInnerStyle}>
+          <div className={imageViewportClass}>
+            <div className={imageInnerClass}>
               <Image
                 alt={currentItem.alt}
+                className={viewerImageClass}
                 height={1200}
                 src={currentItem.src}
-                css={[
-                  viewerImageStyle,
-                  css`
-                    transform: scale(${zoomLevel});
-                  `,
-                ]}
+                style={{ transform: `scale(${zoomLevel})` }}
                 unoptimized={currentItem.unoptimized}
                 width={1920}
               />
@@ -172,42 +163,37 @@ export const ImageViewerModal = ({
 
           <button
             aria-label={labels.nextAriaLabel}
+            className={cx(sideButtonClass, sideButtonRightClass)}
             onClick={() => {
               const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
               setCurrentIndex(nextIndex);
               setZoomLevel(1);
             }}
-            css={[
-              sideButtonStyle,
-              css`
-                right: 0.55rem;
-              `,
-            ]}
             type="button"
           >
             ›
           </button>
 
-          <div css={zoomDockStyle}>
+          <div className={zoomDockClass}>
             <button
               aria-label={labels.zoomOutAriaLabel}
+              className={dockButtonClass}
               onClick={() => {
                 setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP));
               }}
-              css={dockButtonStyle}
               type="button"
             >
               -
             </button>
-            <span aria-live="polite" css={zoomTextStyle}>
+            <span aria-live="polite" className={zoomTextClass}>
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               aria-label={labels.zoomInAriaLabel}
+              className={dockButtonClass}
               onClick={() => {
                 setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP));
               }}
-              css={dockButtonStyle}
               type="button"
             >
               +
@@ -217,8 +203,8 @@ export const ImageViewerModal = ({
 
         <div
           aria-label={labels.thumbnailListAriaLabel}
+          className={thumbnailRailClass}
           ref={thumbnailRailRef}
-          css={thumbnailRailStyle}
         >
           {sanitizedItems.map((item, index) => {
             const isActive = index === currentIndex;
@@ -237,14 +223,17 @@ export const ImageViewerModal = ({
                 ref={node => {
                   thumbnailButtonRefs.current[index] = node;
                 }}
-                css={[thumbnailButtonStyle, isActive && activeThumbnailButtonStyle]}
+                className={cx(
+                  thumbnailButtonClass,
+                  isActive ? activeThumbnailButtonClass : undefined,
+                )}
                 type="button"
               >
                 <Image
                   alt={item.alt}
+                  className={thumbnailImageClass}
                   height={200}
                   src={item.src}
-                  css={thumbnailImageStyle}
                   unoptimized={item.unoptimized}
                   width={320}
                 />
@@ -257,136 +246,144 @@ export const ImageViewerModal = ({
   );
 };
 
-const viewerFrameStyle = css`
-  width: min(1280px, 100%);
-  height: min(94dvh, 100%);
-`;
+const viewerFrameClass = css({
+  width: '[min(1280px,100%)]',
+  height: '[min(94dvh,100%)]',
+});
 
-const viewerContentStyle = css`
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: var(--space-3);
-`;
+const viewerContentClass = css({
+  width: 'full',
+  height: 'full',
+  display: 'grid',
+  gridTemplateRows: '[1fr auto]',
+  gap: '3',
+});
 
-const imageStageStyle = css`
-  position: relative;
-  min-height: 0;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--color-white) / 0.18);
-  background-color: rgb(var(--color-black) / 0.22);
-  overflow: hidden;
-`;
+const imageStageClass = css({
+  position: 'relative',
+  minHeight: '0',
+  borderRadius: 'lg',
+  border: '[1px solid rgb(var(--color-white) / 0.18)]',
+  backgroundColor: '[rgb(var(--color-black) / 0.22)]',
+  overflow: 'hidden',
+});
 
-const imageViewportStyle = css`
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-`;
+const imageViewportClass = css({
+  width: 'full',
+  height: 'full',
+  overflow: 'auto',
+});
 
-const imageInnerStyle = css`
-  width: 100%;
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: var(--space-4);
-`;
+const imageInnerClass = css({
+  width: 'full',
+  minHeight: 'full',
+  display: 'grid',
+  placeItems: 'center',
+  p: '4',
+});
 
-const viewerImageStyle = css`
-  width: min(100%, 1120px);
-  height: auto;
-  transform-origin: center;
-  transition: transform 140ms ease;
-`;
+const viewerImageClass = css({
+  width: '[min(100%,1120px)]',
+  height: 'auto',
+  transformOrigin: 'center',
+  transition: '[transform 140ms ease]',
+});
 
-const sideButtonStyle = css`
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  width: 2.6rem;
-  height: 3.2rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-white) / 0.28);
-  background-color: rgb(var(--color-black) / 0.45);
-  color: rgb(var(--color-white));
-  font-size: var(--font-size-32);
-  line-height: var(--line-height-100);
-  transform: translateY(-50%);
-  cursor: pointer;
-`;
+const sideButtonClass = css({
+  position: 'absolute',
+  top: '[50%]',
+  zIndex: '3',
+  width: '[2.6rem]',
+  height: '[3.2rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-white) / 0.28)]',
+  backgroundColor: '[rgb(var(--color-black) / 0.45)]',
+  color: '[rgb(var(--color-white))]',
+  fontSize: '32',
+  lineHeight: '100',
+  transform: '[translateY(-50%)]',
+  cursor: 'pointer',
+});
 
-const zoomDockStyle = css`
-  position: absolute;
-  left: 50%;
-  bottom: 0.9rem;
-  z-index: 3;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 2.6rem;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-white) / 0.25);
-  background-color: rgb(var(--color-black) / 0.45);
-`;
+const sideButtonLeftClass = css({
+  left: '[0.55rem]',
+});
 
-const dockButtonStyle = css`
-  min-width: 2.15rem;
-  height: 2rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-white) / 0.3);
-  background-color: rgb(var(--color-white) / 0.08);
-  color: rgb(var(--color-white));
-  font-size: var(--font-size-16);
-  line-height: var(--line-height-100);
-  cursor: pointer;
-`;
+const sideButtonRightClass = css({
+  right: '[0.55rem]',
+});
 
-const zoomTextStyle = css`
-  min-width: 3.5rem;
-  text-align: center;
-  color: rgb(var(--color-gray-200));
-  font-size: var(--font-size-14);
-  font-variant-numeric: tabular-nums;
-`;
+const zoomDockClass = css({
+  position: 'absolute',
+  left: '[50%]',
+  bottom: '[0.9rem]',
+  zIndex: '3',
+  transform: '[translateX(-50%)]',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '2',
+  minHeight: '[2.6rem]',
+  px: '2',
+  py: '1',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-white) / 0.25)]',
+  backgroundColor: '[rgb(var(--color-black) / 0.45)]',
+});
 
-const thumbnailRailStyle = css`
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  gap: var(--space-2);
-  overflow-x: auto;
-  padding: var(--space-1) var(--space-1) var(--space-2);
-  justify-content: center;
-`;
+const dockButtonClass = css({
+  minWidth: '[2.15rem]',
+  height: '8',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-white) / 0.3)]',
+  backgroundColor: '[rgb(var(--color-white) / 0.08)]',
+  color: '[rgb(var(--color-white))]',
+  fontSize: '16',
+  lineHeight: '100',
+  cursor: 'pointer',
+});
 
-const thumbnailButtonStyle = css`
-  width: clamp(84px, 13vw, 128px);
-  border: 1px solid rgb(var(--color-white) / 0.2);
-  background: transparent;
-  border-radius: var(--radius-md);
-  padding: var(--space-0);
-  overflow: hidden;
-  opacity: 0.75;
-  transform: scale(0.96);
-  transition:
-    transform 220ms ease,
-    opacity 220ms ease,
-    border-color 220ms ease;
-  cursor: pointer;
-`;
+const zoomTextClass = css({
+  minWidth: '[3.5rem]',
+  textAlign: 'center',
+  color: '[rgb(var(--color-gray-200))]',
+  fontSize: '14',
+  fontVariantNumeric: 'tabular-nums',
+});
 
-const activeThumbnailButtonStyle = css`
-  opacity: 1;
-  transform: scale(1);
-  border-color: rgb(var(--color-white) / 0.8);
-`;
+const thumbnailRailClass = css({
+  display: 'grid',
+  gridAutoFlow: 'column',
+  gridAutoColumns: '[max-content]',
+  gap: '2',
+  overflowX: 'auto',
+  pt: '1',
+  px: '1',
+  pb: '2',
+  justifyContent: 'center',
+});
 
-const thumbnailImageStyle = css`
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-`;
+const thumbnailButtonClass = css({
+  width: '[clamp(84px,13vw,128px)]',
+  border: '[1px solid rgb(var(--color-white) / 0.2)]',
+  background: 'transparent',
+  borderRadius: 'md',
+  p: '0',
+  overflow: 'hidden',
+  opacity: 0.75,
+  transform: '[scale(0.96)]',
+  transition: '[transform 220ms ease, opacity 220ms ease, border-color 220ms ease]',
+  cursor: 'pointer',
+});
+
+const activeThumbnailButtonClass = css({
+  opacity: 1,
+  transform: '[scale(1)]',
+  borderColor: '[rgb(var(--color-white) / 0.8)]',
+});
+
+const thumbnailImageClass = css({
+  width: 'full',
+  height: 'auto',
+  aspectRatio: '[16 / 9]',
+  objectFit: 'cover',
+});

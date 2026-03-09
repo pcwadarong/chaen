@@ -8,6 +8,7 @@
 4. Emotion 제거 단계 진행용 PR 문서 생성 및 체크리스트 정리
 5. Shared primitives를 Panda recipe와 `className` 병합 패턴으로 전환
 6. `srOnly` 계약을 Panda 클래스 기반으로 통일하고 관련 테스트/alias를 정리
+7. Wrapper / Client Shell의 정적 프레임을 Panda class 기반으로 전환
 
 <br/>
 
@@ -29,6 +30,8 @@
 - Shared primitives는 sibling `*.recipe.ts`로 옮기고, 컴포넌트 본문은 `cx(recipe(...), className)`만 사용하도록 고정
 - server component로 복구 가능한 `Button`, `Input`, `ThemeIcon`, `ContentCard`, `Pagination`의 스타일 전용 `use client`를 제거
 - Vitest는 `styled-system/*` alias를 따로 모르고 있어 server component 테스트가 깨졌으므로 `vitest.config.ts`에도 동일 alias를 추가
+- `Modal`은 `frameStyle` 대신 `frameClassName`으로 프레임 확장 포인트를 통일하고, `ImageViewerModal`은 확대 배율만 runtime `style`로 남기고 나머지 프레임은 Panda class로 이동
+- `Toast`, `ActionPopover`, `SwitcherPopover`의 wrapper 프레임과 액션 버튼은 Emotion `css`가 아닌 Panda `css()/cva()` 기반 정적 클래스만 사용
 
 <br/>
 
@@ -48,7 +51,7 @@
 - [x] 1단계 Foundation
 - [x] 2단계 Token System + Global Layer
 - [x] 3단계 Shared Primitives
-- [ ] 4단계 Wrapper / Client Shell
+- [x] 4단계 Wrapper / Client Shell
 - [ ] 5단계 View / Simple Page
 - [ ] 6단계 Interactive Features
 - [ ] 7단계 Emotion Removal
@@ -68,4 +71,7 @@
 
 - `Button`, `Input`, `Textarea`, `ThemeIcon`, `ContentCard`, `Pagination`, `srOnly`는 Panda recipe/class 기반으로 전환 완료
 - `getButtonStyle`, `Button.css prop`, `srOnlyStyle`, `srOnlyStyleObject` 의존은 shared layer에서 제거 완료
+- `Modal`, `ToastViewport`, `ActionPopover`, `SwitcherPopover`, `ImageViewerModal`의 정적 shell 스타일은 Panda class 기반으로 전환 완료
+- `frameStyle` API는 `frameClassName`으로 교체 완료
+- server-page 렌더 테스트 2건은 React server stream 기반으로 유지하되 transform 시간이 길어 timeout을 30초로 상향
 - 마이그레이션 종료 시 `panda-legacy-aliases.css`, `prepare` 자동 codegen, 테스트 alias 등 임시 호환/운영 보조 장치는 실제 필요성을 다시 검토하고 삭제 대상을 최종 정리해야 함

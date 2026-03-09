@@ -1,8 +1,8 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { css, cx } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 
@@ -12,7 +12,7 @@ type ModalProps = {
   ariaLabelledBy?: string;
   children: ReactNode;
   closeAriaLabel: string;
-  frameStyle?: ReturnType<typeof css>;
+  frameClassName?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +28,7 @@ export const Modal = ({
   ariaLabelledBy,
   children,
   closeAriaLabel,
-  frameStyle,
+  frameClassName,
   initialFocusRef,
   isOpen,
   onClose,
@@ -65,7 +65,7 @@ export const Modal = ({
       onClick={event => {
         if (event.target === event.currentTarget) onClose();
       }}
-      css={backdropStyle}
+      className={backdropClass}
     >
       <div
         aria-describedby={ariaDescribedBy}
@@ -75,9 +75,14 @@ export const Modal = ({
         ref={frameRef}
         role="dialog"
         tabIndex={-1}
-        css={[frameBaseStyle, frameStyle]}
+        className={cx(frameBaseClass, frameClassName)}
       >
-        <button aria-label={closeAriaLabel} onClick={onClose} css={closeButtonStyle} type="button">
+        <button
+          aria-label={closeAriaLabel}
+          className={closeButtonClass}
+          onClick={onClose}
+          type="button"
+        >
           ×
         </button>
         {children}
@@ -87,32 +92,32 @@ export const Modal = ({
   );
 };
 
-const backdropStyle = css`
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  background-color: rgb(var(--color-black) / 0.86);
-  display: grid;
-  place-items: center;
-  padding: var(--space-4);
-`;
+const backdropClass = css({
+  position: 'fixed',
+  inset: '0',
+  zIndex: '1200',
+  backgroundColor: '[rgb(var(--color-black) / 0.86)]',
+  display: 'grid',
+  placeItems: 'center',
+  p: '4',
+});
 
-const frameBaseStyle = css`
-  position: relative;
-`;
+const frameBaseClass = css({
+  position: 'relative',
+});
 
-const closeButtonStyle = css`
-  position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  z-index: 10;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-white) / 0.3);
-  background-color: rgb(var(--color-black) / 0.5);
-  color: rgb(var(--color-white));
-  font-size: var(--font-size-20);
-  line-height: var(--line-height-100);
-  cursor: pointer;
-`;
+const closeButtonClass = css({
+  position: 'absolute',
+  top: '[0.65rem]',
+  right: '[0.65rem]',
+  zIndex: '10',
+  width: '[2.4rem]',
+  height: '[2.4rem]',
+  borderRadius: 'pill',
+  border: '[1px solid rgb(var(--color-white) / 0.3)]',
+  backgroundColor: '[rgb(var(--color-black) / 0.5)]',
+  color: '[rgb(var(--color-white))]',
+  fontSize: '20',
+  lineHeight: '100',
+  cursor: 'pointer',
+});

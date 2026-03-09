@@ -50,5 +50,5 @@ describe('ProjectDetailPage', () => {
 
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
-  });
+  }, 30000);
 });

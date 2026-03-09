@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React from 'react';
+import { css, cva } from 'styled-system/css';
 
 export type ToastItem = {
   id: string;
@@ -19,11 +19,11 @@ type ToastViewportProps = {
  * 전역 상태 없이 페이지 단위에서 사용할 수 있는 간단한 토스트 뷰포트입니다.
  */
 export const ToastViewport = ({ closeLabel, items, onClose }: ToastViewportProps) => (
-  <div aria-live="polite" css={viewportStyle}>
+  <div aria-live="polite" className={viewportClass}>
     {items.map(item => (
-      <div key={item.id} css={[toastStyle, toneStyleMap[item.tone]]}>
-        <p css={messageStyle}>{item.message}</p>
-        <button onClick={() => onClose(item.id)} css={closeButtonStyle} type="button">
+      <div className={toastRecipe({ tone: item.tone })} key={item.id}>
+        <p className={messageClass}>{item.message}</p>
+        <button className={closeButtonClass} onClick={() => onClose(item.id)} type="button">
           {closeLabel}
         </button>
       </div>
@@ -31,51 +31,55 @@ export const ToastViewport = ({ closeLabel, items, onClose }: ToastViewportProps
   </div>
 );
 
-const viewportStyle = css`
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 70;
-  display: grid;
-  gap: var(--space-2);
-  width: min(22rem, calc(100vw - 2rem));
-`;
+const viewportClass = css({
+  position: 'fixed',
+  right: '4',
+  bottom: '4',
+  zIndex: '70',
+  display: 'grid',
+  gap: '2',
+  width: '[min(22rem,calc(100vw-2rem))]',
+});
 
-const toastStyle = css`
-  border-radius: var(--radius-s);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: rgb(var(--color-surface));
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-3);
-  box-shadow: 0 10px 24px rgb(var(--color-black) / 0.12);
-`;
+const toastRecipe = cva({
+  base: {
+    borderRadius: 's',
+    border: '[1px solid rgb(var(--color-border) / 0.3)]',
+    backgroundColor: 'surface',
+    display: 'grid',
+    gridTemplateColumns: '[1fr auto]',
+    alignItems: 'start',
+    gap: '3',
+    px: '3',
+    py: '3',
+    boxShadow: '[0 10px 24px rgb(var(--color-black) / 0.12)]',
+  },
+  variants: {
+    tone: {
+      error: {
+        borderLeft: '[3px solid rgb(var(--color-danger))]',
+      },
+      info: {
+        borderLeft: '[3px solid rgb(var(--color-muted))]',
+      },
+      success: {
+        borderLeft: '[3px solid rgb(var(--color-success))]',
+      },
+    },
+  },
+});
 
-const toneStyleMap: Record<ToastItem['tone'], ReturnType<typeof css>> = {
-  info: css`
-    border-left: 3px solid rgb(var(--color-muted));
-  `,
-  success: css`
-    border-left: 3px solid rgb(var(--color-success));
-  `,
-  error: css`
-    border-left: 3px solid rgb(var(--color-danger));
-  `,
-};
+const messageClass = css({
+  m: '0',
+  fontSize: '14',
+  lineHeight: '155',
+});
 
-const messageStyle = css`
-  margin: 0;
-  font-size: var(--font-size-14);
-  line-height: var(--line-height-155);
-`;
-
-const closeButtonStyle = css`
-  border: none;
-  background: transparent;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-12);
-  text-decoration: underline;
-  padding: var(--space-0);
-`;
+const closeButtonClass = css({
+  border: 'none',
+  background: 'transparent',
+  color: 'muted',
+  fontSize: '12',
+  textDecoration: 'underline',
+  p: '0',
+});

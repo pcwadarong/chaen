@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { type ReactNode, useCallback, useEffect, useId, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { KebabIcon } from '@/shared/ui/icons/app-icons';
@@ -72,13 +72,13 @@ export const ActionPopover = ({
   });
 
   return (
-    <div ref={rootRef} css={rootStyle}>
+    <div className={rootClass} ref={rootRef}>
       <button
         aria-controls={isOpen ? panelId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={triggerLabel}
-        css={triggerStyle}
+        className={triggerClass}
         onClick={() => onOpenChange(!isOpen)}
         type="button"
       >
@@ -87,7 +87,7 @@ export const ActionPopover = ({
       {isOpen ? (
         <div
           aria-label={panelLabel}
-          css={panelStyle}
+          className={panelClass}
           id={panelId}
           ref={panelRef}
           role="dialog"
@@ -111,12 +111,12 @@ export const ActionMenuButton = ({
 }: ActionMenuButtonProps) => (
   <button
     aria-disabled={ariaDisabled ? 'true' : undefined}
-    css={actionButtonStyle}
+    className={actionButtonClass}
     onClick={ariaDisabled ? undefined : onClick}
     type="button"
   >
     {icon ? (
-      <span aria-hidden css={iconStyle}>
+      <span aria-hidden className={iconClass}>
         {icon}
       </span>
     ) : null}
@@ -124,75 +124,76 @@ export const ActionMenuButton = ({
   </button>
 );
 
-const rootStyle = css`
-  position: relative;
-`;
+const rootClass = css({
+  position: 'relative',
+});
 
-const triggerStyle = css`
-  border: 0;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-pill);
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+const triggerClass = css({
+  border: '[0]',
+  background: 'transparent',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '8',
+  height: '8',
+  borderRadius: 'pill',
+  transition: 'colors',
+  _hover: {
+    outline: 'none',
+    background: '[rgb(var(--color-primary) / 0.08)]',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    background: '[rgb(var(--color-primary) / 0.08)]',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+});
 
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    background: rgb(var(--color-primary) / 0.08);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-`;
+const panelClass = css({
+  position: 'absolute',
+  top: '[calc(100% + 0.4rem)]',
+  right: '0',
+  minWidth: '[8.5rem]',
+  p: '2',
+  display: 'grid',
+  gap: '1',
+  borderRadius: 'md',
+  border: '[1px solid rgb(var(--color-border) / 0.22)]',
+  backgroundColor: '[rgb(var(--color-surface) / 0.98)]',
+  boxShadow: '[0 18px 42px rgb(var(--color-black) / 0.12)]',
+  zIndex: '20',
+});
 
-const panelStyle = css`
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  right: 0;
-  min-width: 8.5rem;
-  padding: var(--space-2);
-  display: grid;
-  gap: var(--space-1);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.22);
-  background-color: rgb(var(--color-surface) / 0.98);
-  box-shadow: 0 18px 42px rgb(var(--color-black) / 0.12);
-  z-index: 20;
-`;
+const actionButtonClass = css({
+  border: '[0]',
+  background: 'transparent',
+  color: 'muted',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  px: '2',
+  py: '1',
+  borderRadius: 'pill',
+  fontSize: '14',
+  transition: 'colors',
+  _hover: {
+    color: 'primary',
+    background: '[rgb(var(--color-primary) / 0.08)]',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+  _focusVisible: {
+    outline: 'none',
+    color: 'primary',
+    background: '[rgb(var(--color-primary) / 0.08)]',
+    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+  },
+  '&[aria-disabled="true"]': {
+    cursor: 'default',
+    opacity: 0.72,
+  },
+});
 
-const actionButtonStyle = css`
-  border: 0;
-  background: transparent;
-  color: rgb(var(--color-muted));
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-14);
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-
-  &:hover:not([aria-disabled='true']),
-  &:focus-visible:not([aria-disabled='true']) {
-    outline: none;
-    color: rgb(var(--color-primary));
-    background: rgb(var(--color-primary) / 0.08);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-
-  &[aria-disabled='true'] {
-    cursor: default;
-    opacity: 0.72;
-  }
-`;
-
-const iconStyle = css`
-  display: inline-flex;
-`;
+const iconClass = css({
+  display: 'inline-flex',
+});
