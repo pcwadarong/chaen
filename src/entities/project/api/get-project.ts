@@ -15,11 +15,24 @@ import type { Project } from '../model/types';
 
 import { mapProject, type ProjectTranslationRow } from './map-project-translation';
 
-const isMissingProjectContentSchemaError = (message: string) => {
+type ProjectContentSchemaError = {
+  code?: string | null;
+  message: string;
+};
+
+const isMissingProjectContentSchemaError = ({ code, message }: ProjectContentSchemaError) => {
+  if (code) return code === '42P01';
+
   const normalizedMessage = message.toLowerCase();
+  // 프로젝트 content schema는 `projects` 테이블과 `project_translations` 테이블로 구성되어 있어서 둘 중 하나라도 없으면 조회가 불가능합니다.
+  const missingProjectTranslationsRelationPattern =
+    /relation\s+["']?(?:public\.)?project_translations["']?\s+does not exist/i;
+  const missingProjectsRelationPattern =
+    /relation\s+["']?(?:public\.)?projects["']?\s+does not exist/i;
 
   return (
-    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
+    missingProjectTranslationsRelationPattern.test(normalizedMessage) ||
+    missingProjectsRelationPattern.test(normalizedMessage)
   );
 };
 
@@ -43,25 +56,20 @@ const fetchProjectFromContentSchema = async (
     .maybeSingle<ProjectTranslationRow>();
 
   if (translationError) {
-    if (isMissingProjectContentSchemaError(translationError.message)) {
+    if (isMissingProjectContentSchemaError(translationError))
       return { data: null, schemaMissing: true };
-    }
 
     throw new Error(`[projects] 번역 조회 실패: ${translationError.message}`);
   }
 
-  if (!translation) {
-    return { data: null, schemaMissing: false };
-  }
+  if (!translation) return { data: null, schemaMissing: false };
 
   const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'project_id',
     entityId: projectId,
     relationTable: 'project_tags',
   });
-  if (relatedTags.schemaMissing) {
-    throw new Error('[projects] 태그 relation schema가 없습니다.');
-  }
+  if (relatedTags.schemaMissing) throw new Error('[projects] 태그 relation schema가 없습니다.');
 
   return {
     data: mapProject(translation, relatedTags.data),
@@ -71,9 +79,7 @@ const fetchProjectFromContentSchema = async (
 
 const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
   const projectResult = await fetchProjectFromContentSchema(projectId, locale);
-  if (projectResult.schemaMissing) {
-    throw new Error('[projects] content schema가 없습니다.');
-  }
+  if (projectResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
   return projectResult.data;
 };

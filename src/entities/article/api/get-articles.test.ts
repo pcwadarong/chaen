@@ -365,6 +365,30 @@ describe('getArticles', () => {
     );
   });
 
+  it('relation 이름만 포함한 권한 오류는 content schema missing으로 오인하지 않는다', async () => {
+    const articleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'permission denied for articles table',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(articleTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticles({ locale: 'ko' })).rejects.toThrow(
+      '[articles] 번역 목록 조회 실패: permission denied for articles table',
+    );
+  });
+
   it('태그 목록도 locale 번역 기준으로 먼저 페이지네이션한다', async () => {
     const tagsQuery = {
       eq: vi.fn().mockReturnThis(),

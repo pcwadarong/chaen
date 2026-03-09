@@ -16,14 +16,22 @@ import {
   mapArticleFallbackRpcRow,
 } from './map-article-translation';
 
-const isMissingArticleContentSchemaError = (message: string) => {
-  const normalizedMessage = message.toLowerCase();
+type ArticleContentSchemaError = {
+  code?: string | null;
+  message: string;
+};
 
-  return (
+const isMissingArticleContentSchemaError = ({ code, message }: ArticleContentSchemaError) => {
+  if (code) return code === '42883' || code === '42P01' || code === 'PGRST202';
+
+  const normalizedMessage = message.toLowerCase();
+  const hasMissingObjectText = normalizedMessage.includes('does not exist');
+  const hasTargetName =
     normalizedMessage.includes('get_article_translation_with_fallback') ||
     normalizedMessage.includes('articles') ||
-    normalizedMessage.includes('article_translations')
-  );
+    normalizedMessage.includes('article_translations');
+
+  return hasMissingObjectText && hasTargetName;
 };
 
 /**
@@ -45,26 +53,21 @@ const fetchArticleFromContentSchema = async (
   );
 
   if (translationError) {
-    if (isMissingArticleContentSchemaError(translationError.message)) {
+    if (isMissingArticleContentSchemaError(translationError))
       return { data: null, schemaMissing: true };
-    }
 
     throw new Error(`[articles] 번역 조회 실패: ${translationError.message}`);
   }
 
   const translation = (translationRows ?? [])[0] as ArticleTranslationFallbackRpcRow | undefined;
-  if (!translation) {
-    return { data: null, schemaMissing: false };
-  }
+  if (!translation) return { data: null, schemaMissing: false };
 
   const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'article_id',
     entityId: articleId,
     relationTable: 'article_tags',
   });
-  if (relatedTags.schemaMissing) {
-    throw new Error('[articles] 태그 relation schema가 없습니다.');
-  }
+  if (relatedTags.schemaMissing) throw new Error('[articles] 태그 relation schema가 없습니다.');
 
   return {
     data: mapArticle(mapArticleFallbackRpcRow(translation), relatedTags.data),
@@ -77,9 +80,7 @@ const fetchArticleByLocaleFallbackChain = async (
   localeFallbackChain: string[],
 ): Promise<Article | null> => {
   const articleResult = await fetchArticleFromContentSchema(articleId, localeFallbackChain);
-  if (articleResult.schemaMissing) {
-    throw new Error('[articles] content schema가 없습니다.');
-  }
+  if (articleResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
 
   return articleResult.data;
 };

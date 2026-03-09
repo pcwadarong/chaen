@@ -102,6 +102,7 @@ describe('getProject', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: {
+          code: '42P01',
           message: 'relation "public.project_translations" does not exist',
         },
       }),
@@ -115,6 +116,76 @@ describe('getProject', () => {
 
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
       '[projects] content schema가 없습니다.',
+    );
+  });
+
+  it('권한 오류는 schema missing으로 오인하지 않고 조회 실패로 surface한다', async () => {
+    const translationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied for table project_translations',
+        },
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
+      '[projects] 번역 조회 실패: permission denied for table project_translations',
+    );
+  });
+
+  it('code가 없어도 project relation missing 메시지는 content schema missing으로 본다', async () => {
+    const translationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.project_translations" does not exist',
+        },
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
+      '[projects] content schema가 없습니다.',
+    );
+  });
+
+  it('다른 relation missing 메시지는 content schema missing으로 오인하지 않는다', async () => {
+    const translationQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message: 'relation "public.tags" does not exist',
+        },
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
+      '[projects] 번역 조회 실패: relation "public.tags" does not exist',
     );
   });
 

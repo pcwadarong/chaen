@@ -103,6 +103,7 @@ describe('getArticle', () => {
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
+          code: '42883',
           message:
             'function public.get_article_translation_with_fallback(target_article_id, fallback_locales) does not exist',
         },
@@ -114,6 +115,46 @@ describe('getArticle', () => {
 
     await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
       '[articles] content schema가 없습니다.',
+    );
+  });
+
+  it('PostgREST missing function 코드는 content schema missing으로 본다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: 'PGRST202',
+          message: 'Could not find the function public.get_article_translation_with_fallback',
+        },
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
+      '[articles] content schema가 없습니다.',
+    );
+  });
+
+  it('권한 오류는 content schema missing으로 오인하지 않고 번역 조회 실패로 surface한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied for function get_article_translation_with_fallback',
+        },
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
+      '[articles] 번역 조회 실패: permission denied for function get_article_translation_with_fallback',
     );
   });
 
