@@ -2,78 +2,86 @@ import { unstable_cache } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '../model/cache-tags';
+import { buildArticleLocaleFallbackChain } from '../model/locale-fallback';
 import type { Article } from '../model/types';
 
-import { mapShadowArticle, type ShadowArticleTranslationRow } from './map-shadow-article';
+import {
+  type ArticleTranslationFallbackRpcRow,
+  mapArticle,
+  mapArticleFallbackRpcRow,
+} from './map-article-translation';
 
 const isMissingArticleShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
 
   return (
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articles) ||
-    normalizedMessage.includes(CONTENT_SHADOW_SCHEMA.articleTranslations)
+    normalizedMessage.includes('get_article_translation_with_fallback') ||
+    normalizedMessage.includes('articles') ||
+    normalizedMessage.includes('article_translations')
   );
 };
 
 /**
- * content schema(`articles` + `article_translations`)에서 locale별 단일 아티클을 조회합니다.
+ * content schema RPC에서 fallback 우선순위가 반영된 단일 아티클 번역을 조회합니다.
  */
 const fetchArticleFromShadowSchema = async (
   articleId: string,
-  locale: string,
+  localeFallbackChain: string[],
 ): Promise<{ data: Article | null; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: null, schemaMissing: false };
 
-  const { data: translation, error: translationError } = await supabase
-    .from(CONTENT_SHADOW_SCHEMA.articleTranslations)
-    .select(
-      'article_id,title,description,content,articles!inner(id,thumbnail_url,created_at,updated_at,view_count)',
-    )
-    .eq('article_id', articleId)
-    .eq('locale', locale)
-    .maybeSingle<ShadowArticleTranslationRow>();
+  const { data: translationRows, error: translationError } = await supabase.rpc(
+    'get_article_translation_with_fallback',
+    {
+      fallback_locales: localeFallbackChain,
+      target_article_id: articleId,
+    },
+  );
 
   if (translationError) {
     if (isMissingArticleShadowSchemaError(translationError.message)) {
       return { data: null, schemaMissing: true };
     }
 
-    throw new Error(`[articles] shadow 번역 조회 실패: ${translationError.message}`);
+    throw new Error(`[articles] 번역 조회 실패: ${translationError.message}`);
   }
 
+  const translation = (translationRows ?? [])[0] as ArticleTranslationFallbackRpcRow | undefined;
   if (!translation) {
     return { data: null, schemaMissing: false };
   }
 
-  const shadowTags = await getRelatedTagSlugs({
+  const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'article_id',
     entityId: articleId,
-    relationTable: CONTENT_SHADOW_SCHEMA.articleTags,
+    relationTable: 'article_tags',
   });
-  if (shadowTags.schemaMissing) {
+  if (relatedTags.schemaMissing) {
     throw new Error('[articles] 태그 relation schema가 없습니다.');
   }
 
   return {
-    data: mapShadowArticle(translation, shadowTags.data),
+    data: mapArticle(mapArticleFallbackRpcRow(translation), relatedTags.data),
     schemaMissing: false,
   };
 };
 
-const fetchArticleByLocale = async (articleId: string, locale: string): Promise<Article | null> => {
-  const shadowArticle = await fetchArticleFromShadowSchema(articleId, locale);
-  if (shadowArticle.schemaMissing) {
-    throw new Error('[articles] shadow content schema가 없습니다.');
+const fetchArticleByLocaleFallbackChain = async (
+  articleId: string,
+  localeFallbackChain: string[],
+): Promise<Article | null> => {
+  const articleResult = await fetchArticleFromShadowSchema(articleId, localeFallbackChain);
+  if (articleResult.schemaMissing) {
+    throw new Error('[articles] content schema가 없습니다.');
   }
 
-  return shadowArticle.data;
+  return articleResult.data;
 };
 
 /**
@@ -90,10 +98,13 @@ export const getArticle = async (
   const normalizedLocale = targetLocale.toLowerCase();
   const getCachedArticle = unstable_cache(
     async () => {
-      const localizedArticle = await fetchArticleByLocale(articleId, normalizedLocale);
-      if (localizedArticle || normalizedLocale === 'ko') return localizedArticle;
+      const localeFallbackChain = buildArticleLocaleFallbackChain(normalizedLocale);
+      const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
+      if (article) return article;
 
-      return fetchArticleByLocale(articleId, 'ko');
+      throw new Error(
+        `[articles] 조회 가능한 번역이 없습니다. articleId=${articleId} locales=${localeFallbackChain.join('>')}`,
+      );
     },
     ['article', cacheScope, articleId, normalizedLocale],
     {
