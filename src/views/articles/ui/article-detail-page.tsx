@@ -4,7 +4,7 @@ import React from 'react';
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { buildDetailArchiveLinkItems } from '@/shared/ui/detail-page/build-detail-archive-link-items';
+import { DetailArchiveFeed } from '@/shared/ui/detail-page/detail-archive-feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 import styles from '@/views/articles/ui/article-detail-page.module.css';
@@ -43,6 +43,7 @@ export const ArticleDetailPage = async ({
   locale,
 }: ArticleDetailPageProps) => {
   const t = await getTranslations('ArticleDetail');
+  const articlesT = await getTranslations('Articles');
   const detailUi = await getTranslations('DetailUi');
   const tagLabels = await getArticleTagLabels(item, locale);
   const publishedDate = item.created_at.slice(0, 10);
@@ -75,12 +76,20 @@ export const ArticleDetailPage = async ({
           viewEndpoint={`/api/articles/${item.id}/views`}
         />
       }
-      sidebarItems={buildDetailArchiveLinkItems({
-        getHref: archiveItem => `/articles/${archiveItem.id}`,
-        items: archivePage.items,
-        locale,
-        selectedId: item.id,
-      })}
+      sidebarContent={
+        <DetailArchiveFeed
+          emptyText={detailUi('emptyArchive')}
+          endpoint="/api/articles/archive"
+          hrefBasePath="/articles"
+          initialPage={archivePage}
+          loadErrorText={articlesT('loadError')}
+          loadMoreEndText={articlesT('loadMoreEnd')}
+          loadingText={articlesT('loading')}
+          locale={locale}
+          retryText={articlesT('retry')}
+          selectedId={item.id}
+        />
+      }
       sidebarLabel={t('archiveLabel')}
       tagContent={
         <div aria-label={t('tagSection')} className={styles.tagList}>
