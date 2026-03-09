@@ -5,7 +5,7 @@
 }
 
 html {
-  font-family: var(--font-sans);
+  font-family: var(--fonts-sans);
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
@@ -18,20 +18,20 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background: rgb(var(--color-bg));
-  color: rgb(var(--color-text));
-  font-family: var(--font-sans);
-  font-size: var(--font-size-16);
-  line-height: var(--line-height-160);
+  background: var(--colors-bg);
+  color: var(--colors-text);
+  font-family: var(--fonts-sans);
+  font-size: var(--font-sizes-16);
+  line-height: var(--line-heights-relaxed);
   text-rendering: optimizeLegibility;
 }
 
 :root {
   --app-scrollbar-size: 10px;
   --app-scrollbar-track: transparent;
-  --app-scrollbar-thumb: rgb(var(--color-text) / 0.24);
-  --app-scrollbar-thumb-hover: rgb(var(--color-text) / 0.36);
-  --app-scrollbar-thumb-active: rgb(var(--color-text) / 0.48);
+  --app-scrollbar-thumb: var(--colors-border);
+  --app-scrollbar-thumb-hover: var(--colors-border-strong);
+  --app-scrollbar-thumb-active: var(--colors-text);
 }
 
 html,
@@ -92,7 +92,7 @@ body {
 }
 
 :lang(ja) {
-  font-family: var(--font-sans-ja);
+  font-family: var(--fonts-sans-ja);
 }
 
 h1,
@@ -165,12 +165,12 @@ pre,
 code,
 kbd,
 samp {
-  font-family: var(--font-mono);
+  font-family: var(--fonts-mono);
 }
 
 pre:lang(ja),
 code:lang(ja),
 kbd:lang(ja),
 samp:lang(ja) {
-  font-family: var(--font-mono);
+  font-family: var(--fonts-mono);
 }

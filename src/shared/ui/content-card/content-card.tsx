@@ -2,10 +2,6 @@ import Image from 'next/image';
 import { css, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import {
-  contentCardLinkClass,
-  contentCardRecipe,
-} from '@/shared/ui/content-card/content-card.recipe';
 
 type ContentCardProps = {
   ariaLabel: string;
@@ -22,8 +18,8 @@ const thumbnailWrapClass = css({
   borderTopLeftRadius: 'lg',
   borderTopRightRadius: 'lg',
   overflow: 'hidden',
-  borderBottom: '[1px solid rgb(var(--color-border) / 0.2)]',
-  backgroundColor: '[rgb(var(--color-surface-strong) / 0.58)]',
+  borderBottom: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surfaceStrong',
 });
 
 const thumbnailClass = css({
@@ -48,7 +44,7 @@ const metaClass = css({
   flexWrap: 'nowrap',
   gap: '3',
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const tagsClass = css({
@@ -63,10 +59,10 @@ const tagClass = css({
   minHeight: '[1.75rem]',
   px: '2',
   py: '0',
-  borderRadius: 'pill',
-  backgroundColor: '[rgb(var(--color-text) / 0.06)]',
+  borderRadius: 'full',
+  backgroundColor: 'textSubtle',
   color: 'muted',
-  fontSize: '12',
+  fontSize: 'xs',
 });
 
 const bodyClass = css({
@@ -77,8 +73,8 @@ const bodyClass = css({
 
 const titleClass = css({
   lineClamp: '2',
-  fontSize: '20',
-  lineHeight: '120',
+  fontSize: 'xl',
+  lineHeight: 'tight',
   letterSpacing: '[-0.03em]',
 });
 
@@ -102,7 +98,7 @@ export const ContentCard = ({
   title,
 }: ContentCardProps) => (
   <Link aria-label={ariaLabel} className={cx(contentCardLinkClass, 'group')} href={href}>
-    <article className={contentCardRecipe()}>
+    <article className={contentCardRecipe}>
       {thumbnailSrc ? (
         <div className={thumbnailWrapClass}>
           <Image
@@ -137,3 +133,31 @@ export const ContentCard = ({
     </article>
   </Link>
 );
+
+const contentCardRecipe = css({
+  minHeight: '[19rem]',
+  height: 'full',
+  display: 'grid',
+  alignContent: 'start',
+  gap: '0',
+  borderRadius: 'lg',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surfaceMuted',
+  overflow: 'hidden',
+  transition: '[box-shadow 220ms ease, transform 220ms ease]',
+  _groupHover: {
+    boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
+    transform: '[translateY(-1px)]',
+  },
+  _groupFocusVisible: {
+    boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
+    transform: '[translateY(-1px)]',
+  },
+});
+
+const contentCardLinkClass = css({
+  display: 'block',
+  height: 'full',
+  textDecoration: 'none',
+  color: 'text',
+});

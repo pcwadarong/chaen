@@ -740,7 +740,7 @@ const titleClass = css({
 
 const descriptionClass = css({
   color: 'muted',
-  lineHeight: '[var(--line-height-160)]',
+  lineHeight: 'relaxed',
   wordBreak: 'keep-all',
 });
 
@@ -760,8 +760,8 @@ const sortGroupClass = css({
   maxWidth: 'full',
   p: '1',
   borderRadius: 'full',
-  background: '[rgb(var(--color-surface-muted) / 0.72)]',
-  border: '[1px solid rgb(var(--color-border) / 0.16)]',
+  background: 'surfaceMuted',
+  border: '[1px solid var(--colors-border)]',
 });
 
 const sortButtonClass = css({
@@ -776,12 +776,12 @@ const sortButtonClass = css({
   transition: '[background-color 160ms ease, color 160ms ease, box-shadow 160ms ease]',
   _hover: {
     color: 'primary',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
     outline: 'none',
     color: 'primary',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
@@ -796,8 +796,8 @@ const stateCardClass = css({
   gap: '3',
   p: '6',
   borderRadius: 'xl',
-  border: '[1px solid rgb(var(--color-border) / 0.18)]',
-  background: '[rgb(var(--color-surface-muted) / 0.4)]',
+  border: '[1px solid var(--colors-border)]',
+  background: 'surfaceMuted',
 });
 
 const stateTextClass = css({
@@ -842,7 +842,7 @@ const entryCardClass = css({
   display: 'grid',
   gap: '3',
   paddingY: '4',
-  borderTop: '[1px solid rgb(var(--color-border) / 0.18)]',
+  borderTop: '[1px solid var(--colors-border)]',
 });
 
 const replyEntryCardClass = css({
@@ -891,7 +891,7 @@ const entryBodyClass = css({
 
 const contentTextClass = css({
   whiteSpace: 'pre-wrap',
-  lineHeight: '[var(--line-height-160)]',
+  lineHeight: 'relaxed',
   wordBreak: 'break-word',
 });
 
@@ -921,7 +921,7 @@ const replyButtonClass = css({
   p: '0',
   color: 'muted',
   fontSize: 'md',
-  lineHeight: '[1.4]',
+  lineHeight: 'snug',
   _hover: {
     color: 'primary',
   },
@@ -947,7 +947,7 @@ const timeClass = css({
   alignItems: 'center',
   color: 'muted',
   fontSize: 'sm',
-  lineHeight: '[1.2]',
+  lineHeight: 'tight',
 });
 
 const footerPaginationWrapClass = css({
@@ -968,7 +968,7 @@ const modalTitleClass = css({
 
 const modalDescriptionClass = css({
   color: 'muted',
-  lineHeight: '[var(--line-height-155)]',
+  lineHeight: 'normal',
 });
 
 const modalErrorClass = css({

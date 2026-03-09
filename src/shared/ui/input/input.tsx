@@ -1,7 +1,5 @@
 import React from 'react';
-import { cx } from 'styled-system/css';
-
-import { inputRecipe } from '@/shared/ui/input/input.recipe';
+import { cva, cx } from 'styled-system/css';
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
@@ -15,3 +13,41 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
+
+/**
+ * 공통 단일행 입력 필드 스타일을 정의합니다.
+ */
+const inputRecipe = cva({
+  base: {
+    width: 'full',
+    minHeight: '[2.75rem]',
+    px: '3',
+    py: '2',
+    borderRadius: 'md',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'border',
+    backgroundColor: 'surface',
+    color: 'text',
+    transition: 'colors',
+    _placeholder: {
+      color: 'muted',
+    },
+    _hover: {
+      borderColor: 'borderStrong',
+    },
+    _focusVisible: {
+      outline: 'none',
+      borderColor: 'primary',
+      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    },
+    _disabled: {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+    '&[aria-disabled="true"]': {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+  },
+});

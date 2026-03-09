@@ -60,7 +60,7 @@ const headerClass = css({
 
 const titleClass = css({
   fontSize: '[clamp(2rem, 4vw, 3.25rem)]',
-  lineHeight: '96',
+  lineHeight: 'none',
   letterSpacing: '[-0.04em]',
 });
 

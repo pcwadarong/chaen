@@ -159,8 +159,8 @@ const metaBarClass = css({
   minHeight: '[3.25rem]',
   px: '6',
   py: '0',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.15)]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
   background: 'surfaceMuted',
 });
 
@@ -169,16 +169,16 @@ const metaItemClass = css({
   alignItems: 'center',
   gap: '2',
   color: 'text',
-  fontSize: '14',
+  fontSize: 'sm',
   '@media (min-width: 961px)': {
-    fontSize: '16',
+    fontSize: 'md',
   },
 });
 
 const dividerClass = css({
   width: '[1px]',
   height: '[1.5rem]',
-  background: '[rgb(var(--color-border) / 0.44)]',
+  background: 'surfaceStrong',
 });
 
 const shareButtonClass = css({
@@ -187,9 +187,9 @@ const shareButtonClass = css({
   gap: '2',
   p: '0',
   color: 'text',
-  fontSize: '14',
+  fontSize: 'sm',
   '@media (min-width: 961px)': {
-    fontSize: '16',
+    fontSize: 'md',
   },
   _hover: {
     color: 'primary',

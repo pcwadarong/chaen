@@ -136,17 +136,17 @@ const triggerClass = css({
   justifyContent: 'center',
   width: '8',
   height: '8',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   transition: 'colors',
   _hover: {
     outline: 'none',
-    background: '[rgb(var(--color-primary) / 0.08)]',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    background: 'primarySubtle',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
     outline: 'none',
-    background: '[rgb(var(--color-primary) / 0.08)]',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    background: 'primarySubtle',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
@@ -159,9 +159,9 @@ const panelClass = css({
   display: 'grid',
   gap: '1',
   borderRadius: 'md',
-  border: '[1px solid rgb(var(--color-border) / 0.22)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.98)]',
-  boxShadow: '[0 18px 42px rgb(var(--color-black) / 0.12)]',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
+  boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',
   zIndex: '20',
 });
 
@@ -174,19 +174,19 @@ const actionButtonClass = css({
   gap: '1',
   px: '2',
   py: '1',
-  borderRadius: 'pill',
-  fontSize: '14',
+  borderRadius: 'full',
+  fontSize: 'sm',
   transition: 'colors',
   _hover: {
     color: 'primary',
-    background: '[rgb(var(--color-primary) / 0.08)]',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    background: 'primarySubtle',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
     outline: 'none',
     color: 'primary',
-    background: '[rgb(var(--color-primary) / 0.08)]',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.12)]',
+    background: 'primarySubtle',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   '&[aria-disabled="true"]': {
     cursor: 'default',

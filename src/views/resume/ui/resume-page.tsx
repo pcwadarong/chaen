@@ -35,5 +35,5 @@ export const ResumePage = ({ content, downloadFileName, resumeUrl }: ResumePageP
 
 const bodyClass = css({
   whiteSpace: 'pre-wrap',
-  lineHeight: '170',
+  lineHeight: 'relaxed',
 });

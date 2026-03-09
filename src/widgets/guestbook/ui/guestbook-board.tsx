@@ -301,8 +301,8 @@ const modalBodyClass = css({
   display: 'grid',
   gap: '3',
   backgroundColor: 'surface',
-  borderRadius: 'm',
-  border: '[1px solid rgb(var(--color-border) / 0.35)]',
+  borderRadius: 'sm',
+  border: '[1px solid var(--colors-border-strong)]',
 });
 
 const modalLeadClass = css({
@@ -311,12 +311,12 @@ const modalLeadClass = css({
 
 const modalHintClass = css({
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const modalErrorClass = css({
   color: 'danger',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const modalActionsClass = css({

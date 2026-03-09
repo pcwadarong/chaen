@@ -138,8 +138,8 @@ const detailPageSidebarClass = css({
     display: 'flex',
     minHeight: '0',
     height: 'full',
-    borderRight: '[1px solid rgb(var(--color-border) / 0.18)]',
-    background: '[rgb(var(--color-surface) / 0.16)]',
+    borderRight: '[1px solid var(--colors-border)]',
+    background: 'surfaceMuted',
   },
 });
 
@@ -167,16 +167,16 @@ const detailPageSidebarLinkClass = cva({
     px: '4',
     py: '4',
     borderLeft: '[3px solid transparent]',
-    borderBottom: '[1px solid rgb(var(--color-border) / 0.16)]',
+    borderBottom: '[1px solid var(--colors-border)]',
     color: 'text',
     transition: '[background-color 160ms ease, border-color 160ms ease]',
     _hover: {
-      background: '[rgb(var(--color-surface-muted) / 0.5)]',
+      background: 'surfaceMuted',
     },
     _focusVisible: {
       outline: 'none',
-      background: '[rgb(var(--color-surface-muted) / 0.58)]',
-      boxShadow: '[inset 0 0 0 2px rgb(var(--color-primary) / 0.16)]',
+      background: 'surfaceStrong',
+      boxShadow: '[inset 0 0 0 2px var(--colors-focus-ring)]',
     },
     '@media (min-width: 1200px)': {
       px: '5',
@@ -187,7 +187,7 @@ const detailPageSidebarLinkClass = cva({
     active: {
       true: {
         borderLeftColor: 'primary',
-        background: '[rgb(var(--color-surface-strong) / 0.3)]',
+        background: 'surfaceStrong',
       },
     },
   },
@@ -198,13 +198,13 @@ const detailPageSidebarMetaRowClass = css({
   alignItems: 'center',
   justifyContent: 'space-between',
   color: 'muted',
-  fontSize: '12',
+  fontSize: 'xs',
 });
 
 const detailPageSidebarTitleClass = css({
   lineClamp: '2',
-  fontSize: '20',
-  lineHeight: '120',
+  fontSize: 'xl',
+  lineHeight: 'tight',
   letterSpacing: '[-0.03em]',
   color: 'muted',
 });
@@ -214,7 +214,7 @@ const detailPageSidebarDescriptionClass = css({
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const detailPageEmptyArchiveClass = css({
@@ -242,7 +242,7 @@ const detailPageHeroClass = css({
   flexDirection: 'column',
   alignItems: 'center',
   pb: '10',
-  borderBottom: '[1px solid rgb(var(--color-border) / 0.24)]',
+  borderBottom: '[1px solid var(--colors-border)]',
   '@media (min-width: 961px)': {
     pb: '12',
   },
@@ -261,15 +261,15 @@ const detailPageHeroTextClass = css({
 const detailPageTitleClass = css({
   fontSize: '32',
   fontWeight: '[800]',
-  lineHeight: '110',
+  lineHeight: 'tight',
   letterSpacing: '[-0.04em]',
   wordBreak: 'keep-all',
 });
 
 const detailPageDescriptionClass = css({
   color: 'muted',
-  fontSize: '16',
-  lineHeight: '160',
+  fontSize: 'md',
+  lineHeight: 'relaxed',
   wordBreak: 'keep-all',
 });
 
@@ -324,10 +324,10 @@ const detailPageGuestbookCtaClass = css({
   minHeight: '[2.25rem]',
   px: '3',
   py: '1',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   background: 'primary',
   color: 'primaryContrast',
-  fontSize: '14',
+  fontSize: 'sm',
   letterSpacing: '[-0.01em]',
 });
 

@@ -39,13 +39,13 @@ const panelClass = css({
   gap: '3',
   p: '7',
   borderRadius: 'lg',
-  border: '[1px solid rgb(var(--color-border) / 0.3)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.92)]',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
 });
 
 const titleClass = css({
   fontSize: '[clamp(1.6rem, 3.2vw, 2.2rem)]',
-  lineHeight: '110',
+  lineHeight: 'tight',
   letterSpacing: '[-0.03em]',
 });
 
@@ -58,9 +58,9 @@ const buttonClass = css({
   minHeight: '[2.7rem]',
   px: '4',
   py: '0',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.3)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.95)]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
 });
 
 export default ProjectDetailError;

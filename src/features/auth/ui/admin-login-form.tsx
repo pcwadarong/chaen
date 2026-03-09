@@ -110,8 +110,8 @@ const formClass = css({
 const titleClass = css({
   mb: '2',
   mt: '0',
-  fontSize: '24',
-  lineHeight: '120',
+  fontSize: '2xl',
+  lineHeight: 'tight',
 });
 
 const fieldClass = css({
@@ -120,7 +120,7 @@ const fieldClass = css({
 });
 
 const labelClass = css({
-  fontSize: '14',
+  fontSize: 'sm',
   fontWeight: 'medium',
 });
 
@@ -133,5 +133,5 @@ const buttonRowClass = css({
 const errorClass = css({
   m: '0',
   color: '[rgb(190 24 93)]',
-  fontSize: '14',
+  fontSize: 'sm',
 });

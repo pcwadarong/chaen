@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import { buttonRecipe } from '@/shared/ui/button/button.recipe';
+import { buttonRecipe } from '@/shared/ui/button/button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -75,7 +75,7 @@ const listClass = css({
 const navLinkClass = css({
   border: 'none',
   background: 'transparent',
-  fontSize: '16',
+  fontSize: 'md',
   letterSpacing: '[0.04em]',
   color: 'text',
   _hover: {
@@ -103,14 +103,14 @@ const controlsDividerClass = css({
   height: '[1.4rem]',
   m: '0',
   border: 'none',
-  backgroundColor: '[rgb(var(--color-border) / 0.7)]',
+  backgroundColor: 'surfaceStrong',
 });
 
 const switcherFallbackClass = css({
   display: 'inline-flex',
   width: '[8.5rem]',
   minHeight: '[2.5rem]',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.18)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.5)]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surfaceMuted',
 });

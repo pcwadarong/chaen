@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Button } from '@/shared/ui/button/button';
-import { buttonRecipe } from '@/shared/ui/button/button.recipe';
+import { Button, buttonRecipe } from '@/shared/ui/button/button';
 
 type DownloadFileButtonMode = 'download' | 'open';
 

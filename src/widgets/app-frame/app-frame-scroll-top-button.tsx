@@ -132,22 +132,21 @@ const appFrameScrollTopButtonClass = css({
   justifyContent: 'center',
   width: '[3rem]',
   height: '[3rem]',
-  border: '[1px solid rgb(var(--color-border) / 0.24)]',
-  borderRadius: 'pill',
+  border: '[1px solid var(--colors-border)]',
+  borderRadius: 'full',
   background: 'surface',
   color: 'text',
-  boxShadow: '[0 18px 32px rgb(var(--color-black) / 0.18)]',
+  boxShadow: '[0 18px 32px rgb(15 23 42 / 0.18)]',
   transition:
     '[transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease]',
   _hover: {
     transform: 'translateY(-2px)',
-    borderColor: '[rgb(var(--color-border) / 0.4)]',
-    boxShadow: '[0 22px 40px rgb(var(--color-black) / 0.22)]',
+    borderColor: 'borderStrong',
+    boxShadow: '[0 22px 40px rgb(15 23 42 / 0.22)]',
   },
   _focusVisible: {
     outline: 'none',
-    boxShadow:
-      '[0 0 0 3px rgb(var(--color-primary) / 0.2), 0 18px 32px rgb(var(--color-black) / 0.18)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring), 0 18px 32px rgb(15 23 42 / 0.18)]',
   },
   '@media (min-width: 961px)': {
     position: 'absolute',

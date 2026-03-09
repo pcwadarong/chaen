@@ -115,10 +115,10 @@ const tagListClass = css({
 const tagButtonClass = css({
   px: '3',
   py: '[0.35rem]',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.28)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.82)]',
-  fontSize: '14',
-  lineHeight: '120',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
+  fontSize: 'sm',
+  lineHeight: 'tight',
   color: 'muted',
 });

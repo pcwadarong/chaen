@@ -31,13 +31,13 @@ type AppIconColor =
 type AppIconSize = 'lg' | 'md' | 'sm' | number;
 
 const iconColorMap: Record<Exclude<AppIconColor, 'current'>, string> = {
-  black: 'rgb(var(--color-black))',
-  danger: 'rgb(var(--color-danger))',
-  muted: 'rgb(var(--color-muted))',
-  primary: 'rgb(var(--color-primary))',
-  surface: 'rgb(var(--color-surface))',
-  text: 'rgb(var(--color-text))',
-  white: 'rgb(var(--color-white))',
+  black: 'var(--colors-black)',
+  danger: 'var(--colors-danger)',
+  muted: 'var(--colors-muted)',
+  primary: 'var(--colors-primary)',
+  surface: 'var(--colors-surface)',
+  text: 'var(--colors-text)',
+  white: 'var(--colors-white)',
 };
 
 const iconSizeMap: Record<Exclude<AppIconSize, number>, number> = {

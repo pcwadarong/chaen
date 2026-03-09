@@ -33,15 +33,15 @@ const stageFrameClass = css({
   position: 'absolute',
   inset: '0',
   overflow: 'hidden',
-  border: '[1px solid rgb(var(--color-border) / 0.22)]',
+  border: '[1px solid var(--colors-border)]',
   background:
-    '[radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.08), transparent 0 32%), linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)))]',
-  boxShadow: '[inset 0 1px 0 rgb(var(--color-white) / 0.3)]',
+    '[radial-gradient(circle at 50% 18%, rgb(148 163 184 / 0.22), transparent 0 32%), linear-gradient(180deg, var(--colors-surface), var(--colors-surface-muted))]',
+  boxShadow: '[inset 0 1px 0 rgb(255 255 255 / 0.3)]',
 });
 
 const stageFallbackClass = css({
   width: 'full',
   height: 'full',
   background:
-    '[radial-gradient(circle at 50% 18%, rgb(var(--color-text) / 0.12), transparent 0 24%), linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted)))]',
+    '[radial-gradient(circle at 50% 18%, rgb(148 163 184 / 0.3), transparent 0 24%), linear-gradient(180deg, var(--colors-surface), var(--colors-surface-muted))]',
 });

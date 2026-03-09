@@ -81,22 +81,22 @@ const bodyClass = css({
 const titleClass = css({
   lineClamp: '2',
   color: 'primary',
-  fontSize: '24',
-  lineHeight: '[1.12]',
+  fontSize: '2xl',
+  lineHeight: 'tight',
   letterSpacing: '[-0.05em]',
 });
 
 const descriptionClass = css({
   lineClamp: '2',
   color: 'text',
-  fontSize: '16',
-  lineHeight: '[1.5]',
+  fontSize: 'md',
+  lineHeight: 'normal',
   letterSpacing: '[-0.03em]',
 });
 
 const dateClass = css({
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const mediaClass = css({
@@ -111,7 +111,7 @@ const mediaClass = css({
     justifySelf: 'end',
     overflow: 'hidden',
     borderRadius: 'sm',
-    background: '[rgb(var(--color-muted) / 0.16)]',
+    background: 'surfaceStrong',
   },
 });
 

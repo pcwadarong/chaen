@@ -135,7 +135,7 @@ const triggerButtonClass = css({
 });
 
 const triggerLabelClass = css({
-  fontSize: '12',
+  fontSize: 'xs',
   fontWeight: 'bold',
   letterSpacing: '[0.12em]',
   textTransform: 'uppercase',
@@ -143,7 +143,7 @@ const triggerLabelClass = css({
 });
 
 const triggerValueClass = css({
-  fontSize: '14',
+  fontSize: 'sm',
   color: 'text',
 });
 
@@ -154,9 +154,9 @@ const panelClass = css({
   minWidth: '48',
   p: '2',
   borderRadius: 'md',
-  border: '[1px solid rgb(var(--color-border) / 0.22)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.98)]',
-  boxShadow: '[0 18px 42px rgb(var(--color-black) / 0.12)]',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
+  boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',
   display: 'grid',
   gap: '1',
   zIndex: '30',

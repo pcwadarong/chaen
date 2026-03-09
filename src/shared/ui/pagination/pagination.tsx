@@ -1,9 +1,5 @@
 import React from 'react';
-
-import {
-  paginationButtonRecipe,
-  paginationListClass,
-} from '@/shared/ui/pagination/pagination.recipe';
+import { css, cva } from 'styled-system/css';
 
 type PaginationProps = {
   ariaLabel: string;
@@ -50,3 +46,57 @@ export const Pagination = ({
     </nav>
   );
 };
+
+const paginationButtonRecipe = cva({
+  base: {
+    minWidth: '[2.25rem]',
+    minHeight: '[2.25rem]',
+    px: '2',
+    py: '1',
+    border: '[0]',
+    borderRadius: 'full',
+    background: 'transparent',
+    color: 'muted',
+    fontSize: 'sm',
+    fontWeight: 'medium',
+    transition: 'colors',
+    _hover: {
+      color: 'primary',
+      background: 'primarySubtle',
+      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    },
+    _focusVisible: {
+      outline: 'none',
+      color: 'primary',
+      background: 'primarySubtle',
+      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    },
+    _disabled: {
+      cursor: 'default',
+    },
+    '&[aria-disabled="true"]': {
+      cursor: 'default',
+    },
+  },
+  variants: {
+    current: {
+      true: {
+        color: 'primary',
+        background: 'primaryMuted',
+        fontWeight: 'semibold',
+      },
+      false: {},
+    },
+  },
+  defaultVariants: {
+    current: false,
+  },
+});
+
+const paginationListClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '1',
+  flexWrap: 'wrap',
+});

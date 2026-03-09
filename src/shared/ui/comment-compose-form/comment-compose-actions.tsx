@@ -82,7 +82,7 @@ const secretToggleLabelClass = css({
   p: '0',
   width: '[2.25rem]',
   height: '[2.25rem]',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   background: 'transparent',
   color: 'muted',
   border: 'none',
@@ -145,6 +145,6 @@ const secretCheckboxClass = css({
 });
 
 const submitButtonClass = css({
-  fontSize: '16',
+  fontSize: 'md',
   fontWeight: 'semibold',
 });

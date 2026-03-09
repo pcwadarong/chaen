@@ -80,7 +80,7 @@ export const GuestbookReplyBubble = ({
 
 const contentClass = css({
   whiteSpace: 'pre-wrap',
-  lineHeight: '155',
+  lineHeight: 'normal',
   wordBreak: 'break-word',
   overflowWrap: 'anywhere',
 });

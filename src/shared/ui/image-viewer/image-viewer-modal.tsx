@@ -263,8 +263,8 @@ const imageStageClass = css({
   position: 'relative',
   minHeight: '0',
   borderRadius: 'lg',
-  border: '[1px solid rgb(var(--color-white) / 0.18)]',
-  backgroundColor: '[rgb(var(--color-black) / 0.22)]',
+  border: '[1px solid rgb(255 255 255 / 0.18)]',
+  backgroundColor: '[rgb(15 23 42 / 0.22)]',
   overflow: 'hidden',
 });
 
@@ -295,12 +295,12 @@ const sideButtonClass = css({
   zIndex: '3',
   width: '[2.6rem]',
   height: '[3.2rem]',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-white) / 0.28)]',
-  backgroundColor: '[rgb(var(--color-black) / 0.45)]',
-  color: '[rgb(var(--color-white))]',
+  borderRadius: 'full',
+  border: '[1px solid rgb(255 255 255 / 0.28)]',
+  backgroundColor: '[rgb(15 23 42 / 0.45)]',
+  color: '[var(--colors-white)]',
   fontSize: '32',
-  lineHeight: '100',
+  lineHeight: 'none',
   transform: '[translateY(-50%)]',
   cursor: 'pointer',
 });
@@ -325,28 +325,28 @@ const zoomDockClass = css({
   minHeight: '[2.6rem]',
   px: '2',
   py: '1',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-white) / 0.25)]',
-  backgroundColor: '[rgb(var(--color-black) / 0.45)]',
+  borderRadius: 'full',
+  border: '[1px solid rgb(255 255 255 / 0.25)]',
+  backgroundColor: '[rgb(15 23 42 / 0.45)]',
 });
 
 const dockButtonClass = css({
   minWidth: '[2.15rem]',
   height: '8',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-white) / 0.3)]',
-  backgroundColor: '[rgb(var(--color-white) / 0.08)]',
-  color: '[rgb(var(--color-white))]',
-  fontSize: '16',
-  lineHeight: '100',
+  borderRadius: 'full',
+  border: '[1px solid rgb(255 255 255 / 0.3)]',
+  backgroundColor: '[rgb(255 255 255 / 0.08)]',
+  color: '[var(--colors-white)]',
+  fontSize: 'md',
+  lineHeight: 'none',
   cursor: 'pointer',
 });
 
 const zoomTextClass = css({
   minWidth: '[3.5rem]',
   textAlign: 'center',
-  color: '[rgb(var(--color-gray-200))]',
-  fontSize: '14',
+  color: '[var(--colors-gray-200)]',
+  fontSize: 'sm',
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -364,7 +364,7 @@ const thumbnailRailClass = css({
 
 const thumbnailButtonClass = css({
   width: '[clamp(84px,13vw,128px)]',
-  border: '[1px solid rgb(var(--color-white) / 0.2)]',
+  border: '[1px solid rgb(255 255 255 / 0.2)]',
   background: 'transparent',
   borderRadius: 'md',
   p: '0',
@@ -378,7 +378,7 @@ const thumbnailButtonClass = css({
 const activeThumbnailButtonClass = css({
   opacity: 1,
   transform: '[scale(1)]',
-  borderColor: '[rgb(var(--color-white) / 0.8)]',
+  borderColor: '[rgb(255 255 255 / 0.8)]',
 });
 
 const thumbnailImageClass = css({

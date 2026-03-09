@@ -43,8 +43,8 @@ const viewportClass = css({
 
 const toastRecipe = cva({
   base: {
-    borderRadius: 's',
-    border: '[1px solid rgb(var(--color-border) / 0.3)]',
+    borderRadius: 'sm',
+    border: '[1px solid var(--colors-border)]',
     backgroundColor: 'surface',
     display: 'grid',
     gridTemplateColumns: '[1fr auto]',
@@ -52,18 +52,18 @@ const toastRecipe = cva({
     gap: '3',
     px: '3',
     py: '3',
-    boxShadow: '[0 10px 24px rgb(var(--color-black) / 0.12)]',
+    boxShadow: '[0 10px 24px rgb(15 23 42 / 0.12)]',
   },
   variants: {
     tone: {
       error: {
-        borderLeft: '[3px solid rgb(var(--color-danger))]',
+        borderLeft: '[3px solid var(--colors-danger)]',
       },
       info: {
-        borderLeft: '[3px solid rgb(var(--color-muted))]',
+        borderLeft: '[3px solid var(--colors-muted)]',
       },
       success: {
-        borderLeft: '[3px solid rgb(var(--color-success))]',
+        borderLeft: '[3px solid var(--colors-success)]',
       },
     },
   },
@@ -71,15 +71,15 @@ const toastRecipe = cva({
 
 const messageClass = css({
   m: '0',
-  fontSize: '14',
-  lineHeight: '155',
+  fontSize: 'sm',
+  lineHeight: 'normal',
 });
 
 const closeButtonClass = css({
   border: 'none',
   background: 'transparent',
   color: 'muted',
-  fontSize: '12',
+  fontSize: 'xs',
   textDecoration: 'underline',
   p: '0',
 });

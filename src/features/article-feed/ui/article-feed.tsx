@@ -116,12 +116,12 @@ const listClass = css({
   listStyle: 'none',
   m: '0',
   p: '0',
-  borderBottom: '[1px solid rgb(var(--color-border) / 0.3)]',
+  borderBottom: '[1px solid var(--colors-border)]',
 });
 
 const itemClass = css({
   m: '0',
-  borderTop: '[1px solid rgb(var(--color-border) / 0.3)]',
+  borderTop: '[1px solid var(--colors-border)]',
   _first: {
     borderTop: 'none',
   },
@@ -129,7 +129,7 @@ const itemClass = css({
 
 const emptyClass = css({
   borderRadius: 'md',
-  border: '[1px solid rgb(var(--color-border) / 0.24)]',
+  border: '[1px solid var(--colors-border)]',
   px: '5',
   py: '4',
   color: 'muted',
@@ -150,7 +150,7 @@ const errorPanelClass = css({
   gap: '3',
   justifyItems: 'center',
   borderRadius: 'md',
-  border: '[1px solid rgb(var(--color-border) / 0.24)]',
+  border: '[1px solid var(--colors-border)]',
   px: '5',
   py: '4',
 });

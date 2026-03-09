@@ -4,10 +4,10 @@
 
 1. Panda CSS 도입을 위한 Foundation 설정 추가
 2. `styled-system` 생성 경로와 PostCSS 파이프라인 연결
-3. Panda 토큰과 글로벌 alias layer 도입으로 legacy CSS 변수 경로 유지
+3. Panda 토큰과 글로벌 CSS 레이어 도입
 4. Emotion 제거 단계 진행용 PR 문서 생성 및 체크리스트 정리
-5. Shared primitives를 Panda recipe와 `className` 병합 패턴으로 전환
-6. `srOnly` 계약을 Panda 클래스 기반으로 통일하고 관련 테스트/alias를 정리
+5. Shared primitives를 Panda `cva`/`className` 패턴으로 전환
+6. `srOnly` 계약을 Panda 클래스 기반으로 통일하고 관련 테스트를 정리
 7. Wrapper / Client Shell의 정적 프레임을 Panda class 기반으로 전환
 8. View / Simple Page와 detail fallback 화면을 Panda `css()` 기반으로 전환하고 server component를 복구
 9. Interactive feature와 global nav의 Emotion 프레임 스타일을 Panda class 기반으로 전환
@@ -25,15 +25,15 @@
 ### 문제
 
 - Emotion 기반 스타일과 Panda CSS를 한동안 공존시켜야 해서, 도입 초기에 빌드 파이프라인이 흔들리면 이후 단계 전체가 막힘
-- 기존 `rgb(var(--color-*)))` 기반 스타일을 한 번에 바꾸기 어려워 토큰 소스를 바꾸면서도 legacy 변수 계약을 유지해야 함
+- 기존 `rgb(var(--color-*)))` 기반 스타일을 새 토큰 표현으로 치환하면서도 화면 parity를 유지해야 함
 
 ### 해결 과정
 
 - Panda 설정은 아직 스타일을 직접 사용하지 않는 최소 구성만 추가하고, Emotion compiler 제거는 마지막 단계로 미룸
 - `prepare` 스크립트에서 `panda codegen`과 `cssgen`이 함께 실행되도록 연결해 이후 slice에서 타입/CSS 생성 흐름을 고정
-- `panda-legacy-aliases.css`에서 기존 CSS 변수명을 임시 호환하되, 색상 팔레트는 Panda 내장 `gray`/`blue`/`green`/`red`를 기준으로 단순화
-- spacing은 Panda 표준 토큰을 그대로 쓰고, 마이그레이션 종료 시 임시 호환 레이어와 도입 과정용 설정을 최종 검토 후 삭제 대상으로 다시 정리
-- Shared primitives는 sibling `*.recipe.ts`로 옮기고, 컴포넌트 본문은 `cx(recipe(...), className)`만 사용하도록 고정
+- 색상 팔레트는 Panda 내장 `gray`/`blue`/`green`/`red`를 기준으로 단순화하고, 남아 있던 legacy `var(--color-*)` 사용부는 Panda semantic token과 단순한 색 값으로 치환
+- spacing은 Panda 표준 토큰을 그대로 쓰고, `main.css`도 Panda prefix(`--spacing-*`, `--font-sizes-*`, `--line-heights-*`, `--fonts-*`) 기준으로 정리
+- Shared primitives와 공용 UI는 분리된 `*.recipe.ts` 없이 각 컴포넌트 파일 안에서 `cva()`/`css()`를 co-location 하도록 최종 통일
 - server component로 복구 가능한 `Button`, `Input`, `ThemeIcon`, `ContentCard`, `Pagination`의 스타일 전용 `use client`를 제거
 - Vitest는 `styled-system/*` alias를 따로 모르고 있어 server component 테스트가 깨졌으므로 `vitest.config.ts`에도 동일 alias를 추가
 - `Modal`은 `frameStyle` 대신 `frameClassName`으로 프레임 확장 포인트를 통일하고, `ImageViewerModal`은 확대 배율만 runtime `style`로 남기고 나머지 프레임은 Panda class로 이동
@@ -46,7 +46,7 @@
 - `PageShell`, `AppFrame`, `DetailPageShell`, `MarkdownRenderer`, article/project detail page의 `module.css`를 Panda 스타일 파일로 교체해 스타일 레이어를 단일화
 - `CommentComposeActions`, `CommentComposeProfileFields`, `CommentComposeContentField`, `CommentComposeReplyPreview`, `GlobalNavDesktopContent`, `GuestbookEntryBubble`, `GuestPage`, `ContactStrip`은 불필요한 `use client`를 제거해 server/shared component로 복구
 - 최종 단계에서 `@emotion/react`, `@emotion/styled`, `next.config.ts`의 Emotion compiler, `emotion-css-prop.d.ts`를 삭제해 Emotion runtime 의존을 0건으로 정리
-- `panda-legacy-aliases.css`는 아직 `main.css`와 일부 Panda raw style에서 `var(--color-*)` 계열을 참조하고 있어 유지함. 마이그레이션용 임시 파일인 점은 동일하며, 남은 legacy 변수 참조를 정리한 뒤 제거 대상임
+- 최종 정리에서 `panda-legacy-aliases.css`를 삭제하고 `src/app/styles/main.css`는 `src/app/main.css`로 이동해 `styles/` 폴더를 제거함
 - 이후 추가 점검으로 `GuestbookEntryActionMenu`, `HomeHeroWebUi`, `DownloadFileButton`, auth/guestbook/article client helper 모듈에서 불필요한 `use client`를 제거해 client file 수를 48 -> 41로 축소
 - project/article 영역 이름 충돌은 경로 기준으로 재검색했지만 안전하게 바꿔야 할 실질적 오명명 사례는 확인되지 않아 이번 커밋에서는 리네임하지 않음
 - lint/typecheck 기준으로 남아 있는 미사용 코드나 죽은 export는 추가로 발견되지 않았고, 마이그레이션 과정에서 생긴 `*.styles.ts` 임시 파일은 모두 제거 완료
@@ -88,7 +88,7 @@
 
 추가 메모:
 
-- `Button`, `Input`, `Textarea`, `ThemeIcon`, `ContentCard`, `Pagination`, `srOnly`는 Panda recipe/class 기반으로 전환 완료
+- `Button`, `Input`, `Textarea`, `ThemeIcon`, `ContentCard`, `Pagination`, `srOnly`는 Panda `cva`/class 기반으로 전환 완료
 - `getButtonStyle`, `Button.css prop`, `srOnlyStyle`, `srOnlyStyleObject` 의존은 shared layer에서 제거 완료
 - `Modal`, `ToastViewport`, `ActionPopover`, `SwitcherPopover`, `ImageViewerModal`의 정적 shell 스타일은 Panda class 기반으로 전환 완료
 - `frameStyle` API는 `frameClassName`으로 교체 완료
@@ -97,8 +97,10 @@
 - `ArticleCard`, `ProjectCard`는 `use client`를 제거한 shared 컴포넌트로 복구 완료
 - `articles/[id]`, `project/[id]`의 `loading`/`not-found`는 server component로, `error`는 client component로 역할 분리 완료
 - `ArticleFeed`, `ArticleSearchForm`, `ArticleTagFilterList`, `ProjectFeed`, `GuestbookFeed`, `GuestbookBoard`, `AdminLoginForm`, `AdminSignOutButton`는 Panda class 기반으로 전환 완료
-- `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`는 Emotion 없이 Panda class와 shared recipe 조합만 사용하도록 정리 완료
+- `GlobalNav`, `GlobalNavDesktopContent`, `GlobalNavMobileMenu`, `LocaleSwitcher`, `ThemeSwitcher`는 Emotion 없이 Panda class 조합만 사용하도록 정리 완료
 - `PageShell`, `AppFrame`, `DetailPageShell`, `MarkdownRenderer`, article/project detail page의 `module.css`는 모두 제거 완료
 - Emotion import 검색 결과는 `src`, `next.config.ts`, `package.json`, `pnpm-lock.yaml` 기준 0건
 - `build`는 최종 기준 통과, 테스트 중 기존 Next/Image `fill` 경고 1건은 별도 잔여 이슈로 유지
-- `panda-legacy-aliases.css`, `prepare` 자동 codegen, 테스트 alias 등 임시 호환/운영 보조 장치는 Emotion 제거 이후에도 남아 있으므로 실제 필요성을 계속 검토하고 삭제 대상을 후속 정리해야 함
+- `panda-legacy-aliases.css`와 `*.recipe.ts`는 최종 정리에서 모두 제거 완료
+- `src/app/styles/` 폴더는 비우고 `main.css`를 `src/app/main.css`로 이동 완료
+- `prepare` 자동 codegen과 테스트 alias는 운영 보조 장치로 남아 있으므로 실제 필요성을 계속 검토해야 함

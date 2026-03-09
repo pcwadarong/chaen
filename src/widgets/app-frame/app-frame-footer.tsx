@@ -14,7 +14,7 @@ const appFrameFooterClass = css({
   mt: '6',
   px: '4',
   pt: '3',
-  pb: '[max(var(--space-3), env(safe-area-inset-bottom))]',
+  pb: '[max(var(--spacing-3), env(safe-area-inset-bottom))]',
   '@media (min-width: 961px)': {
     mt: '8',
     px: '5',
@@ -28,7 +28,7 @@ const appFrameFooterClass = css({
 const appFrameFooterTextClass = css({
   display: 'block',
   color: 'muted',
-  fontSize: '14',
-  lineHeight: '160',
+  fontSize: 'sm',
+  lineHeight: 'relaxed',
   textAlign: 'center',
 });

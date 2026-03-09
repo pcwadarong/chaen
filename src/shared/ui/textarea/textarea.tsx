@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useLayoutEffect, useRef } from 'react';
-import { cx } from 'styled-system/css';
-
-import { textareaRecipe } from '@/shared/ui/textarea/textarea.recipe';
+import { cva, cx } from 'styled-system/css';
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   autoResize?: boolean;
@@ -65,3 +63,53 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 );
 
 Textarea.displayName = 'Textarea';
+
+/**
+ * 공통 여러 줄 입력 필드 스타일을 정의합니다.
+ */
+const textareaRecipe = cva({
+  base: {
+    width: 'full',
+    px: '3',
+    py: '2',
+    borderRadius: 'md',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'border',
+    backgroundColor: 'surface',
+    color: 'text',
+    resize: 'vertical',
+    transition: 'colors',
+    _placeholder: {
+      color: 'muted',
+    },
+    _hover: {
+      borderColor: 'borderStrong',
+    },
+    _focusVisible: {
+      outline: 'none',
+      borderColor: 'primary',
+      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    },
+    _disabled: {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+    '&[aria-disabled="true"]': {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+  },
+  variants: {
+    autoResize: {
+      true: {
+        resize: 'none',
+        overflow: 'hidden',
+      },
+      false: {},
+    },
+  },
+  defaultVariants: {
+    autoResize: true,
+  },
+});

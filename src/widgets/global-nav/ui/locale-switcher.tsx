@@ -95,7 +95,7 @@ const listClass = css({
 });
 
 const optionCodeClass = css({
-  fontSize: '12',
+  fontSize: 'xs',
   fontWeight: 'bold',
   letterSpacing: '[0.12em]',
   textTransform: 'uppercase',
@@ -103,7 +103,7 @@ const optionCodeClass = css({
 });
 
 const triggerCodeClass = css({
-  fontSize: '16',
+  fontSize: 'md',
   fontWeight: 'semibold',
   letterSpacing: '[0.05em]',
 });

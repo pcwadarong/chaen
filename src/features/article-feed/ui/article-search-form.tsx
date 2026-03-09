@@ -5,7 +5,7 @@ import React from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { buttonRecipe } from '@/shared/ui/button/button.recipe';
+import { buttonRecipe } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
@@ -236,7 +236,7 @@ const clearButtonClass = css({
   minHeight: '8',
   p: '0',
   transform: '[translateY(-50%)]',
-  borderRadius: 'pill',
+  borderRadius: 'full',
 });
 
 const submitButtonClass = css({
@@ -250,7 +250,7 @@ const submitButtonClass = css({
   minHeight: '9',
   p: '0',
   transform: '[translateY(-50%)]',
-  borderRadius: 'pill',
+  borderRadius: 'full',
 });
 
 const pendingInputClass = css({

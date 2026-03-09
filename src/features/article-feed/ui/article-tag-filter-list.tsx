@@ -64,7 +64,7 @@ const sectionClass = css({
 });
 
 const titleClass = css({
-  fontSize: '16',
+  fontSize: 'md',
   letterSpacing: '[-0.02em]',
 });
 
@@ -82,8 +82,8 @@ const tagLinkClass = css({
   minHeight: '[1.75rem]',
   p: '0',
   color: 'muted',
-  fontSize: '14',
-  lineHeight: '[1.35]',
+  fontSize: 'sm',
+  lineHeight: 'snug',
   textDecoration: 'none',
   transition: '[color 160ms ease, opacity 160ms ease, box-shadow 160ms ease]',
   _hover: {
@@ -91,7 +91,7 @@ const tagLinkClass = css({
   },
   _focusVisible: {
     outline: 'none',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
@@ -107,5 +107,5 @@ const countClass = css({
 
 const emptyClass = css({
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });

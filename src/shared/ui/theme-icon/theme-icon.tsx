@@ -1,7 +1,6 @@
-import { cx } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import { type AppIconComponent, MoonIcon, SunIcon, SystemIcon } from '@/shared/ui/icons/app-icons';
-import { themeIconFrameClass } from '@/shared/ui/theme-icon/theme-icon.recipe';
 
 export const themeOptions = ['system', 'light', 'dark'] as const;
 
@@ -38,3 +37,16 @@ export const ThemeIcon = ({ className, decorative = true, theme }: ThemeIconProp
     </span>
   );
 };
+
+const themeIconFrameClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '5',
+  height: '5',
+  flex: 'none',
+  '& > svg': {
+    width: 'full',
+    height: 'full',
+  },
+});

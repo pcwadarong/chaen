@@ -173,7 +173,7 @@ const threadShellClass = css({
 
 const contentClass = css({
   whiteSpace: 'pre-wrap',
-  lineHeight: '160',
+  lineHeight: 'relaxed',
   wordBreak: 'break-word',
   overflowWrap: 'anywhere',
 });
@@ -208,20 +208,20 @@ const secretTextClass = css({
 
 const revealErrorClass = css({
   color: 'danger',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const revealButtonClass = css({
   minHeight: '8',
   px: '3',
   py: '1',
-  borderRadius: 'pill',
+  borderRadius: 'full',
 });
 
 const inlineRevealInputClass = css({
   minHeight: '8',
   minWidth: '40',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   px: '2',
   py: '1',
 });

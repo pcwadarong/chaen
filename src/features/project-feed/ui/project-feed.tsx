@@ -113,7 +113,7 @@ const errorPanelClass = css({
   gap: '3',
   justifyItems: 'center',
   borderRadius: 'md',
-  border: '[1px solid rgb(var(--color-border) / 0.24)]',
+  border: '[1px solid var(--colors-border)]',
   px: '5',
   py: '4',
 });

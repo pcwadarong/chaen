@@ -85,21 +85,21 @@ const tagListClass = css({
   columnGap: '2',
   m: '0',
   color: 'muted',
-  fontSize: '12',
-  lineHeight: '140',
+  fontSize: 'xs',
+  lineHeight: 'snug',
   '@media (min-width: 961px)': {
     columnGap: '3',
-    fontSize: '14',
+    fontSize: 'sm',
   },
 });
 
 const tagButtonClass = css({
   px: '3',
   py: '[0.35rem]',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.28)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.82)]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
   fontSize: '[inherit]',
-  lineHeight: '120',
+  lineHeight: 'tight',
   color: 'muted',
 });

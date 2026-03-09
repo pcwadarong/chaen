@@ -85,11 +85,11 @@ const textareaMetaClass = css({
 
 const countClass = css({
   justifySelf: 'end',
-  color: '[rgb(var(--color-muted) / 0.82)]',
-  fontSize: '14',
+  color: 'muted',
+  fontSize: 'sm',
 });
 
 const helperTextClass = css({
-  color: '[rgb(var(--color-muted) / 0.76)]',
-  fontSize: '14',
+  color: 'muted',
+  fontSize: 'sm',
 });

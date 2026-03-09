@@ -104,7 +104,7 @@ const pageHeaderMetaClass = css({
   flexWrap: 'wrap',
   gap: '3',
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });
 
 const pageHeaderHeadlineRowClass = css({
@@ -118,7 +118,7 @@ const pageHeaderHeadlineRowClass = css({
 const pageHeaderTitleClass = css({
   flex: '[1 1 18rem]',
   fontSize: '32',
-  lineHeight: '98',
+  lineHeight: 'none',
   letterSpacing: '[-0.04em]',
 });
 
@@ -139,7 +139,7 @@ const pageSectionClass = css({
 });
 
 const pageSectionTitleClass = css({
-  fontSize: '20',
-  lineHeight: '120',
+  fontSize: 'xl',
+  lineHeight: 'tight',
   letterSpacing: '[-0.02em]',
 });

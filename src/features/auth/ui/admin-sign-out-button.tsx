@@ -63,5 +63,5 @@ const wrapperClass = css({
 const messageClass = css({
   m: '0',
   color: '[rgb(190 24 93)]',
-  fontSize: '14',
+  fontSize: 'sm',
 });

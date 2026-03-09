@@ -156,7 +156,7 @@ const bubbleBaseClass = css({
   flexDirection: 'column',
   gap: '4',
   p: '4',
-  borderRadius: 'l',
+  borderRadius: 'lg',
 });
 
 const toneByVariant: Record<GuestbookEntryBubbleVariant, GuestbookEntryBubbleTone> = {
@@ -166,8 +166,8 @@ const toneByVariant: Record<GuestbookEntryBubbleVariant, GuestbookEntryBubbleTon
 
 const toneClassMap: Record<GuestbookEntryBubbleTone, string> = {
   surface: css({
-    border: '[1px solid rgb(var(--color-border) / 0.25)]',
-    backgroundColor: '[rgb(var(--color-surface) / 0.82)]',
+    border: '[1px solid var(--colors-border)]',
+    backgroundColor: 'surface',
     color: 'text',
   }),
   inverse: css({
@@ -214,11 +214,11 @@ const authorLinkClass = css({
 });
 
 const nameClass = css({
-  fontSize: '18',
+  fontSize: 'lg',
   fontWeight: 'semibold',
 });
 
 const dateClass = css({
   color: 'muted',
-  fontSize: '14',
+  fontSize: 'sm',
 });

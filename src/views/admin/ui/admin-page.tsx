@@ -40,6 +40,6 @@ const panelClass = css({
 
 const titleClass = css({
   m: '0',
-  fontSize: '24',
-  lineHeight: '120',
+  fontSize: '2xl',
+  lineHeight: 'tight',
 });

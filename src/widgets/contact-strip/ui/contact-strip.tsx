@@ -67,7 +67,7 @@ const copyClass = css({
 
 const titleClass = css({
   fontSize: '[clamp(2.2rem, 5vw, 4.4rem)]',
-  lineHeight: '98',
+  lineHeight: 'none',
   letterSpacing: '[-0.04em]',
 });
 
@@ -98,26 +98,26 @@ const motionClass = css({
   overflow: 'hidden',
   p: '6',
   borderRadius: 'lg',
-  border: '[1px solid rgb(var(--color-border) / 0.22)]',
+  border: '[1px solid var(--colors-border)]',
   background:
-    '[linear-gradient(180deg, rgb(var(--color-surface)), rgb(var(--color-surface-muted))), rgb(var(--color-surface))]',
+    '[linear-gradient(180deg, var(--colors-surface), var(--colors-surface-muted)), var(--colors-surface)]',
 });
 
 const pulseBaseClass = css({
   position: 'absolute',
-  borderRadius: 'pill',
+  borderRadius: 'full',
 });
 
 const pulseClass = css({
   inset: '[22% auto auto 18%]',
   width: '[7rem]',
   height: '[7rem]',
-  background: '[rgb(var(--color-primary) / 0.35)]',
+  background: 'primary',
 });
 
 const pulseDelayedClass = css({
   inset: '[auto 16% 18% auto]',
   width: '[4.5rem]',
   height: '[4.5rem]',
-  background: '[rgb(var(--color-text) / 0.18)]',
+  background: 'text',
 });

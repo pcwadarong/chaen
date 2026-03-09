@@ -220,9 +220,9 @@ const headerClass = css({
   top: '0',
   zIndex: '10',
   backdropFilter: '[blur(18px) saturate(135%)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.72)]',
-  borderBottom: '[1px solid rgb(var(--color-border) / 0.16)]',
-  boxShadow: '[0 4px 16px rgb(var(--color-black) / 0.14)]',
+  backgroundColor: 'surface',
+  borderBottom: '[1px solid var(--colors-border)]',
+  boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
   willChange: 'transform, opacity',
   transition: '[transform 240ms ease, opacity 240ms ease]',
   '@media (min-width: 961px)': {
@@ -254,7 +254,7 @@ const innerClass = css({
 });
 
 const brandLinkClass = css({
-  fontSize: '16',
+  fontSize: 'md',
   fontWeight: 'bold',
   letterSpacing: '[0.18em]',
   textTransform: 'uppercase',
@@ -268,7 +268,7 @@ const mobileSearchOverlayClass = css({
   zIndex: '2',
   display: 'flex',
   alignItems: 'center',
-  backgroundColor: '[rgb(var(--color-surface) / 0.94)]',
+  backgroundColor: 'surface',
   backdropFilter: '[blur(18px) saturate(135%)]',
   '@media (min-width: 961px)': {
     display: 'none',
@@ -292,17 +292,17 @@ const mobileSearchActionClass = css({
   height: '[2.5rem]',
   p: '0',
   border: 'none',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   background: 'transparent',
   color: 'text',
   cursor: 'pointer',
   transition: '[background-color 160ms ease, box-shadow 160ms ease]',
   _hover: {
-    background: '[rgb(var(--color-text) / 0.06)]',
+    background: 'textSubtle',
   },
   _focusVisible: {
     outline: 'none',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
@@ -314,18 +314,18 @@ const mobileSearchCloseClass = css({
   height: '[2.5rem]',
   p: '0',
   border: 'none',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   background: 'transparent',
   color: 'text',
   cursor: 'pointer',
   fontSize: '[1.5rem]',
-  lineHeight: '100',
+  lineHeight: 'none',
   transition: '[background-color 160ms ease, box-shadow 160ms ease]',
   _hover: {
-    background: '[rgb(var(--color-text) / 0.06)]',
+    background: 'textSubtle',
   },
   _focusVisible: {
     outline: 'none',
-    boxShadow: '[0 0 0 3px rgb(var(--color-primary) / 0.18)]',
+    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });

@@ -112,7 +112,7 @@ const fieldWrapClass = css({
 
 const fieldErrorTextClass = css({
   m: '0',
-  color: '[rgb(var(--color-danger, 208 61 61))]',
+  color: '[var(--colors-danger)]',
   fontSize: '[0.8125rem]',
-  lineHeight: '[1.4]',
+  lineHeight: 'snug',
 });

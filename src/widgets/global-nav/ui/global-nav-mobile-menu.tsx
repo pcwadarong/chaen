@@ -133,9 +133,9 @@ const switcherFallbackClass = css({
   display: 'inline-flex',
   width: '[8.5rem]',
   minHeight: '[2.5rem]',
-  borderRadius: 'pill',
-  border: '[1px solid rgb(var(--color-border) / 0.18)]',
-  backgroundColor: '[rgb(var(--color-surface) / 0.5)]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surfaceMuted',
 });
 
 const hamburgerButtonClass = css({
@@ -148,17 +148,17 @@ const hamburgerButtonClass = css({
   gap: '[0.22rem]',
   cursor: 'pointer',
   _hover: {
-    borderColor: '[rgb(var(--color-border) / 0.4)]',
+    borderColor: 'borderStrong',
   },
   _focusVisible: {
-    borderColor: '[rgb(var(--color-border) / 0.4)]',
+    borderColor: 'borderStrong',
   },
 });
 
 const hamburgerLineClass = css({
   width: '[0.95rem]',
   height: '[1.5px]',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   backgroundColor: 'text',
 });
 
@@ -168,7 +168,7 @@ const mobileOverlayClass = css({
   zIndex: '40',
   display: 'flex',
   justifyContent: 'flex-end',
-  backgroundColor: '[rgb(var(--color-bg) / 0.32)]',
+  backgroundColor: '[rgb(15 23 42 / 0.24)]',
   backdropFilter: '[blur(8px) saturate(120%)]',
 });
 
@@ -180,9 +180,9 @@ const mobileDrawerClass = css({
   gap: '6',
   px: '5',
   py: '6',
-  borderLeft: '[1px solid rgb(var(--color-primary) / 0.48)]',
+  borderLeft: '[1px solid var(--colors-primary)]',
   backgroundColor: 'surface',
-  boxShadow: '[-10px 0 28px rgb(var(--color-black) / 0.18)]',
+  boxShadow: '[-10px 0 28px rgb(15 23 42 / 0.18)]',
 });
 
 const drawerCloseClass = css({
@@ -190,11 +190,11 @@ const drawerCloseClass = css({
   width: '[2.25rem]',
   height: '[2.25rem]',
   border: 'none',
-  borderRadius: 'pill',
+  borderRadius: 'full',
   background: 'transparent',
   color: 'muted',
   fontSize: '[1.9rem]',
-  lineHeight: '100',
+  lineHeight: 'none',
   cursor: 'pointer',
 });
 
@@ -206,8 +206,8 @@ const mobileListClass = css({
 const mobileNavLinkClass = css({
   textDecoration: 'none',
   color: 'text',
-  fontSize: '36',
-  lineHeight: '[1.05]',
+  fontSize: '4xl',
+  lineHeight: 'none',
   letterSpacing: '[-0.02em]',
   _hover: {
     color: 'primary',
