@@ -2,6 +2,7 @@
 
 import { css } from '@emotion/react';
 import React from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { ArrowCurveLeftRightIcon } from '@/shared/ui/icons/app-icons';
@@ -24,8 +25,8 @@ export const CommentComposeReplyPreview = ({
     <ArrowCurveLeftRightIcon aria-hidden size="sm" />
     <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
     <Button
+      className={replyPreviewCloseClass}
       onClick={onReset}
-      css={replyPreviewCloseStyle}
       tone="black"
       type="button"
       variant="underline"
@@ -51,6 +52,6 @@ const replyPreviewTextStyle = css`
   color: rgb(var(--color-muted));
 `;
 
-const replyPreviewCloseStyle = css`
-  justify-self: end;
-`;
+const replyPreviewCloseClass = pandaCss({
+  justifySelf: 'end',
+});

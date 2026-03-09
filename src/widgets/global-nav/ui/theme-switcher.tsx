@@ -4,6 +4,7 @@ import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
@@ -49,12 +50,12 @@ export const ThemeSwitcher = () => {
             return (
               <Button
                 aria-pressed={isActive}
+                className={optionClass}
                 key={option}
                 onClick={() => {
                   setTheme(option);
                   closePopover();
                 }}
-                css={optionStyle}
                 tone={isActive ? 'black' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
@@ -75,7 +76,7 @@ const listStyle = css`
   gap: var(--space-1);
 `;
 
-const optionStyle = css`
-  width: 100%;
-  justify-content: flex-start;
-`;
+const optionClass = pandaCss({
+  width: 'full',
+  justifyContent: 'flex-start',
+});

@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ProjectShowcaseProps = {
   description?: string;
@@ -28,7 +28,10 @@ export const ProjectShowcase = ({
     {hideHeader ? null : (
       <div css={headerStyle}>
         <h2 css={titleStyle}>{title}</h2>
-        <p css={descriptionVisibility === 'sr-only' ? srOnlyStyle : descriptionStyle}>
+        <p
+          className={descriptionVisibility === 'sr-only' ? srOnlyClass : undefined}
+          css={descriptionVisibility === 'visible' ? descriptionStyle : undefined}
+        >
           {description}
         </p>
       </div>

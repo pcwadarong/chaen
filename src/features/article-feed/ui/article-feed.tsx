@@ -7,7 +7,7 @@ import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleListItem as ArticleWideListItem } from '@/entities/article/ui/article-list-item';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleFeedProps = {
   activeTag: string;
@@ -94,7 +94,7 @@ export const ArticleFeed = ({
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}

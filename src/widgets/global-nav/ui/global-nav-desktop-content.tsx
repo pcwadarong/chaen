@@ -2,9 +2,10 @@
 
 import { css } from '@emotion/react';
 import { Suspense } from 'react';
+import { css as pandaCss, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import { getButtonStyle } from '@/shared/ui/button/button';
+import { buttonRecipe } from '@/shared/ui/button/button.recipe';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -29,8 +30,15 @@ export const GlobalNavDesktopContent = ({
           <li key={item.href}>
             <Link
               aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+              className={cx(
+                buttonRecipe({
+                  size: 'sm',
+                  tone: 'white',
+                  variant: 'ghost',
+                }),
+                navLinkClass,
+              )}
               href={item.href}
-              css={navLinkStyle}
             >
               {item.label}
             </Link>
@@ -68,32 +76,23 @@ const listStyle = css`
   flex-wrap: wrap;
 `;
 
-const navLinkStyle = css`
-  ${getButtonStyle({
-    size: 'sm',
-    tone: 'white',
-    variant: 'ghost',
-  })};
-  border: none;
-  background: transparent;
-  font-size: var(--font-size-16);
-  letter-spacing: 0.04em;
-  color: rgb(var(--color-text));
-
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    background: transparent;
-    color: rgb(var(--color-primary));
-  }
-
-  &:focus-visible {
-    color: rgb(var(--color-primary));
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-  }
-
-  &[aria-current='page'] {
-    color: rgb(var(--color-primary));
-  }
-`;
+const navLinkClass = pandaCss({
+  border: 'none',
+  background: 'transparent',
+  fontSize: '16',
+  letterSpacing: '[0.04em]',
+  color: 'text',
+  _hover: {
+    background: 'transparent',
+    color: 'primary',
+  },
+  _focusVisible: {
+    color: 'primary',
+  },
+  '&[aria-current="page"]': {
+    color: 'primary',
+  },
+});
 
 const controlsStyle = css`
   display: flex;

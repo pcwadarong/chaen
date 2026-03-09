@@ -33,4 +33,14 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: '프로젝트' })).toBeTruthy();
   });
+
+  it('전달된 className을 기본 recipe 클래스와 병합한다', () => {
+    render(
+      <Button className="custom-class" tone="primary">
+        병합
+      </Button>,
+    );
+
+    expect(screen.getByRole('button', { name: '병합' }).className).toContain('custom-class');
+  });
 });

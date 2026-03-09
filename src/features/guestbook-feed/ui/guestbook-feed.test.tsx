@@ -3,6 +3,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 import '@testing-library/jest-dom/vitest';
 
@@ -83,12 +84,8 @@ describe('GuestbookFeed', () => {
     );
 
     const endMessage = screen.getByText('마지막 방명록까지 모두 확인했습니다.');
-    const styleText = endMessage.getAttribute('style') ?? '';
 
     expect(endMessage).toHaveAttribute('aria-live', 'polite');
-    expect(styleText).toContain('position: absolute');
-    expect(styleText).toContain('width: 1px');
-    expect(styleText).toContain('height: 1px');
-    expect(styleText).toContain('clip: rect(0px, 0px, 0px, 0px)');
+    expect(endMessage).toHaveClass(srOnlyClass);
   });
 });

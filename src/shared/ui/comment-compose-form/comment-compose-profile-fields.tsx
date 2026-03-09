@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import React from 'react';
 
 import { Input } from '@/shared/ui/input/input';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type CommentComposeProfileFieldsProps = {
   authorBlogUrlDescribedBy?: string;
@@ -48,7 +48,7 @@ export const CommentComposeProfileFields = ({
 }: CommentComposeProfileFieldsProps) => (
   <div css={leftFieldsStyle}>
     <label css={fieldWrapStyle} htmlFor={authorNameId}>
-      <span css={srOnlyStyle}>{authorNameLabel}</span>
+      <span className={srOnlyClass}>{authorNameLabel}</span>
       <Input
         id={authorNameId}
         aria-label={authorNameLabel}
@@ -60,7 +60,7 @@ export const CommentComposeProfileFields = ({
       />
     </label>
     <label css={fieldWrapStyle} htmlFor={passwordId}>
-      <span css={srOnlyStyle}>{passwordLabel}</span>
+      <span className={srOnlyClass}>{passwordLabel}</span>
       <Input
         id={passwordId}
         aria-label={passwordLabel}
@@ -73,7 +73,7 @@ export const CommentComposeProfileFields = ({
       />
     </label>
     <label css={fieldWrapStyle} htmlFor={authorBlogUrlId}>
-      <span css={srOnlyStyle}>{authorBlogUrlLabel}</span>
+      <span className={srOnlyClass}>{authorBlogUrlLabel}</span>
       <Input
         aria-describedby={authorBlogUrlDescribedBy}
         aria-invalid={authorBlogUrlErrorMessage ? 'true' : 'false'}

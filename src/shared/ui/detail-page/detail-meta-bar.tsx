@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 import { CalendarIcon, EyeIcon, ShareIcon } from '@/shared/ui/icons/app-icons';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type DetailMetaBarProps = {
   copyFailedText: string;
@@ -117,7 +117,7 @@ export const DetailMetaBar = ({
           <CalendarIcon aria-hidden color="muted" size="md" />
           <span>
             {primaryMetaScreenReaderText ? (
-              <span css={srOnlyStyle}>{primaryMetaScreenReaderText}</span>
+              <span className={srOnlyClass}>{primaryMetaScreenReaderText}</span>
             ) : null}
             <span aria-hidden={Boolean(primaryMetaScreenReaderText)}>{primaryMetaText}</span>
           </span>
@@ -139,7 +139,7 @@ export const DetailMetaBar = ({
           <span>{shareState === 'copied' ? copiedText : shareText}</span>
         </button>
       </div>
-      <span aria-live="polite" css={srOnlyStyle}>
+      <span aria-live="polite" className={srOnlyClass}>
         {announcement}
       </span>
     </div>

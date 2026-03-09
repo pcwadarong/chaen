@@ -2,7 +2,8 @@
 
 import React from 'react';
 
-import { Button, getButtonStyle } from '@/shared/ui/button/button';
+import { Button } from '@/shared/ui/button/button';
+import { buttonRecipe } from '@/shared/ui/button/button.recipe';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -27,14 +28,14 @@ export const DownloadFileButton = ({
   if (href) {
     return (
       <a
+        className={buttonRecipe({
+          tone: 'white',
+          variant: 'solid',
+        })}
         download={mode === 'download' ? fileName : undefined}
         href={href}
         rel="noopener noreferrer"
         target="_blank"
-        css={getButtonStyle({
-          tone: 'white',
-          variant: 'solid',
-        })}
       >
         {label}
       </a>

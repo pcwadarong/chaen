@@ -2,6 +2,7 @@
 
 import { css } from '@emotion/react';
 import React from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/lib/use-guestbook-bubble-action-menu';
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -119,8 +120,8 @@ export const GuestbookThreadBubble = ({
               <>
                 <p css={secretTextStyle}>{secretPlaceholder}</p>
                 <Button
+                  className={revealButtonClass}
                   onClick={onToggleSecretPanel}
-                  css={revealButtonStyle}
                   tone="white"
                   type="button"
                   variant="ghost"
@@ -139,17 +140,17 @@ export const GuestbookThreadBubble = ({
               >
                 <Input
                   aria-label={revealSecretPasswordLabel}
+                  className={inlineRevealInputClass}
                   onChange={event => setPasswordInput(event.target.value)}
                   placeholder={revealSecretPasswordLabel}
                   type="password"
                   value={passwordInput}
-                  css={inlineRevealInputStyle}
                 />
                 <Button
+                  className={inlineRevealSubmitClass}
                   disabled={isSecretSubmitting}
                   tone="black"
                   type="submit"
-                  css={inlineRevealSubmitStyle}
                 >
                   {revealSecretSubmitLabel}
                 </Button>
@@ -193,12 +194,6 @@ const secretContentStyle = css`
   flex-wrap: wrap;
 `;
 
-const revealButtonStyle = css`
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-`;
-
 const inlineRevealFormStyle = css`
   display: inline-flex;
   align-items: center;
@@ -212,25 +207,29 @@ const secretTextStyle = css`
   overflow-wrap: anywhere;
 `;
 
-const inlineRevealInputStyle = css`
-  min-height: 2rem;
-  min-width: 10rem;
-  border-radius: var(--radius-pill);
-  border-color: rgb(var(--color-border) / 0.24);
-  padding: var(--space-1) var(--space-2);
-
-  &:hover:not(:disabled) {
-    border-color: rgb(var(--color-border) / 0.36);
-  }
-`;
-
-const inlineRevealSubmitStyle = css`
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
-  white-space: nowrap;
-`;
-
 const revealErrorStyle = css`
   color: rgb(var(--color-danger));
   font-size: var(--font-size-14);
 `;
+
+const revealButtonClass = pandaCss({
+  minHeight: '8',
+  px: '3',
+  py: '1',
+  borderRadius: 'pill',
+});
+
+const inlineRevealInputClass = pandaCss({
+  minHeight: '8',
+  minWidth: '40',
+  borderRadius: 'pill',
+  px: '2',
+  py: '1',
+});
+
+const inlineRevealSubmitClass = pandaCss({
+  minHeight: '8',
+  px: '3',
+  py: '1',
+  whiteSpace: 'nowrap',
+});

@@ -2,10 +2,11 @@
 
 import { css } from '@emotion/react';
 import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type SwitcherPopoverProps = {
   children: (args: { closePopover: () => void }) => ReactNode;
@@ -71,7 +72,7 @@ export const SwitcherPopover = ({
 
   return (
     <div ref={rootRef} css={rootStyle}>
-      <span id={panelLabelId} css={srOnlyStyle}>
+      <span className={srOnlyClass} id={panelLabelId}>
         {panelLabel}
       </span>
       <Button
@@ -80,8 +81,8 @@ export const SwitcherPopover = ({
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-labelledby={panelLabelId}
+        className={triggerClass}
         onClick={handleToggle}
-        css={triggerStyle}
         size="sm"
         tone="white"
         type="button"
@@ -118,23 +119,21 @@ const rootStyle = css`
   position: relative;
 `;
 
-const triggerStyle = css`
-  display: inline-flex;
-  gap: var(--space-3);
-  border: none;
-  background: transparent;
-  color: rgb(var(--color-text));
-
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    border-color: transparent;
-    background: transparent;
-    color: rgb(var(--color-primary));
-  }
-
-  &:focus-visible {
-    color: rgb(var(--color-primary));
-  }
-`;
+const triggerClass = pandaCss({
+  display: 'inline-flex',
+  gap: '3',
+  border: 'none',
+  background: 'transparent',
+  color: 'text',
+  _hover: {
+    borderColor: 'transparent',
+    background: 'transparent',
+    color: 'primary',
+  },
+  _focusVisible: {
+    color: 'primary',
+  },
+});
 
 const triggerLabelStyle = css`
   font-size: var(--font-size-12);

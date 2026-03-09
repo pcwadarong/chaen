@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 import type { KeyboardEvent } from 'react';
 import React from 'react';
 
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
 type CommentComposeContentFieldProps = {
@@ -41,7 +41,7 @@ export const CommentComposeContentField = ({
 }: CommentComposeContentFieldProps) => (
   <div css={textareaWrapStyle}>
     <label css={fieldWrapStyle} htmlFor={contentId}>
-      <span css={srOnlyStyle}>{contentLabel}</span>
+      <span className={srOnlyClass}>{contentLabel}</span>
       <Textarea
         aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
         aria-label={contentLabel}

@@ -8,7 +8,7 @@ import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/m
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type GuestbookFeedProps = {
   canReply: boolean;
@@ -130,7 +130,7 @@ export const GuestbookFeed = ({
       <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
       {isLoadingMore ? <p css={loadingMoreStyle}>{t('loading')}</p> : null}
       {!hasMore ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {t('loadMoreEnd')}
         </p>
       ) : null}

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
@@ -200,7 +200,7 @@ export const GlobalNav = () => {
                 type="button"
               >
                 <SearchIcon aria-hidden color="text" size="md" />
-                <span css={srOnlyStyle}>{articlesT('searchSubmit')}</span>
+                <span className={srOnlyClass}>{articlesT('searchSubmit')}</span>
               </button>
             ) : null
           }

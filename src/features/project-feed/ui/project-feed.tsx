@@ -6,7 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type ProjectFeedProps = {
@@ -80,7 +80,7 @@ export const ProjectFeed = ({
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}

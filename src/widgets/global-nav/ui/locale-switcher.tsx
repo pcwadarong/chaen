@@ -4,6 +4,7 @@ import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useTransition } from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { type AppLocale, routing } from '@/i18n/routing';
@@ -70,10 +71,10 @@ export const LocaleSwitcher = () => {
             return (
               <Button
                 aria-pressed={isActive}
+                className={optionClass}
                 disabled={isPending}
                 key={option}
                 onClick={() => handleLocaleChange(option, closePopover)}
-                css={optionStyle}
                 tone={isActive ? 'black' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
@@ -94,14 +95,6 @@ const listStyle = css`
   gap: var(--space-1);
 `;
 
-const optionStyle = css`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-`;
-
 const optionCodeStyle = css`
   font-size: var(--font-size-12);
   font-weight: var(--font-weight-bold);
@@ -115,3 +108,11 @@ const triggerCodeStyle = css`
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.05em;
 `;
+
+const optionClass = pandaCss({
+  width: 'full',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '3',
+});

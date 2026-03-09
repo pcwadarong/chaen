@@ -2,6 +2,7 @@
 
 import { css } from '@emotion/react';
 import React from 'react';
+import { css as pandaCss } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { LockIcon, LockOpenIcon, SendIcon } from '@/shared/ui/icons/app-icons';
@@ -44,18 +45,18 @@ export const CommentComposeActions = ({
           htmlFor={secretCheckboxId}
         >
           <span aria-hidden css={secretIconStackStyle} data-checked={isSecret ? 'true' : 'false'}>
-            <LockOpenIcon css={secretIconOpenStyle} size="lg" />
-            <LockIcon css={secretIconClosedStyle} size="lg" />
+            <LockOpenIcon className={secretIconOpenClass} size="lg" />
+            <LockIcon className={secretIconClosedClass} size="lg" />
           </span>
         </label>
       </div>
     ) : null}
     <Button
+      className={submitButtonClass}
       disabled={isSubmitting}
       leadingVisual={<SendIcon aria-hidden size="md" />}
       tone="black"
       type="submit"
-      css={submitButtonStyle}
     >
       {submitLabel}
     </Button>
@@ -106,35 +107,31 @@ const secretIconStackStyle = css`
   transform: translateY(-1px);
 `;
 
-const secretIconOpenStyle = css`
-  position: absolute;
-  inset: 0;
-  opacity: 0.8;
-  transition: opacity 180ms ease;
+const secretIconOpenClass = pandaCss({
+  position: 'absolute',
+  inset: '0',
+  opacity: '0.8',
+  transition: 'opacity',
+  '[data-checked="true"] &': {
+    opacity: '0',
+  },
+  'label:hover &': {
+    opacity: '0',
+  },
+});
 
-  [data-checked='true'] & {
-    opacity: 0;
-  }
-
-  label:hover & {
-    opacity: 0;
-  }
-`;
-
-const secretIconClosedStyle = css`
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 180ms ease;
-
-  [data-checked='true'] & {
-    opacity: 0.8;
-  }
-
-  label:hover & {
-    opacity: 0.8;
-  }
-`;
+const secretIconClosedClass = pandaCss({
+  position: 'absolute',
+  inset: '0',
+  opacity: '0',
+  transition: 'opacity',
+  '[data-checked="true"] &': {
+    opacity: '0.8',
+  },
+  'label:hover &': {
+    opacity: '0.8',
+  },
+});
 
 const secretCheckboxStyle = css`
   width: 1rem;
@@ -144,7 +141,7 @@ const secretCheckboxStyle = css`
   accent-color: rgb(var(--color-primary));
 `;
 
-const submitButtonStyle = css`
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
-`;
+const submitButtonClass = pandaCss({
+  fontSize: '16',
+  fontWeight: 'semibold',
+});
