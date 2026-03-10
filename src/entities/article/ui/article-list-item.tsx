@@ -61,15 +61,19 @@ const linkClass = css({
 const articleClass = css({
   display: 'flex',
   justifyContent: 'space-between',
+  alignItems: 'stretch',
   gap: '5',
   py: '7',
 });
 
 const contentClass = css({
-  display: 'grid',
+  display: 'flex',
+  flexDirection: 'column',
   minWidth: '0',
-  gap: '4',
-  alignContent: 'center',
+  flex: '[1 1 auto]',
+  '@media (min-width: 480px)': {
+    minHeight: '[8.75rem]',
+  },
 });
 
 const bodyClass = css({
@@ -80,6 +84,9 @@ const bodyClass = css({
 
 const titleClass = css({
   lineClamp: '2',
+  textWrap: 'wrap',
+  wordBreak: 'keep-all',
+  overflowWrap: 'normal',
   color: 'primary',
   fontSize: '2xl',
   lineHeight: 'tight',
@@ -89,6 +96,9 @@ const titleClass = css({
 
 const descriptionClass = css({
   lineClamp: '2',
+  textWrap: 'wrap',
+  wordBreak: 'keep-all',
+  overflowWrap: 'normal',
   color: 'text',
   fontSize: 'md',
   lineHeight: 'normal',
@@ -96,6 +106,7 @@ const descriptionClass = css({
 });
 
 const dateClass = css({
+  mt: 'auto',
   color: 'muted',
   fontSize: 'sm',
 });
@@ -108,7 +119,7 @@ const mediaClass = css({
     flex: '[0 0 8.75rem]',
     width: '[8.75rem]',
     minWidth: '[8.75rem]',
-    aspectRatio: '[4 / 3]',
+    aspectRatio: 'square',
     justifySelf: 'end',
     overflow: 'hidden',
     borderRadius: 'sm',
