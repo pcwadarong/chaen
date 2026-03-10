@@ -42,7 +42,7 @@ export const ThemeSwitcher = () => {
       triggerContent={<ThemeIcon theme={activeTheme} />}
     >
       {({ closePopover }) => (
-        <div className={listClass}>
+        <>
           {themeOptions.map(option => {
             const isActive = activeTheme === option;
 
@@ -55,7 +55,7 @@ export const ThemeSwitcher = () => {
                   setTheme(option);
                   closePopover();
                 }}
-                tone={isActive ? 'black' : 'white'}
+                tone={isActive ? 'primary' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
                 leadingVisual={<ThemeIcon theme={option} />}
@@ -64,18 +64,23 @@ export const ThemeSwitcher = () => {
               </Button>
             );
           })}
-        </div>
+        </>
       )}
     </SwitcherPopover>
   );
 };
 
-const listClass = css({
-  display: 'grid',
-  gap: '1',
-});
-
 const optionClass = css({
   width: 'full',
   justifyContent: 'flex-start',
+  minHeight: '[2.75rem]',
+  px: '4',
+  py: '2',
+  fontSize: 'md',
+  '&[aria-pressed="false"]:hover': {
+    color: 'primary',
+  },
+  '&[aria-pressed="false"]:focus-visible': {
+    color: 'primary',
+  },
 });

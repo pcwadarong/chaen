@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import { buttonRecipe } from '@/shared/ui/button/button';
+import { Button } from '@/shared/ui/button/button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -25,20 +25,21 @@ export const GlobalNavDesktopContent = ({
       <ul className={listClass}>
         {navigationItems.map(item => (
           <li key={item.href}>
-            <Link
-              aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
-              className={cx(
-                buttonRecipe({
-                  size: 'sm',
-                  tone: 'white',
-                  variant: 'ghost',
-                }),
-                navLinkClass,
-              )}
-              href={item.href}
+            <Button
+              asChild
+              className={navLinkClass}
+              size="sm"
+              tone="white"
+              type={undefined}
+              variant="ghost"
             >
-              {item.label}
-            </Link>
+              <Link
+                aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                href={item.href}
+              >
+                {item.label}
+              </Link>
+            </Button>
           </li>
         ))}
       </ul>
@@ -68,18 +69,14 @@ const contentClass = css({
 const listClass = css({
   display: 'flex',
   alignItems: 'center',
-  gap: '1',
+  gap: '2',
   flexWrap: 'wrap',
 });
 
 const navLinkClass = css({
-  border: 'none',
-  background: 'transparent',
   fontSize: 'md',
   letterSpacing: '[0.04em]',
-  color: 'text',
   _hover: {
-    background: 'transparent',
     color: 'primary',
   },
   _focusVisible: {
@@ -103,7 +100,7 @@ const controlsDividerClass = css({
   height: '[1.4rem]',
   m: '0',
   border: 'none',
-  backgroundColor: 'surfaceStrong',
+  backgroundColor: 'border',
 });
 
 const switcherFallbackClass = css({

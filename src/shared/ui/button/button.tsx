@@ -1,10 +1,10 @@
 import React from 'react';
-import { css, cva, cx } from 'styled-system/css';
+import { cx, sva } from 'styled-system/css';
 import type { RecipeVariantProps } from 'styled-system/types/recipe';
 
 export type ButtonTone = 'white' | 'primary' | 'black';
 export type ButtonVariant = 'solid' | 'ghost' | 'underline';
-export type ButtonSize = 'sm' | 'md';
+export type ButtonSize = 'xs' | 'sm' | 'md';
 
 type ButtonRecipeProps = RecipeVariantProps<typeof buttonRecipe>;
 
@@ -14,18 +14,6 @@ type ButtonProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color'> 
     leadingVisual?: React.ReactNode;
     trailingVisual?: React.ReactNode;
   };
-
-const buttonLabelClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-});
-
-const buttonVisualClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flex: 'none',
-});
 
 /**
  * 버튼 내부에서 아이콘과 라벨을 같은 리듬으로 정렬합니다.
@@ -43,17 +31,18 @@ export const Button = ({
   variant = 'solid',
   ...props
 }: ButtonProps) => {
-  const buttonClassName = cx(buttonRecipe({ fullWidth, size, tone, variant }), className);
+  const buttonClasses = buttonRecipe({ fullWidth, size, tone, variant });
+  const buttonClassName = cx(buttonClasses.root, className);
   const renderContent = (labelContent: React.ReactNode) => (
     <>
       {leadingVisual ? (
-        <span aria-hidden className={buttonVisualClass}>
+        <span aria-hidden className={buttonClasses.visual}>
           {leadingVisual}
         </span>
       ) : null}
-      <span className={buttonLabelClass}>{labelContent}</span>
+      <span className={buttonClasses.label}>{labelContent}</span>
       {trailingVisual ? (
-        <span aria-hidden className={buttonVisualClass}>
+        <span aria-hidden className={buttonClasses.visual}>
           {trailingVisual}
         </span>
       ) : null}
@@ -68,13 +57,24 @@ export const Button = ({
     const child = children as React.ReactElement<{
       children?: React.ReactNode;
       className?: string;
+      type?: string;
     }>;
 
-    return React.cloneElement(child, {
+    const nextProps: {
+      children: React.ReactNode;
+      className: string;
+      type?: string;
+    } & typeof props = {
       ...props,
       className: cx(buttonClassName, child.props.className),
       children: renderContent(child.props.children),
-    });
+    };
+
+    if (typeof child.type === 'string' && child.type === 'button') {
+      nextProps.type = type;
+    }
+
+    return React.cloneElement(child, nextProps);
   }
 
   return (
@@ -87,69 +87,88 @@ export const Button = ({
 /**
  * 버튼의 공통 스타일과 variant 조합을 정의합니다.
  */
-export const buttonRecipe = cva({
+export const buttonRecipe = sva({
+  slots: ['root', 'label', 'visual'],
   base: {
-    appearance: 'none',
-    borderWidth: '1px',
-    borderStyle: 'solid',
-    borderColor: 'transparent',
-    outline: 'none',
-    textDecoration: 'none',
-    userSelect: 'none',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '2',
-    width: 'auto',
-    letterSpacing: '[-0.01em]',
-    transition: 'common',
-    _focusVisible: {
-      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    root: {
+      appearance: 'none',
+      textDecoration: 'none',
+      userSelect: 'none',
+      cursor: 'pointer',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '2',
+      width: 'auto',
+      letterSpacing: '[-0.01em]',
+      transition: 'common',
+      _focusVisible: {
+        outline: '[2px solid var(--colors-focus-ring)]',
+        outlineOffset: '[2px]',
+      },
+      _disabled: {
+        cursor: 'not-allowed',
+        opacity: 0.48,
+      },
+      '&[aria-disabled="true"]': {
+        cursor: 'not-allowed',
+        opacity: 0.48,
+      },
     },
-    _disabled: {
-      cursor: 'not-allowed',
-      opacity: 0.48,
+    label: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: '0',
     },
-    '&[aria-disabled="true"]': {
-      cursor: 'not-allowed',
-      opacity: 0.48,
+    visual: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 'none',
+      lineHeight: 'none',
     },
   },
   variants: {
     fullWidth: {
-      true: { width: 'full' },
+      true: { root: { width: 'full' } },
       false: {},
     },
     size: {
+      xs: {
+        root: { fontSize: 'xs' },
+      },
       sm: {
-        minHeight: '[2.375rem]',
-        px: '3',
-        py: '1',
-        borderRadius: 'full',
-        fontSize: 'sm',
+        root: { fontSize: 'sm' },
       },
       md: {
-        minHeight: '[2.75rem]',
-        px: '4',
-        py: '2',
-        borderRadius: 'full',
-        fontSize: 'sm',
+        root: { fontSize: 'sm' },
       },
     },
     variant: {
-      solid: {},
+      solid: {
+        root: {
+          borderStyle: 'solid',
+          borderWidth: '1px',
+          borderRadius: 'full',
+        },
+      },
       ghost: {
-        background: 'transparent',
+        root: {
+          borderStyle: 'solid',
+          borderWidth: '1px',
+          borderRadius: 'full',
+          background: 'transparent',
+        },
       },
       underline: {
-        minHeight: 'auto',
-        p: '0',
-        borderRadius: '[0]',
-        background: 'transparent',
-        justifyContent: 'flex-start',
-        textDecoration: 'underline',
-        textUnderlineOffset: '[0.18em]',
+        root: {
+          minHeight: 'auto',
+          p: '0',
+          justifyContent: 'flex-start',
+          textDecoration: 'underline',
+          textUnderlineOffset: '[0.18em]',
+        },
       },
     },
     tone: {
@@ -160,15 +179,50 @@ export const buttonRecipe = cva({
   },
   compoundVariants: [
     {
+      variant: ['solid', 'ghost'],
+      size: 'xs',
+      css: {
+        root: {
+          minHeight: '8',
+          px: '2',
+          py: '[0.375rem]',
+        },
+      },
+    },
+    {
+      variant: ['solid', 'ghost'],
+      size: 'sm',
+      css: {
+        root: {
+          minHeight: '[2.375rem]',
+          px: '3',
+          py: '1',
+        },
+      },
+    },
+    {
+      variant: ['solid', 'ghost'],
+      size: 'md',
+      css: {
+        root: {
+          minHeight: '[2.75rem]',
+          px: '4',
+          py: '2',
+        },
+      },
+    },
+    {
       tone: 'white',
       variant: 'solid',
       css: {
-        background: 'surface',
-        borderColor: 'border',
-        color: 'text',
-        _hover: {
+        root: {
           background: 'surface',
-          borderColor: 'borderStrong',
+          borderColor: 'border',
+          color: 'text',
+          _hover: {
+            background: 'surface',
+            borderColor: 'borderStrong',
+          },
         },
       },
     },
@@ -176,12 +230,14 @@ export const buttonRecipe = cva({
       tone: 'primary',
       variant: 'solid',
       css: {
-        background: 'primary',
-        color: 'primaryContrast',
-        _hover: {
-          background: 'blue.600',
-          _dark: {
-            background: 'blue.200',
+        root: {
+          background: 'primary',
+          color: 'primaryContrast',
+          _hover: {
+            background: 'blue.600',
+            _dark: {
+              background: 'blue.200',
+            },
           },
         },
       },
@@ -190,12 +246,14 @@ export const buttonRecipe = cva({
       tone: 'black',
       variant: 'solid',
       css: {
-        background: 'text',
-        color: 'bg',
-        _hover: {
-          background: 'gray.800',
-          _dark: {
-            background: 'gray.100',
+        root: {
+          background: 'text',
+          color: 'bg',
+          _hover: {
+            background: 'gray.800',
+            _dark: {
+              background: 'gray.100',
+            },
           },
         },
       },
@@ -204,12 +262,13 @@ export const buttonRecipe = cva({
       tone: 'white',
       variant: 'ghost',
       css: {
-        background: 'surfaceMuted',
-        borderColor: 'border',
-        color: 'text',
-        _hover: {
-          background: 'surface',
-          borderColor: 'borderStrong',
+        root: {
+          color: 'text',
+          borderColor: 'transparent',
+          _hover: {
+            background: 'transparent',
+            borderColor: 'transparent',
+          },
         },
       },
     },
@@ -217,12 +276,13 @@ export const buttonRecipe = cva({
       tone: 'primary',
       variant: 'ghost',
       css: {
-        background: 'primarySubtle',
-        borderColor: 'primary',
-        color: 'primary',
-        _hover: {
-          background: 'primaryMuted',
-          borderColor: 'primary',
+        root: {
+          color: 'primary',
+          borderColor: 'transparent',
+          _hover: {
+            background: 'transparent',
+            borderColor: 'transparent',
+          },
         },
       },
     },
@@ -230,29 +290,30 @@ export const buttonRecipe = cva({
       tone: 'black',
       variant: 'ghost',
       css: {
-        background: 'textSubtle',
-        borderColor: 'border',
-        color: 'text',
-        _hover: {
-          background: 'surfaceStrong',
-          borderColor: 'borderStrong',
+        root: {
+          color: 'text',
+          borderColor: 'transparent',
+          _hover: {
+            background: 'transparent',
+            borderColor: 'transparent',
+          },
         },
       },
     },
     {
       tone: 'white',
       variant: 'underline',
-      css: { color: 'text' },
+      css: { root: { color: 'text' } },
     },
     {
       tone: 'primary',
       variant: 'underline',
-      css: { color: 'primary' },
+      css: { root: { color: 'primary' } },
     },
     {
       tone: 'black',
       variant: 'underline',
-      css: { color: 'text' },
+      css: { root: { color: 'text' } },
     },
   ],
   defaultVariants: {

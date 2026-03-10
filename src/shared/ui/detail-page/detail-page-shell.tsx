@@ -174,9 +174,9 @@ const detailPageSidebarLinkClass = cva({
       background: 'surfaceMuted',
     },
     _focusVisible: {
-      outline: 'none',
+      outline: '[2px solid var(--colors-focus-ring)]',
+      outlineOffset: '[-2px]',
       background: 'surfaceStrong',
-      boxShadow: '[inset 0 0 0 2px var(--colors-focus-ring)]',
     },
     '@media (min-width: 1200px)': {
       px: '5',
@@ -313,7 +313,6 @@ const detailPageGuestbookCtaWrapClass = css({
 const detailPageGuestbookCtaClass = css({
   appearance: 'none',
   border: '[1px solid transparent]',
-  outline: 'none',
   textDecoration: 'none',
   userSelect: 'none',
   cursor: 'pointer',

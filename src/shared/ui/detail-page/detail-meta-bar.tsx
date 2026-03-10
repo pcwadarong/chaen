@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
+import { Button } from '@/shared/ui/button/button';
 import { CalendarIcon, EyeIcon, ShareIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
@@ -134,10 +135,17 @@ export const DetailMetaBar = ({
         ) : (
           <span className={dividerClass} />
         )}
-        <button className={shareButtonClass} onClick={handleShare} type="button">
+        <Button
+          className={shareButtonClass}
+          onClick={handleShare}
+          size="sm"
+          tone="white"
+          type="button"
+          variant="ghost"
+        >
           <ShareIcon aria-hidden color="text" size="md" />
           <span>{shareState === 'copied' ? copiedText : shareText}</span>
-        </button>
+        </Button>
       </div>
       <span aria-live="polite" className={srOnlyClass}>
         {announcement}
@@ -182,8 +190,6 @@ const dividerClass = css({
 });
 
 const shareButtonClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
   gap: '2',
   p: '0',
   color: 'text',

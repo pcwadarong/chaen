@@ -7,6 +7,7 @@ import { css, cx } from 'styled-system/css';
 
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
+import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
@@ -166,14 +167,17 @@ export const GlobalNav = () => {
               searchQuery={currentSearchQuery}
               submitText={articlesT('searchSubmit')}
             />
-            <button
+            <Button
               aria-label={articlesT('searchClose')}
               className={mobileSearchCloseClass}
               onClick={() => setIsMobileSearchOpen(false)}
+              size="sm"
+              tone="white"
               type="button"
+              variant="ghost"
             >
               ×
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -192,16 +196,19 @@ export const GlobalNav = () => {
           isOpen={isMobileMenuOpen}
           leadingAction={
             isArticlesRoute ? (
-              <button
+              <Button
                 aria-expanded={isMobileSearchOpen}
                 aria-label={articlesT('searchSubmit')}
                 className={mobileSearchActionClass}
                 onClick={() => setIsMobileSearchOpen(true)}
+                size="sm"
+                tone="white"
                 type="button"
+                variant="ghost"
               >
                 <SearchIcon aria-hidden color="text" size="md" />
                 <span className={srOnlyClass}>{articlesT('searchSubmit')}</span>
-              </button>
+              </Button>
             ) : null
           }
           navigationItems={navigationItems}
@@ -285,47 +292,23 @@ const mobileSearchOverlayInnerClass = css({
 });
 
 const mobileSearchActionClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
   width: '[2.5rem]',
-  height: '[2.5rem]',
   p: '0',
-  border: 'none',
-  borderRadius: 'full',
-  background: 'transparent',
   color: 'text',
-  cursor: 'pointer',
   transition: '[background-color 160ms ease, box-shadow 160ms ease]',
   _hover: {
     background: 'textSubtle',
   },
-  _focusVisible: {
-    outline: 'none',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
-  },
 });
 
 const mobileSearchCloseClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
   width: '[2.5rem]',
-  height: '[2.5rem]',
   p: '0',
-  border: 'none',
-  borderRadius: 'full',
-  background: 'transparent',
   color: 'text',
-  cursor: 'pointer',
   fontSize: '[1.5rem]',
   lineHeight: 'none',
   transition: '[background-color 160ms ease, box-shadow 160ms ease]',
   _hover: {
     background: 'textSubtle',
-  },
-  _focusVisible: {
-    outline: 'none',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });

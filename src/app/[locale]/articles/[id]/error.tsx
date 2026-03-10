@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { css } from 'styled-system/css';
 
+import { Button } from '@/shared/ui/button/button';
+
 type ArticleDetailErrorProps = {
   error: Error & { digest?: string };
   reset: () => void;
@@ -19,9 +21,9 @@ const ArticleDetailError = ({ error, reset }: ArticleDetailErrorProps) => {
       <section className={panelClass} role="alert">
         <h1 className={titleClass}>{t('errorTitle')}</h1>
         <p className={descriptionClass}>{error.message}</p>
-        <button className={buttonClass} onClick={reset} type="button">
+        <Button className={buttonClass} onClick={reset} tone="white" type="button" variant="solid">
           {t('retry')}
-        </button>
+        </Button>
       </section>
     </main>
   );
@@ -55,12 +57,7 @@ const descriptionClass = css({
 
 const buttonClass = css({
   width: '[fit-content]',
-  minHeight: '[2.7rem]',
-  px: '4',
   py: '0',
-  borderRadius: 'full',
-  border: '[1px solid var(--colors-border)]',
-  backgroundColor: 'surface',
 });
 
 export default ArticleDetailError;

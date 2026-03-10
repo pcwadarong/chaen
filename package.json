@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -k -n next,panda -c blue,magenta \"pnpm dev:next\" \"pnpm panda:watch\"",
-    "dev:next": "next dev --turbo",
+    "dev:next": "next dev",
+    "panda:watch": "concurrently -k -n codegen,css -c magenta,cyan \"panda codegen --watch\" \"panda cssgen --watch --outfile styled-system/styles.css\"",
+    "panda:codegen": "panda codegen && panda cssgen --outfile styled-system/styles.css",
+    "prepare": "pnpm panda:codegen",
     "build": "next build",
     "start": "next start",
     "commit": "cz",
@@ -15,9 +18,6 @@
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "panda:codegen": "panda codegen && panda cssgen --outfile styled-system/styles.css",
-    "panda:watch": "concurrently -k -n codegen,css -c magenta,cyan \"panda codegen --watch\" \"panda cssgen --watch --outfile styled-system/styles.css\"",
-    "prepare": "pnpm panda:codegen",
     "postinstall": "husky"
   },
   "lint-staged": {

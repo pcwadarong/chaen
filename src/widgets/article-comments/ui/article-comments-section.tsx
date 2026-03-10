@@ -332,7 +332,7 @@ export const ArticleCommentsSection = ({
 
       <div className={listToolbarClass}>
         <div aria-label={t('sortLabel')} className={sortGroupClass} role="tablist">
-          <button
+          <Button
             aria-selected={pageData.sort === 'latest'}
             className={cx(
               sortButtonClass,
@@ -340,11 +340,14 @@ export const ArticleCommentsSection = ({
             )}
             onClick={() => handleChangeSort('latest')}
             role="tab"
+            size="sm"
+            tone="white"
             type="button"
+            variant={pageData.sort === 'latest' ? 'solid' : 'ghost'}
           >
             {t('sortLatest')}
-          </button>
-          <button
+          </Button>
+          <Button
             aria-selected={pageData.sort === 'oldest'}
             className={cx(
               sortButtonClass,
@@ -352,10 +355,13 @@ export const ArticleCommentsSection = ({
             )}
             onClick={() => handleChangeSort('oldest')}
             role="tab"
+            size="sm"
+            tone="white"
             type="button"
+            variant={pageData.sort === 'oldest' ? 'solid' : 'ghost'}
           >
             {t('sortOldest')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -765,29 +771,22 @@ const sortGroupClass = css({
 });
 
 const sortButtonClass = css({
-  border: 'none',
-  borderRadius: 'full',
-  background: 'transparent',
   color: 'muted',
-  paddingX: '3',
-  paddingY: '1',
   fontSize: 'md',
   fontWeight: 'medium',
-  transition: '[background-color 160ms ease, color 160ms ease, box-shadow 160ms ease]',
   _hover: {
     color: 'primary',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
-    outline: 'none',
     color: 'primary',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
 const activeSortButtonClass = css({
   background: 'surface',
   color: 'text',
+  borderColor: 'transparent',
+  fontWeight: 'semibold',
 });
 
 const stateCardClass = css({
@@ -874,7 +873,8 @@ const authorLinkClass = css({
     textDecoration: 'underline',
   },
   _focusVisible: {
-    outline: 'none',
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
     textDecoration: 'underline',
   },
 });
@@ -926,7 +926,8 @@ const replyButtonClass = css({
     color: 'primary',
   },
   _focusVisible: {
-    outline: 'none',
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
     color: 'primary',
   },
   '&:hover > span:first-of-type': {

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 
@@ -15,8 +15,8 @@ type ContentCardProps = {
 };
 
 const thumbnailWrapClass = css({
-  borderTopLeftRadius: 'lg',
-  borderTopRightRadius: 'lg',
+  borderTopLeftRadius: '3xl',
+  borderTopRightRadius: '3xl',
   overflow: 'hidden',
   borderBottom: '[1px solid var(--colors-border)]',
   backgroundColor: 'surfaceStrong',
@@ -28,7 +28,10 @@ const thumbnailClass = css({
   aspectRatio: '[16 / 9]',
   objectFit: 'cover',
   transition: 'transform',
-  '.group:hover &': {
+  '[data-content-card="true"]:hover &': {
+    transform: '[scale(1.03)]',
+  },
+  '[data-content-card="true"]:focus-visible &': {
     transform: '[scale(1.03)]',
   },
 });
@@ -97,7 +100,12 @@ export const ContentCard = ({
   thumbnailSrc,
   title,
 }: ContentCardProps) => (
-  <Link aria-label={ariaLabel} className={cx(contentCardLinkClass, 'group')} href={href}>
+  <Link
+    aria-label={ariaLabel}
+    className={contentCardLinkClass}
+    data-content-card="true"
+    href={href}
+  >
     <article className={contentCardRecipe}>
       {thumbnailSrc ? (
         <div className={thumbnailWrapClass}>
@@ -140,18 +148,18 @@ const contentCardRecipe = css({
   display: 'grid',
   alignContent: 'start',
   gap: '0',
-  borderRadius: 'lg',
+  borderRadius: '3xl',
   border: '[1px solid var(--colors-border)]',
   backgroundColor: 'surfaceMuted',
   overflow: 'hidden',
   transition: '[box-shadow 220ms ease, transform 220ms ease]',
-  _groupHover: {
+  '[data-content-card="true"]:hover &': {
     boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
-    transform: '[translateY(-1px)]',
+    transform: '[translateY(-3px)]',
   },
-  _groupFocusVisible: {
+  '[data-content-card="true"]:focus-visible &': {
     boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
-    transform: '[translateY(-1px)]',
+    transform: '[translateY(-3px)]',
   },
 });
 

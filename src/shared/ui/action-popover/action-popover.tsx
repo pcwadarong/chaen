@@ -4,6 +4,7 @@ import React, { type ReactNode, useCallback, useEffect, useId, useRef } from 're
 import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+import { Button } from '@/shared/ui/button/button';
 import { KebabIcon } from '@/shared/ui/icons/app-icons';
 
 type ActionPopoverRenderArgs = {
@@ -73,7 +74,7 @@ export const ActionPopover = ({
 
   return (
     <div className={rootClass} ref={rootRef}>
-      <button
+      <Button
         aria-controls={isOpen ? panelId : undefined}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
@@ -81,9 +82,10 @@ export const ActionPopover = ({
         className={triggerClass}
         onClick={() => onOpenChange(!isOpen)}
         type="button"
+        variant="ghost"
       >
         <KebabIcon aria-hidden color="muted" size="sm" />
-      </button>
+      </Button>
       {isOpen ? (
         <div
           aria-label={panelLabel}
@@ -109,19 +111,16 @@ export const ActionMenuButton = ({
   label,
   onClick,
 }: ActionMenuButtonProps) => (
-  <button
+  <Button
     aria-disabled={ariaDisabled ? 'true' : undefined}
     className={actionButtonClass}
     onClick={ariaDisabled ? undefined : onClick}
     type="button"
+    variant="ghost"
   >
-    {icon ? (
-      <span aria-hidden className={iconClass}>
-        {icon}
-      </span>
-    ) : null}
+    {icon ? <span aria-hidden>{icon}</span> : null}
     <span>{label}</span>
-  </button>
+  </Button>
 );
 
 const rootClass = css({
@@ -139,14 +138,10 @@ const triggerClass = css({
   borderRadius: 'full',
   transition: 'colors',
   _hover: {
-    outline: 'none',
     background: 'primarySubtle',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
-    outline: 'none',
     background: 'primarySubtle',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
 });
 
@@ -155,10 +150,8 @@ const panelClass = css({
   top: '[calc(100% + 0.4rem)]',
   right: '0',
   minWidth: '[8.5rem]',
-  p: '2',
   display: 'grid',
-  gap: '1',
-  borderRadius: 'md',
+  borderRadius: '2xl',
   border: '[1px solid var(--colors-border)]',
   backgroundColor: 'surface',
   boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',
@@ -166,34 +159,15 @@ const panelClass = css({
 });
 
 const actionButtonClass = css({
-  border: '[0]',
-  background: 'transparent',
   color: 'muted',
   display: 'inline-flex',
-  alignItems: 'center',
-  gap: '1',
-  px: '2',
-  py: '1',
-  borderRadius: 'full',
-  fontSize: 'sm',
+  justifyContent: 'flex-start',
+  gap: '2',
   transition: 'colors',
   _hover: {
     color: 'primary',
-    background: 'primarySubtle',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
   _focusVisible: {
-    outline: 'none',
     color: 'primary',
-    background: 'primarySubtle',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
   },
-  '&[aria-disabled="true"]': {
-    cursor: 'default',
-    opacity: 0.72,
-  },
-});
-
-const iconClass = css({
-  display: 'inline-flex',
 });

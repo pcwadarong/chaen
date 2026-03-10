@@ -45,7 +45,7 @@ const appFrameClass = css({
     overflow: 'hidden',
     border: '[1px solid var(--colors-border)]',
     borderRadius: '[2rem]',
-    backgroundColor: 'surfaceMuted',
+    backgroundColor: 'surface',
     boxShadow: '[0 24px 64px rgb(15 23 42 / 0.12)]',
     backdropFilter: '[blur(24px) saturate(120%)]',
     transform: 'translateZ(0)',

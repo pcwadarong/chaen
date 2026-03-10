@@ -1,7 +1,7 @@
 import { defineConfig } from '@pandacss/dev';
 
 export default defineConfig({
-  preflight: false,
+  preflight: true,
   jsxFramework: 'react',
   outdir: 'styled-system',
   strictTokens: true,
@@ -40,115 +40,115 @@ export default defineConfig({
           bg: {
             value: {
               base: '{colors.gray.50}',
-              dark: '{colors.gray.900}',
+              _dark: '{colors.gray.900}',
             },
           },
           surface: {
             value: {
               base: '{colors.white}',
-              dark: '{colors.gray.800}',
+              _dark: '{colors.gray.800}',
             },
           },
           surfaceMuted: {
             value: {
               base: '{colors.gray.100}',
-              dark: '{colors.gray.700}',
+              _dark: '{colors.gray.700}',
             },
           },
           surfaceStrong: {
             value: {
               base: '{colors.gray.200}',
-              dark: '{colors.gray.600}',
+              _dark: '{colors.gray.600}',
             },
           },
           text: {
             value: {
               base: '{colors.gray.900}',
-              dark: '{colors.gray.50}',
+              _dark: '{colors.gray.50}',
             },
           },
           muted: {
             value: {
-              base: '{colors.gray.600}',
-              dark: '{colors.gray.300}',
+              base: '{colors.gray.500}',
+              _dark: '{colors.gray.400}',
             },
           },
           border: {
             value: {
               base: '{colors.gray.300}',
-              dark: '{colors.gray.600}',
+              _dark: '{colors.gray.600}',
             },
           },
           borderStrong: {
             value: {
               base: '{colors.gray.400}',
-              dark: '{colors.gray.500}',
+              _dark: '{colors.gray.500}',
             },
           },
           primary: {
             value: {
               base: '{colors.blue.500}',
-              dark: '{colors.blue.300}',
+              _dark: '{colors.blue.300}',
             },
           },
           primarySubtle: {
             value: {
               base: '{colors.blue.50}',
-              dark: '{colors.blue.900}',
+              _dark: '{colors.blue.900}',
             },
           },
           primaryMuted: {
             value: {
               base: '{colors.blue.100}',
-              dark: '{colors.blue.800}',
+              _dark: '{colors.blue.800}',
             },
           },
           primaryContrast: {
             value: {
               base: '{colors.white}',
-              dark: '{colors.gray.900}',
+              _dark: '{colors.gray.900}',
             },
           },
           focusRing: {
             value: {
               base: '{colors.blue.100}',
-              dark: '{colors.blue.900}',
+              _dark: '{colors.blue.900}',
             },
           },
           textSubtle: {
             value: {
               base: '{colors.gray.100}',
-              dark: '{colors.gray.800}',
+              _dark: '{colors.gray.800}',
             },
           },
           success: {
             value: {
               base: '{colors.green.500}',
-              dark: '{colors.green.400}',
+              _dark: '{colors.green.400}',
             },
           },
           successContrast: {
             value: {
               base: '{colors.white}',
-              dark: '{colors.gray.900}',
+              _dark: '{colors.gray.900}',
             },
           },
           error: {
             value: {
               base: '{colors.red.500}',
-              dark: '{colors.red.400}',
+              _dark: '{colors.red.400}',
             },
           },
           errorContrast: {
             value: {
               base: '{colors.white}',
-              dark: '{colors.gray.900}',
+              _dark: '{colors.gray.900}',
             },
           },
           danger: {
             value: {
               base: '{colors.red.500}',
-              dark: '{colors.red.400}',
+              _dark: '{colors.red.400}',
             },
           },
         },

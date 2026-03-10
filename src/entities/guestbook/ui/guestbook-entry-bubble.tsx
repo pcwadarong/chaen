@@ -156,7 +156,7 @@ const bubbleBaseClass = css({
   flexDirection: 'column',
   gap: '4',
   p: '4',
-  borderRadius: 'lg',
+  borderRadius: '2xl',
 });
 
 const toneByVariant: Record<GuestbookEntryBubbleVariant, GuestbookEntryBubbleTone> = {
@@ -209,7 +209,8 @@ const authorLinkClass = css({
   },
   _focusVisible: {
     textDecoration: 'underline',
-    outline: 'none',
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
   },
 });
 

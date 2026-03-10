@@ -147,4 +147,5 @@ const secretCheckboxClass = css({
 const submitButtonClass = css({
   fontSize: 'md',
   fontWeight: 'semibold',
+  px: '4',
 });

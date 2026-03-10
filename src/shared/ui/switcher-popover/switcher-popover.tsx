@@ -119,14 +119,7 @@ const rootClass = css({
 });
 
 const triggerButtonClass = css({
-  display: 'inline-flex',
-  gap: '3',
-  border: 'none',
-  background: 'transparent',
-  color: 'text',
   _hover: {
-    borderColor: 'transparent',
-    background: 'transparent',
     color: 'primary',
   },
   _focusVisible: {
@@ -153,7 +146,7 @@ const panelClass = css({
   right: '0',
   minWidth: '48',
   p: '2',
-  borderRadius: 'md',
+  borderRadius: '2xl',
   border: '[1px solid var(--colors-border)]',
   backgroundColor: 'surface',
   boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',

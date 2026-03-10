@@ -74,7 +74,7 @@ export const LocaleSwitcher = () => {
                 disabled={isPending}
                 key={option}
                 onClick={() => handleLocaleChange(option, closePopover)}
-                tone={isActive ? 'black' : 'white'}
+                tone={isActive ? 'primary' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
               >
@@ -91,7 +91,6 @@ export const LocaleSwitcher = () => {
 
 const listClass = css({
   display: 'grid',
-  gap: '1',
 });
 
 const optionCodeClass = css({
@@ -114,4 +113,14 @@ const optionClass = css({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '3',
+  minHeight: '[2.75rem]',
+  px: '4',
+  py: '2',
+  fontSize: 'md',
+  '&[aria-pressed="false"]:hover': {
+    color: 'primary',
+  },
+  '&[aria-pressed="false"]:focus-visible': {
+    color: 'primary',
+  },
 });

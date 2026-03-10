@@ -1,4 +1,5 @@
 import React from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { Button, buttonRecipe } from '@/shared/ui/button/button';
 
@@ -25,10 +26,13 @@ export const DownloadFileButton = ({
   if (href) {
     return (
       <a
-        className={buttonRecipe({
-          tone: 'white',
-          variant: 'solid',
-        })}
+        className={cx(
+          buttonRecipe({
+            tone: 'white',
+            variant: 'solid',
+          }).root,
+          downloadButtonClass,
+        )}
         download={mode === 'download' ? fileName : undefined}
         href={href}
         rel="noopener noreferrer"
@@ -42,6 +46,7 @@ export const DownloadFileButton = ({
   return (
     <Button
       aria-disabled={isDisabled}
+      className={downloadButtonClass}
       disabled={isDisabled}
       tone="white"
       type="button"
@@ -51,3 +56,15 @@ export const DownloadFileButton = ({
     </Button>
   );
 };
+
+const downloadButtonClass = css({
+  transition: '[transform 180ms ease]',
+  _hover: {
+    transform: 'translateY(-2px)',
+    background: 'surface',
+    borderColor: 'borderStrong',
+  },
+  _active: {
+    transform: 'translateY(1px)',
+  },
+});

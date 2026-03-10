@@ -1,5 +1,7 @@
 import React from 'react';
-import { css, cva } from 'styled-system/css';
+import { css } from 'styled-system/css';
+
+import { Button } from '@/shared/ui/button/button';
 
 type PaginationProps = {
   ariaLabel: string;
@@ -30,15 +32,18 @@ export const Pagination = ({
 
           return (
             <li key={page}>
-              <button
+              <Button
                 aria-current={isCurrent ? 'page' : undefined}
-                className={paginationButtonRecipe({ current: isCurrent })}
+                className={isCurrent ? currentPaginationButtonClass : paginationButtonClass}
                 disabled={isCurrent}
                 onClick={() => onPageChange(page)}
+                size="xs"
+                tone={isCurrent ? 'primary' : 'white'}
                 type="button"
+                variant={isCurrent ? 'solid' : 'ghost'}
               >
                 {page}
-              </button>
+              </Button>
             </li>
           );
         })}
@@ -47,49 +52,30 @@ export const Pagination = ({
   );
 };
 
-const paginationButtonRecipe = cva({
-  base: {
-    minWidth: '[2.25rem]',
-    minHeight: '[2.25rem]',
-    px: '2',
-    py: '1',
-    border: '[0]',
-    borderRadius: 'full',
-    background: 'transparent',
-    color: 'muted',
-    fontSize: 'sm',
-    fontWeight: 'medium',
-    transition: 'colors',
-    _hover: {
-      color: 'primary',
-      background: 'primarySubtle',
-      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
-    },
-    _focusVisible: {
-      outline: 'none',
-      color: 'primary',
-      background: 'primarySubtle',
-      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
-    },
-    _disabled: {
-      cursor: 'default',
-    },
-    '&[aria-disabled="true"]': {
-      cursor: 'default',
-    },
+const paginationButtonClass = css({
+  minWidth: '[2.25rem]',
+  fontWeight: 'medium',
+  color: 'muted',
+  _hover: {
+    color: 'primary',
+    background: 'primarySubtle',
   },
-  variants: {
-    current: {
-      true: {
-        color: 'primary',
-        background: 'primaryMuted',
-        fontWeight: 'semibold',
-      },
-      false: {},
-    },
+  _focusVisible: {
+    color: 'primary',
+    background: 'primarySubtle',
   },
-  defaultVariants: {
-    current: false,
+});
+
+const currentPaginationButtonClass = css({
+  minWidth: '[2.25rem]',
+  fontWeight: 'semibold',
+  _disabled: {
+    cursor: 'default',
+    opacity: 1,
+  },
+  '&[aria-disabled="true"]': {
+    cursor: 'default',
+    opacity: 1,
   },
 });
 

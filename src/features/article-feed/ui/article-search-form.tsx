@@ -68,6 +68,7 @@ export const ArticleSearchForm = ({
   const debounceTimerRef = React.useRef<number | null>(null);
   const skipDebounceRef = React.useRef(false);
   const currentQuery = searchParams?.get('q')?.trim() ?? searchQuery;
+  const ghostButtonClassName = buttonRecipe({ tone: 'white', variant: 'ghost' }).root;
 
   /**
    * 현재 pathname을 유지한 채 q 파라미터만 교체합니다.
@@ -185,7 +186,7 @@ export const ArticleSearchForm = ({
         {inputValue ? (
           <button
             aria-label={clearText}
-            className={cx(buttonRecipe({ tone: 'white', variant: 'ghost' }), clearButtonClass)}
+            className={cx(ghostButtonClassName, clearButtonClass)}
             onClick={handleClear}
             type="button"
           >
@@ -194,7 +195,7 @@ export const ArticleSearchForm = ({
         ) : null}
         <button
           aria-label={submitText}
-          className={cx(buttonRecipe({ tone: 'white', variant: 'ghost' }), submitButtonClass)}
+          className={cx(ghostButtonClassName, submitButtonClass)}
           disabled={isPending}
           type="submit"
         >

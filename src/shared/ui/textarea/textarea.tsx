@@ -87,9 +87,9 @@ const textareaRecipe = cva({
       borderColor: 'borderStrong',
     },
     _focusVisible: {
-      outline: 'none',
+      outline: '[2px solid var(--colors-focus-ring)]',
+      outlineOffset: '[2px]',
       borderColor: 'primary',
-      boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
     },
     _disabled: {
       cursor: 'not-allowed',

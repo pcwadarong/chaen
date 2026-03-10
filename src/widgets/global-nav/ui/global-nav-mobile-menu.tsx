@@ -6,6 +6,8 @@ import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+import { Button } from '@/shared/ui/button/button';
+import { HamburgerIcon } from '@/shared/ui/icons/app-icons';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -58,18 +60,20 @@ export const GlobalNavMobileMenu = ({
           <LocaleSwitcher />
         </Suspense>
         <ThemeSwitcher />
-        <button
+        <Button
           aria-controls={MOBILE_NAV_DRAWER_ID}
           aria-expanded={isOpen}
+          aria-haspopup="dialog"
           aria-label={isOpen ? closeMenuLabel : openMenuLabel}
           className={hamburgerButtonClass}
           onClick={onToggle}
+          size="sm"
+          tone="white"
           type="button"
+          variant="ghost"
         >
-          <span className={hamburgerLineClass} />
-          <span className={hamburgerLineClass} />
-          <span className={hamburgerLineClass} />
-        </button>
+          <HamburgerIcon aria-hidden size={18} />
+        </Button>
       </div>
       {isOpen && isMounted
         ? createPortal(
@@ -84,14 +88,17 @@ export const GlobalNavMobileMenu = ({
                 role="dialog"
                 tabIndex={-1}
               >
-                <button
+                <Button
                   aria-label={closeMenuLabel}
                   className={drawerCloseClass}
                   onClick={onClose}
+                  size="sm"
+                  tone="white"
                   type="button"
+                  variant="ghost"
                 >
                   ×
-                </button>
+                </Button>
                 <nav aria-label={ariaLabel}>
                   <ul className={mobileListClass}>
                     {navigationItems.map(item => (
@@ -140,26 +147,13 @@ const switcherFallbackClass = css({
 
 const hamburgerButtonClass = css({
   width: '[2.5rem]',
-  height: '[2.5rem]',
-  display: 'inline-flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '[0.22rem]',
-  cursor: 'pointer',
+  minHeight: '[2.5rem]',
   _hover: {
-    borderColor: 'borderStrong',
+    color: 'primary',
   },
   _focusVisible: {
-    borderColor: 'borderStrong',
+    color: 'primary',
   },
-});
-
-const hamburgerLineClass = css({
-  width: '[0.95rem]',
-  height: '[1.5px]',
-  borderRadius: 'full',
-  backgroundColor: 'text',
 });
 
 const mobileOverlayClass = css({
@@ -168,8 +162,8 @@ const mobileOverlayClass = css({
   zIndex: '40',
   display: 'flex',
   justifyContent: 'flex-end',
-  backgroundColor: '[rgb(15 23 42 / 0.24)]',
-  backdropFilter: '[blur(8px) saturate(120%)]',
+  backgroundColor: '[rgb(15 23 42 / 0.2)]',
+  backdropFilter: '[blur(18px) saturate(135%)]',
 });
 
 const mobileDrawerClass = css({
@@ -181,21 +175,25 @@ const mobileDrawerClass = css({
   px: '5',
   py: '6',
   borderLeft: '[1px solid var(--colors-primary)]',
-  backgroundColor: 'surface',
+  backgroundColor: '[rgb(255 255 255 / 0.88)]',
   boxShadow: '[-10px 0 28px rgb(15 23 42 / 0.18)]',
+  backdropFilter: '[blur(18px) saturate(135%)]',
+  _dark: {
+    backgroundColor: '[rgb(31 41 55 / 0.88)]',
+  },
 });
 
 const drawerCloseClass = css({
   justifySelf: 'end',
-  width: '[2.25rem]',
-  height: '[2.25rem]',
-  border: 'none',
-  borderRadius: 'full',
-  background: 'transparent',
   color: 'muted',
-  fontSize: '[1.9rem]',
+  fontSize: '3xl',
   lineHeight: 'none',
-  cursor: 'pointer',
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    color: 'primary',
+  },
 });
 
 const mobileListClass = css({
@@ -206,10 +204,15 @@ const mobileListClass = css({
 const mobileNavLinkClass = css({
   textDecoration: 'none',
   color: 'text',
-  fontSize: '4xl',
+  fontSize: 'xl',
   lineHeight: 'none',
   letterSpacing: '[-0.02em]',
   _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
     color: 'primary',
   },
   '&[aria-current="page"]': {

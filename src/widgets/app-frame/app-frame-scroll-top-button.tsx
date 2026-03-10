@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { Button } from '@/shared/ui/button/button';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 
 // 데스크탑 기준
@@ -111,14 +112,17 @@ export const AppFrameScrollTopButton = () => {
   if (!isScrollTopButtonVisible) return null;
 
   return (
-    <button
+    <Button
       aria-label={t('scrollToTopAriaLabel')}
       className={appFrameScrollTopButtonClass}
       onClick={handleScrollTop}
+      size="sm"
+      tone="white"
       type="button"
+      variant="solid"
     >
       <ArrowUpIcon aria-hidden size="md" />
-    </button>
+    </Button>
   );
 };
 
@@ -127,26 +131,13 @@ const appFrameScrollTopButtonClass = css({
   right: '[max(1rem, env(safe-area-inset-right))]',
   bottom: '[max(1rem, env(safe-area-inset-bottom))]',
   zIndex: '11',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
   width: '[3rem]',
-  height: '[3rem]',
-  border: '[1px solid var(--colors-border)]',
-  borderRadius: 'full',
-  background: 'surface',
-  color: 'text',
   boxShadow: '[0 18px 32px rgb(15 23 42 / 0.18)]',
   transition:
     '[transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease]',
   _hover: {
     transform: 'translateY(-2px)',
     borderColor: 'borderStrong',
-    boxShadow: '[0 22px 40px rgb(15 23 42 / 0.22)]',
-  },
-  _focusVisible: {
-    outline: 'none',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring), 0 18px 32px rgb(15 23 42 / 0.18)]',
   },
   '@media (min-width: 961px)': {
     position: 'absolute',

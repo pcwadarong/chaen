@@ -121,9 +121,10 @@ export const GuestbookThreadBubble = ({
                 <Button
                   className={revealButtonClass}
                   onClick={onToggleSecretPanel}
+                  size="xs"
                   tone="white"
                   type="button"
-                  variant="ghost"
+                  variant="solid"
                 >
                   {revealLabel}
                 </Button>
@@ -146,8 +147,9 @@ export const GuestbookThreadBubble = ({
                   value={passwordInput}
                 />
                 <Button
-                  className={inlineRevealSubmitClass}
+                  className={revealButtonClass}
                   disabled={isSecretSubmitting}
+                  size="xs"
                   tone="black"
                   type="submit"
                 >
@@ -212,23 +214,13 @@ const revealErrorClass = css({
 });
 
 const revealButtonClass = css({
-  minHeight: '8',
-  px: '3',
-  py: '1',
-  borderRadius: 'full',
+  minWidth: '[3rem]',
+  _hover: {
+    borderColor: 'borderStrong',
+  },
 });
 
 const inlineRevealInputClass = css({
   minHeight: '8',
   minWidth: '40',
-  borderRadius: 'full',
-  px: '2',
-  py: '1',
-});
-
-const inlineRevealSubmitClass = css({
-  minHeight: '8',
-  px: '3',
-  py: '1',
-  whiteSpace: 'nowrap',
 });

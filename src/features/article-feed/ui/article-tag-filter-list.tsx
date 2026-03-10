@@ -90,8 +90,8 @@ const tagLinkClass = css({
     color: 'primary',
   },
   _focusVisible: {
-    outline: 'none',
-    boxShadow: '[0 0 0 3px var(--colors-focus-ring)]',
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
   },
 });
 
