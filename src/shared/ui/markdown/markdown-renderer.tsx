@@ -1,6 +1,7 @@
 import React, {
   type AnchorHTMLAttributes,
   Children,
+  type ImgHTMLAttributes,
   isValidElement,
   type JSX,
   type ReactNode,
@@ -63,6 +64,15 @@ const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
   );
 
 /**
+ * markdown 본문 이미지를 반응형으로 렌더링합니다.
+ */
+const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImageElement>) => (
+  <>
+    <img alt={alt ?? ''} className={markdownImageClass} src={src} {...props} />
+  </>
+);
+
+/**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.
  */
 const markdownComponents: Components = {
@@ -98,6 +108,7 @@ const markdownComponents: Components = {
   h1: ({ children }) => <h1 className={markdownH1Class}>{children}</h1>,
   h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
   h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
+  img: renderMarkdownImage,
   pre: ({ children, className, ...props }) => (
     <div className={markdownCodeBlockFrameClass}>
       <div className={markdownCodeBlockHeaderClass}>
@@ -308,6 +319,13 @@ const markdownTableClass = css({
   '& tr:last-child td': {
     borderBottom: 'none',
   },
+});
+
+const markdownImageClass = css({
+  display: 'block',
+  maxWidth: 'full',
+  height: 'auto',
+  borderRadius: 'lg',
 });
 
 const markdownEmptyTextClass = css({

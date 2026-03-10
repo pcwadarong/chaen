@@ -26,6 +26,12 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
+const getTagLabelMapBySlugs = vi.fn();
+
+vi.mock('@/entities/tag/api/query-tags', () => ({
+  getTagLabelMapBySlugs,
+}));
+
 const initialCommentsPage: ArticleCommentPage = {
   items: [],
   page: 1,
@@ -65,12 +71,33 @@ const renderServerHtml = async () => {
 };
 
 describe('ArticleDetailPage', () => {
+  beforeEach(() => {
+    getTagLabelMapBySlugs.mockResolvedValue({
+      data: new Map([['react', 'React']]),
+      schemaMissing: false,
+    });
+  });
+
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
     const html = await renderServerHtml();
+    const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
+    expect(textContent).toContain('#React');
   }, 30000);
+
+  it('태그 스키마가 없어도 원본 태그명으로 상세 페이지를 렌더링한다', async () => {
+    getTagLabelMapBySlugs.mockResolvedValue({
+      data: new Map(),
+      schemaMissing: true,
+    });
+
+    const html = await renderServerHtml();
+    const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+
+    expect(textContent).toContain('#react');
+  });
 });

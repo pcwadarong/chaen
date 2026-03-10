@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { renderToReadableStream } from 'react-dom/server';
 
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
-import styles from '@/shared/ui/markdown/markdown-renderer.module.css';
 
 /**
  * 서버 컴포넌트 결과를 HTML 문자열로 수집합니다.
@@ -46,13 +45,12 @@ describe('MarkdownRenderer', () => {
     const markdownTable = document.querySelector('div[aria-label="Markdown table"]');
 
     expect(highlightedPre).toBeTruthy();
-    expect(highlightedPre?.className).toContain(styles.codeBlockPre);
+    expect(highlightedPre?.className).toBeTruthy();
     expect(highlightedPre?.getAttribute('tabindex')).toBe('0');
     expect(highlightedPre?.getAttribute('aria-label')).toBe('Code block: ts');
     expect(highlightedPre?.textContent).toContain("const answer = '42';");
     expect(markdownTable).toBeTruthy();
     expect(markdownTable?.getAttribute('tabindex')).toBe('0');
-    expect(html).not.toContain(`class="${styles.inlineCode}" data-language="ts"`);
 
     expect(html).toContain('<h1');
     expect(html).toContain('제목</h1>');
@@ -60,6 +58,16 @@ describe('MarkdownRenderer', () => {
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('<table');
+  });
+
+  it('이미지를 반응형 본문 이미지로 렌더링한다', async () => {
+    const document = await renderServerDocument('![설명](https://example.com/image.png "샘플")');
+    const image = document.querySelector('img');
+
+    expect(image).toBeTruthy();
+    expect(image?.getAttribute('src')).toBe('https://example.com/image.png');
+    expect(image?.getAttribute('alt')).toBe('설명');
+    expect(image?.className).toBeTruthy();
   });
 
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {

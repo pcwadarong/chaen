@@ -26,9 +26,7 @@ const getArticleTagLabels = async (item: Article, locale: string) => {
     slugs: item.tags ?? [],
   });
 
-  if (tagLabelMap.schemaMissing) {
-    throw new Error('[articles] 태그 label schema가 없습니다.');
-  }
+  if (tagLabelMap.schemaMissing) return item.tags ?? [];
 
   return (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
 };
