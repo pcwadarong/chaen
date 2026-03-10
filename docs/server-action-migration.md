@@ -11,6 +11,8 @@
 7. Unit 3: articles/projects/comments/view API Route 제거 및 테스트 이관
 8. Unit 4: 주요 entities 조회 함수를 `use cache` + tag 기반으로 전환
 9. Unit 4: 더 이상 쓰지 않는 `requestJsonApiClient` 제거
+10. Follow-up: 남아 있던 `revalidate` API route와 HTTP 에러 응답 헬퍼 제거
+11. Follow-up: `getPopularArticleTags`도 `use cache` 패턴으로 통일
 
 <br/>
 
@@ -38,8 +40,10 @@
 - 댓글 수정/삭제 모달은 API client 대신 Server Action 직접 호출로 전환하고, 실패 메시지는 `ActionResult`로 통일합니다.
 - 아티클/프로젝트 목록, 상세 아카이브, 조회수 증가는 `/api/...` fetch 대신 entity action을 직접 호출하도록 바꿉니다.
 - `getArticles`, `getArticle`, `getArticleDetailList`, `getProjects`, `getProject`, `getProjectDetailList`, `getGuestbookThreads`, `getArticleComments`는 `unstable_cache` 대신 함수 내부 `'use cache'`와 `unstable_cacheTag`를 사용하도록 정리합니다.
+- 마지막으로 남아 있던 `getPopularArticleTags`도 같은 방식으로 옮겨 article 조회 계층의 캐시 전략을 하나로 맞춥니다.
 - 쓰기 action이 이미 호출하던 `revalidateTag`가 실제 읽기 캐시 태그와 맞물리도록 댓글/방명록 캐시 태그를 세분화합니다.
 - 남은 HTTP 전용 유틸(`requestJsonApiClient`)은 앱 코드에서 사용처가 사라졌으므로 제거합니다.
+- 더 이상 호출되지 않는 `src/app/api/revalidate/...` route와 `createApiErrorResponse`도 함께 제거해 dead HTTP surface를 정리합니다.
 
 <br/>
 
