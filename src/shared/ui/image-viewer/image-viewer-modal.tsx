@@ -345,7 +345,7 @@ const dockButtonClass = css({
 const zoomTextClass = css({
   minWidth: '[3.5rem]',
   textAlign: 'center',
-  color: '[var(--colors-gray-200)]',
+  color: '[var(--colors-zinc-200)]',
   fontSize: 'sm',
   fontVariantNumeric: 'tabular-nums',
 });

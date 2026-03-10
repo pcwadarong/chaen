@@ -5,13 +5,13 @@ import { Button } from '@/shared/ui/button/button';
 import { ArrowCurveLeftRightIcon } from '@/shared/ui/icons/app-icons';
 
 type CommentComposeReplyPreviewProps = {
-  onReset: () => void;
+  onReset?: () => void;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
-  replyTargetResetLabel: string;
+  replyTargetResetLabel?: string;
 };
 
-/** 답신 대상 콘텐츠 미리보기와 해제 버튼을 렌더링합니다. */
+/** 답신 대상 콘텐츠 미리보기와 선택 해제 버튼을 렌더링합니다. */
 export const CommentComposeReplyPreview = ({
   onReset,
   replyPreviewLabel,
@@ -21,15 +21,17 @@ export const CommentComposeReplyPreview = ({
   <aside aria-label={replyPreviewLabel} className={replyPreviewClass}>
     <ArrowCurveLeftRightIcon aria-hidden size="sm" />
     <p className={replyPreviewTextClass}>{replyTargetContent}</p>
-    <Button
-      className={replyPreviewCloseClass}
-      onClick={onReset}
-      tone="black"
-      type="button"
-      variant="underline"
-    >
-      {replyTargetResetLabel}
-    </Button>
+    {onReset && replyTargetResetLabel ? (
+      <Button
+        className={replyPreviewCloseClass}
+        onClick={onReset}
+        tone="black"
+        type="button"
+        variant="underline"
+      >
+        {replyTargetResetLabel}
+      </Button>
+    ) : null}
   </aside>
 );
 

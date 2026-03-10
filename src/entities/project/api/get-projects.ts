@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
@@ -73,7 +73,7 @@ const fetchProjectsByLocaleFromContentSchema = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('project_translations')
-    .select('project_id,title,description,projects!inner(created_at,thumbnail_url)')
+    .select('project_id,title,description,projects!inner(created_at,thumbnail_url,is_secret)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'projects' })
     .order('project_id', { ascending: false });
@@ -123,6 +123,35 @@ const fetchProjectsByLocale = async (
 };
 
 /**
+ * 프로젝트 목록 조회 결과를 `use cache`로 캐시합니다.
+ */
+const readCachedProjects = async (input: {
+  cursor: string | null | undefined;
+  normalizedLocale: string;
+  pageSize: number;
+}): Promise<ProjectListPage> => {
+  'use cache';
+
+  cacheTag(PROJECTS_CACHE_TAG);
+
+  const parsedCursor = parseCreatedAtIdCursor(input.cursor);
+  const isFirstPage = !parsedCursor;
+
+  if (!isFirstPage) {
+    return fetchProjectsByLocale(input.normalizedLocale, input.cursor, input.pageSize);
+  }
+
+  const page = await resolveFirstAvailableLocaleValue({
+    fetchByLocale: candidateLocale =>
+      fetchProjectsByLocale(candidateLocale, input.cursor, input.pageSize),
+    hasValue: value => value.items.length > 0,
+    locales: buildContentLocaleFallbackChain(input.normalizedLocale),
+  });
+
+  return page ?? { items: [], nextCursor: null };
+};
+
+/**
  * 프로젝트 목록을 created_at + id keyset cursor 기반 페이지 단위로 조회합니다.
  *
  * - locale 우선 조회 후, 첫 페이지에서만 `ko` fallback을 시도합니다.
@@ -132,36 +161,14 @@ export const getProjects = async ({
   limit,
   locale,
 }: GetProjectsOptions): Promise<ProjectListPage> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
+  if (!hasSupabaseEnv()) return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
   const pageSize = parseKeysetLimit(limit);
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
-  const cacheCursor = parsedCursor ? `${parsedCursor.createdAt}:${parsedCursor.id}` : 'initial';
 
-  const getCachedProjects = unstable_cache(
-    async () => {
-      const isFirstPage = !parsedCursor;
-
-      if (!isFirstPage) {
-        return fetchProjectsByLocale(normalizedLocale, cursor, pageSize);
-      }
-
-      const page = await resolveFirstAvailableLocaleValue({
-        fetchByLocale: candidateLocale => fetchProjectsByLocale(candidateLocale, cursor, pageSize),
-        hasValue: value => value.items.length > 0,
-        locales: buildContentLocaleFallbackChain(normalizedLocale),
-      });
-
-      return page ?? { items: [], nextCursor: null };
-    },
-    ['projects', 'list', cacheScope, normalizedLocale, cacheCursor, String(pageSize)],
-    {
-      tags: [PROJECTS_CACHE_TAG],
-      revalidate: false,
-    },
-  );
-
-  return getCachedProjects();
+  return readCachedProjects({
+    cursor,
+    normalizedLocale,
+    pageSize,
+  });
 };

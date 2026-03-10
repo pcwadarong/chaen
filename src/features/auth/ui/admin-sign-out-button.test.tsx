@@ -6,16 +6,13 @@ import { signOutAdmin } from '@/features/auth/api/sign-out-admin';
 
 import { AdminSignOutButton } from './admin-sign-out-button';
 
-const replaceMock = vi.fn();
-
 vi.mock('@/features/auth/api/sign-out-admin', () => ({
   signOutAdmin: vi.fn(),
-}));
-
-vi.mock('@/i18n/navigation', () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-  }),
+  initialSignOutAdminState: {
+    data: null,
+    errorMessage: null,
+    ok: false,
+  },
 }));
 
 describe('AdminSignOutButton', () => {
@@ -23,12 +20,15 @@ describe('AdminSignOutButton', () => {
     vi.clearAllMocks();
   });
 
-  it('로그아웃 성공 시 로그인 페이지로 이동한다', async () => {
-    vi.mocked(signOutAdmin).mockResolvedValue(undefined);
+  it('로그아웃 버튼 제출 시 Server Action을 호출한다', async () => {
+    vi.mocked(signOutAdmin).mockResolvedValue({
+      data: null,
+      errorMessage: null,
+      ok: false,
+    });
 
     render(
       <AdminSignOutButton
-        errorMessage="로그아웃에 실패했습니다."
         redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
@@ -39,16 +39,22 @@ describe('AdminSignOutButton', () => {
 
     await waitFor(() => {
       expect(signOutAdmin).toHaveBeenCalledTimes(1);
-      expect(replaceMock).toHaveBeenCalledWith('/admin/login');
     });
+
+    const call = vi.mocked(signOutAdmin).mock.calls[0];
+    expect(call?.[1]).toBeInstanceOf(FormData);
+    expect((call?.[1] as FormData).get('redirectPath')).toBe('/admin/login');
   });
 
   it('로그아웃 실패 시 에러를 노출한다', async () => {
-    vi.mocked(signOutAdmin).mockRejectedValue(new Error('sign out failed'));
+    vi.mocked(signOutAdmin).mockResolvedValue({
+      data: null,
+      errorMessage: '로그아웃에 실패했습니다.',
+      ok: false,
+    });
 
     render(
       <AdminSignOutButton
-        errorMessage="로그아웃에 실패했습니다."
         redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
@@ -59,7 +65,6 @@ describe('AdminSignOutButton', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toBe('로그아웃에 실패했습니다.');
-      expect(replaceMock).not.toHaveBeenCalled();
     });
   });
 });

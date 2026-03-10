@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedEntityIdsByTagId, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
@@ -132,7 +132,7 @@ const fetchArticlesByLocaleFromShadow = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
+    .select('article_id,title,description,articles!inner(created_at,thumbnail_url,is_secret)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });
@@ -210,7 +210,7 @@ const fetchArticlesByTagAndLocale = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at,thumbnail_url)')
+    .select('article_id,title,description,articles!inner(created_at,thumbnail_url,is_secret)')
     .eq('locale', locale)
     .in('article_id', articleIdsByTag.data)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
@@ -293,6 +293,60 @@ const fetchSearchArticles = async (
 };
 
 /**
+ * 아티클 목록 조회 결과를 `use cache`로 캐시합니다.
+ */
+const readCachedArticles = async (input: {
+  cursor: string | null | undefined;
+  normalizedLocale: string;
+  normalizedQuery: string;
+  normalizedTag: string;
+  pageSize: number;
+}): Promise<ArticleListPage> => {
+  'use cache';
+
+  cacheTag(ARTICLES_CACHE_TAG);
+
+  const parsedCursor = input.normalizedQuery
+    ? parseArticleSearchCursor(input.cursor)
+    : parseCreatedAtIdCursor(input.cursor);
+
+  if (input.normalizedQuery) {
+    return fetchSearchArticles(
+      input.normalizedQuery,
+      input.normalizedLocale,
+      input.cursor,
+      input.pageSize,
+    );
+  }
+
+  if (input.normalizedTag) {
+    return fetchArticlesByTagAndLocale(
+      input.normalizedLocale,
+      input.normalizedTag,
+      input.cursor,
+      input.pageSize,
+    );
+  }
+
+  const isFirstPage = !parsedCursor;
+
+  if (!isFirstPage) {
+    return fetchArticlesByLocale(input.normalizedLocale, input.cursor, input.pageSize);
+  }
+
+  const localizedArticles = await fetchArticlesByLocale(
+    input.normalizedLocale,
+    input.cursor,
+    input.pageSize,
+  );
+  if (localizedArticles.items.length > 0 || input.normalizedLocale === 'ko') {
+    return localizedArticles;
+  }
+
+  return fetchArticlesByLocale('ko', input.cursor, input.pageSize);
+};
+
+/**
  * 아티클 목록을 keyset cursor 기반 페이지 단위로 조회합니다.
  *
  * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
@@ -307,50 +361,18 @@ export const getArticles = async ({
   query,
   tag,
 }: GetArticlesOptions): Promise<ArticleListPage> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null, totalCount: null };
+  if (!hasSupabaseEnv()) return { items: [], nextCursor: null, totalCount: null };
 
   const normalizedLocale = locale.toLowerCase();
   const normalizedQuery = normalizeSearchQuery(query);
   const normalizedTag = normalizedQuery ? '' : normalizeArticleTag(tag);
   const pageSize = parseKeysetLimit(limit);
-  const parsedCursor = normalizedQuery
-    ? parseArticleSearchCursor(cursor)
-    : parseCreatedAtIdCursor(cursor);
-  const cacheCursor = parsedCursor ? JSON.stringify(parsedCursor) : 'initial';
 
-  const getCachedArticles = unstable_cache(
-    async () => {
-      if (normalizedQuery)
-        return fetchSearchArticles(normalizedQuery, normalizedLocale, cursor, pageSize);
-
-      if (normalizedTag)
-        return fetchArticlesByTagAndLocale(normalizedLocale, normalizedTag, cursor, pageSize);
-
-      const isFirstPage = !parsedCursor;
-
-      if (!isFirstPage) return fetchArticlesByLocale(normalizedLocale, cursor, pageSize);
-
-      const localizedArticles = await fetchArticlesByLocale(normalizedLocale, cursor, pageSize);
-      if (localizedArticles.items.length > 0 || normalizedLocale === 'ko') return localizedArticles;
-
-      return fetchArticlesByLocale('ko', cursor, pageSize);
-    },
-    [
-      'articles',
-      'list',
-      cacheScope,
-      normalizedLocale,
-      cacheCursor,
-      String(pageSize),
-      normalizedQuery,
-      normalizedTag,
-    ],
-    {
-      tags: [ARTICLES_CACHE_TAG],
-      revalidate: false,
-    },
-  );
-
-  return getCachedArticles();
+  return readCachedArticles({
+    cursor,
+    normalizedLocale,
+    normalizedQuery,
+    normalizedTag,
+    pageSize,
+  });
 };

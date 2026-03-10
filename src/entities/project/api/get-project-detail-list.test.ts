@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { parseLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
@@ -8,7 +8,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getProjectDetailList } from './get-project-detail-list';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -71,7 +71,7 @@ describe('getProjectDetailList', () => {
     expect(translationsQuery.order).toHaveBeenNthCalledWith(2, 'project_id', {
       ascending: false,
     });
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
   it('limit보다 많은 결과가 있으면 locale을 포함한 다음 cursor를 반환한다', async () => {
@@ -231,6 +231,7 @@ describe('getProjectDetailList', () => {
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
+          code: '42P01',
           message: 'relation "public.projects" does not exist',
         },
       }),
@@ -246,6 +247,31 @@ describe('getProjectDetailList', () => {
 
     await expect(getProjectDetailList({ locale: 'ko' })).rejects.toThrow(
       '[projects] content schema가 없습니다.',
+    );
+  });
+
+  it('권한 오류는 schema missing으로 오분류하지 않고 원래 조회 실패로 전파한다', async () => {
+    const translationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied for table projects',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProjectDetailList({ locale: 'ko' })).rejects.toThrow(
+      '[projects] 상세 목록 번역 조회 실패: permission denied for table projects',
     );
   });
 });

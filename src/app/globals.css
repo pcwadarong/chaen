@@ -2,25 +2,19 @@
 
 @import '../../styled-system/styles.css';
 
-html {
-  font-family: var(--fonts-sans);
-  text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-}
-
 html,
 body {
   min-height: 100%;
 }
 
 body {
-  padding: 0;
-  background: var(--colors-bg);
+  background-color: var(--colors-app-backdrop);
   color: var(--colors-text);
   font-family: var(--fonts-sans);
-  font-size: var(--font-sizes-16);
+  font-size: var(--font-sizes-md);
   line-height: var(--line-heights-relaxed);
   text-rendering: optimizeLegibility;
+  overflow: auto;
 }
 
 :root {
@@ -29,6 +23,16 @@ body {
   --app-scrollbar-thumb: var(--colors-border);
   --app-scrollbar-thumb-hover: var(--colors-border-strong);
   --app-scrollbar-thumb-active: var(--colors-text);
+}
+
+@keyframes route-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 html,
@@ -76,10 +80,6 @@ body::-webkit-scrollbar-thumb:active,
 [data-app-scroll-viewport='true']::-webkit-scrollbar-thumb:active,
 [data-scroll-region='true']::-webkit-scrollbar-thumb:active {
   background-color: var(--app-scrollbar-thumb-active);
-}
-
-body {
-  overflow: auto;
 }
 
 @media (min-width: 961px) {

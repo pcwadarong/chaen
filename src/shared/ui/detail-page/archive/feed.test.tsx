@@ -38,6 +38,8 @@ const getUseOffsetPaginationFeedMock = async () => {
   return vi.mocked(feedModule.useOffsetPaginationFeed);
 };
 
+const loadPageActionMock = vi.fn();
+
 describe('DetailArchiveFeed', () => {
   beforeEach(() => {
     observerCallback = null;
@@ -84,10 +86,10 @@ describe('DetailArchiveFeed', () => {
     const { container } = render(
       <DetailArchiveFeed<TestArchiveItem>
         emptyText="비어 있음"
-        endpoint="/api/articles/archive"
         hrefBasePath="/articles"
         initialPage={{ items: [] as TestArchiveItem[], nextCursor: 'cursor-1' }}
         loadErrorText="불러오기 실패"
+        loadPageAction={loadPageActionMock}
         loadMoreEndText="끝"
         loadingText="불러오는 중"
         locale="ko"
@@ -131,10 +133,10 @@ describe('DetailArchiveFeed', () => {
     render(
       <DetailArchiveFeed<TestArchiveItem>
         emptyText="비어 있음"
-        endpoint="/api/articles/archive"
         hrefBasePath="/articles"
         initialPage={{ items: [] as TestArchiveItem[], nextCursor: 'cursor-1' }}
         loadErrorText="불러오기 실패"
+        loadPageAction={loadPageActionMock}
         loadMoreEndText="끝"
         loadingText="불러오는 중"
         locale="ko"

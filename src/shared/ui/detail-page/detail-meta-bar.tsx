@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import { Button } from '@/shared/ui/button/button';
 import { CalendarIcon, EyeIcon, ShareIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
@@ -15,14 +15,9 @@ type DetailMetaBarProps = {
   primaryMetaScreenReaderText?: string;
   primaryMetaText: string;
   shareText: string;
+  trackViewAction?: () => Promise<ActionResult<{ viewCount: number }>>;
   viewCountLabel?: string;
-  viewEndpoint?: string;
   viewCount?: number;
-};
-
-type ViewCountResponse = {
-  ok: boolean;
-  viewCount: number;
 };
 
 /**
@@ -35,9 +30,9 @@ export const DetailMetaBar = ({
   primaryMetaScreenReaderText,
   primaryMetaText,
   shareText,
+  trackViewAction,
   viewCount,
   viewCountLabel,
-  viewEndpoint,
 }: DetailMetaBarProps) => {
   const [currentViewCount, setCurrentViewCount] = useState(viewCount ?? 0);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
@@ -46,7 +41,7 @@ export const DetailMetaBar = ({
   const resetShareTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!viewEndpoint || typeof viewCount !== 'number') return;
+    if (!trackViewAction || typeof viewCount !== 'number') return;
     if (hasTrackedViewRef.current) return;
     hasTrackedViewRef.current = true;
 
@@ -54,17 +49,13 @@ export const DetailMetaBar = ({
 
     const trackViewCount = async () => {
       try {
-        const payload = await requestJsonApiClient<ViewCountResponse>({
-          fallbackReason: 'failed to increase view count',
-          init: {
-            cache: 'no-store',
-          },
-          method: 'POST',
-          url: viewEndpoint,
-        });
+        const result = await trackViewAction();
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to increase view count');
+        }
 
         if (!isMounted) return;
-        setCurrentViewCount(Number(payload.viewCount ?? viewCount));
+        setCurrentViewCount(Number(result.data.viewCount ?? viewCount));
       } catch {
         if (!isMounted) return;
         setCurrentViewCount(viewCount);
@@ -76,7 +67,7 @@ export const DetailMetaBar = ({
     return () => {
       isMounted = false;
     };
-  }, [viewCount, viewEndpoint]);
+  }, [trackViewAction, viewCount]);
 
   useEffect(
     () => () => {

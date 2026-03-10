@@ -1,5 +1,8 @@
 'use client';
 
+import { useCallback } from 'react';
+
+import { getArticlesPageAction } from '@/entities/article/api/article-actions';
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
@@ -21,15 +24,49 @@ export const useArticleFeed = ({
   initialItems,
   locale,
   query,
-}: UseArticleFeedOptions) =>
-  useOffsetPaginationFeed<ArticleListItem>({
-    endpoint: '/api/articles',
+}: UseArticleFeedOptions) => {
+  const loadPage = useCallback(
+    async ({
+      cursor,
+      limit,
+      locale: nextLocale,
+      queryParams,
+    }: {
+      cursor: string;
+      limit: number;
+      locale: string;
+      queryParams?: Record<string, string | null | undefined>;
+    }) => {
+      const result = await getArticlesPageAction({
+        cursor,
+        limit,
+        locale: nextLocale,
+        query: queryParams?.q,
+        tag: queryParams?.tag,
+      });
+
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch list');
+      }
+
+      return {
+        items: result.data.items,
+        nextCursor: result.data.nextCursor,
+        totalCount: result.data.totalCount,
+      };
+    },
+    [],
+  );
+
+  return useOffsetPaginationFeed<ArticleListItem>({
     initialCursor,
     initialItems,
     locale,
+    loadPage,
     mergeItems: (previousItems, incomingItems) => dedupeById([...previousItems, ...incomingItems]),
     queryParams: {
       q: query,
       tag: activeTag,
     },
   });
+};

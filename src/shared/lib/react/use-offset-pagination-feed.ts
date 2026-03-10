@@ -3,24 +3,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 
-type OffsetFeedResponse<T> = {
-  ok: boolean;
+export type OffsetPaginationFeedQueryParams = Record<string, string | null | undefined>;
+
+export type OffsetPaginationFeedPage<T> = {
   items: T[];
   nextCursor: string | null;
-  reason?: string;
   totalCount?: number | null;
 };
 
 type UseOffsetPaginationFeedOptions<T> = {
-  endpoint: string;
   initialCursor: string | null;
   initialItems: T[];
   limit?: number;
+  loadPage: (params: {
+    cursor: string;
+    limit: number;
+    locale: string;
+    queryParams?: OffsetPaginationFeedQueryParams;
+  }) => Promise<OffsetPaginationFeedPage<T>>;
   locale: string;
   mergeItems?: (previousItems: T[], incomingItems: T[]) => T[];
-  queryParams?: Record<string, string | null | undefined>;
+  queryParams?: OffsetPaginationFeedQueryParams;
 };
 
 type UseOffsetPaginationFeedResult<T> = {
@@ -37,10 +41,10 @@ const DEFAULT_LIMIT = 10;
  * offset(cursor) 기반 API를 사용하는 무한 스크롤 리스트 상태를 공통 관리합니다.
  */
 export const useOffsetPaginationFeed = <T>({
-  endpoint,
   initialCursor,
   initialItems,
   limit = DEFAULT_LIMIT,
+  loadPage,
   locale,
   mergeItems,
   queryParams,
@@ -75,22 +79,11 @@ export const useOffsetPaginationFeed = <T>({
     setErrorMessage(null);
 
     try {
-      const url = new URL(endpoint, window.location.origin);
-      url.searchParams.set('locale', locale);
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('cursor', nextCursor);
-      Object.entries(queryParams ?? {}).forEach(([key, value]) => {
-        if (!value) return;
-        url.searchParams.set(key, value);
-      });
-
-      const payload = await requestJsonApiClient<OffsetFeedResponse<T>>({
-        fallbackReason: 'failed to fetch list',
-        init: {
-          cache: 'no-store',
-        },
-        method: 'GET',
-        url: url.toString(),
+      const payload = await loadPage({
+        cursor: nextCursor,
+        limit,
+        locale,
+        queryParams,
       });
 
       appendItems(payload.items);
@@ -100,7 +93,7 @@ export const useOffsetPaginationFeed = <T>({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [appendItems, endpoint, isLoadingMore, limit, locale, nextCursor, queryParams]);
+  }, [appendItems, isLoadingMore, limit, loadPage, locale, nextCursor, queryParams]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

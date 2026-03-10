@@ -28,6 +28,7 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
     <Link
       aria-label={t('viewArticle', { title: article.title })}
       className={linkClass}
+      data-article-list-item="true"
       href={`/articles/${article.id}`}
     >
       <article className={articleClass}>
@@ -42,7 +43,14 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
         </div>
         <div className={mediaClass}>
           {previewThumbnailSrc ? (
-            <Image alt="" className={imageClass} fill sizes="8.75rem" src={previewThumbnailSrc} />
+            <Image
+              alt=""
+              className={imageClass}
+              fill
+              sizes="8.75rem"
+              src={previewThumbnailSrc}
+              unoptimized
+            />
           ) : (
             <div aria-hidden className={imageFallbackClass} />
           )}
@@ -61,15 +69,20 @@ const linkClass = css({
 const articleClass = css({
   display: 'flex',
   justifyContent: 'space-between',
+  alignItems: 'stretch',
   gap: '5',
   py: '7',
 });
 
 const contentClass = css({
-  display: 'grid',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
   minWidth: '0',
-  gap: '4',
-  alignContent: 'center',
+  flex: '[1 1 auto]',
+  '@media (min-width: 480px)': {
+    minHeight: '[8.75rem]',
+  },
 });
 
 const bodyClass = css({
@@ -80,6 +93,9 @@ const bodyClass = css({
 
 const titleClass = css({
   lineClamp: '2',
+  textWrap: 'wrap',
+  wordBreak: 'keep-all',
+  overflowWrap: 'normal',
   color: 'primary',
   fontSize: '2xl',
   lineHeight: 'tight',
@@ -89,6 +105,9 @@ const titleClass = css({
 
 const descriptionClass = css({
   lineClamp: '2',
+  textWrap: 'wrap',
+  wordBreak: 'keep-all',
+  overflowWrap: 'normal',
   color: 'text',
   fontSize: 'md',
   lineHeight: 'normal',
@@ -108,7 +127,7 @@ const mediaClass = css({
     flex: '[0 0 8.75rem]',
     width: '[8.75rem]',
     minWidth: '[8.75rem]',
-    aspectRatio: '[4 / 3]',
+    aspectRatio: 'square',
     justifySelf: 'end',
     overflow: 'hidden',
     borderRadius: 'sm',
@@ -119,6 +138,13 @@ const mediaClass = css({
 const imageClass = css({
   display: 'block',
   objectFit: 'cover',
+  transition: 'transform',
+  '[data-article-list-item="true"]:hover &': {
+    transform: '[scale(1.05)]',
+  },
+  '[data-article-list-item="true"]:focus-visible &': {
+    transform: '[scale(1.05)]',
+  },
 });
 
 const imageFallbackClass = css({

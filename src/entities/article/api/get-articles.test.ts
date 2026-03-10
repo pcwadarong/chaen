@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getArticles } from './get-articles';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -22,7 +22,7 @@ describe('getArticles', () => {
     vi.clearAllMocks();
   });
 
-  it('Supabase env가 없으면 캐시를 사용하지 않고 빈 페이지를 반환한다', async () => {
+  it('Supabase env가 없으면 articles cache tag를 기록하지 않고 빈 페이지를 반환한다', async () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(false);
 
     const result = await getArticles({ locale: 'ko' });
@@ -32,10 +32,10 @@ describe('getArticles', () => {
       nextCursor: null,
       totalCount: null,
     });
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
-  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 keyset cache key에 initial cursor를 포함한다', async () => {
+  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 articles cache tag를 기록한다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
@@ -75,16 +75,7 @@ describe('getArticles', () => {
     expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(2, 'article_id', {
       ascending: false,
     });
-    expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
-      'articles',
-      'list',
-      'supabase-enabled',
-      'ko',
-      'initial',
-      '10',
-      '',
-      '',
-    ]);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('articles');
   });
 
   it('비검색 다음 페이지 조회는 locale 번역 목록에도 created_at + id keyset 조건을 사용한다', async () => {

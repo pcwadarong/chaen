@@ -182,7 +182,7 @@ export const GlobalNav = () => {
         </div>
       ) : null}
       <div className={innerClass}>
-        <Link className={brandLinkClass} href="/">
+        <Link className={brandLinkClass} href="/" prefetch>
           {t('brand')}
         </Link>
         <GlobalNavDesktopContent

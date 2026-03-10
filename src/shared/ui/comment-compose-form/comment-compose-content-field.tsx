@@ -11,6 +11,7 @@ type CommentComposeContentFieldProps = {
   charCountText: string;
   contentId: string;
   contentLabel: string;
+  contentName?: string;
   contentShortcutHint: string;
   contentShortcutHintId: string;
   onChange: (value: string) => void;
@@ -28,6 +29,7 @@ export const CommentComposeContentField = ({
   charCountText,
   contentId,
   contentLabel,
+  contentName = 'content',
   contentShortcutHint,
   contentShortcutHintId,
   onChange,
@@ -46,6 +48,7 @@ export const CommentComposeContentField = ({
         autoResize={textareaAutoResize}
         id={contentId}
         maxLength={3000}
+        name={contentName}
         onChange={event => onChange(event.target.value)}
         onKeyDown={onKeyDown}
         placeholder={textPlaceholder}

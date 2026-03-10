@@ -5,6 +5,19 @@ import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 
 import { GuestbookThreadCard } from './guestbook-thread-card';
 
+vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
+}));
+
+vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
+  initialVerifyGuestbookSecretState: {
+    data: null,
+    errorMessage: null,
+    ok: false,
+  },
+  verifyGuestbookSecretAction: vi.fn(),
+}));
+
 vi.mock('@/entities/guestbook/ui/guestbook-reply-bubble', () => ({
   GuestbookReplyBubble: () => <div>reply</div>,
 }));
@@ -62,12 +75,10 @@ describe('GuestbookThreadCard', () => {
         onEditReply={vi.fn()}
         onEdit={vi.fn()}
         onReply={vi.fn()}
-        onRevealSecret={vi.fn()}
+        onRevealSecretSuccess={vi.fn()}
         reportLabel="신고"
         revealLabel="확인하기"
-        revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
-        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
         secretPlaceholder="비밀글입니다."
@@ -99,12 +110,10 @@ describe('GuestbookThreadCard', () => {
         onEditReply={vi.fn()}
         onEdit={vi.fn()}
         onReply={vi.fn()}
-        onRevealSecret={vi.fn()}
+        onRevealSecretSuccess={vi.fn()}
         reportLabel="신고"
         revealLabel="보기"
-        revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
-        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
         secretPlaceholder="비밀글입니다."
@@ -115,6 +124,7 @@ describe('GuestbookThreadCard', () => {
 
     expect(screen.getByLabelText('비밀번호')).toBeTruthy();
     expect(screen.getByRole('button', { name: '확인' })).toBeTruthy();
+    expect(screen.getByDisplayValue('ko')).toBeTruthy();
   });
 
   it('외부 링크가 있으면 이름 옆 아이콘 링크를 노출하고 kebab 메뉴를 연다', () => {
@@ -134,12 +144,10 @@ describe('GuestbookThreadCard', () => {
         onEditReply={vi.fn()}
         onEdit={vi.fn()}
         onReply={vi.fn()}
-        onRevealSecret={vi.fn()}
+        onRevealSecretSuccess={vi.fn()}
         reportLabel="신고"
         revealLabel="보기"
-        revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
-        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
         secretPlaceholder="비밀글입니다."
@@ -179,12 +187,10 @@ describe('GuestbookThreadCard', () => {
         onEditReply={vi.fn()}
         onEdit={vi.fn()}
         onReply={vi.fn()}
-        onRevealSecret={vi.fn()}
+        onRevealSecretSuccess={vi.fn()}
         reportLabel="신고"
         revealLabel="보기"
-        revealSecretErrorLabel="오류"
         revealSecretPasswordLabel="비밀번호"
-        revealSecretRequiredLabel="필수 입력입니다."
         revealSecretSubmitLabel="확인"
         revealSecretTitle="비밀글 확인"
         secretPlaceholder="비밀글입니다."

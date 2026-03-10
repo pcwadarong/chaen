@@ -77,7 +77,24 @@
     "toastDeleteError": "Échec de suppression du message.",
     "toastSecretVerifyError": "Échec de vérification du message privé.",
     "toastSecretUnlockRequired": "Déverrouillez d'abord le message privé avec le mot de passe avant de le modifier.",
-    "deletedPlaceholder": "Ce message a été supprimé."
+    "deletedPlaceholder": "Ce message a été supprimé.",
+    "serverAction": {
+      "adminReplyOnly": "Seuls les administrateurs peuvent répondre.",
+      "adminRequired": "Les droits administrateur sont requis.",
+      "contentRequired": "Veuillez saisir un contenu.",
+      "contentTooLong": "Le contenu doit contenir au maximum 3000 caractères.",
+      "deleteFailed": "Échec de la suppression du message.",
+      "entryNotFound": "Impossible de trouver l'entrée ciblée.",
+      "fetchFailed": "Impossible de charger le livre d'or.",
+      "invalidPassword": "Le mot de passe est incorrect.",
+      "invalidUrl": "Veuillez vérifier l'URL du site.",
+      "missingName": "Veuillez saisir un nom.",
+      "missingParentSecret": "Impossible de vérifier les informations du message secret.",
+      "missingPassword": "Veuillez saisir un mot de passe.",
+      "submitFailed": "Échec de la création du message.",
+      "updateFailed": "Échec de la modification du message.",
+      "verifyFailed": "Échec de la vérification du message secret."
+    }
   },
   "Articles": {
     "description": "J'organise les technologies que je veux partager ou revoir plus tard.",
@@ -107,6 +124,9 @@
     "showcaseDescription": "J’y rassemble les projets sur lesquels j’ai travaillé ainsi que les traces qui s’y sont accumulées.",
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"
+  },
+  "Resume": {
+    "loading": "Chargement du CV."
   },
   "ProjectDetail": {
     "archiveLabel": "Archive des projets",
@@ -154,7 +174,6 @@
     "secretRevealTitle": "Saisissez votre mot de passe pour voir le contenu.",
     "secretVerifyFailed": "Le mot de passe ne correspond pas.",
     "deletedPlaceholder": "Ce commentaire a été supprimé.",
-    "replyTargetResetLabel": "Annuler la réponse",
     "requiredField": "Ce champ est requis.",
     "composeReplyPreviewLabel": "Aperçu de la réponse",
     "composeAuthorNameLabel": "Pseudo",
@@ -171,7 +190,6 @@
     "composePlaceholder": "Veuillez écrire avec attention et responsabilité.",
     "composeReplyPlaceholder": "Laissez une réponse à @{authorName}.",
     "submit": "Envoyer",
-    "replySubmit": "Envoyer la réponse",
     "reply": "Répondre",
     "actionMenuLabel": "Ouvrir le menu du commentaire",
     "actionMenuPanelLabel": "Menu d'actions du commentaire",
@@ -197,7 +215,21 @@
     "toastDeleteSuccess": "Le commentaire a été supprimé.",
     "toastDeleteError": "Échec de la suppression du commentaire.",
     "toastSecretVerifyError": "Échec de la vérification du commentaire secret.",
-    "toastSecretUnlockRequired": "Déverrouillez d’abord le commentaire secret avec la vérification du mot de passe avant de le modifier."
+    "toastSecretUnlockRequired": "Déverrouillez d’abord le commentaire secret avec la vérification du mot de passe avant de le modifier.",
+    "serverAction": {
+      "articleNotFound": "Impossible de trouver l'article ciblé.",
+      "commentNotFound": "Impossible de trouver le commentaire ciblé.",
+      "contentRequired": "Veuillez saisir un contenu.",
+      "contentTooLong": "Le contenu doit contenir au maximum 3000 caractères.",
+      "deleteFailed": "Échec de la suppression du commentaire.",
+      "fetchFailed": "Impossible de charger les commentaires.",
+      "invalidPassword": "Le mot de passe est incorrect.",
+      "invalidUrl": "Veuillez vérifier l'URL du site.",
+      "missingName": "Veuillez saisir un nom.",
+      "missingPassword": "Veuillez saisir un mot de passe.",
+      "submitFailed": "Échec de la création du commentaire.",
+      "updateFailed": "Échec de la modification du commentaire."
+    }
   },
   "DetailUi": {
     "copyFailed": "Impossible de copier le lien.",
