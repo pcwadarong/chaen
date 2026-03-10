@@ -5,6 +5,10 @@ import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 
 import { GuestbookThreadCard } from './guestbook-thread-card';
 
+vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
+}));
+
 vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
   initialVerifyGuestbookSecretState: {
     data: null,
@@ -120,6 +124,7 @@ describe('GuestbookThreadCard', () => {
 
     expect(screen.getByLabelText('비밀번호')).toBeTruthy();
     expect(screen.getByRole('button', { name: '확인' })).toBeTruthy();
+    expect(screen.getByDisplayValue('ko')).toBeTruthy();
   });
 
   it('외부 링크가 있으면 이름 옆 아이콘 링크를 노출하고 kebab 메뉴를 연다', () => {

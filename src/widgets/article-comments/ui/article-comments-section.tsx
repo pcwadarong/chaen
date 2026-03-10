@@ -162,6 +162,7 @@ export const ArticleCommentsSection = ({
         const result = await getArticleCommentsPageAction({
           articleId,
           fresh: options?.fresh,
+          locale,
           page: nextPage,
           sort: nextSort,
         });
@@ -177,7 +178,7 @@ export const ArticleCommentsSection = ({
         setIsLoading(false);
       }
     },
-    [articleId, t],
+    [articleId, locale, t],
   );
 
   const closeModal = () => {
@@ -252,6 +253,7 @@ export const ArticleCommentsSection = ({
           articleId,
           commentId: modalState.entry.id,
           content: trimmedContent,
+          locale,
           password: trimmedPassword,
         });
         if (!result.ok || !result.data) {
@@ -264,6 +266,7 @@ export const ArticleCommentsSection = ({
         const result = await deleteArticleCommentAction({
           articleId,
           commentId: modalState.entry.id,
+          locale,
           password: trimmedPassword,
         });
         if (!result.ok || !result.data) {
@@ -353,7 +356,7 @@ export const ArticleCommentsSection = ({
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
         formAction={submitRootCommentAction}
-        hiddenFields={{ articleId }}
+        hiddenFields={{ articleId, locale }}
         isReplyMode={false}
         isSubmittingOverride={isRootSubmitting}
         layout="embedded"
@@ -491,6 +494,7 @@ export const ArticleCommentsSection = ({
                       formAction={submitReplyCommentAction}
                       hiddenFields={{
                         articleId,
+                        locale,
                         parentId: replyTarget.parentId,
                         replyToCommentId: replyTarget.commentId,
                       }}

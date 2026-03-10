@@ -20,6 +20,10 @@ import {
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { normalizeCommentComposePassword } from '@/shared/lib/comment-compose';
+import {
+  getActionTranslations,
+  resolveActionLocale,
+} from '@/shared/lib/i18n/get-action-translations';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 type GuestbookSubmitActionData = {
@@ -30,67 +34,125 @@ type GuestbookVerifyActionData = {
   entry: GuestbookEntry;
 };
 
-const createGuestbookEntrySchema = z.object({
-  authorBlogUrl: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() ?? '')
-    .refine(value => !value || Boolean(normalizeHttpUrl(value)), {
-      message: '홈페이지 주소를 다시 확인해주세요.',
-    }),
-  authorName: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() ?? ''),
-  content: z
-    .string()
-    .trim()
-    .min(1, '내용을 입력해주세요.')
-    .max(3000, '내용은 3000자 이하로 입력해주세요.'),
-  isSecret: z.preprocess(value => value === 'on' || value === 'true', z.boolean()),
-  parentId: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() || null),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? '')),
+type GuestbookActionMessages = ReturnType<typeof createGuestbookActionMessages>;
+
+/**
+ * 선택 입력 URL을 절대 경로로 정규화합니다.
+ */
+const normalizeOptionalHttpUrl = (value?: string) => {
+  const trimmedValue = value?.trim() ?? '';
+  if (!trimmedValue) return '';
+
+  return normalizeHttpUrl(trimmedValue);
+};
+
+/**
+ * 방명록 action 에러를 사용자 메시지로 정규화합니다.
+ */
+const getGuestbookActionErrorMessage = (
+  error: unknown,
+  fallbackMessage: string,
+  messages: GuestbookActionMessages,
+) => {
+  if (!(error instanceof Error)) {
+    return fallbackMessage;
+  }
+
+  const guestbookBusinessErrorMessageMap = {
+    'admin auth required': messages.adminRequired,
+    'entry not found': messages.entryNotFound,
+    'invalid password': messages.invalidPassword,
+    'parent entry not found': messages.entryNotFound,
+    'parent password is missing': messages.missingParentSecret,
+  } as const satisfies Record<string, string>;
+
+  return (
+    guestbookBusinessErrorMessageMap[
+      error.message as keyof typeof guestbookBusinessErrorMessageMap
+    ] ?? fallbackMessage
+  );
+};
+
+/**
+ * 방명록 action에서 사용하는 locale별 메시지 묶음을 생성합니다.
+ */
+const createGuestbookActionMessages = (t: Awaited<ReturnType<typeof getActionTranslations>>) => ({
+  adminReplyOnly: t('serverAction.adminReplyOnly'),
+  adminRequired: t('serverAction.adminRequired'),
+  contentRequired: t('serverAction.contentRequired'),
+  contentTooLong: t('serverAction.contentTooLong'),
+  deleteFailed: t('serverAction.deleteFailed'),
+  entryNotFound: t('serverAction.entryNotFound'),
+  fetchFailed: t('serverAction.fetchFailed'),
+  invalidPassword: t('serverAction.invalidPassword'),
+  invalidUrl: t('serverAction.invalidUrl'),
+  missingName: t('serverAction.missingName'),
+  missingParentSecret: t('serverAction.missingParentSecret'),
+  missingPassword: t('serverAction.missingPassword'),
+  submitFailed: t('serverAction.submitFailed'),
+  updateFailed: t('serverAction.updateFailed'),
+  verifyFailed: t('serverAction.verifyFailed'),
 });
 
-const verifyGuestbookSecretSchema = z.object({
-  entryId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  password: z
-    .string()
-    .transform(value => normalizeCommentComposePassword(value))
-    .pipe(z.string().min(4, '비밀번호를 입력해주세요.')),
-});
+const createGuestbookEntrySchema = (messages: GuestbookActionMessages) =>
+  z.object({
+    authorBlogUrl: z
+      .string()
+      .optional()
+      .transform(normalizeOptionalHttpUrl)
+      .refine(value => value !== null, {
+        message: messages.invalidUrl,
+      })
+      .transform(value => value ?? ''),
+    authorName: z
+      .string()
+      .optional()
+      .transform(value => value?.trim() ?? ''),
+    content: z.string().trim().min(1, messages.contentRequired).max(3000, messages.contentTooLong),
+    isSecret: z.preprocess(value => value === 'on' || value === 'true', z.boolean()),
+    parentId: z
+      .string()
+      .optional()
+      .transform(value => value?.trim() || null),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? '')),
+  });
 
-const updateGuestbookEntrySchema = z.object({
-  content: z
-    .string()
-    .trim()
-    .min(1, '내용을 입력해주세요.')
-    .max(3000, '내용은 3000자 이하로 입력해주세요.'),
-  entryId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? '')),
-});
+const verifyGuestbookSecretSchema = (messages: GuestbookActionMessages) =>
+  z.object({
+    entryId: z.string().trim().min(1, messages.entryNotFound),
+    password: z
+      .string()
+      .transform(value => normalizeCommentComposePassword(value))
+      .pipe(z.string().min(4, messages.missingPassword)),
+  });
 
-const deleteGuestbookEntrySchema = z.object({
-  entryId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? '')),
-});
+const updateGuestbookEntrySchema = (messages: GuestbookActionMessages) =>
+  z.object({
+    content: z.string().trim().min(1, messages.contentRequired).max(3000, messages.contentTooLong),
+    entryId: z.string().trim().min(1, messages.entryNotFound),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? '')),
+  });
+
+const deleteGuestbookEntrySchema = (messages: GuestbookActionMessages) =>
+  z.object({
+    entryId: z.string().trim().min(1, messages.entryNotFound),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? '')),
+  });
 
 const guestbookThreadsPageSchema = z.object({
   cursor: z
     .string()
     .optional()
+    .nullable()
     .transform(value => value?.trim() || null),
   limit: z.number().int().min(1).max(50),
 });
@@ -114,10 +176,13 @@ export const submitGuestbookEntry = async (
   _previousState: ActionResult<GuestbookSubmitActionData>,
   formData: FormData,
 ): Promise<ActionResult<GuestbookSubmitActionData>> => {
-  const validation = validateActionInput(
-    createGuestbookEntrySchema,
-    Object.fromEntries(formData.entries()),
-  );
+  const rawInput = Object.fromEntries(formData.entries());
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),
+    namespace: 'Guest',
+  });
+  const messages = createGuestbookActionMessages(t);
+  const validation = validateActionInput(createGuestbookEntrySchema(messages), rawInput);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -129,15 +194,15 @@ export const submitGuestbookEntry = async (
     const authState = await getServerAuthState();
 
     if (!authState.isAdmin && !authorName) {
-      return createActionFailure('이름을 입력해주세요.');
+      return createActionFailure(messages.missingName);
     }
 
     if (!authState.isAdmin && password.length < 4) {
-      return createActionFailure('비밀번호를 입력해주세요.');
+      return createActionFailure(messages.missingPassword);
     }
 
     if (parentId && !authState.isAdmin) {
-      return createActionFailure('관리자만 답신을 작성할 수 있습니다.');
+      return createActionFailure(messages.adminReplyOnly);
     }
 
     const entry = await createGuestbookEntry({
@@ -155,7 +220,7 @@ export const submitGuestbookEntry = async (
     return createActionSuccess({ entry });
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '방명록 등록에 실패했습니다.',
+      getGuestbookActionErrorMessage(error, messages.submitFailed, messages),
     );
   }
 };
@@ -167,10 +232,13 @@ export const verifyGuestbookSecretAction = async (
   _previousState: ActionResult<GuestbookVerifyActionData>,
   formData: FormData,
 ): Promise<ActionResult<GuestbookVerifyActionData>> => {
-  const validation = validateActionInput(
-    verifyGuestbookSecretSchema,
-    Object.fromEntries(formData.entries()),
-  );
+  const rawInput = Object.fromEntries(formData.entries());
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),
+    namespace: 'Guest',
+  });
+  const messages = createGuestbookActionMessages(t);
+  const validation = validateActionInput(verifyGuestbookSecretSchema(messages), rawInput);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -182,7 +250,7 @@ export const verifyGuestbookSecretAction = async (
     return createActionSuccess({ entry });
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '비밀글 확인에 실패했습니다.',
+      getGuestbookActionErrorMessage(error, messages.verifyFailed, messages),
     );
   }
 };
@@ -193,9 +261,15 @@ export const verifyGuestbookSecretAction = async (
 export const updateGuestbookEntryAction = async (input: {
   content: string;
   entryId: string;
+  locale?: string | null;
   password: string;
 }): Promise<ActionResult<GuestbookEntry>> => {
-  const validation = validateActionInput(updateGuestbookEntrySchema, input);
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'Guest',
+  });
+  const messages = createGuestbookActionMessages(t);
+  const validation = validateActionInput(updateGuestbookEntrySchema(messages), input);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -219,7 +293,7 @@ export const updateGuestbookEntryAction = async (input: {
     return createActionSuccess(entry);
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '방명록 수정에 실패했습니다.',
+      getGuestbookActionErrorMessage(error, messages.updateFailed, messages),
     );
   }
 };
@@ -229,9 +303,15 @@ export const updateGuestbookEntryAction = async (input: {
  */
 export const deleteGuestbookEntryAction = async (input: {
   entryId: string;
+  locale?: string | null;
   password: string;
 }): Promise<ActionResult<{ deletedId: string }>> => {
-  const validation = validateActionInput(deleteGuestbookEntrySchema, input);
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'Guest',
+  });
+  const messages = createGuestbookActionMessages(t);
+  const validation = validateActionInput(deleteGuestbookEntrySchema(messages), input);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -254,7 +334,7 @@ export const deleteGuestbookEntryAction = async (input: {
     return createActionSuccess({ deletedId: deleted.id });
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '방명록 삭제에 실패했습니다.',
+      getGuestbookActionErrorMessage(error, messages.deleteFailed, messages),
     );
   }
 };
@@ -265,7 +345,13 @@ export const deleteGuestbookEntryAction = async (input: {
 export const getGuestbookThreadsPage = async (input: {
   cursor?: string | null;
   limit: number;
+  locale?: string | null;
 }): Promise<ActionResult<GuestbookThreadPage>> => {
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'Guest',
+  });
+  const messages = createGuestbookActionMessages(t);
   const validation = validateActionInput(guestbookThreadsPageSchema, input);
 
   if (!validation.ok) {
@@ -284,7 +370,7 @@ export const getGuestbookThreadsPage = async (input: {
     return createActionSuccess(page);
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '방명록을 불러오지 못했습니다.',
+      getGuestbookActionErrorMessage(error, messages.fetchFailed, messages),
     );
   }
 };

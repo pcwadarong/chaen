@@ -24,8 +24,11 @@ const authState = {
 
 const guestbookFeedProps = vi.fn();
 const commentComposeFormProps = vi.fn();
+const useGuestbookFeedSpy = vi.fn();
+useGuestbookFeedSpy.mockReturnValue(hookState);
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
   useTranslations: () => (key: string) => key,
 }));
 
@@ -34,7 +37,7 @@ vi.mock('@/shared/providers', () => ({
 }));
 
 vi.mock('@/features/guestbook-feed/model/use-guestbook-feed', () => ({
-  useGuestbookFeed: () => hookState,
+  useGuestbookFeed: (input: unknown) => useGuestbookFeedSpy(input),
 }));
 
 vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
@@ -85,11 +88,22 @@ describe('GuestbookBoard', () => {
     expect(commentComposeFormProps).toHaveBeenCalledWith(
       expect.objectContaining({
         formAction: expect.any(Function),
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
         submissionResult: {
           data: null,
           errorMessage: null,
           ok: false,
         },
+      }),
+    );
+    expect(useGuestbookFeedSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialCursor: null,
+        initialItems: [],
+        locale: 'ko',
       }),
     );
   });
@@ -107,6 +121,10 @@ describe('GuestbookBoard', () => {
       expect.objectContaining({
         allowSecretToggle: true,
         authorMode: 'manual',
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
         isReplyMode: false,
         replyTargetContent: null,
       }),
@@ -127,6 +145,10 @@ describe('GuestbookBoard', () => {
       expect.objectContaining({
         allowSecretToggle: false,
         authorMode: 'preset',
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
         presetAuthorName: 'admin',
       }),
     );

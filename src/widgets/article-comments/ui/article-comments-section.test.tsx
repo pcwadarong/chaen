@@ -105,6 +105,7 @@ describe('ArticleCommentsSection', () => {
         formAction: expect.any(Function),
         hiddenFields: {
           articleId: 'article-1',
+          locale: 'ko',
         },
         isReplyMode: false,
         layout: 'embedded',
@@ -146,12 +147,14 @@ describe('ArticleCommentsSection', () => {
       expect(getArticleCommentsPageAction).toHaveBeenNthCalledWith(1, {
         articleId: 'article-1',
         fresh: undefined,
+        locale: 'ko',
         page: 1,
         sort: 'oldest',
       });
       expect(getArticleCommentsPageAction).toHaveBeenNthCalledWith(2, {
         articleId: 'article-1',
         fresh: undefined,
+        locale: 'ko',
         page: 2,
         sort: 'latest',
       });
@@ -185,6 +188,7 @@ describe('ArticleCommentsSection', () => {
         formAction: expect.any(Function),
         hiddenFields: {
           articleId: 'article-1',
+          locale: 'ko',
           parentId: 'comment-1',
           replyToCommentId: 'comment-1',
         },

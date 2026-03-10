@@ -19,6 +19,10 @@ import {
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { normalizeCommentComposePassword } from '@/shared/lib/comment-compose';
+import {
+  getActionTranslations,
+  resolveActionLocale,
+} from '@/shared/lib/i18n/get-action-translations';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 import { getArticleComments } from './get-article-comments';
@@ -28,67 +32,121 @@ import {
   updateArticleComment,
 } from './mutate-article-comment';
 
-const createArticleCommentSchema = z.object({
-  articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  authorBlogUrl: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() ?? '')
-    .refine(value => !value || Boolean(normalizeHttpUrl(value)), {
-      message: '홈페이지 주소를 다시 확인해주세요.',
-    }),
-  authorName: z.string().trim().min(1, '이름을 입력해주세요.'),
-  content: z
-    .string()
-    .trim()
-    .min(1, '내용을 입력해주세요.')
-    .max(3000, '내용은 3000자 이하로 입력해주세요.'),
-  parentId: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() || null),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? ''))
-    .pipe(z.string().min(4, '비밀번호를 입력해주세요.')),
-  replyToCommentId: z
-    .string()
-    .optional()
-    .transform(value => value?.trim() || null),
+type ArticleCommentActionMessages = ReturnType<typeof createArticleCommentActionMessages>;
+
+/**
+ * 선택 입력 URL을 절대 경로로 정규화합니다.
+ */
+const normalizeOptionalHttpUrl = (value?: string) => {
+  const trimmedValue = value?.trim() ?? '';
+  if (!trimmedValue) return '';
+
+  return normalizeHttpUrl(trimmedValue);
+};
+
+/**
+ * 댓글 action에서 사용하는 locale별 메시지 묶음을 생성합니다.
+ */
+const createArticleCommentActionMessages = (
+  t: Awaited<ReturnType<typeof getActionTranslations>>,
+) => ({
+  articleNotFound: t('serverAction.articleNotFound'),
+  commentNotFound: t('serverAction.commentNotFound'),
+  contentRequired: t('serverAction.contentRequired'),
+  contentTooLong: t('serverAction.contentTooLong'),
+  deleteFailed: t('serverAction.deleteFailed'),
+  fetchFailed: t('serverAction.fetchFailed'),
+  invalidPassword: t('serverAction.invalidPassword'),
+  invalidUrl: t('serverAction.invalidUrl'),
+  missingName: t('serverAction.missingName'),
+  missingPassword: t('serverAction.missingPassword'),
+  submitFailed: t('serverAction.submitFailed'),
+  updateFailed: t('serverAction.updateFailed'),
 });
 
-const articleCommentsPageSchema = z.object({
-  articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  fresh: z.boolean().optional().default(false),
-  page: z.number().int().min(1).default(1),
-  sort: z.enum(['latest', 'oldest']).default('latest'),
-});
+/**
+ * 댓글 action 에러를 사용자 메시지로 정규화합니다.
+ */
+const getArticleCommentActionErrorMessage = (
+  error: unknown,
+  fallbackMessage: string,
+  messages: ArticleCommentActionMessages,
+) => {
+  if (!(error instanceof Error)) {
+    return fallbackMessage;
+  }
 
-const updateArticleCommentSchema = z.object({
-  articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  commentId: z.string().trim().min(1, '대상 댓글을 확인할 수 없습니다.'),
-  content: z
-    .string()
-    .trim()
-    .min(1, '내용을 입력해주세요.')
-    .max(3000, '내용은 3000자 이하로 입력해주세요.'),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? ''))
-    .pipe(z.string().min(4, '비밀번호를 입력해주세요.')),
-});
+  const businessErrorMessageMap = {
+    'comment not found': messages.commentNotFound,
+    'comment does not belong to article': messages.commentNotFound,
+    'invalid password': messages.invalidPassword,
+    'parent comment does not belong to article': messages.commentNotFound,
+    'reply target must belong to parent thread': messages.commentNotFound,
+  } as const satisfies Record<string, string>;
 
-const deleteArticleCommentSchema = z.object({
-  articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
-  commentId: z.string().trim().min(1, '대상 댓글을 확인할 수 없습니다.'),
-  password: z
-    .string()
-    .optional()
-    .transform(value => normalizeCommentComposePassword(value ?? ''))
-    .pipe(z.string().min(4, '비밀번호를 입력해주세요.')),
-});
+  return (
+    businessErrorMessageMap[error.message as keyof typeof businessErrorMessageMap] ??
+    fallbackMessage
+  );
+};
+
+const createArticleCommentSchema = (messages: ArticleCommentActionMessages) =>
+  z.object({
+    articleId: z.string().trim().min(1, messages.articleNotFound),
+    authorBlogUrl: z
+      .string()
+      .optional()
+      .transform(normalizeOptionalHttpUrl)
+      .refine(value => value !== null, {
+        message: messages.invalidUrl,
+      }),
+    authorName: z.string().trim().min(1, messages.missingName),
+    content: z.string().trim().min(1, messages.contentRequired).max(3000, messages.contentTooLong),
+    parentId: z
+      .string()
+      .optional()
+      .transform(value => value?.trim() || null),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? ''))
+      .pipe(z.string().min(4, messages.missingPassword)),
+    replyToCommentId: z
+      .string()
+      .optional()
+      .transform(value => value?.trim() || null),
+  });
+
+const articleCommentsPageSchema = (messages: ArticleCommentActionMessages) =>
+  z.object({
+    articleId: z.string().trim().min(1, messages.articleNotFound),
+    fresh: z.boolean().optional().default(false),
+    page: z.number().int().min(1).default(1),
+    sort: z.enum(['latest', 'oldest']).default('latest'),
+  });
+
+const updateArticleCommentSchema = (messages: ArticleCommentActionMessages) =>
+  z.object({
+    articleId: z.string().trim().min(1, messages.articleNotFound),
+    commentId: z.string().trim().min(1, messages.commentNotFound),
+    content: z.string().trim().min(1, messages.contentRequired).max(3000, messages.contentTooLong),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? ''))
+      .pipe(z.string().min(4, messages.missingPassword)),
+  });
+
+const deleteArticleCommentSchema = (messages: ArticleCommentActionMessages) =>
+  z.object({
+    articleId: z.string().trim().min(1, messages.articleNotFound),
+    commentId: z.string().trim().min(1, messages.commentNotFound),
+    password: z
+      .string()
+      .optional()
+      .transform(value => normalizeCommentComposePassword(value ?? ''))
+      .pipe(z.string().min(4, messages.missingPassword)),
+  });
 
 type SubmitArticleCommentActionData = {
   comment: ArticleComment;
@@ -127,10 +185,13 @@ export const submitArticleComment = async (
   _previousState: ActionResult<SubmitArticleCommentActionData>,
   formData: FormData,
 ): Promise<ActionResult<SubmitArticleCommentActionData>> => {
-  const validation = validateActionInput(
-    createArticleCommentSchema,
-    Object.fromEntries(formData.entries()),
-  );
+  const rawInput = Object.fromEntries(formData.entries());
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),
+    namespace: 'ArticleComments',
+  });
+  const messages = createArticleCommentActionMessages(t);
+  const validation = validateActionInput(createArticleCommentSchema(messages), rawInput);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -154,7 +215,7 @@ export const submitArticleComment = async (
     return createActionSuccess({ comment });
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '댓글 등록에 실패했습니다.',
+      getArticleCommentActionErrorMessage(error, messages.submitFailed, messages),
     );
   }
 };
@@ -165,10 +226,16 @@ export const submitArticleComment = async (
 export const getArticleCommentsPageAction = async (input: {
   articleId: string;
   fresh?: boolean;
+  locale?: string | null;
   page?: number;
   sort?: 'latest' | 'oldest';
 }): Promise<ActionResult<ArticleCommentPage>> => {
-  const validation = validateActionInput(articleCommentsPageSchema, input);
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'ArticleComments',
+  });
+  const messages = createArticleCommentActionMessages(t);
+  const validation = validateActionInput(articleCommentsPageSchema(messages), input);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -185,7 +252,7 @@ export const getArticleCommentsPageAction = async (input: {
     return createActionSuccess(page);
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '댓글을 불러오지 못했습니다.',
+      getArticleCommentActionErrorMessage(error, messages.fetchFailed, messages),
     );
   }
 };
@@ -197,9 +264,15 @@ export const updateArticleCommentAction = async (input: {
   articleId: string;
   commentId: string;
   content: string;
+  locale?: string | null;
   password: string;
 }): Promise<ActionResult<ArticleComment>> => {
-  const validation = validateActionInput(updateArticleCommentSchema, input);
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'ArticleComments',
+  });
+  const messages = createArticleCommentActionMessages(t);
+  const validation = validateActionInput(updateArticleCommentSchema(messages), input);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -215,7 +288,7 @@ export const updateArticleCommentAction = async (input: {
     return createActionSuccess(comment);
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '댓글 수정에 실패했습니다.',
+      getArticleCommentActionErrorMessage(error, messages.updateFailed, messages),
     );
   }
 };
@@ -226,9 +299,15 @@ export const updateArticleCommentAction = async (input: {
 export const deleteArticleCommentAction = async (input: {
   articleId: string;
   commentId: string;
+  locale?: string | null;
   password: string;
 }): Promise<ActionResult<ArticleCommentDeleteActionData>> => {
-  const validation = validateActionInput(deleteArticleCommentSchema, input);
+  const t = await getActionTranslations({
+    locale: resolveActionLocale(input.locale),
+    namespace: 'ArticleComments',
+  });
+  const messages = createArticleCommentActionMessages(t);
+  const validation = validateActionInput(deleteArticleCommentSchema(messages), input);
 
   if (!validation.ok) {
     return createActionFailure(validation.errorMessage);
@@ -244,7 +323,7 @@ export const deleteArticleCommentAction = async (input: {
     return createActionSuccess({ deletedId: deleted.id });
   } catch (error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '댓글 삭제에 실패했습니다.',
+      getArticleCommentActionErrorMessage(error, messages.deleteFailed, messages),
     );
   }
 };

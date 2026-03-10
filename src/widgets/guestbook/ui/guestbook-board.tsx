@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React, { useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
@@ -39,6 +39,7 @@ export const GuestbookBoard = ({
   initialItems = [],
 }: GuestbookBoardProps) => {
   const t = useTranslations('Guest');
+  const locale = useLocale();
   const { isAdmin } = useAuth();
   const {
     applyServerThread,
@@ -56,6 +57,7 @@ export const GuestbookBoard = ({
   } = useGuestbookFeed({
     initialCursor,
     initialItems,
+    locale,
   });
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -163,6 +165,7 @@ export const GuestbookBoard = ({
     removeThreadById,
     text: modalText,
     updateThreadById,
+    locale,
   });
 
   const isAdminAuthoredActionModalVisible = Boolean(modalState?.entry.is_admin_author) && isAdmin;
@@ -205,6 +208,7 @@ export const GuestbookBoard = ({
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
         hiddenFields={{
+          locale,
           parentId: isAdmin && replyTarget ? replyTarget.id : null,
         }}
         isSubmittingOverride={isComposePending}

@@ -30,6 +30,31 @@ vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
   getServerAuthState: vi.fn(),
 }));
 
+vi.mock('@/shared/lib/i18n/get-action-translations', () => ({
+  getActionTranslations: vi.fn(async () => (key: string) => {
+    const messages = {
+      'serverAction.adminReplyOnly': '관리자만 답신을 작성할 수 있습니다.',
+      'serverAction.adminRequired': '관리자 권한이 필요합니다.',
+      'serverAction.contentRequired': '내용을 입력해주세요.',
+      'serverAction.contentTooLong': '내용은 3000자 이하로 입력해주세요.',
+      'serverAction.deleteFailed': '방명록 삭제에 실패했습니다.',
+      'serverAction.entryNotFound': '대상 글을 확인할 수 없습니다.',
+      'serverAction.fetchFailed': '방명록을 불러오지 못했습니다.',
+      'serverAction.invalidPassword': '비밀번호가 올바르지 않습니다.',
+      'serverAction.invalidUrl': '홈페이지 주소를 다시 확인해주세요.',
+      'serverAction.missingName': '이름을 입력해주세요.',
+      'serverAction.missingParentSecret': '비밀글 정보를 확인할 수 없습니다.',
+      'serverAction.missingPassword': '비밀번호를 입력해주세요.',
+      'serverAction.submitFailed': '방명록 등록에 실패했습니다.',
+      'serverAction.updateFailed': '방명록 수정에 실패했습니다.',
+      'serverAction.verifyFailed': '비밀글 확인에 실패했습니다.',
+    } as const;
+
+    return messages[key as keyof typeof messages] ?? key;
+  }),
+  resolveActionLocale: vi.fn((locale?: string | null) => locale ?? 'ko'),
+}));
+
 describe('guestbook-actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,7 +82,9 @@ describe('guestbook-actions', () => {
     });
 
     const formData = new FormData();
+    formData.set('locale', 'ko');
     formData.set('authorName', 'guest');
+    formData.set('authorBlogUrl', 'https://example.com');
     formData.set('content', 'hello');
     formData.set('password', '1234');
 
@@ -73,12 +100,18 @@ describe('guestbook-actions', () => {
       ok: true,
     });
     expect(revalidateGuestbookCache).toHaveBeenCalledWith({ parentId: null });
+    expect(createGuestbookEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorBlogUrl: 'https://example.com/',
+      }),
+    );
   });
 
   it('인증 상태 조회 실패를 inline 에러로 반환한다', async () => {
     vi.mocked(getServerAuthState).mockRejectedValue(new Error('[auth] 사용자 조회 실패: timeout'));
 
     const formData = new FormData();
+    formData.set('locale', 'ko');
     formData.set('authorName', 'guest');
     formData.set('content', 'hello');
     formData.set('password', '1234');
@@ -86,7 +119,7 @@ describe('guestbook-actions', () => {
     await expect(submitGuestbookEntry(initialSubmitGuestbookEntryState, formData)).resolves.toEqual(
       {
         data: null,
-        errorMessage: '[auth] 사용자 조회 실패: timeout',
+        errorMessage: '방명록 등록에 실패했습니다.',
         ok: false,
       },
     );
@@ -96,6 +129,7 @@ describe('guestbook-actions', () => {
     vi.mocked(verifyGuestbookSecret).mockRejectedValue(new Error('invalid password'));
 
     const formData = new FormData();
+    formData.set('locale', 'ko');
     formData.set('entryId', 'entry-1');
     formData.set('password', '1234');
 
@@ -103,7 +137,7 @@ describe('guestbook-actions', () => {
       verifyGuestbookSecretAction(initialVerifyGuestbookSecretState, formData),
     ).resolves.toEqual({
       data: null,
-      errorMessage: 'invalid password',
+      errorMessage: '비밀번호가 올바르지 않습니다.',
       ok: false,
     });
   });
@@ -134,5 +168,47 @@ describe('guestbook-actions', () => {
       includeSecret: true,
       limit: 12,
     });
+  });
+
+  it('방명록 페이지 조회 action은 null cursor를 허용한다', async () => {
+    vi.mocked(getGuestbookThreads).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+
+    await expect(getGuestbookThreadsPage({ cursor: null, limit: 12 })).resolves.toEqual({
+      data: {
+        items: [],
+        nextCursor: null,
+      },
+      errorMessage: null,
+      ok: true,
+    });
+
+    expect(getGuestbookThreads).toHaveBeenCalledWith({
+      cursor: null,
+      includeSecret: false,
+      limit: 12,
+    });
+  });
+
+  it('알 수 없는 내부 에러는 고정된 사용자 메시지로 감춘다', async () => {
+    vi.mocked(createGuestbookEntry).mockRejectedValue(
+      new Error('failed to create entry: duplicate key'),
+    );
+
+    const formData = new FormData();
+    formData.set('locale', 'ko');
+    formData.set('authorName', 'guest');
+    formData.set('content', 'hello');
+    formData.set('password', '1234');
+
+    await expect(submitGuestbookEntry(initialSubmitGuestbookEntryState, formData)).resolves.toEqual(
+      {
+        data: null,
+        errorMessage: '방명록 등록에 실패했습니다.',
+        ok: false,
+      },
+    );
   });
 });

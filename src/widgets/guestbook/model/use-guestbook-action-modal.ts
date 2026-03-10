@@ -47,6 +47,7 @@ type UseGuestbookActionModalParams = {
     id: string,
     updater: (entry: GuestbookThreadItem) => GuestbookThreadItem,
   ) => void;
+  locale: string;
 };
 
 /**
@@ -62,6 +63,7 @@ export const useGuestbookActionModal = ({
   removeThreadById,
   text,
   updateThreadById,
+  locale,
 }: UseGuestbookActionModalParams) => {
   const [modalState, setModalState] = useState<ActionModalState>(null);
   const [modalPassword, setModalPassword] = useState('');
@@ -175,6 +177,7 @@ export const useGuestbookActionModal = ({
           const result = await updateGuestbookEntryAction({
             content: trimmedModalContent,
             entryId: target.id,
+            locale,
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok || !result.data) {
@@ -230,6 +233,7 @@ export const useGuestbookActionModal = ({
           try {
             const result = await deleteGuestbookEntryAction({
               entryId: target.id,
+              locale,
               password: shouldSkipPassword ? '' : trimmedPassword,
             });
             if (!result.ok) {
@@ -278,6 +282,7 @@ export const useGuestbookActionModal = ({
         try {
           const result = await deleteGuestbookEntryAction({
             entryId: target.id,
+            locale,
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok) {

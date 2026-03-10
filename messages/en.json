@@ -77,7 +77,24 @@
     "toastDeleteError": "Failed to delete guestbook entry.",
     "toastSecretVerifyError": "Failed to verify secret entry.",
     "toastSecretUnlockRequired": "Unlock the secret post with password verification before editing.",
-    "deletedPlaceholder": "This post has been deleted."
+    "deletedPlaceholder": "This post has been deleted.",
+    "serverAction": {
+      "adminReplyOnly": "Only administrators can write replies.",
+      "adminRequired": "Administrator permission is required.",
+      "contentRequired": "Please enter content.",
+      "contentTooLong": "Content must be 3000 characters or fewer.",
+      "deleteFailed": "Failed to delete the guestbook entry.",
+      "entryNotFound": "The target entry could not be found.",
+      "fetchFailed": "Failed to load the guestbook.",
+      "invalidPassword": "Password does not match.",
+      "invalidUrl": "Please check the homepage URL.",
+      "missingName": "Please enter a name.",
+      "missingParentSecret": "The secret entry information could not be verified.",
+      "missingPassword": "Please enter a password.",
+      "submitFailed": "Failed to create the guestbook entry.",
+      "updateFailed": "Failed to update the guestbook entry.",
+      "verifyFailed": "Failed to verify the secret entry."
+    }
   },
   "Articles": {
     "description": "I organize technologies I want to share or revisit.",
@@ -197,7 +214,21 @@
     "toastDeleteSuccess": "Comment has been deleted.",
     "toastDeleteError": "Failed to delete comment.",
     "toastSecretVerifyError": "Failed to verify secret comment.",
-    "toastSecretUnlockRequired": "Unlock the secret comment with password verification before editing."
+    "toastSecretUnlockRequired": "Unlock the secret comment with password verification before editing.",
+    "serverAction": {
+      "articleNotFound": "The target article could not be found.",
+      "commentNotFound": "The target comment could not be found.",
+      "contentRequired": "Please enter content.",
+      "contentTooLong": "Content must be 3000 characters or fewer.",
+      "deleteFailed": "Failed to delete the comment.",
+      "fetchFailed": "Failed to load comments.",
+      "invalidPassword": "Password does not match.",
+      "invalidUrl": "Please check the homepage URL.",
+      "missingName": "Please enter a name.",
+      "missingPassword": "Please enter a password.",
+      "submitFailed": "Failed to create the comment.",
+      "updateFailed": "Failed to update the comment."
+    }
   },
   "DetailUi": {
     "copyFailed": "Failed to copy the link.",

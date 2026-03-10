@@ -10,6 +10,7 @@ type UseGuestbookFeedOptions = {
   initialCursor?: string | null;
   initialItems?: GuestbookThreadItem[];
   limit?: number;
+  locale: string;
 };
 
 type UseGuestbookFeedResult = {
@@ -40,7 +41,8 @@ export const useGuestbookFeed = ({
   initialCursor = null,
   initialItems = [],
   limit = DEFAULT_LIMIT,
-}: UseGuestbookFeedOptions = {}): UseGuestbookFeedResult => {
+  locale,
+}: UseGuestbookFeedOptions): UseGuestbookFeedResult => {
   const [items, setItems] = useState<GuestbookThreadItem[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [isInitialLoading, setIsInitialLoading] = useState(initialItems.length === 0);
@@ -71,6 +73,7 @@ export const useGuestbookFeed = ({
       const result = await getGuestbookThreadsPage({
         cursor,
         limit,
+        locale,
       });
 
       if (!result.ok || !result.data) {
@@ -80,7 +83,7 @@ export const useGuestbookFeed = ({
       mergeUniqueById(result.data.items);
       setNextCursor(result.data.nextCursor);
     },
-    [limit, mergeUniqueById],
+    [limit, locale, mergeUniqueById],
   );
 
   const retryInitialLoad = useCallback(async () => {

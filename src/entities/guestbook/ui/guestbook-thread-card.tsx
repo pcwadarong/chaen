@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import React, { useActionState, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
@@ -62,6 +63,7 @@ export const GuestbookThreadCard = ({
   revealLabel,
   secretPlaceholder,
 }: GuestbookThreadCardProps) => {
+  const locale = useLocale();
   const [isSecretPanelOpen, setIsSecretPanelOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const isSecretRevealed = !entry.is_secret || !entry.is_content_masked;
@@ -96,6 +98,7 @@ export const GuestbookThreadCard = ({
         isSecretPanelOpen={isSecretPanelOpen}
         isSecretRevealed={isSecretRevealed}
         isSecretSubmitting={isSecretSubmitting}
+        locale={locale}
         onDelete={onDelete}
         onEdit={onEdit}
         onReply={onReply}

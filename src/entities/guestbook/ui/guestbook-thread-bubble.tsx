@@ -23,6 +23,7 @@ type GuestbookThreadBubbleProps = {
   isSecretPanelOpen: boolean;
   isSecretRevealed: boolean;
   isSecretSubmitting: boolean;
+  locale: string;
   onDelete: (entry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
   onReply: (entry: GuestbookThreadItem) => void;
@@ -55,6 +56,7 @@ export const GuestbookThreadBubble = ({
   isSecretPanelOpen,
   isSecretRevealed,
   isSecretSubmitting,
+  locale,
   onDelete,
   onEdit,
   onReply,
@@ -136,6 +138,7 @@ export const GuestbookThreadBubble = ({
                 className={inlineRevealFormClass}
               >
                 <input name="entryId" type="hidden" value={entry.id} />
+                <input name="locale" type="hidden" value={locale} />
                 <Input
                   aria-label={revealSecretPasswordLabel}
                   name="password"

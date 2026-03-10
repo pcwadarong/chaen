@@ -41,7 +41,7 @@ describe('useGuestbookFeed', () => {
       ok: true,
     });
 
-    const { result } = renderHook(() => useGuestbookFeed());
+    const { result } = renderHook(() => useGuestbookFeed({ locale: 'ko' }));
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -53,6 +53,7 @@ describe('useGuestbookFeed', () => {
     expect(getGuestbookThreadsPage).toHaveBeenCalledWith({
       cursor: null,
       limit: 12,
+      locale: 'ko',
     });
   });
 
@@ -63,7 +64,7 @@ describe('useGuestbookFeed', () => {
       ok: false,
     });
 
-    const { result } = renderHook(() => useGuestbookFeed());
+    const { result } = renderHook(() => useGuestbookFeed({ locale: 'ko' }));
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -77,6 +78,7 @@ describe('useGuestbookFeed', () => {
       useGuestbookFeed({
         initialCursor: '12',
         initialItems: [createThreadFixture('entry-1')],
+        locale: 'ko',
       }),
     );
 
@@ -105,7 +107,7 @@ describe('useGuestbookFeed', () => {
         ok: false,
       });
 
-    const { result } = renderHook(() => useGuestbookFeed());
+    const { result } = renderHook(() => useGuestbookFeed({ locale: 'ko' }));
 
     await waitFor(() => {
       expect(result.current.isInitialLoading).toBe(false);
@@ -124,6 +126,7 @@ describe('useGuestbookFeed', () => {
     expect(getGuestbookThreadsPage).toHaveBeenNthCalledWith(2, {
       cursor: '2',
       limit: 12,
+      locale: 'ko',
     });
   });
 });
