@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
+import { getProjectDetailArchivePageAction } from '@/entities/project/api/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
@@ -53,10 +54,10 @@ export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDe
       sidebarContent={
         <DetailArchiveFeed
           emptyText={detailUi('emptyArchive')}
-          endpoint="/api/projects/archive"
           hrefBasePath="/project"
           initialPage={archivePage}
           loadErrorText={projectT('loadError')}
+          loadPageAction={getProjectDetailArchivePageAction}
           loadMoreEndText={projectT('loadMoreEnd')}
           loadingText={projectT('loading')}
           locale={locale}

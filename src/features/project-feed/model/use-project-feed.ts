@@ -2,16 +2,10 @@
 
 import { useCallback } from 'react';
 
+import { getProjectsPageAction } from '@/entities/project/api/project-actions';
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
-
-type ProjectFeedResponse = {
-  items: ProjectListItem[];
-  nextCursor: string | null;
-  ok: true;
-};
 
 type UseProjectFeedOptions = {
   initialCursor: string | null;
@@ -33,23 +27,19 @@ export const useProjectFeed = ({ initialCursor, initialItems, locale }: UseProje
       limit: number;
       locale: string;
     }) => {
-      const url = new URL('/api/projects', window.location.origin);
-      url.searchParams.set('locale', nextLocale);
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('cursor', cursor);
-
-      const payload = await requestJsonApiClient<ProjectFeedResponse>({
-        fallbackReason: 'failed to fetch list',
-        init: {
-          cache: 'no-store',
-        },
-        method: 'GET',
-        url: url.toString(),
+      const result = await getProjectsPageAction({
+        cursor,
+        limit,
+        locale: nextLocale,
       });
 
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch list');
+      }
+
       return {
-        items: payload.items,
-        nextCursor: payload.nextCursor,
+        items: result.data.items,
+        nextCursor: result.data.nextCursor,
       };
     },
     [],

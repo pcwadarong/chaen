@@ -2,17 +2,10 @@
 
 import { useCallback } from 'react';
 
+import { getArticlesPageAction } from '@/entities/article/api/article-actions';
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
-
-type ArticleFeedResponse = {
-  items: ArticleListItem[];
-  nextCursor: string | null;
-  ok: true;
-  totalCount?: number | null;
-};
 
 type UseArticleFeedOptions = {
   activeTag: string;
@@ -44,29 +37,22 @@ export const useArticleFeed = ({
       locale: string;
       queryParams?: Record<string, string | null | undefined>;
     }) => {
-      const url = new URL('/api/articles', window.location.origin);
-      url.searchParams.set('locale', nextLocale);
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('cursor', cursor);
-
-      Object.entries(queryParams ?? {}).forEach(([key, value]) => {
-        if (!value) return;
-        url.searchParams.set(key, value);
+      const result = await getArticlesPageAction({
+        cursor,
+        limit,
+        locale: nextLocale,
+        query: queryParams?.q,
+        tag: queryParams?.tag,
       });
 
-      const payload = await requestJsonApiClient<ArticleFeedResponse>({
-        fallbackReason: 'failed to fetch list',
-        init: {
-          cache: 'no-store',
-        },
-        method: 'GET',
-        url: url.toString(),
-      });
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch list');
+      }
 
       return {
-        items: payload.items,
-        nextCursor: payload.nextCursor,
-        totalCount: payload.totalCount,
+        items: result.data.items,
+        nextCursor: result.data.nextCursor,
+        totalCount: result.data.totalCount,
       };
     },
     [],

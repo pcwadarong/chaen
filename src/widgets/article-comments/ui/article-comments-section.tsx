@@ -2,15 +2,29 @@
 
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  useActionState,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
+import {
+  deleteArticleCommentAction,
+  getArticleCommentsPageAction,
+  initialSubmitArticleCommentState,
+  submitArticleComment,
+  updateArticleCommentAction,
+} from '@/entities/article-comment/api/article-comment-actions';
 import type {
   ArticleComment,
   ArticleCommentPage,
   ArticleCommentsSort,
   ArticleCommentThreadItem,
 } from '@/entities/article-comment/model/types';
-import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
@@ -26,12 +40,6 @@ import { Modal } from '@/shared/ui/modal/modal';
 import { Pagination } from '@/shared/ui/pagination/pagination';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
-import {
-  createArticleCommentClient,
-  deleteArticleCommentClient,
-  getArticleCommentsPageClient,
-  updateArticleCommentClient,
-} from '@/widgets/article-comments/api/client';
 
 type ArticleCommentsSectionProps = {
   articleId: string;
@@ -52,7 +60,7 @@ type ModalState = {
 } | null;
 
 const LOAD_LAST_PAGE = 9999;
-const INVALID_PASSWORD_STATUS = 403;
+const INVALID_PASSWORD_REASON = 'invalid password';
 const TOAST_DURATION_MS = 2600;
 
 /**
@@ -68,10 +76,10 @@ const formatCommentDate = (timestamp: string, locale: string) =>
   }).format(new Date(timestamp));
 
 /**
- * API 에러가 비밀번호 오류인지 판별합니다.
+ * action 에러가 비밀번호 오류인지 판별합니다.
  */
 const isInvalidPasswordError = (error: unknown) =>
-  error instanceof Error && 'status' in error && error.status === INVALID_PASSWORD_STATUS;
+  error instanceof Error && error.message === INVALID_PASSWORD_REASON;
 
 /**
  * 아티클 상세 하단 댓글 섹션 위젯입니다.
@@ -87,6 +95,16 @@ export const ArticleCommentsSection = ({
   const modalDescriptionId = useId();
   const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
+  const [rootSubmitState, submitRootCommentAction, isRootSubmitting] = useActionState(
+    submitArticleComment,
+    initialSubmitArticleCommentState,
+  );
+  const [replySubmitState, submitReplyCommentAction, isReplySubmitting] = useActionState(
+    submitArticleComment,
+    initialSubmitArticleCommentState,
+  );
+  const lastHandledRootSubmitStateRef = useRef(rootSubmitState);
+  const lastHandledReplySubmitStateRef = useRef(replySubmitState);
   const [pageData, setPageData] = useState(initialPage);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -141,12 +159,18 @@ export const ArticleCommentsSection = ({
       setErrorMessage(null);
 
       try {
-        const payload = await getArticleCommentsPageClient(articleId, {
+        const result = await getArticleCommentsPageAction({
+          articleId,
           fresh: options?.fresh,
           page: nextPage,
           sort: nextSort,
         });
-        setPageData(payload);
+
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to load comments');
+        }
+
+        setPageData(result.data);
       } catch (_error) {
         setErrorMessage(t('loadError'));
       } finally {
@@ -175,37 +199,6 @@ export const ArticleCommentsSection = ({
       content: entry.content,
       parentId: thread.id,
     });
-  };
-
-  const handleSubmitRootComment = async (values: CommentComposeValues) => {
-    try {
-      await createArticleCommentClient(articleId, values);
-      pushToast(t('toastCreateSuccess'), 'success');
-      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
-        fresh: true,
-      });
-    } catch {
-      pushToast(t('toastCreateError'), 'error');
-    }
-  };
-
-  const handleSubmitReply = async (values: CommentComposeValues) => {
-    if (!replyTarget) return;
-
-    try {
-      await createArticleCommentClient(articleId, {
-        ...values,
-        parentId: replyTarget.parentId,
-        replyToCommentId: replyTarget.commentId,
-      });
-      setReplyTarget(null);
-      pushToast(t('toastReplySuccess'), 'success');
-      await loadPage(pageData.page, pageData.sort, {
-        fresh: true,
-      });
-    } catch {
-      pushToast(t('toastReplyError'), 'error');
-    }
   };
 
   const openEditModal = (entry: ArticleComment) => {
@@ -255,17 +248,27 @@ export const ArticleCommentsSection = ({
 
     try {
       if (modalState.mode === 'edit') {
-        await updateArticleCommentClient(
+        const result = await updateArticleCommentAction({
           articleId,
-          modalState.entry.id,
-          trimmedContent,
-          trimmedPassword,
-        );
+          commentId: modalState.entry.id,
+          content: trimmedContent,
+          password: trimmedPassword,
+        });
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to update comment');
+        }
         pushToast(t('toastEditSuccess'), 'success');
       }
 
       if (modalState.mode === 'delete') {
-        await deleteArticleCommentClient(articleId, modalState.entry.id, trimmedPassword);
+        const result = await deleteArticleCommentAction({
+          articleId,
+          commentId: modalState.entry.id,
+          password: trimmedPassword,
+        });
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to delete comment');
+        }
         pushToast(t('toastDeleteSuccess'), 'success');
       }
 
@@ -293,6 +296,41 @@ export const ArticleCommentsSection = ({
     return modalState.mode === 'edit' ? t('editModalTitle') : t('deleteModalTitle');
   }, [modalState, t]);
 
+  useEffect(() => {
+    if (lastHandledRootSubmitStateRef.current === rootSubmitState) return;
+    lastHandledRootSubmitStateRef.current = rootSubmitState;
+
+    if (!rootSubmitState.ok) {
+      if (rootSubmitState.errorMessage) {
+        pushToast(t('toastCreateError'), 'error');
+      }
+      return;
+    }
+
+    void loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
+      fresh: true,
+    });
+    pushToast(t('toastCreateSuccess'), 'success');
+  }, [loadPage, pageData.sort, pushToast, rootSubmitState, t]);
+
+  useEffect(() => {
+    if (lastHandledReplySubmitStateRef.current === replySubmitState) return;
+    lastHandledReplySubmitStateRef.current = replySubmitState;
+
+    if (!replySubmitState.ok) {
+      if (replySubmitState.errorMessage) {
+        pushToast(t('toastReplyError'), 'error');
+      }
+      return;
+    }
+
+    setReplyTarget(null);
+    void loadPage(pageData.page, pageData.sort, {
+      fresh: true,
+    });
+    pushToast(t('toastReplySuccess'), 'success');
+  }, [loadPage, pageData.page, pageData.sort, pushToast, replySubmitState, t]);
+
   return (
     <section aria-labelledby={titleId} css={sectionStyle}>
       <div css={headerStyle}>
@@ -314,10 +352,12 @@ export const ArticleCommentsSection = ({
         characterCountLabel={t('composeCharacterCountLabel')}
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
+        formAction={submitRootCommentAction}
+        hiddenFields={{ articleId }}
         isReplyMode={false}
+        isSubmittingOverride={isRootSubmitting}
         layout="embedded"
         onReplyTargetReset={() => undefined}
-        onSubmit={handleSubmitRootComment}
         passwordLabel={t('composePasswordLabel')}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         replyPreviewLabel={t('composeReplyPreviewLabel')}
@@ -325,6 +365,7 @@ export const ArticleCommentsSection = ({
         replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel=""
         submitLabel={t('submit')}
+        submissionResult={rootSubmitState}
         textareaAutoResize={false}
         textareaRows={4}
         textPlaceholder={t('composePlaceholder')}
@@ -435,10 +476,16 @@ export const ArticleCommentsSection = ({
                       characterCountLabel={t('composeCharacterCountLabel')}
                       contentLabel={t('composeReplyContentLabel')}
                       contentShortcutHint={t('composeContentShortcutHint')}
+                      formAction={submitReplyCommentAction}
+                      hiddenFields={{
+                        articleId,
+                        parentId: replyTarget.parentId,
+                        replyToCommentId: replyTarget.commentId,
+                      }}
                       isReplyMode
+                      isSubmittingOverride={isReplySubmitting}
                       layout="embedded"
                       onReplyTargetReset={() => setReplyTarget(null)}
-                      onSubmit={handleSubmitReply}
                       passwordLabel={t('composePasswordLabel')}
                       passwordPlaceholder={t('composePasswordPlaceholder')}
                       replyPreviewLabel={t('composeReplyPreviewLabel')}
@@ -446,6 +493,7 @@ export const ArticleCommentsSection = ({
                       replyTargetResetLabel={t('replyTargetResetLabel')}
                       secretLabel=""
                       submitLabel={t('replySubmit')}
+                      submissionResult={replySubmitState}
                       textareaAutoResize={false}
                       textareaRows={4}
                       textPlaceholder={t('composeReplyPlaceholder', {

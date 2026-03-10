@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
@@ -20,10 +20,14 @@ type DetailArchivePage<TItem> = {
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   emptyText: string;
-  endpoint: string;
   hrefBasePath: string;
   initialPage: DetailArchivePage<TItem>;
   loadErrorText: string;
+  loadPageAction: (input: {
+    cursor?: string | null;
+    limit: number;
+    locale: string;
+  }) => Promise<ActionResult<DetailArchivePage<TItem>>>;
   loadMoreEndText: string;
   loadingText: string;
   locale: string;
@@ -36,10 +40,10 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
  */
 export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   emptyText,
-  endpoint,
   hrefBasePath,
   initialPage,
   loadErrorText,
+  loadPageAction,
   loadMoreEndText,
   loadingText,
   locale,
@@ -56,30 +60,22 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
       limit: number;
       locale: string;
     }) => {
-      const url = new URL(endpoint, window.location.origin);
-      url.searchParams.set('locale', nextLocale);
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('cursor', cursor);
-
-      const payload = await requestJsonApiClient<{
-        items: TItem[];
-        nextCursor: string | null;
-        ok: true;
-      }>({
-        fallbackReason: 'failed to fetch list',
-        init: {
-          cache: 'no-store',
-        },
-        method: 'GET',
-        url: url.toString(),
+      const result = await loadPageAction({
+        cursor,
+        limit,
+        locale: nextLocale,
       });
 
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch list');
+      }
+
       return {
-        items: payload.items,
-        nextCursor: payload.nextCursor,
+        items: result.data.items,
+        nextCursor: result.data.nextCursor,
       };
     },
-    [endpoint],
+    [loadPageAction],
   );
 
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({

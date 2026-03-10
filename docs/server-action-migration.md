@@ -7,6 +7,8 @@
 3. Unit 1: Supabase 서버 클라이언트의 쿠키 읽기/쓰기 테스트 추가
 4. Unit 2: auth/guestbook를 Server Action + `useActionState` 구조로 전환
 5. Unit 2: guestbook API Route 제거 및 관련 테스트 이관
+6. Unit 3: article comments/feed/archive/view count를 Server Action 기반으로 전환
+7. Unit 3: articles/projects/comments/view API Route 제거 및 테스트 이관
 
 <br/>
 
@@ -30,6 +32,10 @@
 - 로그인/로그아웃은 Server Action 내부에서 직접 Supabase auth를 호출하고 성공 시 server redirect로 이동합니다.
 - 방명록 작성/비밀글 검증은 `form action={serverAction}` + `useActionState`로 구성해 JS가 없어도 기본 제출이 가능하게 맞춥니다.
 - 방명록 수정/삭제 모달은 JS 의존을 유지하되 API Route 대신 Server Action 직접 호출로 전환합니다.
+- 댓글 작성 폼은 루트/답글 각각 `useActionState`를 사용하고 `form action={serverAction}` 기반으로 바꿉니다.
+- 댓글 수정/삭제 모달은 API client 대신 Server Action 직접 호출로 전환하고, 실패 메시지는 `ActionResult`로 통일합니다.
+- 아티클/프로젝트 목록, 상세 아카이브, 조회수 증가는 `/api/...` fetch 대신 entity action을 직접 호출하도록 바꿉니다.
+- `vitest`는 전체 단일 실행 시 메모리 누적으로 종료가 불안정해, Unit 3 검증은 디렉터리 단위 chunk 실행으로 끝까지 확인합니다.
 
 <br/>
 

@@ -1,6 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
+import {
+  getArticleDetailArchivePageAction,
+  incrementArticleViewCountAction,
+} from '@/entities/article/api/article-actions';
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
@@ -71,18 +75,20 @@ export const ArticleDetailPage = async ({
           primaryMetaScreenReaderText={`${t('publishedAtLabel')} ${publishedDate}`}
           primaryMetaText={publishedDate}
           shareText={detailUi('share')}
+          trackViewAction={incrementArticleViewCountAction.bind(null, {
+            articleId: item.id,
+          })}
           viewCount={Number(item.view_count ?? 0)}
           viewCountLabel={detailUi('viewCount')}
-          viewEndpoint={`/api/articles/${item.id}/views`}
         />
       }
       sidebarContent={
         <DetailArchiveFeed
           emptyText={detailUi('emptyArchive')}
-          endpoint="/api/articles/archive"
           hrefBasePath="/articles"
           initialPage={archivePage}
           loadErrorText={articlesT('loadError')}
+          loadPageAction={getArticleDetailArchivePageAction}
           loadMoreEndText={articlesT('loadMoreEnd')}
           loadingText={articlesT('loading')}
           locale={locale}
