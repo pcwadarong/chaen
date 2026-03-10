@@ -75,6 +75,23 @@ describe('guestbook-actions', () => {
     expect(revalidateGuestbookCache).toHaveBeenCalledWith({ parentId: null });
   });
 
+  it('인증 상태 조회 실패를 inline 에러로 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockRejectedValue(new Error('[auth] 사용자 조회 실패: timeout'));
+
+    const formData = new FormData();
+    formData.set('authorName', 'guest');
+    formData.set('content', 'hello');
+    formData.set('password', '1234');
+
+    await expect(submitGuestbookEntry(initialSubmitGuestbookEntryState, formData)).resolves.toEqual(
+      {
+        data: null,
+        errorMessage: '[auth] 사용자 조회 실패: timeout',
+        ok: false,
+      },
+    );
+  });
+
   it('비밀글 검증 실패 시 에러 메시지를 반환한다', async () => {
     vi.mocked(verifyGuestbookSecret).mockRejectedValue(new Error('invalid password'));
 

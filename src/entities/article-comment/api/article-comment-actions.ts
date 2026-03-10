@@ -136,9 +136,9 @@ export const submitArticleComment = async (
     return createActionFailure(validation.errorMessage);
   }
 
-  await getServerAuthState();
-
   try {
+    await getServerAuthState();
+
     const comment = await createArticleComment({
       articleId: validation.data.articleId,
       authorBlogUrl: validation.data.authorBlogUrl || null,
@@ -205,9 +205,9 @@ export const updateArticleCommentAction = async (input: {
     return createActionFailure(validation.errorMessage);
   }
 
-  await getServerAuthState();
-
   try {
+    await getServerAuthState();
+
     const comment = await updateArticleComment(validation.data);
 
     revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);
@@ -234,9 +234,9 @@ export const deleteArticleCommentAction = async (input: {
     return createActionFailure(validation.errorMessage);
   }
 
-  await getServerAuthState();
-
   try {
+    await getServerAuthState();
+
     const deleted = await deleteArticleComment(validation.data);
 
     revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);

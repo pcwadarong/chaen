@@ -114,7 +114,6 @@ export const submitGuestbookEntry = async (
   _previousState: ActionResult<GuestbookSubmitActionData>,
   formData: FormData,
 ): Promise<ActionResult<GuestbookSubmitActionData>> => {
-  const authState = await getServerAuthState();
   const validation = validateActionInput(
     createGuestbookEntrySchema,
     Object.fromEntries(formData.entries()),
@@ -126,19 +125,21 @@ export const submitGuestbookEntry = async (
 
   const { authorBlogUrl, authorName, content, isSecret, parentId, password } = validation.data;
 
-  if (!authState.isAdmin && !authorName) {
-    return createActionFailure('이름을 입력해주세요.');
-  }
-
-  if (!authState.isAdmin && password.length < 4) {
-    return createActionFailure('비밀번호를 입력해주세요.');
-  }
-
-  if (parentId && !authState.isAdmin) {
-    return createActionFailure('관리자만 답신을 작성할 수 있습니다.');
-  }
-
   try {
+    const authState = await getServerAuthState();
+
+    if (!authState.isAdmin && !authorName) {
+      return createActionFailure('이름을 입력해주세요.');
+    }
+
+    if (!authState.isAdmin && password.length < 4) {
+      return createActionFailure('비밀번호를 입력해주세요.');
+    }
+
+    if (parentId && !authState.isAdmin) {
+      return createActionFailure('관리자만 답신을 작성할 수 있습니다.');
+    }
+
     const entry = await createGuestbookEntry({
       authorBlogUrl: authorBlogUrl || null,
       authorName: authState.isAdmin ? 'admin' : authorName,
@@ -194,7 +195,6 @@ export const updateGuestbookEntryAction = async (input: {
   entryId: string;
   password: string;
 }): Promise<ActionResult<GuestbookEntry>> => {
-  const authState = await getServerAuthState();
   const validation = validateActionInput(updateGuestbookEntrySchema, input);
 
   if (!validation.ok) {
@@ -202,6 +202,8 @@ export const updateGuestbookEntryAction = async (input: {
   }
 
   try {
+    const authState = await getServerAuthState();
+
     const entry = await updateGuestbookEntry({
       content: validation.data.content,
       entryId: validation.data.entryId,
@@ -229,7 +231,6 @@ export const deleteGuestbookEntryAction = async (input: {
   entryId: string;
   password: string;
 }): Promise<ActionResult<{ deletedId: string }>> => {
-  const authState = await getServerAuthState();
   const validation = validateActionInput(deleteGuestbookEntrySchema, input);
 
   if (!validation.ok) {
@@ -237,6 +238,8 @@ export const deleteGuestbookEntryAction = async (input: {
   }
 
   try {
+    const authState = await getServerAuthState();
+
     const deleted = await deleteGuestbookEntry({
       entryId: validation.data.entryId,
       isAdminActor: authState.isAdmin,
@@ -263,7 +266,6 @@ export const getGuestbookThreadsPage = async (input: {
   cursor?: string | null;
   limit: number;
 }): Promise<ActionResult<GuestbookThreadPage>> => {
-  const authState = await getServerAuthState();
   const validation = validateActionInput(guestbookThreadsPageSchema, input);
 
   if (!validation.ok) {
@@ -271,6 +273,8 @@ export const getGuestbookThreadsPage = async (input: {
   }
 
   try {
+    const authState = await getServerAuthState();
+
     const page = await getGuestbookThreads({
       cursor: validation.data.cursor,
       includeSecret: authState.isAdmin,

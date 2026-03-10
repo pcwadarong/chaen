@@ -114,6 +114,25 @@ describe('article-comment-actions', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('인증 상태 조회 실패를 inline 에러로 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockRejectedValue(new Error('[auth] 사용자 조회 실패: timeout'));
+
+    const formData = new FormData();
+    formData.set('articleId', 'article-1');
+    formData.set('authorName', 'guest');
+    formData.set('authorBlogUrl', '');
+    formData.set('content', 'new comment');
+    formData.set('password', '1234');
+
+    await expect(submitArticleComment(initialSubmitArticleCommentState, formData)).resolves.toEqual(
+      {
+        data: null,
+        errorMessage: '[auth] 사용자 조회 실패: timeout',
+        ok: false,
+      },
+    );
+  });
+
   it('댓글 수정 action은 비밀번호 오류를 그대로 반환한다', async () => {
     vi.mocked(updateArticleComment).mockRejectedValue(new Error('invalid password'));
 
