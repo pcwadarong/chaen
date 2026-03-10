@@ -71,11 +71,18 @@ const renderServerHtml = async () => {
 };
 
 describe('ArticleDetailPage', () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app';
     getTagLabelMapBySlugs.mockResolvedValue({
       data: new Map([['react', 'React']]),
       schemaMissing: false,
     });
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
@@ -83,6 +90,9 @@ describe('ArticleDetailPage', () => {
     const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
     expect(html).toContain('data-testid="article-comments-section"');
+    expect(html).toContain('"@type":"BlogPosting"');
+    expect(html).toContain('"@type":"BreadcrumbList"');
+    expect(html).toContain('https://chaen.vercel.app/ko/articles/article-1');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');

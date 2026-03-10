@@ -67,7 +67,7 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
       archivePage={archivePage}
       initialCommentsPage={initialCommentsPage}
       item={item}
-      locale={locale}
+      locale={locale as AppLocale}
     />
   );
 };

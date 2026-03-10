@@ -62,7 +62,7 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   });
   if (!item) notFound();
 
-  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale} />;
+  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale as AppLocale} />;
 };
 
 export default ProjectDetailRoute;

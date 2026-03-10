@@ -9,16 +9,20 @@ import {
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
+import type { AppLocale } from '@/i18n/routing';
+import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
+import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
   archivePage: ArticleArchivePage;
   initialCommentsPage: ArticleCommentPage;
   item: Article;
-  locale: string;
+  locale: AppLocale;
 };
 
 /**
@@ -47,67 +51,101 @@ export const ArticleDetailPage = async ({
   const t = await getTranslations('ArticleDetail');
   const articlesT = await getTranslations('Articles');
   const detailUi = await getTranslations('DetailUi');
+  const navigationT = await getTranslations('Navigation');
   const tagLabels = await getArticleTagLabels(item, locale);
   const publishedDate = item.created_at.slice(0, 10);
+  const articlePath = buildLocalizedPathname({
+    locale,
+    pathname: `/articles/${item.id}`,
+  });
+  const structuredData = [
+    buildBreadcrumbJsonLd([
+      {
+        name: navigationT('home'),
+        path: buildLocalizedPathname({ locale }),
+      },
+      {
+        name: navigationT('articles'),
+        path: buildLocalizedPathname({ locale, pathname: '/articles' }),
+      },
+      {
+        name: item.title,
+        path: articlePath,
+      },
+    ]),
+    buildArticleJsonLd({
+      createdAt: item.created_at,
+      description: item.description ?? t('emptySummary'),
+      locale,
+      path: articlePath,
+      tags: tagLabels,
+      thumbnailUrl: item.thumbnail_url,
+      title: item.title,
+      updatedAt: item.updated_at,
+    }),
+  ];
 
   return (
-    <DetailPageShell
-      bottomContent={
-        <ArticleCommentsSection
-          articleId={item.id}
-          initialPage={initialCommentsPage}
-          locale={locale}
-        />
-      }
-      content={item.content}
-      emptyArchiveText={detailUi('emptyArchive')}
-      emptyContentText={t('emptyContent')}
-      guestbookCtaText={detailUi('leaveGuestbookMessage')}
-      heroDescription={item.description ?? t('emptySummary')}
-      hideAppFrameFooter
-      metaBar={
-        <DetailMetaBar
-          copyFailedText={detailUi('copyFailed')}
-          copiedText={detailUi('shareCopied')}
-          locale={locale}
-          primaryMetaScreenReaderText={`${t('publishedAtLabel')} ${publishedDate}`}
-          primaryMetaText={publishedDate}
-          shareText={detailUi('share')}
-          trackViewAction={incrementArticleViewCountAction.bind(null, {
-            articleId: item.id,
-          })}
-          viewCount={Number(item.view_count ?? 0)}
-          viewCountLabel={detailUi('viewCount')}
-        />
-      }
-      sidebarContent={
-        <DetailArchiveFeed
-          emptyText={detailUi('emptyArchive')}
-          hrefBasePath="/articles"
-          initialPage={archivePage}
-          loadErrorText={articlesT('loadError')}
-          loadPageAction={getArticleDetailArchivePageAction}
-          loadMoreEndText={articlesT('loadMoreEnd')}
-          loadingText={articlesT('loading')}
-          locale={locale}
-          retryText={articlesT('retry')}
-          selectedId={item.id}
-        />
-      }
-      sidebarLabel={t('archiveLabel')}
-      tagContent={
-        tagLabels.length > 0 ? (
-          <ul aria-label={t('tagSection')} className={tagListClass}>
-            {tagLabels.map(tagLabel => (
-              <li className={tagItemClass} key={tagLabel}>
-                <span className={tagButtonClass}>#{tagLabel}</span>
-              </li>
-            ))}
-          </ul>
-        ) : undefined
-      }
-      title={item.title}
-    />
+    <>
+      <JsonLd data={structuredData} />
+      <DetailPageShell
+        bottomContent={
+          <ArticleCommentsSection
+            articleId={item.id}
+            initialPage={initialCommentsPage}
+            locale={locale}
+          />
+        }
+        content={item.content}
+        emptyArchiveText={detailUi('emptyArchive')}
+        emptyContentText={t('emptyContent')}
+        guestbookCtaText={detailUi('leaveGuestbookMessage')}
+        heroDescription={item.description ?? t('emptySummary')}
+        hideAppFrameFooter
+        metaBar={
+          <DetailMetaBar
+            copyFailedText={detailUi('copyFailed')}
+            copiedText={detailUi('shareCopied')}
+            locale={locale}
+            primaryMetaScreenReaderText={`${t('publishedAtLabel')} ${publishedDate}`}
+            primaryMetaText={publishedDate}
+            shareText={detailUi('share')}
+            trackViewAction={incrementArticleViewCountAction.bind(null, {
+              articleId: item.id,
+            })}
+            viewCount={Number(item.view_count ?? 0)}
+            viewCountLabel={detailUi('viewCount')}
+          />
+        }
+        sidebarContent={
+          <DetailArchiveFeed
+            emptyText={detailUi('emptyArchive')}
+            hrefBasePath="/articles"
+            initialPage={archivePage}
+            loadErrorText={articlesT('loadError')}
+            loadPageAction={getArticleDetailArchivePageAction}
+            loadMoreEndText={articlesT('loadMoreEnd')}
+            loadingText={articlesT('loading')}
+            locale={locale}
+            retryText={articlesT('retry')}
+            selectedId={item.id}
+          />
+        }
+        sidebarLabel={t('archiveLabel')}
+        tagContent={
+          tagLabels.length > 0 ? (
+            <ul aria-label={t('tagSection')} className={tagListClass}>
+              {tagLabels.map(tagLabel => (
+                <li className={tagItemClass} key={tagLabel}>
+                  <span className={tagButtonClass}>#{tagLabel}</span>
+                </li>
+              ))}
+            </ul>
+          ) : undefined
+        }
+        title={item.title}
+      />
+    </>
   );
 };
 
