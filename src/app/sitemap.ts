@@ -30,10 +30,6 @@ type ProjectSitemapRow = {
     | null;
 };
 
-type TagSitemapRow = {
-  slug: string;
-};
-
 /**
  * PostgREST embed 응답을 단일 row로 정규화합니다.
  */
@@ -48,7 +44,7 @@ const getEmbeddedSitemapRelation = <TRow extends object>(
 };
 
 /**
- * locale별 홈 URL 엔트리를 생성합니다.
+ * Next.js Dynamic Sitemap API용 locale별 홈 URL 엔트리를 생성합니다.
  */
 const buildHomeEntries = (): MetadataRoute.Sitemap =>
   locales.map(locale => ({
@@ -67,7 +63,7 @@ const buildHomeEntries = (): MetadataRoute.Sitemap =>
   }));
 
 /**
- * article translation 테이블 기준 locale별 상세 URL을 생성합니다.
+ * Supabase `article_translations`를 읽어 locale별 아티클 상세 URL을 동적으로 생성합니다.
  */
 const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
@@ -93,7 +89,7 @@ const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
 };
 
 /**
- * project translation 테이블 기준 locale별 상세 URL을 생성합니다.
+ * Supabase `project_translations`를 읽어 locale별 프로젝트 상세 URL을 동적으로 생성합니다.
  */
 const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
@@ -119,37 +115,16 @@ const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
 };
 
 /**
- * tag slug 기준 locale별 토픽 클러스터 URL을 생성합니다.
- */
-const fetchTagEntries = async (): Promise<MetadataRoute.Sitemap> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase.from('tags').select('slug');
-  if (error) return [];
-
-  return ((data ?? []) as TagSitemapRow[]).flatMap(row =>
-    locales.map(locale => ({
-      changeFrequency: 'weekly' as const,
-      lastModified: new Date(),
-      priority: 0.7,
-      url: buildAbsoluteSiteUrl(`/${locale}/tag/${row.slug}`),
-    })),
-  );
-};
-
-/**
- * locale별 정적/동적 컨텐츠 URL을 sitemap으로 노출합니다.
+ * 수동 XML 파일 대신 Next.js Dynamic Sitemap API 응답을 생성합니다.
  */
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const [articles, homeEntries, projects, tags] = await Promise.all([
+  const [articles, homeEntries, projects] = await Promise.all([
     fetchArticleEntries(),
     Promise.resolve(buildHomeEntries()),
     fetchProjectEntries(),
-    fetchTagEntries(),
   ]);
 
-  return [...homeEntries, ...articles, ...projects, ...tags];
+  return [...homeEntries, ...articles, ...projects];
 };
 
 export default sitemap;

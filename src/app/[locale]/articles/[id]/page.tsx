@@ -1,13 +1,54 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
+import { getResolvedArticle } from '@/entities/article/api/get-article';
+import type { AppLocale } from '@/i18n/routing';
+import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
+import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
+
+export const revalidate = 3600;
 
 type ArticleDetailRouteProps = {
   params: Promise<{
     id: string;
     locale: string;
   }>;
+};
+
+/**
+ * 아티클 상세 메타데이터를 생성합니다.
+ */
+export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Promise<Metadata> => {
+  const { id, locale } = await params;
+  const [resolvedArticle, t] = await Promise.all([
+    getResolvedArticle(id, locale),
+    getTranslations({ locale, namespace: 'ArticleDetail' }),
+  ]);
+  const { item, resolvedLocale } = resolvedArticle;
+
+  if (!item) return {};
+
+  const canonicalLocale = resolveCanonicalLocale({
+    requestedLocale: locale as AppLocale,
+    resolvedLocale,
+  });
+
+  return {
+    title: item.title,
+    description: item.description ?? t('emptySummary'),
+    alternates: buildLocaleAlternates({
+      canonicalLocale,
+      pathnameByLocale: buildPathnameByLocale(candidateLocale =>
+        buildLocalizedPathname({
+          locale: candidateLocale,
+          pathname: `/articles/${id}`,
+        }),
+      ),
+    }),
+  };
 };
 
 /**
