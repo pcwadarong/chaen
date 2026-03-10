@@ -7,6 +7,8 @@ import { getResolvedArticle } from '@/entities/article/api/get-article';
 import type { AppLocale } from '@/i18n/routing';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
+import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
 
 export const revalidate = 3600;
@@ -35,6 +37,14 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
     requestedLocale: locale as AppLocale,
     resolvedLocale,
   });
+  const articlePath = buildLocalizedPathname({
+    locale: canonicalLocale,
+    pathname: `/articles/${id}`,
+  });
+  const ogImageUrl = buildOgImageUrl({
+    id,
+    type: 'article',
+  });
 
   return {
     title: item.title,
@@ -48,6 +58,19 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
         }),
       ),
     }),
+    openGraph: {
+      description: item.description ?? t('emptySummary'),
+      images: [ogImageUrl],
+      title: item.title,
+      type: 'article',
+      url: buildAbsoluteSiteUrl(articlePath),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      description: item.description ?? t('emptySummary'),
+      images: [ogImageUrl],
+      title: item.title,
+    },
   };
 };
 

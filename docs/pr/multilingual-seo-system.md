@@ -5,6 +5,7 @@
    수동 XML 파일 대신 Next.js Dynamic Sitemap API와 Supabase 데이터를 연동하는 방식으로 구성한다.
 3. 아티클/프로젝트 상세 `generateMetadata()`를 추가하고 fallback 결과 기반 canonical 판단으로 정리한다.
 4. 아티클/프로젝트 상세 본문에 JSON-LD(`BlogPosting`, `CreativeWork`, `BreadcrumbList`)를 주입한다.
+5. 아티클/프로젝트 상세 메타데이터에 placeholder 기반 OG 이미지 URL을 연결하고 `/api/og/[type]/[id]` 엔드포인트를 추가한다.
 
 <br/>
 
