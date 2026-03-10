@@ -63,7 +63,7 @@ describe('ProjectDetailPage', () => {
 
     expect(html).toContain('"@type":"CreativeWork"');
     expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.dev/en/project/project-1');
+    expect(html).toContain('https://chaen.vercel.app/en/project/project-1');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
   }, 30000);

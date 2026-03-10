@@ -6,6 +6,7 @@
 3. 아티클/프로젝트 상세 `generateMetadata()`를 추가하고 fallback 결과 기반 canonical 판단으로 정리한다.
 4. 아티클/프로젝트 상세 본문에 JSON-LD(`BlogPosting`, `CreativeWork`, `BreadcrumbList`)를 주입한다.
 5. 아티클/프로젝트 상세 메타데이터에 placeholder 기반 OG 이미지 URL을 연결하고 `/api/og/[type]/[id]` 엔드포인트를 추가한다.
+6. 아티클 목록 페이지에 `?page=` 기반 crawlable pagination과 `rel="prev"/"next"` 메타데이터를 연결한다.
 
 <br/>
 
@@ -24,6 +25,7 @@
 - canonical/hreflang 계산은 공통 helper로 추출해 라우트별 `generateMetadata()`에서 재사용 가능하게 설계한다.
 - sitemap은 수동 XML을 만들지 않고 `src/app/sitemap.ts`에서 Next.js Dynamic Sitemap API로 생성한다.
 - 실제 URL 목록은 Supabase translation 테이블을 읽어 locale별 경로를 동적으로 조합한다.
+- 아티클 목록은 기존 무한 스크롤 UX를 유지하되, 서버에서 `?page=`를 해석하고 봇이 따라갈 수 있는 링크와 metadata pagination을 함께 제공한다.
 
 <br/>
 
