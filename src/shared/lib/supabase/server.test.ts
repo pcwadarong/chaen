@@ -26,6 +26,8 @@ vi.mock('@/shared/lib/supabase/config', () => ({
 describe('createServerSupabaseClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cookieStore.getAll.mockReset();
+    cookieStore.set.mockReset();
     cookieStore.getAll.mockReturnValue([{ name: 'sb-access-token', value: 'token' }]);
     vi.mocked(cookies).mockResolvedValue(cookieStore as never);
   });

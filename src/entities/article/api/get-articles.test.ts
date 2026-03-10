@@ -22,7 +22,7 @@ describe('getArticles', () => {
     vi.clearAllMocks();
   });
 
-  it('Supabase env가 없으면 캐시를 사용하지 않고 빈 페이지를 반환한다', async () => {
+  it('Supabase env가 없으면 articles cache tag를 기록하지 않고 빈 페이지를 반환한다', async () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(false);
 
     const result = await getArticles({ locale: 'ko' });
@@ -35,7 +35,7 @@ describe('getArticles', () => {
     expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
-  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 keyset cache key에 initial cursor를 포함한다', async () => {
+  it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 articles cache tag를 기록한다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
