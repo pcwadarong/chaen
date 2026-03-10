@@ -43,7 +43,14 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
         </div>
         <div className={mediaClass}>
           {previewThumbnailSrc ? (
-            <Image alt="" className={imageClass} fill sizes="8.75rem" src={previewThumbnailSrc} />
+            <Image
+              alt=""
+              className={imageClass}
+              fill
+              sizes="8.75rem"
+              src={previewThumbnailSrc}
+              unoptimized
+            />
           ) : (
             <div aria-hidden className={imageFallbackClass} />
           )}
