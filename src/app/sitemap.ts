@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { locales } from '@/i18n/routing';
+import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -63,6 +64,35 @@ const buildHomeEntries = (): MetadataRoute.Sitemap =>
   }));
 
 /**
+ * locale별 이력서 및 프로젝트 목록 URL 엔트리를 생성합니다.
+ */
+const buildArchiveEntries = (): MetadataRoute.Sitemap =>
+  locales.flatMap(locale => [
+    {
+      changeFrequency: 'monthly' as const,
+      lastModified: new Date(),
+      priority: 0.8,
+      url: buildAbsoluteSiteUrl(
+        buildLocalizedPathname({
+          locale,
+          pathname: '/resume',
+        }),
+      ),
+    },
+    {
+      changeFrequency: 'weekly' as const,
+      lastModified: new Date(),
+      priority: 0.8,
+      url: buildAbsoluteSiteUrl(
+        buildLocalizedPathname({
+          locale,
+          pathname: '/project',
+        }),
+      ),
+    },
+  ]);
+
+/**
  * Supabase `article_translations`를 읽어 locale별 아티클 상세 URL을 동적으로 생성합니다.
  */
 const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
@@ -118,13 +148,14 @@ const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
  * 수동 XML 파일 대신 Next.js Dynamic Sitemap API 응답을 생성합니다.
  */
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const [articles, homeEntries, projects] = await Promise.all([
+  const [archiveEntries, articles, homeEntries, projects] = await Promise.all([
+    Promise.resolve(buildArchiveEntries()),
     fetchArticleEntries(),
     Promise.resolve(buildHomeEntries()),
     fetchProjectEntries(),
   ]);
 
-  return [...homeEntries, ...articles, ...projects];
+  return [...homeEntries, ...archiveEntries, ...articles, ...projects];
 };
 
 export default sitemap;
