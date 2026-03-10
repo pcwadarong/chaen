@@ -26,11 +26,16 @@ type GetProjectDetailListOptions = {
   locale: string;
 };
 
-const isMissingProjectContentSchemaError = (message: string) => {
-  const normalizedMessage = message.toLowerCase();
+const isMissingProjectContentSchemaError = (error: { code?: string | null; message: string }) => {
+  if (error.code === '42P01') {
+    return true;
+  }
+
+  const normalizedMessage = error.message.toLowerCase();
 
   return (
-    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
+    normalizedMessage.includes('does not exist') &&
+    (normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations'))
   );
 };
 
@@ -65,7 +70,7 @@ const fetchProjectDetailListFromContentSchema = async (
   );
 
   if (translationError) {
-    if (isMissingProjectContentSchemaError(translationError.message)) {
+    if (isMissingProjectContentSchemaError(translationError)) {
       return { data: { items: [], nextCursor: null }, schemaMissing: true };
     }
 

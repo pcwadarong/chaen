@@ -231,6 +231,7 @@ describe('getProjectDetailList', () => {
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
+          code: '42P01',
           message: 'relation "public.projects" does not exist',
         },
       }),
@@ -246,6 +247,31 @@ describe('getProjectDetailList', () => {
 
     await expect(getProjectDetailList({ locale: 'ko' })).rejects.toThrow(
       '[projects] content schema가 없습니다.',
+    );
+  });
+
+  it('권한 오류는 schema missing으로 오분류하지 않고 원래 조회 실패로 전파한다', async () => {
+    const translationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied for table projects',
+        },
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(translationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProjectDetailList({ locale: 'ko' })).rejects.toThrow(
+      '[projects] 상세 목록 번역 조회 실패: permission denied for table projects',
     );
   });
 });

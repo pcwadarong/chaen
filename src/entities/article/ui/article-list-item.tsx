@@ -70,6 +70,7 @@ const articleClass = css({
 const contentClass = css({
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'space-between',
   minWidth: '0',
   flex: '[1 1 auto]',
   '@media (min-width: 480px)': {
@@ -107,7 +108,6 @@ const descriptionClass = css({
 });
 
 const dateClass = css({
-  mt: 'auto',
   color: 'muted',
   fontSize: 'sm',
 });

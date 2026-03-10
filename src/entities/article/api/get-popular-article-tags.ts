@@ -46,6 +46,10 @@ const readCachedPopularArticleTags = async (
     tagCounts.set(tagId, (tagCounts.get(tagId) ?? 0) + 1);
   });
 
+  if (tagCounts.size === 0) {
+    return [];
+  }
+
   const tagSlugMap = await getTagSlugMap(Array.from(tagCounts.keys()));
   if (tagSlugMap.schemaMissing) {
     throw new Error('[articles] 인기 태그 slug schema가 없습니다.');

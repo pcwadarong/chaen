@@ -71,6 +71,25 @@ describe('getPopularArticleTags', () => {
     expect(unstable_cacheTag).toHaveBeenCalledWith('articles');
   });
 
+  it('집계할 태그가 없으면 slug 조회 없이 빈 배열을 반환한다', async () => {
+    const articleTagsV2Query = {
+      select: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(articleTagsV2Query),
+      rpc: vi.fn(),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getPopularArticleTags({ locale: 'ko' })).resolves.toEqual([]);
+    expect(supabaseClient.from).toHaveBeenCalledTimes(1);
+  });
+
   it('relation table이 없으면 명시적 에러를 던진다', async () => {
     const articleTagsV2Query = {
       select: vi.fn().mockResolvedValue({
