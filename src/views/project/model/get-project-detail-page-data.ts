@@ -1,6 +1,11 @@
 import { getProject } from '@/entities/project/api/get-project';
 import { getProjectDetailList } from '@/entities/project/api/get-project-detail-list';
-import type { Project, ProjectDetailListItem } from '@/entities/project/model/types';
+import type {
+  Project,
+  ProjectArchivePage,
+  ProjectDetailListItem,
+} from '@/entities/project/model/types';
+import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetProjectDetailPageDataInput = {
   locale: string;
@@ -8,7 +13,7 @@ type GetProjectDetailPageDataInput = {
 };
 
 type ProjectDetailPageData = {
-  archiveItems: ProjectDetailListItem[];
+  archivePage: ProjectArchivePage;
   item: Project | null;
 };
 
@@ -17,21 +22,9 @@ type ProjectDetailPageData = {
  */
 const ensureCurrentProjectInArchive = (
   item: Project | null,
-  archiveItems: ProjectDetailListItem[],
-): ProjectDetailListItem[] => {
-  if (!item) return archiveItems;
-  if (archiveItems.some(archiveItem => archiveItem.id === item.id)) return archiveItems;
-
-  return [
-    {
-      created_at: item.created_at,
-      description: item.description,
-      id: item.id,
-      title: item.title,
-    },
-    ...archiveItems.slice(0, 199),
-  ];
-};
+  archivePage: ProjectArchivePage,
+): ProjectArchivePage =>
+  prependCurrentArchiveItem<ProjectDetailListItem, Project>(item, archivePage);
 
 /**
  * 프로젝트 상세 페이지에 필요한 데이터 묶음을 조회합니다.
@@ -40,13 +33,13 @@ export const getProjectDetailPageData = async ({
   locale,
   projectId,
 }: GetProjectDetailPageDataInput): Promise<ProjectDetailPageData> => {
-  const [item, archiveItems] = await Promise.all([
+  const [item, archivePage] = await Promise.all([
     getProject(projectId, locale),
-    getProjectDetailList(locale).catch(() => []),
+    getProjectDetailList({ locale }),
   ]);
 
   return {
-    archiveItems: ensureCurrentProjectInArchive(item, archiveItems),
+    archivePage: ensureCurrentProjectInArchive(item, archivePage),
     item,
   };
 };

@@ -15,7 +15,7 @@ type ArticleDetailRouteProps = {
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archiveItems, initialCommentsPage, item } = await getArticleDetailPageData({
+  const { archivePage, initialCommentsPage, item } = await getArticleDetailPageData({
     articleId: id,
     locale,
   });
@@ -23,7 +23,7 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
 
   return (
     <ArticleDetailPage
-      archiveItems={archiveItems}
+      archivePage={archivePage}
       initialCommentsPage={initialCommentsPage}
       item={item}
       locale={locale}

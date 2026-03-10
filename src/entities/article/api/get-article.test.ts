@@ -31,24 +31,24 @@ describe('getArticle', () => {
     expect(unstable_cache).not.toHaveBeenCalled();
   });
 
-  it('shadow schema를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
-    const translationQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          article_id: 'frontend-performance',
-          title: 'Frontend Performance',
-          description: 'rendering memo',
-          content: '...',
-          articles: {
+  it('fallback RPC를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            locale: 'ko',
+            title: 'Frontend Performance',
+            description: 'rendering memo',
+            content: '...',
             id: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: '2026-03-03T09:07:50.797695+00:00',
             view_count: 12,
           },
-        },
+        ],
         error: null,
       }),
     };
@@ -69,13 +69,10 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(translationQuery)
-        .mockReturnValueOnce(articleTagsV2Query)
-        .mockReturnValueOnce(tagsQuery),
-    };
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(articleTagsV2Query)
+      .mockReturnValueOnce(tagsQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -87,6 +84,10 @@ describe('getArticle', () => {
       title: 'Frontend Performance',
       tags: ['nextjs', 'performance'],
     });
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
+      fallback_locales: ['ko', 'en', 'ja', 'fr'],
+      target_article_id: 'frontend-performance',
+    });
     expect(unstable_cache).toHaveBeenCalledTimes(1);
     expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
       'article',
@@ -96,55 +97,85 @@ describe('getArticle', () => {
     ]);
   });
 
-  it('shadow schema가 없으면 명시적 에러를 던진다', async () => {
-    const shadowTranslationQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
+  it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.article_translations" does not exist',
+          code: '42883',
+          message:
+            'function public.get_article_translation_with_fallback(target_article_id, fallback_locales) does not exist',
         },
       }),
-    };
-    const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(shadowTranslationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
-      '[articles] shadow content schema가 없습니다.',
+      '[articles] content schema가 없습니다.',
     );
   });
 
-  it('대상 locale 번역이 없으면 shadow schema에서도 ko locale로 fallback 조회한다', async () => {
-    const targetLocaleTranslationQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
+  it('PostgREST missing function 코드는 content schema missing으로 본다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
         data: null,
-        error: null,
+        error: {
+          code: 'PGRST202',
+          message: 'Could not find the function public.get_article_translation_with_fallback',
+        },
       }),
     };
-    const koreanTranslationQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          article_id: 'frontend-performance',
-          title: '한국어 글',
-          description: '설명',
-          content: '본문',
-          articles: {
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
+      '[articles] content schema가 없습니다.',
+    );
+  });
+
+  it('권한 오류는 content schema missing으로 오인하지 않고 번역 조회 실패로 surface한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied for function get_article_translation_with_fallback',
+        },
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
+      '[articles] 번역 조회 실패: permission denied for function get_article_translation_with_fallback',
+    );
+  });
+
+  it('fallback 우선순위는 단일 RPC 호출에 전달한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            locale: 'ko',
+            title: '한국어 글',
+            description: '설명',
+            content: '본문',
             id: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: null,
             view_count: 3,
           },
-        },
+        ],
         error: null,
       }),
     };
@@ -155,13 +186,7 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    const supabaseClient = {
-      from: vi
-        .fn()
-        .mockReturnValueOnce(targetLocaleTranslationQuery)
-        .mockReturnValueOnce(koreanTranslationQuery)
-        .mockReturnValueOnce(articleTagsV2Query),
-    };
+    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -169,28 +194,131 @@ describe('getArticle', () => {
     const result = await getArticle('frontend-performance', 'fr');
 
     expect(result?.title).toBe('한국어 글');
-    expect(targetLocaleTranslationQuery.eq).toHaveBeenCalledWith('locale', 'fr');
-    expect(koreanTranslationQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
+      fallback_locales: ['fr', 'ko', 'en', 'ja'],
+      target_article_id: 'frontend-performance',
+    });
   });
 
-  it('shadow tag relation schema가 없으면 명시적 에러를 던진다', async () => {
-    const translationQuery = {
+  it('ko도 없으면 en, ja 순서가 포함된 fallback 체인을 RPC에 전달한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            locale: 'ja',
+            title: 'Japanese article',
+            description: 'summary',
+            content: 'body',
+            id: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: null,
+            view_count: 3,
+          },
+        ],
+        error: null,
+      }),
+    };
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
       select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          article_id: 'frontend-performance',
-          title: 'Frontend Performance',
-          description: 'rendering memo',
-          content: '...',
-          articles: {
+    };
+    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'fr');
+
+    expect(result?.title).toBe('Japanese article');
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
+      fallback_locales: ['fr', 'ko', 'en', 'ja'],
+      target_article_id: 'frontend-performance',
+    });
+  });
+
+  it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getArticle('frontend-performance', 'fr')).rejects.toThrow(
+      '[articles] 조회 가능한 번역이 없습니다. articleId=frontend-performance locales=fr>ko>en>ja',
+    );
+  });
+
+  it('en 요청도 공통 locale fallback 체인을 RPC에 전달한다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            locale: 'ko',
+            title: '한국어 글',
+            description: '설명',
+            content: '본문',
+            id: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: null,
+            view_count: 3,
+          },
+        ],
+        error: null,
+      }),
+    };
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'en');
+
+    expect(result?.title).toBe('한국어 글');
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
+      fallback_locales: ['en', 'ko', 'ja', 'fr'],
+      target_article_id: 'frontend-performance',
+    });
+  });
+
+  it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            locale: 'ko',
+            title: 'Frontend Performance',
+            description: 'rendering memo',
+            content: '...',
             id: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: '2026-03-03T09:07:50.797695+00:00',
             view_count: 12,
           },
-        },
+        ],
         error: null,
       }),
     };
@@ -203,9 +331,7 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery).mockReturnValueOnce(articleTagsV2Query),
-    };
+    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);

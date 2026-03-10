@@ -1,4 +1,3 @@
-import type { CONTENT_SHADOW_SCHEMA } from '@/shared/lib/supabase/content-shadow-schema';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
@@ -18,9 +17,7 @@ type TagTranslationRow = {
   tag_id: string;
 };
 
-type RelationTableName =
-  | typeof CONTENT_SHADOW_SCHEMA.articleTags
-  | typeof CONTENT_SHADOW_SCHEMA.projectTags;
+type RelationTableName = 'article_tags' | 'project_tags';
 
 type GetRelatedEntityIdsOptions = {
   entityColumn: 'article_id' | 'project_id';
@@ -43,7 +40,7 @@ const isMissingTagSchemaError = (message: string) => {
 };
 
 /**
- * canonical slug로 태그 id를 조회합니다.
+ * slug로 태그 id를 조회합니다.
  *
  * 현재 런타임은 관계형 태그 스키마를 전제로 동작하므로,
  * 태그 테이블이 없으면 `schemaMissing`으로 상위 호출부에 전달합니다.
@@ -157,7 +154,7 @@ export const getTagSlugMap = async (
 };
 
 /**
- * canonical slug 목록을 locale별 표시 라벨 맵으로 변환합니다.
+ * slug 목록을 locale별 표시 라벨 맵으로 변환합니다.
  */
 export const getTagLabelMapBySlugs = async ({
   locale,
@@ -267,12 +264,10 @@ export const getRelatedTagSlugs = async ({
 /**
  * relation table 전체에서 연결된 tag id를 가져옵니다.
  *
- * locale 없는 canonical relation 집계를 계산할 때 사용합니다.
+ * locale 없는 relation 집계를 계산할 때 사용합니다.
  */
 export const getAllRelatedTagIds = async (
-  relationTable:
-    | typeof CONTENT_SHADOW_SCHEMA.articleTags
-    | typeof CONTENT_SHADOW_SCHEMA.projectTags,
+  relationTable: RelationTableName,
 ): Promise<TagSchemaResult<string[]>> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };

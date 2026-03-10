@@ -1,17 +1,12 @@
 import React, { type ReactNode } from 'react';
-import { css, cva, cx } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 
-export type DetailArchiveLinkItem = {
-  description: string | null;
-  href: string;
-  isActive: boolean;
-  title: string;
-  yearText: string;
-};
+import { DetailArchiveList } from './detail-archive-list';
+import type { DetailArchiveLinkItem } from './detail-archive-types';
 
 type DetailPageShellProps = {
   bottomContent?: ReactNode;
@@ -23,7 +18,8 @@ type DetailPageShellProps = {
   heroDescription: string;
   hideAppFrameFooter?: boolean;
   metaBar: ReactNode;
-  sidebarItems: DetailArchiveLinkItem[];
+  sidebarContent?: ReactNode;
+  sidebarItems?: DetailArchiveLinkItem[];
   sidebarLabel: string;
   tagContent?: ReactNode;
   title: string;
@@ -42,7 +38,8 @@ export const DetailPageShell = async ({
   heroDescription,
   hideAppFrameFooter = false,
   metaBar,
-  sidebarItems,
+  sidebarContent,
+  sidebarItems = [],
   sidebarLabel,
   tagContent,
   title,
@@ -61,31 +58,11 @@ export const DetailPageShell = async ({
       data-page-scroll-mode="independent"
     >
       <aside aria-label={sidebarLabel} className={detailPageSidebarClass}>
-        <div className={detailPageSidebarViewportClass} data-scroll-region="true">
-          {sidebarItems.length > 0 ? (
-            <ul className={detailPageSidebarListClass}>
-              {sidebarItems.map(item => (
-                <li key={item.href}>
-                  <Link
-                    aria-current={item.isActive ? 'page' : undefined}
-                    className={detailPageSidebarLinkClass({ active: item.isActive })}
-                    href={item.href}
-                  >
-                    <div className={detailPageSidebarMetaRowClass}>
-                      <span>{item.yearText}</span>
-                    </div>
-                    <strong className={detailPageSidebarTitleClass}>{item.title}</strong>
-                    {item.description ? (
-                      <p className={detailPageSidebarDescriptionClass}>{item.description}</p>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={detailPageEmptyArchiveClass}>{emptyArchiveText}</p>
-          )}
-        </div>
+        {sidebarContent ?? (
+          <div className={detailPageSidebarViewportClass} data-scroll-region="true">
+            <DetailArchiveList emptyText={emptyArchiveText} items={sidebarItems} />
+          </div>
+        )}
       </aside>
       <article className={detailPageContentClass} data-scroll-region="true">
         <header className={detailPageHeroClass}>
@@ -154,72 +131,6 @@ const detailPageSidebarViewportClass = css({
   '@media (min-width: 1200px)': {
     py: '8',
   },
-});
-
-const detailPageSidebarListClass = css({
-  display: 'grid',
-});
-
-const detailPageSidebarLinkClass = cva({
-  base: {
-    display: 'grid',
-    gap: '2',
-    px: '4',
-    py: '4',
-    borderLeft: '[3px solid transparent]',
-    borderBottom: '[1px solid var(--colors-border)]',
-    color: 'text',
-    transition: '[background-color 160ms ease, border-color 160ms ease]',
-    _hover: {
-      background: 'surfaceMuted',
-    },
-    _focusVisible: {
-      outline: '[2px solid var(--colors-focus-ring)]',
-      outlineOffset: '[-2px]',
-      background: 'surfaceStrong',
-    },
-    '@media (min-width: 1200px)': {
-      px: '5',
-      py: '5',
-    },
-  },
-  variants: {
-    active: {
-      true: {
-        borderLeftColor: 'primary',
-        background: 'surfaceStrong',
-      },
-    },
-  },
-});
-
-const detailPageSidebarMetaRowClass = css({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  color: 'muted',
-  fontSize: 'xs',
-});
-
-const detailPageSidebarTitleClass = css({
-  lineClamp: '2',
-  fontSize: 'xl',
-  lineHeight: 'tight',
-  letterSpacing: '[-0.03em]',
-  color: 'muted',
-});
-
-const detailPageSidebarDescriptionClass = css({
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  color: 'muted',
-  fontSize: 'sm',
-});
-
-const detailPageEmptyArchiveClass = css({
-  p: '5',
-  color: 'muted',
 });
 
 const detailPageContentClass = css({

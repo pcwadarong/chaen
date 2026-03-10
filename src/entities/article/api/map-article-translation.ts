@@ -11,9 +11,14 @@ type ArticleTranslationFields = Pick<Article, 'content' | 'description' | 'title
   article_id: string;
 };
 
-export type ShadowArticleTranslationRow = ArticleTranslationFields & {
+export type ArticleTranslationRow = ArticleTranslationFields & {
   articles: EmbeddedArticleBaseRow;
 };
+
+export type ArticleTranslationFallbackRpcRow = ArticleTranslationFields &
+  ArticleBaseFields & {
+    locale: string;
+  };
 
 /**
  * PostgREST의 to-one embed 결과를 단일 아티클 base row로 정규화합니다.
@@ -39,9 +44,7 @@ export const getEmbeddedArticleBaseRow = (
  * @param row - `article_translations`와 `articles`를 조인한 응답 행
  * @returns 목록 렌더링에 사용할 아티클 요약 또는 null
  */
-export const mapShadowArticleListItem = (
-  row: ShadowArticleTranslationRow,
-): ArticleListItem | null => {
+export const mapArticleListItem = (row: ArticleTranslationRow): ArticleListItem | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
 
@@ -60,9 +63,9 @@ export const mapShadowArticleListItem = (
  * @param rows - `article_translations` 조인 응답 배열
  * @returns 비어 있지 않은 목록 아이템 배열
  */
-export const mapShadowArticleListItems = (rows: ShadowArticleTranslationRow[]): ArticleListItem[] =>
+export const mapArticleListItems = (rows: ArticleTranslationRow[]): ArticleListItem[] =>
   rows.flatMap(row => {
-    const item = mapShadowArticleListItem(row);
+    const item = mapArticleListItem(row);
     return item ? [item] : [];
   });
 
@@ -72,8 +75,8 @@ export const mapShadowArticleListItems = (rows: ShadowArticleTranslationRow[]): 
  * @param row - `article_translations`와 `articles`를 조인한 응답 행
  * @returns 상세 아카이브 아이템 또는 null
  */
-export const mapShadowArticleDetailListItem = (
-  row: ShadowArticleTranslationRow,
+export const mapArticleDetailListItem = (
+  row: ArticleTranslationRow,
 ): ArticleDetailListItem | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
@@ -92,11 +95,9 @@ export const mapShadowArticleDetailListItem = (
  * @param rows - `article_translations` 조인 응답 배열
  * @returns 상세 아카이브 목록 배열
  */
-export const mapShadowArticleDetailListItems = (
-  rows: ShadowArticleTranslationRow[],
-): ArticleDetailListItem[] =>
+export const mapArticleDetailListItems = (rows: ArticleTranslationRow[]): ArticleDetailListItem[] =>
   rows.flatMap(row => {
-    const item = mapShadowArticleDetailListItem(row);
+    const item = mapArticleDetailListItem(row);
     return item ? [item] : [];
   });
 
@@ -104,13 +105,10 @@ export const mapShadowArticleDetailListItems = (
  * 번역 + base join 응답 한 행을 최종 Article 타입으로 조합합니다.
  *
  * @param row - `article_translations`와 `articles`를 조인한 단일 응답 행
- * @param tags - relation table에서 조회한 canonical tag slug 목록
+ * @param tags - relation table에서 조회한 tag slug 목록
  * @returns 화면에서 사용할 완성된 아티클 또는 null
  */
-export const mapShadowArticle = (
-  row: ShadowArticleTranslationRow,
-  tags: string[],
-): Article | null => {
+export const mapArticle = (row: ArticleTranslationRow, tags: string[]): Article | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
 
@@ -126,3 +124,25 @@ export const mapShadowArticle = (
     view_count: articleBase.view_count,
   };
 };
+
+/**
+ * fallback RPC의 평탄한 응답을 기존 mapper 입력 shape로 변환합니다.
+ *
+ * @param row - `get_article_translation_with_fallback` RPC 반환 행
+ * @returns 기존 mapper와 호환되는 translation row
+ */
+export const mapArticleFallbackRpcRow = (
+  row: ArticleTranslationFallbackRpcRow,
+): ArticleTranslationRow => ({
+  article_id: row.article_id,
+  articles: {
+    created_at: row.created_at,
+    id: row.id,
+    thumbnail_url: row.thumbnail_url,
+    updated_at: row.updated_at,
+    view_count: row.view_count,
+  },
+  content: row.content,
+  description: row.description,
+  title: row.title,
+});

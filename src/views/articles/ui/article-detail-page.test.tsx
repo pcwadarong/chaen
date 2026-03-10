@@ -41,7 +41,10 @@ const initialCommentsPage: ArticleCommentPage = {
 const renderServerHtml = async () => {
   const { ArticleDetailPage } = await import('@/views/articles/ui/article-detail-page');
   const element = await ArticleDetailPage({
-    archiveItems: [],
+    archivePage: {
+      items: [],
+      nextCursor: null,
+    },
     initialCommentsPage,
     item: {
       id: 'article-1',

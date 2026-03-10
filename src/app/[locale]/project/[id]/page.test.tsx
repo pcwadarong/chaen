@@ -17,7 +17,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/views/project', () => ({
   getProjectDetailPageData: vi.fn(async () => ({
-    archiveItems: [],
+    archivePage: {
+      items: [],
+      nextCursor: null,
+    },
     item: null,
   })),
   ProjectDetailPage: function ProjectDetailPage() {
@@ -28,7 +31,10 @@ vi.mock('@/views/project', () => ({
 describe('ProjectDetailRoute', () => {
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
-      archiveItems: [],
+      archivePage: {
+        items: [],
+        nextCursor: null,
+      },
       item: {
         id: 'supabase-editorial',
         title: 'Supabase Editorial',
@@ -58,7 +64,10 @@ describe('ProjectDetailRoute', () => {
 
   it('데이터가 없으면 notFound를 호출한다', async () => {
     vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
-      archiveItems: [],
+      archivePage: {
+        items: [],
+        nextCursor: null,
+      },
       item: null,
     });
 
