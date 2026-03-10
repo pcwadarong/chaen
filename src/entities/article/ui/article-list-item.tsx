@@ -28,6 +28,7 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
     <Link
       aria-label={t('viewArticle', { title: article.title })}
       className={linkClass}
+      data-article-list-item="true"
       href={`/articles/${article.id}`}
     >
       <article className={articleClass}>
@@ -130,6 +131,13 @@ const mediaClass = css({
 const imageClass = css({
   display: 'block',
   objectFit: 'cover',
+  transition: 'transform',
+  '[data-article-list-item="true"]:hover &': {
+    transform: '[scale(1.05)]',
+  },
+  '[data-article-list-item="true"]:focus-visible &': {
+    transform: '[scale(1.05)]',
+  },
 });
 
 const imageFallbackClass = css({
