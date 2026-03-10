@@ -1,7 +1,7 @@
 import React from 'react';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
-import { Button, buttonRecipe } from '@/shared/ui/button/button';
+import { Button } from '@/shared/ui/button/button';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -25,21 +25,16 @@ export const DownloadFileButton = ({
 
   if (href) {
     return (
-      <a
-        className={cx(
-          buttonRecipe({
-            tone: 'white',
-            variant: 'solid',
-          }).root,
-          downloadButtonClass,
-        )}
-        download={mode === 'download' ? fileName : undefined}
-        href={href}
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {label}
-      </a>
+      <Button asChild className={downloadButtonClass} tone="white" variant="solid">
+        <a
+          download={mode === 'download' ? fileName : undefined}
+          href={href}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {label}
+        </a>
+      </Button>
     );
   }
 

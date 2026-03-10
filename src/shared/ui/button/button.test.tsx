@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
+import { vi } from 'vitest';
 
 import { Button } from '@/shared/ui/button/button';
+
+import '@testing-library/jest-dom/vitest';
 
 describe('Button', () => {
   it('아이콘과 라벨을 함께 렌더링한다', () => {
@@ -32,6 +35,46 @@ describe('Button', () => {
     );
 
     expect(screen.getByRole('button', { name: '프로젝트' })).toBeTruthy();
+  });
+
+  it('disabled asChild anchor는 aria-disabled와 클릭 가드를 가진다', () => {
+    const handleClick = vi.fn();
+    const AnchorLike = (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a {...props} />;
+
+    render(
+      <Button asChild disabled tone="white" variant="ghost">
+        <AnchorLike href="https://example.com/project" onClick={handleClick}>
+          프로젝트
+        </AnchorLike>
+      </Button>,
+    );
+
+    const link = screen.getByRole('link', { name: '프로젝트' });
+    fireEvent.click(link);
+
+    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).toHaveAttribute('tabindex', '-1');
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('asChild native button에는 type을 전달한다', () => {
+    render(
+      <Button asChild tone="primary" type="submit">
+        <button>저장</button>
+      </Button>,
+    );
+
+    expect(screen.getByRole('button', { name: '저장' })).toHaveAttribute('type', 'submit');
+  });
+
+  it('asChild에 유효한 단일 엘리먼트가 없으면 에러를 던진다', () => {
+    expect(() =>
+      render(
+        <Button asChild tone="white">
+          텍스트
+        </Button>,
+      ),
+    ).toThrow('Button with asChild requires a single React element child.');
   });
 
   it('전달된 className을 기본 recipe 클래스와 병합한다', () => {

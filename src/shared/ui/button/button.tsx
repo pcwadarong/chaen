@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { cx, sva } from 'styled-system/css';
 import type { RecipeVariantProps } from 'styled-system/types/recipe';
 
@@ -15,93 +15,31 @@ type ButtonProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color'> 
     trailingVisual?: React.ReactNode;
   };
 
-/**
- * 버튼 내부에서 아이콘과 라벨을 같은 리듬으로 정렬합니다.
- */
-export const Button = ({
-  asChild = false,
-  children,
-  className,
-  fullWidth = false,
-  leadingVisual,
-  size = 'md',
-  tone = 'white',
-  trailingVisual,
-  type = 'button',
-  variant = 'solid',
-  ...props
-}: ButtonProps) => {
-  const buttonClasses = buttonRecipe({ fullWidth, size, tone, variant });
-  const buttonClassName = cx(buttonClasses.root, className);
-  const renderContent = (labelContent: React.ReactNode) => (
-    <>
-      {leadingVisual ? (
-        <span aria-hidden className={buttonClasses.visual}>
-          {leadingVisual}
-        </span>
-      ) : null}
-      <span className={buttonClasses.label}>{labelContent}</span>
-      {trailingVisual ? (
-        <span aria-hidden className={buttonClasses.visual}>
-          {trailingVisual}
-        </span>
-      ) : null}
-    </>
-  );
-
-  if (asChild) {
-    if (!React.isValidElement(children)) {
-      throw new Error('Button with asChild requires a single React element child.');
-    }
-
-    const child = children as React.ReactElement<{
-      children?: React.ReactNode;
-      className?: string;
-      type?: string;
-    }>;
-
-    const nextProps: {
-      children: React.ReactNode;
-      className: string;
-      type?: string;
-    } & typeof props = {
-      ...props,
-      className: cx(buttonClassName, child.props.className),
-      children: renderContent(child.props.children),
-    };
-
-    if (typeof child.type === 'string' && child.type === 'button') {
-      nextProps.type = type;
-    }
-
-    return React.cloneElement(child, nextProps);
-  }
-
-  return (
-    <button {...props} className={buttonClassName} type={type}>
-      {renderContent(children)}
-    </button>
-  );
+type ButtonAsChildProps = {
+  'aria-disabled'?: React.AriaAttributes['aria-disabled'];
+  children?: React.ReactNode;
+  className?: string;
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  tabIndex?: number;
+  type?: string;
 };
 
 /**
- * 버튼의 공통 스타일과 variant 조합을 정의합니다.
+ * SVA를 사용하여 root, label, visual의 스타일을 통합 관리합니다.
  */
 export const buttonRecipe = sva({
   slots: ['root', 'label', 'visual'],
   base: {
     root: {
       appearance: 'none',
-      textDecoration: 'none',
-      userSelect: 'none',
-      cursor: 'pointer',
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '2',
-      width: 'auto',
-      letterSpacing: '[-0.01em]',
+      userSelect: 'none',
+      cursor: 'pointer',
       transition: 'common',
+      letterSpacing: '[-0.01em]',
       _focusVisible: {
         outline: '[2px solid var(--colors-focus-ring)]',
         outlineOffset: '[2px]',
@@ -109,16 +47,17 @@ export const buttonRecipe = sva({
       _disabled: {
         cursor: 'not-allowed',
         opacity: 0.48,
+        pointerEvents: 'none', // 클릭 이벤트 원천 차단
       },
       '&[aria-disabled="true"]': {
         cursor: 'not-allowed',
         opacity: 0.48,
+        pointerEvents: 'none',
       },
     },
     label: {
       display: 'inline-flex',
       alignItems: 'center',
-      justifyContent: 'center',
       minWidth: '0',
     },
     visual: {
@@ -126,24 +65,17 @@ export const buttonRecipe = sva({
       alignItems: 'center',
       justifyContent: 'center',
       flex: 'none',
-      lineHeight: 'none',
     },
   },
   variants: {
     fullWidth: {
       true: { root: { width: 'full' } },
-      false: {},
+      false: { root: { width: 'auto' } },
     },
     size: {
-      xs: {
-        root: { fontSize: 'xs' },
-      },
-      sm: {
-        root: { fontSize: 'sm' },
-      },
-      md: {
-        root: { fontSize: 'sm' },
-      },
+      xs: { root: { fontSize: 'xs' } },
+      sm: { root: { fontSize: 'sm' } },
+      md: { root: { fontSize: 'sm' } },
     },
     variant: {
       solid: {
@@ -165,7 +97,6 @@ export const buttonRecipe = sva({
         root: {
           minHeight: 'auto',
           p: '0',
-          justifyContent: 'flex-start',
           textDecoration: 'underline',
           textUnderlineOffset: '[0.18em]',
         },
@@ -178,39 +109,23 @@ export const buttonRecipe = sva({
     },
   },
   compoundVariants: [
+    /* 레이아웃: Solid/Ghost 형태일 때만 패딩과 높이 적용 */
     {
       variant: ['solid', 'ghost'],
       size: 'xs',
-      css: {
-        root: {
-          minHeight: '8',
-          px: '2',
-          py: '[0.375rem]',
-        },
-      },
+      css: { root: { minHeight: '8', px: '2' } },
     },
     {
       variant: ['solid', 'ghost'],
       size: 'sm',
-      css: {
-        root: {
-          minHeight: '[2.375rem]',
-          px: '3',
-          py: '1',
-        },
-      },
+      css: { root: { minHeight: '[2.375rem]', px: '3' } },
     },
     {
       variant: ['solid', 'ghost'],
       size: 'md',
-      css: {
-        root: {
-          minHeight: '[2.75rem]',
-          px: '4',
-          py: '2',
-        },
-      },
+      css: { root: { minHeight: '[2.75rem]', px: '4' } },
     },
+    /* 색상: Solid */
     {
       tone: 'white',
       variant: 'solid',
@@ -219,10 +134,7 @@ export const buttonRecipe = sva({
           background: 'surface',
           borderColor: 'border',
           color: 'text',
-          _hover: {
-            background: 'surface',
-            borderColor: 'borderStrong',
-          },
+          _hover: { borderColor: 'borderStrong' },
         },
       },
     },
@@ -233,12 +145,8 @@ export const buttonRecipe = sva({
         root: {
           background: 'primary',
           color: 'primaryContrast',
-          _hover: {
-            background: 'blue.600',
-            _dark: {
-              background: 'blue.200',
-            },
-          },
+          borderColor: 'transparent',
+          _hover: { background: 'blue.600' },
         },
       },
     },
@@ -249,71 +157,26 @@ export const buttonRecipe = sva({
         root: {
           background: 'text',
           color: 'surface',
-          _hover: {
-            background: 'gray.800',
-            _dark: {
-              background: 'gray.100',
-            },
-          },
+          borderColor: 'transparent',
+          _hover: { background: 'gray.800' },
         },
       },
     },
+    /* 색상: Ghost/Underline */
     {
       tone: 'white',
-      variant: 'ghost',
-      css: {
-        root: {
-          color: 'text',
-          borderColor: 'transparent',
-          _hover: {
-            background: 'transparent',
-            borderColor: 'transparent',
-          },
-        },
-      },
+      variant: ['ghost', 'underline'],
+      css: { root: { color: 'text', borderColor: 'transparent' } },
     },
     {
       tone: 'primary',
-      variant: 'ghost',
-      css: {
-        root: {
-          color: 'primary',
-          borderColor: 'transparent',
-          _hover: {
-            background: 'transparent',
-            borderColor: 'transparent',
-          },
-        },
-      },
+      variant: ['ghost', 'underline'],
+      css: { root: { color: 'primary', borderColor: 'transparent' } },
     },
     {
       tone: 'black',
-      variant: 'ghost',
-      css: {
-        root: {
-          color: 'text',
-          borderColor: 'transparent',
-          _hover: {
-            background: 'transparent',
-            borderColor: 'transparent',
-          },
-        },
-      },
-    },
-    {
-      tone: 'white',
-      variant: 'underline',
-      css: { root: { color: 'text' } },
-    },
-    {
-      tone: 'primary',
-      variant: 'underline',
-      css: { root: { color: 'primary' } },
-    },
-    {
-      tone: 'black',
-      variant: 'underline',
-      css: { root: { color: 'text' } },
+      variant: ['ghost', 'underline'],
+      css: { root: { color: 'text', borderColor: 'transparent' } },
     },
   ],
   defaultVariants: {
@@ -323,3 +186,90 @@ export const buttonRecipe = sva({
     variant: 'solid',
   },
 });
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      asChild = false,
+      children,
+      className,
+      fullWidth,
+      leadingVisual,
+      size,
+      tone,
+      trailingVisual,
+      type = 'button',
+      variant,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = buttonRecipe({ fullWidth, size, tone, variant });
+    const isDisabled = props.disabled || props['aria-disabled'] === 'true';
+
+    const renderContent = (labelContent: React.ReactNode) => (
+      <>
+        {leadingVisual && (
+          <span aria-hidden className={styles.visual}>
+            {leadingVisual}
+          </span>
+        )}
+        <span className={styles.label}>{labelContent}</span>
+        {trailingVisual && (
+          <span aria-hidden className={styles.visual}>
+            {trailingVisual}
+          </span>
+        )}
+      </>
+    );
+
+    if (asChild) {
+      if (!React.isValidElement(children)) {
+        throw new Error('Button with asChild requires a single React element child.');
+      }
+
+      const child = children as React.ReactElement<ButtonAsChildProps>;
+      const isNativeButtonElement = typeof child.type === 'string' && child.type === 'button';
+      const nextProps: React.HTMLAttributes<HTMLElement> &
+        React.ButtonHTMLAttributes<HTMLButtonElement> & {
+          children: React.ReactNode;
+          className: string;
+          type?: string;
+        } = {
+        ...props,
+        className: cx(styles.root, className, child.props.className),
+        children: renderContent(child.props.children),
+      };
+
+      if (isNativeButtonElement) {
+        nextProps.type = type;
+      }
+
+      if (isDisabled && !isNativeButtonElement) {
+        delete nextProps.disabled;
+        nextProps['aria-disabled'] = 'true';
+        nextProps.tabIndex = -1;
+        nextProps.onClick = event => {
+          event.preventDefault();
+          event.stopPropagation();
+        };
+      }
+
+      return React.cloneElement(child, nextProps);
+    }
+
+    return (
+      <button
+        {...props}
+        ref={ref}
+        className={cx(styles.root, className)}
+        type={type}
+        disabled={props.disabled}
+      >
+        {renderContent(children)}
+      </button>
+    );
+  },
+);
+
+Button.displayName = 'Button';
