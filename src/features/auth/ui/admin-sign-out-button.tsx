@@ -3,7 +3,8 @@
 import React, { useActionState } from 'react';
 import { css } from 'styled-system/css';
 
-import { initialSignOutAdminState, signOutAdmin } from '@/features/auth/api/sign-out-admin';
+import { signOutAdmin } from '@/features/auth/api/sign-out-admin';
+import { initialSignOutAdminState } from '@/features/auth/api/sign-out-admin.state';
 import { Button } from '@/shared/ui/button/button';
 
 type AdminSignOutButtonProps = {

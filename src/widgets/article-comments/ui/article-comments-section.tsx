@@ -12,10 +12,10 @@ import React, {
 } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { initialSubmitArticleCommentState } from '@/entities/article-comment/api/article-comment-action-state';
 import {
   deleteArticleCommentAction,
   getArticleCommentsPageAction,
-  initialSubmitArticleCommentState,
   submitArticleComment,
   updateArticleCommentAction,
 } from '@/entities/article-comment/api/article-comment-actions';

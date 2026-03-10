@@ -3,7 +3,8 @@
 import React, { useActionState } from 'react';
 import { css } from 'styled-system/css';
 
-import { initialSignInAdminState, signInAdmin } from '@/features/auth/api/sign-in-admin';
+import { signInAdmin } from '@/features/auth/api/sign-in-admin';
+import { initialSignInAdminState } from '@/features/auth/api/sign-in-admin.state';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 

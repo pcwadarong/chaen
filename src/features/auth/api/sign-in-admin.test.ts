@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
-import { initialSignInAdminState, signInAdmin } from './sign-in-admin';
+import { signInAdmin } from './sign-in-admin';
+import { initialSignInAdminState } from './sign-in-admin.state';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {

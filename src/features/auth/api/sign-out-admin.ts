@@ -3,18 +3,12 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import {
-  type ActionResult,
-  createActionFailure,
-  createInitialActionResult,
-} from '@/shared/lib/action/action-result';
+import { type ActionResult, createActionFailure } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
 import { isSafeRedirectPath } from './is-safe-redirect-path';
-
-type SignOutAdminActionData = null;
 
 const signOutAdminSchema = z.object({
   redirectPath: z
@@ -25,17 +19,12 @@ const signOutAdminSchema = z.object({
 });
 
 /**
- * 관리자 로그아웃 action의 초기 상태입니다.
- */
-export const initialSignOutAdminState = createInitialActionResult<SignOutAdminActionData>();
-
-/**
  * 관리자 세션을 종료하고 지정한 경로로 이동합니다.
  */
 export const signOutAdmin = async (
-  _previousState: ActionResult<SignOutAdminActionData>,
+  _previousState: ActionResult<null>,
   formData: FormData,
-): Promise<ActionResult<SignOutAdminActionData>> => {
+): Promise<ActionResult<null>> => {
   const validation = validateActionInput(
     signOutAdminSchema,
     Object.fromEntries(formData.entries()),

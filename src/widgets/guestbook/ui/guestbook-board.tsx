@@ -5,10 +5,8 @@ import React, { useActionState, useCallback, useEffect, useMemo, useRef, useStat
 import { css } from 'styled-system/css';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import {
-  initialSubmitGuestbookEntryState,
-  submitGuestbookEntry,
-} from '@/features/guestbook-feed/api/guestbook-actions';
+import { initialSubmitGuestbookEntryState } from '@/features/guestbook-feed/api/guestbook-action-state';
+import { submitGuestbookEntry } from '@/features/guestbook-feed/api/guestbook-actions';
 import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
 import type { ActionResult } from '@/shared/lib/action/action-result';
@@ -329,7 +327,6 @@ const modalBodyClass = css({
   gap: '3',
   backgroundColor: 'surface',
   borderRadius: 'sm',
-  border: '[1px solid var(--colors-border-strong)]',
 });
 
 const modalLeadClass = css({

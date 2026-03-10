@@ -3,18 +3,12 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import {
-  type ActionResult,
-  createActionFailure,
-  createInitialActionResult,
-} from '@/shared/lib/action/action-result';
+import { type ActionResult, createActionFailure } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
 import { isSafeRedirectPath } from './is-safe-redirect-path';
-
-type SignInAdminActionData = null;
 
 const signInAdminSchema = z.object({
   email: z.email('이메일 형식이 올바르지 않습니다.'),
@@ -27,17 +21,12 @@ const signInAdminSchema = z.object({
 });
 
 /**
- * 관리자 로그인 action의 초기 상태입니다.
- */
-export const initialSignInAdminState = createInitialActionResult<SignInAdminActionData>();
-
-/**
  * 관리자 로그인 폼을 처리하고 성공 시 지정한 경로로 이동합니다.
  */
 export const signInAdmin = async (
-  _previousState: ActionResult<SignInAdminActionData>,
+  _previousState: ActionResult<null>,
   formData: FormData,
-): Promise<ActionResult<SignInAdminActionData>> => {
+): Promise<ActionResult<null>> => {
   const validation = validateActionInput(signInAdminSchema, Object.fromEntries(formData.entries()));
 
   if (!validation.ok) {

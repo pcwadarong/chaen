@@ -15,7 +15,6 @@ import {
   type ActionResult,
   createActionFailure,
   createActionSuccess,
-  createInitialActionResult,
 } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
@@ -25,14 +24,6 @@ import {
   resolveActionLocale,
 } from '@/shared/lib/i18n/get-action-translations';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
-
-type GuestbookSubmitActionData = {
-  entry: GuestbookEntry;
-};
-
-type GuestbookVerifyActionData = {
-  entry: GuestbookEntry;
-};
 
 type GuestbookActionMessages = ReturnType<typeof createGuestbookActionMessages>;
 
@@ -158,24 +149,12 @@ const guestbookThreadsPageSchema = z.object({
 });
 
 /**
- * 방명록 작성 action의 초기 상태입니다.
- */
-export const initialSubmitGuestbookEntryState =
-  createInitialActionResult<GuestbookSubmitActionData>();
-
-/**
- * 비밀글 확인 action의 초기 상태입니다.
- */
-export const initialVerifyGuestbookSecretState =
-  createInitialActionResult<GuestbookVerifyActionData>();
-
-/**
  * 방명록 글/답글 작성 폼을 처리합니다.
  */
 export const submitGuestbookEntry = async (
-  _previousState: ActionResult<GuestbookSubmitActionData>,
+  _previousState: ActionResult<{ entry: GuestbookEntry }>,
   formData: FormData,
-): Promise<ActionResult<GuestbookSubmitActionData>> => {
+): Promise<ActionResult<{ entry: GuestbookEntry }>> => {
   const rawInput = Object.fromEntries(formData.entries());
   const t = await getActionTranslations({
     locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),
@@ -229,9 +208,9 @@ export const submitGuestbookEntry = async (
  * 비밀글 비밀번호를 검증하고 숨겨진 본문을 반환합니다.
  */
 export const verifyGuestbookSecretAction = async (
-  _previousState: ActionResult<GuestbookVerifyActionData>,
+  _previousState: ActionResult<{ entry: GuestbookEntry }>,
   formData: FormData,
-): Promise<ActionResult<GuestbookVerifyActionData>> => {
+): Promise<ActionResult<{ entry: GuestbookEntry }>> => {
   const rawInput = Object.fromEntries(formData.entries());
   const t = await getActionTranslations({
     locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),

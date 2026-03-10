@@ -3,10 +3,10 @@ import { vi } from 'vitest';
 
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
+import { initialSubmitArticleCommentState } from './article-comment-action-state';
 import {
   deleteArticleCommentAction,
   getArticleCommentsPageAction,
-  initialSubmitArticleCommentState,
   submitArticleComment,
   updateArticleCommentAction,
 } from './article-comment-actions';

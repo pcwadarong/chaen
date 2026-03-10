@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
-import { initialSignOutAdminState, signOutAdmin } from './sign-out-admin';
+import { signOutAdmin } from './sign-out-admin';
+import { initialSignOutAdminState } from './sign-out-admin.state';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {

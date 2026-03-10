@@ -14,7 +14,6 @@ import {
   type ActionResult,
   createActionFailure,
   createActionSuccess,
-  createInitialActionResult,
 } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
@@ -148,19 +147,9 @@ const deleteArticleCommentSchema = (messages: ArticleCommentActionMessages) =>
       .pipe(z.string().min(4, messages.missingPassword)),
   });
 
-type SubmitArticleCommentActionData = {
-  comment: ArticleComment;
-};
-
 type ArticleCommentDeleteActionData = {
   deletedId: string;
 };
-
-/**
- * 댓글 작성 action의 초기 상태입니다.
- */
-export const initialSubmitArticleCommentState =
-  createInitialActionResult<SubmitArticleCommentActionData>();
 
 /**
  * 댓글 태그와 locale별 상세 페이지 HTML 캐시를 함께 갱신합니다.
@@ -182,9 +171,9 @@ const revalidateArticleCommentCaches = (articleId: string, commentId?: string) =
  * 댓글 작성 폼을 처리합니다.
  */
 export const submitArticleComment = async (
-  _previousState: ActionResult<SubmitArticleCommentActionData>,
+  _previousState: ActionResult<{ comment: ArticleComment }>,
   formData: FormData,
-): Promise<ActionResult<SubmitArticleCommentActionData>> => {
+): Promise<ActionResult<{ comment: ArticleComment }>> => {
   const rawInput = Object.fromEntries(formData.entries());
   const t = await getActionTranslations({
     locale: resolveActionLocale(typeof rawInput.locale === 'string' ? rawInput.locale : null),

@@ -66,11 +66,15 @@ const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
 /**
  * markdown 본문 이미지를 반응형으로 렌더링합니다.
  */
-const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImageElement>) => (
-  <>
-    <img alt={alt ?? ''} className={markdownImageClass} src={src} {...props} />
-  </>
-);
+const renderMarkdownImage = function renderMarkdownImage({
+  alt,
+  src,
+  ...props
+}: ImgHTMLAttributes<HTMLImageElement>) {
+  // markdown 본문 이미지는 원본 src를 그대로 존중해야 합니다.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img alt={alt ?? ''} className={markdownImageClass} src={src} {...props} />;
+};
 
 /**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.

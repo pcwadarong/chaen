@@ -7,9 +7,11 @@ import { revalidateGuestbookCache } from '@/entities/guestbook/lib/revalidate-gu
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import {
-  getGuestbookThreadsPage,
   initialSubmitGuestbookEntryState,
   initialVerifyGuestbookSecretState,
+} from './guestbook-action-state';
+import {
+  getGuestbookThreadsPage,
   submitGuestbookEntry,
   verifyGuestbookSecretAction,
 } from './guestbook-actions';

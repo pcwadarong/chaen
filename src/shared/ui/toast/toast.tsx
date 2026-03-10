@@ -5,6 +5,8 @@ import { css, cva, cx } from 'styled-system/css';
 
 import { ReportIcon } from '@/shared/ui/icons/app-icons';
 
+import { Button } from '../button/button';
+
 export type ToastItem = {
   description?: string;
   id: string;
@@ -37,16 +39,17 @@ export const ToastViewport = ({ closeLabel: _closeLabel, items, onClose }: Toast
           {item.description ? <p className={descriptionClass}>{item.description}</p> : null}
         </div>
         {onClose ? (
-          <button
+          <Button
             aria-label={_closeLabel ?? 'Close'}
-            className={closeButtonClass}
             onClick={() => onClose(item.id)}
             type="button"
+            variant="ghost"
+            tone="white"
           >
             <span aria-hidden className={closeGlyphClass}>
               +
             </span>
-          </button>
+          </Button>
         ) : null}
       </div>
     ))}
@@ -117,12 +120,9 @@ const toastRecipe = cva({
 });
 
 const toneIconClass = css({
-  display: 'inline-flex',
+  display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '[2rem]',
-  height: '[2rem]',
-  flex: 'none',
 });
 
 const toneIconRecipe = cva({
@@ -147,6 +147,7 @@ const toneIconRecipe = cva({
 const contentClass = css({
   display: 'grid',
   gap: '1',
+  alignItems: 'center',
 });
 
 const titleClass = css({
@@ -168,36 +169,9 @@ const descriptionClass = css({
   },
 });
 
-const closeButtonClass = css({
-  appearance: 'none',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '[2rem]',
-  height: '[2rem]',
-  borderRadius: 'full',
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  borderColor: 'border',
-  backgroundColor: 'surface',
-  color: 'muted',
-  cursor: 'pointer',
-  transition: 'common',
-  flex: 'none',
-  _hover: {
-    borderColor: 'borderStrong',
-    color: 'text',
-    transform: 'translateY(-1px)',
-  },
-  _focusVisible: {
-    outline: '[2px solid var(--colors-focus-ring)]',
-    outlineOffset: '[2px]',
-  },
-});
-
 const closeGlyphClass = css({
   display: 'inline-block',
-  fontSize: 'lg',
+  fontSize: '3xl',
   lineHeight: 'none',
   transform: 'rotate(45deg)',
 });

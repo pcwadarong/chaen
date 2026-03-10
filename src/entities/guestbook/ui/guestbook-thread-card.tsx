@@ -7,10 +7,8 @@ import { css } from 'styled-system/css';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
 import { GuestbookThreadBubble } from '@/entities/guestbook/ui/guestbook-thread-bubble';
-import {
-  initialVerifyGuestbookSecretState,
-  verifyGuestbookSecretAction,
-} from '@/features/guestbook-feed/api/guestbook-actions';
+import { initialVerifyGuestbookSecretState } from '@/features/guestbook-feed/api/guestbook-action-state';
+import { verifyGuestbookSecretAction } from '@/features/guestbook-feed/api/guestbook-actions';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;

@@ -20,6 +20,11 @@ export const useDialogFocusManagement = ({
   onEscape,
 }: UseDialogFocusManagementParams) => {
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  const onEscapeRef = useRef(onEscape);
+
+  useEffect(() => {
+    onEscapeRef.current = onEscape;
+  }, [onEscape]);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -45,7 +50,7 @@ export const useDialogFocusManagement = ({
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        onEscape();
+        onEscapeRef.current();
         return;
       }
 
@@ -90,5 +95,5 @@ export const useDialogFocusManagement = ({
       // 모달이 닫힐 때 이전 활성 요소로 포커스를 복원
       previousActiveElementRef.current?.focus();
     };
-  }, [containerRef, initialFocusRef, isEnabled, onEscape]);
+  }, [containerRef, initialFocusRef, isEnabled]);
 };

@@ -114,12 +114,12 @@ export const ActionMenuButton = ({
   <Button
     aria-disabled={ariaDisabled ? 'true' : undefined}
     className={actionButtonClass}
+    leadingVisual={icon ? <span aria-hidden>{icon}</span> : undefined}
     onClick={ariaDisabled ? undefined : onClick}
     type="button"
     variant="ghost"
   >
-    {icon ? <span aria-hidden>{icon}</span> : null}
-    <span>{label}</span>
+    {label}
   </Button>
 );
 
@@ -137,12 +137,6 @@ const triggerClass = css({
   height: '8',
   borderRadius: 'full',
   transition: 'colors',
-  _hover: {
-    background: 'primarySubtle',
-  },
-  _focusVisible: {
-    background: 'primarySubtle',
-  },
 });
 
 const panelClass = css({
@@ -162,7 +156,6 @@ const actionButtonClass = css({
   color: 'muted',
   display: 'inline-flex',
   justifyContent: 'flex-start',
-  gap: '2',
   transition: 'colors',
   _hover: {
     color: 'primary',
