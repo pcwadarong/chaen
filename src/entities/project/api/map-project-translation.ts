@@ -2,7 +2,7 @@ import type { Project, ProjectDetailListItem, ProjectListItem } from '../model/t
 
 type ProjectBaseFields = Pick<
   Project,
-  'created_at' | 'id' | 'period_end' | 'period_start' | 'thumbnail_url'
+  'created_at' | 'id' | 'is_secret' | 'period_end' | 'period_start' | 'thumbnail_url'
 >;
 
 type EmbeddedProjectBaseRow = ProjectBaseFields | ProjectBaseFields[] | null;
@@ -110,6 +110,7 @@ export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project 
     created_at: projectBase.created_at,
     description: row.description,
     id: row.project_id,
+    is_secret: projectBase.is_secret ?? false,
     period_end: projectBase.period_end,
     period_start: projectBase.period_start,
     tags,

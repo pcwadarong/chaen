@@ -49,7 +49,7 @@ const fetchProjectFromContentSchema = async (
   const { data: translation, error: translationError } = await supabase
     .from('project_translations')
     .select(
-      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end)',
+      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end,is_secret)',
     )
     .eq('project_id', projectId)
     .eq('locale', locale)
