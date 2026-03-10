@@ -1,6 +1,8 @@
 import { useTranslations } from 'next-intl';
 import { css, cx } from 'styled-system/css';
 
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
+
 /**
  * 아티클 상세 로딩 상태 UI입니다.
  */
@@ -9,10 +11,11 @@ const ArticleDetailLoading = () => {
 
   return (
     <main className={pageClass}>
-      <section aria-busy="true" aria-label={t('loading')} aria-live="polite" className={panelClass}>
-        <div className={lineLgClass} />
-        <div className={lineMdClass} />
-        <div className={lineSmClass} />
+      <section aria-busy="true" className={panelClass} role="status">
+        <span className={srOnlyClass}>{t('loading')}</span>
+        <div aria-hidden="true" className={lineLgClass} />
+        <div aria-hidden="true" className={lineMdClass} />
+        <div aria-hidden="true" className={lineSmClass} />
       </section>
     </main>
   );
