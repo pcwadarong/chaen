@@ -226,13 +226,13 @@ const inputWrapClass = css({
 
 const inputPaddingClass = css({
   minHeight: '12',
-  paddingRight: '[6.5rem]',
+  paddingRight: '[4.5rem]',
 });
 
 const clearButtonClass = css({
   position: 'absolute',
   top: '[50%]',
-  right: '[3.6rem]',
+  right: '[2.4rem]',
   minWidth: '8',
   minHeight: '8',
   p: '0',
@@ -243,7 +243,7 @@ const clearButtonClass = css({
 const submitButtonClass = css({
   position: 'absolute',
   top: '[50%]',
-  right: '1',
+  right: '0',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',

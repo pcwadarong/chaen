@@ -17,7 +17,6 @@ type DetailArchiveListProps = {
 };
 
 export const detailArchiveSidebarViewportClass = css({
-  background: 'surface',
   py: '7',
   '@media (min-width: 961px)': {
     flex: '[1 1 auto]',
@@ -81,7 +80,7 @@ const sidebarLinkClass = cva({
     _focusVisible: {
       outline: '[2px solid var(--colors-focus-ring)]',
       outlineOffset: '[-2px]',
-      background: 'surface',
+      background: 'surfaceMuted',
     },
     '@media (min-width: 1200px)': {
       px: '5',

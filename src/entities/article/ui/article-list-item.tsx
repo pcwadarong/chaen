@@ -84,6 +84,7 @@ const titleClass = css({
   fontSize: '2xl',
   lineHeight: 'tight',
   letterSpacing: '[-0.05em]',
+  fontWeight: 'bold',
 });
 
 const descriptionClass = css({

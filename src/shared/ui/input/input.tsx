@@ -27,7 +27,7 @@ const inputRecipe = cva({
     borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: 'border',
-    backgroundColor: 'surface',
+    backgroundColor: 'transparent',
     color: 'text',
     transition: 'colors',
     _placeholder: {

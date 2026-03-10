@@ -167,7 +167,7 @@ const toneByVariant: Record<GuestbookEntryBubbleVariant, GuestbookEntryBubbleTon
 const toneClassMap: Record<GuestbookEntryBubbleTone, string> = {
   surface: css({
     border: '[1px solid var(--colors-border)]',
-    backgroundColor: 'surface',
+    backgroundColor: 'surfaceMuted',
     color: 'text',
   }),
   inverse: css({

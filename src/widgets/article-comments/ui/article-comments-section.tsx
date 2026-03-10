@@ -739,7 +739,7 @@ const headerTextClass = css({
 });
 
 const titleClass = css({
-  fontSize: '6xl',
+  fontSize: '2xl',
   fontWeight: 'semibold',
   letterSpacing: '[-0.03em]',
 });

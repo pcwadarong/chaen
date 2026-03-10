@@ -76,7 +76,7 @@ const textareaRecipe = cva({
     borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: 'border',
-    backgroundColor: 'surface',
+    backgroundColor: 'transparent',
     color: 'text',
     resize: 'vertical',
     transition: 'colors',

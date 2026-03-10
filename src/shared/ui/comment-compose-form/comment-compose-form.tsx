@@ -261,7 +261,7 @@ const fixedFormClass = css({
   zIndex: '20',
   borderTop: '[1px solid var(--colors-border)]',
   boxShadow: '[0 -4px 16px rgb(15 23 42 / 0.14)]',
-  backgroundColor: 'surface',
+  backgroundColor: 'surfaceMuted',
   backdropFilter: '[blur(18px) saturate(140%)]',
   px: '4',
   pt: '3',

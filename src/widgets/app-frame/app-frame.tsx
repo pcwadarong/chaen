@@ -38,6 +38,7 @@ const appFrameClass = css({
   position: 'relative',
   display: 'flex',
   flexDirection: 'column',
+  backgroundColor: 'surface',
   '@media (min-width: 961px)': {
     width: '[min(1280px, calc(100vw - 2.5rem))]',
     height: '[calc(100dvh - 2.5rem)]',
@@ -45,7 +46,6 @@ const appFrameClass = css({
     overflow: 'hidden',
     border: '[1px solid var(--colors-border)]',
     borderRadius: '[2rem]',
-    backgroundColor: 'surface',
     boxShadow: '[0 24px 64px rgb(15 23 42 / 0.12)]',
     backdropFilter: '[blur(24px) saturate(120%)]',
     transform: 'translateZ(0)',
