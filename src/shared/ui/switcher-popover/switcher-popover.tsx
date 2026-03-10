@@ -149,7 +149,7 @@ const panelClass = css({
   borderRadius: '2xl',
   border: '[1px solid var(--colors-border)]',
   backgroundColor: 'surface',
-  boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',
+  boxShadow: 'floating',
   display: 'grid',
   gap: '1',
   zIndex: '30',

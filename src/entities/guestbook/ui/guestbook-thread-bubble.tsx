@@ -209,7 +209,7 @@ const secretTextClass = css({
 });
 
 const revealErrorClass = css({
-  color: 'danger',
+  color: 'error',
   fontSize: 'sm',
 });
 

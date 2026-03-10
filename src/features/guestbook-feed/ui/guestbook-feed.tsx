@@ -168,7 +168,7 @@ const loadingMoreClass = css({
 });
 
 const errorClass = css({
-  color: 'danger',
+  color: 'error',
   textAlign: 'center',
 });
 

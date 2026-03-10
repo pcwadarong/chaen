@@ -180,6 +180,6 @@ const sidebarFeedbackPanelClass = css({
 });
 
 const sidebarErrorTextClass = css({
-  color: 'danger',
+  color: 'error',
   fontSize: 'sm',
 });

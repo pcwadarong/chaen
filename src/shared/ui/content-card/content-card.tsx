@@ -154,11 +154,11 @@ const contentCardRecipe = css({
   overflow: 'hidden',
   transition: '[box-shadow 220ms ease, transform 220ms ease]',
   '[data-content-card="true"]:hover &': {
-    boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
+    boxShadow: 'floating',
     transform: '[translateY(-3px)]',
   },
   '[data-content-card="true"]:focus-visible &': {
-    boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
+    boxShadow: 'floating',
     transform: '[translateY(-3px)]',
   },
 });

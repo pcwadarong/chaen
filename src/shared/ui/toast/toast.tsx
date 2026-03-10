@@ -1,31 +1,53 @@
 'use client';
 
 import React from 'react';
-import { css, cva } from 'styled-system/css';
+import { css, cva, cx } from 'styled-system/css';
+
+import { ReportIcon } from '@/shared/ui/icons/app-icons';
 
 export type ToastItem = {
+  description?: string;
   id: string;
   message: string;
   tone: 'error' | 'info' | 'success';
 };
 
 type ToastViewportProps = {
-  closeLabel: string;
+  closeLabel?: string;
   items: ToastItem[];
-  onClose: (id: string) => void;
+  onClose?: (id: string) => void;
 };
 
 /**
  * 전역 상태 없이 페이지 단위에서 사용할 수 있는 간단한 토스트 뷰포트입니다.
  */
-export const ToastViewport = ({ closeLabel, items, onClose }: ToastViewportProps) => (
+export const ToastViewport = ({ closeLabel: _closeLabel, items, onClose }: ToastViewportProps) => (
   <div aria-live="polite" className={viewportClass}>
     {items.map(item => (
-      <div className={toastRecipe({ tone: item.tone })} key={item.id}>
-        <p className={messageClass}>{item.message}</p>
-        <button className={closeButtonClass} onClick={() => onClose(item.id)} type="button">
-          {closeLabel}
-        </button>
+      <div
+        className={toastRecipe({ tone: item.tone })}
+        key={item.id}
+        role={item.tone === 'error' ? 'alert' : 'status'}
+      >
+        <span aria-hidden className={cx(toneIconClass, toneIconRecipe({ tone: item.tone }))}>
+          <ReportIcon color="current" size="lg" />
+        </span>
+        <div className={contentClass}>
+          <p className={titleClass}>{item.message}</p>
+          {item.description ? <p className={descriptionClass}>{item.description}</p> : null}
+        </div>
+        {onClose ? (
+          <button
+            aria-label={_closeLabel ?? 'Close'}
+            className={closeButtonClass}
+            onClick={() => onClose(item.id)}
+            type="button"
+          >
+            <span aria-hidden className={closeGlyphClass}>
+              +
+            </span>
+          </button>
+        ) : null}
       </div>
     ))}
   </div>
@@ -37,49 +59,145 @@ const viewportClass = css({
   bottom: '4',
   zIndex: '70',
   display: 'grid',
-  gap: '2',
-  width: '[min(22rem,calc(100vw-2rem))]',
+  gap: '3',
+  width: '[min(24rem,calc(100vw-1.5rem))]',
+  '@media (max-width: 640px)': {
+    right: '3',
+    bottom: '3',
+  },
 });
 
 const toastRecipe = cva({
   base: {
-    borderRadius: 'sm',
-    border: '[1px solid var(--colors-border)]',
+    display: 'flex',
+    gap: '2',
+    borderRadius: '2xl',
+    borderWidth: '1px',
+    borderStyle: 'solid',
     backgroundColor: 'surface',
-    display: 'grid',
-    gridTemplateColumns: '[1fr auto]',
-    alignItems: 'start',
-    gap: '3',
-    px: '3',
-    py: '3',
-    boxShadow: '[0 10px 24px rgb(15 23 42 / 0.12)]',
+    color: 'text',
+    px: '4',
+    py: '4',
+    boxShadow: 'floating',
   },
   variants: {
     tone: {
       error: {
-        borderLeft: '[3px solid var(--colors-danger)]',
+        borderColor: {
+          base: 'red.200',
+          _dark: 'red.800',
+        },
+        backgroundColor: {
+          base: 'red.50',
+          _dark: 'gray.900',
+        },
       },
       info: {
-        borderLeft: '[3px solid var(--colors-muted)]',
+        borderColor: {
+          base: 'blue.100',
+          _dark: 'blue.800',
+        },
+        backgroundColor: {
+          base: 'blue.50',
+          _dark: 'gray.900',
+        },
       },
       success: {
-        borderLeft: '[3px solid var(--colors-success)]',
+        borderColor: {
+          base: 'green.200',
+          _dark: 'green.800',
+        },
+        backgroundColor: {
+          base: 'green.50',
+          _dark: 'gray.900',
+        },
       },
     },
   },
 });
 
-const messageClass = css({
+const toneIconClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '[2rem]',
+  height: '[2rem]',
+  flex: 'none',
+});
+
+const toneIconRecipe = cva({
+  variants: {
+    tone: {
+      error: {
+        color: 'error',
+      },
+      info: {
+        color: {
+          base: 'blue.400',
+          _dark: 'blue.300',
+        },
+      },
+      success: {
+        color: 'success',
+      },
+    },
+  },
+});
+
+const contentClass = css({
+  display: 'grid',
+  gap: '1',
+});
+
+const titleClass = css({
+  fontSize: 'lg',
+  lineHeight: 'tight',
+  fontWeight: '[700]',
+  letterSpacing: '[-0.02em]',
+  color: 'text',
+});
+
+const descriptionClass = css({
   m: '0',
   fontSize: 'sm',
-  lineHeight: 'normal',
+  lineHeight: 'relaxed',
+  letterSpacing: '[-0.01em]',
+  color: {
+    base: 'muted',
+    _dark: 'gray.300',
+  },
 });
 
 const closeButtonClass = css({
-  border: 'none',
-  background: 'transparent',
+  appearance: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '[2rem]',
+  height: '[2rem]',
+  borderRadius: 'full',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'border',
+  backgroundColor: 'surface',
   color: 'muted',
-  fontSize: 'xs',
-  textDecoration: 'underline',
-  p: '0',
+  cursor: 'pointer',
+  transition: 'common',
+  flex: 'none',
+  _hover: {
+    borderColor: 'borderStrong',
+    color: 'text',
+    transform: 'translateY(-1px)',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
+});
+
+const closeGlyphClass = css({
+  display: 'inline-block',
+  fontSize: 'lg',
+  lineHeight: 'none',
+  transform: 'rotate(45deg)',
 });

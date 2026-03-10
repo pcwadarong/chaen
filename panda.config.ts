@@ -34,6 +34,11 @@ export default defineConfig({
               "var(--font-d2coding), 'SFMono-Regular', 'JetBrains Mono', Consolas, 'Liberation Mono', monospace",
           },
         },
+        shadows: {
+          floating: {
+            value: '0 18px 32px rgb(15 23 42 / 0.18)',
+          },
+        },
       },
       semanticTokens: {
         colors: {
@@ -121,25 +126,7 @@ export default defineConfig({
               _dark: '{colors.green.400}',
             },
           },
-          successContrast: {
-            value: {
-              base: '{colors.white}',
-              _dark: '{colors.gray.900}',
-            },
-          },
           error: {
-            value: {
-              base: '{colors.red.500}',
-              _dark: '{colors.red.400}',
-            },
-          },
-          errorContrast: {
-            value: {
-              base: '{colors.white}',
-              _dark: '{colors.gray.900}',
-            },
-          },
-          danger: {
             value: {
               base: '{colors.red.500}',
               _dark: '{colors.red.400}',

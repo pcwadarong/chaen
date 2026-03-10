@@ -973,7 +973,7 @@ const modalDescriptionClass = css({
 });
 
 const modalErrorClass = css({
-  color: 'danger',
+  color: 'error',
   fontSize: 'md',
 });
 

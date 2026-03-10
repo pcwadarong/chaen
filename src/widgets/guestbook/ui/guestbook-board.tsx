@@ -315,7 +315,7 @@ const modalHintClass = css({
 });
 
 const modalErrorClass = css({
-  color: 'danger',
+  color: 'error',
   fontSize: 'sm',
 });
 

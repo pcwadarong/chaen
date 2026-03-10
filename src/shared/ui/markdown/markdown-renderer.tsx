@@ -229,7 +229,7 @@ const markdownCodeBlockFrameClass = css({
   borderRadius: '[1rem]',
   background:
     '[linear-gradient(180deg, rgb(17 24 39 / 0.98), rgb(10 15 28 / 0.98)), rgb(10 15 28)]',
-  boxShadow: '[0 18px 40px rgb(15 23 42 / 0.16)]',
+  boxShadow: 'floating',
 });
 
 const markdownCodeBlockHeaderClass = css({

@@ -176,7 +176,7 @@ const mobileDrawerClass = css({
   py: '6',
   borderLeft: '[1px solid var(--colors-primary)]',
   backgroundColor: '[rgb(255 255 255 / 0.88)]',
-  boxShadow: '[-10px 0 28px rgb(15 23 42 / 0.18)]',
+  boxShadow: 'floating',
   backdropFilter: '[blur(18px) saturate(135%)]',
   _dark: {
     backgroundColor: '[rgb(31 41 55 / 0.88)]',

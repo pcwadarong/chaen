@@ -23,7 +23,7 @@ import TrashSvg from '@/shared/assets/icons/trash.svg';
 type AppIconColor =
   | 'black'
   | 'current'
-  | 'danger'
+  | 'error'
   | 'muted'
   | 'primary'
   | 'surface'
@@ -33,7 +33,7 @@ type AppIconSize = 'lg' | 'md' | 'sm' | number;
 
 const iconColorMap: Record<Exclude<AppIconColor, 'current'>, string> = {
   black: 'var(--colors-black)',
-  danger: 'var(--colors-danger)',
+  error: 'var(--colors-error)',
   muted: 'var(--colors-muted)',
   primary: 'var(--colors-primary)',
   surface: 'var(--colors-surface)',

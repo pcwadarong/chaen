@@ -119,6 +119,6 @@ const errorPanelClass = css({
 });
 
 const errorTextClass = css({
-  color: 'danger',
+  color: 'error',
   textAlign: 'center',
 });

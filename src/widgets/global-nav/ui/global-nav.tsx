@@ -229,7 +229,7 @@ const headerClass = css({
   backdropFilter: '[blur(18px) saturate(135%)]',
   backgroundColor: 'surfaceMuted',
   borderBottom: '[1px solid var(--colors-border)]',
-  boxShadow: '[0 4px 16px rgb(15 23 42 / 0.14)]',
+  boxShadow: 'floating',
   willChange: 'transform, opacity',
   transition: '[transform 240ms ease, opacity 240ms ease]',
   '@media (min-width: 961px)': {
