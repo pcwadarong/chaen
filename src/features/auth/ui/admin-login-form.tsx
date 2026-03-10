@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useActionState } from 'react';
+import { css } from 'styled-system/css';
 
 import { initialSignInAdminState, signInAdmin } from '@/features/auth/api/sign-in-admin';
 import { Button } from '@/shared/ui/button/button';
@@ -18,12 +18,12 @@ export const AdminLoginForm = ({ successRedirectPath }: AdminLoginFormProps) => 
   const [state, formAction, isPending] = useActionState(signInAdmin, initialSignInAdminState);
 
   return (
-    <main css={pageStyle}>
-      <form action={formAction} aria-busy={isPending} css={formStyle}>
-        <h1 css={titleStyle}>관리자 로그인</h1>
+    <main className={pageClass}>
+      <form action={formAction} aria-busy={isPending} className={formClass}>
+        <h1 className={titleClass}>관리자 로그인</h1>
         <input name="redirectPath" type="hidden" value={successRedirectPath} />
-        <label css={fieldStyle}>
-          <span css={labelStyle}>이메일</span>
+        <label className={fieldClass}>
+          <span className={labelClass}>이메일</span>
           <Input
             autoComplete="email"
             disabled={isPending}
@@ -34,8 +34,8 @@ export const AdminLoginForm = ({ successRedirectPath }: AdminLoginFormProps) => 
           />
         </label>
 
-        <label css={fieldStyle}>
-          <span css={labelStyle}>비밀번호</span>
+        <label className={fieldClass}>
+          <span className={labelClass}>비밀번호</span>
           <Input
             autoComplete="current-password"
             disabled={isPending}
@@ -47,12 +47,12 @@ export const AdminLoginForm = ({ successRedirectPath }: AdminLoginFormProps) => 
         </label>
 
         {state.errorMessage ? (
-          <p aria-live="polite" css={errorStyle} role="alert">
+          <p aria-live="polite" className={errorClass} role="alert">
             {state.errorMessage}
           </p>
         ) : null}
 
-        <div css={buttonRowStyle}>
+        <div className={buttonRowClass}>
           <Button disabled={isPending} tone="black" type="submit">
             {isPending ? '로그인 중' : '로그인'}
           </Button>
@@ -62,42 +62,44 @@ export const AdminLoginForm = ({ successRedirectPath }: AdminLoginFormProps) => 
   );
 };
 
-const pageStyle = css`
-  width: 100%;
-  padding: var(--space-8) var(--space-4);
-`;
+const pageClass = css({
+  width: 'full',
+  px: '4',
+  py: '8',
+});
 
-const formStyle = css`
-  width: min(100%, 24rem);
-  display: grid;
-  gap: var(--space-4);
-  margin: 0 auto;
-`;
+const formClass = css({
+  width: '[min(100%, 24rem)]',
+  display: 'grid',
+  gap: '4',
+  mx: 'auto',
+});
 
-const titleStyle = css`
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-24);
-  line-height: 1.2;
-`;
+const titleClass = css({
+  mb: '2',
+  mt: '0',
+  fontSize: '2xl',
+  lineHeight: 'tight',
+});
 
-const fieldStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
+const fieldClass = css({
+  display: 'grid',
+  gap: '2',
+});
 
-const labelStyle = css`
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-medium);
-`;
+const labelClass = css({
+  fontSize: 'sm',
+  fontWeight: 'medium',
+});
 
-const buttonRowStyle = css`
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-`;
+const buttonRowClass = css({
+  display: 'flex',
+  gap: '2',
+  flexWrap: 'wrap',
+});
 
-const errorStyle = css`
-  margin: 0;
-  color: rgb(190 24 93);
-  font-size: var(--font-size-14);
-`;
+const errorClass = css({
+  m: '0',
+  color: '[rgb(190 24 93)]',
+  fontSize: 'sm',
+});

@@ -1,14 +1,14 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { getButtonStyle } from '@/shared/ui/button/button';
+import { buttonRecipe } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleSearchFormProps = {
   autoFocus?: boolean;
@@ -68,6 +68,7 @@ export const ArticleSearchForm = ({
   const debounceTimerRef = React.useRef<number | null>(null);
   const skipDebounceRef = React.useRef(false);
   const currentQuery = searchParams?.get('q')?.trim() ?? searchQuery;
+  const ghostButtonClassName = buttonRecipe({ tone: 'white', variant: 'ghost' }).root;
 
   /**
    * 현재 pathname을 유지한 채 q 파라미터만 교체합니다.
@@ -164,16 +165,16 @@ export const ArticleSearchForm = ({
   return (
     <form
       aria-busy={isPending}
-      css={[formStyle, fullWidth ? fullWidthStyle : undefined]}
+      className={cx(formClass, fullWidth ? fullWidthClass : undefined)}
       onSubmit={handleSubmit}
       role="search"
     >
-      <div css={inputWrapStyle}>
+      <div className={inputWrapClass}>
         <Input
           aria-label={placeholder}
           autoComplete="off"
           autoFocus={autoFocus}
-          css={[inputPaddingStyle, isPending ? pendingInputStyle : undefined]}
+          className={cx(inputPaddingClass, isPending ? pendingInputClass : undefined)}
           enterKeyHint="search"
           name="q"
           onChange={event => setInputValue(event.target.value)}
@@ -183,17 +184,27 @@ export const ArticleSearchForm = ({
           value={inputValue}
         />
         {inputValue ? (
-          <button aria-label={clearText} css={clearButtonStyle} onClick={handleClear} type="button">
+          <button
+            aria-label={clearText}
+            className={cx(ghostButtonClassName, clearButtonClass)}
+            onClick={handleClear}
+            type="button"
+          >
             ×
           </button>
         ) : null}
-        <button aria-label={submitText} css={submitButtonStyle} disabled={isPending} type="submit">
+        <button
+          aria-label={submitText}
+          className={cx(ghostButtonClassName, submitButtonClass)}
+          disabled={isPending}
+          type="submit"
+        >
           <SearchIcon aria-hidden color="text" size="md" />
-          <span css={srOnlyStyle}>{submitText}</span>
+          <span className={srOnlyClass}>{submitText}</span>
         </button>
       </div>
       {isPending ? (
-        <p aria-live="polite" css={srOnlyStyle} role="status">
+        <p aria-live="polite" className={srOnlyClass} role="status">
           {pendingText}
         </p>
       ) : null}
@@ -201,76 +212,48 @@ export const ArticleSearchForm = ({
   );
 };
 
-const formStyle = css`
-  width: min(100%, 18rem);
-`;
+const formClass = css({
+  width: '[min(100%, 18rem)]',
+});
 
-const fullWidthStyle = css`
-  width: 100%;
-`;
+const fullWidthClass = css({
+  width: 'full',
+});
 
-const inputWrapStyle = css`
-  position: relative;
-`;
+const inputWrapClass = css({
+  position: 'relative',
+});
 
-const inputPaddingStyle = css`
-  min-height: 3rem;
-  padding-right: 6.5rem;
-`;
+const inputPaddingClass = css({
+  minHeight: '12',
+  paddingRight: '[4.5rem]',
+});
 
-const clearButtonStyle = css`
-  ${getButtonStyle({
-    tone: 'white',
-    variant: 'ghost',
-  })};
-  line-height: 1;
-  position: absolute;
-  top: 50%;
-  right: 3.6rem;
-  min-width: 2rem;
-  min-height: 2rem;
-  padding: 0;
-  transform: translateY(-50%);
-  border-radius: 999px;
-`;
+const clearButtonClass = css({
+  position: 'absolute',
+  top: '[50%]',
+  right: '[2.4rem]',
+  minWidth: '8',
+  minHeight: '8',
+  p: '0',
+  transform: '[translateY(-50%)]',
+  borderRadius: 'full',
+});
 
-const submitButtonStyle = css`
-  appearance: none;
-  position: absolute;
-  top: 50%;
-  right: var(--space-1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: rgb(var(--color-text));
-  cursor: pointer;
-  transform: translateY(-50%);
-  border-radius: 999px;
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
+const submitButtonClass = css({
+  position: 'absolute',
+  top: '[50%]',
+  right: '0',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minWidth: '9',
+  minHeight: '9',
+  p: '0',
+  transform: '[translateY(-50%)]',
+  borderRadius: 'full',
+});
 
-  &:hover:not(:disabled) {
-    background: rgb(var(--color-text) / 0.06);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.18);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.48;
-  }
-`;
-
-const pendingInputStyle = css`
-  opacity: 0.7;
-`;
+const pendingInputClass = css({
+  opacity: 0.7,
+});

@@ -1,11 +1,11 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type SwitcherPopoverProps = {
   children: (args: { closePopover: () => void }) => ReactNode;
@@ -70,8 +70,8 @@ export const SwitcherPopover = ({
   };
 
   return (
-    <div ref={rootRef} css={rootStyle}>
-      <span id={panelLabelId} css={srOnlyStyle}>
+    <div className={rootClass} ref={rootRef}>
+      <span className={srOnlyClass} id={panelLabelId}>
         {panelLabel}
       </span>
       <Button
@@ -80,8 +80,8 @@ export const SwitcherPopover = ({
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-labelledby={panelLabelId}
+        className={triggerButtonClass}
         onClick={handleToggle}
-        css={triggerStyle}
         size="sm"
         tone="white"
         type="button"
@@ -91,8 +91,8 @@ export const SwitcherPopover = ({
           triggerContent
         ) : (
           <>
-            <span css={triggerLabelStyle}>{label}</span>
-            <span id={valueId} css={triggerValueStyle}>
+            <span className={triggerLabelClass}>{label}</span>
+            <span className={triggerValueClass} id={valueId}>
               {value}
             </span>
           </>
@@ -105,7 +105,7 @@ export const SwitcherPopover = ({
           ref={panelRef}
           role="dialog"
           tabIndex={-1}
-          css={panelStyle}
+          className={panelClass}
         >
           {children({ closePopover })}
         </div>
@@ -114,52 +114,43 @@ export const SwitcherPopover = ({
   );
 };
 
-const rootStyle = css`
-  position: relative;
-`;
+const rootClass = css({
+  position: 'relative',
+});
 
-const triggerStyle = css`
-  display: inline-flex;
-  gap: var(--space-3);
-  border: none;
-  background: transparent;
-  color: rgb(var(--color-text));
+const triggerButtonClass = css({
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    color: 'primary',
+  },
+});
 
-  &:hover:not(:disabled):not([aria-disabled='true']) {
-    border-color: transparent;
-    background: transparent;
-    color: rgb(var(--color-primary));
-  }
+const triggerLabelClass = css({
+  fontSize: 'xs',
+  fontWeight: 'bold',
+  letterSpacing: '[0.12em]',
+  textTransform: 'uppercase',
+  color: 'muted',
+});
 
-  &:focus-visible {
-    color: rgb(var(--color-primary));
-  }
-`;
+const triggerValueClass = css({
+  fontSize: 'sm',
+  color: 'text',
+});
 
-const triggerLabelStyle = css`
-  font-size: var(--font-size-12);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgb(var(--color-muted));
-`;
-
-const triggerValueStyle = css`
-  font-size: var(--font-size-14);
-  color: rgb(var(--color-text));
-`;
-
-const panelStyle = css`
-  position: absolute;
-  top: calc(100% + 0.55rem);
-  right: 0;
-  min-width: 12rem;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.22);
-  background-color: rgb(var(--color-surface) / 0.98);
-  box-shadow: 0 18px 42px rgb(var(--color-black) / 0.12);
-  display: grid;
-  gap: var(--space-1);
-  z-index: 30;
-`;
+const panelClass = css({
+  position: 'absolute',
+  top: '[calc(100% + 0.55rem)]',
+  right: '0',
+  minWidth: '48',
+  p: '2',
+  borderRadius: '2xl',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
+  boxShadow: '[0 18px 42px rgb(15 23 42 / 0.12)]',
+  display: 'grid',
+  gap: '1',
+  zIndex: '30',
+});

@@ -6,6 +6,7 @@ import ArrowUpSvg from '@/shared/assets/icons/arrow-up.svg';
 import CalendarSvg from '@/shared/assets/icons/calendar.svg';
 import EditSvg from '@/shared/assets/icons/edit.svg';
 import EyeSvg from '@/shared/assets/icons/eye.svg';
+import HamburgerSvg from '@/shared/assets/icons/hamburger.svg';
 import KebabSvg from '@/shared/assets/icons/kebab.svg';
 import LinkExternalSvg from '@/shared/assets/icons/link-external.svg';
 import LockSvg from '@/shared/assets/icons/lock.svg';
@@ -31,13 +32,13 @@ type AppIconColor =
 type AppIconSize = 'lg' | 'md' | 'sm' | number;
 
 const iconColorMap: Record<Exclude<AppIconColor, 'current'>, string> = {
-  black: 'rgb(var(--color-black))',
-  danger: 'rgb(var(--color-danger))',
-  muted: 'rgb(var(--color-muted))',
-  primary: 'rgb(var(--color-primary))',
-  surface: 'rgb(var(--color-surface))',
-  text: 'rgb(var(--color-text))',
-  white: 'rgb(var(--color-white))',
+  black: 'var(--colors-black)',
+  danger: 'var(--colors-danger)',
+  muted: 'var(--colors-muted)',
+  primary: 'var(--colors-primary)',
+  surface: 'var(--colors-surface)',
+  text: 'var(--colors-text)',
+  white: 'var(--colors-white)',
 };
 
 const iconSizeMap: Record<Exclude<AppIconSize, number>, number> = {
@@ -146,6 +147,7 @@ export const ArrowUpIcon = createAppIcon(ArrowUpSvg);
 export const CalendarIcon = createAppIcon(CalendarSvg);
 export const EditIcon = createAppIcon(EditSvg);
 export const EyeIcon = createAppIcon(EyeSvg);
+export const HamburgerIcon = createAppIcon(HamburgerSvg);
 export const KebabIcon = createAppIcon(KebabSvg);
 export const LinkExternalIcon = createAppIcon(LinkExternalSvg);
 export const LockIcon = createAppIcon(LockSvg);

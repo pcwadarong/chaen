@@ -1,12 +1,12 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useEffect, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type ProjectFeedProps = {
@@ -61,10 +61,10 @@ export const ProjectFeed = ({
   }, [loadMore]);
 
   return (
-    <section css={sectionStyle}>
+    <section className={sectionClass}>
       {errorMessage && items.length === 0 ? (
-        <div css={errorPanelStyle}>
-          <p css={errorTextStyle}>{loadErrorText}</p>
+        <div className={errorPanelClass}>
+          <p className={errorTextClass}>{loadErrorText}</p>
           <Button onClick={() => void loadMore()} tone="white" variant="ghost">
             {retryText}
           </Button>
@@ -73,19 +73,19 @@ export const ProjectFeed = ({
         <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
       )}
 
-      <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
+      <div aria-hidden className={sentinelClass} ref={sentinelRef} />
       {isLoadingMore ? (
-        <p aria-live="polite" css={stateTextStyle}>
+        <p aria-live="polite" className={stateTextClass}>
           {loadingText}
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}
       {errorMessage && items.length > 0 ? (
-        <p aria-live="polite" css={errorTextStyle}>
+        <p aria-live="polite" className={errorTextClass}>
           {loadErrorText}
         </p>
       ) : null}
@@ -93,31 +93,32 @@ export const ProjectFeed = ({
   );
 };
 
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
+const sectionClass = css({
+  display: 'grid',
+  gap: '3',
+});
 
-const sentinelStyle = css`
-  width: 100%;
-  height: 1px;
-`;
+const sentinelClass = css({
+  width: 'full',
+  height: '[1px]',
+});
 
-const stateTextStyle = css`
-  color: rgb(var(--color-muted));
-  text-align: center;
-`;
+const stateTextClass = css({
+  color: 'muted',
+  textAlign: 'center',
+});
 
-const errorPanelStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  justify-items: center;
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  padding: var(--space-4) var(--space-5);
-`;
+const errorPanelClass = css({
+  display: 'grid',
+  gap: '3',
+  justifyItems: 'center',
+  borderRadius: 'md',
+  border: '[1px solid var(--colors-border)]',
+  px: '5',
+  py: '4',
+});
 
-const errorTextStyle = css`
-  color: rgb(var(--color-danger));
-  text-align: center;
-`;
+const errorTextClass = css({
+  color: 'danger',
+  textAlign: 'center',
+});

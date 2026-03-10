@@ -3,7 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "concurrently -k -n next,panda -c blue,magenta \"pnpm dev:next\" \"pnpm panda:watch\"",
+    "dev:next": "next dev",
+    "panda:watch": "concurrently -k -n codegen,css -c magenta,cyan \"panda codegen --watch\" \"panda cssgen --watch --outfile styled-system/styles.css\"",
+    "panda:codegen": "panda codegen && panda cssgen --outfile styled-system/styles.css",
+    "prepare": "pnpm panda:codegen",
     "build": "next build",
     "start": "next start",
     "commit": "cz",
@@ -32,8 +36,6 @@
     }
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@supabase/ssr": "^0.8.0",
@@ -54,6 +56,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.35.0",
+    "@pandacss/dev": "^1.9.0",
     "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
@@ -64,7 +67,9 @@
     "@vitejs/plugin-react": "^5.0.2",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
+    "autoprefixer": "^10.4.27",
     "commitizen": "^4.3.1",
+    "concurrently": "^9.2.1",
     "cz-customizable": "^7.5.1",
     "eslint": "^9.35.0",
     "eslint-config-next": "^15.5.3",

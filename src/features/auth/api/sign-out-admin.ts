@@ -39,9 +39,7 @@ export const signOutAdmin = async (
     Object.fromEntries(formData.entries()),
   );
 
-  if (!validation.ok) {
-    return createActionFailure(validation.errorMessage);
-  }
+  if (!validation.ok) return createActionFailure(validation.errorMessage);
 
   const { redirectPath } = validation.data;
   await getServerAuthState();
@@ -49,9 +47,7 @@ export const signOutAdmin = async (
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    return createActionFailure('로그아웃에 실패했습니다.');
-  }
+  if (error) return createActionFailure('로그아웃에 실패했습니다.');
 
   redirect(redirectPath);
 };

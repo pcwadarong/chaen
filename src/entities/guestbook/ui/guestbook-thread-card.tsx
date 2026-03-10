@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useActionState, useEffect, useRef, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
@@ -82,7 +82,7 @@ export const GuestbookThreadCard = ({
   }, [onRevealSecretSuccess, verifyState]);
 
   return (
-    <article css={threadStyle}>
+    <article className={threadClass}>
       <GuestbookThreadBubble
         actionDeleteLabel={actionDeleteLabel}
         actionEditLabel={actionEditLabel}
@@ -113,7 +113,7 @@ export const GuestbookThreadCard = ({
       />
 
       {entry.replies.length > 0 ? (
-        <div css={replyStackStyle}>
+        <div className={replyStackClass}>
           {entry.replies.map(reply => (
             <GuestbookReplyBubble
               actionDeleteLabel={actionDeleteLabel}
@@ -135,13 +135,13 @@ export const GuestbookThreadCard = ({
   );
 };
 
-const threadStyle = css`
-  width: 100%;
-  display: grid;
-  gap: var(--space-2);
-`;
+const threadClass = css({
+  width: 'full',
+  display: 'grid',
+  gap: '2',
+});
 
-const replyStackStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
+const replyStackClass = css({
+  display: 'grid',
+  gap: '2',
+});

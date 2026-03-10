@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useLayoutEffect, useRef } from 'react';
+import { cva, cx } from 'styled-system/css';
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   autoResize?: boolean;
@@ -19,7 +19,7 @@ const resizeTextarea = (element: HTMLTextAreaElement) => {
  * 공통 여러 줄 입력 컴포넌트입니다.
  */
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ autoResize = true, onChange, rows = 1, style, ...props }, ref) => {
+  ({ autoResize = true, className, onChange, rows = 1, style, ...props }, ref) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
 
     useLayoutEffect(() => {
@@ -52,10 +52,10 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <textarea
         {...props}
+        className={cx(textareaRecipe({ autoResize }), className)}
+        onChange={handleChange}
         ref={handleRef}
         rows={rows}
-        onChange={handleChange}
-        css={[textareaStyle, autoResize ? autoResizeStyle : undefined]}
         style={style}
       />
     );
@@ -64,41 +64,52 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
 Textarea.displayName = 'Textarea';
 
-const textareaStyle = css`
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  resize: vertical;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
-
-  &::placeholder {
-    color: rgb(var(--color-muted) / 0.62);
-  }
-
-  &:hover:not(:disabled) {
-    border-color: rgb(var(--color-border) / 0.44);
-  }
-
-  &:focus-visible {
-    outline: none;
-    border-color: rgb(var(--color-primary) / 0.42);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.14);
-  }
-
-  &:disabled,
-  &[aria-disabled='true'] {
-    cursor: not-allowed;
-    opacity: 0.56;
-  }
-`;
-
-const autoResizeStyle = css`
-  resize: none;
-  overflow: hidden;
-`;
+/**
+ * 공통 여러 줄 입력 필드 스타일을 정의합니다.
+ */
+const textareaRecipe = cva({
+  base: {
+    width: 'full',
+    px: '3',
+    py: '2',
+    borderRadius: 'md',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'border',
+    backgroundColor: 'transparent',
+    color: 'text',
+    resize: 'vertical',
+    transition: 'colors',
+    _placeholder: {
+      color: 'muted',
+    },
+    _hover: {
+      borderColor: 'borderStrong',
+    },
+    _focusVisible: {
+      outline: '[2px solid var(--colors-focus-ring)]',
+      outlineOffset: '[2px]',
+      borderColor: 'primary',
+    },
+    _disabled: {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+    '&[aria-disabled="true"]': {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+  },
+  variants: {
+    autoResize: {
+      true: {
+        resize: 'none',
+        overflow: 'hidden',
+      },
+      false: {},
+    },
+  },
+  defaultVariants: {
+    autoResize: true,
+  },
+});

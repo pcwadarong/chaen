@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useActionState } from 'react';
+import { css } from 'styled-system/css';
 
 import { initialSignOutAdminState, signOutAdmin } from '@/features/auth/api/sign-out-admin';
 import { Button } from '@/shared/ui/button/button';
@@ -23,13 +23,13 @@ export const AdminSignOutButton = ({
   const [state, formAction, isPending] = useActionState(signOutAdmin, initialSignOutAdminState);
 
   return (
-    <form action={formAction} css={wrapperStyle}>
+    <form action={formAction} className={wrapperClass}>
       <input name="redirectPath" type="hidden" value={redirectPath} />
       <Button disabled={isPending} tone="black" type="submit">
         {isPending ? submitPendingLabel : submitLabel}
       </Button>
       {state.errorMessage ? (
-        <p aria-live="polite" css={messageStyle} role="alert">
+        <p aria-live="polite" className={messageClass} role="alert">
           {state.errorMessage}
         </p>
       ) : null}
@@ -37,13 +37,13 @@ export const AdminSignOutButton = ({
   );
 };
 
-const wrapperStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
+const wrapperClass = css({
+  display: 'grid',
+  gap: '2',
+});
 
-const messageStyle = css`
-  margin: 0;
-  color: rgb(190 24 93);
-  font-size: var(--font-size-14);
-`;
+const messageClass = css({
+  m: '0',
+  color: '[rgb(190 24 93)]',
+  fontSize: 'sm',
+});

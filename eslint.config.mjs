@@ -20,6 +20,7 @@ const eslintConfig = [
       '**/node_modules',
       '**/.next',
       '**/coverage',
+      '**/styled-system',
       '**/*.config.js',
       '**/*.config.ts',
       'next-env.d.ts',

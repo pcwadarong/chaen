@@ -1,7 +1,7 @@
-'use client';
-
-import { css } from '@emotion/react';
 import React from 'react';
+import { css } from 'styled-system/css';
+
+import { Button } from '@/shared/ui/button/button';
 
 type PaginationProps = {
   ariaLabel: string;
@@ -26,21 +26,24 @@ export const Pagination = ({
 
   return (
     <nav aria-label={ariaLabel}>
-      <ol css={listStyle}>
+      <ol className={paginationListClass}>
         {pages.map(page => {
           const isCurrent = page === currentPage;
 
           return (
             <li key={page}>
-              <button
+              <Button
                 aria-current={isCurrent ? 'page' : undefined}
-                css={[pageButtonStyle, isCurrent ? currentPageButtonStyle : undefined]}
+                className={isCurrent ? currentPaginationButtonClass : paginationButtonClass}
                 disabled={isCurrent}
                 onClick={() => onPageChange(page)}
+                size="xs"
+                tone={isCurrent ? 'primary' : 'white'}
                 type="button"
+                variant={isCurrent ? 'solid' : 'ghost'}
               >
                 {page}
-              </button>
+              </Button>
             </li>
           );
         })}
@@ -49,45 +52,37 @@ export const Pagination = ({
   );
 };
 
-const listStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  flex-wrap: wrap;
-`;
+const paginationButtonClass = css({
+  minWidth: '[2.25rem]',
+  fontWeight: 'medium',
+  color: 'muted',
+  _hover: {
+    color: 'primary',
+    background: 'primarySubtle',
+  },
+  _focusVisible: {
+    color: 'primary',
+    background: 'primarySubtle',
+  },
+});
 
-const pageButtonStyle = css`
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  padding: var(--space-1) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-medium);
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+const currentPaginationButtonClass = css({
+  minWidth: '[2.25rem]',
+  fontWeight: 'semibold',
+  _disabled: {
+    cursor: 'default',
+    opacity: 1,
+  },
+  '&[aria-disabled="true"]': {
+    cursor: 'default',
+    opacity: 1,
+  },
+});
 
-  &:hover:not(:disabled):not([aria-disabled='true']),
-  &:focus-visible:not(:disabled):not([aria-disabled='true']) {
-    color: rgb(var(--color-primary));
-    background: rgb(var(--color-primary) / 0.08);
-    outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.12);
-  }
-
-  &:disabled,
-  &[aria-disabled='true'] {
-    cursor: default;
-  }
-`;
-
-const currentPageButtonStyle = css`
-  color: rgb(var(--color-primary));
-  background: rgb(var(--color-primary) / 0.1);
-  font-weight: var(--font-weight-semibold);
-`;
+const paginationListClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '1',
+  flexWrap: 'wrap',
+});

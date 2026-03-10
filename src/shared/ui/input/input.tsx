@@ -1,49 +1,49 @@
-'use client';
-
-import { css } from '@emotion/react';
 import React from 'react';
+import { cva, cx } from 'styled-system/css';
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 /**
  * 공통 단일행 입력 컴포넌트입니다.
  */
-export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => (
-  <input {...props} ref={ref} css={inputStyle} />
-));
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, ...props }, ref) => (
+    <input {...props} className={cx(inputRecipe(), className)} ref={ref} />
+  ),
+);
 
 Input.displayName = 'Input';
 
-const inputStyle = css`
-  width: 100%;
-  min-height: 2.75rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.3);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-text));
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
-
-  &::placeholder {
-    color: rgb(var(--color-muted) / 0.62);
-  }
-
-  &:hover:not(:disabled) {
-    border-color: rgb(var(--color-border) / 0.44);
-  }
-
-  &:focus-visible {
-    outline: none;
-    border-color: rgb(var(--color-primary) / 0.42);
-    box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.14);
-  }
-
-  &:disabled,
-  &[aria-disabled='true'] {
-    cursor: not-allowed;
-    opacity: 0.56;
-  }
-`;
+/**
+ * 공통 단일행 입력 필드 스타일을 정의합니다.
+ */
+const inputRecipe = cva({
+  base: {
+    width: 'full',
+    minHeight: '[2.75rem]',
+    px: '3',
+    py: '2',
+    borderRadius: 'md',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'border',
+    backgroundColor: 'transparent',
+    color: 'text',
+    transition: 'colors',
+    _placeholder: {
+      color: 'muted',
+    },
+    _hover: {
+      borderColor: 'borderStrong',
+    },
+    _focusVisible: {
+      outline: '[2px solid var(--colors-focus-ring)]',
+      outlineOffset: '[2px]',
+      borderColor: 'primary',
+    },
+    _disabled: {
+      cursor: 'not-allowed',
+      opacity: 0.56,
+    },
+  },
+});

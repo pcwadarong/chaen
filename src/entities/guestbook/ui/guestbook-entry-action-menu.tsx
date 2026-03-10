@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 
 import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';

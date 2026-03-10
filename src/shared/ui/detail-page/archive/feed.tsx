@@ -1,17 +1,26 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import type { ActionResult } from '@/shared/lib/action/action-result';
+import { formatYear } from '@/shared/lib/date/format-year';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
-import { buildDetailArchiveLinkItems } from './build-detail-archive-link-items';
-import { DetailArchiveList } from './detail-archive-list';
-import type { DetailArchiveRecord } from './detail-archive-types';
+import {
+  type DetailArchiveLinkItem,
+  DetailArchiveList,
+  detailArchiveSidebarViewportClass,
+} from './list';
 
-import styles from './detail-page-shell.module.css';
+type DetailArchiveRecord = {
+  created_at: string;
+  description: string | null;
+  id: string;
+  title: string;
+};
 
 type DetailArchivePage<TItem> = {
   items: TItem[];
@@ -56,7 +65,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
       limit,
       locale: nextLocale,
     }: {
-      cursor: string;
+      cursor: string | null;
       limit: number;
       locale: string;
     }) => {
@@ -130,25 +139,25 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   return (
     <div
       aria-busy={isLoadingMore ? 'true' : undefined}
-      className={styles.sidebarViewport}
+      className={detailArchiveSidebarViewportClass}
       data-scroll-region="true"
       ref={viewportRef}
     >
       <DetailArchiveList emptyText={emptyText} items={linkItems} />
-      <div aria-hidden className={styles.sidebarSentinel} ref={sentinelRef} />
+      <div aria-hidden className={sidebarSentinelClass} ref={sentinelRef} />
       {isLoadingMore ? (
-        <p aria-live="polite" className={styles.sidebarStateText}>
+        <p aria-live="polite" className={sidebarStateTextClass}>
           {loadingText}
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}
       {errorMessage ? (
-        <div className={styles.sidebarFeedbackPanel}>
-          <p aria-live="polite" className={styles.sidebarErrorText}>
+        <div className={sidebarFeedbackPanelClass}>
+          <p aria-live="polite" className={sidebarErrorTextClass}>
             {loadErrorText}
           </p>
           <Button onClick={() => void loadMore()} tone="white" variant="ghost">
@@ -159,3 +168,51 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     </div>
   );
 };
+
+const sidebarSentinelClass = css({
+  height: '1',
+});
+
+type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
+  hrefBasePath: string;
+  items: TItem[];
+  locale: string;
+  selectedId: string;
+};
+
+/**
+ * 상세 페이지 좌측 아카이브 목록 데이터를 링크 렌더링용 형태로 변환합니다.
+ */
+const buildDetailArchiveLinkItems = <TItem extends DetailArchiveRecord>({
+  hrefBasePath,
+  items,
+  locale,
+  selectedId,
+}: BuildDetailArchiveLinkItemsInput<TItem>): DetailArchiveLinkItem[] =>
+  items.map(item => ({
+    description: item.description,
+    href: `${hrefBasePath}/${item.id}`,
+    isActive: item.id === selectedId,
+    title: item.title,
+    yearText: formatYear(item.created_at, locale) ?? '-',
+  }));
+
+const sidebarStateTextClass = css({
+  px: '5',
+  py: '4',
+  color: 'muted',
+  fontSize: 'sm',
+});
+
+const sidebarFeedbackPanelClass = css({
+  display: 'grid',
+  justifyItems: 'start',
+  gap: '3',
+  px: '5',
+  py: '4',
+});
+
+const sidebarErrorTextClass = css({
+  color: 'danger',
+  fontSize: 'sm',
+});

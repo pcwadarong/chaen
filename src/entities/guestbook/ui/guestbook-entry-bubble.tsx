@@ -1,7 +1,5 @@
-'use client';
-
-import { css, type SerializedStyles } from '@emotion/react';
 import React from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { LinkExternalIcon } from '@/shared/ui/icons/app-icons';
 
@@ -44,25 +42,39 @@ export const GuestbookEntryBubble = ({
   tone,
   variant = 'thread',
 }: GuestbookEntryBubbleProps) => (
-  <div css={[wrapperStyle, align === 'end' && endAlignStyle]}>
-    <div css={rowStyle}>
+  <div className={cx(wrapperClass, align === 'end' ? endAlignClass : undefined)}>
+    <div className={rowClass}>
       {action && actionSide === 'start' ? (
-        <div css={[startActionSlotStyle, actionVerticalAlign === 'start' && topActionSlotStyle]}>
+        <div
+          className={cx(
+            startActionSlotClass,
+            actionVerticalAlign === 'start' ? topActionSlotClass : undefined,
+          )}
+        >
           {action}
         </div>
       ) : null}
-      <div css={columnStyle}>
+      <div className={columnClass}>
         {meta?.position === 'top' ? <EntryMeta meta={meta} /> : null}
         <div
-          css={[bubbleBaseStyle, toneStyleMap[tone ?? toneByVariant[variant]], bubbleWidthStyle]}
+          className={cx(
+            bubbleBaseClass,
+            toneClassMap[tone ?? toneByVariant[variant]],
+            bubbleWidthClass,
+          )}
         >
           {header ? <header>{header}</header> : null}
-          <div css={bodySlotStyle}>{children}</div>
+          <div className={bodySlotClass}>{children}</div>
         </div>
         {meta?.position === 'bottom' ? <EntryMeta meta={meta} /> : null}
       </div>
       {action && actionSide === 'end' ? (
-        <div css={[endActionSlotStyle, actionVerticalAlign === 'start' && topActionSlotStyle]}>
+        <div
+          className={cx(
+            endActionSlotClass,
+            actionVerticalAlign === 'start' ? topActionSlotClass : undefined,
+          )}
+        >
           {action}
         </div>
       ) : null}
@@ -78,129 +90,136 @@ type EntryMetaProps = {
  * 방명록 버블 위/아래에 붙는 메타 정보를 렌더링합니다.
  */
 const EntryMeta = ({ meta }: EntryMetaProps) => (
-  <div css={[metaStyle, meta.position === 'bottom' ? bottomMetaStyle : undefined]}>
+  <div className={cx(metaClass, meta.position === 'bottom' ? bottomMetaClass : undefined)}>
     {meta.authorName ? (
       meta.authorUrl ? (
-        <a css={authorLinkStyle} href={meta.authorUrl} rel="noreferrer noopener" target="_blank">
-          <strong css={nameStyle}>{meta.authorName}</strong>
+        <a
+          className={authorLinkClass}
+          href={meta.authorUrl}
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          <strong className={nameClass}>{meta.authorName}</strong>
           <LinkExternalIcon aria-hidden color="primary" size="sm" />
         </a>
       ) : (
-        <strong css={nameStyle}>{meta.authorName}</strong>
+        <strong className={nameClass}>{meta.authorName}</strong>
       )
     ) : null}
-    <time dateTime={meta.dateTime} css={dateStyle}>
+    <time className={dateClass} dateTime={meta.dateTime}>
       {meta.dateText}
     </time>
   </div>
 );
 
-const wrapperStyle = css`
-  display: flex;
-  width: 100%;
-  min-width: 0;
-`;
+const wrapperClass = css({
+  display: 'flex',
+  width: 'full',
+  minWidth: '0',
+});
 
-const endAlignStyle = css`
-  justify-content: flex-end;
-`;
+const endAlignClass = css({
+  justifyContent: 'flex-end',
+});
 
-const rowStyle = css`
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-2);
-  width: fit-content;
-  max-width: 100%;
-`;
+const rowClass = css({
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: '2',
+  width: '[fit-content]',
+  maxWidth: 'full',
+});
 
-const columnStyle = css`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-`;
+const columnClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2',
+  minWidth: '0',
+});
 
-const startActionSlotStyle = css`
-  margin-right: -0.7rem;
-`;
+const startActionSlotClass = css({
+  marginRight: '[-0.7rem]',
+});
 
-const endActionSlotStyle = css`
-  margin-left: -0.7rem;
-`;
+const endActionSlotClass = css({
+  marginLeft: '[-0.7rem]',
+});
 
-const topActionSlotStyle = css`
-  align-self: flex-start;
-`;
+const topActionSlotClass = css({
+  alignSelf: 'flex-start',
+});
 
-const bubbleBaseStyle = css`
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-l);
-`;
+const bubbleBaseClass = css({
+  width: 'full',
+  minWidth: '0',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4',
+  p: '4',
+  borderRadius: '2xl',
+});
 
 const toneByVariant: Record<GuestbookEntryBubbleVariant, GuestbookEntryBubbleTone> = {
   reply: 'inverse',
   thread: 'surface',
 };
 
-const toneStyleMap: Record<GuestbookEntryBubbleTone, SerializedStyles> = {
-  surface: css`
-    border: 1px solid rgb(var(--color-border) / 0.25);
-    background-color: rgb(var(--color-surface) / 0.82);
-    color: rgb(var(--color-text));
-  `,
-  inverse: css`
-    background-color: rgb(var(--color-primary));
-    color: rgb(var(--color-primary-contrast));
-  `,
+const toneClassMap: Record<GuestbookEntryBubbleTone, string> = {
+  surface: css({
+    border: '[1px solid var(--colors-border)]',
+    backgroundColor: 'surfaceMuted',
+    color: 'text',
+  }),
+  inverse: css({
+    backgroundColor: 'primary',
+    color: 'primaryContrast',
+  }),
 };
 
-const bubbleWidthStyle = css`
-  max-width: min(46rem, calc(100vw - 4.75rem));
-`;
+const bubbleWidthClass = css({
+  maxWidth: '[min(46rem, calc(100vw - 4.75rem))]',
+});
 
-const bodySlotStyle = css`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-`;
+const bodySlotClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2',
+  minWidth: '0',
+});
 
-const metaStyle = css`
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
+const metaClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '3',
+  flexWrap: 'wrap',
+});
 
-const bottomMetaStyle = css`
-  justify-content: flex-end;
-`;
+const bottomMetaClass = css({
+  justifyContent: 'flex-end',
+});
 
-const authorLinkStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: rgb(var(--color-primary));
-  text-decoration: none;
+const authorLinkClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '2',
+  color: 'primary',
+  textDecoration: 'none',
+  _hover: {
+    textDecoration: 'underline',
+  },
+  _focusVisible: {
+    textDecoration: 'underline',
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
+});
 
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline;
-    outline: none;
-  }
-`;
+const nameClass = css({
+  fontSize: 'lg',
+  fontWeight: 'semibold',
+});
 
-const nameStyle = css`
-  font-size: var(--font-size-18);
-  font-weight: var(--font-weight-semibold);
-`;
-
-const dateStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
+const dateClass = css({
+  color: 'muted',
+  fontSize: 'sm',
+});

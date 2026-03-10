@@ -8,6 +8,17 @@
 - 경로 alias를 우선 사용하고 상대 경로 체인은 길게 늘리지 않는다.
 - SVG, font, style, config는 재사용 가능한 진입점을 먼저 만든다.
 - 함수는 JsDoc를 한국어로 꼼꼼히 작성한다.
+- 불필요하게 `div` wrapper를 만들어서 감싸지 않는다.
+
+## Styling Rules
+
+- Panda CSS를 기본 스타일 시스템으로 사용하고, Emotion이나 `module.css`는 새로 추가하지 않는다.
+- 스타일 선언은 별도 `*.recipe.ts`/`*.styles.ts`로 분리하지 말고 컴포넌트 파일 안에서 `cva()`/`css()`로 co-location 한다.
+- 확장 포인트는 `className`만 허용하고, `cx(localRecipeOrClass, props.className)` 패턴으로 합친다.
+- `margin`, `gap` 같은 layout prop은 새로 추가하지 않고 필요한 레이아웃 확장은 `className`으로 해결한다.
+- `use client`는 상태, effect, 브라우저 API, `next/navigation`, `next-themes`, 포털/포커스 관리처럼 실제 클라이언트 런타임이 필요한 경우에만 선언한다.
+- 스타일링이나 단순 번역(`next-intl`)만으로는 `use client`를 붙이지 않는다. 가능하면 server/shared component로 유지하고, locale 제약이 있으면 서버 유틸 또는 상위에서 계산한 props로 푼다.
+- 마이그레이션/호환용 임시 코드, alias layer, 보조 스크립트는 작업 종료 시 실제 필요성을 다시 검토하고 제거 대상을 정리한다.
 
 ## FSD (Feature-Sliced Design) 아키텍처 규칙
 
