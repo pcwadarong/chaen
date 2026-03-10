@@ -44,14 +44,15 @@ type CommentComposeFormProps = {
   isSubmittingOverride?: boolean;
   layout?: CommentComposeFormLayout;
   onSubmit?: (values: CommentComposeValues) => Promise<void> | void;
-  onReplyTargetReset: () => void;
+  onReplyTargetReset?: () => void;
   passwordPlaceholder: string;
   passwordLabel: string;
   presetAuthorName?: string;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
-  replyTargetResetLabel: string;
+  replyTargetResetLabel?: string;
   secretLabel: string;
+  showReplyPreview?: boolean;
   submitLabel: string;
   submissionResult?: ActionResult<unknown> | null;
   textareaAutoResize?: boolean;
@@ -90,6 +91,7 @@ export const CommentComposeForm = ({
   replyTargetContent,
   replyTargetResetLabel,
   secretLabel,
+  showReplyPreview = true,
   submitLabel,
   submissionResult,
   textareaAutoResize = true,
@@ -245,7 +247,7 @@ export const CommentComposeForm = ({
             passwordValue={password}
           />
         ) : null}
-        {isReplyMode ? (
+        {isReplyMode && showReplyPreview ? (
           <CommentComposeReplyPreview
             onReset={onReplyTargetReset}
             replyPreviewLabel={replyPreviewLabel}

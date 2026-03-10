@@ -153,6 +153,9 @@ export const ResumePageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonP
         <SkeletonBlock className={css({ width: '[42%]', height: '5' })} />
         <SkeletonBlock className={css({ width: '[58%]', height: '5' })} />
         <SkeletonBlock className={css({ width: '[36%]', height: '5' })} />
+        <SkeletonBlock className={css({ width: '[42%]', height: '5' })} />
+        <SkeletonBlock className={css({ width: '[58%]', height: '5' })} />
+        <SkeletonBlock className={css({ width: '[36%]', height: '5' })} />
       </div>
     </section>
   </main>

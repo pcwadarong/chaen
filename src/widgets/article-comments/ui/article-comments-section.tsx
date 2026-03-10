@@ -360,13 +360,12 @@ export const ArticleCommentsSection = ({
         isReplyMode={false}
         isSubmittingOverride={isRootSubmitting}
         layout="embedded"
-        onReplyTargetReset={() => undefined}
         passwordLabel={t('composePasswordLabel')}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={null}
-        replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel=""
+        showReplyPreview={false}
         submitLabel={t('submit')}
         submissionResult={rootSubmitState}
         textareaAutoResize={false}
@@ -501,14 +500,13 @@ export const ArticleCommentsSection = ({
                       isReplyMode
                       isSubmittingOverride={isReplySubmitting}
                       layout="embedded"
-                      onReplyTargetReset={() => setReplyTarget(null)}
                       passwordLabel={t('composePasswordLabel')}
                       passwordPlaceholder={t('composePasswordPlaceholder')}
                       replyPreviewLabel={t('composeReplyPreviewLabel')}
                       replyTargetContent={replyTarget.content}
-                      replyTargetResetLabel={t('replyTargetResetLabel')}
                       secretLabel=""
-                      submitLabel={t('replySubmit')}
+                      showReplyPreview={false}
+                      submitLabel={t('submit')}
                       submissionResult={replySubmitState}
                       textareaAutoResize={false}
                       textareaRows={4}
@@ -883,9 +881,11 @@ const replyListClass = css({
 
 const replyComposeWrapClass = css({
   paddingLeft: '4',
+  paddingBottom: '5',
   marginTop: '1',
   '@media (min-width: 721px)': {
     paddingLeft: '6',
+    paddingBottom: '6',
   },
 });
 
