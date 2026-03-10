@@ -155,7 +155,7 @@ const detailPageHeroClass = css({
   pb: '10',
   borderBottom: '[1px solid var(--colors-border)]',
   '@media (min-width: 961px)': {
-    pb: '12',
+    pb: '8',
   },
 });
 
@@ -165,7 +165,7 @@ const detailPageHeroTextClass = css({
   gap: '4',
   alignItems: 'center',
   textAlign: 'center',
-  mb: '8',
+  mb: '4',
   px: '4',
 });
 

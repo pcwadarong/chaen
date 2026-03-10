@@ -111,7 +111,7 @@ const optionClass = css({
   width: 'full',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
+  justifyContent: 'flex-start',
   gap: '3',
   minHeight: '[2.75rem]',
   px: '4',

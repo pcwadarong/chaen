@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 import { buildDetailArchiveLinkItems } from './build-detail-archive-link-items';
 import { DetailArchiveList } from './detail-archive-list';
 import type { DetailArchiveRecord } from './detail-archive-types';
-
-import styles from './detail-page-shell.module.css';
 
 type DetailArchivePage<TItem> = {
   items: TItem[];
@@ -97,25 +96,25 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   return (
     <div
       aria-busy={isLoadingMore ? 'true' : undefined}
-      className={styles.sidebarViewport}
+      className={sidebarViewportClass}
       data-scroll-region="true"
       ref={viewportRef}
     >
       <DetailArchiveList emptyText={emptyText} items={linkItems} />
-      <div aria-hidden className={styles.sidebarSentinel} ref={sentinelRef} />
+      <div aria-hidden className={sidebarSentinelClass} ref={sentinelRef} />
       {isLoadingMore ? (
-        <p aria-live="polite" className={styles.sidebarStateText}>
+        <p aria-live="polite" className={sidebarStateTextClass}>
           {loadingText}
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}
       {errorMessage ? (
-        <div className={styles.sidebarFeedbackPanel}>
-          <p aria-live="polite" className={styles.sidebarErrorText}>
+        <div className={sidebarFeedbackPanelClass}>
+          <p aria-live="polite" className={sidebarErrorTextClass}>
             {loadErrorText}
           </p>
           <Button onClick={() => void loadMore()} tone="white" variant="ghost">
@@ -126,3 +125,40 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     </div>
   );
 };
+
+const sidebarViewportClass = css({
+  py: '7',
+  '@media (min-width: 961px)': {
+    flex: '[1 1 auto]',
+    minHeight: '0',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
+  },
+  '@media (min-width: 1200px)': {
+    py: '8',
+  },
+});
+
+const sidebarSentinelClass = css({
+  height: '1',
+});
+
+const sidebarStateTextClass = css({
+  px: '5',
+  py: '4',
+  color: 'muted',
+  fontSize: 'sm',
+});
+
+const sidebarFeedbackPanelClass = css({
+  display: 'grid',
+  justifyItems: 'start',
+  gap: '3',
+  px: '5',
+  py: '4',
+});
+
+const sidebarErrorTextClass = css({
+  color: 'danger',
+  fontSize: 'sm',
+});

@@ -137,14 +137,14 @@ export const DetailMetaBar = ({
         )}
         <Button
           className={shareButtonClass}
+          leadingVisual={<ShareIcon aria-hidden color="current" size="md" />}
           onClick={handleShare}
           size="sm"
           tone="white"
           type="button"
           variant="ghost"
         >
-          <ShareIcon aria-hidden color="text" size="md" />
-          <span>{shareState === 'copied' ? copiedText : shareText}</span>
+          {shareState === 'copied' ? copiedText : shareText}
         </Button>
       </div>
       <span aria-live="polite" className={srOnlyClass}>
@@ -164,7 +164,7 @@ const metaBarClass = css({
   alignItems: 'center',
   justifyContent: 'center',
   gap: '4',
-  minHeight: '[3.25rem]',
+  minHeight: '[3rem]',
   px: '6',
   py: '0',
   borderRadius: 'full',
@@ -190,10 +190,6 @@ const dividerClass = css({
 });
 
 const shareButtonClass = css({
-  gap: '2',
-  p: '0',
-  color: 'text',
-  fontSize: 'sm',
   '@media (min-width: 961px)': {
     fontSize: 'md',
   },

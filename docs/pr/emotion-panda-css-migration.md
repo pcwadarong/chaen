@@ -17,6 +17,7 @@
 13. 남아 있던 `use client` 파일을 재검토해 불필요한 client boundary를 추가로 축소
 14. global nav의 plain button/button-like 인터랙션을 공용 `Button` 패턴으로 정리하고 중복 CSS를 삭제
 15. `Button`을 `sva(root/label/visual)`로 리팩토링해 variant 초기화 비용을 제거
+16. `DetailPageShell` 머지 충돌을 Panda 기준으로 정리하고 archive list/feed 스타일을 module.css 없이 복구
 
 <br/>
 
@@ -54,6 +55,7 @@
 - lint/typecheck 기준으로 남아 있는 미사용 코드나 죽은 export는 추가로 발견되지 않았고, 마이그레이션 과정에서 생긴 `*.styles.ts` 임시 파일은 모두 제거 완료
 - global nav mobile 햄버거/닫기 트리거와 desktop nav 링크는 공용 `Button` 기준으로 정리해 중복 interaction CSS를 줄이고 `aria-haspopup`, 장식용 아이콘 `aria-hidden`을 보강
 - `Button`은 `sva`의 `root/label/visual` 슬롯으로 재구성해 base에서 border/background를 제거하고, variant별 책임과 외부 recipe 사용처의 `root` 슬롯 접근을 명확히 분리
+- `DetailPageShell`, `DetailArchiveList`, `DetailArchiveFeed`는 분리된 archive list 구조를 유지하되 Panda co-location 스타일로 재구성해 shell/feed/list 사이의 레이아웃 계약을 다시 맞춤
 
 <br/>
 
