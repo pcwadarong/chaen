@@ -73,7 +73,9 @@ const fetchProjectsByLocaleFromContentSchema = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('project_translations')
-    .select('project_id,title,description,projects!inner(created_at,thumbnail_url,is_secret)')
+    .select(
+      'project_id,title,description,projects!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
+    )
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'projects' })
     .order('project_id', { ascending: false });

@@ -6,7 +6,10 @@ export type Article = {
   title: string;
   description: string | null;
   content: string | null;
-  is_secret?: boolean | null;
+  slug?: string | null;
+  visibility?: 'public' | 'private' | null;
+  allow_comments?: boolean | null;
+  publish_at?: string | null;
   thumbnail_url: string | null;
   tags: string[] | null;
   created_at: string;

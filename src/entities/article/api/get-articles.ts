@@ -139,7 +139,9 @@ const fetchArticlesByLocaleFromShadow = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at,thumbnail_url,is_secret)')
+    .select(
+      'article_id,title,description,articles!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
+    )
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });
@@ -217,7 +219,9 @@ const fetchArticlesByTagAndLocale = async (
   const parsedCursor = parseCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at,thumbnail_url,is_secret)')
+    .select(
+      'article_id,title,description,articles!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
+    )
     .eq('locale', locale)
     .in('article_id', articleIdsByTag.data)
     .order('created_at', { ascending: false, referencedTable: 'articles' })

@@ -48,7 +48,7 @@ const fetchArticleDetailListFromContentSchema = async (
   const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at,is_secret)')
+    .select('article_id,title,description,articles!inner(created_at,slug,visibility,publish_at)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });

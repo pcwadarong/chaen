@@ -2,7 +2,15 @@ import type { Project, ProjectDetailListItem, ProjectListItem } from '../model/t
 
 type ProjectBaseFields = Pick<
   Project,
-  'created_at' | 'id' | 'is_secret' | 'period_end' | 'period_start' | 'thumbnail_url'
+  | 'allow_comments'
+  | 'created_at'
+  | 'id'
+  | 'period_end'
+  | 'period_start'
+  | 'publish_at'
+  | 'slug'
+  | 'thumbnail_url'
+  | 'visibility'
 >;
 
 type EmbeddedProjectBaseRow = ProjectBaseFields | ProjectBaseFields[] | null;
@@ -106,15 +114,18 @@ export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project 
   if (!projectBase) return null;
 
   return {
+    allow_comments: projectBase.allow_comments,
     content: row.content,
     created_at: projectBase.created_at,
     description: row.description,
     id: row.project_id,
-    is_secret: projectBase.is_secret ?? false,
     period_end: projectBase.period_end,
     period_start: projectBase.period_start,
+    publish_at: projectBase.publish_at,
+    slug: projectBase.slug,
     tags,
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
+    visibility: projectBase.visibility,
   };
 };
