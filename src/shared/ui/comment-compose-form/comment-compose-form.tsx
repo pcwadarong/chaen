@@ -351,6 +351,6 @@ const topRowLayoutClassMap: Record<CommentComposeFormLayout, string> = {
 
 const submitErrorClass = css({
   m: '0',
-  color: 'danger',
+  color: 'error',
   fontSize: 'sm',
 });
