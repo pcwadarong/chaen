@@ -83,7 +83,11 @@ const DetailPageGuestbookCta = ({ text }: DetailPageGuestbookCtaProps) => (
   <div className={detailPageGuestbookCtaWrapClass}>
     <Link className={cx(detailPageGuestbookCtaClass, 'group')} href="/guest">
       <span>{text}</span>
-      <span aria-hidden className={detailPageGuestbookCtaIconMotionClass}>
+      <span
+        aria-hidden
+        className={detailPageGuestbookCtaIconMotionClass}
+        data-detail-page-guestbook-cta-icon="true"
+      >
         <ArrowUpIcon className={detailPageGuestbookCtaIconClass} color="current" size="sm" />
       </span>
     </Link>
@@ -287,14 +291,14 @@ const detailPageGuestbookCtaClass = css({
   color: 'primaryContrast',
   fontSize: 'sm',
   letterSpacing: '[-0.01em]',
+  '&:hover [data-detail-page-guestbook-cta-icon="true"]': {
+    transform: 'translate(2px, -2px)',
+  },
 });
 
 const detailPageGuestbookCtaIconMotionClass = css({
   display: 'inline-flex',
-  transition: 'transform',
-  '.group:hover &': {
-    transform: 'translateY(-2px)',
-  },
+  transition: '[transform 180ms ease]',
 });
 
 const detailPageGuestbookCtaIconClass = css({

@@ -67,19 +67,15 @@ export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDe
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <ul aria-label={t('tagSection')} className={tagListClass}>
-          {(item.tags ?? []).length > 0 ? (
-            (item.tags ?? []).map(tag => (
+        (item.tags ?? []).length > 0 ? (
+          <ul aria-label={t('tagSection')} className={tagListClass}>
+            {(item.tags ?? []).map(tag => (
               <li className={tagItemClass} key={tag}>
                 <span className={tagButtonClass}>#{tagLabelMap.data.get(tag) ?? tag}</span>
               </li>
-            ))
-          ) : (
-            <li className={tagItemClass}>
-              <span className={tagButtonClass}>#{t('noTags')}</span>
-            </li>
-          )}
-        </ul>
+            ))}
+          </ul>
+        ) : undefined
       }
       title={item.title}
     />

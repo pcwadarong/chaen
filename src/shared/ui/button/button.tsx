@@ -158,7 +158,6 @@ export const buttonRecipe = sva({
           background: 'text',
           color: 'surface',
           borderColor: 'transparent',
-          _hover: { background: 'zinc.800' },
         },
       },
     },

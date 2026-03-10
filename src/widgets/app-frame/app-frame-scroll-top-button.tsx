@@ -151,6 +151,10 @@ const appFrameScrollTopButtonClass = css({
   bottom: '[max(1rem, env(safe-area-inset-bottom))]',
   zIndex: '11',
   width: '[3rem]',
+  minWidth: '[3rem]',
+  height: '[3rem]',
+  minHeight: '[3rem]',
+  aspectRatio: 'square',
   boxShadow: '[0 18px 32px rgb(15 23 42 / 0.18)]',
   transition:
     '[transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease]',

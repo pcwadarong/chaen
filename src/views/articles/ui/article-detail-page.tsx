@@ -98,19 +98,15 @@ export const ArticleDetailPage = async ({
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <ul aria-label={t('tagSection')} className={tagListClass}>
-          {tagLabels.length > 0 ? (
-            tagLabels.map(tagLabel => (
+        tagLabels.length > 0 ? (
+          <ul aria-label={t('tagSection')} className={tagListClass}>
+            {tagLabels.map(tagLabel => (
               <li className={tagItemClass} key={tagLabel}>
                 <span className={tagButtonClass}>#{tagLabel}</span>
               </li>
-            ))
-          ) : (
-            <li className={tagItemClass}>
-              <span className={tagButtonClass}>#{t('noTags')}</span>
-            </li>
-          )}
-        </ul>
+            ))}
+          </ul>
+        ) : undefined
       }
       title={item.title}
     />
