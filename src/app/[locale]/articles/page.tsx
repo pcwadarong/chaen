@@ -1,23 +1,115 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { ArticlesPage, getArticlesPageData } from '@/views/articles';
+import { type AppLocale, locales } from '@/i18n/routing';
+import { buildLocaleAlternates } from '@/shared/lib/seo/metadata';
+import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
+import {
+  ArticlesPage,
+  buildArticlesPageHref,
+  getArticlesPageData,
+  normalizePageParams,
+} from '@/views/articles';
 
-/** 아티클 페이지 엔트리입니다. */
-const ArticlesRoute = async ({
-  params,
-  searchParams,
-}: {
+export const revalidate = 3600;
+
+type ArticlesRouteSearchParams = {
+  page?: string | string[];
+  q?: string | string[];
+  tag?: string | string[];
+};
+
+type ArticlesRouteProps = {
   params: Promise<{
     locale: string;
   }>;
-  searchParams: Promise<{
-    q?: string | string[];
-    tag?: string | string[];
-  }>;
-}) => {
+  searchParams: Promise<ArticlesRouteSearchParams>;
+};
+
+/**
+ * 아티클 목록 메타데이터를 생성합니다.
+ */
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: ArticlesRouteProps): Promise<Metadata> => {
   const { locale } = await params;
-  const { q, tag } = await searchParams;
-  const pageData = await getArticlesPageData({ locale, query: q, tag });
+  const { page, q, tag } = await searchParams;
+  const normalizedPage = normalizePageParams(page);
+
+  if (!normalizedPage) notFound();
+
+  const [pageData, t] = await Promise.all([
+    getArticlesPageData({
+      locale,
+      page: normalizedPage,
+      query: q,
+      tag,
+    }),
+    getTranslations({ locale, namespace: 'Articles' }),
+  ]);
+
+  if (pageData.pagination.currentPage !== normalizedPage) {
+    notFound();
+  }
+
+  const title =
+    normalizedPage > 1
+      ? t('paginationTitle', {
+          page: normalizedPage,
+          title: t('title'),
+        })
+      : t('title');
+  const pathnameByLocale = Object.fromEntries(
+    locales.map(candidateLocale => [
+      candidateLocale,
+      buildArticlesPageHref({
+        locale: candidateLocale,
+        page: normalizedPage,
+        query: Array.isArray(q) ? q[0] : q,
+        tag: Array.isArray(tag) ? tag[0] : tag,
+      }),
+    ]),
+  ) as Partial<Record<AppLocale, string>>;
+
+  return {
+    title,
+    description: t('description'),
+    alternates: buildLocaleAlternates({
+      canonicalLocale: locale as AppLocale,
+      pathnameByLocale,
+    }),
+    pagination: {
+      next: pageData.pagination.nextHref
+        ? buildAbsoluteSiteUrl(pageData.pagination.nextHref)
+        : null,
+      previous: pageData.pagination.previousHref
+        ? buildAbsoluteSiteUrl(pageData.pagination.previousHref)
+        : null,
+    },
+  };
+};
+
+/** 아티클 페이지 엔트리입니다. */
+const ArticlesRoute = async ({ params, searchParams }: ArticlesRouteProps) => {
+  const { locale } = await params;
+  const { page, q, tag } = await searchParams;
+  const normalizedPage = normalizePageParams(page);
+
+  if (!normalizedPage) notFound();
+
+  const pageData = await getArticlesPageData({
+    locale,
+    page: normalizedPage,
+    query: q,
+    tag,
+  });
+
+  if (pageData.pagination.currentPage !== normalizedPage) {
+    notFound();
+  }
 
   return <ArticlesPage {...pageData} />;
 };

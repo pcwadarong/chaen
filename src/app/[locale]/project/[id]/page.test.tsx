@@ -1,9 +1,10 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import { getResolvedProject } from '@/entities/project/api/get-project';
 import { getProjectDetailPageData } from '@/views/project';
 
-import ProjectDetailRoute from './page';
+import ProjectDetailRoute, { generateMetadata } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -13,6 +14,17 @@ const { notFoundMock } = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   notFound: notFoundMock,
+}));
+
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
+
+vi.mock('@/entities/project/api/get-project', () => ({
+  getResolvedProject: vi.fn(async () => ({
+    item: null,
+    resolvedLocale: null,
+  })),
 }));
 
 vi.mock('@/views/project', () => ({
@@ -29,6 +41,16 @@ vi.mock('@/views/project', () => ({
 }));
 
 describe('ProjectDetailRoute', () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.dev';
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
       archivePage: {
@@ -59,6 +81,37 @@ describe('ProjectDetailRoute', () => {
     expect(getProjectDetailPageData).toHaveBeenCalledWith({
       locale: 'ko',
       projectId: 'supabase-editorial',
+    });
+  });
+
+  it('프로젝트 상세 메타데이터에 OG 이미지를 포함한다', async () => {
+    vi.mocked(getResolvedProject).mockResolvedValueOnce({
+      item: {
+        id: 'supabase-editorial',
+        title: 'Supabase Editorial',
+        description: 'detail',
+        content: '# heading',
+        thumbnail_url: null,
+        tags: ['supabase'],
+        created_at: '2026-03-01T00:00:00.000Z',
+      },
+      resolvedLocale: 'ko',
+    });
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          id: 'supabase-editorial',
+          locale: 'ko',
+        }),
+      }),
+    ).resolves.toMatchObject({
+      openGraph: {
+        images: ['https://chaen.dev/api/og/project/supabase-editorial'],
+      },
+      twitter: {
+        images: ['https://chaen.dev/api/og/project/supabase-editorial'],
+      },
     });
   });
 

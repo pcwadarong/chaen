@@ -48,9 +48,22 @@ const renderServerHtml = async () => {
 };
 
 describe('ProjectDetailPage', () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app/';
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
   it('프로젝트 메타 바는 기간만 표시하고 스크린리더 라벨은 유지한다', async () => {
     const html = await renderServerHtml();
 
+    expect(html).toContain('"@type":"CreativeWork"');
+    expect(html).toContain('"@type":"BreadcrumbList"');
+    expect(html).toContain('https://chaen.vercel.app/en/project/project-1');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
   }, 30000);

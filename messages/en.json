@@ -104,6 +104,10 @@
     "loading": "Loading articles.",
     "popularTagsEmpty": "No tags to show yet.",
     "popularTagsTitle": "Tags",
+    "paginationLabel": "Article page navigation",
+    "paginationNext": "Next page",
+    "paginationPrevious": "Previous page",
+    "paginationTitle": "{title} | Page {page}",
     "searchClear": "Clear",
     "searchClose": "Close search",
     "searchPlaceholder": "Search articles",
@@ -154,6 +158,7 @@
     "notFoundTitle": "The requested article could not be found.",
     "publishedAt": "Published {date}",
     "publishedAtLabel": "Published",
+    "relatedArticlesTitle": "Related articles",
     "retry": "Retry",
     "tagSection": "Tags"
   },

@@ -104,6 +104,10 @@
     "loading": "아티클을 불러오는 중입니다.",
     "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
     "popularTagsTitle": "tags",
+    "paginationLabel": "아티클 페이지 이동",
+    "paginationNext": "다음 페이지",
+    "paginationPrevious": "이전 페이지",
+    "paginationTitle": "{title} | {page}페이지",
     "searchClear": "초기화",
     "searchClose": "검색 닫기",
     "searchPlaceholder": "아티클 검색",
@@ -154,6 +158,7 @@
     "notFoundTitle": "요청한 기록을 찾을 수 없습니다.",
     "publishedAt": "등록일",
     "publishedAtLabel": "등록일",
+    "relatedArticlesTitle": "관련 기록",
     "retry": "다시 시도",
     "tagSection": "태그"
   },

@@ -6,12 +6,18 @@ import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
 import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import { PaginationLinks } from '@/shared/ui/pagination/pagination-links';
 
 export type ArticlesPageProps = {
   activeTag: string;
+  feedLocale: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
-  locale: string;
+  pagination: {
+    currentPage: number;
+    nextHref: string | null;
+    previousHref: string | null;
+  };
   popularTags: LocalizedArticleTagStat[];
   searchQuery: string;
 };
@@ -19,9 +25,10 @@ export type ArticlesPageProps = {
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
 export const ArticlesPage = ({
   activeTag,
+  feedLocale,
   initialCursor,
   initialItems,
-  locale,
+  pagination,
   popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
@@ -35,16 +42,23 @@ export const ArticlesPage = ({
           <div className={feedColumnClass}>
             <ArticleFeed
               activeTag={activeTag}
-              key={`${locale}:${searchQuery}:${activeTag}`}
+              key={`${feedLocale}:${searchQuery}:${activeTag}`}
               emptyText={t('emptyItems')}
               initialCursor={initialCursor}
               initialItems={initialItems}
               loadErrorText={t('loadError')}
               loadMoreEndText={t('loadMoreEnd')}
               loadingText={t('loading')}
-              locale={locale}
+              locale={feedLocale}
               query={searchQuery}
               retryText={t('retry')}
+            />
+            <PaginationLinks
+              ariaLabel={t('paginationLabel')}
+              nextHref={pagination.nextHref}
+              nextText={t('paginationNext')}
+              previousHref={pagination.previousHref}
+              previousText={t('paginationPrevious')}
             />
           </div>
           <aside className={sidebarClass}>

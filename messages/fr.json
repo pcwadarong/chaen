@@ -104,6 +104,10 @@
     "loading": "Chargement des articles.",
     "popularTagsEmpty": "Aucun tag à afficher pour le moment.",
     "popularTagsTitle": "Tags",
+    "paginationLabel": "Navigation entre les pages d'articles",
+    "paginationNext": "Page suivante",
+    "paginationPrevious": "Page précédente",
+    "paginationTitle": "{title} | Page {page}",
     "searchClear": "Effacer",
     "searchClose": "Fermer la recherche",
     "searchPlaceholder": "Rechercher des articles",
@@ -154,6 +158,7 @@
     "notFoundTitle": "L'article demandé est introuvable.",
     "publishedAt": "Publié le {date}",
     "publishedAtLabel": "Publié le",
+    "relatedArticlesTitle": "Articles liés",
     "retry": "Réessayer",
     "tagSection": "Tags"
   },

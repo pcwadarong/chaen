@@ -35,6 +35,13 @@ type GetArticlesOptions = {
   tag?: string | null;
 };
 
+type GetResolvedArticlesFirstPageOptions = Omit<GetArticlesOptions, 'cursor'>;
+
+export type ResolvedArticleListPage = {
+  page: ArticleListPage;
+  resolvedLocale: string;
+};
+
 type ArticleSearchCursor = {
   createdAt: string;
   id: string;
@@ -347,6 +354,93 @@ const readCachedArticles = async (input: {
 };
 
 /**
+ * 첫 페이지의 실제 렌더링 locale을 포함해 아티클 목록을 조회합니다.
+ *
+ * 검색/태그 목록은 요청 locale 그대로 사용하고,
+ * 기본 목록 첫 페이지에서만 `ko` fallback 여부를 함께 반환합니다.
+ */
+const readCachedResolvedArticlesFirstPage = async (input: {
+  normalizedLocale: string;
+  normalizedQuery: string;
+  normalizedTag: string;
+  pageSize: number;
+}): Promise<ResolvedArticleListPage> => {
+  'use cache';
+
+  cacheTag(ARTICLES_CACHE_TAG);
+
+  if (input.normalizedQuery) {
+    return {
+      page: await fetchSearchArticles(
+        input.normalizedQuery,
+        input.normalizedLocale,
+        null,
+        input.pageSize,
+      ),
+      resolvedLocale: input.normalizedLocale,
+    };
+  }
+
+  if (input.normalizedTag) {
+    return {
+      page: await fetchArticlesByTagAndLocale(
+        input.normalizedLocale,
+        input.normalizedTag,
+        null,
+        input.pageSize,
+      ),
+      resolvedLocale: input.normalizedLocale,
+    };
+  }
+
+  const localizedArticles = await fetchArticlesByLocale(
+    input.normalizedLocale,
+    null,
+    input.pageSize,
+  );
+  if (localizedArticles.items.length > 0 || input.normalizedLocale === 'ko') {
+    return {
+      page: localizedArticles,
+      resolvedLocale: input.normalizedLocale,
+    };
+  }
+
+  return {
+    page: await fetchArticlesByLocale('ko', null, input.pageSize),
+    resolvedLocale: 'ko',
+  };
+};
+
+/**
+ * 첫 페이지의 실제 렌더링 locale과 함께 아티클 목록을 조회합니다.
+ */
+export const getResolvedArticlesFirstPage = async ({
+  limit,
+  locale,
+  query,
+  tag,
+}: GetResolvedArticlesFirstPageOptions): Promise<ResolvedArticleListPage> => {
+  if (!hasSupabaseEnv()) {
+    return {
+      page: { items: [], nextCursor: null, totalCount: null },
+      resolvedLocale: locale.toLowerCase(),
+    };
+  }
+
+  const normalizedLocale = locale.toLowerCase();
+  const normalizedQuery = normalizeSearchQuery(query);
+  const normalizedTag = normalizedQuery ? '' : normalizeArticleTag(tag);
+  const pageSize = parseKeysetLimit(limit);
+
+  return readCachedResolvedArticlesFirstPage({
+    normalizedLocale,
+    normalizedQuery,
+    normalizedTag,
+    pageSize,
+  });
+};
+
+/**
  * 아티클 목록을 keyset cursor 기반 페이지 단위로 조회합니다.
  *
  * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
@@ -367,6 +461,18 @@ export const getArticles = async ({
   const normalizedQuery = normalizeSearchQuery(query);
   const normalizedTag = normalizedQuery ? '' : normalizeArticleTag(tag);
   const pageSize = parseKeysetLimit(limit);
+  const isFirstPage = !cursor;
+
+  if (isFirstPage) {
+    return (
+      await getResolvedArticlesFirstPage({
+        limit: pageSize,
+        locale: normalizedLocale,
+        query: normalizedQuery,
+        tag: normalizedTag,
+      })
+    ).page;
+  }
 
   return readCachedArticles({
     cursor,

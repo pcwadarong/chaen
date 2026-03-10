@@ -1,13 +1,77 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
+import { getResolvedProject } from '@/entities/project/api/get-project';
+import type { AppLocale } from '@/i18n/routing';
+import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
+import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
+import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { getProjectDetailPageData, ProjectDetailPage } from '@/views/project';
+
+export const revalidate = 3600;
 
 type ProjectDetailRouteProps = {
   params: Promise<{
     id: string;
     locale: string;
   }>;
+};
+
+/**
+ * 프로젝트 상세 메타데이터를 생성합니다.
+ */
+export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Promise<Metadata> => {
+  const { id, locale } = await params;
+  const [resolvedProject, t] = await Promise.all([
+    getResolvedProject(id, locale),
+    getTranslations({ locale, namespace: 'ProjectDetail' }),
+  ]);
+  const { item, resolvedLocale } = resolvedProject;
+
+  if (!item) return {};
+
+  const canonicalLocale = resolveCanonicalLocale({
+    requestedLocale: locale as AppLocale,
+    resolvedLocale,
+  });
+  const projectPath = buildLocalizedPathname({
+    locale: canonicalLocale,
+    pathname: `/project/${id}`,
+  });
+  const ogImageUrl = buildOgImageUrl({
+    id,
+    type: 'project',
+  });
+
+  return {
+    title: item.title,
+    description: item.description ?? t('emptySummary'),
+    alternates: buildLocaleAlternates({
+      canonicalLocale,
+      pathnameByLocale: buildPathnameByLocale(candidateLocale =>
+        buildLocalizedPathname({
+          locale: candidateLocale,
+          pathname: `/project/${id}`,
+        }),
+      ),
+    }),
+    openGraph: {
+      description: item.description ?? t('emptySummary'),
+      images: [ogImageUrl],
+      title: item.title,
+      type: 'website',
+      url: buildAbsoluteSiteUrl(projectPath),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      description: item.description ?? t('emptySummary'),
+      images: [ogImageUrl],
+      title: item.title,
+    },
+  };
 };
 
 /**
@@ -21,7 +85,7 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   });
   if (!item) notFound();
 
-  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale} />;
+  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale as AppLocale} />;
 };
 
 export default ProjectDetailRoute;

@@ -18,6 +18,12 @@ vi.mock('@/widgets/article-comments', () => ({
   ),
 }));
 
+vi.mock('@/entities/article/ui/article-list-item', () => ({
+  ArticleListItem: ({ article }: { article: { id: string; title: string } }) => (
+    <a href={`/articles/${article.id}`}>{article.title}</a>
+  ),
+}));
+
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a href={typeof href === 'string' ? href : ''} {...props}>
@@ -64,6 +70,15 @@ const renderServerHtml = async () => {
       view_count: 12,
     },
     locale: 'ko',
+    relatedArticles: [
+      {
+        id: 'article-2',
+        title: 'Article 2',
+        description: 'related summary',
+        thumbnail_url: null,
+        created_at: '2026-03-07T00:00:00.000Z',
+      },
+    ],
   });
   const stream = await renderToReadableStream(element);
 
@@ -71,11 +86,18 @@ const renderServerHtml = async () => {
 };
 
 describe('ArticleDetailPage', () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app';
     getTagLabelMapBySlugs.mockResolvedValue({
       data: new Map([['react', 'React']]),
       schemaMissing: false,
     });
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
@@ -83,10 +105,15 @@ describe('ArticleDetailPage', () => {
     const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
     expect(html).toContain('data-testid="article-comments-section"');
+    expect(html).toContain('"@type":"BlogPosting"');
+    expect(html).toContain('"@type":"BreadcrumbList"');
+    expect(html).toContain('https://chaen.vercel.app/ko/articles/article-1');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
     expect(textContent).toContain('#React');
+    expect(textContent).toContain('relatedArticlesTitle');
+    expect(textContent).toContain('Article 2');
   }, 30000);
 
   it('태그 스키마가 없어도 원본 태그명으로 상세 페이지를 렌더링한다', async () => {

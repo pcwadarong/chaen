@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 
 import { getAdminLoginPageData } from '@/views/admin-login';
 
-import AdminLoginRoute from './page';
+import AdminLoginRoute, { metadata } from './page';
 
 const { adminLoginPageMock, redirectError } = vi.hoisted(() => ({
   adminLoginPageMock: vi.fn(() => null),
@@ -58,5 +58,12 @@ describe('AdminLoginRoute', () => {
 
     expect(redirect).toHaveBeenCalledWith('/ko/admin');
     expect(adminLoginPageMock).not.toHaveBeenCalled();
+  });
+
+  it('관리자 로그인 페이지는 검색 엔진 색인을 비활성화한다', () => {
+    expect(metadata.robots).toMatchObject({
+      follow: false,
+      index: false,
+    });
   });
 });

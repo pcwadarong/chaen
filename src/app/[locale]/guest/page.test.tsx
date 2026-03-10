@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 import { getGuestPageData } from '@/views/guest';
 
-import GuestRoute from './page';
+import GuestRoute, { metadata } from './page';
 
 vi.mock('@/views/guest', () => ({
   getGuestPageData: vi.fn(),
@@ -29,5 +29,12 @@ describe('GuestRoute', () => {
     expect(element.type.name).toBe('GuestPage');
     expect(getGuestPageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.initialCursor).toBe('12');
+  });
+
+  it('방명록 페이지는 검색 엔진 색인을 비활성화한다', () => {
+    expect(metadata.robots).toMatchObject({
+      follow: false,
+      index: false,
+    });
   });
 });

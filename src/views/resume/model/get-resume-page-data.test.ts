@@ -1,16 +1,16 @@
 import { vi } from 'vitest';
 
+import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 
 import { getResumePageData } from './get-resume-page-data';
 
-vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
-  getPdfFileContent: vi.fn(),
+vi.mock('@/entities/pdf-file/api/get-pdf-file-availability', () => ({
+  getPdfFileAvailability: vi.fn(),
 }));
 
-vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
-  getPdfFileUrl: vi.fn(),
+vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
+  getPdfFileContent: vi.fn(),
 }));
 
 describe('getResumePageData', () => {
@@ -18,14 +18,15 @@ describe('getResumePageData', () => {
     vi.clearAllMocks();
   });
 
-  it('resume 본문이 없으면 locale fallback 본문을 반환한다', async () => {
-    vi.mocked(getPdfFileUrl).mockResolvedValue('https://example.com/resume.pdf');
+  it('resume 본문이 없으면 locale fallback 본문과 내부 다운로드 경로를 반환한다', async () => {
+    vi.mocked(getPdfFileAvailability).mockResolvedValue(true);
     vi.mocked(getPdfFileContent).mockResolvedValue(null);
 
     const data = await getResumePageData({ locale: 'ko' });
 
+    expect(getPdfFileAvailability).toHaveBeenCalledWith({ kind: 'resume' });
     expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko', kind: 'resume' });
-    expect(data.resumeUrl).toBe('https://example.com/resume.pdf');
+    expect(data.resumeDownloadHref).toBe('/api/pdf/resume');
     expect(data.content.locale).toBe('ko');
   });
 });

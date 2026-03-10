@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 import { d2Coding, pretendard, pretendardJp } from './fonts';
 
 import './globals.css';
+
+export const metadata: Metadata = {
+  verification: {
+    google: 'rblhpthEHMjnCUXO4X7CsGUhLuENAPIs9Q7tA7HtHF8',
+  },
+};
 
 type RootLayoutProps = Readonly<{
   children: ReactNode;

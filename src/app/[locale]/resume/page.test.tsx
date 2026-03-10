@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 import { getResumePageData } from '@/views/resume';
 
-import ResumeRoute from './page';
+import ResumeRoute, { generateMetadata } from './page';
 
 vi.mock('@/views/resume', () => ({
   getResumePageData: vi.fn(async () => ({
@@ -17,7 +17,7 @@ vi.mock('@/views/resume', () => ({
       updated_at: '2026-03-02T00:00:00.000Z',
     },
     downloadFileName: 'resume.pdf',
-    resumeUrl: 'https://example.com/resume.pdf',
+    resumeDownloadHref: '/api/pdf/resume',
   })),
   ResumePage: function ResumePage() {
     return null;
@@ -25,7 +25,17 @@ vi.mock('@/views/resume', () => ({
 }));
 
 describe('ResumeRoute', () => {
-  it('이력서 뷰 엔트리와 다운로드 URL을 반환한다', async () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.dev';
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
+  it('이력서 뷰 엔트리와 다운로드 경로를 반환한다', async () => {
     const element = await ResumeRoute({
       params: Promise.resolve({
         locale: 'ko',
@@ -35,8 +45,38 @@ describe('ResumeRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ResumePage');
     expect(getResumePageData).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(element.props.resumeUrl).toBe('https://example.com/resume.pdf');
+    expect(element.props.resumeDownloadHref).toBe('/api/pdf/resume');
     expect(element.props.downloadFileName).toBeDefined();
     expect(element.props.content.title).toBe('안녕하세요 박채원입니다.');
+  });
+
+  it('이력서 메타데이터에 placeholder OG 이미지와 alternates를 포함한다', async () => {
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          locale: 'ko',
+        }),
+      }),
+    ).resolves.toMatchObject({
+      alternates: {
+        canonical: 'https://chaen.dev/ko/resume',
+        languages: {
+          'x-default': 'https://chaen.dev/en/resume',
+          en: 'https://chaen.dev/en/resume',
+          fr: 'https://chaen.dev/fr/resume',
+          ja: 'https://chaen.dev/ja/resume',
+          ko: 'https://chaen.dev/ko/resume',
+        },
+      },
+      description: '서버 내용',
+      openGraph: {
+        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        url: 'https://chaen.dev/ko/resume',
+      },
+      title: '안녕하세요 박채원입니다.',
+      twitter: {
+        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+      },
+    });
   });
 });

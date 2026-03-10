@@ -11,8 +11,8 @@ export type ProjectListPageProps = {
   locale: string;
   portfolioButtonLabel: string;
   portfolioButtonUnavailableLabel: string;
+  portfolioDownloadHref: string | null;
   portfolioDownloadFileName: string;
-  portfolioUrl: string | null;
 };
 
 /** 프로젝트 목록 페이지 컨테이너입니다. */
@@ -22,8 +22,8 @@ export const ProjectListPage = ({
   locale,
   portfolioButtonLabel,
   portfolioButtonUnavailableLabel,
+  portfolioDownloadHref,
   portfolioDownloadFileName,
-  portfolioUrl,
 }: ProjectListPageProps) => {
   const t = useTranslations('Project');
 
@@ -33,8 +33,8 @@ export const ProjectListPage = ({
         action={
           <DownloadFileButton
             fileName={portfolioDownloadFileName}
-            href={portfolioUrl}
-            label={portfolioUrl ? portfolioButtonLabel : portfolioButtonUnavailableLabel}
+            href={portfolioDownloadHref}
+            label={portfolioDownloadHref ? portfolioButtonLabel : portfolioButtonUnavailableLabel}
             mode="download"
           />
         }

@@ -3,7 +3,7 @@ import { unstable_cacheTag } from 'next/cache';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
-import { getArticles } from './get-articles';
+import { getArticles, getResolvedArticlesFirstPage } from './get-articles';
 
 vi.mock('next/cache', () => ({
   unstable_cacheTag: vi.fn(),
@@ -201,6 +201,51 @@ describe('getArticles', () => {
     expect(result.items[0]?.title).toBe('한국어 글');
     expect(targetLocaleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(fallbackTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+  });
+
+  it('resolved 첫 페이지 조회는 실제 fallback locale을 함께 반환한다', async () => {
+    const targetLocaleTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const fallbackTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'frontend-performance',
+            title: '한국어 글',
+            description: '설명',
+            articles: {
+              thumbnail_url: null,
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+            },
+          },
+        ],
+        error: null,
+      }),
+      order: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockReturnValueOnce(targetLocaleTranslationsQuery)
+        .mockReturnValueOnce(fallbackTranslationsQuery),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getResolvedArticlesFirstPage({ locale: 'fr' });
+
+    expect(result.resolvedLocale).toBe('ko');
+    expect(result.page.items[0]?.title).toBe('한국어 글');
   });
 
   it('검색어가 있으면 검색 RPC를 우선 호출한다', async () => {

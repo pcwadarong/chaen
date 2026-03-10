@@ -1,10 +1,8 @@
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
-import {
-  buildContentLocaleFallbackChain,
-  resolveFirstAvailableLocaleValue,
-} from '@/shared/lib/i18n/content-locale-fallback';
+import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
+import { resolveFirstAvailableLocaleEntry } from '@/shared/lib/i18n/resolved-locale';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -14,6 +12,11 @@ import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { Project } from '../model/types';
 
 import { mapProject, type ProjectTranslationRow } from './map-project-translation';
+
+type ResolvedProject = {
+  item: Project | null;
+  resolvedLocale: string | null;
+};
 
 type ProjectContentSchemaError = {
   code?: string | null;
@@ -90,16 +93,40 @@ const fetchProjectByLocale = async (projectId: string, locale: string): Promise<
 const readCachedProject = async (
   projectId: string,
   normalizedLocale: string,
-): Promise<Project | null> => {
+): Promise<ResolvedProject> => {
   'use cache';
 
   cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(projectId));
 
-  return resolveFirstAvailableLocaleValue({
+  const resolvedProject = await resolveFirstAvailableLocaleEntry({
     fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
     hasValue: value => Boolean(value),
     locales: buildContentLocaleFallbackChain(normalizedLocale),
   });
+
+  return {
+    item: resolvedProject?.value ?? null,
+    resolvedLocale: resolvedProject?.locale ?? null,
+  };
+};
+
+/**
+ * 프로젝트와 실제 선택된 locale을 함께 반환합니다.
+ */
+export const getResolvedProject = async (
+  projectId: string,
+  targetLocale: string,
+): Promise<ResolvedProject> => {
+  if (!hasSupabaseEnv()) {
+    return {
+      item: null,
+      resolvedLocale: null,
+    };
+  }
+
+  const normalizedLocale = targetLocale.toLowerCase();
+
+  return readCachedProject(projectId, normalizedLocale);
 };
 
 /**
@@ -110,9 +137,6 @@ export const getProject = async (
   projectId: string,
   targetLocale: string,
 ): Promise<Project | null> => {
-  if (!hasSupabaseEnv()) return null;
-
-  const normalizedLocale = targetLocale.toLowerCase();
-
-  return readCachedProject(projectId, normalizedLocale);
+  const result = await getResolvedProject(projectId, targetLocale);
+  return result.item;
 };

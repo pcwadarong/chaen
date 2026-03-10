@@ -1,9 +1,10 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import { getResolvedArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailPageData } from '@/views/articles';
 
-import ArticleDetailRoute from './page';
+import ArticleDetailRoute, { generateMetadata } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -13,6 +14,17 @@ const { notFoundMock } = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   notFound: notFoundMock,
+}));
+
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
+
+vi.mock('@/entities/article/api/get-article', () => ({
+  getResolvedArticle: vi.fn(async () => ({
+    item: null,
+    resolvedLocale: null,
+  })),
 }));
 
 vi.mock('@/views/articles', () => ({
@@ -30,6 +42,7 @@ vi.mock('@/views/articles', () => ({
       totalPages: 0,
     },
     item: null,
+    relatedArticles: [],
   })),
   ArticleDetailPage: function ArticleDetailPage() {
     return null;
@@ -37,6 +50,16 @@ vi.mock('@/views/articles', () => ({
 }));
 
 describe('ArticleDetailRoute', () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.dev';
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getArticleDetailPageData).mockResolvedValueOnce({
       archivePage: {
@@ -51,6 +74,7 @@ describe('ArticleDetailRoute', () => {
         totalCount: 0,
         totalPages: 0,
       },
+      relatedArticles: [],
       item: {
         id: 'frontend-performance',
         title: 'Frontend Performance',
@@ -80,6 +104,38 @@ describe('ArticleDetailRoute', () => {
     });
   });
 
+  it('아티클 상세 메타데이터에 OG 이미지를 포함한다', async () => {
+    vi.mocked(getResolvedArticle).mockResolvedValueOnce({
+      item: {
+        id: 'frontend-performance',
+        title: 'Frontend Performance',
+        description: 'detail',
+        content: '# heading',
+        thumbnail_url: null,
+        tags: ['react'],
+        created_at: '2026-03-01T00:00:00.000Z',
+        updated_at: null,
+      },
+      resolvedLocale: 'ko',
+    });
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({
+          id: 'frontend-performance',
+          locale: 'ko',
+        }),
+      }),
+    ).resolves.toMatchObject({
+      openGraph: {
+        images: ['https://chaen.dev/api/og/article/frontend-performance'],
+      },
+      twitter: {
+        images: ['https://chaen.dev/api/og/article/frontend-performance'],
+      },
+    });
+  });
+
   it('데이터가 없으면 notFound를 호출한다', async () => {
     vi.mocked(getArticleDetailPageData).mockResolvedValueOnce({
       archivePage: {
@@ -94,6 +150,7 @@ describe('ArticleDetailRoute', () => {
         totalCount: 0,
         totalPages: 0,
       },
+      relatedArticles: [],
       item: null,
     });
 

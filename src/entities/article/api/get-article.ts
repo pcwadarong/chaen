@@ -16,6 +16,11 @@ import {
   mapArticleFallbackRpcRow,
 } from './map-article-translation';
 
+type ResolvedArticle = {
+  item: Article | null;
+  resolvedLocale: string | null;
+};
+
 type ArticleContentSchemaError = {
   code?: string | null;
   message: string;
@@ -40,9 +45,17 @@ const isMissingArticleContentSchemaError = ({ code, message }: ArticleContentSch
 const fetchArticleFromContentSchema = async (
   articleId: string,
   localeFallbackChain: string[],
-): Promise<{ data: Article | null; schemaMissing: boolean }> => {
+): Promise<{ data: ResolvedArticle; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: null, schemaMissing: false };
+  if (!supabase) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
 
   const { data: translationRows, error: translationError } = await supabase.rpc(
     'get_article_translation_with_fallback',
@@ -53,14 +66,29 @@ const fetchArticleFromContentSchema = async (
   );
 
   if (translationError) {
-    if (isMissingArticleContentSchemaError(translationError))
-      return { data: null, schemaMissing: true };
+    if (isMissingArticleContentSchemaError(translationError)) {
+      return {
+        data: {
+          item: null,
+          resolvedLocale: null,
+        },
+        schemaMissing: true,
+      };
+    }
 
     throw new Error(`[articles] 번역 조회 실패: ${translationError.message}`);
   }
 
   const translation = (translationRows ?? [])[0] as ArticleTranslationFallbackRpcRow | undefined;
-  if (!translation) return { data: null, schemaMissing: false };
+  if (!translation) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
 
   const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'article_id',
@@ -70,7 +98,10 @@ const fetchArticleFromContentSchema = async (
   if (relatedTags.schemaMissing) throw new Error('[articles] 태그 relation schema가 없습니다.');
 
   return {
-    data: mapArticle(mapArticleFallbackRpcRow(translation), relatedTags.data),
+    data: {
+      item: mapArticle(mapArticleFallbackRpcRow(translation), relatedTags.data),
+      resolvedLocale: translation.locale.toLowerCase(),
+    },
     schemaMissing: false,
   };
 };
@@ -78,7 +109,7 @@ const fetchArticleFromContentSchema = async (
 const fetchArticleByLocaleFallbackChain = async (
   articleId: string,
   localeFallbackChain: string[],
-): Promise<Article | null> => {
+): Promise<ResolvedArticle> => {
   const articleResult = await fetchArticleFromContentSchema(articleId, localeFallbackChain);
   if (articleResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
 
@@ -91,18 +122,37 @@ const fetchArticleByLocaleFallbackChain = async (
 const readCachedArticle = async (
   articleId: string,
   normalizedLocale: string,
-): Promise<Article | null> => {
+): Promise<ResolvedArticle> => {
   'use cache';
 
   cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(articleId));
 
   const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
   const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
-  if (article) return article;
+  if (article.item) return article;
 
   throw new Error(
     `[articles] 조회 가능한 번역이 없습니다. articleId=${articleId} locales=${localeFallbackChain.join('>')}`,
   );
+};
+
+/**
+ * 아티클과 실제 선택된 locale을 함께 반환합니다.
+ */
+export const getResolvedArticle = async (
+  articleId: string,
+  targetLocale: string,
+): Promise<ResolvedArticle> => {
+  if (!hasSupabaseEnv()) {
+    return {
+      item: null,
+      resolvedLocale: null,
+    };
+  }
+
+  const normalizedLocale = targetLocale.toLowerCase();
+
+  return readCachedArticle(articleId, normalizedLocale);
 };
 
 /**
@@ -113,9 +163,6 @@ export const getArticle = async (
   articleId: string,
   targetLocale: string,
 ): Promise<Article | null> => {
-  if (!hasSupabaseEnv()) return null;
-
-  const normalizedLocale = targetLocale.toLowerCase();
-
-  return readCachedArticle(articleId, normalizedLocale);
+  const result = await getResolvedArticle(articleId, targetLocale);
+  return result.item;
 };
