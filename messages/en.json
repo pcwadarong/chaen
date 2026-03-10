@@ -125,6 +125,9 @@
     "showcaseTitle": "Project archive",
     "viewProject": "View project"
   },
+  "Resume": {
+    "loading": "Loading resume."
+  },
   "ProjectDetail": {
     "archiveLabel": "Project archive",
     "emptyContent": "Project content has not been added yet.",

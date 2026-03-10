@@ -110,6 +110,7 @@ export const GlobalNavMobileMenu = ({
                           className={mobileNavLinkClass}
                           href={item.href}
                           onClick={onClose}
+                          prefetch
                         >
                           {item.label}
                         </Link>

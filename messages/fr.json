@@ -125,6 +125,9 @@
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"
   },
+  "Resume": {
+    "loading": "Chargement du CV."
+  },
   "ProjectDetail": {
     "archiveLabel": "Archive des projets",
     "emptyContent": "Le contenu du projet n'a pas encore été ajouté.",

@@ -36,6 +36,7 @@ export const GlobalNavDesktopContent = ({
               <Link
                 aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
                 href={item.href}
+                prefetch
               >
                 {item.label}
               </Link>

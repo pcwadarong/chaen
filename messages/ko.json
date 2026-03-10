@@ -125,6 +125,9 @@
     "showcaseTitle": "프로젝트 아카이브",
     "viewProject": "프로젝트 보기"
   },
+  "Resume": {
+    "loading": "이력 페이지를 불러오는 중입니다."
+  },
   "ProjectDetail": {
     "archiveLabel": "프로젝트 아카이브",
     "emptyContent": "아직 등록된 본문이 없습니다.",

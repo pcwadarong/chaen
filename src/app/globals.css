@@ -25,6 +25,16 @@ body {
   --app-scrollbar-thumb-active: var(--colors-text);
 }
 
+@keyframes route-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 html,
 body,
 [data-app-scroll-viewport='true'],
