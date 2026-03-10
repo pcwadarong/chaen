@@ -24,7 +24,7 @@ vi.mock('@/views/project', () => ({
     portfolioButtonLabel: 'Download portfolio',
     portfolioButtonUnavailableLabel: 'Portfolio unavailable',
     portfolioDownloadFileName: 'portfolio.pdf',
-    portfolioUrl: 'https://example.com/portfolio.pdf',
+    portfolioDownloadHref: '/api/pdf/portfolio',
   })),
   ProjectListPage: function ProjectListPage() {
     return null;
@@ -42,7 +42,7 @@ describe('ProjectRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('프로젝트 목록 뷰 엔트리와 포트폴리오 다운로드 props를 반환한다', async () => {
+  it('프로젝트 목록 뷰 엔트리와 포트폴리오 다운로드 경로를 반환한다', async () => {
     const element = await ProjectRoute({
       params: Promise.resolve({
         locale: 'ko',
@@ -58,7 +58,7 @@ describe('ProjectRoute', () => {
     expect(element.props.portfolioButtonLabel).toBe('Download portfolio');
     expect(element.props.portfolioButtonUnavailableLabel).toBe('Portfolio unavailable');
     expect(element.props.portfolioDownloadFileName).toBeDefined();
-    expect(element.props.portfolioUrl).toBe('https://example.com/portfolio.pdf');
+    expect(element.props.portfolioDownloadHref).toBe('/api/pdf/portfolio');
   });
 
   it('프로젝트 목록 메타데이터에 placeholder OG 이미지와 alternates를 포함한다', async () => {

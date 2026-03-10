@@ -10,6 +10,7 @@ App Router 구조 위에 "검색엔진이 실제로 읽을 수 있는 다국어 
 6. 아티클 목록은 crawl 가능한 pagination을 가지도록 바꿨다.
 7. 상세 페이지 하단에는 내부 링크 분산을 위한 related articles 영역을 추가했다.
 8. 검색 대상 페이지와 제외 페이지를 나누고, 관리자/게스트북 라우트는 색인되지 않도록 route metadata에서 명시적으로 차단했다.
+9. 이력서/프로젝트 목록의 signed 다운로드 URL 생성을 페이지 렌더링에서 분리해 ISR 친화적으로 정리했다.
 
 <br/>
 
@@ -73,6 +74,7 @@ App Router 구조 위에 "검색엔진이 실제로 읽을 수 있는 다국어 
 - 프로젝트 목록은 프로젝트 아카이브 랜딩 페이지로서 자체 메타를 가진다.
 - 아티클/프로젝트 상세는 콘텐츠 제목, 설명, canonical, alternates, OG/Twitter를 함께 생성한다.
 - 게스트북과 관리자 라우트는 아예 `noindex,nofollow`를 고정한다.
+- 이력서/프로젝트 목록의 다운로드 버튼은 내부 API 경로를 사용하고, 실제 signed URL은 클릭 시점에만 발급한다.
 
 ### 5. sitemap / robots를 App Router 코드로 관리
 
@@ -157,6 +159,24 @@ App Router 구조 위에 "검색엔진이 실제로 읽을 수 있는 다국어 
 
 이 결정에 맞춰 sitemap, route metadata, robots 정책이 서로 충돌하지 않도록 정리했다.
 
+### 11. signed 다운로드 URL 발급을 페이지 렌더링에서 분리
+
+이력서와 프로젝트 목록은 원래 페이지를 렌더링할 때마다 signed URL을 함께 만들고 있었다.
+
+이 방식은 다운로드 링크 자체는 동작하지만, HTML 응답이 짧은 만료 시간을 가진 URL에 의존하게 되므로 페이지를 `force-dynamic`으로 두기 쉬운 구조였다.
+
+이번 작업에서는 이를 다음처럼 분리했다.
+
+- 페이지 렌더링 시점에는 "파일이 준비됐는지"만 확인한다.
+- 버튼 href는 내부 API 경로(`/api/pdf/resume`, `/api/pdf/portfolio`)로 고정한다.
+- 실제 signed URL 발급은 사용자가 버튼을 눌렀을 때 API route에서 처리한다.
+
+이 구조 덕분에:
+
+- 이력서 페이지는 `revalidate` 기반으로 캐시 가능해지고
+- 프로젝트 목록도 signed URL 때문에 페이지 전체가 dynamic일 필요가 없어지며
+- 다운로드 만료 정책과 SEO HTML 캐시 정책을 분리할 수 있게 됐다.
+
 <br/>
 
 ## 🚨 판단 근거
@@ -212,6 +232,7 @@ OG 이미지를 실제 `next/og` 생성으로 바꾸는 일은 제외하면, 이
 - 프로젝트 목록 metadata + placeholder OG
 - 홈/이력서 placeholder OG metadata
 - 이력서/프로젝트 목록 sitemap 포함
+- 이력서/프로젝트 목록 signed URL 발급 분리
 - 게스트북 noindex / nofollow
 - 관리자 noindex / nofollow
 - related articles 기반 internal linking
@@ -226,32 +247,17 @@ OG 이미지를 실제 `next/og` 생성으로 바꾸는 일은 제외하면, 이
 
 이번 작업에서는 locale별 admin/login/callback 경로를 disallow 목록에 추가해 정책을 보강했다.
 
-### 2. 프로젝트 목록의 렌더링 전략
+### 2. 이력서/프로젝트 목록의 캐시 전략 검증
 
-프로젝트 목록은 SEO 메타데이터를 갖추게 됐지만, 현재 페이지 자체는 포트폴리오 signed URL을 함께 조합하기 때문에 여전히 `force-dynamic`이다.
+이번 작업으로 signed URL은 페이지 렌더링에서 분리했고, 라우트는 `revalidate` 기반으로 돌릴 수 있는 구조가 됐다.
 
-즉 검색엔진이 읽을 메타는 갖췄지만, 장기적으로는 다음을 다시 볼 수 있다.
+남은 검토 포인트는 운영 단계에서 다음을 확인하는 것이다.
 
-- signed URL과 페이지 HTML 생성을 분리할지
-- ISR 또는 더 정적인 전달 방식으로 옮길지
+- 파일 준비 상태가 기대한 주기로 갱신되는지
+- 다운로드 API가 배포 환경에서 정상적으로 signed redirect를 반환하는지
 
 ### 3. tag archive / topic cluster 전략
 
-이건 버그라기보다 의도적으로 보류한 콘텐츠 전략이다.
+현재는 아티클 목록 내부 태그 필터만 유지하고 있으며, 검색엔진용 tag archive route는 넣지 않았다. (추가 기능으로 작업 예정)
 
-현재는 아티클 목록 내부 태그 필터만 유지하고 있으며, 검색엔진용 tag archive route는 넣지 않았다.
-
-향후 필요 조건은 다음과 같다.
-
-- 태그별 검색 유입을 실제로 노릴 때
-- 태그별 고유 설명/H1/메타를 운영할 때
-- topic cluster 랜딩을 별도로 관리할 때
-  <br/>
-
-## 📌 정리
-
-현재 기준으로 실제로 남은 핵심 구현은:
-
-- 실제 브랜드 OG 이미지 생성
-- 프로젝트 목록의 정적화 가능성 재검토
-- tag archive / topic cluster 재도입 여부 판단
+<br/>

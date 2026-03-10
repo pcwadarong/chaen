@@ -17,7 +17,7 @@ vi.mock('@/views/resume', () => ({
       updated_at: '2026-03-02T00:00:00.000Z',
     },
     downloadFileName: 'resume.pdf',
-    resumeUrl: 'https://example.com/resume.pdf',
+    resumeDownloadHref: '/api/pdf/resume',
   })),
   ResumePage: function ResumePage() {
     return null;
@@ -35,7 +35,7 @@ describe('ResumeRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('이력서 뷰 엔트리와 다운로드 URL을 반환한다', async () => {
+  it('이력서 뷰 엔트리와 다운로드 경로를 반환한다', async () => {
     const element = await ResumeRoute({
       params: Promise.resolve({
         locale: 'ko',
@@ -45,7 +45,7 @@ describe('ResumeRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ResumePage');
     expect(getResumePageData).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(element.props.resumeUrl).toBe('https://example.com/resume.pdf');
+    expect(element.props.resumeDownloadHref).toBe('/api/pdf/resume');
     expect(element.props.downloadFileName).toBeDefined();
     expect(element.props.content.title).toBe('안녕하세요 박채원입니다.');
   });

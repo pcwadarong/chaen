@@ -7,20 +7,22 @@ import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-
 export type ResumePageProps = {
   content: PdfFileContent;
   downloadFileName: string;
-  resumeUrl: string | null;
+  resumeDownloadHref: string | null;
 };
 
 /**
  * 이력서 소개 페이지 컨테이너입니다.
  */
-export const ResumePage = ({ content, downloadFileName, resumeUrl }: ResumePageProps) => (
+export const ResumePage = ({ content, downloadFileName, resumeDownloadHref }: ResumePageProps) => (
   <PageShell width="compact">
     <PageHeader
       action={
         <DownloadFileButton
           fileName={downloadFileName}
-          href={resumeUrl}
-          label={resumeUrl ? content.download_button_label : content.download_unavailable_label}
+          href={resumeDownloadHref}
+          label={
+            resumeDownloadHref ? content.download_button_label : content.download_unavailable_label
+          }
           mode="download"
         />
       }

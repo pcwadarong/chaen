@@ -7,7 +7,7 @@ import { buildDefaultOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { getResumePageData, ResumePage } from '@/views/resume';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 type ResumeRouteProps = {
   params: Promise<{
