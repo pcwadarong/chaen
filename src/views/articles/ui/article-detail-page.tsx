@@ -6,7 +6,12 @@ import {
   getArticleDetailArchivePageAction,
   incrementArticleViewCountAction,
 } from '@/entities/article/api/article-actions';
-import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
+import type {
+  Article,
+  ArticleArchivePage,
+  ArticleListItem as ArticleListItemModel,
+} from '@/entities/article/model/types';
+import { ArticleListItem } from '@/entities/article/ui/article-list-item';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
@@ -23,6 +28,12 @@ type ArticleDetailPageProps = {
   initialCommentsPage: ArticleCommentPage;
   item: Article;
   locale: AppLocale;
+  relatedArticles: ArticleListItemModel[];
+};
+
+type RelatedArticlesSectionProps = {
+  items: ArticleListItemModel[];
+  title: string;
 };
 
 /**
@@ -40,6 +51,28 @@ const getArticleTagLabels = async (item: Article, locale: string) => {
 };
 
 /**
+ * 아티클 상세 하단의 관련 글 섹션을 렌더링합니다.
+ */
+const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) => {
+  if (items.length === 0) return null;
+
+  return (
+    <section aria-labelledby="related-articles-title" className={relatedArticlesSectionClass}>
+      <h2 className={relatedArticlesTitleClass} id="related-articles-title">
+        {title}
+      </h2>
+      <ol className={relatedArticlesListClass}>
+        {items.map(article => (
+          <li className={relatedArticlesItemClass} key={article.id}>
+            <ArticleListItem article={article} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+};
+
+/**
  * 아티클 상세 페이지 컨테이너입니다.
  */
 export const ArticleDetailPage = async ({
@@ -47,6 +80,7 @@ export const ArticleDetailPage = async ({
   initialCommentsPage,
   item,
   locale,
+  relatedArticles,
 }: ArticleDetailPageProps) => {
   const t = await getTranslations('ArticleDetail');
   const articlesT = await getTranslations('Articles');
@@ -90,11 +124,14 @@ export const ArticleDetailPage = async ({
       <JsonLd data={structuredData} />
       <DetailPageShell
         bottomContent={
-          <ArticleCommentsSection
-            articleId={item.id}
-            initialPage={initialCommentsPage}
-            locale={locale}
-          />
+          <>
+            <ArticleCommentsSection
+              articleId={item.id}
+              initialPage={initialCommentsPage}
+              locale={locale}
+            />
+            <RelatedArticlesSection items={relatedArticles} title={t('relatedArticlesTitle')} />
+          </>
         }
         content={item.content}
         emptyArchiveText={detailUi('emptyArchive')}
@@ -175,4 +212,32 @@ const tagButtonClass = css({
   fontSize: 'sm',
   lineHeight: 'tight',
   color: 'muted',
+});
+
+const relatedArticlesSectionClass = css({
+  display: 'grid',
+  gap: '4',
+  mt: '12',
+  pt: '8',
+  borderTop: '[1px solid var(--colors-border)]',
+});
+
+const relatedArticlesTitleClass = css({
+  fontSize: 'xl',
+  fontWeight: 'semibold',
+  letterSpacing: '[-0.03em]',
+});
+
+const relatedArticlesListClass = css({
+  listStyle: 'none',
+  m: '0',
+  p: '0',
+  borderBottom: '[1px solid var(--colors-border)]',
+});
+
+const relatedArticlesItemClass = css({
+  borderTop: '[1px solid var(--colors-border)]',
+  _first: {
+    borderTop: 'none',
+  },
 });

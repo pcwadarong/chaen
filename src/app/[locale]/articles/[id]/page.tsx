@@ -79,10 +79,11 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archivePage, initialCommentsPage, item } = await getArticleDetailPageData({
-    articleId: id,
-    locale,
-  });
+  const { archivePage, initialCommentsPage, item, relatedArticles } =
+    await getArticleDetailPageData({
+      articleId: id,
+      locale,
+    });
   if (!item) notFound();
 
   return (
@@ -91,6 +92,7 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
       initialCommentsPage={initialCommentsPage}
       item={item}
       locale={locale as AppLocale}
+      relatedArticles={relatedArticles}
     />
   );
 };

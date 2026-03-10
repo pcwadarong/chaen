@@ -158,6 +158,7 @@
     "notFoundTitle": "指定した記事が見つかりません。",
     "publishedAt": "公開日 {date}",
     "publishedAtLabel": "公開日",
+    "relatedArticlesTitle": "関連記事",
     "retry": "再試行",
     "tagSection": "タグ"
   },

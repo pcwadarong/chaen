@@ -1,9 +1,11 @@
-import { getArticle } from '@/entities/article/api/get-article';
+import { getResolvedArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
+import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
 import type {
   Article,
   ArticleArchivePage,
   ArticleDetailListItem,
+  ArticleListItem,
 } from '@/entities/article/model/types';
 import { getArticleComments } from '@/entities/article-comment';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
@@ -18,6 +20,7 @@ type ArticleDetailPageData = {
   archivePage: ArticleArchivePage;
   initialCommentsPage: ArticleCommentPage;
   item: Article | null;
+  relatedArticles: ArticleListItem[];
 };
 
 /**
@@ -36,8 +39,9 @@ export const getArticleDetailPageData = async ({
   articleId,
   locale,
 }: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
-  const [item, archivePage, initialCommentsPage] = await Promise.all([
-    getArticle(articleId, locale),
+  const resolvedArticle = await getResolvedArticle(articleId, locale);
+  const item = resolvedArticle.item;
+  const [archivePage, initialCommentsPage, relatedArticles] = await Promise.all([
     getArticleDetailList({ locale }),
     getArticleComments({
       articleId,
@@ -51,11 +55,18 @@ export const getArticleDetailPageData = async ({
       totalCount: 0,
       totalPages: 0,
     })),
+    item
+      ? getRelatedArticles({
+          articleId,
+          locale: resolvedArticle.resolvedLocale ?? locale,
+        }).catch(() => [])
+      : Promise.resolve([]),
   ]);
 
   return {
     archivePage: ensureCurrentArticleInArchive(item, archivePage),
     initialCommentsPage,
     item,
+    relatedArticles,
   };
 };

@@ -42,6 +42,7 @@ vi.mock('@/views/articles', () => ({
       totalPages: 0,
     },
     item: null,
+    relatedArticles: [],
   })),
   ArticleDetailPage: function ArticleDetailPage() {
     return null;
@@ -73,6 +74,7 @@ describe('ArticleDetailRoute', () => {
         totalCount: 0,
         totalPages: 0,
       },
+      relatedArticles: [],
       item: {
         id: 'frontend-performance',
         title: 'Frontend Performance',
@@ -148,6 +150,7 @@ describe('ArticleDetailRoute', () => {
         totalCount: 0,
         totalPages: 0,
       },
+      relatedArticles: [],
       item: null,
     });
 

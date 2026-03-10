@@ -158,6 +158,7 @@
     "notFoundTitle": "The requested article could not be found.",
     "publishedAt": "Published {date}",
     "publishedAtLabel": "Published",
+    "relatedArticlesTitle": "Related articles",
     "retry": "Retry",
     "tagSection": "Tags"
   },

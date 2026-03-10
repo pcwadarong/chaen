@@ -158,6 +158,7 @@
     "notFoundTitle": "L'article demandé est introuvable.",
     "publishedAt": "Publié le {date}",
     "publishedAtLabel": "Publié le",
+    "relatedArticlesTitle": "Articles liés",
     "retry": "Réessayer",
     "tagSection": "Tags"
   },

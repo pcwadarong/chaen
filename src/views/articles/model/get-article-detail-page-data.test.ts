@@ -1,14 +1,19 @@
 import { vi } from 'vitest';
 
-import { getArticle } from '@/entities/article/api/get-article';
+import { getResolvedArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
+import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
 import { getArticleComments } from '@/entities/article-comment';
 import { serializeLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 
 import { getArticleDetailPageData } from './get-article-detail-page-data';
 
 vi.mock('@/entities/article/api/get-article', () => ({
-  getArticle: vi.fn(),
+  getResolvedArticle: vi.fn(),
+}));
+
+vi.mock('@/entities/article/api/get-related-articles', () => ({
+  getRelatedArticles: vi.fn(),
 }));
 
 vi.mock('@/entities/article/api/get-article-detail-list', () => ({
@@ -31,17 +36,21 @@ describe('getArticleDetailPageData', () => {
       locale: 'ko',
     });
 
-    vi.mocked(getArticle).mockResolvedValue({
-      id: 'frontend',
-      title: 'Frontend',
-      description: 'cs',
-      content: 'detail',
-      thumbnail_url: null,
-      tags: [],
-      created_at: '2026-03-02T00:00:00.000Z',
-      updated_at: null,
-      view_count: 0,
+    vi.mocked(getResolvedArticle).mockResolvedValue({
+      item: {
+        id: 'frontend',
+        title: 'Frontend',
+        description: 'cs',
+        content: 'detail',
+        thumbnail_url: null,
+        tags: [],
+        created_at: '2026-03-02T00:00:00.000Z',
+        updated_at: null,
+        view_count: 0,
+      },
+      resolvedLocale: 'en',
     });
+    vi.mocked(getRelatedArticles).mockResolvedValue([]);
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [
         {
@@ -76,16 +85,24 @@ describe('getArticleDetailPageData', () => {
       }),
     );
     expect(result.item?.id).toBe('frontend');
+    expect(result.relatedArticles).toEqual([]);
     expect(result.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleComments).toHaveBeenCalledWith({
       articleId: 'frontend',
       page: 1,
       sort: 'latest',
     });
+    expect(getRelatedArticles).toHaveBeenCalledWith({
+      articleId: 'frontend',
+      locale: 'en',
+    });
   });
 
   it('아카이브 목록 조회 실패는 그대로 surface한다', async () => {
-    vi.mocked(getArticle).mockResolvedValue(null);
+    vi.mocked(getResolvedArticle).mockResolvedValue({
+      item: null,
+      resolvedLocale: null,
+    });
     vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
     vi.mocked(getArticleComments).mockResolvedValue({
       items: [],
@@ -111,17 +128,29 @@ describe('getArticleDetailPageData', () => {
       locale: 'ko',
     });
 
-    vi.mocked(getArticle).mockResolvedValue({
-      id: 'archive-1',
-      title: 'Archive',
-      description: 'cs',
-      content: 'detail',
-      thumbnail_url: null,
-      tags: [],
-      created_at: '2026-03-01T00:00:00.000Z',
-      updated_at: null,
-      view_count: 0,
+    vi.mocked(getResolvedArticle).mockResolvedValue({
+      item: {
+        id: 'archive-1',
+        title: 'Archive',
+        description: 'cs',
+        content: 'detail',
+        thumbnail_url: null,
+        tags: [],
+        created_at: '2026-03-01T00:00:00.000Z',
+        updated_at: null,
+        view_count: 0,
+      },
+      resolvedLocale: 'ko',
     });
+    vi.mocked(getRelatedArticles).mockResolvedValue([
+      {
+        id: 'archive-2',
+        title: 'Related',
+        description: 'related item',
+        thumbnail_url: null,
+        created_at: '2026-02-25T00:00:00.000Z',
+      },
+    ]);
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [
         {
@@ -149,5 +178,43 @@ describe('getArticleDetailPageData', () => {
 
     expect(result.archivePage.nextCursor).toBe(nextCursor);
     expect(result.archivePage.items).toHaveLength(1);
+    expect(result.relatedArticles[0]?.id).toBe('archive-2');
+  });
+
+  it('관련 글 조회 실패는 빈 목록으로 대체한다', async () => {
+    vi.mocked(getResolvedArticle).mockResolvedValue({
+      item: {
+        id: 'frontend',
+        title: 'Frontend',
+        description: 'cs',
+        content: 'detail',
+        thumbnail_url: null,
+        tags: [],
+        created_at: '2026-03-02T00:00:00.000Z',
+        updated_at: null,
+        view_count: 0,
+      },
+      resolvedLocale: 'ko',
+    });
+    vi.mocked(getRelatedArticles).mockRejectedValue(new Error('rpc failed'));
+    vi.mocked(getArticleDetailList).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+    vi.mocked(getArticleComments).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      sort: 'latest',
+      totalCount: 0,
+      totalPages: 0,
+    });
+
+    const result = await getArticleDetailPageData({
+      articleId: 'frontend',
+      locale: 'ko',
+    });
+
+    expect(result.relatedArticles).toEqual([]);
   });
 });

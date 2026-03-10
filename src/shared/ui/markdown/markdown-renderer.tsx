@@ -231,8 +231,7 @@ const markdownCodeBlockFrameClass = css({
   overflow: 'hidden',
   border: '[1px solid var(--colors-border)]',
   borderRadius: '[1rem]',
-  background:
-    '[linear-gradient(180deg, rgb(17 24 39 / 0.98), rgb(10 15 28 / 0.98)), rgb(10 15 28)]',
+  background: '[linear-gradient(180deg, #1D1E23, #111216)]',
   boxShadow: 'floating',
 });
 
