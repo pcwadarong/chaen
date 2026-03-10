@@ -66,19 +66,19 @@ export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDe
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <div aria-label={t('tagSection')} className={tagListClass}>
+        <ul aria-label={t('tagSection')} className={tagListClass}>
           {(item.tags ?? []).length > 0 ? (
             (item.tags ?? []).map(tag => (
-              <button aria-disabled="true" className={tagButtonClass} key={tag} type="button">
-                #{tagLabelMap.data.get(tag) ?? tag}
-              </button>
+              <li className={tagItemClass} key={tag}>
+                <span className={tagButtonClass}>#{tagLabelMap.data.get(tag) ?? tag}</span>
+              </li>
             ))
           ) : (
-            <button aria-disabled="true" className={tagButtonClass} type="button">
-              #{t('noTags')}
-            </button>
+            <li className={tagItemClass}>
+              <span className={tagButtonClass}>#{t('noTags')}</span>
+            </li>
           )}
-        </div>
+        </ul>
       }
       title={item.title}
     />
@@ -92,6 +92,8 @@ const tagListClass = css({
   alignItems: 'center',
   rowGap: '1',
   columnGap: '2',
+  listStyle: 'none',
+  p: '0',
   m: '0',
   color: 'muted',
   fontSize: 'xs',
@@ -100,6 +102,10 @@ const tagListClass = css({
     columnGap: '3',
     fontSize: 'sm',
   },
+});
+
+const tagItemClass = css({
+  display: 'block',
 });
 
 const tagButtonClass = css({

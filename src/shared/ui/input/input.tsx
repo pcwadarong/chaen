@@ -45,9 +45,5 @@ const inputRecipe = cva({
       cursor: 'not-allowed',
       opacity: 0.56,
     },
-    '&[aria-disabled="true"]': {
-      cursor: 'not-allowed',
-      opacity: 0.56,
-    },
   },
 });

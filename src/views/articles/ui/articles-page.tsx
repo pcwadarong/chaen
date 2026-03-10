@@ -76,7 +76,7 @@ const layoutClass = css({
   display: 'grid',
   gap: '6',
   '@media (min-width: 961px)': {
-    gridTemplateColumns: '[minmax(0, 1fr) 18rem]',
+    gridTemplateColumns: 'minmax(0, 1fr) 18rem',
     alignItems: 'start',
   },
 });

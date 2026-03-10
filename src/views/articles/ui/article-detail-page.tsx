@@ -92,19 +92,19 @@ export const ArticleDetailPage = async ({
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <div aria-label={t('tagSection')} className={tagListClass}>
+        <ul aria-label={t('tagSection')} className={tagListClass}>
           {tagLabels.length > 0 ? (
             tagLabels.map(tagLabel => (
-              <button aria-disabled="true" className={tagButtonClass} key={tagLabel} type="button">
-                #{tagLabel}
-              </button>
+              <li className={tagItemClass} key={tagLabel}>
+                <span className={tagButtonClass}>#{tagLabel}</span>
+              </li>
             ))
           ) : (
-            <button aria-disabled="true" className={tagButtonClass} type="button">
-              #{t('noTags')}
-            </button>
+            <li className={tagItemClass}>
+              <span className={tagButtonClass}>#{t('noTags')}</span>
+            </li>
           )}
-        </div>
+        </ul>
       }
       title={item.title}
     />
@@ -116,9 +116,16 @@ const tagListClass = css({
   flexWrap: 'wrap',
   justifyContent: 'center',
   gap: '2',
+  listStyle: 'none',
+  p: '0',
+  m: '0',
   '@media (min-width: 961px)': {
     gap: '3',
   },
+});
+
+const tagItemClass = css({
+  display: 'block',
 });
 
 const tagButtonClass = css({
