@@ -15,6 +15,7 @@ type CommentComposeProfileFieldsProps = {
   authorBlogUrlValue: string;
   authorNameId: string;
   authorNameLabel: string;
+  authorNameName?: string;
   authorNamePlaceholder: string;
   authorNameValue: string;
   onAuthorBlogUrlChange: (value: string) => void;
@@ -22,8 +23,10 @@ type CommentComposeProfileFieldsProps = {
   onPasswordChange: (value: string) => void;
   passwordId: string;
   passwordLabel: string;
+  passwordName?: string;
   passwordPlaceholder: string;
   passwordValue: string;
+  authorBlogUrlName?: string;
 };
 
 /** 작성자 프로필(닉네임/비밀번호/홈페이지) 입력 필드를 렌더링합니다. */
@@ -36,6 +39,7 @@ export const CommentComposeProfileFields = ({
   authorBlogUrlValue,
   authorNameId,
   authorNameLabel,
+  authorNameName = 'authorName',
   authorNamePlaceholder,
   authorNameValue,
   onAuthorBlogUrlChange,
@@ -43,8 +47,10 @@ export const CommentComposeProfileFields = ({
   onPasswordChange,
   passwordId,
   passwordLabel,
+  passwordName = 'password',
   passwordPlaceholder,
   passwordValue,
+  authorBlogUrlName = 'authorBlogUrl',
 }: CommentComposeProfileFieldsProps) => (
   <div css={leftFieldsStyle}>
     <label css={fieldWrapStyle} htmlFor={authorNameId}>
@@ -53,6 +59,7 @@ export const CommentComposeProfileFields = ({
         id={authorNameId}
         aria-label={authorNameLabel}
         minLength={1}
+        name={authorNameName}
         onChange={event => onAuthorNameChange(event.target.value)}
         placeholder={authorNamePlaceholder}
         required
@@ -65,6 +72,7 @@ export const CommentComposeProfileFields = ({
         id={passwordId}
         aria-label={passwordLabel}
         minLength={4}
+        name={passwordName}
         onChange={event => onPasswordChange(event.target.value)}
         placeholder={passwordPlaceholder}
         required
@@ -79,6 +87,7 @@ export const CommentComposeProfileFields = ({
         aria-invalid={authorBlogUrlErrorMessage ? 'true' : 'false'}
         id={authorBlogUrlId}
         aria-label={authorBlogUrlLabel}
+        name={authorBlogUrlName}
         onChange={event => onAuthorBlogUrlChange(event.target.value)}
         placeholder={authorBlogUrlPlaceholder}
         value={authorBlogUrlValue}

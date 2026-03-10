@@ -26,7 +26,7 @@ type GuestbookThreadBubbleProps = {
   onDelete: (entry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
   onReply: (entry: GuestbookThreadItem) => void;
-  onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
+  onRevealSecret: React.FormHTMLAttributes<HTMLFormElement>['action'];
   onToggleSecretPanel: () => void;
   passwordInput: string;
   revealLabel: string;
@@ -130,17 +130,17 @@ export const GuestbookThreadBubble = ({
               </>
             ) : (
               <form
+                action={onRevealSecret}
                 aria-label={revealSecretTitle}
-                onSubmit={event => {
-                  event.preventDefault();
-                  void onRevealSecret(entry, passwordInput);
-                }}
                 css={inlineRevealFormStyle}
               >
+                <input name="entryId" type="hidden" value={entry.id} />
                 <Input
                   aria-label={revealSecretPasswordLabel}
+                  name="password"
                   onChange={event => setPasswordInput(event.target.value)}
                   placeholder={revealSecretPasswordLabel}
+                  required
                   type="password"
                   value={passwordInput}
                   css={inlineRevealInputStyle}

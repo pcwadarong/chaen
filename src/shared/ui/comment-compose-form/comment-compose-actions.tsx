@@ -10,6 +10,7 @@ type GuestbookComposeActionsProps = {
   allowSecretToggle: boolean;
   isSecret: boolean;
   isSubmitting: boolean;
+  secretCheckboxName?: string;
   onSecretChange: (checked: boolean) => void;
   secretCheckboxId: string;
   secretLabel: string;
@@ -21,6 +22,7 @@ export const CommentComposeActions = ({
   allowSecretToggle,
   isSecret,
   isSubmitting,
+  secretCheckboxName = 'isSecret',
   onSecretChange,
   secretCheckboxId,
   secretLabel,
@@ -34,6 +36,7 @@ export const CommentComposeActions = ({
           aria-label={secretLabel}
           checked={isSecret}
           css={secretCheckboxStyle}
+          name={secretCheckboxName}
           onChange={event => onSecretChange(event.target.checked)}
           type="checkbox"
         />

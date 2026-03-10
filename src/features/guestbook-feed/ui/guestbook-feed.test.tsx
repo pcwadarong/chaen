@@ -76,9 +76,9 @@ describe('GuestbookFeed', () => {
         onEditReply={vi.fn()}
         onEdit={vi.fn()}
         onLoadMore={vi.fn(async () => {})}
+        onRevealSecretSuccess={vi.fn()}
         onReply={vi.fn()}
         onRetry={vi.fn(async () => {})}
-        onRevealSecret={vi.fn(async () => {})}
       />,
     );
 

@@ -18,7 +18,6 @@ export const AdminPage = ({ locale: _locale }: AdminPageProps) => (
         관리자
       </h1>
       <AdminSignOutButton
-        errorMessage="로그아웃에 실패했습니다."
         redirectPath="/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"

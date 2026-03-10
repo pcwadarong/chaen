@@ -2,11 +2,16 @@
 
 import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import {
+  initialSubmitGuestbookEntryState,
+  submitGuestbookEntry,
+} from '@/features/guestbook-feed/api/guestbook-actions';
 import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
@@ -15,7 +20,6 @@ import { Modal } from '@/shared/ui/modal/modal';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { useGuestbookActionModal } from '@/widgets/guestbook/model/use-guestbook-action-modal';
-import { useGuestbookComposeActions } from '@/widgets/guestbook/model/use-guestbook-compose-actions';
 
 const createOptimisticId = () =>
   `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -56,6 +60,12 @@ export const GuestbookBoard = ({
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [replyTarget, setReplyTarget] = useState<GuestbookThreadItem | null>(null);
+  const [composeState, composeAction, isComposePending] = useActionState(
+    submitGuestbookEntry,
+    initialSubmitGuestbookEntryState,
+  );
+  const isInitialComposeRenderRef = useRef(true);
+  const lastHandledComposeStateRef = useRef<ActionResult<{ entry: unknown }> | null>(null);
 
   const pushToast = useCallback((message: string, tone: ToastItem['tone']) => {
     const id = createOptimisticId();
@@ -76,30 +86,38 @@ export const GuestbookBoard = ({
     };
   }, [toasts]);
 
-  const composeText = useMemo(
-    () => ({
-      toastCreateError: t('toastCreateError'),
-      toastCreateSuccess: t('toastCreateSuccess'),
-      toastReplyError: t('toastReplyError'),
-      toastReplySuccess: t('toastReplySuccess'),
-      toastSecretVerifyError: t('toastSecretVerifyError'),
-    }),
-    [t],
-  );
+  useEffect(() => {
+    if (isInitialComposeRenderRef.current) {
+      isInitialComposeRenderRef.current = false;
+      return;
+    }
+    if (lastHandledComposeStateRef.current === composeState) return;
+    lastHandledComposeStateRef.current = composeState;
 
-  const { handleRevealSecret, handleSubmit } = useGuestbookComposeActions({
-    feedMutations: {
-      applyServerThreadEntry,
-      prependLocalThread,
-      removeThreadById,
-      updateThreadById,
-    },
-    isAdmin,
-    pushToast,
-    replyTarget,
-    setReplyTarget,
-    text: composeText,
-  });
+    if (!composeState.ok || !composeState.data) {
+      if (!composeState.errorMessage) return;
+
+      const errorText = replyTarget && isAdmin ? t('toastReplyError') : t('toastCreateError');
+      pushToast(`${errorText} (${composeState.errorMessage})`, 'error');
+      return;
+    }
+
+    const createdEntry = composeState.data.entry;
+    if (createdEntry.parent_id) {
+      updateThreadById(createdEntry.parent_id, item => ({
+        ...item,
+        replies: [...item.replies, createdEntry],
+      }));
+      pushToast(t('toastReplySuccess'), 'success');
+    } else {
+      prependLocalThread({
+        ...createdEntry,
+        replies: [],
+      });
+      pushToast(t('toastCreateSuccess'), 'success');
+    }
+    setReplyTarget(null);
+  }, [composeState, isAdmin, prependLocalThread, pushToast, replyTarget, t, updateThreadById]);
 
   const modalText = useMemo(
     () => ({
@@ -168,13 +186,14 @@ export const GuestbookBoard = ({
           onEditReply={openEditReplyModal}
           onEdit={openEditModal}
           onLoadMore={loadMore}
+          onRevealSecretSuccess={applyServerThreadEntry}
           onReply={entry => setReplyTarget(entry)}
           onRetry={retryInitialLoad}
-          onRevealSecret={handleRevealSecret}
         />
       </section>
 
       <CommentComposeForm
+        formAction={composeAction}
         allowSecretToggle={!isAdmin}
         authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
         authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
@@ -185,8 +204,11 @@ export const GuestbookBoard = ({
         characterCountLabel={t('composeCharacterCountLabel')}
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
+        hiddenFields={{
+          parentId: isAdmin && replyTarget ? replyTarget.id : null,
+        }}
+        isSubmittingOverride={isComposePending}
         isReplyMode={Boolean(replyTarget && isAdmin)}
-        onSubmit={handleSubmit}
         onReplyTargetReset={() => setReplyTarget(null)}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         passwordLabel={t('composePasswordLabel')}
@@ -195,6 +217,7 @@ export const GuestbookBoard = ({
         replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
         replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel={t('secretLabel')}
+        submissionResult={composeState}
         submitLabel={t('submit')}
         textPlaceholder={t('composePlaceholder')}
       />

@@ -5,6 +5,8 @@
 1. Unit 1: stable 호환 `useCache`, `zod`, 공통 Server Action 계약 준비
 2. Unit 1: `useOffsetPaginationFeed`를 함수 주입형 구조로 리팩터링
 3. Unit 1: Supabase 서버 클라이언트의 쿠키 읽기/쓰기 테스트 추가
+4. Unit 2: auth/guestbook를 Server Action + `useActionState` 구조로 전환
+5. Unit 2: guestbook API Route 제거 및 관련 테스트 이관
 
 <br/>
 
@@ -25,6 +27,9 @@
 - `useOffsetPaginationFeed`는 `loadPage` 함수를 주입받도록 바꿔 API fetch 의존을 분리합니다.
 - `createServerSupabaseClient`가 `cookies().getAll()`과 `setAll()`을 통해 최신 세션 쿠키를 읽고 쓸 수 있는지 테스트로 보장합니다.
 - `dynamicIO`는 보류하고 stable에서 동작하는 `experimental.useCache`로 기반 설정만 먼저 맞춥니다.
+- 로그인/로그아웃은 Server Action 내부에서 직접 Supabase auth를 호출하고 성공 시 server redirect로 이동합니다.
+- 방명록 작성/비밀글 검증은 `form action={serverAction}` + `useActionState`로 구성해 JS가 없어도 기본 제출이 가능하게 맞춥니다.
+- 방명록 수정/삭제 모달은 JS 의존을 유지하되 API Route 대신 Server Action 직접 호출로 전환합니다.
 
 <br/>
 

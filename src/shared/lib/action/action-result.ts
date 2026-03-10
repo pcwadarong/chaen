@@ -5,6 +5,15 @@ export type ActionResult<T> = {
 };
 
 /**
+ * Server Action의 초기 상태를 생성합니다.
+ */
+export const createInitialActionResult = <T>(): ActionResult<T> => ({
+  data: null,
+  errorMessage: null,
+  ok: false,
+});
+
+/**
  * Server Action 성공 결과를 공통 형태로 생성합니다.
  */
 export const createActionSuccess = <T>(data: T): ActionResult<T> => ({

@@ -3,15 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
+import { getGuestbookThreadsPage } from '@/features/guestbook-feed/api/guestbook-actions';
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
-import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
-
-type GuestbookFeedResponse = {
-  ok: boolean;
-  items: GuestbookThreadItem[];
-  nextCursor: string | null;
-  reason?: string;
-};
 
 type UseGuestbookFeedOptions = {
   initialCursor?: string | null;
@@ -75,21 +68,17 @@ export const useGuestbookFeed = ({
       if (loadingMode === 'more') setIsLoadingMore(true);
       setErrorMessage(null);
 
-      const url = new URL('/api/guestbook/threads', window.location.origin);
-      url.searchParams.set('limit', String(limit));
-      if (cursor) url.searchParams.set('cursor', cursor);
-
-      const payload = await requestJsonApiClient<GuestbookFeedResponse>({
-        fallbackReason: 'failed to fetch guestbook threads',
-        init: {
-          cache: 'no-store',
-        },
-        method: 'GET',
-        url: url.toString(),
+      const result = await getGuestbookThreadsPage({
+        cursor,
+        limit,
       });
 
-      mergeUniqueById(payload.items);
-      setNextCursor(payload.nextCursor);
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch guestbook threads');
+      }
+
+      mergeUniqueById(result.data.items);
+      setNextCursor(result.data.nextCursor);
     },
     [limit, mergeUniqueById],
   );
