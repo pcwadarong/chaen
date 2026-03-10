@@ -70,6 +70,16 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('단일 줄바꿈을 br 요소로 렌더링한다', async () => {
+    const document = await renderServerDocument(['첫 번째 줄', '두 번째 줄'].join('\n'));
+    const paragraph = document.querySelector('p');
+    const lineBreak = document.querySelector('p br');
+
+    expect(paragraph).toBeTruthy();
+    expect(lineBreak).toBeTruthy();
+    expect(paragraph?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+  });
+
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {
     const element = await MarkdownRenderer({
       emptyText: '본문이 없습니다.',
