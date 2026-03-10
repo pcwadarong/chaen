@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useLocale } from 'next-intl';
+import React, { useActionState, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
 import { GuestbookThreadBubble } from '@/entities/guestbook/ui/guestbook-thread-bubble';
+import {
+  initialVerifyGuestbookSecretState,
+  verifyGuestbookSecretAction,
+} from '@/features/guestbook-feed/api/guestbook-actions';
 
 type GuestbookThreadCardProps = {
   actionDeleteLabel: string;
@@ -21,12 +26,10 @@ type GuestbookThreadCardProps = {
   onDelete: (entry: GuestbookThreadItem) => void;
   onEditReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
-  onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
+  onRevealSecretSuccess: (entry: GuestbookEntry) => void;
   onReply: (entry: GuestbookThreadItem) => void;
   reportLabel: string;
-  revealSecretErrorLabel: string;
   revealSecretPasswordLabel: string;
-  revealSecretRequiredLabel: string;
   revealSecretSubmitLabel: string;
   revealSecretTitle: string;
   revealLabel: string;
@@ -51,22 +54,34 @@ export const GuestbookThreadCard = ({
   onDelete,
   onEditReply,
   onEdit,
-  onRevealSecret,
+  onRevealSecretSuccess,
   onReply,
   reportLabel,
-  revealSecretErrorLabel,
   revealSecretPasswordLabel,
-  revealSecretRequiredLabel,
   revealSecretSubmitLabel,
   revealSecretTitle,
   revealLabel,
   secretPlaceholder,
 }: GuestbookThreadCardProps) => {
+  const locale = useLocale();
   const [isSecretPanelOpen, setIsSecretPanelOpen] = useState(false);
-  const [isSecretSubmitting, setIsSecretSubmitting] = useState(false);
-  const [secretError, setSecretError] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const isSecretRevealed = !entry.is_secret || !entry.is_content_masked;
+  const [verifyState, verifyAction, isSecretSubmitting] = useActionState(
+    verifyGuestbookSecretAction,
+    initialVerifyGuestbookSecretState,
+  );
+  const lastHandledVerifyStateRef = useRef(verifyState);
+
+  useEffect(() => {
+    if (!verifyState.ok || !verifyState.data) return;
+    if (lastHandledVerifyStateRef.current === verifyState) return;
+    lastHandledVerifyStateRef.current = verifyState;
+
+    onRevealSecretSuccess(verifyState.data.entry);
+    setPasswordInput('');
+    setIsSecretPanelOpen(false);
+  }, [onRevealSecretSuccess, verifyState]);
 
   return (
     <article className={threadClass}>
@@ -83,26 +98,11 @@ export const GuestbookThreadCard = ({
         isSecretPanelOpen={isSecretPanelOpen}
         isSecretRevealed={isSecretRevealed}
         isSecretSubmitting={isSecretSubmitting}
+        locale={locale}
         onDelete={onDelete}
         onEdit={onEdit}
         onReply={onReply}
-        onRevealSecret={async (currentEntry, currentPasswordInput) => {
-          if (!currentPasswordInput.trim()) {
-            setSecretError(revealSecretRequiredLabel);
-            return;
-          }
-          try {
-            setSecretError(null);
-            setIsSecretSubmitting(true);
-            await onRevealSecret(currentEntry, currentPasswordInput);
-            setPasswordInput('');
-            setIsSecretPanelOpen(false);
-          } catch {
-            setSecretError(revealSecretErrorLabel);
-          } finally {
-            setIsSecretSubmitting(false);
-          }
-        }}
+        onRevealSecret={verifyAction}
         onToggleSecretPanel={() => setIsSecretPanelOpen(previous => !previous)}
         passwordInput={passwordInput}
         revealLabel={revealLabel}
@@ -110,7 +110,7 @@ export const GuestbookThreadCard = ({
         revealSecretSubmitLabel={revealSecretSubmitLabel}
         revealSecretTitle={revealSecretTitle}
         reportLabel={reportLabel}
-        secretError={secretError}
+        secretError={verifyState.errorMessage}
         secretPlaceholder={secretPlaceholder}
         setPasswordInput={setPasswordInput}
       />

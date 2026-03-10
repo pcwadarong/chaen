@@ -45,43 +45,49 @@ export default defineConfig({
           surface: {
             value: {
               base: '{colors.white}',
-              _dark: '{colors.gray.900}',
+              _dark: '{colors.zinc.900}',
+            },
+          },
+          appBackdrop: {
+            value: {
+              base: '{colors.zinc.50}',
+              _dark: '{colors.zinc.950}',
             },
           },
           surfaceMuted: {
             value: {
-              base: '{colors.gray.100}',
-              _dark: '{colors.gray.800}',
+              base: '{colors.zinc.100}',
+              _dark: '{colors.zinc.800}',
             },
           },
           surfaceStrong: {
             value: {
-              base: '{colors.gray.200}',
-              _dark: '{colors.gray.700}',
+              base: '{colors.zinc.200}',
+              _dark: '{colors.zinc.700}',
             },
           },
           text: {
             value: {
-              base: '{colors.gray.900}',
-              _dark: '{colors.gray.50}',
+              base: '{colors.zinc.900}',
+              _dark: '{colors.zinc.50}',
             },
           },
           muted: {
             value: {
-              base: '{colors.gray.500}',
-              _dark: '{colors.gray.400}',
+              base: '{colors.zinc.500}',
+              _dark: '{colors.zinc.400}',
             },
           },
           border: {
             value: {
-              base: '{colors.gray.300}',
-              _dark: '{colors.gray.600}',
+              base: '{colors.zinc.300}',
+              _dark: '{colors.zinc.600}',
             },
           },
           borderStrong: {
             value: {
-              base: '{colors.gray.400}',
-              _dark: '{colors.gray.500}',
+              base: '{colors.zinc.400}',
+              _dark: '{colors.zinc.500}',
             },
           },
           primary: {
@@ -105,7 +111,7 @@ export default defineConfig({
           primaryContrast: {
             value: {
               base: '{colors.white}',
-              _dark: '{colors.gray.900}',
+              _dark: '{colors.zinc.900}',
             },
           },
           focusRing: {
@@ -116,8 +122,8 @@ export default defineConfig({
           },
           textSubtle: {
             value: {
-              base: '{colors.gray.100}',
-              _dark: '{colors.gray.800}',
+              base: '{colors.zinc.100}',
+              _dark: '{colors.zinc.800}',
             },
           },
           success: {

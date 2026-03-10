@@ -6,6 +6,7 @@ export type Article = {
   title: string;
   description: string | null;
   content: string | null;
+  is_secret?: boolean | null;
   thumbnail_url: string | null;
   tags: string[] | null;
   created_at: string;

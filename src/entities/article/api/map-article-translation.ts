@@ -2,7 +2,7 @@ import type { Article, ArticleDetailListItem, ArticleListItem } from '../model/t
 
 type ArticleBaseFields = Pick<
   Article,
-  'created_at' | 'id' | 'thumbnail_url' | 'updated_at' | 'view_count'
+  'created_at' | 'id' | 'is_secret' | 'thumbnail_url' | 'updated_at' | 'view_count'
 >;
 
 type EmbeddedArticleBaseRow = ArticleBaseFields | ArticleBaseFields[] | null;
@@ -117,6 +117,7 @@ export const mapArticle = (row: ArticleTranslationRow, tags: string[]): Article 
     created_at: articleBase.created_at,
     description: row.description,
     id: row.article_id,
+    is_secret: articleBase.is_secret ?? false,
     tags,
     thumbnail_url: articleBase.thumbnail_url,
     title: row.title,
@@ -138,6 +139,7 @@ export const mapArticleFallbackRpcRow = (
   articles: {
     created_at: row.created_at,
     id: row.id,
+    is_secret: row.is_secret ?? false,
     thumbnail_url: row.thumbnail_url,
     updated_at: row.updated_at,
     view_count: row.view_count,

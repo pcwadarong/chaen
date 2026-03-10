@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getProject } from './get-project';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -28,7 +28,7 @@ describe('getProject', () => {
     const result = await getProject('funda-project', 'ko');
 
     expect(result).toBeNull();
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('content schema를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
@@ -87,12 +87,7 @@ describe('getProject', () => {
       title: 'Funda Project',
       tags: ['react', 'nextjs'],
     });
-    expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
-      'project',
-      'supabase-enabled',
-      'funda-project',
-      'ko',
-    ]);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('projects', 'project:funda-project');
   });
 
   it('content schema가 없으면 명시적 에러를 던진다', async () => {

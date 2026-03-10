@@ -1,16 +1,30 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  useActionState,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { css, cx } from 'styled-system/css';
 
+import {
+  deleteArticleCommentAction,
+  getArticleCommentsPageAction,
+  initialSubmitArticleCommentState,
+  submitArticleComment,
+  updateArticleCommentAction,
+} from '@/entities/article-comment/api/article-comment-actions';
 import type {
   ArticleComment,
   ArticleCommentPage,
   ArticleCommentsSort,
   ArticleCommentThreadItem,
 } from '@/entities/article-comment/model/types';
-import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
@@ -26,12 +40,6 @@ import { Modal } from '@/shared/ui/modal/modal';
 import { Pagination } from '@/shared/ui/pagination/pagination';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
-import {
-  createArticleCommentClient,
-  deleteArticleCommentClient,
-  getArticleCommentsPageClient,
-  updateArticleCommentClient,
-} from '@/widgets/article-comments/api/client';
 
 type ArticleCommentsSectionProps = {
   articleId: string;
@@ -51,8 +59,13 @@ type ModalState = {
   mode: 'delete' | 'edit';
 } | null;
 
+type CommentQueryState = {
+  page: number;
+  sort: ArticleCommentsSort;
+};
+
 const LOAD_LAST_PAGE = 9999;
-const INVALID_PASSWORD_STATUS = 403;
+const INVALID_PASSWORD_REASON = 'invalid password';
 const TOAST_DURATION_MS = 2600;
 
 /**
@@ -68,10 +81,10 @@ const formatCommentDate = (timestamp: string, locale: string) =>
   }).format(new Date(timestamp));
 
 /**
- * API 에러가 비밀번호 오류인지 판별합니다.
+ * action 에러가 비밀번호 오류인지 판별합니다.
  */
 const isInvalidPasswordError = (error: unknown) =>
-  error instanceof Error && 'status' in error && error.status === INVALID_PASSWORD_STATUS;
+  error instanceof Error && error.message === INVALID_PASSWORD_REASON;
 
 /**
  * 아티클 상세 하단 댓글 섹션 위젯입니다.
@@ -87,7 +100,21 @@ export const ArticleCommentsSection = ({
   const modalDescriptionId = useId();
   const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
+  const [rootSubmitState, submitRootCommentAction, isRootSubmitting] = useActionState(
+    submitArticleComment,
+    initialSubmitArticleCommentState,
+  );
+  const [replySubmitState, submitReplyCommentAction, isReplySubmitting] = useActionState(
+    submitArticleComment,
+    initialSubmitArticleCommentState,
+  );
+  const lastHandledRootSubmitStateRef = useRef(rootSubmitState);
+  const lastHandledReplySubmitStateRef = useRef(replySubmitState);
   const [pageData, setPageData] = useState(initialPage);
+  const [queryState, setQueryState] = useState<CommentQueryState>({
+    page: initialPage.page,
+    sort: initialPage.sort,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
@@ -137,23 +164,38 @@ export const ArticleCommentsSection = ({
         fresh?: boolean;
       },
     ) => {
+      setQueryState({
+        page: nextPage,
+        sort: nextSort,
+      });
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
-        const payload = await getArticleCommentsPageClient(articleId, {
+        const result = await getArticleCommentsPageAction({
+          articleId,
           fresh: options?.fresh,
+          locale,
           page: nextPage,
           sort: nextSort,
         });
-        setPageData(payload);
+
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to load comments');
+        }
+
+        setPageData(result.data);
+        setQueryState({
+          page: result.data.page,
+          sort: result.data.sort,
+        });
       } catch (_error) {
         setErrorMessage(t('loadError'));
       } finally {
         setIsLoading(false);
       }
     },
-    [articleId, t],
+    [articleId, locale, t],
   );
 
   const closeModal = () => {
@@ -164,7 +206,7 @@ export const ArticleCommentsSection = ({
   };
 
   const handleChangeSort = (sort: ArticleCommentsSort) => {
-    if (sort === pageData.sort) return;
+    if (sort === queryState.sort) return;
     void loadPage(1, sort);
   };
 
@@ -175,37 +217,6 @@ export const ArticleCommentsSection = ({
       content: entry.content,
       parentId: thread.id,
     });
-  };
-
-  const handleSubmitRootComment = async (values: CommentComposeValues) => {
-    try {
-      await createArticleCommentClient(articleId, values);
-      pushToast(t('toastCreateSuccess'), 'success');
-      await loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
-        fresh: true,
-      });
-    } catch {
-      pushToast(t('toastCreateError'), 'error');
-    }
-  };
-
-  const handleSubmitReply = async (values: CommentComposeValues) => {
-    if (!replyTarget) return;
-
-    try {
-      await createArticleCommentClient(articleId, {
-        ...values,
-        parentId: replyTarget.parentId,
-        replyToCommentId: replyTarget.commentId,
-      });
-      setReplyTarget(null);
-      pushToast(t('toastReplySuccess'), 'success');
-      await loadPage(pageData.page, pageData.sort, {
-        fresh: true,
-      });
-    } catch {
-      pushToast(t('toastReplyError'), 'error');
-    }
   };
 
   const openEditModal = (entry: ArticleComment) => {
@@ -255,17 +266,29 @@ export const ArticleCommentsSection = ({
 
     try {
       if (modalState.mode === 'edit') {
-        await updateArticleCommentClient(
+        const result = await updateArticleCommentAction({
           articleId,
-          modalState.entry.id,
-          trimmedContent,
-          trimmedPassword,
-        );
+          commentId: modalState.entry.id,
+          content: trimmedContent,
+          locale,
+          password: trimmedPassword,
+        });
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to update comment');
+        }
         pushToast(t('toastEditSuccess'), 'success');
       }
 
       if (modalState.mode === 'delete') {
-        await deleteArticleCommentClient(articleId, modalState.entry.id, trimmedPassword);
+        const result = await deleteArticleCommentAction({
+          articleId,
+          commentId: modalState.entry.id,
+          locale,
+          password: trimmedPassword,
+        });
+        if (!result.ok || !result.data) {
+          throw new Error(result.errorMessage ?? 'failed to delete comment');
+        }
         pushToast(t('toastDeleteSuccess'), 'success');
       }
 
@@ -293,6 +316,41 @@ export const ArticleCommentsSection = ({
     return modalState.mode === 'edit' ? t('editModalTitle') : t('deleteModalTitle');
   }, [modalState, t]);
 
+  useEffect(() => {
+    if (lastHandledRootSubmitStateRef.current === rootSubmitState) return;
+    lastHandledRootSubmitStateRef.current = rootSubmitState;
+
+    if (!rootSubmitState.ok) {
+      if (rootSubmitState.errorMessage) {
+        pushToast(t('toastCreateError'), 'error');
+      }
+      return;
+    }
+
+    void loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
+      fresh: true,
+    });
+    pushToast(t('toastCreateSuccess'), 'success');
+  }, [loadPage, pageData.sort, pushToast, rootSubmitState, t]);
+
+  useEffect(() => {
+    if (lastHandledReplySubmitStateRef.current === replySubmitState) return;
+    lastHandledReplySubmitStateRef.current = replySubmitState;
+
+    if (!replySubmitState.ok) {
+      if (replySubmitState.errorMessage) {
+        pushToast(t('toastReplyError'), 'error');
+      }
+      return;
+    }
+
+    setReplyTarget(null);
+    void loadPage(pageData.page, pageData.sort, {
+      fresh: true,
+    });
+    pushToast(t('toastReplySuccess'), 'success');
+  }, [loadPage, pageData.page, pageData.sort, pushToast, replySubmitState, t]);
+
   return (
     <section aria-labelledby={titleId} className={sectionClass}>
       <div className={headerClass}>
@@ -314,17 +372,19 @@ export const ArticleCommentsSection = ({
         characterCountLabel={t('composeCharacterCountLabel')}
         contentLabel={t('composeContentLabel')}
         contentShortcutHint={t('composeContentShortcutHint')}
+        formAction={submitRootCommentAction}
+        hiddenFields={{ articleId, locale }}
         isReplyMode={false}
+        isSubmittingOverride={isRootSubmitting}
         layout="embedded"
-        onReplyTargetReset={() => undefined}
-        onSubmit={handleSubmitRootComment}
         passwordLabel={t('composePasswordLabel')}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={null}
-        replyTargetResetLabel={t('replyTargetResetLabel')}
         secretLabel=""
+        showReplyPreview={false}
         submitLabel={t('submit')}
+        submissionResult={rootSubmitState}
         textareaAutoResize={false}
         textareaRows={4}
         textPlaceholder={t('composePlaceholder')}
@@ -336,29 +396,29 @@ export const ArticleCommentsSection = ({
             aria-selected={pageData.sort === 'latest'}
             className={cx(
               sortButtonClass,
-              pageData.sort === 'latest' ? activeSortButtonClass : undefined,
+              queryState.sort === 'latest' ? activeSortButtonClass : undefined,
             )}
             onClick={() => handleChangeSort('latest')}
             role="tab"
             size="sm"
             tone="white"
             type="button"
-            variant={pageData.sort === 'latest' ? 'solid' : 'ghost'}
+            variant={queryState.sort === 'latest' ? 'solid' : 'ghost'}
           >
             {t('sortLatest')}
           </Button>
           <Button
-            aria-selected={pageData.sort === 'oldest'}
+            aria-selected={queryState.sort === 'oldest'}
             className={cx(
               sortButtonClass,
-              pageData.sort === 'oldest' ? activeSortButtonClass : undefined,
+              queryState.sort === 'oldest' ? activeSortButtonClass : undefined,
             )}
             onClick={() => handleChangeSort('oldest')}
             role="tab"
             size="sm"
             tone="white"
             type="button"
-            variant={pageData.sort === 'oldest' ? 'solid' : 'ghost'}
+            variant={queryState.sort === 'oldest' ? 'solid' : 'ghost'}
           >
             {t('sortOldest')}
           </Button>
@@ -384,13 +444,17 @@ export const ArticleCommentsSection = ({
         </div>
       ) : null}
 
+      {isLoading && pageData.items.length > 0 ? (
+        <CommentsLoadingSkeleton loadingText={t('loading')} />
+      ) : null}
+
       {!isLoading && !errorMessage && pageData.items.length === 0 ? (
         <div className={stateCardClass}>
           <p className={stateTextClass}>{t('emptyItems')}</p>
         </div>
       ) : null}
 
-      {pageData.items.length > 0 ? (
+      {!isLoading && pageData.items.length > 0 ? (
         <ol className={threadListClass}>
           {pageData.items.map(thread => (
             <li key={thread.id}>
@@ -447,17 +511,24 @@ export const ArticleCommentsSection = ({
                       characterCountLabel={t('composeCharacterCountLabel')}
                       contentLabel={t('composeReplyContentLabel')}
                       contentShortcutHint={t('composeContentShortcutHint')}
+                      formAction={submitReplyCommentAction}
+                      hiddenFields={{
+                        articleId,
+                        locale,
+                        parentId: replyTarget.parentId,
+                        replyToCommentId: replyTarget.commentId,
+                      }}
                       isReplyMode
+                      isSubmittingOverride={isReplySubmitting}
                       layout="embedded"
-                      onReplyTargetReset={() => setReplyTarget(null)}
-                      onSubmit={handleSubmitReply}
                       passwordLabel={t('composePasswordLabel')}
                       passwordPlaceholder={t('composePasswordPlaceholder')}
                       replyPreviewLabel={t('composeReplyPreviewLabel')}
                       replyTargetContent={replyTarget.content}
-                      replyTargetResetLabel={t('replyTargetResetLabel')}
                       secretLabel=""
-                      submitLabel={t('replySubmit')}
+                      showReplyPreview={false}
+                      submitLabel={t('submit')}
+                      submissionResult={replySubmitState}
                       textareaAutoResize={false}
                       textareaRows={4}
                       textPlaceholder={t('composeReplyPlaceholder', {
@@ -472,13 +543,13 @@ export const ArticleCommentsSection = ({
         </ol>
       ) : null}
 
-      {pageData.items.length > 0 && pageData.totalPages > 1 ? (
+      {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
         <div className={footerPaginationWrapClass}>
           <Pagination
             ariaLabel={t('paginationLabel')}
-            currentPage={pageData.page}
+            currentPage={queryState.page}
             onPageChange={page => {
-              void loadPage(page, pageData.sort);
+              void loadPage(page, queryState.sort);
             }}
             totalPages={pageData.totalPages}
           />
@@ -552,6 +623,31 @@ export const ArticleCommentsSection = ({
     </section>
   );
 };
+
+type CommentsLoadingSkeletonProps = {
+  loadingText: string;
+};
+
+/**
+ * 댓글 정렬/페이지 전환 중 목록 자리에 표시하는 스켈레톤입니다.
+ */
+const CommentsLoadingSkeleton = ({ loadingText }: CommentsLoadingSkeletonProps) => (
+  <div aria-busy="true" aria-label={loadingText} className={commentsLoadingWrapClass} role="status">
+    {Array.from({ length: 3 }).map((_, index) => (
+      <div className={commentsLoadingCardClass} key={index}>
+        <div className={commentsLoadingHeaderClass}>
+          <div className={commentsLoadingAuthorClass} />
+          <div className={commentsLoadingDateClass} />
+        </div>
+        <div className={commentsLoadingBodyClass}>
+          <div className={commentsLoadingLineLongClass} />
+          <div className={commentsLoadingLineShortClass} />
+        </div>
+        <div className={commentsLoadingReplyClass} />
+      </div>
+    ))}
+  </div>
+);
 
 type CommentEntryCardProps = {
   actionDeleteLabel: string;
@@ -804,6 +900,82 @@ const stateTextClass = css({
   textAlign: 'center',
 });
 
+const commentsLoadingWrapClass = css({
+  display: 'grid',
+  marginTop: '2',
+});
+
+const commentsLoadingCardClass = css({
+  display: 'grid',
+  gap: '3',
+  paddingY: '4',
+  borderTop: '[1px solid var(--colors-border)]',
+  _first: {
+    borderTop: 'none',
+  },
+});
+
+const commentsLoadingHeaderClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '3',
+});
+
+const commentsLoadingBodyClass = css({
+  display: 'grid',
+  gap: '2',
+});
+
+const commentsLoadingAuthorClass = css({
+  width: '24',
+  height: '7',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingDateClass = css({
+  width: '36',
+  height: '5',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingLineLongClass = css({
+  width: '[72%]',
+  height: '6',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingLineShortClass = css({
+  width: '[52%]',
+  height: '6',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingReplyClass = css({
+  width: '20',
+  height: '5',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
 const threadListClass = css({
   display: 'grid',
   listStyle: 'none',
@@ -831,9 +1003,11 @@ const replyListClass = css({
 
 const replyComposeWrapClass = css({
   paddingLeft: '4',
+  paddingBottom: '5',
   marginTop: '1',
   '@media (min-width: 721px)': {
     paddingLeft: '6',
+    paddingBottom: '6',
   },
 });
 

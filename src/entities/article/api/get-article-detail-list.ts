@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   buildContentLocaleFallbackChain,
@@ -48,7 +48,7 @@ const fetchArticleDetailListFromContentSchema = async (
   const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
   let translationsQuery = supabase
     .from('article_translations')
-    .select('article_id,title,description,articles!inner(created_at)')
+    .select('article_id,title,description,articles!inner(created_at,is_secret)')
     .eq('locale', locale)
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });
@@ -111,6 +111,33 @@ const fetchArticleDetailListByLocale = async (
 };
 
 /**
+ * 아티클 상세 아카이브 목록을 `use cache`로 캐시합니다.
+ */
+const readCachedArticleDetailList = async (input: {
+  cursor: string | null | undefined;
+  normalizedLocale: string;
+  pageSize: number;
+}): Promise<ArticleArchivePage> => {
+  'use cache';
+
+  cacheTag(ARTICLES_CACHE_TAG);
+
+  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(input.cursor);
+  const localeFallbackChain = parsedCursor
+    ? [parsedCursor.locale]
+    : buildContentLocaleFallbackChain(input.normalizedLocale);
+
+  const page = await resolveFirstAvailableLocaleValue({
+    fetchByLocale: candidateLocale =>
+      fetchArticleDetailListByLocale(candidateLocale, input.cursor, input.pageSize),
+    hasValue: value => value.items.length > 0,
+    locales: localeFallbackChain,
+  });
+
+  return page ?? { items: [], nextCursor: null };
+};
+
+/**
  * 아티클 상세 좌측 아카이브 목록의 cursor 기반 페이지를 가져옵니다.
  */
 export const getArticleDetailList = async ({
@@ -118,42 +145,14 @@ export const getArticleDetailList = async ({
   limit,
   locale,
 }: GetArticleDetailListOptions): Promise<ArticleArchivePage> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
+  if (!hasSupabaseEnv()) return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
   const pageSize = parseKeysetLimit(limit);
-  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
-  const localeFallbackChain = parsedCursor
-    ? [parsedCursor.locale]
-    : buildContentLocaleFallbackChain(normalizedLocale);
-  const cacheCursor = parsedCursor ? JSON.stringify(parsedCursor) : 'initial';
 
-  const getCachedArticleDetailList = unstable_cache(
-    async () => {
-      const page = await resolveFirstAvailableLocaleValue({
-        fetchByLocale: candidateLocale =>
-          fetchArticleDetailListByLocale(candidateLocale, cursor, pageSize),
-        hasValue: value => value.items.length > 0,
-        locales: localeFallbackChain,
-      });
-
-      return page ?? { items: [], nextCursor: null };
-    },
-    [
-      'articles',
-      'detail-list',
-      cacheScope,
-      normalizedLocale,
-      cacheCursor,
-      String(pageSize),
-      localeFallbackChain.join('>'),
-    ],
-    {
-      tags: [ARTICLES_CACHE_TAG],
-      revalidate: false,
-    },
-  );
-
-  return getCachedArticleDetailList();
+  return readCachedArticleDetailList({
+    cursor,
+    normalizedLocale,
+    pageSize,
+  });
 };

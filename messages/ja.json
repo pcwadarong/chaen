@@ -77,7 +77,24 @@
     "toastDeleteError": "投稿の削除に失敗しました。",
     "toastSecretVerifyError": "秘密投稿の確認に失敗しました。",
     "toastSecretUnlockRequired": "秘密投稿はパスワード確認で解除してから編集できます。",
-    "deletedPlaceholder": "削除された投稿です。"
+    "deletedPlaceholder": "削除された投稿です。",
+    "serverAction": {
+      "adminReplyOnly": "返信は管理者のみ作成できます。",
+      "adminRequired": "管理者権限が必要です。",
+      "contentRequired": "内容を入力してください。",
+      "contentTooLong": "内容は3000文字以内で入力してください。",
+      "deleteFailed": "投稿の削除に失敗しました。",
+      "entryNotFound": "対象の投稿を確認できません。",
+      "fetchFailed": "ゲストブックを読み込めませんでした。",
+      "invalidPassword": "パスワードが正しくありません。",
+      "invalidUrl": "ホームページのURLを確認してください。",
+      "missingName": "名前を入力してください。",
+      "missingParentSecret": "秘密投稿の情報を確認できません。",
+      "missingPassword": "パスワードを入力してください。",
+      "submitFailed": "投稿の登録に失敗しました。",
+      "updateFailed": "投稿の修正に失敗しました。",
+      "verifyFailed": "秘密投稿の確認に失敗しました。"
+    }
   },
   "Articles": {
     "description": "共有したい技術や、あとで見返したい技術を整理します。",
@@ -107,6 +124,9 @@
     "showcaseDescription": "取り組んだプロジェクトと、その中に積み重なった記録を一緒に整理しています。",
     "showcaseTitle": "プロジェクトアーカイブ",
     "viewProject": "プロジェクトを見る"
+  },
+  "Resume": {
+    "loading": "履歴書ページを読み込み中です。"
   },
   "ProjectDetail": {
     "archiveLabel": "プロジェクトアーカイブ",
@@ -154,7 +174,6 @@
     "secretRevealTitle": "パスワードを入力すると内容を確認できます。",
     "secretVerifyFailed": "パスワードが一致しません。",
     "deletedPlaceholder": "削除されたコメントです。",
-    "replyTargetResetLabel": "返信を取り消す",
     "requiredField": "必須項目です。",
     "composeReplyPreviewLabel": "返信先プレビュー",
     "composeAuthorNameLabel": "ニックネーム",
@@ -171,7 +190,6 @@
     "composePlaceholder": "配慮と責任を持って書いてください。",
     "composeReplyPlaceholder": "@{authorName}さんへの返信を書いてください。",
     "submit": "送信",
-    "replySubmit": "返信を送信",
     "reply": "返信する",
     "actionMenuLabel": "コメントメニューを開く",
     "actionMenuPanelLabel": "コメント操作メニュー",
@@ -197,7 +215,21 @@
     "toastDeleteSuccess": "コメントが削除されました。",
     "toastDeleteError": "コメントの削除に失敗しました。",
     "toastSecretVerifyError": "非公開コメントの確認に失敗しました。",
-    "toastSecretUnlockRequired": "非公開コメントは先にパスワード確認で解除してから修正できます。"
+    "toastSecretUnlockRequired": "非公開コメントは先にパスワード確認で解除してから修正できます。",
+    "serverAction": {
+      "articleNotFound": "対象の記事を確認できません。",
+      "commentNotFound": "対象のコメントを確認できません。",
+      "contentRequired": "内容を入力してください。",
+      "contentTooLong": "内容は3000文字以内で入力してください。",
+      "deleteFailed": "コメントの削除に失敗しました。",
+      "fetchFailed": "コメントを読み込めませんでした。",
+      "invalidPassword": "パスワードが正しくありません。",
+      "invalidUrl": "ホームページのURLを確認してください。",
+      "missingName": "名前を入力してください。",
+      "missingPassword": "パスワードを入力してください。",
+      "submitFailed": "コメントの登録に失敗しました。",
+      "updateFailed": "コメントの修正に失敗しました。"
+    }
   },
   "DetailUi": {
     "copyFailed": "リンクのコピーに失敗しました。",

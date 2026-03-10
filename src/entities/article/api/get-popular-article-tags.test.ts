@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -7,7 +7,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getPopularArticleTags } from './get-popular-article-tags';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -27,7 +27,7 @@ describe('getPopularArticleTags', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(false);
 
     await expect(getPopularArticleTags({ locale: 'ko' })).resolves.toEqual([]);
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('relation table을 기준으로 인기 태그를 집계한다', async () => {
@@ -68,6 +68,26 @@ describe('getPopularArticleTags', () => {
     expect(supabaseClient.from).toHaveBeenCalledWith('article_tags');
     expect(tagsQuery.in).toHaveBeenCalledWith('id', ['tag-1', 'tag-2']);
     expect(supabaseClient.rpc).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).toHaveBeenCalledWith('articles');
+  });
+
+  it('집계할 태그가 없으면 slug 조회 없이 빈 배열을 반환한다', async () => {
+    const articleTagsV2Query = {
+      select: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(articleTagsV2Query),
+      rpc: vi.fn(),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getPopularArticleTags({ locale: 'ko' })).resolves.toEqual([]);
+    expect(supabaseClient.from).toHaveBeenCalledTimes(1);
   });
 
   it('relation table이 없으면 명시적 에러를 던진다', async () => {

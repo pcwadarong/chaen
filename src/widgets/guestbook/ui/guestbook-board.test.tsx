@@ -1,7 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-
-import { createGuestbookEntryClient } from '@/features/guestbook-feed/api/client';
 
 import { GuestbookBoard } from './guestbook-board';
 
@@ -26,8 +24,11 @@ const authState = {
 
 const guestbookFeedProps = vi.fn();
 const commentComposeFormProps = vi.fn();
+const useGuestbookFeedSpy = vi.fn();
+useGuestbookFeedSpy.mockReturnValue(hookState);
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
   useTranslations: () => (key: string) => key,
 }));
 
@@ -36,14 +37,16 @@ vi.mock('@/shared/providers', () => ({
 }));
 
 vi.mock('@/features/guestbook-feed/model/use-guestbook-feed', () => ({
-  useGuestbookFeed: () => hookState,
+  useGuestbookFeed: (input: unknown) => useGuestbookFeedSpy(input),
 }));
 
-vi.mock('@/features/guestbook-feed/api/client', () => ({
-  createGuestbookEntryClient: vi.fn(),
-  deleteGuestbookEntryClient: vi.fn(),
-  updateGuestbookEntryClient: vi.fn(),
-  verifyGuestbookSecretClient: vi.fn(),
+vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
+  initialSubmitGuestbookEntryState: {
+    data: null,
+    errorMessage: null,
+    ok: false,
+  },
+  submitGuestbookEntry: vi.fn(),
 }));
 
 vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
@@ -54,25 +57,10 @@ vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
 }));
 
 vi.mock('@/shared/ui/comment-compose-form', () => ({
-  CommentComposeForm: (props: { onSubmit: (values: unknown) => Promise<void> }) => {
+  CommentComposeForm: (props: unknown) => {
     commentComposeFormProps(props);
 
-    return (
-      <button
-        onClick={() =>
-          void props.onSubmit({
-            authorBlogUrl: '',
-            authorName: 'tester',
-            content: 'hello',
-            isSecret: false,
-            password: '1234',
-          })
-        }
-        type="button"
-      >
-        submit-compose
-      </button>
-    );
+    return <div data-testid="comment-compose-form" />;
   },
 }));
 
@@ -90,17 +78,34 @@ describe('GuestbookBoard', () => {
     authState.isAdmin = false;
   });
 
-  it('새 글 작성 요청이 실패하면 낙관적 스레드를 롤백한다', async () => {
-    vi.mocked(createGuestbookEntryClient).mockRejectedValue(new Error('network error'));
-
+  it('작성 폼에 Server Action과 submission 상태를 연결한다', async () => {
     render(<GuestbookBoard />);
-    fireEvent.click(screen.getByRole('button', { name: 'submit-compose' }));
 
     await waitFor(() => {
-      expect(createGuestbookEntryClient).toHaveBeenCalledTimes(1);
-      expect(hookState.prependLocalThread).toHaveBeenCalledTimes(1);
-      expect(hookState.removeThreadById).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('comment-compose-form')).toBeTruthy();
     });
+
+    expect(commentComposeFormProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        formAction: expect.any(Function),
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
+        submissionResult: {
+          data: null,
+          errorMessage: null,
+          ok: false,
+        },
+      }),
+    );
+    expect(useGuestbookFeedSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialCursor: null,
+        initialItems: [],
+        locale: 'ko',
+      }),
+    );
   });
 
   it('일반 사용자면 답신 버튼과 관리자 전용 폼 구성을 숨긴다', () => {
@@ -109,12 +114,17 @@ describe('GuestbookBoard', () => {
     expect(guestbookFeedProps).toHaveBeenCalledWith(
       expect.objectContaining({
         canReply: false,
+        onRevealSecretSuccess: expect.any(Function),
       }),
     );
     expect(commentComposeFormProps).toHaveBeenCalledWith(
       expect.objectContaining({
         allowSecretToggle: true,
         authorMode: 'manual',
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
         isReplyMode: false,
         replyTargetContent: null,
       }),
@@ -135,6 +145,10 @@ describe('GuestbookBoard', () => {
       expect.objectContaining({
         allowSecretToggle: false,
         authorMode: 'preset',
+        hiddenFields: {
+          locale: 'ko',
+          parentId: null,
+        },
         presetAuthorName: 'admin',
       }),
     );

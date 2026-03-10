@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getArticleComments } from './get-article-comments';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -35,7 +35,7 @@ describe('getArticleComments', () => {
       totalCount: 0,
       totalPages: 0,
     });
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('루트 댓글과 대댓글을 묶어 공개 페이지를 반환한다', async () => {
@@ -105,7 +105,8 @@ describe('getArticleComments', () => {
     expect(result.items[0]?.content).toBe('secret root');
     expect(result.items[0]?.replies).toHaveLength(1);
     expect(result.totalCount).toBe(2);
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('article-comments');
+    expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('article-comments:frontend');
   });
 
   it('삭제된 루트 댓글은 답글이 없으면 제외하고 페이지를 계산한다', async () => {
@@ -275,7 +276,7 @@ describe('getArticleComments', () => {
     expect(result.items[0]?.id).toBe('root-2');
   });
 
-  it('bypassCache가 true면 unstable_cache를 거치지 않고 fresh read를 수행한다', async () => {
+  it('bypassCache가 true면 cacheTag를 거치지 않고 fresh read를 수행한다', async () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -312,6 +313,6 @@ describe('getArticleComments', () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.id).toBe('root-1');
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 });

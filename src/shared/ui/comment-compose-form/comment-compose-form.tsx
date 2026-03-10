@@ -1,6 +1,7 @@
 'use client';
 
 import React, {
+  type FormHTMLAttributes,
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
@@ -10,6 +11,7 @@ import React, {
 } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import {
   hasMinCommentComposePasswordLength,
@@ -26,6 +28,8 @@ type CommentComposeFormLayout = 'embedded' | 'fixed';
 type CommentComposeAuthorMode = 'manual' | 'preset';
 
 type CommentComposeFormProps = {
+  formAction?: FormHTMLAttributes<HTMLFormElement>['action'];
+  hiddenFields?: Record<string, string | null | undefined>;
   allowSecretToggle?: boolean;
   authorBlogUrlLabel: string;
   authorBlogUrlInvalidMessage: string;
@@ -37,17 +41,20 @@ type CommentComposeFormProps = {
   contentLabel: string;
   contentShortcutHint: string;
   isReplyMode: boolean;
+  isSubmittingOverride?: boolean;
   layout?: CommentComposeFormLayout;
-  onSubmit: (values: CommentComposeValues) => Promise<void> | void;
-  onReplyTargetReset: () => void;
+  onSubmit?: (values: CommentComposeValues) => Promise<void> | void;
+  onReplyTargetReset?: () => void;
   passwordPlaceholder: string;
   passwordLabel: string;
   presetAuthorName?: string;
   replyPreviewLabel: string;
   replyTargetContent: string | null;
-  replyTargetResetLabel: string;
+  replyTargetResetLabel?: string;
   secretLabel: string;
+  showReplyPreview?: boolean;
   submitLabel: string;
+  submissionResult?: ActionResult<unknown> | null;
   textareaAutoResize?: boolean;
   textareaRows?: number;
   textPlaceholder: string;
@@ -60,6 +67,8 @@ const LOCAL_STORAGE_KEY = 'guestbook_profile_v1';
  * 이름/블로그 필드는 로컬스토리지에 저장해 다음 작성 시 재사용합니다.
  */
 export const CommentComposeForm = ({
+  formAction,
+  hiddenFields,
   allowSecretToggle = true,
   authorBlogUrlLabel,
   authorBlogUrlInvalidMessage,
@@ -70,6 +79,7 @@ export const CommentComposeForm = ({
   characterCountLabel,
   contentLabel,
   contentShortcutHint,
+  isSubmittingOverride,
   isReplyMode,
   layout = 'fixed',
   onSubmit,
@@ -81,7 +91,9 @@ export const CommentComposeForm = ({
   replyTargetContent,
   replyTargetResetLabel,
   secretLabel,
+  showReplyPreview = true,
   submitLabel,
+  submissionResult,
   textareaAutoResize = true,
   textareaRows = 1,
   textPlaceholder,
@@ -128,8 +140,11 @@ export const CommentComposeForm = ({
   }, [authorBlogUrl, authorName]);
 
   const charCountText = useMemo(() => `${content.length}/3000`, [content.length]);
+  const isServerActionMode = Boolean(formAction);
+  const resolvedIsSubmitting = isSubmittingOverride ?? isSubmitting;
 
   const submit = async () => {
+    if (!onSubmit) return;
     if (!content.trim()) return;
     if (
       !isPresetAuthorMode &&
@@ -156,14 +171,20 @@ export const CommentComposeForm = ({
   };
 
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
-    event.preventDefault();
     if (!isValidCommentComposeAuthorBlogUrl(authorBlogUrl)) {
+      event.preventDefault();
       setAuthorBlogUrlError(authorBlogUrlInvalidMessage);
       return;
     }
 
     setAuthorBlogUrlError(null);
-    if (!event.currentTarget.reportValidity()) return;
+    if (!event.currentTarget.reportValidity()) {
+      event.preventDefault();
+      return;
+    }
+    if (isServerActionMode) return;
+
+    event.preventDefault();
     void submit();
   };
 
@@ -187,8 +208,23 @@ export const CommentComposeForm = ({
     }
   };
 
+  useEffect(() => {
+    if (!submissionResult?.ok) return;
+
+    setContent('');
+    setPassword('');
+    setIsSecret(false);
+  }, [submissionResult]);
+
   return (
-    <form className={cx(formBaseClass, layoutClassMap[layout])} onSubmit={handleSubmit}>
+    <form
+      action={formAction}
+      className={cx(formBaseClass, layoutClassMap[layout])}
+      onSubmit={handleSubmit}
+    >
+      {Object.entries(hiddenFields ?? {}).map(([name, value]) =>
+        value ? <input key={name} name={name} type="hidden" value={value} /> : null,
+      )}
       <div className={cx(topRowBaseClass, topRowLayoutClassMap[layout])}>
         {!isPresetAuthorMode ? (
           <CommentComposeProfileFields
@@ -211,7 +247,7 @@ export const CommentComposeForm = ({
             passwordValue={password}
           />
         ) : null}
-        {isReplyMode ? (
+        {isReplyMode && showReplyPreview ? (
           <CommentComposeReplyPreview
             onReset={onReplyTargetReset}
             replyPreviewLabel={replyPreviewLabel}
@@ -222,7 +258,7 @@ export const CommentComposeForm = ({
         <CommentComposeActions
           allowSecretToggle={allowSecretToggle}
           isSecret={isSecret}
-          isSubmitting={isSubmitting}
+          isSubmitting={resolvedIsSubmitting}
           onSecretChange={setIsSecret}
           secretCheckboxId={secretCheckboxId}
           secretLabel={secretLabel}
@@ -244,6 +280,11 @@ export const CommentComposeForm = ({
         textPlaceholder={textPlaceholder}
         value={content}
       />
+      {submissionResult?.errorMessage ? (
+        <p className={submitErrorClass} role="alert">
+          {submissionResult.errorMessage}
+        </p>
+      ) : null}
     </form>
   );
 };
@@ -307,3 +348,9 @@ const topRowLayoutClassMap: Record<CommentComposeFormLayout, string> = {
   embedded: embeddedTopRowClass,
   fixed: fixedTopRowClass,
 };
+
+const submitErrorClass = css({
+  m: '0',
+  color: 'danger',
+  fontSize: 'sm',
+});

@@ -102,7 +102,7 @@ export const AppFrameScrollTopButton = () => {
     /**
      * 데스크톱 프레임 모드 전환 시 스크롤 바인딩을 다시 계산합니다.
      */
-    const handleViewportModeChange = () => {
+    const resetBinding = () => {
       unbind();
       activeBinding = createScrollBinding(desktopMedia.matches);
       updateVisibility();
@@ -111,11 +111,28 @@ export const AppFrameScrollTopButton = () => {
 
     updateVisibility();
     bind();
-    desktopMedia.addEventListener('change', handleViewportModeChange);
+    desktopMedia.addEventListener('change', resetBinding);
+
+    const viewport = document.querySelector<HTMLDivElement>('[data-app-scroll-viewport="true"]');
+    const bindingObserver =
+      viewport && typeof MutationObserver !== 'undefined'
+        ? new MutationObserver(() => {
+            resetBinding();
+          })
+        : null;
+
+    if (bindingObserver && viewport) {
+      bindingObserver.observe(viewport, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+    }
 
     return () => {
       unbind();
-      desktopMedia.removeEventListener('change', handleViewportModeChange);
+      desktopMedia.removeEventListener('change', resetBinding);
+      bindingObserver?.disconnect();
     };
   }, []);
 
@@ -151,6 +168,10 @@ const appFrameScrollTopButtonClass = css({
   bottom: '[max(1rem, env(safe-area-inset-bottom))]',
   zIndex: '11',
   width: '[3rem]',
+  minWidth: '[3rem]',
+  height: '[3rem]',
+  minHeight: '[3rem]',
+  aspectRatio: 'square',
   boxShadow: 'floating',
   transition:
     '[transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease]',

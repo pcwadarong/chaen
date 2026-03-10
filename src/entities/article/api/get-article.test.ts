@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getArticle } from './get-article';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -28,7 +28,7 @@ describe('getArticle', () => {
     const result = await getArticle('frontend-performance', 'ko');
 
     expect(result).toBeNull();
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('fallback RPC를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
@@ -88,13 +88,7 @@ describe('getArticle', () => {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
       target_article_id: 'frontend-performance',
     });
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
-      'article',
-      'supabase-enabled',
-      'frontend-performance',
-      'ko',
-    ]);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('articles', 'article:frontend-performance');
   });
 
   it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {

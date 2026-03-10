@@ -2,6 +2,10 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 import { css } from 'styled-system/css';
 
+import {
+  getArticleDetailArchivePageAction,
+  incrementArticleViewCountAction,
+} from '@/entities/article/api/article-actions';
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
@@ -69,18 +73,20 @@ export const ArticleDetailPage = async ({
           primaryMetaScreenReaderText={`${t('publishedAtLabel')} ${publishedDate}`}
           primaryMetaText={publishedDate}
           shareText={detailUi('share')}
+          trackViewAction={incrementArticleViewCountAction.bind(null, {
+            articleId: item.id,
+          })}
           viewCount={Number(item.view_count ?? 0)}
           viewCountLabel={detailUi('viewCount')}
-          viewEndpoint={`/api/articles/${item.id}/views`}
         />
       }
       sidebarContent={
         <DetailArchiveFeed
           emptyText={detailUi('emptyArchive')}
-          endpoint="/api/articles/archive"
           hrefBasePath="/articles"
           initialPage={archivePage}
           loadErrorText={articlesT('loadError')}
+          loadPageAction={getArticleDetailArchivePageAction}
           loadMoreEndText={articlesT('loadMoreEnd')}
           loadingText={articlesT('loading')}
           locale={locale}
@@ -90,19 +96,15 @@ export const ArticleDetailPage = async ({
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <ul aria-label={t('tagSection')} className={tagListClass}>
-          {tagLabels.length > 0 ? (
-            tagLabels.map(tagLabel => (
+        tagLabels.length > 0 ? (
+          <ul aria-label={t('tagSection')} className={tagListClass}>
+            {tagLabels.map(tagLabel => (
               <li className={tagItemClass} key={tagLabel}>
                 <span className={tagButtonClass}>#{tagLabel}</span>
               </li>
-            ))
-          ) : (
-            <li className={tagItemClass}>
-              <span className={tagButtonClass}>#{t('noTags')}</span>
-            </li>
-          )}
-        </ul>
+            ))}
+          </ul>
+        ) : undefined
       }
       title={item.title}
     />

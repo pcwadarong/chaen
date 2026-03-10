@@ -6,16 +6,13 @@ import { signInAdmin } from '@/features/auth/api/sign-in-admin';
 
 import { AdminLoginForm } from './admin-login-form';
 
-const replaceMock = vi.fn();
-
 vi.mock('@/features/auth/api/sign-in-admin', () => ({
   signInAdmin: vi.fn(),
-}));
-
-vi.mock('@/i18n/navigation', () => ({
-  useRouter: () => ({
-    replace: replaceMock,
-  }),
+  initialSignInAdminState: {
+    data: null,
+    errorMessage: null,
+    ok: false,
+  },
 }));
 
 describe('AdminLoginForm', () => {
@@ -23,8 +20,12 @@ describe('AdminLoginForm', () => {
     vi.clearAllMocks();
   });
 
-  it('이메일과 비밀번호를 제출하면 로그인 후 관리자 페이지로 이동한다', async () => {
-    vi.mocked(signInAdmin).mockResolvedValue(undefined);
+  it('이메일과 비밀번호를 제출하면 Server Action을 호출한다', async () => {
+    vi.mocked(signInAdmin).mockResolvedValue({
+      data: null,
+      errorMessage: null,
+      ok: false,
+    });
 
     render(<AdminLoginForm successRedirectPath="/admin" />);
 
@@ -37,16 +38,24 @@ describe('AdminLoginForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '로그인' }));
 
     await waitFor(() => {
-      expect(signInAdmin).toHaveBeenCalledWith({
-        email: 'admin@example.com',
-        password: 'secret-password',
-      });
-      expect(replaceMock).toHaveBeenCalledWith('/admin');
+      expect(signInAdmin).toHaveBeenCalledTimes(1);
     });
+
+    const call = vi.mocked(signInAdmin).mock.calls[0];
+    expect(call?.[1]).toBeInstanceOf(FormData);
+
+    const submittedFormData = call?.[1] as FormData;
+    expect(submittedFormData.get('email')).toBe('admin@example.com');
+    expect(submittedFormData.get('password')).toBe('secret-password');
+    expect(submittedFormData.get('redirectPath')).toBe('/admin');
   });
 
   it('로그인 실패 시 에러 메시지를 노출한다', async () => {
-    vi.mocked(signInAdmin).mockRejectedValue(new Error('invalid credentials'));
+    vi.mocked(signInAdmin).mockResolvedValue({
+      data: null,
+      errorMessage: '이메일 또는 비밀번호를 다시 확인해주세요.',
+      ok: false,
+    });
 
     render(<AdminLoginForm successRedirectPath="/admin" />);
 
@@ -62,7 +71,6 @@ describe('AdminLoginForm', () => {
       expect(screen.getByRole('alert').textContent).toBe(
         '이메일 또는 비밀번호를 다시 확인해주세요.',
       );
-      expect(replaceMock).not.toHaveBeenCalled();
     });
   });
 });

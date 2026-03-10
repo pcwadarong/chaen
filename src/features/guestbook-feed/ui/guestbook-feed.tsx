@@ -22,9 +22,9 @@ type GuestbookFeedProps = {
   onEditReply: (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => void;
   onEdit: (entry: GuestbookThreadItem) => void;
   onLoadMore: () => Promise<void>;
+  onRevealSecretSuccess: (entry: GuestbookEntry) => void;
   onReply: (entry: GuestbookThreadItem) => void;
   onRetry: () => Promise<void>;
-  onRevealSecret: (entry: GuestbookThreadItem, password: string) => Promise<void>;
 };
 
 /**
@@ -42,9 +42,9 @@ export const GuestbookFeed = ({
   onEditReply,
   onEdit,
   onLoadMore,
+  onRevealSecretSuccess,
   onReply,
   onRetry,
-  onRevealSecret,
 }: GuestbookFeedProps) => {
   const t = useTranslations('Guest');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -111,14 +111,12 @@ export const GuestbookFeed = ({
               onEditReply={onEditReply}
               onEdit={onEdit}
               onReply={onReply}
+              onRevealSecretSuccess={onRevealSecretSuccess}
               reportLabel={t('report')}
               revealLabel={t('secretReveal')}
-              revealSecretErrorLabel={t('secretVerifyFailed')}
               revealSecretPasswordLabel={t('passwordInput')}
-              revealSecretRequiredLabel={t('requiredField')}
               revealSecretSubmitLabel={t('confirm')}
               revealSecretTitle={t('secretRevealTitle')}
-              onRevealSecret={onRevealSecret}
               secretPlaceholder={t('secretPlaceholder')}
             />
           ))}

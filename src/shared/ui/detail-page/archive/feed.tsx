@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import { formatYear } from '@/shared/lib/date/format-year';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
@@ -28,10 +29,14 @@ type DetailArchivePage<TItem> = {
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   emptyText: string;
-  endpoint: string;
   hrefBasePath: string;
   initialPage: DetailArchivePage<TItem>;
   loadErrorText: string;
+  loadPageAction: (input: {
+    cursor?: string | null;
+    limit: number;
+    locale: string;
+  }) => Promise<ActionResult<DetailArchivePage<TItem>>>;
   loadMoreEndText: string;
   loadingText: string;
   locale: string;
@@ -44,20 +49,48 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
  */
 export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   emptyText,
-  endpoint,
   hrefBasePath,
   initialPage,
   loadErrorText,
+  loadPageAction,
   loadMoreEndText,
   loadingText,
   locale,
   retryText,
   selectedId,
 }: DetailArchiveFeedProps<TItem>) => {
+  const loadPage = useCallback(
+    async ({
+      cursor,
+      limit,
+      locale: nextLocale,
+    }: {
+      cursor: string | null;
+      limit: number;
+      locale: string;
+    }) => {
+      const result = await loadPageAction({
+        cursor,
+        limit,
+        locale: nextLocale,
+      });
+
+      if (!result.ok || !result.data) {
+        throw new Error(result.errorMessage ?? 'failed to fetch list');
+      }
+
+      return {
+        items: result.data.items,
+        nextCursor: result.data.nextCursor,
+      };
+    },
+    [loadPageAction],
+  );
+
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
-    endpoint,
     initialCursor: initialPage.nextCursor,
     initialItems: initialPage.items,
+    loadPage,
     locale,
     mergeItems: (previousItems, incomingItems) => {
       const seenIds = new Set(previousItems.map(item => item.id));

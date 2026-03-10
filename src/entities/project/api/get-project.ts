@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import {
@@ -49,7 +49,7 @@ const fetchProjectFromContentSchema = async (
   const { data: translation, error: translationError } = await supabase
     .from('project_translations')
     .select(
-      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end)',
+      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end,is_secret)',
     )
     .eq('project_id', projectId)
     .eq('locale', locale)
@@ -85,6 +85,24 @@ const fetchProjectByLocale = async (projectId: string, locale: string): Promise<
 };
 
 /**
+ * 단일 프로젝트 조회 결과를 `use cache`로 캐시합니다.
+ */
+const readCachedProject = async (
+  projectId: string,
+  normalizedLocale: string,
+): Promise<Project | null> => {
+  'use cache';
+
+  cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(projectId));
+
+  return resolveFirstAvailableLocaleValue({
+    fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
+    hasValue: value => Boolean(value),
+    locales: buildContentLocaleFallbackChain(normalizedLocale),
+  });
+};
+
+/**
  * 프로젝트 상세 데이터를 On-demand ISR 태그 기반으로 캐시해서 가져옵니다.
  * `revalidateTag('projects')` 또는 `revalidateTag('project:{id}')`로 즉시 갱신할 수 있습니다.
  */
@@ -92,26 +110,9 @@ export const getProject = async (
   projectId: string,
   targetLocale: string,
 ): Promise<Project | null> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return null;
+  if (!hasSupabaseEnv()) return null;
 
   const normalizedLocale = targetLocale.toLowerCase();
-  const getCachedProject = unstable_cache(
-    async () => {
-      const project = await resolveFirstAvailableLocaleValue({
-        fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
-        hasValue: value => Boolean(value),
-        locales: buildContentLocaleFallbackChain(normalizedLocale),
-      });
 
-      return project;
-    },
-    ['project', cacheScope, projectId, normalizedLocale],
-    {
-      tags: [PROJECTS_CACHE_TAG, createProjectCacheTag(projectId)],
-      revalidate: false,
-    },
-  );
-
-  return getCachedProject();
+  return readCachedProject(projectId, normalizedLocale);
 };

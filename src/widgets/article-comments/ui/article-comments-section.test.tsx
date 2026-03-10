@@ -1,11 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { getArticleCommentsPageAction } from '@/entities/article-comment/api/article-comment-actions';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-import {
-  createArticleCommentClient,
-  getArticleCommentsPageClient,
-} from '@/widgets/article-comments/api/client';
 
 import { ArticleCommentsSection } from './article-comments-section';
 
@@ -21,11 +18,16 @@ vi.mock('next-intl', () => ({
   },
 }));
 
-vi.mock('@/widgets/article-comments/api/client', () => ({
-  createArticleCommentClient: vi.fn(),
-  deleteArticleCommentClient: vi.fn(),
-  getArticleCommentsPageClient: vi.fn(),
-  updateArticleCommentClient: vi.fn(),
+vi.mock('@/entities/article-comment/api/article-comment-actions', () => ({
+  deleteArticleCommentAction: vi.fn(),
+  getArticleCommentsPageAction: vi.fn(),
+  initialSubmitArticleCommentState: {
+    data: null,
+    errorMessage: null,
+    ok: false,
+  },
+  submitArticleComment: vi.fn(),
+  updateArticleCommentAction: vi.fn(),
 }));
 
 vi.mock('@/shared/ui/comment-compose-form', () => ({
@@ -36,26 +38,6 @@ vi.mock('@/shared/ui/comment-compose-form', () => ({
       <div>
         <button type="button">
           {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
-        </button>
-        <button
-          onClick={() =>
-            void (
-              props.onSubmit as (values: {
-                authorBlogUrl: string;
-                authorName: string;
-                content: string;
-                password: string;
-              }) => Promise<void>
-            )({
-              authorBlogUrl: '',
-              authorName: 'guest',
-              content: 'new comment',
-              password: '1234',
-            })
-          }
-          type="button"
-        >
-          {props.isReplyMode ? 'submit-reply-compose-form' : 'submit-root-compose-form'}
         </button>
       </div>
     );
@@ -120,8 +102,18 @@ describe('ArticleCommentsSection', () => {
     expect(composeFormSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         allowSecretToggle: false,
+        formAction: expect.any(Function),
+        hiddenFields: {
+          articleId: 'article-1',
+          locale: 'ko',
+        },
         isReplyMode: false,
         layout: 'embedded',
+        submissionResult: {
+          data: null,
+          errorMessage: null,
+          ok: false,
+        },
         textareaAutoResize: false,
         textareaRows: 4,
       }),
@@ -134,28 +126,91 @@ describe('ArticleCommentsSection', () => {
   });
 
   it('정렬과 페이지 이동 시 댓글 목록을 다시 조회한다', async () => {
-    vi.mocked(getArticleCommentsPageClient).mockResolvedValue({
-      ...initialPage,
-      items: [],
-      page: 2,
-      sort: 'oldest',
-      totalCount: 0,
-    });
+    vi.mocked(getArticleCommentsPageAction)
+      .mockResolvedValueOnce({
+        data: {
+          ...initialPage,
+          page: 1,
+          sort: 'oldest',
+        },
+        errorMessage: null,
+        ok: true,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ...initialPage,
+          items: [],
+          page: 2,
+          sort: 'oldest',
+          totalCount: 0,
+        },
+        errorMessage: null,
+        ok: true,
+      });
 
     render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
 
     fireEvent.click(screen.getByRole('tab', { name: 'sortOldest' }));
-    fireEvent.click(screen.getAllByRole('button', { name: '2' })[0]);
 
     await waitFor(() => {
-      expect(getArticleCommentsPageClient).toHaveBeenNthCalledWith(1, 'article-1', {
+      expect(getArticleCommentsPageAction).toHaveBeenNthCalledWith(1, {
+        articleId: 'article-1',
+        fresh: undefined,
+        locale: 'ko',
         page: 1,
         sort: 'oldest',
       });
-      expect(getArticleCommentsPageClient).toHaveBeenNthCalledWith(2, 'article-1', {
+    });
+
+    fireEvent.click(screen.getAllByRole('button', { name: '2' })[0]);
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageAction).toHaveBeenNthCalledWith(2, {
+        articleId: 'article-1',
+        fresh: undefined,
+        locale: 'ko',
         page: 2,
-        sort: 'latest',
+        sort: 'oldest',
       });
+    });
+  });
+
+  it('정렬이나 페이지 이동 중에는 댓글 목록 skeleton을 노출한다', async () => {
+    let resolveRequest:
+      | ((value: Awaited<ReturnType<typeof getArticleCommentsPageAction>>) => void)
+      | null = null;
+
+    vi.mocked(getArticleCommentsPageAction).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          resolveRequest = resolve;
+        }),
+    );
+
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'sortOldest' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'loading' })).toBeTruthy();
+    });
+
+    expect(resolveRequest).toBeTruthy();
+
+    await act(async () => {
+      resolveRequest?.({
+        data: {
+          ...initialPage,
+          page: 1,
+          sort: 'oldest',
+        },
+        errorMessage: null,
+        ok: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('status', { name: 'loading' })).toBeNull();
     });
   });
 
@@ -183,7 +238,19 @@ describe('ArticleCommentsSection', () => {
     expect(composeFormSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         allowSecretToggle: false,
+        formAction: expect.any(Function),
+        hiddenFields: {
+          articleId: 'article-1',
+          locale: 'ko',
+          parentId: 'comment-1',
+          replyToCommentId: 'comment-1',
+        },
         isReplyMode: true,
+        submissionResult: {
+          data: null,
+          errorMessage: null,
+          ok: false,
+        },
         textPlaceholder: 'reply:chaen',
       }),
     );
@@ -200,37 +267,5 @@ describe('ArticleCommentsSection', () => {
     expect(screen.getByRole('button', { name: 'edit' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'delete' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'report' })).toBeTruthy();
-  });
-
-  it('댓글 작성 성공 후 fresh 재조회로 최신 목록을 다시 읽는다', async () => {
-    vi.mocked(createArticleCommentClient).mockResolvedValue({
-      article_id: 'article-1',
-      author_blog_url: null,
-      author_name: 'guest',
-      content: 'new comment',
-      created_at: '2026-03-08T00:20:00.000Z',
-      deleted_at: null,
-      id: 'comment-2',
-      parent_id: null,
-      reply_to_author_name: null,
-      reply_to_comment_id: null,
-      updated_at: '2026-03-08T00:20:00.000Z',
-    });
-    vi.mocked(getArticleCommentsPageClient).mockResolvedValue({
-      ...initialPage,
-      totalCount: 13,
-    });
-
-    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'submit-root-compose-form' }));
-
-    await waitFor(() => {
-      expect(getArticleCommentsPageClient).toHaveBeenCalledWith('article-1', {
-        fresh: true,
-        page: 1,
-        sort: 'latest',
-      });
-    });
   });
 });

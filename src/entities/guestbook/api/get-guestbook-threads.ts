@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -6,7 +6,11 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 
 import 'server-only';
 
-import { createGuestbookRepliesCacheTag, GUESTBOOK_CACHE_TAG } from '../model/cache-tags';
+import {
+  createGuestbookEntryCacheTag,
+  createGuestbookRepliesCacheTag,
+  GUESTBOOK_CACHE_TAG,
+} from '../model/cache-tags';
 import type {
   GuestbookEntry,
   GuestbookEntryRow,
@@ -50,8 +54,6 @@ const fetchGuestbookParents = async (
  */
 const fetchRepliesByParentIds = async (
   parentIds: string[],
-  cacheScope: string,
-  includeSecret: boolean,
 ): Promise<Record<string, GuestbookEntryRow[]>> => {
   if (parentIds.length === 0) return {};
 
@@ -71,22 +73,7 @@ const fetchRepliesByParentIds = async (
   };
 
   const repliesByParent = await Promise.all(
-    parentIds.map(async parentId => {
-      if (includeSecret) {
-        return [parentId, await readRepliesByParentId(parentId)] as const;
-      }
-
-      const getCachedReplies = unstable_cache(
-        () => readRepliesByParentId(parentId),
-        ['guestbook', 'replies', cacheScope, parentId],
-        {
-          tags: [GUESTBOOK_CACHE_TAG, createGuestbookRepliesCacheTag(parentId)],
-          revalidate: false,
-        },
-      );
-
-      return [parentId, await getCachedReplies()] as const;
-    }),
+    parentIds.map(async parentId => [parentId, await readRepliesByParentId(parentId)] as const),
   );
 
   return Object.fromEntries(repliesByParent);
@@ -117,6 +104,48 @@ const toPublicGuestbookEntry = (
 };
 
 /**
+ * 공개용 방명록 스레드 페이지를 `use cache`로 캐시합니다.
+ */
+const readCachedGuestbookThreads = async (
+  offset: number,
+  normalizedLimit: number,
+): Promise<GuestbookThreadPage> => {
+  'use cache';
+
+  const parents = await fetchGuestbookParents(offset, normalizedLimit);
+  const parentIds = parents.map(parent => parent.id);
+  const repliesByParentId = await fetchRepliesByParentIds(parentIds);
+
+  const items: GuestbookThreadItem[] = parents.flatMap(parent => {
+    const replies = (repliesByParentId[parent.id] ?? []).map(reply =>
+      toPublicGuestbookEntry(reply, false),
+    );
+    const shouldHideDeletedParent = Boolean(parent.deleted_at) && replies.length === 0;
+    if (shouldHideDeletedParent) return [];
+
+    return [
+      {
+        ...toPublicGuestbookEntry(parent, false),
+        replies,
+      },
+    ];
+  });
+  const page = {
+    items,
+    nextCursor: parents.length === normalizedLimit ? String(offset + parents.length) : null,
+  };
+  const guestbookTags = items.flatMap(thread => [
+    createGuestbookEntryCacheTag(thread.id),
+    createGuestbookRepliesCacheTag(thread.id),
+    ...thread.replies.map(reply => createGuestbookEntryCacheTag(reply.id)),
+  ]);
+
+  cacheTag(GUESTBOOK_CACHE_TAG, ...guestbookTags);
+
+  return page;
+};
+
+/**
  * 방명록 원댓글+대댓글 페이지 데이터를 cursor(offset) 기반으로 조회합니다.
  * `nextCursor`를 다음 요청의 `cursor`로 전달하면 무한스크롤을 이어갈 수 있습니다.
  */
@@ -125,8 +154,7 @@ export const getGuestbookThreads = async ({
   includeSecret = false,
   limit,
 }: GetGuestbookThreadsOptions): Promise<GuestbookThreadPage> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') {
+  if (!hasSupabaseEnv()) {
     return {
       items: [],
       nextCursor: null,
@@ -135,23 +163,21 @@ export const getGuestbookThreads = async ({
 
   const normalizedLimit = parseOffsetLimit(limit);
   const offset = parseOffsetCursor(cursor);
-  const cacheCursor = String(offset);
-
-  const readThreads = async () => {
+  const readThreads = async (shouldIncludeSecret: boolean) => {
     const parents = await fetchGuestbookParents(offset, normalizedLimit);
     const parentIds = parents.map(parent => parent.id);
-    const repliesByParentId = await fetchRepliesByParentIds(parentIds, cacheScope, includeSecret);
+    const repliesByParentId = await fetchRepliesByParentIds(parentIds);
 
     const items: GuestbookThreadItem[] = parents.flatMap(parent => {
       const replies = (repliesByParentId[parent.id] ?? []).map(reply =>
-        toPublicGuestbookEntry(reply, includeSecret),
+        toPublicGuestbookEntry(reply, shouldIncludeSecret),
       );
       const shouldHideDeletedParent = Boolean(parent.deleted_at) && replies.length === 0;
       if (shouldHideDeletedParent) return [];
 
       return [
         {
-          ...toPublicGuestbookEntry(parent, includeSecret),
+          ...toPublicGuestbookEntry(parent, shouldIncludeSecret),
           replies,
         },
       ];
@@ -164,17 +190,8 @@ export const getGuestbookThreads = async ({
   };
 
   if (includeSecret) {
-    return readThreads();
+    return readThreads(true);
   }
 
-  const getCachedThreads = unstable_cache(
-    readThreads,
-    ['guestbook', 'threads', cacheScope, cacheCursor, String(normalizedLimit)],
-    {
-      tags: [GUESTBOOK_CACHE_TAG],
-      revalidate: false,
-    },
-  );
-
-  return getCachedThreads();
+  return readCachedGuestbookThreads(offset, normalizedLimit);
 };

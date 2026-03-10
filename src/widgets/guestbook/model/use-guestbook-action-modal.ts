@@ -4,12 +4,10 @@ import { useMemo, useRef, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import {
-  deleteGuestbookEntryClient,
-  updateGuestbookEntryClient,
-} from '@/features/guestbook-feed/api/client';
+  deleteGuestbookEntryAction,
+  updateGuestbookEntryAction,
+} from '@/features/guestbook-feed/api/guestbook-actions';
 import type { ToastItem } from '@/shared/ui/toast/toast';
-
-const INVALID_PASSWORD_REASON = 'invalid password';
 
 type ActionModalState =
   | {
@@ -49,10 +47,8 @@ type UseGuestbookActionModalParams = {
     id: string,
     updater: (entry: GuestbookThreadItem) => GuestbookThreadItem,
   ) => void;
+  locale: string;
 };
-
-const isInvalidPasswordError = (error: unknown) =>
-  error instanceof Error && error.message === INVALID_PASSWORD_REASON;
 
 /**
  * 수정/삭제 모달의 상태와 confirm 비동기 로직을 캡슐화합니다.
@@ -67,6 +63,7 @@ export const useGuestbookActionModal = ({
   removeThreadById,
   text,
   updateThreadById,
+  locale,
 }: UseGuestbookActionModalParams) => {
   const [modalState, setModalState] = useState<ActionModalState>(null);
   const [modalPassword, setModalPassword] = useState('');
@@ -177,13 +174,17 @@ export const useGuestbookActionModal = ({
         }
 
         try {
-          const updated = await updateGuestbookEntryClient(
-            target.id,
-            trimmedModalContent,
-            shouldSkipPassword ? '' : trimmedPassword,
-          );
+          const result = await updateGuestbookEntryAction({
+            content: trimmedModalContent,
+            entryId: target.id,
+            locale,
+            password: shouldSkipPassword ? '' : trimmedPassword,
+          });
+          if (!result.ok || !result.data) {
+            throw new Error(result.errorMessage ?? text.toastEditError);
+          }
           if (!modalState.parentThreadId) {
-            applyServerThreadEntry(updated);
+            applyServerThreadEntry(result.data);
           }
           pushToast(text.toastEditSuccess, 'success');
           closeModal();
@@ -201,7 +202,7 @@ export const useGuestbookActionModal = ({
               content: previousContent,
             }));
           }
-          if (isInvalidPasswordError(error)) {
+          if (error instanceof Error && error.message === 'invalid password') {
             setModalError(text.secretVerifyFailed);
           } else {
             pushToast(text.toastEditError, 'error');
@@ -230,7 +231,14 @@ export const useGuestbookActionModal = ({
           }));
 
           try {
-            await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : trimmedPassword);
+            const result = await deleteGuestbookEntryAction({
+              entryId: target.id,
+              locale,
+              password: shouldSkipPassword ? '' : trimmedPassword,
+            });
+            if (!result.ok) {
+              throw new Error(result.errorMessage ?? text.toastDeleteError);
+            }
             pushToast(text.toastDeleteSuccess, 'success');
             closeModal();
           } catch (error) {
@@ -242,7 +250,7 @@ export const useGuestbookActionModal = ({
                 ...item.replies.slice(replyIndex),
               ],
             }));
-            if (isInvalidPasswordError(error)) {
+            if (error instanceof Error && error.message === 'invalid password') {
               setModalError(text.secretVerifyFailed);
             } else {
               pushToast(text.toastDeleteError, 'error');
@@ -272,12 +280,19 @@ export const useGuestbookActionModal = ({
         }
 
         try {
-          await deleteGuestbookEntryClient(target.id, shouldSkipPassword ? '' : trimmedPassword);
+          const result = await deleteGuestbookEntryAction({
+            entryId: target.id,
+            locale,
+            password: shouldSkipPassword ? '' : trimmedPassword,
+          });
+          if (!result.ok) {
+            throw new Error(result.errorMessage ?? text.toastDeleteError);
+          }
           pushToast(text.toastDeleteSuccess, 'success');
           closeModal();
         } catch (error) {
           applyServerThread(deletedThread);
-          if (isInvalidPasswordError(error)) {
+          if (error instanceof Error && error.message === 'invalid password') {
             setModalError(text.secretVerifyFailed);
           } else {
             pushToast(text.toastDeleteError, 'error');
