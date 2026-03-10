@@ -41,6 +41,7 @@ describe('DetailPageShell', () => {
     expect(html).toContain('<h1');
     expect(html).toContain('상세 제목</h1>');
     expect(html).toContain('data-page-scroll-mode="independent"');
+    expect(html).toContain('data-primary-scroll-region="true"');
     expect(html).toContain('data-testid="detail-meta-bar"');
     expect(html.indexOf('상세 제목</h1>')).toBeLessThan(
       html.indexOf('data-testid="detail-meta-bar"'),

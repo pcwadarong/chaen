@@ -141,7 +141,11 @@ export const DetailPageShell = ({
         items={sidebarItems}
         label={sidebarLabel}
       />
-      <article className={detailPageContentClass} data-scroll-region="true">
+      <article
+        className={detailPageContentClass}
+        data-primary-scroll-region="true"
+        data-scroll-region="true"
+      >
         <DetailPageHero description={heroDescription} tagContent={tagContent} title={title} />
         <div className={detailPageMetaBarSectionClass}>{metaBar}</div>
         <DetailPageBody
