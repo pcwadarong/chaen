@@ -9,6 +9,8 @@
 5. Unit 2: guestbook API Route 제거 및 관련 테스트 이관
 6. Unit 3: article comments/feed/archive/view count를 Server Action 기반으로 전환
 7. Unit 3: articles/projects/comments/view API Route 제거 및 테스트 이관
+8. Unit 4: 주요 entities 조회 함수를 `use cache` + tag 기반으로 전환
+9. Unit 4: 더 이상 쓰지 않는 `requestJsonApiClient` 제거
 
 <br/>
 
@@ -35,7 +37,9 @@
 - 댓글 작성 폼은 루트/답글 각각 `useActionState`를 사용하고 `form action={serverAction}` 기반으로 바꿉니다.
 - 댓글 수정/삭제 모달은 API client 대신 Server Action 직접 호출로 전환하고, 실패 메시지는 `ActionResult`로 통일합니다.
 - 아티클/프로젝트 목록, 상세 아카이브, 조회수 증가는 `/api/...` fetch 대신 entity action을 직접 호출하도록 바꿉니다.
-- `vitest`는 전체 단일 실행 시 메모리 누적으로 종료가 불안정해, Unit 3 검증은 디렉터리 단위 chunk 실행으로 끝까지 확인합니다.
+- `getArticles`, `getArticle`, `getArticleDetailList`, `getProjects`, `getProject`, `getProjectDetailList`, `getGuestbookThreads`, `getArticleComments`는 `unstable_cache` 대신 함수 내부 `'use cache'`와 `unstable_cacheTag`를 사용하도록 정리합니다.
+- 쓰기 action이 이미 호출하던 `revalidateTag`가 실제 읽기 캐시 태그와 맞물리도록 댓글/방명록 캐시 태그를 세분화합니다.
+- 남은 HTTP 전용 유틸(`requestJsonApiClient`)은 앱 코드에서 사용처가 사라졌으므로 제거합니다.
 
 <br/>
 

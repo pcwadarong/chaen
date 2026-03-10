@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getGuestbookThreads } from './get-guestbook-threads';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -31,7 +31,7 @@ describe('getGuestbookThreads', () => {
       items: [],
       nextCursor: null,
     });
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('Supabase env가 있으면 원댓글/대댓글을 묶어서 반환한다', async () => {
@@ -101,7 +101,9 @@ describe('getGuestbookThreads', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.replies).toHaveLength(1);
     expect(result.nextCursor).toBeNull();
-    expect(unstable_cache).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('guestbook');
+    expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('guestbook:parent-1');
+    expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('guestbook:replies:parent-1');
     expect(parentQuery.is).toHaveBeenCalledWith('parent_id', null);
     expect(parentQuery.is).not.toHaveBeenCalledWith('deleted_at', null);
     expect(replyQuery.eq).toHaveBeenCalledWith('parent_id', 'parent-1');

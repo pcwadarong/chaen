@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   buildContentLocaleFallbackChain,
@@ -111,6 +111,33 @@ const fetchProjectDetailListByLocale = async (
 };
 
 /**
+ * 프로젝트 상세 아카이브 목록을 `use cache`로 캐시합니다.
+ */
+const readCachedProjectDetailList = async (input: {
+  cursor: string | null | undefined;
+  normalizedLocale: string;
+  pageSize: number;
+}): Promise<ProjectArchivePage> => {
+  'use cache';
+
+  cacheTag(PROJECTS_CACHE_TAG);
+
+  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(input.cursor);
+  const localeFallbackChain = parsedCursor
+    ? [parsedCursor.locale]
+    : buildContentLocaleFallbackChain(input.normalizedLocale);
+
+  const page = await resolveFirstAvailableLocaleValue({
+    fetchByLocale: candidateLocale =>
+      fetchProjectDetailListByLocale(candidateLocale, input.cursor, input.pageSize),
+    hasValue: value => value.items.length > 0,
+    locales: localeFallbackChain,
+  });
+
+  return page ?? { items: [], nextCursor: null };
+};
+
+/**
  * 프로젝트 상세 좌측 아카이브 목록을 가져옵니다.
  *
  * 현재 UI는 첫 페이지만 사용하지만, 조회 자체는 keyset 정렬 기준으로 통일합니다.
@@ -120,42 +147,14 @@ export const getProjectDetailList = async ({
   limit,
   locale,
 }: GetProjectDetailListOptions): Promise<ProjectArchivePage> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return { items: [], nextCursor: null };
+  if (!hasSupabaseEnv()) return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
   const pageSize = parseKeysetLimit(limit);
-  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
-  const localeFallbackChain = parsedCursor
-    ? [parsedCursor.locale]
-    : buildContentLocaleFallbackChain(normalizedLocale);
-  const cacheCursor = parsedCursor ? JSON.stringify(parsedCursor) : 'initial';
 
-  const getCachedProjectDetailList = unstable_cache(
-    async () => {
-      const page = await resolveFirstAvailableLocaleValue({
-        fetchByLocale: candidateLocale =>
-          fetchProjectDetailListByLocale(candidateLocale, cursor, pageSize),
-        hasValue: value => value.items.length > 0,
-        locales: localeFallbackChain,
-      });
-
-      return page ?? { items: [], nextCursor: null };
-    },
-    [
-      'projects',
-      'detail-list',
-      cacheScope,
-      normalizedLocale,
-      cacheCursor,
-      String(pageSize),
-      localeFallbackChain.join('>'),
-    ],
-    {
-      tags: [PROJECTS_CACHE_TAG],
-      revalidate: false,
-    },
-  );
-
-  return getCachedProjectDetailList();
+  return readCachedProjectDetailList({
+    cursor,
+    normalizedLocale,
+    pageSize,
+  });
 };

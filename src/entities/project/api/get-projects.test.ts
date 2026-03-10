@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -6,7 +6,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getProjects } from './get-projects';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -31,7 +31,7 @@ describe('getProjects', () => {
       items: [],
       nextCursor: null,
     });
-    expect(unstable_cache).not.toHaveBeenCalled();
+    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 cache key에 initial cursor를 포함한다', async () => {
@@ -73,14 +73,7 @@ describe('getProjects', () => {
     expect(projectTranslationsQuery.order).toHaveBeenNthCalledWith(2, 'project_id', {
       ascending: false,
     });
-    expect(vi.mocked(unstable_cache).mock.calls[0]?.[1]).toEqual([
-      'projects',
-      'list',
-      'supabase-enabled',
-      'ko',
-      'initial',
-      '10',
-    ]);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
   it('다음 페이지 조회는 locale 번역 목록에도 keyset 조건을 적용한다', async () => {

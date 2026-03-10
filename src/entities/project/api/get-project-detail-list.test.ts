@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { parseLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
@@ -8,7 +8,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import { getProjectDetailList } from './get-project-detail-list';
 
 vi.mock('next/cache', () => ({
-  unstable_cache: vi.fn((callback: () => Promise<unknown>) => callback),
+  unstable_cacheTag: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -71,7 +71,7 @@ describe('getProjectDetailList', () => {
     expect(translationsQuery.order).toHaveBeenNthCalledWith(2, 'project_id', {
       ascending: false,
     });
-    expect(unstable_cache).toHaveBeenCalledTimes(1);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
   it('limit보다 많은 결과가 있으면 locale을 포함한 다음 cursor를 반환한다', async () => {

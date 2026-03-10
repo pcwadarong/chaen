@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
@@ -86,6 +86,26 @@ const fetchArticleByLocaleFallbackChain = async (
 };
 
 /**
+ * 단일 아티클 조회 결과를 `use cache`로 캐시합니다.
+ */
+const readCachedArticle = async (
+  articleId: string,
+  normalizedLocale: string,
+): Promise<Article | null> => {
+  'use cache';
+
+  cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(articleId));
+
+  const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
+  const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
+  if (article) return article;
+
+  throw new Error(
+    `[articles] 조회 가능한 번역이 없습니다. articleId=${articleId} locales=${localeFallbackChain.join('>')}`,
+  );
+};
+
+/**
  * 아티클 상세 데이터를 On-demand ISR 태그 기반으로 캐시해서 가져옵니다.
  * `revalidateTag('articles')` 또는 `revalidateTag('article:{id}')`로 즉시 갱신할 수 있습니다.
  */
@@ -93,26 +113,9 @@ export const getArticle = async (
   articleId: string,
   targetLocale: string,
 ): Promise<Article | null> => {
-  const cacheScope = hasSupabaseEnv() ? 'supabase-enabled' : 'supabase-disabled';
-  if (cacheScope === 'supabase-disabled') return null;
+  if (!hasSupabaseEnv()) return null;
 
   const normalizedLocale = targetLocale.toLowerCase();
-  const getCachedArticle = unstable_cache(
-    async () => {
-      const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
-      const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
-      if (article) return article;
 
-      throw new Error(
-        `[articles] 조회 가능한 번역이 없습니다. articleId=${articleId} locales=${localeFallbackChain.join('>')}`,
-      );
-    },
-    ['article', cacheScope, articleId, normalizedLocale],
-    {
-      tags: [ARTICLES_CACHE_TAG, createArticleCacheTag(articleId)],
-      revalidate: false,
-    },
-  );
-
-  return getCachedArticle();
+  return readCachedArticle(articleId, normalizedLocale);
 };

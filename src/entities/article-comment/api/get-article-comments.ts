@@ -1,11 +1,15 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
-import { ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag } from '../model/cache-tags';
+import {
+  ARTICLE_COMMENTS_CACHE_TAG,
+  createArticleCommentCacheTag,
+  createArticleCommentsCacheTag,
+} from '../model/cache-tags';
 import type {
   ArticleComment,
   ArticleCommentPage,
@@ -179,6 +183,26 @@ const readArticleCommentThreads = async (
 };
 
 /**
+ * 댓글 스레드 전체 목록을 `use cache`로 캐시합니다.
+ */
+const readCachedArticleCommentThreads = async (
+  articleId: string,
+  sort: ArticleCommentsSort,
+): Promise<ArticleCommentThreadItem[]> => {
+  'use cache';
+
+  const threads = await readArticleCommentThreads(articleId, sort);
+  const commentTags = threads.flatMap(thread => [
+    createArticleCommentCacheTag(thread.id),
+    ...thread.replies.map(reply => createArticleCommentCacheTag(reply.id)),
+  ]);
+
+  cacheTag(ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(articleId), ...commentTags);
+
+  return threads;
+};
+
+/**
  * 아티클 댓글 페이지 데이터를 반환합니다.
  */
 export const getArticleComments = async ({
@@ -203,13 +227,9 @@ export const getArticleComments = async ({
     };
   }
 
-  const readThreads = () => readArticleCommentThreads(normalizedArticleId, normalizedSort);
   const threads = bypassCache
-    ? await readThreads()
-    : await unstable_cache(readThreads, ['article-comments', normalizedArticleId, normalizedSort], {
-        tags: [ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(normalizedArticleId)],
-        revalidate: false,
-      })();
+    ? await readArticleCommentThreads(normalizedArticleId, normalizedSort)
+    : await readCachedArticleCommentThreads(normalizedArticleId, normalizedSort);
   const { currentPage, items, totalCount, totalPages } = paginateThreadsByVisibleEntries(
     threads,
     pageSize,
