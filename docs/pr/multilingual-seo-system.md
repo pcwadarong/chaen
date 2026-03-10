@@ -8,6 +8,7 @@
 5. 아티클/프로젝트 상세 메타데이터에 placeholder 기반 OG 이미지 URL을 연결하고 `/api/og/[type]/[id]` 엔드포인트를 추가한다.
 6. 아티클 목록 페이지에 `?page=` 기반 crawlable pagination과 `rel="prev"/"next"` 메타데이터를 연결한다.
 7. 아티클 상세 하단에 공통 태그 기반 related articles 섹션을 추가한다.
+8. 홈/이력서 페이지에도 placeholder OG 메타데이터를 연결하고, 관리자 라우트는 `noindex,nofollow`로 고정한다.
 
 <br/>
 
@@ -17,6 +18,7 @@
 
 - 앱 기본 locale은 `ko`가 맞지만, canonical과 `x-default`는 `en` 중심으로 계산해야 한다.
 - 메타데이터, sitemap, 구조화 데이터, OG, pagination SEO가 페이지 계층에 아직 연결되지 않았다.
+- 홈/이력서 같은 정적 성격 페이지와 관리자 라우트에도 SEO 정책을 명시적으로 부여할 필요가 있다.
 - sitemap/robots는 수동 XML/설정 파일이 아니라 App Router 코드 레벨에서 관리하는 편이 현재 스택에 더 적합하다.
 - Supabase 번역 fallback 구조가 이미 존재하므로, 실제 번역 존재 여부와 SEO canonical 정책을 분리해서 설계해야 한다.
 
@@ -28,6 +30,7 @@
 - 실제 URL 목록은 Supabase translation 테이블을 읽어 locale별 경로를 동적으로 조합한다.
 - 아티클 목록은 기존 무한 스크롤 UX를 유지하되, 서버에서 `?page=`를 해석하고 봇이 따라갈 수 있는 링크와 metadata pagination을 함께 제공한다.
 - 관련 글은 공통 태그 수를 우선 기준으로 고르고, 일치 후보가 없으면 같은 locale의 최근 글로 fallback한다.
+- 홈/이력서는 placeholder OG 이미지로 먼저 통일하고, 관리자 라우트는 route metadata에서 검색 엔진 차단을 고정한다.
 
 <br/>
 

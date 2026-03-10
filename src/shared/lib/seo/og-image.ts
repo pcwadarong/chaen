@@ -27,6 +27,11 @@ export const buildOgImageUrl = ({ id, type }: { id: string; type: OgImageType })
   );
 
 /**
+ * 페이지 공통 placeholder OG 이미지 URL을 반환합니다.
+ */
+export const buildDefaultOgImageUrl = (): string => OG_IMAGE_PLACEHOLDER_URL;
+
+/**
  * 주어진 문자열이 지원하는 OG 이미지 타입인지 확인합니다.
  */
 export const isOgImageType = (value: string): value is OgImageType =>
