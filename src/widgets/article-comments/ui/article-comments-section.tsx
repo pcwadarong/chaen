@@ -59,6 +59,11 @@ type ModalState = {
   mode: 'delete' | 'edit';
 } | null;
 
+type CommentQueryState = {
+  page: number;
+  sort: ArticleCommentsSort;
+};
+
 const LOAD_LAST_PAGE = 9999;
 const INVALID_PASSWORD_REASON = 'invalid password';
 const TOAST_DURATION_MS = 2600;
@@ -106,6 +111,10 @@ export const ArticleCommentsSection = ({
   const lastHandledRootSubmitStateRef = useRef(rootSubmitState);
   const lastHandledReplySubmitStateRef = useRef(replySubmitState);
   const [pageData, setPageData] = useState(initialPage);
+  const [queryState, setQueryState] = useState<CommentQueryState>({
+    page: initialPage.page,
+    sort: initialPage.sort,
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
@@ -155,6 +164,10 @@ export const ArticleCommentsSection = ({
         fresh?: boolean;
       },
     ) => {
+      setQueryState({
+        page: nextPage,
+        sort: nextSort,
+      });
       setIsLoading(true);
       setErrorMessage(null);
 
@@ -172,6 +185,10 @@ export const ArticleCommentsSection = ({
         }
 
         setPageData(result.data);
+        setQueryState({
+          page: result.data.page,
+          sort: result.data.sort,
+        });
       } catch (_error) {
         setErrorMessage(t('loadError'));
       } finally {
@@ -189,7 +206,7 @@ export const ArticleCommentsSection = ({
   };
 
   const handleChangeSort = (sort: ArticleCommentsSort) => {
-    if (sort === pageData.sort) return;
+    if (sort === queryState.sort) return;
     void loadPage(1, sort);
   };
 
@@ -379,29 +396,29 @@ export const ArticleCommentsSection = ({
             aria-selected={pageData.sort === 'latest'}
             className={cx(
               sortButtonClass,
-              pageData.sort === 'latest' ? activeSortButtonClass : undefined,
+              queryState.sort === 'latest' ? activeSortButtonClass : undefined,
             )}
             onClick={() => handleChangeSort('latest')}
             role="tab"
             size="sm"
             tone="white"
             type="button"
-            variant={pageData.sort === 'latest' ? 'solid' : 'ghost'}
+            variant={queryState.sort === 'latest' ? 'solid' : 'ghost'}
           >
             {t('sortLatest')}
           </Button>
           <Button
-            aria-selected={pageData.sort === 'oldest'}
+            aria-selected={queryState.sort === 'oldest'}
             className={cx(
               sortButtonClass,
-              pageData.sort === 'oldest' ? activeSortButtonClass : undefined,
+              queryState.sort === 'oldest' ? activeSortButtonClass : undefined,
             )}
             onClick={() => handleChangeSort('oldest')}
             role="tab"
             size="sm"
             tone="white"
             type="button"
-            variant={pageData.sort === 'oldest' ? 'solid' : 'ghost'}
+            variant={queryState.sort === 'oldest' ? 'solid' : 'ghost'}
           >
             {t('sortOldest')}
           </Button>
@@ -427,13 +444,17 @@ export const ArticleCommentsSection = ({
         </div>
       ) : null}
 
+      {isLoading && pageData.items.length > 0 ? (
+        <CommentsLoadingSkeleton loadingText={t('loading')} />
+      ) : null}
+
       {!isLoading && !errorMessage && pageData.items.length === 0 ? (
         <div className={stateCardClass}>
           <p className={stateTextClass}>{t('emptyItems')}</p>
         </div>
       ) : null}
 
-      {pageData.items.length > 0 ? (
+      {!isLoading && pageData.items.length > 0 ? (
         <ol className={threadListClass}>
           {pageData.items.map(thread => (
             <li key={thread.id}>
@@ -522,13 +543,13 @@ export const ArticleCommentsSection = ({
         </ol>
       ) : null}
 
-      {pageData.items.length > 0 && pageData.totalPages > 1 ? (
+      {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
         <div className={footerPaginationWrapClass}>
           <Pagination
             ariaLabel={t('paginationLabel')}
-            currentPage={pageData.page}
+            currentPage={queryState.page}
             onPageChange={page => {
-              void loadPage(page, pageData.sort);
+              void loadPage(page, queryState.sort);
             }}
             totalPages={pageData.totalPages}
           />
@@ -602,6 +623,31 @@ export const ArticleCommentsSection = ({
     </section>
   );
 };
+
+type CommentsLoadingSkeletonProps = {
+  loadingText: string;
+};
+
+/**
+ * 댓글 정렬/페이지 전환 중 목록 자리에 표시하는 스켈레톤입니다.
+ */
+const CommentsLoadingSkeleton = ({ loadingText }: CommentsLoadingSkeletonProps) => (
+  <div aria-busy="true" aria-label={loadingText} className={commentsLoadingWrapClass} role="status">
+    {Array.from({ length: 3 }).map((_, index) => (
+      <div className={commentsLoadingCardClass} key={index}>
+        <div className={commentsLoadingHeaderClass}>
+          <div className={commentsLoadingAuthorClass} />
+          <div className={commentsLoadingDateClass} />
+        </div>
+        <div className={commentsLoadingBodyClass}>
+          <div className={commentsLoadingLineLongClass} />
+          <div className={commentsLoadingLineShortClass} />
+        </div>
+        <div className={commentsLoadingReplyClass} />
+      </div>
+    ))}
+  </div>
+);
 
 type CommentEntryCardProps = {
   actionDeleteLabel: string;
@@ -852,6 +898,82 @@ const stateCardClass = css({
 const stateTextClass = css({
   color: 'muted',
   textAlign: 'center',
+});
+
+const commentsLoadingWrapClass = css({
+  display: 'grid',
+  marginTop: '2',
+});
+
+const commentsLoadingCardClass = css({
+  display: 'grid',
+  gap: '3',
+  paddingY: '4',
+  borderTop: '[1px solid var(--colors-border)]',
+  _first: {
+    borderTop: 'none',
+  },
+});
+
+const commentsLoadingHeaderClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '3',
+});
+
+const commentsLoadingBodyClass = css({
+  display: 'grid',
+  gap: '2',
+});
+
+const commentsLoadingAuthorClass = css({
+  width: '24',
+  height: '7',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingDateClass = css({
+  width: '36',
+  height: '5',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingLineLongClass = css({
+  width: '[72%]',
+  height: '6',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingLineShortClass = css({
+  width: '[52%]',
+  height: '6',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
+});
+
+const commentsLoadingReplyClass = css({
+  width: '20',
+  height: '5',
+  borderRadius: 'md',
+  background:
+    '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
+  backgroundSize: '[200% 100%]',
+  animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
 });
 
 const threadListClass = css({

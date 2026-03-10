@@ -250,4 +250,57 @@ describe('AppFrame', () => {
 
     expect(primaryRegionScrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 0 });
   });
+
+  it('라우트 전환으로 primary scroll region이 나중에 생겨도 그 영역 기준으로 버튼을 노출한다', async () => {
+    const matchMediaMock = createMatchMediaMock(true);
+
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation(() => matchMediaMock),
+    });
+
+    const { rerender } = render(
+      <AppFrame>
+        <div style={{ height: '2000px' }}>content</div>
+      </AppFrame>,
+    );
+
+    const viewport = document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]');
+    expect(viewport).toBeTruthy();
+
+    Object.defineProperty(viewport as HTMLElement, 'scrollTop', {
+      configurable: true,
+      value: 0,
+      writable: true,
+    });
+    fireEvent.scroll(viewport as HTMLElement);
+
+    expect(screen.queryByRole('button', { name: 'scrollToTopAriaLabel' })).toBeNull();
+
+    rerender(
+      <AppFrame>
+        <main data-page-scroll-mode="independent">
+          <article data-primary-scroll-region="true" data-scroll-region="true">
+            content
+          </article>
+        </main>
+      </AppFrame>,
+    );
+
+    const primaryRegion = document.querySelector<HTMLElement>(
+      '[data-primary-scroll-region="true"]',
+    );
+    expect(primaryRegion).toBeTruthy();
+
+    Object.defineProperty(primaryRegion as HTMLElement, 'scrollTop', {
+      configurable: true,
+      value: 300,
+      writable: true,
+    });
+    fireEvent.scroll(primaryRegion as HTMLElement);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'scrollToTopAriaLabel' })).toBeTruthy();
+    });
+  });
 });
