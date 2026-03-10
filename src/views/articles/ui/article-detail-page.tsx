@@ -5,7 +5,7 @@ import { css } from 'styled-system/css';
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/detail-archive-feed';
+import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 import { ArticleCommentsSection } from '@/widgets/article-comments';

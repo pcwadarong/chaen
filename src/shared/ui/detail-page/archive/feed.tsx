@@ -3,13 +3,23 @@
 import React, { useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
+import { formatYear } from '@/shared/lib/date/format-year';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
-import { buildDetailArchiveLinkItems } from './build-detail-archive-link-items';
-import { DetailArchiveList } from './detail-archive-list';
-import type { DetailArchiveRecord } from './detail-archive-types';
+import {
+  type DetailArchiveLinkItem,
+  DetailArchiveList,
+  detailArchiveSidebarViewportClass,
+} from './list';
+
+type DetailArchiveRecord = {
+  created_at: string;
+  description: string | null;
+  id: string;
+  title: string;
+};
 
 type DetailArchivePage<TItem> = {
   items: TItem[];
@@ -96,7 +106,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   return (
     <div
       aria-busy={isLoadingMore ? 'true' : undefined}
-      className={sidebarViewportClass}
+      className={detailArchiveSidebarViewportClass}
       data-scroll-region="true"
       ref={viewportRef}
     >
@@ -126,22 +136,33 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   );
 };
 
-const sidebarViewportClass = css({
-  py: '7',
-  '@media (min-width: 961px)': {
-    flex: '[1 1 auto]',
-    minHeight: '0',
-    overflowY: 'auto',
-    overscrollBehavior: 'contain',
-  },
-  '@media (min-width: 1200px)': {
-    py: '8',
-  },
-});
-
 const sidebarSentinelClass = css({
   height: '1',
 });
+
+type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
+  hrefBasePath: string;
+  items: TItem[];
+  locale: string;
+  selectedId: string;
+};
+
+/**
+ * 상세 페이지 좌측 아카이브 목록 데이터를 링크 렌더링용 형태로 변환합니다.
+ */
+const buildDetailArchiveLinkItems = <TItem extends DetailArchiveRecord>({
+  hrefBasePath,
+  items,
+  locale,
+  selectedId,
+}: BuildDetailArchiveLinkItemsInput<TItem>): DetailArchiveLinkItem[] =>
+  items.map(item => ({
+    description: item.description,
+    href: `${hrefBasePath}/${item.id}`,
+    isActive: item.id === selectedId,
+    title: item.title,
+    yearText: formatYear(item.created_at, locale) ?? '-',
+  }));
 
 const sidebarStateTextClass = css({
   px: '5',

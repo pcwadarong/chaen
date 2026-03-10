@@ -3,12 +3,32 @@ import { css, cva } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 
-import type { DetailArchiveLinkItem } from './detail-archive-types';
+export type DetailArchiveLinkItem = {
+  description: string | null;
+  href: string;
+  isActive: boolean;
+  title: string;
+  yearText: string;
+};
 
 type DetailArchiveListProps = {
   emptyText: string;
   items: DetailArchiveLinkItem[];
 };
+
+export const detailArchiveSidebarViewportClass = css({
+  background: 'surface',
+  py: '7',
+  '@media (min-width: 961px)': {
+    flex: '[1 1 auto]',
+    minHeight: '0',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
+  },
+  '@media (min-width: 1200px)': {
+    py: '8',
+  },
+});
 
 /**
  * 상세 페이지 좌측 아카이브 링크 목록을 공통 마크업으로 렌더링합니다.
@@ -61,7 +81,7 @@ const sidebarLinkClass = cva({
     _focusVisible: {
       outline: '[2px solid var(--colors-focus-ring)]',
       outlineOffset: '[-2px]',
-      background: 'surfaceStrong',
+      background: 'surface',
     },
     '@media (min-width: 1200px)': {
       px: '5',
@@ -72,7 +92,7 @@ const sidebarLinkClass = cva({
     active: {
       true: {
         borderLeftColor: 'primary',
-        background: 'surfaceStrong',
+        background: 'surfaceMuted',
       },
       false: {},
     },

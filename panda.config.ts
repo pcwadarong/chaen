@@ -37,28 +37,22 @@ export default defineConfig({
       },
       semanticTokens: {
         colors: {
-          bg: {
-            value: {
-              base: '{colors.gray.50}',
-              _dark: '{colors.gray.900}',
-            },
-          },
           surface: {
             value: {
               base: '{colors.white}',
-              _dark: '{colors.gray.800}',
+              _dark: '{colors.gray.900}',
             },
           },
           surfaceMuted: {
             value: {
               base: '{colors.gray.100}',
-              _dark: '{colors.gray.700}',
+              _dark: '{colors.gray.800}',
             },
           },
           surfaceStrong: {
             value: {
               base: '{colors.gray.200}',
-              _dark: '{colors.gray.600}',
+              _dark: '{colors.gray.700}',
             },
           },
           text: {

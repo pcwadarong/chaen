@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/detail-archive-feed';
+import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 
 import '@testing-library/jest-dom/vitest';
 

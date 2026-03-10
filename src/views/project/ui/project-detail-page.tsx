@@ -5,7 +5,7 @@ import { css } from 'styled-system/css';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/detail-archive-feed';
+import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 

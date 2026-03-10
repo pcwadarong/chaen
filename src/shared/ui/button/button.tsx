@@ -248,7 +248,7 @@ export const buttonRecipe = sva({
       css: {
         root: {
           background: 'text',
-          color: 'bg',
+          color: 'surface',
           _hover: {
             background: 'gray.800',
             _dark: {

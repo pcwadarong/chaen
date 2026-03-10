@@ -2,11 +2,13 @@ import React, { type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
+import {
+  type DetailArchiveLinkItem,
+  DetailArchiveList,
+  detailArchiveSidebarViewportClass,
+} from '@/shared/ui/detail-page/archive/list';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
-
-import { DetailArchiveList } from './detail-archive-list';
-import type { DetailArchiveLinkItem } from './detail-archive-types';
 
 type DetailPageShellProps = {
   bottomContent?: ReactNode;
@@ -25,10 +27,86 @@ type DetailPageShellProps = {
   title: string;
 };
 
+type DetailPageSidebarProps = {
+  content?: ReactNode;
+  emptyArchiveText: string;
+  items: DetailArchiveLinkItem[];
+  label: string;
+};
+
+type DetailPageHeroProps = {
+  description: string;
+  tagContent?: ReactNode;
+  title: string;
+};
+
+type DetailPageBodyProps = {
+  bottomContent?: ReactNode;
+  contentNode: ReactNode;
+  guestbookCtaText: string;
+};
+
+type DetailPageGuestbookCtaProps = {
+  text: string;
+};
+
+/**
+ * 디테일 페이지 좌측 아카이브 사이드바를 렌더링합니다.
+ */
+const DetailPageSidebar = ({ content, emptyArchiveText, items, label }: DetailPageSidebarProps) => (
+  <aside aria-label={label} className={detailPageSidebarClass}>
+    {content ?? (
+      <div className={detailArchiveSidebarViewportClass} data-scroll-region="true">
+        <DetailArchiveList emptyText={emptyArchiveText} items={items} />
+      </div>
+    )}
+  </aside>
+);
+
+/**
+ * 디테일 페이지 hero 영역을 렌더링합니다.
+ */
+const DetailPageHero = ({ description, tagContent, title }: DetailPageHeroProps) => (
+  <header className={detailPageHeroClass}>
+    <div className={detailPageHeroTextClass}>
+      <h1 className={detailPageTitleClass}>{title}</h1>
+      <p className={detailPageDescriptionClass}>{description}</p>
+    </div>
+    {tagContent ? <div className={detailPageTagWrapClass}>{tagContent}</div> : null}
+  </header>
+);
+
+/**
+ * 방명록 CTA를 렌더링합니다.
+ */
+const DetailPageGuestbookCta = ({ text }: DetailPageGuestbookCtaProps) => (
+  <div className={detailPageGuestbookCtaWrapClass}>
+    <Link className={cx(detailPageGuestbookCtaClass, 'group')} href="/guest">
+      <span>{text}</span>
+      <span aria-hidden className={detailPageGuestbookCtaIconMotionClass}>
+        <ArrowUpIcon className={detailPageGuestbookCtaIconClass} color="current" size="sm" />
+      </span>
+    </Link>
+  </div>
+);
+
+/**
+ * 디테일 페이지 본문, CTA, 하단 섹션을 묶어 렌더링합니다.
+ */
+const DetailPageBody = ({ bottomContent, contentNode, guestbookCtaText }: DetailPageBodyProps) => (
+  <div className={detailPageBodyClass}>
+    <section className={detailPageContentSectionClass}>{contentNode}</section>
+    <DetailPageGuestbookCta text={guestbookCtaText} />
+    {bottomContent ? (
+      <section className={detailPageBottomSectionClass}>{bottomContent}</section>
+    ) : null}
+  </div>
+);
+
 /**
  * 좌측 아카이브 목록과 우측 상세 본문을 함께 배치하는 공용 디테일 셸입니다.
  */
-export const DetailPageShell = async ({
+export const DetailPageShell = ({
   bottomContent,
   children,
   content,
@@ -57,40 +135,20 @@ export const DetailPageShell = async ({
       data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
       data-page-scroll-mode="independent"
     >
-      <aside aria-label={sidebarLabel} className={detailPageSidebarClass}>
-        {sidebarContent ?? (
-          <div className={detailPageSidebarViewportClass} data-scroll-region="true">
-            <DetailArchiveList emptyText={emptyArchiveText} items={sidebarItems} />
-          </div>
-        )}
-      </aside>
+      <DetailPageSidebar
+        content={sidebarContent}
+        emptyArchiveText={emptyArchiveText}
+        items={sidebarItems}
+        label={sidebarLabel}
+      />
       <article className={detailPageContentClass} data-scroll-region="true">
-        <header className={detailPageHeroClass}>
-          <div className={detailPageHeroTextClass}>
-            <h1 className={detailPageTitleClass}>{title}</h1>
-            <p className={detailPageDescriptionClass}>{heroDescription}</p>
-          </div>
-          {tagContent ? <div className={detailPageTagWrapClass}>{tagContent}</div> : null}
-        </header>
+        <DetailPageHero description={heroDescription} tagContent={tagContent} title={title} />
         <div className={detailPageMetaBarSectionClass}>{metaBar}</div>
-        <div className={detailPageBodyClass}>
-          <section className={detailPageContentSectionClass}>{contentNode}</section>
-          <div className={detailPageGuestbookCtaWrapClass}>
-            <Link className={cx(detailPageGuestbookCtaClass, 'group')} href="/guest">
-              <span>{guestbookCtaText}</span>
-              <span aria-hidden className={detailPageGuestbookCtaIconMotionClass}>
-                <ArrowUpIcon
-                  className={detailPageGuestbookCtaIconClass}
-                  color="current"
-                  size="sm"
-                />
-              </span>
-            </Link>
-          </div>
-          {bottomContent ? (
-            <section className={detailPageBottomSectionClass}>{bottomContent}</section>
-          ) : null}
-        </div>
+        <DetailPageBody
+          bottomContent={bottomContent}
+          contentNode={contentNode}
+          guestbookCtaText={guestbookCtaText}
+        />
       </article>
     </main>
   );
@@ -116,20 +174,6 @@ const detailPageSidebarClass = css({
     minHeight: '0',
     height: 'full',
     borderRight: '[1px solid var(--colors-border)]',
-    background: 'surfaceMuted',
-  },
-});
-
-const detailPageSidebarViewportClass = css({
-  py: '7',
-  '@media (min-width: 961px)': {
-    flex: '[1 1 auto]',
-    minHeight: '0',
-    overflowY: 'auto',
-    overscrollBehavior: 'contain',
-  },
-  '@media (min-width: 1200px)': {
-    py: '8',
   },
 });
 
