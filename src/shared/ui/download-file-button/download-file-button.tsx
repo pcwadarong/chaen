@@ -1,8 +1,7 @@
-'use client';
-
 import React from 'react';
+import { css } from 'styled-system/css';
 
-import { Button, getButtonStyle } from '@/shared/ui/button/button';
+import { Button } from '@/shared/ui/button/button';
 
 type DownloadFileButtonMode = 'download' | 'open';
 
@@ -26,24 +25,23 @@ export const DownloadFileButton = ({
 
   if (href) {
     return (
-      <a
-        download={mode === 'download' ? fileName : undefined}
-        href={href}
-        rel="noopener noreferrer"
-        target="_blank"
-        css={getButtonStyle({
-          tone: 'white',
-          variant: 'solid',
-        })}
-      >
-        {label}
-      </a>
+      <Button asChild className={downloadButtonClass} tone="white" variant="solid">
+        <a
+          download={mode === 'download' ? fileName : undefined}
+          href={href}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {label}
+        </a>
+      </Button>
     );
   }
 
   return (
     <Button
       aria-disabled={isDisabled}
+      className={downloadButtonClass}
       disabled={isDisabled}
       tone="white"
       type="button"
@@ -53,3 +51,15 @@ export const DownloadFileButton = ({
     </Button>
   );
 };
+
+const downloadButtonClass = css({
+  transition: '[transform 180ms ease]',
+  _hover: {
+    transform: 'translateY(-2px)',
+    background: 'surface',
+    borderColor: 'borderStrong',
+  },
+  _active: {
+    transform: 'translateY(1px)',
+  },
+});

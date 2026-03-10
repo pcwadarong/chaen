@@ -1,11 +1,12 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useEffect, useRef, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import { requestJsonApiClient } from '@/shared/lib/http/request-json-api-client';
+import { Button } from '@/shared/ui/button/button';
 import { CalendarIcon, EyeIcon, ShareIcon } from '@/shared/ui/icons/app-icons';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type DetailMetaBarProps = {
   copyFailedText: string;
@@ -111,90 +112,91 @@ export const DetailMetaBar = ({
   const formattedViewCount = new Intl.NumberFormat(locale).format(Number(currentViewCount ?? 0));
 
   return (
-    <div css={metaBarWrapStyle}>
-      <div css={metaBarStyle}>
-        <span css={metaItemStyle}>
+    <div className={metaBarWrapClass}>
+      <div className={metaBarClass}>
+        <span className={metaItemClass}>
           <CalendarIcon aria-hidden color="muted" size="md" />
           <span>
             {primaryMetaScreenReaderText ? (
-              <span css={srOnlyStyle}>{primaryMetaScreenReaderText}</span>
+              <span className={srOnlyClass}>{primaryMetaScreenReaderText}</span>
             ) : null}
             <span aria-hidden={Boolean(primaryMetaScreenReaderText)}>{primaryMetaText}</span>
           </span>
         </span>
         {typeof viewCount === 'number' && viewCountLabel ? (
           <>
-            <span css={dividerStyle} />
-            <span aria-label={viewCountLabel} css={metaItemStyle}>
+            <span className={dividerClass} />
+            <span aria-label={viewCountLabel} className={metaItemClass}>
               <EyeIcon aria-hidden color="muted" size="md" />
               <span>{formattedViewCount}</span>
             </span>
-            <span css={dividerStyle} />
+            <span className={dividerClass} />
           </>
         ) : (
-          <span css={dividerStyle} />
+          <span className={dividerClass} />
         )}
-        <button onClick={handleShare} css={shareButtonStyle} type="button">
-          <ShareIcon aria-hidden color="text" size="md" />
-          <span>{shareState === 'copied' ? copiedText : shareText}</span>
-        </button>
+        <Button
+          className={shareButtonClass}
+          leadingVisual={<ShareIcon aria-hidden color="current" size="md" />}
+          onClick={handleShare}
+          size="sm"
+          tone="white"
+          type="button"
+          variant="ghost"
+        >
+          {shareState === 'copied' ? copiedText : shareText}
+        </Button>
       </div>
-      <span aria-live="polite" css={srOnlyStyle}>
+      <span aria-live="polite" className={srOnlyClass}>
         {announcement}
       </span>
     </div>
   );
 };
 
-const metaBarWrapStyle = css`
-  display: flex;
-  justify-content: center;
-`;
+const metaBarWrapClass = css({
+  display: 'flex',
+  justifyContent: 'center',
+});
 
-const metaBarStyle = css`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  min-height: 3.25rem;
-  padding: 0 var(--space-6);
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--color-border) / 0.15);
-  background: rgb(var(--color-surface-muted));
-`;
+const metaBarClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4',
+  minHeight: '[3rem]',
+  px: '6',
+  py: '0',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  background: 'surfaceMuted',
+});
 
-const metaItemStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: rgb(var(--color-text));
-  font-size: var(--font-size-14);
+const metaItemClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '2',
+  color: 'text',
+  fontSize: 'sm',
+  '@media (min-width: 961px)': {
+    fontSize: 'md',
+  },
+});
 
-  @media (min-width: 961px) {
-    font-size: var(--font-size-16);
-  }
-`;
+const dividerClass = css({
+  width: '[1px]',
+  height: '[1.5rem]',
+  background: 'surfaceStrong',
+});
 
-const dividerStyle = css`
-  width: 1px;
-  height: 1.5rem;
-  background: rgb(var(--color-border) / 0.44);
-`;
-
-const shareButtonStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0;
-  color: rgb(var(--color-text));
-  font-size: var(--font-size-14);
-
-  @media (min-width: 961px) {
-    font-size: var(--font-size-16);
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: rgb(var(--color-primary));
-  }
-`;
+const shareButtonClass = css({
+  '@media (min-width: 961px)': {
+    fontSize: 'md',
+  },
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    color: 'primary',
+  },
+});

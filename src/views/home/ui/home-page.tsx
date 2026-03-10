@@ -1,7 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
+import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
@@ -16,15 +14,15 @@ export const HomePage = ({ items }: HomePageProps) => {
   const t = useTranslations('Home');
 
   return (
-    <main css={pageStyle}>
+    <main className={pageClass}>
       <HomeHeroScene items={items} title={t('showcaseTitle')} />
       <ContactStrip />
     </main>
   );
 };
 
-const pageStyle = css`
-  width: 100%;
-  display: grid;
-  gap: var(--space-0);
-`;
+const pageClass = css({
+  width: 'full',
+  display: 'grid',
+  gap: '0',
+});

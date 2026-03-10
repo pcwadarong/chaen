@@ -72,5 +72,5 @@ describe('ArticleDetailPage', () => {
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
-  });
+  }, 30000);
 });

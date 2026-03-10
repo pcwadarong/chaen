@@ -1,7 +1,5 @@
-'use client';
-
-import { css } from '@emotion/react';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { ArrowCurveLeftRightIcon } from '@/shared/ui/icons/app-icons';
@@ -20,12 +18,12 @@ export const CommentComposeReplyPreview = ({
   replyTargetContent,
   replyTargetResetLabel,
 }: CommentComposeReplyPreviewProps) => (
-  <aside aria-label={replyPreviewLabel} css={replyPreviewStyle}>
+  <aside aria-label={replyPreviewLabel} className={replyPreviewClass}>
     <ArrowCurveLeftRightIcon aria-hidden size="sm" />
-    <p css={replyPreviewTextStyle}>{replyTargetContent}</p>
+    <p className={replyPreviewTextClass}>{replyTargetContent}</p>
     <Button
+      className={replyPreviewCloseClass}
       onClick={onReset}
-      css={replyPreviewCloseStyle}
       tone="black"
       type="button"
       variant="underline"
@@ -35,22 +33,23 @@ export const CommentComposeReplyPreview = ({
   </aside>
 );
 
-const replyPreviewStyle = css`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 2.7rem;
-  padding: var(--space-2) var(--space-3);
-`;
+const replyPreviewClass = css({
+  display: 'grid',
+  gridTemplateColumns: '[auto 1fr auto]',
+  alignItems: 'center',
+  gap: '2',
+  minHeight: '[2.7rem]',
+  px: '3',
+  py: '2',
+});
 
-const replyPreviewTextStyle = css`
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: rgb(var(--color-muted));
-`;
+const replyPreviewTextClass = css({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  color: 'muted',
+});
 
-const replyPreviewCloseStyle = css`
-  justify-self: end;
-`;
+const replyPreviewCloseClass = css({
+  justifySelf: 'end',
+});

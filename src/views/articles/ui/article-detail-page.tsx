@@ -1,13 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import type { Article, ArticleArchivePage } from '@/entities/article/model/types';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/detail-archive-feed';
+import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
-import styles from '@/views/articles/ui/article-detail-page.module.css';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
@@ -92,26 +92,49 @@ export const ArticleDetailPage = async ({
       }
       sidebarLabel={t('archiveLabel')}
       tagContent={
-        <div aria-label={t('tagSection')} className={styles.tagList}>
+        <ul aria-label={t('tagSection')} className={tagListClass}>
           {tagLabels.length > 0 ? (
             tagLabels.map(tagLabel => (
-              <button
-                aria-disabled="true"
-                className={styles.tagButton}
-                key={tagLabel}
-                type="button"
-              >
-                #{tagLabel}
-              </button>
+              <li className={tagItemClass} key={tagLabel}>
+                <span className={tagButtonClass}>#{tagLabel}</span>
+              </li>
             ))
           ) : (
-            <button aria-disabled="true" className={styles.tagButton} type="button">
-              #{t('noTags')}
-            </button>
+            <li className={tagItemClass}>
+              <span className={tagButtonClass}>#{t('noTags')}</span>
+            </li>
           )}
-        </div>
+        </ul>
       }
       title={item.title}
     />
   );
 };
+
+const tagListClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  gap: '2',
+  listStyle: 'none',
+  p: '0',
+  m: '0',
+  '@media (min-width: 961px)': {
+    gap: '3',
+  },
+});
+
+const tagItemClass = css({
+  display: 'block',
+});
+
+const tagButtonClass = css({
+  px: '3',
+  py: '[0.35rem]',
+  borderRadius: 'full',
+  border: '[1px solid var(--colors-border)]',
+  backgroundColor: 'surface',
+  fontSize: 'sm',
+  lineHeight: 'tight',
+  color: 'muted',
+});

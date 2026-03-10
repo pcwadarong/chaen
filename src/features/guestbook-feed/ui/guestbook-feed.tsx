@@ -1,14 +1,14 @@
 'use client';
 
-import { css, type Theme } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type GuestbookFeedProps = {
   canReply: boolean;
@@ -73,16 +73,16 @@ export const GuestbookFeed = ({
 
   if (isInitialLoading) {
     return (
-      <section css={stateWrapStyle}>
-        <p css={stateTextStyle}>{t('loading')}</p>
+      <section className={stateWrapClass}>
+        <p className={stateTextClass}>{t('loading')}</p>
       </section>
     );
   }
 
   if (errorMessage && items.length === 0) {
     return (
-      <section css={stateWrapStyle}>
-        <p css={stateTextStyle}>{t('loadError')}</p>
+      <section className={stateWrapClass}>
+        <p className={stateTextClass}>{t('loadError')}</p>
         <Button onClick={() => void onRetry()} tone="white" variant="ghost">
           {t('retry')}
         </Button>
@@ -91,9 +91,9 @@ export const GuestbookFeed = ({
   }
 
   return (
-    <section css={sectionStyle}>
+    <section className={sectionClass}>
       {items.length > 0 ? (
-        <div css={stackStyle}>
+        <div className={stackClass}>
           {items.map(entry => (
             <GuestbookThreadCard
               actionDeleteLabel={t('delete')}
@@ -124,61 +124,62 @@ export const GuestbookFeed = ({
           ))}
         </div>
       ) : (
-        <p css={emptyStyle}>{t('emptyItems')}</p>
+        <p className={emptyClass}>{t('emptyItems')}</p>
       )}
 
-      <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
-      {isLoadingMore ? <p css={loadingMoreStyle}>{t('loading')}</p> : null}
+      <div aria-hidden className={sentinelClass} ref={sentinelRef} />
+      {isLoadingMore ? <p className={loadingMoreClass}>{t('loading')}</p> : null}
       {!hasMore ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {t('loadMoreEnd')}
         </p>
       ) : null}
-      {errorMessage && items.length > 0 ? <p css={errorStyle}>{t('loadError')}</p> : null}
+      {errorMessage && items.length > 0 ? <p className={errorClass}>{t('loadError')}</p> : null}
     </section>
   );
 };
 
-const sectionStyle = css`
-  width: 100%;
-  display: grid;
-  gap: var(--space-3);
-`;
+const sectionClass = css({
+  width: 'full',
+  display: 'grid',
+  gap: '3',
+});
 
-const stackStyle = css`
-  display: grid;
-  gap: var(--space-8);
-`;
+const stackClass = css({
+  display: 'grid',
+  gap: '8',
+});
 
-const emptyStyle = css`
-  color: rgb(var(--color-muted));
-  padding: var(--space-4) var(--space-1);
-`;
+const emptyClass = css({
+  color: 'muted',
+  px: '1',
+  py: '4',
+});
 
-const sentinelStyle = css`
-  width: 100%;
-  height: 1px;
-`;
+const sentinelClass = css({
+  width: 'full',
+  height: '[1px]',
+});
 
-const loadingMoreStyle = (_theme: Theme) => css`
-  color: rgb(var(--color-muted));
-  text-align: center;
-  padding-bottom: 0.5rem;
-`;
+const loadingMoreClass = css({
+  color: 'muted',
+  textAlign: 'center',
+  pb: '2',
+});
 
-const errorStyle = css`
-  color: rgb(var(--color-danger));
-  text-align: center;
-`;
+const errorClass = css({
+  color: 'danger',
+  textAlign: 'center',
+});
 
-const stateWrapStyle = css`
-  width: 100%;
-  min-height: 38vh;
-  display: grid;
-  place-items: center;
-  gap: var(--space-3);
-`;
+const stateWrapClass = css({
+  width: 'full',
+  minHeight: '[38vh]',
+  display: 'grid',
+  placeItems: 'center',
+  gap: '3',
+});
 
-const stateTextStyle = css`
-  color: rgb(var(--color-muted));
-`;
+const stateTextClass = css({
+  color: 'muted',
+});

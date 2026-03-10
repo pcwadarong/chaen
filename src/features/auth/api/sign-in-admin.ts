@@ -1,5 +1,3 @@
-'use client';
-
 import { createBrowserSupabaseClient } from '@/shared/lib/supabase/client';
 
 type SignInAdminInput = {

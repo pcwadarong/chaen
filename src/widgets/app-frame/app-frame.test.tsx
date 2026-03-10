@@ -208,4 +208,46 @@ describe('AppFrame', () => {
 
     expect(viewportScrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 0 });
   });
+
+  it('independent 스크롤 모드에서는 primary scroll region 기준으로 버튼을 노출하고 이동한다', async () => {
+    const matchMediaMock = createMatchMediaMock(true);
+    const primaryRegionScrollToSpy = vi.fn();
+
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation(() => matchMediaMock),
+    });
+
+    render(
+      <AppFrame>
+        <main data-page-scroll-mode="independent">
+          <article data-primary-scroll-region="true" data-scroll-region="true">
+            content
+          </article>
+        </main>
+      </AppFrame>,
+    );
+
+    const primaryRegion = document.querySelector<HTMLElement>(
+      '[data-primary-scroll-region="true"]',
+    );
+    expect(primaryRegion).toBeTruthy();
+
+    Object.defineProperty(primaryRegion as HTMLElement, 'scrollTop', {
+      configurable: true,
+      value: 320,
+      writable: true,
+    });
+    Object.defineProperty(primaryRegion as HTMLElement, 'scrollTo', {
+      configurable: true,
+      value: primaryRegionScrollToSpy,
+      writable: true,
+    });
+    fireEvent.scroll(primaryRegion as HTMLElement);
+
+    const button = await screen.findByRole('button', { name: 'scrollToTopAriaLabel' });
+    fireEvent.click(button);
+
+    expect(primaryRegionScrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 0 });
+  });
 });

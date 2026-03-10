@@ -1,10 +1,8 @@
-'use client';
-
-import { css } from '@emotion/react';
 import type { KeyboardEvent } from 'react';
 import React from 'react';
+import { css } from 'styled-system/css';
 
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
 type CommentComposeContentFieldProps = {
@@ -39,9 +37,9 @@ export const CommentComposeContentField = ({
   textPlaceholder,
   value,
 }: CommentComposeContentFieldProps) => (
-  <div css={textareaWrapStyle}>
-    <label css={fieldWrapStyle} htmlFor={contentId}>
-      <span css={srOnlyStyle}>{contentLabel}</span>
+  <div className={textareaWrapClass}>
+    <label className={fieldWrapClass} htmlFor={contentId}>
+      <span className={srOnlyClass}>{contentLabel}</span>
       <Textarea
         aria-describedby={`${contentShortcutHintId} ${characterCountId}`}
         aria-label={contentLabel}
@@ -56,42 +54,42 @@ export const CommentComposeContentField = ({
         value={value}
       />
     </label>
-    <div css={textareaMetaStyle}>
-      <p id={contentShortcutHintId} css={helperTextStyle}>
+    <div className={textareaMetaClass}>
+      <p className={helperTextClass} id={contentShortcutHintId}>
         {contentShortcutHint}
       </p>
-      <p aria-live="polite" id={characterCountId} role="status" css={countStyle}>
+      <p aria-live="polite" className={countClass} id={characterCountId} role="status">
         {characterCountLabel}: {charCountText}
       </p>
     </div>
   </div>
 );
 
-const textareaWrapStyle = css`
-  display: grid;
-  gap: var(--space-2);
-`;
+const textareaWrapClass = css({
+  display: 'grid',
+  gap: '2',
+});
 
-const fieldWrapStyle = css`
-  display: flex;
-  min-width: 0;
-`;
+const fieldWrapClass = css({
+  display: 'flex',
+  minWidth: '0',
+});
 
-const textareaMetaStyle = css`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-`;
+const textareaMetaClass = css({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '3',
+  flexWrap: 'wrap',
+});
 
-const countStyle = css`
-  justify-self: end;
-  color: rgb(var(--color-muted) / 0.82);
-  font-size: var(--font-size-14);
-`;
+const countClass = css({
+  justifySelf: 'end',
+  color: 'muted',
+  fontSize: 'sm',
+});
 
-const helperTextStyle = css`
-  color: rgb(var(--color-muted) / 0.76);
-  font-size: var(--font-size-14);
-`;
+const helperTextClass = css({
+  color: 'muted',
+  fontSize: 'sm',
+});

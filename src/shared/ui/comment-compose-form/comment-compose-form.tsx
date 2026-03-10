@@ -1,6 +1,5 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, {
   type KeyboardEvent,
   type SyntheticEvent,
@@ -9,6 +8,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { css, cx } from 'styled-system/css';
 
 import type { CommentComposeValues } from '@/shared/lib/comment-compose';
 import {
@@ -188,8 +188,8 @@ export const CommentComposeForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} css={[formBaseStyle, layoutStyleMap[layout]]}>
-      <div css={[topRowBaseStyle, topRowLayoutStyleMap[layout]]}>
+    <form className={cx(formBaseClass, layoutClassMap[layout])} onSubmit={handleSubmit}>
+      <div className={cx(topRowBaseClass, topRowLayoutClassMap[layout])}>
         {!isPresetAuthorMode ? (
           <CommentComposeProfileFields
             authorBlogUrlDescribedBy={authorBlogUrlError ? authorBlogUrlErrorId : undefined}
@@ -248,63 +248,62 @@ export const CommentComposeForm = ({
   );
 };
 
-const formBaseStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
+const formBaseClass = css({
+  display: 'grid',
+  gap: '3',
+});
 
-const fixedFormStyle = css`
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
-  border-top: 1px solid rgb(var(--color-border) / 0.18);
-  box-shadow: 0 -4px 16px rgb(var(--color-black) / 0.14);
-  background-color: rgb(var(--color-surface) / 0.82);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
-  display: grid;
-  gap: var(--space-3);
+const fixedFormClass = css({
+  position: 'fixed',
+  left: '0',
+  right: '0',
+  bottom: '0',
+  zIndex: '20',
+  borderTop: '[1px solid var(--colors-border)]',
+  boxShadow: '[0 -4px 16px rgb(15 23 42 / 0.14)]',
+  backgroundColor: 'surfaceMuted',
+  backdropFilter: '[blur(18px) saturate(140%)]',
+  px: '4',
+  pt: '3',
+  pb: '[calc(var(--spacing-4) + env(safe-area-inset-bottom))]',
+  display: 'grid',
+  gap: '3',
+  '@media (min-width: 961px)': {
+    left: '[50%]',
+    right: '[auto]',
+    width:
+      '[calc(var(--app-frame-width, min(1280px, calc(100vw - 2.5rem))) - var(--app-scrollbar-size, 10px))]',
+    transform: '[translateX(calc(-50% - (var(--app-scrollbar-size, 10px) / 2)))]',
+    borderBottomLeftRadius: '[var(--app-frame-radius, 2rem)]',
+    borderBottomRightRadius: '[var(--app-frame-radius, 2rem)]',
+  },
+});
 
-  @media (min-width: 961px) {
-    left: 50%;
-    right: auto;
-    width: calc(
-      var(--app-frame-width, min(1280px, calc(100vw - 2.5rem))) - var(--app-scrollbar-size, 10px)
-    );
-    transform: translateX(calc(-50% - (var(--app-scrollbar-size, 10px) / 2)));
-    border-bottom-left-radius: var(--app-frame-radius, 2rem);
-    border-bottom-right-radius: var(--app-frame-radius, 2rem);
-  }
-`;
+const embeddedFormClass = css({
+  position: 'static',
+  width: 'full',
+});
 
-const embeddedFormStyle = css`
-  position: static;
-  width: 100%;
-`;
+const topRowBaseClass = css({
+  display: 'flex',
+  gap: '3',
+  justifyContent: 'space-between',
+});
 
-const topRowBaseStyle = css`
-  display: flex;
-  gap: var(--space-3);
-  justify-content: space-between;
-`;
+const fixedTopRowClass = css({
+  alignItems: 'center',
+});
 
-const fixedTopRowStyle = css`
-  align-items: center;
-`;
+const embeddedTopRowClass = css({
+  alignItems: 'flex-start',
+});
 
-const embeddedTopRowStyle = css`
-  align-items: flex-start;
-`;
-
-const layoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
-  embedded: embeddedFormStyle,
-  fixed: fixedFormStyle,
+const layoutClassMap: Record<CommentComposeFormLayout, string> = {
+  embedded: embeddedFormClass,
+  fixed: fixedFormClass,
 };
 
-const topRowLayoutStyleMap: Record<CommentComposeFormLayout, ReturnType<typeof css>> = {
-  embedded: embeddedTopRowStyle,
-  fixed: fixedTopRowStyle,
+const topRowLayoutClassMap: Record<CommentComposeFormLayout, string> = {
+  embedded: embeddedTopRowClass,
+  fixed: fixedTopRowClass,
 };

@@ -1,10 +1,8 @@
-'use client';
-
-import { css } from '@emotion/react';
+import { css, cx } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
-import { srOnlyStyle } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ProjectShowcaseProps = {
   description?: string;
@@ -24,57 +22,62 @@ export const ProjectShowcase = ({
   items,
   title = '',
 }: ProjectShowcaseProps) => (
-  <section css={sectionStyle}>
+  <section className={sectionClass}>
     {hideHeader ? null : (
-      <div css={headerStyle}>
-        <h2 css={titleStyle}>{title}</h2>
-        <p css={descriptionVisibility === 'sr-only' ? srOnlyStyle : descriptionStyle}>
+      <div className={headerClass}>
+        <h2 className={titleClass}>{title}</h2>
+        <p
+          className={cx(
+            descriptionVisibility === 'visible' ? descriptionClass : undefined,
+            descriptionVisibility === 'sr-only' ? srOnlyClass : undefined,
+          )}
+        >
           {description}
         </p>
       </div>
     )}
     {items.length > 0 ? (
-      <div css={gridStyle}>
+      <div className={gridClass}>
         {items.map(item => (
           <ProjectCard item={item} key={`${item.id}-${item.created_at}`} />
         ))}
       </div>
     ) : (
-      <p css={emptyStyle}>{emptyText}</p>
+      <p className={emptyClass}>{emptyText}</p>
     )}
   </section>
 );
 
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-4);
-`;
+const sectionClass = css({
+  display: 'grid',
+  gap: '4',
+});
 
-const headerStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
+const headerClass = css({
+  display: 'grid',
+  gap: '3',
+});
 
-const titleStyle = css`
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: var(--line-height-96);
-  letter-spacing: -0.04em;
-`;
+const titleClass = css({
+  fontSize: '[clamp(2rem, 4vw, 3.25rem)]',
+  lineHeight: 'none',
+  letterSpacing: '[-0.04em]',
+});
 
-const descriptionStyle = css`
-  max-width: 52rem;
-  color: rgb(var(--color-muted));
-`;
+const descriptionClass = css({
+  maxWidth: '[52rem]',
+  color: 'muted',
+});
 
-const gridStyle = css`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  grid-auto-rows: 1fr;
-  align-items: stretch;
-  gap: var(--space-4);
-`;
+const gridClass = css({
+  display: 'grid',
+  gridTemplateColumns: '[repeat(auto-fit, minmax(260px, 1fr))]',
+  gridAutoRows: '[1fr]',
+  alignItems: 'stretch',
+  gap: '4',
+});
 
-const emptyStyle = css`
-  color: rgb(var(--color-muted));
-  padding: var(--space-4) var(--space-0);
-`;
+const emptyClass = css({
+  color: 'muted',
+  py: '4',
+});

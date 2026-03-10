@@ -1,13 +1,13 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React, { useEffect, useRef } from 'react';
+import { css } from 'styled-system/css';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleListItem as ArticleWideListItem } from '@/entities/article/ui/article-list-item';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyStyleObject } from '@/shared/ui/styles/sr-only-style';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ArticleFeedProps = {
   activeTag: string;
@@ -67,39 +67,39 @@ export const ArticleFeed = ({
   }, [loadMore]);
 
   return (
-    <section css={sectionStyle}>
+    <section className={sectionClass}>
       {errorMessage && items.length === 0 ? (
-        <div css={errorPanelStyle}>
-          <p css={errorTextStyle}>{loadErrorText}</p>
+        <div className={errorPanelClass}>
+          <p className={errorTextClass}>{loadErrorText}</p>
           <Button onClick={() => void loadMore()} tone="white" variant="ghost">
             {retryText}
           </Button>
         </div>
       ) : items.length > 0 ? (
-        <ol css={listStyle}>
+        <ol className={listClass}>
           {items.map(article => (
-            <li css={itemStyle} key={`${article.id}-${article.created_at}`}>
+            <li className={itemClass} key={`${article.id}-${article.created_at}`}>
               <ArticleWideListItem article={article} />
             </li>
           ))}
         </ol>
       ) : (
-        <p css={emptyStyle}>{emptyText}</p>
+        <p className={emptyClass}>{emptyText}</p>
       )}
 
-      <div aria-hidden ref={sentinelRef} css={sentinelStyle} />
+      <div aria-hidden className={sentinelClass} ref={sentinelRef} />
       {isLoadingMore ? (
-        <p aria-live="polite" css={stateTextStyle}>
+        <p aria-live="polite" className={stateTextClass}>
           {loadingText}
         </p>
       ) : null}
       {!hasMore && items.length > 0 ? (
-        <p aria-live="polite" style={srOnlyStyleObject}>
+        <p aria-live="polite" className={srOnlyClass}>
           {loadMoreEndText}
         </p>
       ) : null}
       {errorMessage && items.length > 0 ? (
-        <p aria-live="polite" css={errorTextStyle}>
+        <p aria-live="polite" className={errorTextClass}>
           {loadErrorText}
         </p>
       ) : null}
@@ -107,54 +107,55 @@ export const ArticleFeed = ({
   );
 };
 
-const sectionStyle = css`
-  display: grid;
-  gap: var(--space-3);
-`;
+const sectionClass = css({
+  display: 'grid',
+  gap: '3',
+});
 
-const listStyle = css`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-bottom: 1px solid rgb(var(--color-border) / 0.3);
-`;
+const listClass = css({
+  listStyle: 'none',
+  m: '0',
+  p: '0',
+  borderBottom: '[1px solid var(--colors-border)]',
+});
 
-const itemStyle = css`
-  margin: 0;
-  border-top: 1px solid rgb(var(--color-border) / 0.3);
+const itemClass = css({
+  m: '0',
+  borderTop: '[1px solid var(--colors-border)]',
+  _first: {
+    borderTop: 'none',
+  },
+});
 
-  &:first-of-type {
-    border-top: none;
-  }
-`;
+const emptyClass = css({
+  borderRadius: 'md',
+  border: '[1px solid var(--colors-border)]',
+  px: '5',
+  py: '4',
+  color: 'muted',
+});
 
-const emptyStyle = css`
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  padding: var(--space-4) var(--space-5);
-  color: rgb(var(--color-muted));
-`;
+const sentinelClass = css({
+  width: 'full',
+  height: '[1px]',
+});
 
-const sentinelStyle = css`
-  width: 100%;
-  height: 1px;
-`;
+const stateTextClass = css({
+  color: 'muted',
+  textAlign: 'center',
+});
 
-const stateTextStyle = css`
-  color: rgb(var(--color-muted));
-  text-align: center;
-`;
+const errorPanelClass = css({
+  display: 'grid',
+  gap: '3',
+  justifyItems: 'center',
+  borderRadius: 'md',
+  border: '[1px solid var(--colors-border)]',
+  px: '5',
+  py: '4',
+});
 
-const errorPanelStyle = css`
-  display: grid;
-  gap: var(--space-3);
-  justify-items: center;
-  border-radius: var(--radius-md);
-  border: 1px solid rgb(var(--color-border) / 0.24);
-  padding: var(--space-4) var(--space-5);
-`;
-
-const errorTextStyle = css`
-  color: rgb(var(--color-danger));
-  text-align: center;
-`;
+const errorTextClass = css({
+  color: 'danger',
+  textAlign: 'center',
+});

@@ -1,7 +1,4 @@
-'use client';
-
-import { css } from '@emotion/react';
-import React from 'react';
+import { css, cx } from 'styled-system/css';
 
 import { type AppIconComponent, MoonIcon, SunIcon, SystemIcon } from '@/shared/ui/icons/app-icons';
 
@@ -35,22 +32,21 @@ export const ThemeIcon = ({ className, decorative = true, theme }: ThemeIconProp
   const ariaLabel = decorative ? undefined : themeIconAltMap[theme];
 
   return (
-    <span aria-hidden={decorative} className={className} css={iconFrameStyle}>
+    <span aria-hidden={decorative} className={cx(themeIconFrameClass, className)}>
       <Icon aria-hidden={decorative} aria-label={ariaLabel} role={decorative ? undefined : 'img'} />
     </span>
   );
 };
 
-const iconFrameStyle = css`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex: 0 0 auto;
-
-  & > svg {
-    width: 100%;
-    height: 100%;
-  }
-`;
+const themeIconFrameClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '5',
+  height: '5',
+  flex: 'none',
+  '& > svg': {
+    width: 'full',
+    height: 'full',
+  },
+});

@@ -10,6 +10,10 @@ export default defineConfig({
         replacement: path.resolve(__dirname, './src'),
       },
       {
+        find: /^styled-system\/(.*)$/,
+        replacement: path.resolve(__dirname, './styled-system/$1'),
+      },
+      {
         find: 'server-only',
         replacement: path.resolve(__dirname, './src/shared/lib/test/server-only.ts'),
       },

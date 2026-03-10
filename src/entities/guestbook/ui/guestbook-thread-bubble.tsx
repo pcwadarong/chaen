@@ -1,7 +1,7 @@
 'use client';
 
-import { css } from '@emotion/react';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/lib/use-guestbook-bubble-action-menu';
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -79,7 +79,7 @@ export const GuestbookThreadBubble = ({
   const canManageEntry = !entry.is_admin_author || canReply;
 
   return (
-    <article css={threadShellStyle} {...longPressHandlers}>
+    <article className={threadShellClass} {...longPressHandlers}>
       <GuestbookEntryBubble
         action={
           !isDeleted ? (
@@ -110,20 +110,21 @@ export const GuestbookThreadBubble = ({
         variant="thread"
       >
         {isDeleted ? (
-          <p css={deletedContentStyle}>{deletedPlaceholder}</p>
+          <p className={deletedContentClass}>{deletedPlaceholder}</p>
         ) : isSecretRevealed ? (
-          <p css={contentStyle}>{entry.content}</p>
+          <p className={contentClass}>{entry.content}</p>
         ) : (
-          <div css={secretContentStyle}>
+          <div className={secretContentClass}>
             {!isRevealInlineFormVisible ? (
               <>
-                <p css={secretTextStyle}>{secretPlaceholder}</p>
+                <p className={secretTextClass}>{secretPlaceholder}</p>
                 <Button
+                  className={revealButtonClass}
                   onClick={onToggleSecretPanel}
-                  css={revealButtonStyle}
+                  size="xs"
                   tone="white"
                   type="button"
-                  variant="ghost"
+                  variant="solid"
                 >
                   {revealLabel}
                 </Button>
@@ -135,21 +136,22 @@ export const GuestbookThreadBubble = ({
                   event.preventDefault();
                   void onRevealSecret(entry, passwordInput);
                 }}
-                css={inlineRevealFormStyle}
+                className={inlineRevealFormClass}
               >
                 <Input
                   aria-label={revealSecretPasswordLabel}
+                  className={inlineRevealInputClass}
                   onChange={event => setPasswordInput(event.target.value)}
                   placeholder={revealSecretPasswordLabel}
                   type="password"
                   value={passwordInput}
-                  css={inlineRevealInputStyle}
                 />
                 <Button
+                  className={revealButtonClass}
                   disabled={isSecretSubmitting}
+                  size="xs"
                   tone="black"
                   type="submit"
-                  css={inlineRevealSubmitStyle}
                 >
                   {revealSecretSubmitLabel}
                 </Button>
@@ -158,7 +160,7 @@ export const GuestbookThreadBubble = ({
           </div>
         )}
         {secretError && isRevealInlineFormVisible ? (
-          <p role="alert" css={revealErrorStyle}>
+          <p className={revealErrorClass} role="alert">
             {secretError}
           </p>
         ) : null}
@@ -167,70 +169,58 @@ export const GuestbookThreadBubble = ({
   );
 };
 
-const threadShellStyle = css`
-  width: 100%;
-`;
+const threadShellClass = css({
+  width: 'full',
+});
 
-const contentStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-160);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-`;
+const contentClass = css({
+  whiteSpace: 'pre-wrap',
+  lineHeight: 'relaxed',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+});
 
-const deletedContentStyle = css`
-  color: rgb(var(--color-muted));
-  font-style: italic;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-`;
+const deletedContentClass = css({
+  color: 'muted',
+  fontStyle: 'italic',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+});
 
-const secretContentStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-`;
+const secretContentClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '2',
+  flexWrap: 'wrap',
+});
 
-const revealButtonStyle = css`
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-`;
+const inlineRevealFormClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '2',
+  flexWrap: 'nowrap',
+});
 
-const inlineRevealFormStyle = css`
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: nowrap;
-`;
+const secretTextClass = css({
+  color: 'muted',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+});
 
-const secretTextStyle = css`
-  color: rgb(var(--color-muted));
-  word-break: break-word;
-  overflow-wrap: anywhere;
-`;
+const revealErrorClass = css({
+  color: 'danger',
+  fontSize: 'sm',
+});
 
-const inlineRevealInputStyle = css`
-  min-height: 2rem;
-  min-width: 10rem;
-  border-radius: var(--radius-pill);
-  border-color: rgb(var(--color-border) / 0.24);
-  padding: var(--space-1) var(--space-2);
+const revealButtonClass = css({
+  minWidth: '[3rem]',
+  _hover: {
+    borderColor: 'borderStrong',
+  },
+});
 
-  &:hover:not(:disabled) {
-    border-color: rgb(var(--color-border) / 0.36);
-  }
-`;
-
-const inlineRevealSubmitStyle = css`
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
-  white-space: nowrap;
-`;
-
-const revealErrorStyle = css`
-  color: rgb(var(--color-danger));
-  font-size: var(--font-size-14);
-`;
+const inlineRevealInputClass = css({
+  minHeight: '8',
+  minWidth: '40',
+});

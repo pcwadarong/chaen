@@ -1,9 +1,9 @@
 'use client';
 
-import { css } from '@emotion/react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
@@ -42,20 +42,20 @@ export const ThemeSwitcher = () => {
       triggerContent={<ThemeIcon theme={activeTheme} />}
     >
       {({ closePopover }) => (
-        <div css={listStyle}>
+        <>
           {themeOptions.map(option => {
             const isActive = activeTheme === option;
 
             return (
               <Button
                 aria-pressed={isActive}
+                className={optionClass}
                 key={option}
                 onClick={() => {
                   setTheme(option);
                   closePopover();
                 }}
-                css={optionStyle}
-                tone={isActive ? 'black' : 'white'}
+                tone={isActive ? 'primary' : 'white'}
                 type="button"
                 variant={isActive ? 'solid' : 'ghost'}
                 leadingVisual={<ThemeIcon theme={option} />}
@@ -64,18 +64,23 @@ export const ThemeSwitcher = () => {
               </Button>
             );
           })}
-        </div>
+        </>
       )}
     </SwitcherPopover>
   );
 };
 
-const listStyle = css`
-  display: grid;
-  gap: var(--space-1);
-`;
-
-const optionStyle = css`
-  width: 100%;
-  justify-content: flex-start;
-`;
+const optionClass = css({
+  width: 'full',
+  justifyContent: 'flex-start',
+  minHeight: '[2.75rem]',
+  px: '4',
+  py: '2',
+  fontSize: 'md',
+  '&[aria-pressed="false"]:hover': {
+    color: 'primary',
+  },
+  '&[aria-pressed="false"]:focus-visible': {
+    color: 'primary',
+  },
+});

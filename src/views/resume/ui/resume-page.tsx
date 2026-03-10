@@ -1,6 +1,4 @@
-'use client';
-
-import { css } from '@emotion/react';
+import { css } from 'styled-system/css';
 
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
@@ -30,12 +28,12 @@ export const ResumePage = ({ content, downloadFileName, resumeUrl }: ResumePageP
       title={content.title}
     />
     <PageSection>
-      <p css={bodyStyle}>{content.body}</p>
+      <p className={bodyClass}>{content.body}</p>
     </PageSection>
   </PageShell>
 );
 
-const bodyStyle = css`
-  white-space: pre-wrap;
-  line-height: var(--line-height-170);
-`;
+const bodyClass = css({
+  whiteSpace: 'pre-wrap',
+  lineHeight: 'relaxed',
+});

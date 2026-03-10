@@ -1,9 +1,7 @@
-'use client';
-
-import { css } from '@emotion/react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import React from 'react';
+import { css } from 'styled-system/css';
 
 import type { ArticleListItem as ArticleListItemModel } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
@@ -29,24 +27,24 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
   return (
     <Link
       aria-label={t('viewArticle', { title: article.title })}
-      css={linkStyle}
+      className={linkClass}
       href={`/articles/${article.id}`}
     >
-      <article css={articleStyle}>
-        <div css={contentStyle}>
-          <div css={bodyStyle}>
-            <h2 css={titleStyle}>{article.title}</h2>
-            {article.description ? <p css={descriptionStyle}>{article.description}</p> : null}
+      <article className={articleClass}>
+        <div className={contentClass}>
+          <div className={bodyClass}>
+            <h2 className={titleClass}>{article.title}</h2>
+            {article.description ? <p className={descriptionClass}>{article.description}</p> : null}
           </div>
-          <time css={dateStyle} dateTime={article.created_at}>
+          <time className={dateClass} dateTime={article.created_at}>
             {publishedDate}
           </time>
         </div>
-        <div css={mediaStyle}>
+        <div className={mediaClass}>
           {previewThumbnailSrc ? (
-            <Image alt="" css={imageStyle} fill sizes="8.75rem" src={previewThumbnailSrc} />
+            <Image alt="" className={imageClass} fill sizes="8.75rem" src={previewThumbnailSrc} />
           ) : (
-            <div aria-hidden css={imageFallbackStyle} />
+            <div aria-hidden className={imageFallbackClass} />
           )}
         </div>
       </article>
@@ -54,82 +52,76 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
   );
 };
 
-const linkStyle = css`
-  display: block;
-  color: rgb(var(--color-text));
-  text-decoration: none;
-`;
+const linkClass = css({
+  display: 'block',
+  color: 'text',
+  textDecoration: 'none',
+});
 
-const articleStyle = css`
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-5);
-  padding: var(--space-7) 0;
-`;
+const articleClass = css({
+  display: 'flex',
+  justifyContent: 'space-between',
+  gap: '5',
+  py: '7',
+});
 
-const contentStyle = css`
-  display: grid;
-  min-width: 0;
-  gap: var(--space-4);
-  align-content: center;
-`;
+const contentClass = css({
+  display: 'grid',
+  minWidth: '0',
+  gap: '4',
+  alignContent: 'center',
+});
 
-const bodyStyle = css`
-  display: grid;
-  min-width: 0;
-  gap: var(--space-3);
-`;
+const bodyClass = css({
+  display: 'grid',
+  minWidth: '0',
+  gap: '3',
+});
 
-const titleStyle = css`
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  color: rgb(var(--color-primary));
-  font-size: 1.5rem;
-  line-height: 1.12;
-  letter-spacing: -0.05em;
-`;
+const titleClass = css({
+  lineClamp: '2',
+  color: 'primary',
+  fontSize: '2xl',
+  lineHeight: 'tight',
+  letterSpacing: '[-0.05em]',
+  fontWeight: 'bold',
+});
 
-const descriptionStyle = css`
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  color: rgb(var(--color-text));
-  font-size: 1rem;
-  line-height: 1.5;
-  letter-spacing: -0.03em;
-`;
+const descriptionClass = css({
+  lineClamp: '2',
+  color: 'text',
+  fontSize: 'md',
+  lineHeight: 'normal',
+  letterSpacing: '[-0.03em]',
+});
 
-const dateStyle = css`
-  color: rgb(var(--color-muted));
-  font-size: var(--font-size-14);
-`;
+const dateClass = css({
+  color: 'muted',
+  fontSize: 'sm',
+});
 
-const mediaStyle = css`
-  display: none;
+const mediaClass = css({
+  display: 'none',
+  '@media (min-width: 480px)': {
+    display: 'block',
+    position: 'relative',
+    flex: '[0 0 8.75rem]',
+    width: '[8.75rem]',
+    minWidth: '[8.75rem]',
+    aspectRatio: '[4 / 3]',
+    justifySelf: 'end',
+    overflow: 'hidden',
+    borderRadius: 'sm',
+    background: 'surfaceStrong',
+  },
+});
 
-  @media (min-width: 480px) {
-    display: block;
-    position: relative;
-    flex: 0 0 8.75rem;
-    width: 8.75rem;
-    min-width: 8.75rem;
-    aspect-ratio: 4 / 3;
-    justify-self: end;
-    overflow: hidden;
-    border-radius: var(--radius-sm);
-    background: rgb(var(--color-muted) / 0.16);
-  }
-`;
+const imageClass = css({
+  display: 'block',
+  objectFit: 'cover',
+});
 
-const imageStyle = css`
-  display: block;
-  object-fit: cover;
-`;
-
-const imageFallbackStyle = css`
-  width: 100%;
-  height: 100%;
-`;
+const imageFallbackClass = css({
+  width: 'full',
+  height: 'full',
+});
