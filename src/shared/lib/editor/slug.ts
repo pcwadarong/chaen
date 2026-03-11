@@ -15,9 +15,12 @@ export const slugifyText = (value: string) =>
  */
 export const normalizeSlugInput = (value: string) =>
   value
-    .trim()
     .toLowerCase()
     .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9-]/g, '');
+
+/**
+ * slug가 최종 저장 가능한 형식인지 검증합니다.
+ * 하이픈은 단어 사이에만 허용합니다.
+ */
+export const isValidSlugFormat = (value: string) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);

@@ -38,6 +38,21 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
   const markdownOptions = getMarkdownOptions();
 
   /**
+   * 관리자 전용 slug 중복 확인 API를 호출합니다.
+   */
+  const handleSlugDuplicateCheck = async (nextSlug: string) => {
+    const response = await fetch(`/api/admin/slug-check?slug=${encodeURIComponent(nextSlug)}`);
+
+    if (!response.ok) {
+      throw new Error(`Slug check failed: ${response.status}`);
+    }
+
+    const body = (await response.json()) as { duplicate: boolean };
+
+    return body.duplicate;
+  };
+
+  /**
    * 현재 선택 영역 또는 커서 위치에 markdown 문자열을 삽입합니다.
    */
   const applyInsertion = (text: string) => {
@@ -109,7 +124,7 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
         </div>
 
         <div className={metaGridClass}>
-          <SlugInput onChange={setSlug} value={slug} />
+          <SlugInput onChange={setSlug} onCheckDuplicate={handleSlugDuplicateCheck} value={slug} />
         </div>
 
         <TagSelector

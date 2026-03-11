@@ -16,10 +16,76 @@ describe('SlugInput', () => {
     expect(onChange).toHaveBeenCalledWith('optimize-web-accessibility');
   });
 
-  it('값이 비어 있으면 인라인 에러를 노출한다', () => {
+  it('기본 상태에서는 빈 값이어도 인라인 에러를 바로 노출하지 않는다', () => {
     render(<SlugInput onChange={vi.fn()} value="" />);
 
+    expect(screen.queryByText('슬러그를 입력해주세요.')).toBeNull();
+  });
+
+  it('showEmptyError가 켜져 있으면 빈 값 에러를 노출한다', () => {
+    render(<SlugInput onChange={vi.fn()} showEmptyError value="" />);
+
     expect(screen.getByText('슬러그를 입력해주세요.')).toBeTruthy();
+  });
+
+  it('하이픈 입력 자체는 허용한다', () => {
+    const onChange = vi.fn();
+
+    render(<SlugInput onChange={onChange} value="" />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: '슬러그' }), {
+      target: { value: '-' },
+    });
+
+    expect(onChange).toHaveBeenCalledWith('-');
+  });
+
+  it('중복 확인 전에는 빈 값 경고를 바로 띄우지 않고, 확인 버튼을 누르면 빈 값 에러를 노출한다', async () => {
+    const onCheckDuplicate = vi.fn();
+
+    render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="" />);
+
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    expect(screen.getByText('슬러그를 입력해주세요.')).toBeTruthy();
+    expect(onCheckDuplicate).not.toHaveBeenCalled();
+  });
+
+  it('하이픈만 있는 값은 중복 확인 전에 형식 오류를 노출한다', async () => {
+    const onCheckDuplicate = vi.fn();
+
+    render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="-" />);
+
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    expect(
+      screen.getByText('슬러그는 하이픈 앞뒤에 영문 소문자 또는 숫자가 있어야 합니다.'),
+    ).toBeTruthy();
+    expect(onCheckDuplicate).not.toHaveBeenCalled();
+  });
+
+  it('중복 확인 결과가 이미 사용 중이면 다른 슬러그를 쓰라는 경고를 노출한다', async () => {
+    const onCheckDuplicate = vi.fn().mockResolvedValue(true);
+
+    render(
+      <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="existing-slug" />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    await screen.findByText('이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.');
+
+    expect(onCheckDuplicate).toHaveBeenCalledWith('existing-slug');
+  });
+
+  it('중복 확인 결과가 사용 가능하면 성공 메시지를 노출한다', async () => {
+    const onCheckDuplicate = vi.fn().mockResolvedValue(false);
+
+    render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="new-slug" />);
+
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    await screen.findByText('사용 가능한 슬러그입니다.');
   });
 
   it('발행 후 잠금 상태면 읽기 전용 입력으로 렌더링한다', () => {
