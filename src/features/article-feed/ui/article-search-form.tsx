@@ -5,10 +5,11 @@ import React from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { buttonRecipe } from '@/shared/ui/button/button';
+import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
+import { XButton } from '@/shared/ui/x-button/x-button';
 
 type ArticleSearchFormProps = {
   autoFocus?: boolean;
@@ -68,7 +69,6 @@ export const ArticleSearchForm = ({
   const debounceTimerRef = React.useRef<number | null>(null);
   const skipDebounceRef = React.useRef(false);
   const currentQuery = searchParams?.get('q')?.trim() ?? searchQuery;
-  const ghostButtonClassName = buttonRecipe({ tone: 'white', variant: 'ghost' }).root;
 
   /**
    * 현재 pathname을 유지한 채 q 파라미터만 교체합니다.
@@ -184,24 +184,25 @@ export const ArticleSearchForm = ({
           value={inputValue}
         />
         {inputValue ? (
-          <button
-            aria-label={clearText}
-            className={cx(ghostButtonClassName, clearButtonClass)}
+          <XButton
+            ariaLabel={clearText}
+            className={clearButtonClass}
+            glyphClassName={clearGlyphClass}
             onClick={handleClear}
-            type="button"
-          >
-            ×
-          </button>
+          />
         ) : null}
-        <button
+        <Button
           aria-label={submitText}
-          className={cx(ghostButtonClassName, submitButtonClass)}
+          className={submitButtonClass}
           disabled={isPending}
+          size="sm"
+          tone="white"
           type="submit"
+          variant="ghost"
         >
           <SearchIcon aria-hidden color="text" size="md" />
           <span className={srOnlyClass}>{submitText}</span>
-        </button>
+        </Button>
       </div>
       {isPending ? (
         <p aria-live="polite" className={srOnlyClass} role="status">
@@ -238,6 +239,10 @@ const clearButtonClass = css({
   p: '0',
   transform: '[translateY(-50%)]',
   borderRadius: 'full',
+});
+
+const clearGlyphClass = css({
+  fontSize: '2xl',
 });
 
 const submitButtonClass = css({

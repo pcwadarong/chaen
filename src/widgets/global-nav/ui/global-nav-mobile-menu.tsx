@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { HamburgerIcon } from '@/shared/ui/icons/app-icons';
+import { XButton } from '@/shared/ui/x-button/x-button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -88,17 +89,11 @@ export const GlobalNavMobileMenu = ({
                 role="dialog"
                 tabIndex={-1}
               >
-                <Button
-                  aria-label={closeMenuLabel}
+                <XButton
+                  ariaLabel={closeMenuLabel}
                   className={drawerCloseClass}
                   onClick={onClose}
-                  size="sm"
-                  tone="white"
-                  type="button"
-                  variant="ghost"
-                >
-                  ×
-                </Button>
+                />
                 <nav aria-label={ariaLabel}>
                   <ul className={mobileListClass}>
                     {navigationItems.map(item => (

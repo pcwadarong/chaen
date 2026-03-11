@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { css, cx } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
-import { Button } from '@/shared/ui/button/button';
+import { XButton } from '@/shared/ui/x-button/x-button';
 
 type ModalProps = {
   ariaDescribedBy?: string;
@@ -78,18 +78,7 @@ export const Modal = ({
         tabIndex={-1}
         className={cx(frameBaseClass, frameClassName)}
       >
-        <Button
-          aria-label={closeAriaLabel}
-          className={closeButtonClass}
-          onClick={onClose}
-          type="button"
-          variant="ghost"
-          tone="white"
-        >
-          <span aria-hidden className={closeGlyphClass}>
-            +
-          </span>
-        </Button>
+        <XButton ariaLabel={closeAriaLabel} className={closeButtonClass} onClick={onClose} />
         {children}
       </div>
     </div>,
@@ -119,11 +108,4 @@ const closeButtonClass = css({
   right: '[0.5rem]',
   zIndex: '10',
   lineHeight: 'none',
-});
-
-const closeGlyphClass = css({
-  display: 'inline-block',
-  fontSize: '3xl',
-  lineHeight: 'none',
-  transform: 'rotate(45deg)',
 });

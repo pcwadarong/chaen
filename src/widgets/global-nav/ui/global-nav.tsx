@@ -11,6 +11,7 @@ import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
+import { XButton } from '@/shared/ui/x-button/x-button';
 import { buildGlobalNavigationItems } from '@/widgets/global-nav/model/build-navigation-items';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
@@ -172,17 +173,11 @@ export const GlobalNav = () => {
               searchQuery={currentSearchQuery}
               submitText={articlesT('searchSubmit')}
             />
-            <Button
-              aria-label={articlesT('searchClose')}
+            <XButton
+              ariaLabel={articlesT('searchClose')}
               className={mobileSearchCloseClass}
               onClick={() => setIsMobileSearchOpen(false)}
-              size="sm"
-              tone="white"
-              type="button"
-              variant="ghost"
-            >
-              ×
-            </Button>
+            />
           </div>
         </div>
       ) : null}
