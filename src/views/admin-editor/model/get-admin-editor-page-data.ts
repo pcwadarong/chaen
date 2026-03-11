@@ -1,4 +1,5 @@
 import { getAllTags, getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
+import { buildAdminPath } from '@/shared/lib/auth/admin-path';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 type GetAdminEditorPageDataInput = {
@@ -25,7 +26,7 @@ export const getAdminEditorPageData = async ({
   if (!authState.isAdmin) {
     return {
       availableTags: [],
-      redirectPath: `/${locale}/admin/login`,
+      redirectPath: buildAdminPath({ locale, section: 'login' }),
     };
   }
 

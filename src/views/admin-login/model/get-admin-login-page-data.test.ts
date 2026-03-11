@@ -13,7 +13,7 @@ describe('getAdminLoginPageData', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자 세션이면 guest 페이지로 리다이렉트 경로를 반환한다', async () => {
+  it('관리자 세션이면 관리자 루트로 리다이렉트 경로를 반환한다', async () => {
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,

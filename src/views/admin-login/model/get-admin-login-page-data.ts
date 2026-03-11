@@ -1,3 +1,4 @@
+import { buildAdminPath } from '@/shared/lib/auth/admin-path';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 type GetAdminLoginPageDataInput = {
@@ -18,7 +19,7 @@ export const getAdminLoginPageData = async ({
 
   if (authState.isAdmin) {
     return {
-      redirectPath: `/${locale}/admin`,
+      redirectPath: buildAdminPath({ locale }),
     };
   }
 

@@ -29,7 +29,7 @@ describe('AdminSignOutButton', () => {
 
     render(
       <AdminSignOutButton
-        redirectPath="/admin/login"
+        redirectPath="/ko/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
       />,
@@ -43,7 +43,7 @@ describe('AdminSignOutButton', () => {
 
     const call = vi.mocked(signOutAdmin).mock.calls[0];
     expect(call?.[1]).toBeInstanceOf(FormData);
-    expect((call?.[1] as FormData).get('redirectPath')).toBe('/admin/login');
+    expect((call?.[1] as FormData).get('redirectPath')).toBe('/ko/admin/login');
   });
 
   it('로그아웃 실패 시 에러를 노출한다', async () => {
@@ -55,7 +55,7 @@ describe('AdminSignOutButton', () => {
 
     render(
       <AdminSignOutButton
-        redirectPath="/admin/login"
+        redirectPath="/ko/admin/login"
         submitLabel="로그아웃"
         submitPendingLabel="로그아웃 중"
       />,

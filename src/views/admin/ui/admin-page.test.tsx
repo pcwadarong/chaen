@@ -19,6 +19,6 @@ describe('AdminPage', () => {
 
     const createLink = screen.getByRole('link', { name: '새 글 생성' });
 
-    expect(createLink.getAttribute('href')).toBe('/admin/editor');
+    expect(createLink.getAttribute('href')).toBe('/ko/admin/editor');
   });
 });
