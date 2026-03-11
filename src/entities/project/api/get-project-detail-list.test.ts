@@ -20,8 +20,14 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
 }));
 
 describe('getProjectDetailList', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-11T12:00:00.000Z'));
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('content schema 기준으로 최신순 프로젝트 요약 목록을 반환한다', async () => {
@@ -40,6 +46,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -64,6 +71,13 @@ describe('getProjectDetailList', () => {
       nextCursor: null,
     });
     expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(translationsQuery.eq).toHaveBeenCalledWith('projects.visibility', 'public');
+    expect(translationsQuery.or).toHaveBeenCalledWith(
+      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      {
+        referencedTable: 'projects',
+      },
+    );
     expect(translationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
       ascending: false,
       referencedTable: 'projects',
@@ -98,6 +112,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -134,6 +149,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -166,6 +182,7 @@ describe('getProjectDetailList', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -175,6 +192,7 @@ describe('getProjectDetailList', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -193,6 +211,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -235,6 +254,7 @@ describe('getProjectDetailList', () => {
           message: 'relation "public.projects" does not exist',
         },
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -260,6 +280,7 @@ describe('getProjectDetailList', () => {
           message: 'permission denied for table projects',
         },
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };

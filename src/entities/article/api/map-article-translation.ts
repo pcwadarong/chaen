@@ -2,7 +2,15 @@ import type { Article, ArticleDetailListItem, ArticleListItem } from '../model/t
 
 type ArticleBaseFields = Pick<
   Article,
-  'created_at' | 'id' | 'is_secret' | 'thumbnail_url' | 'updated_at' | 'view_count'
+  | 'allow_comments'
+  | 'created_at'
+  | 'id'
+  | 'publish_at'
+  | 'slug'
+  | 'thumbnail_url'
+  | 'updated_at'
+  | 'view_count'
+  | 'visibility'
 >;
 
 type EmbeddedArticleBaseRow = ArticleBaseFields | ArticleBaseFields[] | null;
@@ -113,15 +121,18 @@ export const mapArticle = (row: ArticleTranslationRow, tags: string[]): Article 
   if (!articleBase) return null;
 
   return {
+    allow_comments: articleBase.allow_comments,
     content: row.content,
     created_at: articleBase.created_at,
     description: row.description,
     id: row.article_id,
-    is_secret: articleBase.is_secret ?? false,
+    publish_at: articleBase.publish_at,
+    slug: articleBase.slug,
     tags,
     thumbnail_url: articleBase.thumbnail_url,
     title: row.title,
     updated_at: articleBase.updated_at,
+    visibility: articleBase.visibility,
     view_count: articleBase.view_count,
   };
 };
@@ -137,11 +148,14 @@ export const mapArticleFallbackRpcRow = (
 ): ArticleTranslationRow => ({
   article_id: row.article_id,
   articles: {
+    allow_comments: row.allow_comments,
     created_at: row.created_at,
     id: row.id,
-    is_secret: row.is_secret ?? false,
+    publish_at: row.publish_at,
+    slug: row.slug,
     thumbnail_url: row.thumbnail_url,
     updated_at: row.updated_at,
+    visibility: row.visibility,
     view_count: row.view_count,
   },
   content: row.content,
