@@ -58,6 +58,7 @@ describe('MarkdownRenderer', () => {
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('<table');
+    expect(document.querySelector('[data-link-embed-card="true"]')).toBeNull();
   });
 
   it('이미지를 반응형 본문 이미지로 렌더링한다', async () => {
@@ -89,5 +90,34 @@ describe('MarkdownRenderer', () => {
     render(element);
 
     expect(screen.getByText('본문이 없습니다.')).toBeTruthy();
+  });
+
+  it('preview title이 있는 링크는 제목 링크 카드로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      '[OpenAI](https://github.com/openai/openai "preview")',
+    );
+    const embedCard = document.querySelector('[data-link-embed-card="true"]');
+
+    expect(embedCard).toBeTruthy();
+    expect(embedCard?.textContent).toContain('링크 정보를 불러오는 중...');
+  });
+
+  it('card title이 있는 링크는 OG 카드 영역으로 렌더링한다', async () => {
+    const document = await renderServerDocument('[OpenAI](https://openai.com/ "card")');
+
+    expect(document.querySelector('[data-link-embed-card="true"]')).toBeTruthy();
+  });
+
+  it('embed 키워드 링크는 LinkEmbed 카드 영역으로 렌더링한다', async () => {
+    const document = await renderServerDocument('[embed](https://github.com/openai/openai)');
+
+    expect(document.querySelector('[data-link-embed-card="true"]')).toBeTruthy();
+  });
+
+  it('일반 외부 링크는 카드 없이 일반 링크만 렌더링한다', async () => {
+    const document = await renderServerDocument('[OpenAI](https://openai.com/)');
+
+    expect(document.querySelector('[data-link-embed-card="true"]')).toBeNull();
+    expect(document.querySelector('a')?.getAttribute('href')).toBe('https://openai.com/');
   });
 });
