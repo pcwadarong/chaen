@@ -29,14 +29,14 @@ describe('TagSelector', () => {
       target: { value: 'ReAc' },
     });
 
-    expect(screen.getByRole('button', { name: '#react 태그 선택' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: '#frontend 태그 선택' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'react 태그 선택' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'frontend 태그 선택' })).toBeNull();
   });
 
   it('태그 풀에서 선택한 태그 id 목록을 onChange로 전달한다', () => {
     const { onChange } = setup();
 
-    fireEvent.click(screen.getByRole('button', { name: '#react 태그 선택' }));
+    fireEvent.click(screen.getByRole('button', { name: 'react 태그 선택' }));
 
     expect(onChange).toHaveBeenCalledWith(['tag-2']);
   });
@@ -45,10 +45,10 @@ describe('TagSelector', () => {
     const { onChange } = setup(['tag-1', 'tag-2']);
     const selectedRegion = screen.getByRole('group', { name: '선택된 태그' });
 
-    expect(within(selectedRegion).getByText('#frontend')).toBeTruthy();
-    expect(within(selectedRegion).getByText('#react')).toBeTruthy();
+    expect(within(selectedRegion).getByText('frontend')).toBeTruthy();
+    expect(within(selectedRegion).getByText('react')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: '#react 태그 제거' }));
+    fireEvent.click(screen.getByRole('button', { name: 'react 태그 제거' }));
 
     expect(onChange).toHaveBeenCalledWith(['tag-1']);
   });
@@ -59,11 +59,11 @@ describe('TagSelector', () => {
     const toggleButton = screen.getByRole('button', { name: '태그 풀 접기' });
     fireEvent.click(toggleButton);
 
-    expect(screen.queryByRole('button', { name: '#frontend 태그 선택' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'frontend 태그 선택' })).toBeNull();
     expect(screen.getByRole('button', { name: '태그 풀 열기' })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: '태그 풀 열기' }));
 
-    expect(screen.getByRole('button', { name: '#frontend 태그 선택' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'frontend 태그 선택' })).toBeTruthy();
   });
 });

@@ -8,8 +8,8 @@ import { Input } from '@/shared/ui/input/input';
 
 type TagItem = {
   id: string;
+  label?: string;
   slug: string;
-  label: string;
 };
 
 type TagSelectorProps = {
@@ -53,7 +53,7 @@ export const TagSelector = ({
     if (!normalizedKeyword) return availableTags;
 
     return availableTags.filter(tag => {
-      const searchableText = normalizeKeyword(`${tag.slug} ${tag.label}`);
+      const searchableText = normalizeKeyword(`${tag.slug} ${tag.label ?? ''}`);
       return searchableText.includes(normalizedKeyword);
     });
   }, [availableTags, normalizedKeyword]);
@@ -94,13 +94,13 @@ export const TagSelector = ({
         {selectedTags.length > 0 ? (
           selectedTags.map(tag => (
             <button
-              aria-label={`#${tag.slug} 태그 제거`}
+              aria-label={`${tag.slug} 태그 제거`}
               className={selectedChipClass}
               key={tag.id}
               onClick={() => handleTagToggle(tag.id)}
               type="button"
             >
-              <span>{`#${tag.slug}`}</span>
+              <span>{tag.slug}</span>
               <span aria-hidden className={chipDismissClass}>
                 ×
               </span>
@@ -139,15 +139,14 @@ export const TagSelector = ({
 
               return (
                 <button
-                  aria-label={`#${tag.slug} ${isSelected ? '태그 해제' : '태그 선택'}`}
+                  aria-label={`${tag.slug} ${isSelected ? '태그 해제' : '태그 선택'}`}
                   aria-pressed={isSelected}
                   className={chipRecipe({ selected: isSelected })}
                   key={tag.id}
                   onClick={() => handleTagToggle(tag.id)}
                   type="button"
                 >
-                  <span className={chipLabelClass}>{`#${tag.slug}`}</span>
-                  <span className={chipMetaClass}>{tag.label}</span>
+                  <span className={chipLabelClass}>{tag.slug}</span>
                   <span className={srOnlyClass}>
                     {` ${isSelected ? '태그 해제' : '태그 선택'}`}
                   </span>
@@ -155,7 +154,9 @@ export const TagSelector = ({
               );
             })
           ) : (
-            <p className={helperTextClass}>검색 결과가 없습니다.</p>
+            <p className={helperTextClass}>
+              {availableTags.length > 0 ? '검색 결과가 없습니다.' : '사용 가능한 태그가 없습니다.'}
+            </p>
           )}
         </div>
       ) : null}
@@ -186,7 +187,7 @@ const inputWrapClass = css({
 const searchIconClass = css({
   position: 'absolute',
   left: '3',
-  top: '50%',
+  top: '[50%]',
   transform: 'translateY(-50%)',
   pointerEvents: 'none',
 });
@@ -251,7 +252,6 @@ const chipRecipe = cva({
   base: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '1.5',
     minHeight: '[2.25rem]',
     px: '3',
     borderRadius: 'full',
@@ -287,11 +287,6 @@ const chipLabelClass = css({
   fontWeight: 'semibold',
 });
 
-const chipMetaClass = css({
-  color: 'inherit',
-  opacity: 0.72,
-});
-
 const selectedChipClass = css({
   display: 'inline-flex',
   alignItems: 'center',
@@ -310,7 +305,7 @@ const selectedChipClass = css({
 
 const chipDismissClass = css({
   fontSize: 'md',
-  lineHeight: '1',
+  lineHeight: '[1]',
 });
 
 const srOnlyClass = css({

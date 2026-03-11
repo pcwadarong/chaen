@@ -31,6 +31,31 @@ type GetRelatedTagIdsOptions = {
   relationTable: RelationTableName;
 };
 
+/**
+ * 전체 태그 목록을 slug 기준 오름차순으로 조회합니다.
+ */
+export const getAllTags = async (): Promise<TagSchemaResult<TagRow[]>> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
+
+  const { data, error } = await supabase.from('tags').select('id,slug').order('slug', {
+    ascending: true,
+  });
+
+  if (error) {
+    if (isMissingTagSchemaError(error.message)) {
+      return { data: [], schemaMissing: true };
+    }
+
+    throw new Error(`[tags] 전체 목록 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: (data ?? []) as TagRow[],
+    schemaMissing: false,
+  };
+};
+
 const isMissingTagSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
   const missingRelationOrFunctionPattern =
