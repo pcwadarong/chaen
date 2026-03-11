@@ -1,6 +1,9 @@
+import React from 'react';
 import { css } from 'styled-system/css';
 
 import { AdminSignOutButton } from '@/features/auth/ui/admin-sign-out-button';
+import { Link } from '@/i18n/navigation';
+import { Button } from '@/shared/ui/button/button';
 
 type AdminPageProps = {
   locale: string;
@@ -15,6 +18,9 @@ export const AdminPage = ({ locale: _locale }: AdminPageProps) => (
       <h1 className={titleClass} id="admin-page-title">
         관리자
       </h1>
+      <Button asChild fullWidth tone="primary" variant="solid">
+        <Link href="/admin/editor">새 글 생성</Link>
+      </Button>
       <AdminSignOutButton
         redirectPath="/admin/login"
         submitLabel="로그아웃"
