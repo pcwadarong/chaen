@@ -1,116 +1,56 @@
 'use client';
 
-import React, { useId, useMemo, useState } from 'react';
+import React, { useId, useState } from 'react';
 import { css, cva, cx } from 'styled-system/css';
 
-import { ArrowUpIcon, SearchIcon } from '@/shared/ui/icons/app-icons';
-import { Input } from '@/shared/ui/input/input';
+import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 
 type TagItem = {
   id: string;
-  label?: string;
+  label: string;
   slug: string;
 };
 
 type TagSelectorProps = {
   availableTags: TagItem[];
   className?: string;
-  onChange: (ids: string[]) => void;
-  selectedTagIds: string[];
+  onChange: (slugs: string[]) => void;
+  selectedTagSlugs: string[];
 };
 
 /**
- * 태그 선택 입력에서 사용할 문자열을 검색 친화적으로 정규화합니다.
+ * 태그가 현재 선택된 slug 목록에 포함되는지 판별합니다.
  */
-const normalizeKeyword = (value: string) => value.trim().toLowerCase();
-
-/**
- * 태그가 현재 선택된 목록에 포함되는지 판별합니다.
- */
-const hasSelectedTag = (selectedTagIds: string[], tagId: string) => selectedTagIds.includes(tagId);
+const hasSelectedTag = (selectedTagSlugs: string[], tagSlug: string) =>
+  selectedTagSlugs.includes(tagSlug);
 
 /**
  * 에디터 전반에서 재사용하는 태그 선택 UI입니다.
- * 검색, 선택/해제, 태그 풀 접기 동작을 하나의 입력 블록으로 제공합니다.
+ * 태그 풀 안에서만 선택 상태를 토글하고, 선택값은 slug 배열로 유지합니다.
  */
 export const TagSelector = ({
   availableTags,
   className,
   onChange,
-  selectedTagIds,
+  selectedTagSlugs,
 }: TagSelectorProps) => {
-  const [keyword, setKeyword] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
   const poolId = useId();
-  const normalizedKeyword = normalizeKeyword(keyword);
-
-  const selectedTags = useMemo(
-    () => availableTags.filter(tag => hasSelectedTag(selectedTagIds, tag.id)),
-    [availableTags, selectedTagIds],
-  );
-
-  const filteredTags = useMemo(() => {
-    if (!normalizedKeyword) return availableTags;
-
-    return availableTags.filter(tag => {
-      const searchableText = normalizeKeyword(`${tag.slug} ${tag.label ?? ''}`);
-      return searchableText.includes(normalizedKeyword);
-    });
-  }, [availableTags, normalizedKeyword]);
 
   /**
-   * 태그 선택 상태를 토글한 다음 상위 컨트롤러에 최신 id 목록을 전달합니다.
+   * 태그 선택 상태를 토글한 다음 상위 컨트롤러에 최신 slug 목록을 전달합니다.
    */
-  const handleTagToggle = (tagId: string) => {
-    if (hasSelectedTag(selectedTagIds, tagId)) {
-      onChange(selectedTagIds.filter(id => id !== tagId));
+  const handleTagToggle = (tagSlug: string) => {
+    if (hasSelectedTag(selectedTagSlugs, tagSlug)) {
+      onChange(selectedTagSlugs.filter(slug => slug !== tagSlug));
       return;
     }
 
-    onChange([...selectedTagIds, tagId]);
+    onChange([...selectedTagSlugs, tagSlug]);
   };
 
   return (
     <section aria-label="태그 선택기" className={cx(rootClass, className)}>
-      <div className={searchFieldClass}>
-        <label className={fieldLabelClass} htmlFor={poolId}>
-          태그 검색
-        </label>
-        <div className={inputWrapClass}>
-          <SearchIcon aria-hidden className={searchIconClass} color="muted" size="md" />
-          <Input
-            aria-label="태그 검색"
-            className={searchInputClass}
-            id={poolId}
-            onChange={event => setKeyword(event.target.value)}
-            placeholder="태그를 검색하세요"
-            type="search"
-            value={keyword}
-          />
-        </div>
-      </div>
-
-      <div aria-label="선택된 태그" className={selectedRowClass} role="group">
-        {selectedTags.length > 0 ? (
-          selectedTags.map(tag => (
-            <button
-              aria-label={`${tag.slug} 태그 제거`}
-              className={selectedChipClass}
-              key={tag.id}
-              onClick={() => handleTagToggle(tag.id)}
-              type="button"
-            >
-              <span>{tag.slug}</span>
-              <span aria-hidden className={chipDismissClass}>
-                ×
-              </span>
-            </button>
-          ))
-        ) : (
-          <p className={helperTextClass}>아직 선택된 태그가 없습니다.</p>
-        )}
-      </div>
-
       <div className={poolHeaderClass}>
         <h2 className={poolTitleClass}>태그 풀</h2>
         <button
@@ -133,20 +73,20 @@ export const TagSelector = ({
 
       {isExpanded ? (
         <div className={poolClass} id={`${poolId}-panel`}>
-          {filteredTags.length > 0 ? (
-            filteredTags.map(tag => {
-              const isSelected = hasSelectedTag(selectedTagIds, tag.id);
+          {availableTags.length > 0 ? (
+            availableTags.map(tag => {
+              const isSelected = hasSelectedTag(selectedTagSlugs, tag.slug);
 
               return (
                 <button
-                  aria-label={`${tag.slug} ${isSelected ? '태그 해제' : '태그 선택'}`}
+                  aria-label={`${tag.label} ${isSelected ? '태그 해제' : '태그 선택'}`}
                   aria-pressed={isSelected}
                   className={chipRecipe({ selected: isSelected })}
                   key={tag.id}
-                  onClick={() => handleTagToggle(tag.id)}
+                  onClick={() => handleTagToggle(tag.slug)}
                   type="button"
                 >
-                  <span className={chipLabelClass}>{tag.slug}</span>
+                  <span className={chipLabelClass}>{tag.label}</span>
                   <span className={srOnlyClass}>
                     {` ${isSelected ? '태그 해제' : '태그 선택'}`}
                   </span>
@@ -154,9 +94,7 @@ export const TagSelector = ({
               );
             })
           ) : (
-            <p className={helperTextClass}>
-              {availableTags.length > 0 ? '검색 결과가 없습니다.' : '사용 가능한 태그가 없습니다.'}
-            </p>
+            <p className={helperTextClass}>사용 가능한 태그가 없습니다.</p>
           )}
         </div>
       ) : null}
@@ -167,41 +105,6 @@ export const TagSelector = ({
 const rootClass = css({
   display: 'grid',
   gap: '4',
-});
-
-const searchFieldClass = css({
-  display: 'grid',
-  gap: '2',
-});
-
-const fieldLabelClass = css({
-  fontSize: 'sm',
-  fontWeight: 'semibold',
-  color: 'text',
-});
-
-const inputWrapClass = css({
-  position: 'relative',
-});
-
-const searchIconClass = css({
-  position: 'absolute',
-  left: '3',
-  top: '[50%]',
-  transform: 'translateY(-50%)',
-  pointerEvents: 'none',
-});
-
-const searchInputClass = css({
-  paddingLeft: '10',
-});
-
-const selectedRowClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '2',
-  minHeight: '[2.5rem]',
-  alignItems: 'flex-start',
 });
 
 const helperTextClass = css({
@@ -258,7 +161,7 @@ const chipRecipe = cva({
     borderWidth: '1px',
     borderStyle: 'solid',
     fontSize: 'sm',
-    transition: 'colors',
+    transition: 'common',
     _focusVisible: {
       outline: '[2px solid var(--colors-focus-ring)]',
       outlineOffset: '[2px]',
@@ -266,46 +169,29 @@ const chipRecipe = cva({
   },
   variants: {
     selected: {
-      true: {
-        borderColor: 'primary',
-        background: 'primary',
-        color: 'primaryContrast',
-      },
       false: {
         borderColor: 'border',
         background: 'surface',
-        color: 'text',
+        color: 'muted',
         _hover: {
           borderColor: 'borderStrong',
+          color: 'text',
         },
       },
+      true: {
+        borderColor: 'transparent',
+        background: 'primary',
+        color: 'primaryContrast',
+      },
     },
+  },
+  defaultVariants: {
+    selected: false,
   },
 });
 
 const chipLabelClass = css({
-  fontWeight: 'semibold',
-});
-
-const selectedChipClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '1.5',
-  minHeight: '[2.25rem]',
-  px: '3',
-  borderRadius: 'full',
-  background: 'surfaceMuted',
-  color: 'text',
-  fontSize: 'sm',
-  _focusVisible: {
-    outline: '[2px solid var(--colors-focus-ring)]',
-    outlineOffset: '[2px]',
-  },
-});
-
-const chipDismissClass = css({
-  fontSize: 'md',
-  lineHeight: '[1]',
+  lineHeight: 'tight',
 });
 
 const srOnlyClass = css({

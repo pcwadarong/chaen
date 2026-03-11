@@ -20,6 +20,7 @@ import { Textarea } from '@/shared/ui/textarea/textarea';
 type AdminEditorShellProps = {
   availableTags: {
     id: string;
+    label: string;
     slug: string;
   }[];
 };
@@ -30,7 +31,7 @@ type AdminEditorShellProps = {
  */
 export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
   const [slug, setSlug] = useState('');
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>([]);
   const [markdown, setMarkdown] = useState('');
   const [linkInput, setLinkInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -113,8 +114,8 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
 
         <TagSelector
           availableTags={availableTags}
-          onChange={setSelectedTagIds}
-          selectedTagIds={selectedTagIds}
+          onChange={setSelectedTagSlugs}
+          selectedTagSlugs={selectedTagSlugs}
         />
 
         <div className={editorGridClass}>
@@ -124,7 +125,6 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
                 입력
               </h2>
               <div className={paneHeaderActionsClass}>
-                <span className={paneMetaClass}>{markdown.length} chars</span>
                 <Popover
                   label="링크"
                   panelLabel="링크 삽입"
@@ -141,10 +141,14 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
                       />
                       <div className={linkModeGridClass}>
                         <Button onClick={() => handleLinkApply('preview', closePopover)}>
-                          멘션
+                          제목 링크
                         </Button>
-                        <Button onClick={() => handleLinkApply('link', closePopover)}>링크</Button>
-                        <Button onClick={() => handleLinkApply('card', closePopover)}>카드</Button>
+                        <Button onClick={() => handleLinkApply('link', closePopover)}>
+                          하이퍼링크
+                        </Button>
+                        <Button onClick={() => handleLinkApply('card', closePopover)}>
+                          OG 카드
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -165,14 +169,9 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
           </section>
 
           <section aria-labelledby="admin-editor-preview-title" className={editorPaneClass}>
-            <div className={paneHeaderClass}>
-              <h2 className={paneTitleClass} id="admin-editor-preview-title">
-                미리보기
-              </h2>
-              <span className={paneMetaClass}>
-                {selectedTagIds.length > 0 ? `${selectedTagIds.length}개 선택됨` : 'draft'}
-              </span>
-            </div>
+            <h2 className={paneTitleClass} id="admin-editor-preview-title">
+              미리보기
+            </h2>
             <div className={previewClass}>
               {markdown.trim().length > 0 ? (
                 <div className={markdownBodyClass}>
@@ -277,11 +276,6 @@ const linkPopoverContentClass = css({
 const paneTitleClass = css({
   fontSize: 'lg',
   fontWeight: 'semibold',
-});
-
-const paneMetaClass = css({
-  fontSize: 'sm',
-  color: 'muted',
 });
 
 const editorTextareaClass = css({

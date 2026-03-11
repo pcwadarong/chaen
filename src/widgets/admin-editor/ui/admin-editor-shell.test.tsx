@@ -4,8 +4,8 @@ import React from 'react';
 import { AdminEditorShell } from '@/widgets/admin-editor/ui/admin-editor-shell';
 
 const availableTags = [
-  { id: 'tag-1', slug: 'react' },
-  { id: 'tag-2', slug: 'nextjs' },
+  { id: 'tag-1', label: '리액트', slug: 'react' },
+  { id: 'tag-2', label: '넥스트', slug: 'nextjs' },
 ];
 
 describe('AdminEditorShell', () => {
@@ -129,8 +129,8 @@ describe('AdminEditorShell', () => {
 
     openLinkPopover();
 
-    expect(screen.getByRole('button', { name: '멘션' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '링크' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '카드' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '제목 링크' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '하이퍼링크' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'OG 카드' })).toBeTruthy();
   });
 });

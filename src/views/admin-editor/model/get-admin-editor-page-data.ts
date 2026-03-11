@@ -1,4 +1,4 @@
-import { getAllTags } from '@/entities/tag/api/query-tags';
+import { getAllTags, getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 type GetAdminEditorPageDataInput = {
@@ -8,6 +8,7 @@ type GetAdminEditorPageDataInput = {
 type AdminEditorPageData = {
   availableTags: {
     id: string;
+    label: string;
     slug: string;
   }[];
   redirectPath: string | null;
@@ -29,9 +30,16 @@ export const getAdminEditorPageData = async ({
   }
 
   const allTags = await getAllTags();
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: allTags.data.map(tag => tag.slug),
+  });
 
   return {
-    availableTags: allTags.data,
+    availableTags: allTags.data.map(tag => ({
+      ...tag,
+      label: tagLabelMap.data.get(tag.slug) ?? tag.slug,
+    })),
     redirectPath: null,
   };
 };

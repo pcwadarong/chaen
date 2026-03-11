@@ -1,20 +1,20 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { TagSelector } from '@/shared/ui/editor/tag-selector';
 
 const availableTags = [
-  { id: 'tag-1', label: 'Frontend', slug: 'frontend' },
-  { id: 'tag-2', label: 'React', slug: 'react' },
-  { id: 'tag-3', label: 'TypeScript', slug: 'typescript' },
+  { id: 'tag-1', label: '프론트엔드', slug: 'frontend' },
+  { id: 'tag-2', label: '리액트', slug: 'react' },
+  { id: 'tag-3', label: '타입스크립트', slug: 'typescript' },
 ];
 
-const setup = (selectedTagIds: string[] = [], onChange = vi.fn()) => {
+const setup = (selectedTagSlugs: string[] = [], onChange = vi.fn()) => {
   render(
     <TagSelector
       availableTags={availableTags}
       onChange={onChange}
-      selectedTagIds={selectedTagIds}
+      selectedTagSlugs={selectedTagSlugs}
     />,
   );
 
@@ -22,35 +22,20 @@ const setup = (selectedTagIds: string[] = [], onChange = vi.fn()) => {
 };
 
 describe('TagSelector', () => {
-  it('검색어를 대소문자 구분 없이 적용해 태그 풀을 필터링한다', () => {
-    setup();
-
-    fireEvent.change(screen.getByRole('searchbox', { name: '태그 검색' }), {
-      target: { value: 'ReAc' },
-    });
-
-    expect(screen.getByRole('button', { name: 'react 태그 선택' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'frontend 태그 선택' })).toBeNull();
-  });
-
-  it('태그 풀에서 선택한 태그 id 목록을 onChange로 전달한다', () => {
+  it('태그 풀에서 선택한 태그 slug 목록을 onChange로 전달한다', () => {
     const { onChange } = setup();
 
-    fireEvent.click(screen.getByRole('button', { name: 'react 태그 선택' }));
+    fireEvent.click(screen.getByRole('button', { name: '리액트 태그 선택' }));
 
-    expect(onChange).toHaveBeenCalledWith(['tag-2']);
+    expect(onChange).toHaveBeenCalledWith(['react']);
   });
 
-  it('선택된 태그 행의 제거 버튼으로 태그를 해제한다', () => {
-    const { onChange } = setup(['tag-1', 'tag-2']);
-    const selectedRegion = screen.getByRole('group', { name: '선택된 태그' });
+  it('선택된 태그를 다시 누르면 slug 목록에서 제거한다', () => {
+    const { onChange } = setup(['frontend', 'react']);
 
-    expect(within(selectedRegion).getByText('frontend')).toBeTruthy();
-    expect(within(selectedRegion).getByText('react')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '리액트 태그 해제' }));
 
-    fireEvent.click(screen.getByRole('button', { name: 'react 태그 제거' }));
-
-    expect(onChange).toHaveBeenCalledWith(['tag-1']);
+    expect(onChange).toHaveBeenCalledWith(['frontend']);
   });
 
   it('태그 풀을 접고 다시 열 수 있다', () => {
@@ -59,11 +44,19 @@ describe('TagSelector', () => {
     const toggleButton = screen.getByRole('button', { name: '태그 풀 접기' });
     fireEvent.click(toggleButton);
 
-    expect(screen.queryByRole('button', { name: 'frontend 태그 선택' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '프론트엔드 태그 선택' })).toBeNull();
     expect(screen.getByRole('button', { name: '태그 풀 열기' })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: '태그 풀 열기' }));
 
-    expect(screen.getByRole('button', { name: 'frontend 태그 선택' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '프론트엔드 태그 선택' })).toBeTruthy();
+  });
+
+  it('화면에는 번역된 label을 보여준다', () => {
+    setup();
+
+    expect(screen.getByText('프론트엔드')).toBeTruthy();
+    expect(screen.getByText('리액트')).toBeTruthy();
+    expect(screen.queryByText('frontend')).toBeNull();
   });
 });
