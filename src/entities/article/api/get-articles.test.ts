@@ -18,8 +18,14 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
 }));
 
 describe('getArticles', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-11T12:00:00.000Z'));
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('Supabase env가 없으면 articles cache tag를 기록하지 않고 빈 페이지를 반환한다', async () => {
@@ -52,6 +58,7 @@ describe('getArticles', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -68,6 +75,13 @@ describe('getArticles', () => {
     expect(result.totalCount).toBeNull();
     expect(result.items[0]?.title).toBe('Typography Rhythm');
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('articles.visibility', 'public');
+    expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
+      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      {
+        referencedTable: 'articles',
+      },
+    );
     expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
       ascending: false,
       referencedTable: 'articles',
@@ -107,7 +121,7 @@ describe('getArticles', () => {
     await getArticles({ cursor, locale: 'ko' });
 
     expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
+      'and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.lt.2026-03-02T09:07:50.797695+00:00),and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
       {
         referencedTable: 'articles',
       },
@@ -131,6 +145,7 @@ describe('getArticles', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -163,6 +178,7 @@ describe('getArticles', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -182,6 +198,7 @@ describe('getArticles', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -210,6 +227,7 @@ describe('getArticles', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -229,6 +247,7 @@ describe('getArticles', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -386,6 +405,7 @@ describe('getArticles', () => {
           message: 'relation "public.articles" does not exist',
         },
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -410,6 +430,7 @@ describe('getArticles', () => {
           message: 'permission denied for articles table',
         },
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -458,6 +479,7 @@ describe('getArticles', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -477,6 +499,13 @@ describe('getArticles', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.id).toBe('older-localized');
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('articles.visibility', 'public');
+    expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
+      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      {
+        referencedTable: 'articles',
+      },
+    );
     expect(articleTranslationsQuery.in).toHaveBeenCalledWith('article_id', [
       'recent-untranslated',
       'older-localized',

@@ -18,8 +18,14 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
 }));
 
 describe('getProjects', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-11T12:00:00.000Z'));
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('Supabase env가 없으면 캐시를 사용하지 않고 빈 페이지를 반환한다', async () => {
@@ -51,6 +57,7 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -66,6 +73,13 @@ describe('getProjects', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.title).toBe('Funda Project');
     expect(projectTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(projectTranslationsQuery.eq).toHaveBeenCalledWith('projects.visibility', 'public');
+    expect(projectTranslationsQuery.or).toHaveBeenCalledWith(
+      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      {
+        referencedTable: 'projects',
+      },
+    );
     expect(projectTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
       ascending: false,
       referencedTable: 'projects',
@@ -105,7 +119,7 @@ describe('getProjects', () => {
     await getProjects({ cursor, locale: 'ko' });
 
     expect(projectTranslationsQuery.or).toHaveBeenCalledWith(
-      'created_at.lt.2026-03-02T09:07:50.797695+00:00,and(created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
+      'and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.lt.2026-03-02T09:07:50.797695+00:00),and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
       {
         referencedTable: 'projects',
       },
@@ -129,6 +143,7 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -161,6 +176,7 @@ describe('getProjects', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -180,6 +196,7 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -207,6 +224,7 @@ describe('getProjects', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -216,6 +234,7 @@ describe('getProjects', () => {
         data: [],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -235,6 +254,7 @@ describe('getProjects', () => {
         ],
         error: null,
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -266,6 +286,7 @@ describe('getProjects', () => {
           message: 'relation "public.projects" does not exist',
         },
       }),
+      or: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };

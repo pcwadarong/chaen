@@ -10,6 +10,7 @@ import {
   parseLocaleAwareCreatedAtIdCursor,
   serializeLocaleAwareCreatedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
+import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -46,19 +47,17 @@ const fetchArticleDetailListFromContentSchema = async (
   if (!supabase) return { data: { items: [], nextCursor: null }, schemaMissing: false };
 
   const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
-  let translationsQuery = supabase
+  const nowIsoString = new Date().toISOString();
+  const translationsQuery = supabase
     .from('article_translations')
     .select('article_id,title,description,articles!inner(created_at,slug,visibility,publish_at)')
     .eq('locale', locale)
+    .eq('articles.visibility', 'public')
+    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
+      referencedTable: 'articles',
+    })
     .order('created_at', { ascending: false, referencedTable: 'articles' })
     .order('article_id', { ascending: false });
-
-  if (parsedCursor) {
-    translationsQuery = translationsQuery.or(
-      `created_at.lt.${parsedCursor.createdAt},and(created_at.eq.${parsedCursor.createdAt},id.lt.${parsedCursor.id})`,
-      { referencedTable: 'articles' },
-    );
-  }
 
   const { data: translationRows, error: translationError } = await translationsQuery.limit(
     pageSize + 1,
