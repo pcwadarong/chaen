@@ -82,4 +82,26 @@ describe('query-tags', () => {
     });
     expect(tagsQuery.order).toHaveBeenCalledWith('slug', { ascending: true });
   });
+
+  it('getAllTags는 tags schema가 없으면 schemaMissing=true로 복구한다', async () => {
+    const tagsQuery = {
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: {
+          message: 'relation "public.tags" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(tagsQuery),
+    };
+
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getAllTags()).resolves.toEqual({
+      data: [],
+      schemaMissing: true,
+    });
+  });
 });
