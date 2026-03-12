@@ -53,12 +53,16 @@ export const Tooltip = ({ children, className, content }: TooltipProps) => {
       if (!rootRef.current) return;
 
       const triggerRect = rootRef.current.getBoundingClientRect();
+      const availableSpaceAbove = triggerRect.top;
+      const availableSpaceBelow = window.innerHeight - triggerRect.bottom;
+      const shouldPlaceBelow =
+        availableSpaceAbove < 40 && availableSpaceBelow >= availableSpaceAbove;
 
       setTooltipStyle({
         left: triggerRect.left + triggerRect.width / 2,
         position: 'fixed',
-        top: Math.max(triggerRect.top - 8, 0),
-        transform: 'translate(-50%, -100%)',
+        top: shouldPlaceBelow ? triggerRect.bottom + 8 : triggerRect.top - 8,
+        transform: shouldPlaceBelow ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
       });
     };
 

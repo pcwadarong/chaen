@@ -73,4 +73,34 @@ describe('Tooltip', () => {
       expect(screen.queryByRole('tooltip', { name: '정렬' })).toBeNull();
     });
   });
+
+  it('트리거가 viewport 상단에 가까우면 tooltip을 아래에 배치한다', async () => {
+    render(
+      <Tooltip content="유튜브">
+        <button type="button">Y</button>
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Y' });
+    const root = trigger.parentElement as HTMLSpanElement;
+
+    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
+      bottom: 20,
+      height: 16,
+      left: 10,
+      right: 30,
+      toJSON: () => undefined,
+      top: 4,
+      width: 20,
+      x: 10,
+      y: 4,
+    });
+
+    fireEvent.focus(trigger);
+
+    const tooltip = await screen.findByRole('tooltip', { name: '유튜브' });
+
+    expect(tooltip.style.top).toBe('28px');
+    expect(tooltip.style.transform).toBe('translate(-50%, 0)');
+  });
 });
