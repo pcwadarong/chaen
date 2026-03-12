@@ -275,6 +275,7 @@ const createMarkdownComponents = (): Components => ({
   h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
   h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
   h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
+  hr: () => <hr className={markdownHorizontalRuleClass} />,
   img: renderMarkdownImage,
   pre: ({ children, className, ...props }) => (
     <div className={markdownCodeBlockFrameClass}>
@@ -324,14 +325,72 @@ export const markdownBodyClass = css({
   '& > * + *': {
     mt: '5',
   },
+  '& > :is(h1, h2, h3, h4)': {
+    mt: '7',
+    mb: '0',
+  },
+  '& > :is(h1, h2, h3, h4) + *': {
+    mt: '5',
+  },
+  '& > hr': {
+    my: '8',
+  },
   '& p': {
     wordBreak: 'keep-all',
   },
   '& ul, & ol': {
-    paddingLeft: '[1.25rem]',
+    my: '3',
+  },
+  '& ul': {
+    pl: '0',
+    listStyle: 'none',
+  },
+  '& ol': {
+    pl: '[1.75rem]',
+    listStyle: 'decimal',
+  },
+  '& li': {
+    wordBreak: 'keep-all',
+  },
+  '& ul > li': {
+    position: 'relative',
+    pl: '[1.25rem]',
+    listStyle: 'none',
+  },
+  '& ul > li::before': {
+    content: '""',
+    position: 'absolute',
+    left: '[0.35rem]',
+    top: '[0.9em]',
+    width: '[0.33rem]',
+    height: '[0.33rem]',
+    borderRadius: 'full',
+    background: '[currentColor]',
+    opacity: '0.7',
+    transform: 'translateY(-50%)',
+  },
+  '& ol > li::marker': {
+    color: 'muted',
+    fontWeight: 'semibold',
+  },
+  '& li > p': {
+    display: 'inline',
+  },
+  '& li > ul, & li > ol': {
+    mt: '1',
+  },
+  '& ul ul, & ul ol, & ol ul, & ol ol': {
+    mt: '1',
+  },
+  '& ul ul': {
+    pl: '[1.5rem]',
+  },
+  '& ul ul > li::before': {
+    width: '[0.28rem]',
+    height: '[0.28rem]',
   },
   '& li + li': {
-    mt: '2',
+    mt: '1',
   },
 });
 
@@ -369,30 +428,41 @@ export const markdownH1Class = css({
   fontSize: '[clamp(2rem, 4vw, 2.5rem)]',
   lineHeight: 'tight',
   letterSpacing: '[-0.04em]',
+  fontWeight: 'bold',
 });
 
 export const markdownH2Class = css({
   fontSize: '[clamp(1.5rem, 3vw, 2rem)]',
   lineHeight: 'tight',
   letterSpacing: '[-0.035em]',
+  fontWeight: 'bold',
 });
 
 export const markdownH3Class = css({
   fontSize: '[clamp(1.25rem, 2.4vw, 1.5rem)]',
   lineHeight: 'snug',
   letterSpacing: '[-0.03em]',
+  fontWeight: 'bold',
 });
 
 export const markdownH4Class = css({
   fontSize: 'xl',
   lineHeight: 'snug',
   letterSpacing: '[-0.02em]',
+  fontWeight: 'bold',
 });
 
 const markdownUnderlineClass = css({
   textDecoration: 'underline',
   textUnderlineOffset: '[0.18em]',
   textDecorationThickness: '[0.08em]',
+});
+
+const markdownHorizontalRuleClass = css({
+  border: '[0]',
+  height: '[1px]',
+  background: 'border',
+  my: '8',
 });
 
 const markdownColoredTextClass = css({

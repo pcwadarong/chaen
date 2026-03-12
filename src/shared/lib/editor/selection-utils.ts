@@ -32,6 +32,31 @@ const getSelectedLineRange = (textarea: HTMLTextAreaElement) => {
  * 선택된 줄이 모두 같은 heading 레벨인지 판별할 때 사용할 공통 정규식입니다.
  */
 const headingPrefixPattern = /^(#{1,6})\s+/;
+const unorderedListPattern = /^(\s*)([-*])\s+(.*)$/;
+const unorderedListMarkerOnlyPattern = /^(\s*)([-*])\s*$/;
+const orderedListPattern = /^(\s*)(\d+)\.\s+(.*)$/;
+const orderedListMarkerOnlyPattern = /^(\s*)(\d+)\.\s*$/;
+const listItemPattern = /^(\s*)((?:[-*])|(?:\d+\.))\s+/;
+
+/**
+ * 선택된 줄 블록을 치환하고 새 블록 범위를 선택 상태로 기록합니다.
+ */
+const replaceSelectedLineRange = (
+  textarea: HTMLTextAreaElement,
+  nextBlock: string,
+  lineStart: number,
+  lineEnd: number,
+) => {
+  const nextValue = [
+    textarea.value.slice(0, lineStart),
+    nextBlock,
+    textarea.value.slice(lineEnd),
+  ].join('');
+
+  setPendingSelection(textarea, lineStart, lineStart + nextBlock.length);
+
+  return nextValue;
+};
 
 /**
  * 선택 텍스트를 before/after 문자열로 감싸고, 다음 선택 범위를 기억합니다.
@@ -215,4 +240,88 @@ export const toggleHeadingLine = (textarea: HTMLTextAreaElement, level: 1 | 2 | 
   setPendingSelection(textarea, lineStart, lineStart + nextBlock.length);
 
   return nextValue;
+};
+
+/**
+ * 현재 줄이 markdown 목록 항목이면 Enter 입력 시 다음 줄 목록 marker를 이어서 삽입합니다.
+ * marker만 남은 빈 항목이면 목록을 종료합니다.
+ */
+export const continueMarkdownList = (textarea: HTMLTextAreaElement) => {
+  const { selectionEnd, selectionStart, value } = textarea;
+  if (selectionStart !== selectionEnd) return null;
+
+  const { lineEnd, lineStart, text } = getSelectedLineRange(textarea);
+  const beforeCursor = value.slice(lineStart, selectionStart);
+  const unorderedMatch = beforeCursor.match(unorderedListPattern);
+  const orderedMatch = beforeCursor.match(orderedListPattern);
+  const unorderedMarkerOnlyMatch = text.match(unorderedListMarkerOnlyPattern);
+  const orderedMarkerOnlyMatch = text.match(orderedListMarkerOnlyPattern);
+
+  if (unorderedMarkerOnlyMatch || orderedMarkerOnlyMatch) {
+    const nextValue = [value.slice(0, lineStart), value.slice(lineEnd)].join('');
+
+    setPendingSelection(textarea, lineStart, lineStart);
+
+    return nextValue;
+  }
+
+  if (unorderedMatch) {
+    const [, indent, marker] = unorderedMatch;
+    const insertion = `\n${indent}${marker} `;
+    const nextValue = [value.slice(0, selectionStart), insertion, value.slice(selectionEnd)].join(
+      '',
+    );
+    const nextCursor = selectionStart + insertion.length;
+
+    setPendingSelection(textarea, nextCursor, nextCursor);
+
+    return nextValue;
+  }
+
+  if (orderedMatch) {
+    const [, indent, rawNumber] = orderedMatch;
+    const insertion = `\n${indent}${Number(rawNumber) + 1}. `;
+    const nextValue = [value.slice(0, selectionStart), insertion, value.slice(selectionEnd)].join(
+      '',
+    );
+    const nextCursor = selectionStart + insertion.length;
+
+    setPendingSelection(textarea, nextCursor, nextCursor);
+
+    return nextValue;
+  }
+
+  return null;
+};
+
+/**
+ * 선택된 목록 줄을 한 단계 들여써 nested list depth를 늘립니다.
+ */
+export const indentMarkdownList = (textarea: HTMLTextAreaElement) => {
+  const { lineEnd, lineStart, text } = getSelectedLineRange(textarea);
+  const lines = text.split('\n');
+  if (!lines.some(line => listItemPattern.test(line))) return null;
+
+  const nextBlock = lines.map(line => (listItemPattern.test(line) ? `  ${line}` : line)).join('\n');
+
+  return replaceSelectedLineRange(textarea, nextBlock, lineStart, lineEnd);
+};
+
+/**
+ * 선택된 목록 줄의 들여쓰기를 한 단계 줄여 nested list depth를 낮춥니다.
+ */
+export const outdentMarkdownList = (textarea: HTMLTextAreaElement) => {
+  const { lineEnd, lineStart, text } = getSelectedLineRange(textarea);
+  const lines = text.split('\n');
+  if (!lines.some(line => /^\s+/.test(line) && listItemPattern.test(line.trimStart()))) return null;
+
+  const nextBlock = lines
+    .map(line => {
+      if (!listItemPattern.test(line.trimStart())) return line;
+
+      return line.startsWith('  ') ? line.slice(2) : line.startsWith(' ') ? line.slice(1) : line;
+    })
+    .join('\n');
+
+  return replaceSelectedLineRange(textarea, nextBlock, lineStart, lineEnd);
 };

@@ -31,6 +31,12 @@ describe('MarkdownRenderer', () => {
       '',
       '> 인용문',
       '',
+      '- bullet',
+      '  - nested bullet',
+      '',
+      '1. number',
+      '   1. nested number',
+      '',
       '[외부 링크](https://example.com)',
       '',
       '| 이름 | 설명 |',
@@ -45,6 +51,8 @@ describe('MarkdownRenderer', () => {
     const document = await renderServerDocument(markdown);
     const highlightedPre = document.querySelector('pre[data-language="ts"]');
     const markdownTable = document.querySelector('div[aria-label="Markdown table"]');
+    const unorderedList = document.querySelector('ul');
+    const orderedList = document.querySelector('ol');
 
     expect(highlightedPre).toBeTruthy();
     expect(highlightedPre?.className).toBeTruthy();
@@ -53,12 +61,16 @@ describe('MarkdownRenderer', () => {
     expect(highlightedPre?.textContent).toContain("const answer = '42';");
     expect(markdownTable).toBeTruthy();
     expect(markdownTable?.getAttribute('tabindex')).toBe('0');
+    expect(unorderedList).toBeTruthy();
+    expect(orderedList).toBeTruthy();
 
     expect(html).toContain('<h1');
     expect(html).toContain('제목</h1>');
     expect(html).toContain('<h4');
     expect(html).toContain('작은 제목</h4>');
     expect(html).toContain('<blockquote');
+    expect(html).toContain('nested bullet');
+    expect(html).toContain('nested number');
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('<table');
@@ -83,6 +95,20 @@ describe('MarkdownRenderer', () => {
     expect(paragraph).toBeTruthy();
     expect(lineBreak).toBeTruthy();
     expect(paragraph?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+  });
+
+  it('literal br 태그는 markdown 줄바꿈으로 정규화해 렌더링한다', async () => {
+    const document = await renderServerDocument('첫 번째 줄<br />두 번째 줄');
+    const lineBreak = document.querySelector('p br');
+
+    expect(lineBreak).toBeTruthy();
+    expect(document.querySelector('p')?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+  });
+
+  it('literal hr 태그는 구분선으로 정규화해 렌더링한다', async () => {
+    const document = await renderServerDocument('위 문단\n\n<hr />\n\n아래 문단');
+
+    expect(document.querySelector('hr')).toBeTruthy();
   });
 
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {

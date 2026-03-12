@@ -5,7 +5,13 @@ import { css } from 'styled-system/css';
 
 import { MarkdownToolbar } from '@/features/markdown-toolbar/ui/markdown-toolbar';
 import { buildEditorLinkInsertion } from '@/shared/lib/editor/markdown-link';
-import { applyTextareaTransform, insertTemplate } from '@/shared/lib/editor/selection-utils';
+import {
+  applyTextareaTransform,
+  continueMarkdownList,
+  indentMarkdownList,
+  insertTemplate,
+  outdentMarkdownList,
+} from '@/shared/lib/editor/selection-utils';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
 type AdminMarkdownEditorProps = {
@@ -41,6 +47,32 @@ export const AdminMarkdownEditor = ({ onChange, value }: AdminMarkdownEditorProp
     );
   };
 
+  /**
+   * markdown 목록 입력 시 Enter로 같은 depth를 이어가고, Tab/Shift+Tab으로 nested depth를 조절합니다.
+   */
+  const handleTextareaKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = event => {
+    if (event.key === 'Enter') {
+      const nextValue = continueMarkdownList(event.currentTarget);
+
+      if (!nextValue) return;
+
+      event.preventDefault();
+      applyTextareaTransform(event.currentTarget, onChange, () => nextValue);
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const nextValue = event.shiftKey
+      ? outdentMarkdownList(event.currentTarget)
+      : indentMarkdownList(event.currentTarget);
+
+    if (!nextValue) return;
+
+    event.preventDefault();
+    applyTextareaTransform(event.currentTarget, onChange, () => nextValue);
+  };
+
   return (
     <>
       <MarkdownToolbar onChange={onChange} textareaRef={textareaRef} value={value} />
@@ -49,6 +81,7 @@ export const AdminMarkdownEditor = ({ onChange, value }: AdminMarkdownEditorProp
         autoResize={false}
         className={editorTextareaClass}
         onChange={event => onChange(event.target.value)}
+        onKeyDown={handleTextareaKeyDown}
         onPaste={handleTextareaPaste}
         placeholder="마크다운 본문을 입력하세요"
         ref={textareaRef}

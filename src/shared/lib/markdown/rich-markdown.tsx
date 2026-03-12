@@ -42,6 +42,8 @@ const toggleStartPrefix = ':::toggle ';
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
 const subtextPrefix = '-# ';
+const htmlLineBreakPattern = /<br\s*\/?>/gi;
+const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
 const inlineStyledSpanPattern = /<span style="([^"]+)">([\s\S]*?)<\/span>/g;
 const inlineUnderlinePattern = /<u>([\s\S]*?)<\/u>/g;
 const inlineSpoilerPattern = /\|\|([^|]+?)\|\|/g;
@@ -113,6 +115,13 @@ export const preprocessMarkdownInlineSyntax = (markdown: string) =>
 
       return `[${escapedText}](#md-spoiler:)`;
     });
+
+/**
+ * raw HTML로 적힌 기본 line-break/hr 문법을 markdown equivalent로 정규화합니다.
+ * 현재 renderer는 rehype-raw를 쓰지 않으므로 이 단계에서 먼저 치환합니다.
+ */
+const normalizeMarkdownHtmlAliases = (markdown: string) =>
+  markdown.replace(htmlHorizontalRulePattern, '\n---\n').replace(htmlLineBreakPattern, '\n');
 
 /**
  * toggle summary 문자열 앞의 heading prefix를 읽어 summary 스타일 레벨과 본문 제목을 분리합니다.
@@ -251,7 +260,7 @@ export const renderRichMarkdown = ({
   markdown: string;
   renderMarkdownFragment: MarkdownFragmentRenderer;
 }) =>
-  parseRichMarkdownSegments(markdown).map((segment, index) => {
+  parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
     const key = `rich-markdown-${index}`;
 
     if (segment.type === 'markdown') {

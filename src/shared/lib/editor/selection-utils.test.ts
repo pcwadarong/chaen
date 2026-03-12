@@ -1,7 +1,10 @@
 import {
+  continueMarkdownList,
   focusTextarea,
   getPendingSelection,
+  indentMarkdownList,
   insertTemplate,
+  outdentMarkdownList,
   prefixLine,
   restoreCursor,
   toggleHeadingLine,
@@ -109,5 +112,57 @@ describe('selection utils', () => {
 
     expect(document.activeElement).toBe(textarea);
     textarea.remove();
+  });
+
+  it('unordered list에서 Enter를 누르면 같은 marker를 다음 줄에 이어쓴다', () => {
+    const textarea = createTextarea('- 항목', 4);
+
+    const nextValue = continueMarkdownList(textarea);
+
+    expect(nextValue).toBe('- 항목\n- ');
+    expect(getPendingSelection(textarea)).toEqual({
+      end: 7,
+      start: 7,
+    });
+  });
+
+  it('ordered list에서 Enter를 누르면 숫자를 증가시켜 다음 줄에 이어쓴다', () => {
+    const textarea = createTextarea('2. 항목', 5);
+
+    const nextValue = continueMarkdownList(textarea);
+
+    expect(nextValue).toBe('2. 항목\n3. ');
+    expect(getPendingSelection(textarea)).toEqual({
+      end: 9,
+      start: 9,
+    });
+  });
+
+  it('marker만 남은 목록 줄에서 Enter를 누르면 목록을 종료한다', () => {
+    const textarea = createTextarea('- ', 2);
+
+    const nextValue = continueMarkdownList(textarea);
+
+    expect(nextValue).toBe('');
+    expect(getPendingSelection(textarea)).toEqual({
+      end: 0,
+      start: 0,
+    });
+  });
+
+  it('선택된 목록 줄에 Tab을 누르면 들여쓰기로 nested depth를 늘린다', () => {
+    const textarea = createTextarea('- 첫 줄\n1. 둘째 줄', 0, 14);
+
+    const nextValue = indentMarkdownList(textarea);
+
+    expect(nextValue).toBe('  - 첫 줄\n  1. 둘째 줄');
+  });
+
+  it('Shift+Tab을 누르면 목록 들여쓰기를 한 단계 줄인다', () => {
+    const textarea = createTextarea('  - 첫 줄\n  1. 둘째 줄', 0, 18);
+
+    const nextValue = outdentMarkdownList(textarea);
+
+    expect(nextValue).toBe('- 첫 줄\n1. 둘째 줄');
   });
 });
