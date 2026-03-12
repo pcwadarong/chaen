@@ -1,25 +1,44 @@
 import type { ComponentType, ReactElement, SVGProps } from 'react';
 import React from 'react';
 
+import AlignCenter from '@/shared/assets/icons/align-center.svg';
+import AlignLeft from '@/shared/assets/icons/align-left.svg';
+import AlignRight from '@/shared/assets/icons/align-right.svg';
 import ArrowCurveLeftRightSvg from '@/shared/assets/icons/arrow-curve-left-right.svg';
 import ArrowUpSvg from '@/shared/assets/icons/arrow-up.svg';
 import CalendarSvg from '@/shared/assets/icons/calendar.svg';
+import ChevronRight from '@/shared/assets/icons/chevron-right.svg';
+import CodeBlockSvg from '@/shared/assets/icons/code.svg';
+import ColorSvg from '@/shared/assets/icons/color.svg';
+import DashSvg from '@/shared/assets/icons/dash.svg';
 import EditSvg from '@/shared/assets/icons/edit.svg';
 import EyeSvg from '@/shared/assets/icons/eye.svg';
+import FileSvg from '@/shared/assets/icons/file.svg';
 import HamburgerSvg from '@/shared/assets/icons/hamburger.svg';
+import ImageSvg from '@/shared/assets/icons/image.svg';
 import KebabSvg from '@/shared/assets/icons/kebab.svg';
 import LinkSvg from '@/shared/assets/icons/link.svg';
 import LinkExternalSvg from '@/shared/assets/icons/link-external.svg';
 import LockSvg from '@/shared/assets/icons/lock.svg';
 import LockOpenSvg from '@/shared/assets/icons/lock_open.svg';
+import MarkDownBoldSvg from '@/shared/assets/icons/markdown-bold.svg';
+import MarkDownItalicSvg from '@/shared/assets/icons/markdown-italic.svg';
+import MarkDownStrikeSvg from '@/shared/assets/icons/markdown-strike.svg';
+import MarkDownUnderLineSvg from '@/shared/assets/icons/markdown-underline.svg';
 import MoonSvg from '@/shared/assets/icons/moon.svg';
+import QuoteSvg from '@/shared/assets/icons/quote.svg';
 import ReportSvg from '@/shared/assets/icons/report.svg';
 import SearchSvg from '@/shared/assets/icons/search.svg';
 import SendSvg from '@/shared/assets/icons/send.svg';
 import ShareSvg from '@/shared/assets/icons/share.svg';
+import SpoilerSvg from '@/shared/assets/icons/spoiler.svg';
+import SubtextSvg from '@/shared/assets/icons/subtext.svg';
 import SunSvg from '@/shared/assets/icons/sun.svg';
 import SystemSvg from '@/shared/assets/icons/system.svg';
+import TableSvg from '@/shared/assets/icons/table.svg';
+import TextBgColorSvg from '@/shared/assets/icons/text-bg-color.svg';
 import TrashSvg from '@/shared/assets/icons/trash.svg';
+import YoutubeSvg from '@/shared/assets/icons/youtube.svg';
 
 type AppIconColor =
   | 'black'
@@ -143,9 +162,13 @@ const createAppIcon = (
   return AppIcon;
 };
 
+export const AlignCenterIcon = createAppIcon(AlignCenter);
+export const AlignLeftIcon = createAppIcon(AlignLeft);
+export const AlignRightIcon = createAppIcon(AlignRight);
 export const ArrowCurveLeftRightIcon = createAppIcon(ArrowCurveLeftRightSvg);
 export const ArrowUpIcon = createAppIcon(ArrowUpSvg);
 export const CalendarIcon = createAppIcon(CalendarSvg);
+export const ChevronRightIcon = createAppIcon(ChevronRight);
 export const EditIcon = createAppIcon(EditSvg);
 export const EyeIcon = createAppIcon(EyeSvg);
 export const HamburgerIcon = createAppIcon(HamburgerSvg);
@@ -162,3 +185,18 @@ export const ShareIcon = createAppIcon(ShareSvg);
 export const SunIcon = createAppIcon(SunSvg);
 export const SystemIcon = createAppIcon(SystemSvg);
 export const TrashIcon = createAppIcon(TrashSvg);
+export const FileIcon = createAppIcon(FileSvg);
+export const MarkDownBoldIcon = createAppIcon(MarkDownBoldSvg);
+export const MarkDownItalicIcon = createAppIcon(MarkDownItalicSvg);
+export const MarkDownStrikeIcon = createAppIcon(MarkDownStrikeSvg);
+export const MarkDownUnderlineIcon = createAppIcon(MarkDownUnderLineSvg);
+export const QuoteIcon = createAppIcon(QuoteSvg);
+export const CodeBlockIcon = createAppIcon(CodeBlockSvg);
+export const ImageIcon = createAppIcon(ImageSvg);
+export const TableIcon = createAppIcon(TableSvg);
+export const DashIcon = createAppIcon(DashSvg);
+export const SpoilerIcon = createAppIcon(SpoilerSvg);
+export const ColorIcon = createAppIcon(ColorSvg);
+export const TextBgColorIcon = createAppIcon(TextBgColorSvg);
+export const YoutubeIcon = createAppIcon(YoutubeSvg);
+export const SubtextIcon = createAppIcon(SubtextSvg);

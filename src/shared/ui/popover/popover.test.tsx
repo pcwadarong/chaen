@@ -104,6 +104,20 @@ describe('Popover', () => {
     expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy();
   });
 
+  it('portal 모드에서는 패널을 document.body에 렌더링한다', async () => {
+    render(
+      <Popover panelLabel="링크 삽입" portalPlacement="start" renderInPortal>
+        {() => <button type="button">삽입</button>}
+      </Popover>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '링크 삽입' }));
+
+    const dialog = await screen.findByRole('dialog', { name: '링크 삽입' });
+
+    expect(dialog.parentElement).toBe(document.body);
+  });
+
   it('controlled 모드에서는 onOpenChange만 호출하고 DOM 열림 상태는 prop 변경 전까지 유지한다', async () => {
     const onOpenChange = vi.fn();
     const { rerender } = render(
