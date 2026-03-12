@@ -93,6 +93,22 @@ describe('MarkdownToolbar', () => {
     });
   });
 
+  it('이미지 팝오버에서 URL을 입력해 markdown 이미지 문법을 삽입한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '이미지' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '이미지 URL' }), {
+      target: { value: 'https://example.com/image.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
+    });
+  });
+
   it('코드 블록 버튼은 placeholder를 삽입하고 코드 영역을 선택한다', async () => {
     render(<ToolbarHarness />);
 

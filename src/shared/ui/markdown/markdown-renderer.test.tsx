@@ -256,7 +256,7 @@ describe('MarkdownRenderer', () => {
     );
     const backgroundOnlyColor = Array.from(document.querySelectorAll('span[style]')).find(node =>
       node.textContent?.includes('배경 강조'),
-    );
+    ) as HTMLSpanElement | undefined;
     const mixedColor = Array.from(document.querySelectorAll('span[style]')).find(node =>
       node.textContent?.includes('복합 강조'),
     );
@@ -268,7 +268,7 @@ describe('MarkdownRenderer', () => {
     expect(textOnlyColor?.getAttribute('style')).toContain('color');
     expect(textOnlyColor?.getAttribute('style')).not.toContain('background-color');
     expect(backgroundOnlyColor?.getAttribute('style')).toContain('background-color');
-    expect(backgroundOnlyColor?.getAttribute('style')?.includes(';color:')).toBe(false);
+    expect(backgroundOnlyColor?.style.color).toBe('');
     expect(mixedColor?.getAttribute('style')).toContain('background-color');
     expect(mixedColor?.getAttribute('style')).toContain('color');
     expect(spoiler).toBeTruthy();
