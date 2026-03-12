@@ -316,7 +316,8 @@ export const getMarkdownOptions = (): MarkdownOptions => ({
 });
 
 /**
- * 아티클 본문과 preview에서 공통으로 사용할 markdown 래퍼 스타일입니다.
+ * 주변 요소와의 관계 스타일
+ * 블록 간 거리, 형제/부모-자식 관계, 다음 요소와의 관계
  */
 export const markdownBodyClass = css({
   color: 'text',
@@ -331,9 +332,6 @@ export const markdownBodyClass = css({
   },
   '& > :is(h1, h2, h3, h4) + *': {
     mt: '5',
-  },
-  '& > hr': {
-    my: '8',
   },
   '& p': {
     wordBreak: 'keep-all',
@@ -393,6 +391,9 @@ export const markdownBodyClass = css({
     mt: '1',
   },
 });
+
+// ----------------
+// 개별 요소 스타일
 
 const markdownLinkClass = css({
   color: 'primary',
