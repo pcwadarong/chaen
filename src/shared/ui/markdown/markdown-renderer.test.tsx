@@ -111,6 +111,57 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('hr')).toBeTruthy();
   });
 
+  it('fenced code block 안의 custom syntax와 html alias는 일반 코드 텍스트로 유지한다', async () => {
+    const markdown = [
+      '```md',
+      ':::toggle ## 예시 제목',
+      '토글 본문',
+      ':::',
+      '',
+      ':::align center',
+      '정렬 본문',
+      ':::',
+      '',
+      '-# 보조 문구',
+      '<br />',
+      '<hr />',
+      '```',
+    ].join('\n');
+    const document = await renderServerDocument(markdown);
+    const codeBlock = document.querySelector('pre code');
+
+    expect(codeBlock?.textContent).toContain(':::toggle ## 예시 제목');
+    expect(codeBlock?.textContent).toContain(':::align center');
+    expect(codeBlock?.textContent).toContain('-# 보조 문구');
+    expect(codeBlock?.textContent).toContain('<br />');
+    expect(codeBlock?.textContent).toContain('<hr />');
+    expect(document.querySelector('details')).toBeNull();
+    expect(document.querySelector('iframe')).toBeNull();
+  });
+
+  it('inline code 안의 custom syntax와 html alias는 변환하지 않는다', async () => {
+    const markdown = [
+      '`||스포일러||`',
+      '',
+      '`<span style="color:#3B82F6">파란 글자</span>`',
+      '',
+      '`<br />`',
+      '',
+      '`<hr />`',
+    ].join('\n');
+    const document = await renderServerDocument(markdown);
+    const inlineCodes = Array.from(document.querySelectorAll('code'));
+
+    expect(inlineCodes.map(node => node.textContent)).toEqual([
+      '||스포일러||',
+      '<span style="color:#3B82F6">파란 글자</span>',
+      '<br />',
+      '<hr />',
+    ]);
+    expect(document.querySelector('button[aria-expanded]')).toBeNull();
+    expect(document.querySelector('hr')).toBeNull();
+  });
+
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {
     const element = await MarkdownRenderer({
       emptyText: '본문이 없습니다.',
