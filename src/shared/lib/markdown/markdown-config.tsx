@@ -17,10 +17,31 @@ import {
   getMarkdownLinkRenderMode,
   isEmbedKeyword,
 } from '@/shared/lib/markdown/link-embed';
+import { getMarkdownColorPreset } from '@/shared/lib/markdown/markdown-color-presets';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
+type MarkdownInlineDirective =
+  | {
+      type: 'background';
+      value: string;
+    }
+  | {
+      type: 'color';
+      value: string;
+    }
+  | {
+      background?: string;
+      color?: string;
+      type: 'style';
+    }
+  | {
+      type: 'spoiler';
+    }
+  | {
+      type: 'underline';
+    };
 
 /**
  * rehype-pretty-code에 전달할 코드 하이라이트 옵션입니다.
@@ -35,6 +56,50 @@ const prettyCodeOptions: RehypePrettyCodeOptions = {
  * 외부 링크 여부를 판별합니다.
  */
 const isExternalHref = (href?: string) => Boolean(href && /^https?:\/\//.test(href));
+
+/**
+ * inline custom syntax를 위해 markdown link href로 encode한 directive를 해석합니다.
+ */
+const parseMarkdownInlineDirective = (href?: string): MarkdownInlineDirective | null => {
+  if (!href) return null;
+
+  if (href.startsWith('#md-color:')) {
+    return {
+      type: 'color',
+      value: href.slice('#md-color:'.length),
+    };
+  }
+
+  if (href.startsWith('#md-bg:')) {
+    return {
+      type: 'background',
+      value: href.slice('#md-bg:'.length),
+    };
+  }
+
+  if (href.startsWith('#md-style:')) {
+    const payload = href.slice('#md-style:'.length);
+    const searchParams = new URLSearchParams(payload.replace(/;/g, '&'));
+    const color = searchParams.get('color') ?? undefined;
+    const background = searchParams.get('background') ?? undefined;
+
+    return {
+      background,
+      color,
+      type: 'style',
+    };
+  }
+
+  if (href === '#md-spoiler:') {
+    return { type: 'spoiler' };
+  }
+
+  if (href === '#md-underline:') {
+    return { type: 'underline' };
+  }
+
+  return null;
+};
 
 /**
  * 코드 블럭 자식에서 표시용 언어명을 추출합니다.
@@ -85,6 +150,72 @@ const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImage
  */
 const createMarkdownComponents = (): Components => ({
   a: ({ href, children, title, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    const inlineDirective = parseMarkdownInlineDirective(href);
+
+    if (inlineDirective?.type === 'color') {
+      const preset = getMarkdownColorPreset(inlineDirective.value);
+
+      return (
+        <span
+          className={markdownColoredTextClass}
+          style={{ color: preset?.textColor ?? inlineDirective.value }}
+        >
+          {children}
+        </span>
+      );
+    }
+
+    if (inlineDirective?.type === 'background') {
+      const preset = getMarkdownColorPreset(inlineDirective.value);
+
+      return (
+        <span
+          className={markdownHighlightedTextClass}
+          style={{
+            backgroundColor: preset?.softBackgroundColor ?? `${inlineDirective.value}29`,
+          }}
+        >
+          {children}
+        </span>
+      );
+    }
+
+    if (inlineDirective?.type === 'style') {
+      const textPreset = inlineDirective.color
+        ? getMarkdownColorPreset(inlineDirective.color)
+        : null;
+      const backgroundPreset = inlineDirective.background
+        ? getMarkdownColorPreset(inlineDirective.background)
+        : null;
+
+      return (
+        <span
+          className={cx(
+            inlineDirective.background ? markdownHighlightedTextClass : undefined,
+            inlineDirective.color ? markdownColoredTextClass : undefined,
+          )}
+          style={{
+            backgroundColor: inlineDirective.background
+              ? (backgroundPreset?.softBackgroundColor ?? `${inlineDirective.background}29`)
+              : undefined,
+            color: inlineDirective.color
+              ? (textPreset?.textColor ?? inlineDirective.color)
+              : undefined,
+          }}
+        >
+          {children}
+        </span>
+      );
+    }
+
+    if (inlineDirective?.type === 'spoiler') {
+      return <span className={markdownSpoilerClass}>{children}</span>;
+    }
+
+    if (inlineDirective?.type === 'underline') {
+      return <u className={markdownUnderlineClass}>{children}</u>;
+    }
+
     const normalizedHref = normalizeHttpUrl(href);
     const linkText = getLinkText(children);
     const renderMode = isEmbedKeyword(children) ? 'embed' : getMarkdownLinkRenderMode(title);
@@ -143,6 +274,7 @@ const createMarkdownComponents = (): Components => ({
   h1: ({ children }) => <h1 className={markdownH1Class}>{children}</h1>,
   h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
   h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
+  h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
   img: renderMarkdownImage,
   pre: ({ children, className, ...props }) => (
     <div className={markdownCodeBlockFrameClass}>
@@ -233,22 +365,62 @@ const markdownInlineCodeClass = css({
   fontSize: '[0.95em]',
 });
 
-const markdownH1Class = css({
+export const markdownH1Class = css({
   fontSize: '[clamp(2rem, 4vw, 2.5rem)]',
   lineHeight: 'tight',
   letterSpacing: '[-0.04em]',
 });
 
-const markdownH2Class = css({
+export const markdownH2Class = css({
   fontSize: '[clamp(1.5rem, 3vw, 2rem)]',
   lineHeight: 'tight',
   letterSpacing: '[-0.035em]',
 });
 
-const markdownH3Class = css({
+export const markdownH3Class = css({
   fontSize: '[clamp(1.25rem, 2.4vw, 1.5rem)]',
   lineHeight: 'snug',
   letterSpacing: '[-0.03em]',
+});
+
+export const markdownH4Class = css({
+  fontSize: 'xl',
+  lineHeight: 'snug',
+  letterSpacing: '[-0.02em]',
+});
+
+const markdownUnderlineClass = css({
+  textDecoration: 'underline',
+  textUnderlineOffset: '[0.18em]',
+  textDecorationThickness: '[0.08em]',
+});
+
+const markdownColoredTextClass = css({
+  fontWeight: 'medium',
+});
+
+const markdownHighlightedTextClass = css({
+  display: 'inline',
+  px: '[0.25rem]',
+  py: '[0.08rem]',
+  borderRadius: '[0.35rem]',
+  fontWeight: 'medium',
+});
+
+const markdownSpoilerClass = css({
+  px: '[0.25rem]',
+  py: '[0.08rem]',
+  borderRadius: '[0.35rem]',
+  background: '[rgba(100, 116, 139, 0.2)]',
+  color: 'transparent',
+  textShadow: '[0 0 0 transparent]',
+  transition: '[color 160ms ease]',
+  _hover: {
+    color: 'text',
+  },
+  _focusVisible: {
+    color: 'text',
+  },
 });
 
 const markdownCodeBlockFrameClass = css({
