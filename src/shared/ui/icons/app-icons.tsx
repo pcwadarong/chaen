@@ -1,9 +1,13 @@
 import type { ComponentType, ReactElement, SVGProps } from 'react';
 import React from 'react';
 
+import AlignCenter from '@/shared/assets/icons/align-center.svg';
+import AlignLeft from '@/shared/assets/icons/align-left.svg';
+import AlignRight from '@/shared/assets/icons/align-right.svg';
 import ArrowCurveLeftRightSvg from '@/shared/assets/icons/arrow-curve-left-right.svg';
 import ArrowUpSvg from '@/shared/assets/icons/arrow-up.svg';
 import CalendarSvg from '@/shared/assets/icons/calendar.svg';
+import ChevronRight from '@/shared/assets/icons/chevron-right.svg';
 import CodeBlockSvg from '@/shared/assets/icons/code.svg';
 import ColorSvg from '@/shared/assets/icons/color.svg';
 import DashSvg from '@/shared/assets/icons/dash.svg';
@@ -158,9 +162,13 @@ const createAppIcon = (
   return AppIcon;
 };
 
+export const AlignCenterIcon = createAppIcon(AlignCenter);
+export const AlignLeftIcon = createAppIcon(AlignLeft);
+export const AlignRightIcon = createAppIcon(AlignRight);
 export const ArrowCurveLeftRightIcon = createAppIcon(ArrowCurveLeftRightSvg);
 export const ArrowUpIcon = createAppIcon(ArrowUpSvg);
 export const CalendarIcon = createAppIcon(CalendarSvg);
+export const ChevronRightIcon = createAppIcon(ChevronRight);
 export const EditIcon = createAppIcon(EditSvg);
 export const EyeIcon = createAppIcon(EyeSvg);
 export const HamburgerIcon = createAppIcon(HamburgerSvg);
