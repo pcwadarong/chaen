@@ -173,6 +173,14 @@ describe('MarkdownRenderer', () => {
     expect(screen.getByText('본문이 없습니다.')).toBeTruthy();
   });
 
+  it('spoiler는 preview에서도 button으로 렌더링된다', async () => {
+    const document = await renderServerDocument('||스포일러||');
+    const spoilerButton = document.querySelector('button[aria-expanded]');
+
+    expect(spoilerButton?.getAttribute('aria-label')).toBe('스포일러 보기');
+    expect(spoilerButton?.textContent).toBe('스포일러');
+  });
+
   it('preview title이 있는 링크는 제목 링크 카드로 렌더링한다', async () => {
     const document = await renderServerDocument(
       '[OpenAI](https://github.com/openai/openai "preview")',
@@ -230,7 +238,7 @@ describe('MarkdownRenderer', () => {
     ].join('\n');
     const html = await renderServerHtml(markdown);
     const document = await renderServerDocument(markdown);
-    const spoiler = Array.from(document.querySelectorAll('span')).find(node =>
+    const spoiler = Array.from(document.querySelectorAll('button[aria-expanded]')).find(node =>
       node.textContent?.includes('스포일러'),
     );
     const subtext = Array.from(document.querySelectorAll('p')).find(node =>
@@ -272,5 +280,16 @@ describe('MarkdownRenderer', () => {
     expect(toggleListDetails?.textContent).toContain('일반 토글');
     expect(toggleListDetails?.textContent).toContain('목록 본문');
     expect(toggleChevron).toBeTruthy();
+  });
+
+  it('task list는 checkbox와 task-list-item class를 유지한다', async () => {
+    const document = await renderServerDocument(
+      ['- [ ] 첫 번째 할 일', '- [x] 두 번째 할 일'].join('\n'),
+    );
+    const taskItems = Array.from(document.querySelectorAll('li.task-list-item'));
+    const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+
+    expect(taskItems).toHaveLength(2);
+    expect(checkboxes).toHaveLength(2);
   });
 });

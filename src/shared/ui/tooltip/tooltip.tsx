@@ -26,10 +26,12 @@ type TooltipProps = {
  * 트리거 요소에 aria-describedby를 연결해 접근성 이름을 보완합니다.
  */
 export const Tooltip = ({ children, className, content }: TooltipProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>();
   const rootRef = useRef<HTMLSpanElement | null>(null);
   const tooltipId = useId();
+  const isOpen = isFocused || isHovering;
 
   if (!isValidElement(children)) {
     throw new Error('Tooltip requires a single React element child.');
@@ -75,10 +77,10 @@ export const Tooltip = ({ children, className, content }: TooltipProps) => {
     <span
       className={cx(rootClass, className)}
       ref={rootRef}
-      onBlurCapture={() => setIsOpen(false)}
-      onFocusCapture={() => setIsOpen(true)}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onBlurCapture={() => setIsFocused(false)}
+      onFocusCapture={() => setIsFocused(true)}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       {cloneElement<TooltipTriggerProps>(triggerElement, {
         'aria-describedby': describedBy || undefined,

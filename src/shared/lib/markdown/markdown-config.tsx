@@ -20,6 +20,7 @@ import {
 import { getMarkdownColorPreset } from '@/shared/lib/markdown/markdown-color-presets';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
+import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
 type MarkdownInlineDirective =
@@ -209,7 +210,7 @@ const createMarkdownComponents = (): Components => ({
     }
 
     if (inlineDirective?.type === 'spoiler') {
-      return <span className={markdownSpoilerClass}>{children}</span>;
+      return <MarkdownSpoilerButton>{children}</MarkdownSpoilerButton>;
     }
 
     if (inlineDirective?.type === 'underline') {
@@ -277,9 +278,21 @@ const createMarkdownComponents = (): Components => ({
   h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
   hr: () => <hr className={markdownHorizontalRuleClass} />,
   img: renderMarkdownImage,
-  li: ({ children }) => <li className={markdownListItemClass}>{children}</li>,
-  ol: ({ children }) => <ol className={markdownOrderedListClass}>{children}</ol>,
-  p: ({ children }) => <p className={markdownParagraphClass}>{children}</p>,
+  li: ({ children, className, ...props }) => (
+    <li className={cx(markdownListItemClass, className)} {...props}>
+      {children}
+    </li>
+  ),
+  ol: ({ children, className, ...props }) => (
+    <ol className={cx(markdownOrderedListClass, className)} {...props}>
+      {children}
+    </ol>
+  ),
+  p: ({ children, className, ...props }) => (
+    <p className={cx(markdownParagraphClass, className)} {...props}>
+      {children}
+    </p>
+  ),
   pre: ({ children, className, ...props }) => (
     <div className={markdownCodeBlockFrameClass}>
       <div className={markdownCodeBlockHeaderClass}>
@@ -307,7 +320,11 @@ const createMarkdownComponents = (): Components => ({
       <table className={markdownTableClass}>{children}</table>
     </div>
   ),
-  ul: ({ children }) => <ul className={markdownUnorderedListClass}>{children}</ul>,
+  ul: ({ children, className, ...props }) => (
+    <ul className={cx(markdownUnorderedListClass, className)} {...props}>
+      {children}
+    </ul>
+  ),
 });
 
 /**
@@ -385,12 +402,12 @@ const markdownParagraphClass = css({
 const markdownUnorderedListClass = css({
   pl: '0',
   listStyle: 'none',
-  '& > li': {
+  '& > li:not(.task-list-item)': {
     position: 'relative',
     pl: '[1.25rem]',
     listStyle: 'none',
   },
-  '& > li::before': {
+  '& > li:not(.task-list-item)::before': {
     content: '""',
     position: 'absolute',
     left: '[0.35rem]',
@@ -405,7 +422,7 @@ const markdownUnorderedListClass = css({
   '& ul': {
     pl: '[1.5rem]',
   },
-  '& ul > li::before': {
+  '& ul > li:not(.task-list-item)::before': {
     width: '[0.28rem]',
     height: '[0.28rem]',
   },
@@ -422,7 +439,7 @@ const markdownOrderedListClass = css({
 
 const markdownListItemClass = css({
   wordBreak: 'keep-all',
-  '& > p': {
+  '& > p:only-child': {
     display: 'inline',
   },
 });
@@ -487,22 +504,6 @@ const markdownHighlightedTextClass = css({
   py: '[0.08rem]',
   borderRadius: '[0.35rem]',
   fontWeight: 'medium',
-});
-
-const markdownSpoilerClass = css({
-  px: '[0.25rem]',
-  py: '[0.08rem]',
-  borderRadius: '[0.35rem]',
-  background: '[rgba(100, 116, 139, 0.2)]',
-  color: 'transparent',
-  textShadow: '[0 0 0 transparent]',
-  transition: '[color 160ms ease]',
-  _hover: {
-    color: 'text',
-  },
-  _focusVisible: {
-    color: 'text',
-  },
 });
 
 const markdownCodeBlockFrameClass = css({

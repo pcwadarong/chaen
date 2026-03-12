@@ -50,4 +50,27 @@ describe('Tooltip', () => {
 
     expect(tooltip.parentElement).toBe(document.body);
   });
+
+  it('hover와 focus 중 하나라도 유지되면 tooltip을 계속 노출한다', async () => {
+    render(
+      <Tooltip content="정렬">
+        <button type="button">A</button>
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'A' });
+
+    fireEvent.mouseEnter(trigger);
+    await screen.findByRole('tooltip', { name: '정렬' });
+    fireEvent.focus(trigger);
+    fireEvent.mouseLeave(trigger);
+
+    expect(screen.getByRole('tooltip', { name: '정렬' })).toBeTruthy();
+
+    fireEvent.blur(trigger);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('tooltip', { name: '정렬' })).toBeNull();
+    });
+  });
 });
