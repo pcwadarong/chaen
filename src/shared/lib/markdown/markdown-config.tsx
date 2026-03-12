@@ -277,6 +277,9 @@ const createMarkdownComponents = (): Components => ({
   h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
   hr: () => <hr className={markdownHorizontalRuleClass} />,
   img: renderMarkdownImage,
+  li: ({ children }) => <li className={markdownListItemClass}>{children}</li>,
+  ol: ({ children }) => <ol className={markdownOrderedListClass}>{children}</ol>,
+  p: ({ children }) => <p className={markdownParagraphClass}>{children}</p>,
   pre: ({ children, className, ...props }) => (
     <div className={markdownCodeBlockFrameClass}>
       <div className={markdownCodeBlockHeaderClass}>
@@ -304,6 +307,7 @@ const createMarkdownComponents = (): Components => ({
       <table className={markdownTableClass}>{children}</table>
     </div>
   ),
+  ul: ({ children }) => <ul className={markdownUnorderedListClass}>{children}</ul>,
 });
 
 /**
@@ -333,46 +337,8 @@ export const markdownBodyClass = css({
   '& > :is(h1, h2, h3, h4) + *': {
     mt: '5',
   },
-  '& p': {
-    wordBreak: 'keep-all',
-  },
   '& ul, & ol': {
     my: '3',
-  },
-  '& ul': {
-    pl: '0',
-    listStyle: 'none',
-  },
-  '& ol': {
-    pl: '[1.75rem]',
-    listStyle: 'decimal',
-  },
-  '& li': {
-    wordBreak: 'keep-all',
-  },
-  '& ul > li': {
-    position: 'relative',
-    pl: '[1.25rem]',
-    listStyle: 'none',
-  },
-  '& ul > li::before': {
-    content: '""',
-    position: 'absolute',
-    left: '[0.35rem]',
-    top: '[0.9em]',
-    width: '[0.33rem]',
-    height: '[0.33rem]',
-    borderRadius: 'full',
-    background: '[currentColor]',
-    opacity: '0.7',
-    transform: 'translateY(-50%)',
-  },
-  '& ol > li::marker': {
-    color: 'muted',
-    fontWeight: 'semibold',
-  },
-  '& li > p': {
-    display: 'inline',
   },
   '& li > ul, & li > ol': {
     mt: '1',
@@ -382,10 +348,6 @@ export const markdownBodyClass = css({
   },
   '& ul ul': {
     pl: '[1.5rem]',
-  },
-  '& ul ul > li::before': {
-    width: '[0.28rem]',
-    height: '[0.28rem]',
   },
   '& li + li': {
     mt: '1',
@@ -414,6 +376,55 @@ const markdownBlockquoteClass = css({
   borderRadius: 'xs',
   background: 'surfaceMuted',
   color: 'text',
+});
+
+const markdownParagraphClass = css({
+  wordBreak: 'keep-all',
+});
+
+const markdownUnorderedListClass = css({
+  pl: '0',
+  listStyle: 'none',
+  '& > li': {
+    position: 'relative',
+    pl: '[1.25rem]',
+    listStyle: 'none',
+  },
+  '& > li::before': {
+    content: '""',
+    position: 'absolute',
+    left: '[0.35rem]',
+    top: '[0.9em]',
+    width: '[0.33rem]',
+    height: '[0.33rem]',
+    borderRadius: 'full',
+    background: '[currentColor]',
+    opacity: '0.7',
+    transform: 'translateY(-50%)',
+  },
+  '& ul': {
+    pl: '[1.5rem]',
+  },
+  '& ul > li::before': {
+    width: '[0.28rem]',
+    height: '[0.28rem]',
+  },
+});
+
+const markdownOrderedListClass = css({
+  pl: '[1.75rem]',
+  listStyle: 'decimal',
+  '& > li::marker': {
+    color: 'muted',
+    fontWeight: 'semibold',
+  },
+});
+
+const markdownListItemClass = css({
+  wordBreak: 'keep-all',
+  '& > p': {
+    display: 'inline',
+  },
 });
 
 const markdownInlineCodeClass = css({
