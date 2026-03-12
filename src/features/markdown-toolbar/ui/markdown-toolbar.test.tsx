@@ -122,6 +122,38 @@ describe('MarkdownToolbar', () => {
     });
   });
 
+  it('유튜브 버튼은 안전한 호스트와 첫 path segment만 video id로 사용한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '유튜브' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'YouTube URL' }), {
+      target: { value: 'https://youtu.be/dQw4w9WgXcQ/extra' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('<YouTube id="dQw4w9WgXcQ" />');
+    });
+  });
+
+  it('유튜브 버튼은 youtube.com으로 끝나는 임의 호스트를 허용하지 않는다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '유튜브' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'YouTube URL' }), {
+      target: { value: 'https://notyoutube.com/watch?v=dQw4w9WgXcQ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('');
+    });
+  });
+
   it('빈 상태에서 토글 버튼을 누르면 placeholder 없이 toggle prefix를 삽입한다', async () => {
     render(<ToolbarHarness />);
 

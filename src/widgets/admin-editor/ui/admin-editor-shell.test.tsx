@@ -137,6 +137,12 @@ describe('AdminEditorShell', () => {
   it('툴바를 입력 textarea 위에 렌더링한다', () => {
     render(<AdminEditorShell availableTags={availableTags} />);
 
-    expect(screen.getByRole('toolbar', { name: '마크다운 서식 도구' })).toBeTruthy();
+    const toolbar = screen.getByRole('toolbar', { name: '마크다운 서식 도구' });
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' });
+
+    expect(toolbar).toBeTruthy();
+    expect(
+      toolbar.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

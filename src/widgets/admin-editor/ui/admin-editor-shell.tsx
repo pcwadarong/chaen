@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { MarkdownHooks } from 'react-markdown';
 import { css } from 'styled-system/css';
 
@@ -27,7 +27,7 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
   const [slug, setSlug] = useState('');
   const [selectedTagSlugs, setSelectedTagSlugs] = useState<string[]>([]);
   const [markdown, setMarkdown] = useState('');
-  const markdownOptions = getMarkdownOptions();
+  const markdownOptions = useMemo(() => getMarkdownOptions(), []);
 
   /**
    * 관리자 전용 slug 중복 확인 API를 호출합니다.

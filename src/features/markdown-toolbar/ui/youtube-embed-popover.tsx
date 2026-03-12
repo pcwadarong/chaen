@@ -15,6 +15,12 @@ type YoutubeEmbedPopoverProps = {
 };
 
 /**
+ * pathname에서 첫 번째 비어 있지 않은 segment를 읽습니다.
+ */
+const getFirstPathSegment = (pathname: string) =>
+  pathname.split('/').find(segment => segment.length > 0) ?? null;
+
+/**
  * 다양한 YouTube URL 형태에서 video id를 추출합니다.
  */
 const extractYoutubeId = (value: string) => {
@@ -24,21 +30,26 @@ const extractYoutubeId = (value: string) => {
 
   try {
     const url = new URL(trimmedValue);
+    const isYoutubeDomain = url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com');
 
     if (url.hostname === 'youtu.be') {
-      return url.pathname.replace(/\//g, '') || null;
+      return getFirstPathSegment(url.pathname);
     }
 
-    if (url.hostname.endsWith('youtube.com')) {
+    if (isYoutubeDomain) {
       if (url.pathname === '/watch') {
         return url.searchParams.get('v');
       }
 
-      const shortsMatch = url.pathname.match(/^\/shorts\/([^/?]+)/);
-      if (shortsMatch) return shortsMatch[1];
+      const [, firstSegment, secondSegment] = url.pathname.split('/');
 
-      const embedMatch = url.pathname.match(/^\/embed\/([^/?]+)/);
-      if (embedMatch) return embedMatch[1];
+      if (firstSegment === 'shorts' && secondSegment) {
+        return secondSegment;
+      }
+
+      if (firstSegment === 'embed' && secondSegment) {
+        return secondSegment;
+      }
     }
   } catch {
     return null;

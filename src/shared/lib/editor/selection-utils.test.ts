@@ -67,6 +67,18 @@ describe('selection utils', () => {
     expect(removedValue).toBe('첫 줄\n둘째 줄');
   });
 
+  it('문서가 개행으로 시작해도 첫 줄 범위를 올바르게 계산한다', () => {
+    const textarea = createTextarea('\n첫 줄', 0, 0);
+
+    const nextValue = toggleHeadingLine(textarea, 2);
+
+    expect(nextValue).toBe('## \n첫 줄');
+    expect(getPendingSelection(textarea)).toEqual({
+      end: 3,
+      start: 3,
+    });
+  });
+
   it('template을 삽입하고 지정한 offset 위치로 커서를 이동한다', () => {
     const textarea = createTextarea('abc', 1, 2);
 

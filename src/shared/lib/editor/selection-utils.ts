@@ -17,7 +17,7 @@ const setPendingSelection = (textarea: HTMLTextAreaElement, start: number, end: 
  */
 const getSelectedLineRange = (textarea: HTMLTextAreaElement) => {
   const { selectionEnd, selectionStart, value } = textarea;
-  const lineStart = value.lastIndexOf('\n', Math.max(selectionStart - 1, 0)) + 1;
+  const lineStart = selectionStart === 0 ? 0 : value.lastIndexOf('\n', selectionStart - 1) + 1;
   const nextLineBreakIndex = value.indexOf('\n', selectionEnd);
   const lineEnd = nextLineBreakIndex === -1 ? value.length : nextLineBreakIndex;
 
