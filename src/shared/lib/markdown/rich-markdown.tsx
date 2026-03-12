@@ -225,18 +225,26 @@ const normalizeMarkdownHtmlAliases = (markdown: string) =>
  */
 const parseToggleTitle = (rawTitle: string) => {
   const trimmedTitle = rawTitle.trim();
-  const headingMatch = trimmedTitle.match(/^(#{1,4})\s+(.*)$/);
+  const headingMatch = trimmedTitle.match(/^(#{1,4})(?:\s+(.*))?$/);
+  const fallbackTitle = 'Untitled toggle';
+
+  if (!trimmedTitle) {
+    return {
+      headingLevel: null,
+      title: fallbackTitle,
+    };
+  }
 
   if (!headingMatch) {
     return {
       headingLevel: null,
-      title: trimmedTitle,
+      title: trimmedTitle || fallbackTitle,
     };
   }
 
   return {
     headingLevel: headingMatch[1].length as ToggleHeadingLevel,
-    title: headingMatch[2].trim(),
+    title: headingMatch[2]?.trim() || fallbackTitle,
   };
 };
 

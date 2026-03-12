@@ -13,17 +13,23 @@ type MarkdownSpoilerButtonProps = {
  */
 export const MarkdownSpoilerButton = ({ children, className }: MarkdownSpoilerButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const statusId = React.useId();
 
   return (
-    <button
-      aria-expanded={isOpen}
-      aria-label={isOpen ? '스포일러 숨기기' : '스포일러 보기'}
-      className={cx(spoilerButtonClass, isOpen ? spoilerButtonOpenClass : undefined, className)}
-      onClick={() => setIsOpen(open => !open)}
-      type="button"
-    >
-      {children}
-    </button>
+    <>
+      <button
+        aria-describedby={statusId}
+        aria-expanded={isOpen}
+        className={cx(spoilerButtonClass, isOpen ? spoilerButtonOpenClass : undefined, className)}
+        onClick={() => setIsOpen(open => !open)}
+        type="button"
+      >
+        {children}
+      </button>
+      <span aria-live="polite" className={srOnlyClass} id={statusId} role="status">
+        {isOpen ? '스포일러가 열렸습니다.' : '숨겨진 내용입니다. 버튼을 눌러 표시할 수 있습니다.'}
+      </span>
+    </>
   );
 };
 
@@ -50,4 +56,16 @@ const spoilerButtonClass = css({
 
 const spoilerButtonOpenClass = css({
   color: 'text',
+});
+
+const srOnlyClass = css({
+  position: 'absolute',
+  width: '[1px]',
+  height: '[1px]',
+  p: '0',
+  m: '[-1px]',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: '[0]',
 });

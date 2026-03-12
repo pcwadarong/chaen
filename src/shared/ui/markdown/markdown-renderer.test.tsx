@@ -176,9 +176,11 @@ describe('MarkdownRenderer', () => {
   it('spoiler는 preview에서도 button으로 렌더링된다', async () => {
     const document = await renderServerDocument('||스포일러||');
     const spoilerButton = document.querySelector('button[aria-expanded]');
+    const spoilerStatus = document.querySelector('[role="status"]');
 
-    expect(spoilerButton?.getAttribute('aria-label')).toBe('스포일러 보기');
+    expect(spoilerButton?.getAttribute('aria-describedby')).toBeTruthy();
     expect(spoilerButton?.textContent).toBe('스포일러');
+    expect(spoilerStatus?.textContent).toContain('숨겨진 내용');
   });
 
   it('preview title이 있는 링크는 제목 링크 카드로 렌더링한다', async () => {
@@ -291,5 +293,12 @@ describe('MarkdownRenderer', () => {
 
     expect(taskItems).toHaveLength(2);
     expect(checkboxes).toHaveLength(2);
+  });
+
+  it('제목이 비어 있는 toggle은 안전한 fallback title을 렌더링한다', async () => {
+    const document = await renderServerDocument([':::toggle ### ', '본문', ':::'].join('\n'));
+    const summaryLabel = document.querySelector('summary span');
+
+    expect(summaryLabel?.textContent).toContain('Untitled toggle');
   });
 });
