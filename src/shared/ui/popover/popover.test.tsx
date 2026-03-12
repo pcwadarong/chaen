@@ -103,4 +103,32 @@ describe('Popover', () => {
 
     expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy();
   });
+
+  it('controlled 모드에서는 onOpenChange만 호출하고 DOM 열림 상태는 prop 변경 전까지 유지한다', async () => {
+    const onOpenChange = vi.fn();
+    const { rerender } = render(
+      <Popover isOpen={false} onOpenChange={onOpenChange} panelLabel="액션 메뉴">
+        {() => <button type="button">수정</button>}
+      </Popover>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '액션 메뉴' }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole('dialog', { name: '액션 메뉴' })).toBeNull();
+
+    rerender(
+      <Popover isOpen onOpenChange={onOpenChange} panelLabel="액션 메뉴">
+        {() => <button type="button">수정</button>}
+      </Popover>,
+    );
+
+    await screen.findByRole('dialog', { name: '액션 메뉴' });
+
+    fireEvent.keyDown(window, { cancelable: true, key: 'Escape' });
+    fireEvent.click(document.body);
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('dialog', { name: '액션 메뉴' })).toBeTruthy();
+  });
 });

@@ -13,10 +13,57 @@ export type LinkEmbedData = {
   url: string;
 };
 
+type HtmlAttributeMap = Record<string, string>;
+
 /**
- * HTML 문자열에서 정규식으로 첫 번째 메타 값을 추출합니다.
+ * HTML 태그 문자열에서 attribute를 key-value 맵으로 추출합니다.
  */
-const matchHtmlValue = (html: string, pattern: RegExp) => pattern.exec(html)?.[1]?.trim() ?? '';
+const extractHtmlAttributes = (tag: string): HtmlAttributeMap => {
+  const attributes: HtmlAttributeMap = {};
+
+  for (const match of tag.matchAll(/([^\s=/>]+)\s*=\s*["']([^"']*)["']/giu)) {
+    const [, key, value] = match;
+    if (!key) continue;
+
+    attributes[key.toLowerCase()] = value.trim();
+  }
+
+  return attributes;
+};
+
+/**
+ * HTML에서 meta 태그를 순회하며 조건에 맞는 content 값을 찾습니다.
+ */
+const findMetaContent = (html: string, matcher: (attributes: HtmlAttributeMap) => boolean) => {
+  for (const match of html.matchAll(/<meta\b[^>]*>/giu)) {
+    const tag = match[0];
+    if (!tag) continue;
+
+    const attributes = extractHtmlAttributes(tag);
+    if (matcher(attributes) && attributes.content) {
+      return attributes.content;
+    }
+  }
+
+  return '';
+};
+
+/**
+ * HTML에서 link 태그를 순회하며 조건에 맞는 href 값을 찾습니다.
+ */
+const findLinkHref = (html: string, matcher: (attributes: HtmlAttributeMap) => boolean) => {
+  for (const match of html.matchAll(/<link\b[^>]*>/giu)) {
+    const tag = match[0];
+    if (!tag) continue;
+
+    const attributes = extractHtmlAttributes(tag);
+    if (matcher(attributes) && attributes.href) {
+      return attributes.href;
+    }
+  }
+
+  return '';
+};
 
 /**
  * markdown 링크 자식 텍스트가 embed 키워드인지 판별합니다.
@@ -83,32 +130,29 @@ export const resolveEmbedAssetUrl = (baseUrl: string, rawUrl?: string | null) =>
  */
 export const extractEmbedMetaFromHtml = (url: string, html: string): LinkEmbedData => {
   const title =
-    matchHtmlValue(html, /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/iu) ||
-    matchHtmlValue(html, /<meta[^>]+name=["']twitter:title["'][^>]+content=["']([^"']+)["']/iu) ||
-    matchHtmlValue(html, /<title[^>]*>([^<]+)<\/title>/iu) ||
+    findMetaContent(html, attributes => attributes.property === 'og:title') ||
+    findMetaContent(html, attributes => attributes.name === 'twitter:title') ||
+    html.match(/<title[^>]*>([^<]+)<\/title>/iu)?.[1]?.trim() ||
     url;
   const description =
-    matchHtmlValue(
-      html,
-      /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/iu,
-    ) ||
-    matchHtmlValue(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/iu) ||
+    findMetaContent(html, attributes => attributes.property === 'og:description') ||
+    findMetaContent(html, attributes => attributes.name === 'description') ||
     '';
   const siteName =
-    matchHtmlValue(
-      html,
-      /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/iu,
-    ) || new URL(url).hostname;
+    findMetaContent(html, attributes => attributes.property === 'og:site_name') ||
+    new URL(url).hostname;
   const image = resolveEmbedAssetUrl(
     url,
-    matchHtmlValue(html, /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/iu) ||
-      matchHtmlValue(html, /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/iu),
+    findMetaContent(html, attributes => attributes.property === 'og:image') ||
+      findMetaContent(html, attributes => attributes.name === 'twitter:image'),
   );
   const favicon = resolveEmbedAssetUrl(
     url,
-    matchHtmlValue(
+    findLinkHref(
       html,
-      /<link[^>]+rel=["'][^"']*(?:icon|shortcut icon)[^"']*["'][^>]+href=["']([^"']+)["']/iu,
+      attributes =>
+        typeof attributes.rel === 'string' &&
+        /(icon|shortcut icon)/iu.test(attributes.rel.toLowerCase()),
     ),
   );
 

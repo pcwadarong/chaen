@@ -114,7 +114,7 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
   };
 
   return (
-    <main className={pageClass}>
+    <div className={pageClass}>
       <section aria-labelledby="admin-editor-title" className={panelClass}>
         <div className={headerClass}>
           <p className={eyebrowClass}>ADMIN EDITOR</p>
@@ -201,7 +201,7 @@ export const AdminEditorShell = ({ availableTags }: AdminEditorShellProps) => {
           </section>
         </div>
       </section>
-    </main>
+    </div>
   );
 };
 

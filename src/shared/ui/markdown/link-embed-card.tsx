@@ -26,6 +26,17 @@ type LinkEmbedState =
     };
 
 /**
+ * URL 문자열에서 실패 없이 hostname을 추출합니다.
+ */
+const getSafeSiteName = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '';
+  }
+};
+
+/**
  * 외부 URL의 OG 메타를 조회해 제목 링크 또는 카드형 링크로 렌더링합니다.
  * 메타가 부족하면 일반 외부 링크로 자연스럽게 fallback합니다.
  */
@@ -61,7 +72,7 @@ export const LinkEmbedCard = ({ className, fallbackLabel, url, variant }: LinkEm
             description: '',
             favicon: null,
             image: null,
-            siteName: new URL(url).hostname,
+            siteName: getSafeSiteName(url),
             title: fallbackLabel || url,
             url,
           },
@@ -78,6 +89,7 @@ export const LinkEmbedCard = ({ className, fallbackLabel, url, variant }: LinkEm
   if (state.status === 'loading') {
     return (
       <span
+        aria-live="polite"
         className={cx(variant === 'preview' ? previewSkeletonClass : cardSkeletonClass, className)}
         data-link-embed-card="true"
       >

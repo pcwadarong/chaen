@@ -107,7 +107,7 @@ describe('AdminEditorShell', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '제목 링크' }));
 
-    expect(textarea.value).toBe('[https://www.google.com/](https://www.google.com/ "preview")');
+    expect(textarea.value).toBe('[https://www.google.com](https://www.google.com/ "preview")');
   });
 
   it('링크 생성 팝오버에서 OG 카드를 선택하면 card 링크를 삽입한다', () => {
@@ -121,7 +121,7 @@ describe('AdminEditorShell', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'OG 카드' }));
 
-    expect(textarea.value).toBe('[https://openai.com/](https://openai.com/ "card")');
+    expect(textarea.value).toBe('[https://openai.com](https://openai.com/ "card")');
   });
 
   it('링크 생성 팝오버는 세 가지의 버튼을 노출한다', () => {

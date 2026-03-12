@@ -10,6 +10,7 @@ describe('api/og metadata route', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('유효하지 않은 URL이면 400을 반환한다', async () => {

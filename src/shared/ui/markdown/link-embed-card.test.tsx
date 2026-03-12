@@ -3,9 +3,12 @@ import React from 'react';
 
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 
+import '@testing-library/jest-dom/vitest';
+
 describe('LinkEmbedCard', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('OG 데이터를 불러오는 동안 skeleton UI를 렌더링한다', () => {
@@ -16,7 +19,7 @@ describe('LinkEmbedCard', () => {
 
     render(<LinkEmbedCard url="https://github.com/openai/openai" variant="card" />);
 
-    expect(screen.getByText('링크 정보를 불러오는 중...')).toBeTruthy();
+    expect(screen.getByText('링크 정보를 불러오는 중...')).toBeInTheDocument();
   });
 
   it('OG 메타를 카드 형태로 렌더링한다', async () => {
@@ -38,11 +41,11 @@ describe('LinkEmbedCard', () => {
     render(<LinkEmbedCard url="https://github.com/openai/openai" variant="card" />);
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'openai/openai' })).toBeTruthy();
+      expect(screen.getByRole('link', { name: 'openai/openai' })).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Repository description')).toBeTruthy();
-    expect(screen.getByText('https://github.com/openai/openai')).toBeTruthy();
+    expect(screen.getByText('Repository description')).toBeInTheDocument();
+    expect(screen.getByText('https://github.com/openai/openai')).toBeInTheDocument();
   });
 
   it('제목 링크 variant는 favicon과 title만 간결하게 렌더링한다', async () => {
@@ -64,11 +67,11 @@ describe('LinkEmbedCard', () => {
     render(<LinkEmbedCard url="https://github.com/openai/openai" variant="preview" />);
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'openai/openai' })).toBeTruthy();
+      expect(screen.getByRole('link', { name: 'openai/openai' })).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('Repository description')).toBeNull();
-    expect(screen.queryByText('https://github.com/openai/openai')).toBeNull();
+    expect(screen.queryByText('Repository description')).not.toBeInTheDocument();
+    expect(screen.queryByText('https://github.com/openai/openai')).not.toBeInTheDocument();
   });
 
   it('OG 메타가 부족하면 일반 외부 링크로 fallback한다', async () => {
@@ -92,6 +95,17 @@ describe('LinkEmbedCard', () => {
     const link = await screen.findByRole('link', { name: 'Example' });
 
     expect(link.getAttribute('href')).toBe('https://example.com/');
-    expect(screen.queryByText('링크 정보를 불러오는 중...')).toBeNull();
+    expect(screen.queryByText('링크 정보를 불러오는 중...')).not.toBeInTheDocument();
+  });
+
+  it('fetch가 실패해도 기본 외부 링크로 fallback한다', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network failed')));
+
+    render(<LinkEmbedCard fallbackLabel="Fallback" url="https://example.com" variant="card" />);
+
+    const link = await screen.findByRole('link', { name: 'Fallback' });
+
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toBe('https://example.com');
   });
 });

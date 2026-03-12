@@ -67,4 +67,15 @@ describe('markdown-link utils', () => {
       }),
     ).toBe('[embed](https://openai.com/)');
   });
+
+  it('유효하지 않은 URL은 markdown 링크를 만들지 않고 plain text만 반환한다', () => {
+    expect(createMarkdownLink('OpenAI', 'javascript:alert(1)')).toBe('OpenAI');
+    expect(
+      createMarkdownLinkByMode({
+        label: 'OpenAI',
+        mode: 'card',
+        url: 'javascript:alert(1)',
+      }),
+    ).toBe('OpenAI');
+  });
 });

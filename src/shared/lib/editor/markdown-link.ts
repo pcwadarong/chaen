@@ -22,11 +22,17 @@ type CreateMarkdownLinkByModeInput = {
  * 선택 텍스트와 URL을 markdown 링크 문법으로 조합합니다.
  */
 export const createMarkdownLink = (label: string, url: string, title?: string) => {
-  const normalizedUrl = normalizeHttpUrl(url) ?? url;
-  const normalizedLabel = normalizeHttpUrl(label) ?? (label.trim() || normalizedUrl);
+  const normalizedUrl = normalizeHttpUrl(url);
+  const normalizedLabel = label.trim();
+
+  if (!normalizedUrl) {
+    return normalizedLabel || url.trim();
+  }
+
+  const resolvedLabel = normalizedLabel || normalizedUrl;
   const serializedTitle = title ? ` "${title}"` : '';
 
-  return `[${normalizedLabel}](${normalizedUrl}${serializedTitle})`;
+  return `[${resolvedLabel}](${normalizedUrl}${serializedTitle})`;
 };
 
 /**
@@ -34,7 +40,11 @@ export const createMarkdownLink = (label: string, url: string, title?: string) =
  */
 export const createMarkdownLinkByMode = ({ label, mode, url }: CreateMarkdownLinkByModeInput) => {
   if (mode === 'embed') {
-    const normalizedUrl = normalizeHttpUrl(url) ?? url;
+    const normalizedUrl = normalizeHttpUrl(url);
+
+    if (!normalizedUrl) {
+      return label.trim() || url.trim();
+    }
 
     return `[embed](${normalizedUrl})`;
   }

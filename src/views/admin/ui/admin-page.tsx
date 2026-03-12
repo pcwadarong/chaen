@@ -20,7 +20,7 @@ export const AdminPage = ({ locale }: AdminPageProps) => (
         관리자
       </h1>
       <Button asChild fullWidth tone="primary" variant="solid">
-        <Link href={buildAdminPath({ locale, section: 'editor' })}>새 글 생성</Link>
+        <Link href="/admin/editor">새 글 생성</Link>
       </Button>
       <AdminSignOutButton
         redirectPath={buildAdminPath({ locale, section: 'login' })}

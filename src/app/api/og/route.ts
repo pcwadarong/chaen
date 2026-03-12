@@ -82,7 +82,7 @@ export const GET = async (request: Request) => {
       fetchOptions: {
         headers: DEFAULT_FETCH_HEADERS,
       },
-      timeout: 10,
+      timeout: 10, // seconds
       url: normalizedUrl,
     })) as { ogObject?: Record<string, unknown> };
     const ogObject = response.ogObject ?? {};
@@ -96,14 +96,23 @@ export const GET = async (request: Request) => {
         'Cache-Control': OG_CACHE_CONTROL,
       },
     });
-  } catch {
+  } catch (ogError) {
+    console.error('[api/og] OGS -> HTML fallback failed', {
+      error: ogError,
+      normalizedUrl,
+    });
+
     try {
       return NextResponse.json(await fetchHtmlFallbackResponse(normalizedUrl), {
         headers: {
           'Cache-Control': OG_CACHE_CONTROL,
         },
       });
-    } catch {
+    } catch (htmlError) {
+      console.error('[api/og] HTML parsing fallback failed', {
+        error: htmlError,
+        normalizedUrl,
+      });
       return NextResponse.json(createFallbackResponse(normalizedUrl), {
         headers: {
           'Cache-Control': OG_CACHE_CONTROL,

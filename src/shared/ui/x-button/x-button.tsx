@@ -27,7 +27,7 @@ export const XButton = ({
   className,
   glyphClassName,
   size = 'sm',
-  tone = 'white',
+  tone = 'black',
   type = 'button',
   variant = 'ghost',
   ...props
