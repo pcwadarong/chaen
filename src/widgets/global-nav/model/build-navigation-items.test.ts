@@ -1,6 +1,7 @@
 import { buildGlobalNavigationItems } from './build-navigation-items';
 
 const labels = {
+  admin: '관리자',
   articles: 'Articles',
   guest: 'Guest',
   home: 'Home',
@@ -20,9 +21,13 @@ describe('buildGlobalNavigationItems', () => {
   });
 
   it('관리자 세션이면 관리자 탭을 마지막에 추가한다', () => {
-    expect(buildGlobalNavigationItems({ isAdmin: true, labels }).at(-1)).toEqual({
-      href: '/admin',
-      label: '관리자',
-    });
+    expect(buildGlobalNavigationItems({ isAdmin: true, labels })).toEqual([
+      { href: '/', label: 'Home' },
+      { href: '/resume', label: 'Resume' },
+      { href: '/project', label: 'Project' },
+      { href: '/articles', label: 'Articles' },
+      { href: '/guest', label: 'Guest' },
+      { href: '/admin', label: '관리자' },
+    ]);
   });
 });

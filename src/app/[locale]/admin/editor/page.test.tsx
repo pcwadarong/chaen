@@ -6,8 +6,20 @@ import { getAdminEditorPageData } from '@/views/admin-editor';
 
 import AdminEditorRoute, { metadata } from './page';
 
+const { redirectError } = vi.hoisted(() => ({
+  redirectError: {
+    __next_redirect: true,
+    destination: '/ko/admin/login',
+  },
+}));
+
 vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
+  redirect: vi.fn(destination => {
+    throw {
+      ...redirectError,
+      destination,
+    };
+  }),
 }));
 
 vi.mock('@/views/admin-editor', () => ({
@@ -46,10 +58,15 @@ describe('AdminEditorRoute', () => {
       redirectPath: '/ko/admin/login',
     });
 
-    await AdminEditorRoute({
-      params: Promise.resolve({
-        locale: 'ko',
+    await expect(
+      AdminEditorRoute({
+        params: Promise.resolve({
+          locale: 'ko',
+        }),
       }),
+    ).rejects.toMatchObject({
+      __next_redirect: true,
+      destination: '/ko/admin/login',
     });
 
     expect(redirect).toHaveBeenCalledWith('/ko/admin/login');

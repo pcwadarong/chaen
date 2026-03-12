@@ -36,6 +36,7 @@ export const GlobalNav = () => {
   const navigationItems = buildGlobalNavigationItems({
     isAdmin,
     labels: {
+      admin: '관리자',
       articles: t('articles'),
       guest: t('guest'),
       home: t('home'),
