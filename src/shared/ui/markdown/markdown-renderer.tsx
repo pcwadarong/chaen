@@ -6,6 +6,7 @@ import {
   markdownBodyClass,
   markdownEmptyTextClass,
 } from '@/shared/lib/markdown/markdown-config';
+import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
 
 type MarkdownRendererProps = {
   emptyText?: string;
@@ -22,7 +23,14 @@ export const MarkdownRenderer = async ({ emptyText, markdown }: MarkdownRenderer
 
   return (
     <div className={markdownBodyClass}>
-      <MarkdownAsync {...markdownOptions}>{markdown}</MarkdownAsync>
+      {renderRichMarkdown({
+        markdown,
+        renderMarkdownFragment: (fragmentMarkdown, key) => (
+          <MarkdownAsync key={key} {...markdownOptions}>
+            {fragmentMarkdown}
+          </MarkdownAsync>
+        ),
+      })}
     </div>
   );
 };

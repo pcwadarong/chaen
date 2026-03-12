@@ -31,7 +31,7 @@ describe('AdminEditorShell', () => {
   });
 
   const openLinkPopover = () => {
-    fireEvent.click(screen.getByRole('button', { name: '링크 삽입' }));
+    fireEvent.click(screen.getByRole('button', { name: '링크 임베드' }));
   };
 
   it('선택된 텍스트가 있으면 하이퍼링크 버튼으로 markdown 링크를 삽입한다', () => {
@@ -132,5 +132,11 @@ describe('AdminEditorShell', () => {
     expect(screen.getByRole('button', { name: '제목 링크' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '하이퍼링크' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'OG 카드' })).toBeTruthy();
+  });
+
+  it('툴바를 입력 textarea 위에 렌더링한다', () => {
+    render(<AdminEditorShell availableTags={availableTags} />);
+
+    expect(screen.getByRole('toolbar', { name: '마크다운 서식 도구' })).toBeTruthy();
   });
 });

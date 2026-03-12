@@ -27,6 +27,8 @@ describe('MarkdownRenderer', () => {
     const markdown = [
       '# 제목',
       '',
+      '#### 작은 제목',
+      '',
       '> 인용문',
       '',
       '[외부 링크](https://example.com)',
@@ -54,6 +56,8 @@ describe('MarkdownRenderer', () => {
 
     expect(html).toContain('<h1');
     expect(html).toContain('제목</h1>');
+    expect(html).toContain('<h4');
+    expect(html).toContain('작은 제목</h4>');
     expect(html).toContain('<blockquote');
     expect(html).toContain('href="https://example.com"');
     expect(html).toContain('target="_blank"');
@@ -119,5 +123,77 @@ describe('MarkdownRenderer', () => {
 
     expect(document.querySelector('[data-link-embed-card="true"]')).toBeNull();
     expect(document.querySelector('a')?.getAttribute('href')).toBe('https://openai.com/');
+  });
+
+  it('custom syntax preview를 직접 렌더링한다', async () => {
+    const markdown = [
+      '<span style="color:#3B82F6">파란 글자</span>',
+      '',
+      '<span style="background-color:#EAB308">배경 강조</span>',
+      '',
+      '<span style="color:#3B82F6; background-color:#EAB308">복합 강조</span>',
+      '',
+      '||스포일러||',
+      '',
+      '-# 보조 문구',
+      '',
+      '<YouTube id="dQw4w9WgXcQ" />',
+      '',
+      ':::toggle ## 토글 제목',
+      '토글 본문',
+      ':::',
+      '',
+      ':::toggle 일반 토글',
+      '목록 본문',
+      ':::',
+      '',
+      ':::align right',
+      '정렬 본문',
+      ':::',
+    ].join('\n');
+    const html = await renderServerHtml(markdown);
+    const document = await renderServerDocument(markdown);
+    const spoiler = Array.from(document.querySelectorAll('span')).find(node =>
+      node.textContent?.includes('스포일러'),
+    );
+    const subtext = Array.from(document.querySelectorAll('p')).find(node =>
+      node.textContent?.includes('보조 문구'),
+    );
+    const iframe = document.querySelector('iframe');
+    const details = document.querySelector('details');
+    const headingToggleChevron = details?.querySelector('svg[data-toggle-chevron="true"]');
+    const toggleListDetails = Array.from(document.querySelectorAll('details')).find(node =>
+      node.textContent?.includes('일반 토글'),
+    );
+    const toggleChevron = toggleListDetails?.querySelector('svg[data-toggle-chevron="true"]');
+    const textOnlyColor = Array.from(document.querySelectorAll('span[style]')).find(node =>
+      node.textContent?.includes('파란 글자'),
+    );
+    const backgroundOnlyColor = Array.from(document.querySelectorAll('span[style]')).find(node =>
+      node.textContent?.includes('배경 강조'),
+    );
+    const mixedColor = Array.from(document.querySelectorAll('span[style]')).find(node =>
+      node.textContent?.includes('복합 강조'),
+    );
+
+    expect(html).toContain('파란 글자');
+    expect(html).toContain('배경 강조');
+    expect(html).toContain('복합 강조');
+    expect(html).toContain('text-align:right');
+    expect(textOnlyColor?.getAttribute('style')).toContain('color');
+    expect(textOnlyColor?.getAttribute('style')).not.toContain('background-color');
+    expect(backgroundOnlyColor?.getAttribute('style')).toContain('background-color');
+    expect(backgroundOnlyColor?.getAttribute('style')?.includes(';color:')).toBe(false);
+    expect(mixedColor?.getAttribute('style')).toContain('background-color');
+    expect(mixedColor?.getAttribute('style')).toContain('color');
+    expect(spoiler).toBeTruthy();
+    expect(subtext?.textContent).toContain('보조 문구');
+    expect(iframe?.getAttribute('src')).toContain('dQw4w9WgXcQ');
+    expect(details?.textContent).toContain('토글 제목');
+    expect(details?.textContent).toContain('토글 본문');
+    expect(headingToggleChevron).toBeTruthy();
+    expect(toggleListDetails?.textContent).toContain('일반 토글');
+    expect(toggleListDetails?.textContent).toContain('목록 본문');
+    expect(toggleChevron).toBeTruthy();
   });
 });
