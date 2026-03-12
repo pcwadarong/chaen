@@ -36,11 +36,7 @@ const checkSlugInTable = async (
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { duplicate: false, schemaMissing: false };
 
-  const { data, error } = await supabase
-    .from(table)
-    .select('id')
-    .eq('slug', slug)
-    .maybeSingle<{ id: string }>();
+  const { data, error } = await supabase.from(table).select('id').eq('slug', slug).limit(1);
 
   if (error) {
     if (isMissingContentSlugSchemaError(error.message)) {
@@ -51,7 +47,7 @@ const checkSlugInTable = async (
   }
 
   return {
-    duplicate: Boolean(data?.id),
+    duplicate: Array.isArray(data) && data.length > 0,
     schemaMissing: false,
   };
 };

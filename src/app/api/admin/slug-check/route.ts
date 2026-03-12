@@ -21,6 +21,15 @@ export const GET = async (request: Request) => {
 
   const result = await checkContentSlugDuplicate(normalizedSlug);
 
+  if (result.schemaMissing) {
+    return NextResponse.json(
+      {
+        message: 'Slug duplicate check is temporarily unavailable',
+      },
+      { status: 503 },
+    );
+  }
+
   return NextResponse.json({
     duplicate: result.data.duplicate,
     source: result.data.source,

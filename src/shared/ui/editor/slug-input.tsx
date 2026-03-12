@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
@@ -29,10 +29,17 @@ export const SlugInput = ({
   showEmptyError = false,
   value,
 }: SlugInputProps) => {
+  const baseId = useId();
+  const inputId = `${baseId}-input`;
+  const helpId = `${baseId}-help`;
+  const errorId = `${baseId}-error`;
+  const successId = `${baseId}-success`;
   const [hasCheckAttempt, setHasCheckAttempt] = useState(false);
   const [duplicateCheckStatus, setDuplicateCheckStatus] = useState<
     'available' | 'checking' | 'duplicate' | 'error' | 'idle'
   >('idle');
+  const duplicateCheckRequestIdRef = useRef(0);
+  const latestValueRef = useRef(value);
   const isEmpty = value.trim().length === 0;
   const hasFormatError = value.length > 0 && !isValidSlugFormat(value);
   const shouldShowEmptyError = (showEmptyError || hasCheckAttempt) && isEmpty;
@@ -48,6 +55,8 @@ export const SlugInput = ({
           : null;
   const successMessage = duplicateCheckStatus === 'available' ? '사용 가능한 슬러그입니다.' : null;
 
+  latestValueRef.current = value;
+
   useEffect(() => {
     setHasCheckAttempt(false);
     setDuplicateCheckStatus('idle');
@@ -61,34 +70,51 @@ export const SlugInput = ({
 
     if (isEmpty || hasFormatError || !onCheckDuplicate) return;
 
+    const requestId = ++duplicateCheckRequestIdRef.current;
+    const requestSlug = value;
     setDuplicateCheckStatus('checking');
 
     try {
-      const isDuplicate = await onCheckDuplicate(value);
+      const isDuplicate = await onCheckDuplicate(requestSlug);
+
+      if (
+        duplicateCheckRequestIdRef.current !== requestId ||
+        latestValueRef.current !== requestSlug
+      ) {
+        return;
+      }
+
       setDuplicateCheckStatus(isDuplicate ? 'duplicate' : 'available');
     } catch {
+      if (
+        duplicateCheckRequestIdRef.current !== requestId ||
+        latestValueRef.current !== requestSlug
+      ) {
+        return;
+      }
+
       setDuplicateCheckStatus('error');
     }
   };
 
   return (
     <div className={cx(rootClass, className)}>
-      <label className={labelClass} htmlFor="editor-slug-input">
+      <label className={labelClass} htmlFor={inputId}>
         슬러그
       </label>
       <div className={fieldWrapClass}>
         <Input
           aria-describedby={
             errorMessage
-              ? 'editor-slug-help editor-slug-error'
+              ? `${helpId} ${errorId}`
               : successMessage
-                ? 'editor-slug-help editor-slug-success'
-                : 'editor-slug-help'
+                ? `${helpId} ${successId}`
+                : helpId
           }
           aria-invalid={Boolean(errorMessage) || undefined}
           aria-label="슬러그"
           className={cx(inputClass, isPublished ? lockedInputClass : undefined)}
-          id="editor-slug-input"
+          id={inputId}
           onChange={event => onChange(normalizeSlugInput(event.target.value))}
           placeholder="example-slug"
           readOnly={isPublished}
@@ -115,18 +141,18 @@ export const SlugInput = ({
           </Button>
         </div>
       ) : null}
-      <p className={helpTextClass} id="editor-slug-help">
+      <p className={helpTextClass} id={helpId}>
         {isPublished
           ? '발행 후에는 슬러그를 변경할 수 없습니다.'
           : '영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.'}
       </p>
       {errorMessage ? (
-        <p className={errorTextClass} id="editor-slug-error" role="alert">
+        <p className={errorTextClass} id={errorId} role="alert">
           {errorMessage}
         </p>
       ) : null}
       {successMessage ? (
-        <p className={successTextClass} id="editor-slug-success" role="status">
+        <p className={successTextClass} id={successId} role="status">
           {successMessage}
         </p>
       ) : null}

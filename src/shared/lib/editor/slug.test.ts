@@ -10,6 +10,7 @@ describe('slug utils', () => {
     expect(normalizeSlugInput('Hello World!!__next.js')).toBe('hello-worldnextjs');
     expect(normalizeSlugInput('---Already-valid---')).toBe('---already-valid---');
     expect(normalizeSlugInput('-')).toBe('-');
+    expect(normalizeSlugInput(' hello world ')).toBe('hello-world');
   });
 
   it('최종 slug 형식은 하이픈이 단어 사이에만 올 때만 유효하다', () => {

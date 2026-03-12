@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { SlugInput } from '@/shared/ui/editor/slug-input';
@@ -26,6 +26,20 @@ describe('SlugInput', () => {
     render(<SlugInput onChange={vi.fn()} showEmptyError value="" />);
 
     expect(screen.getByText('슬러그를 입력해주세요.')).toBeTruthy();
+  });
+
+  it('여러 인스턴스를 렌더링해도 각 입력 id가 충돌하지 않는다', () => {
+    render(
+      <>
+        <SlugInput onChange={vi.fn()} value="first-slug" />
+        <SlugInput onChange={vi.fn()} value="second-slug" />
+      </>,
+    );
+
+    const [firstInput, secondInput] = screen.getAllByRole('textbox', { name: '슬러그' });
+
+    expect(firstInput.getAttribute('id')).toBeTruthy();
+    expect(firstInput.getAttribute('id')).not.toBe(secondInput.getAttribute('id'));
   });
 
   it('하이픈 입력 자체는 허용한다', () => {
@@ -86,6 +100,45 @@ describe('SlugInput', () => {
     fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
 
     await screen.findByText('사용 가능한 슬러그입니다.');
+  });
+
+  it('이전 slug의 늦은 응답이 현재 상태를 덮어쓰지 않는다', async () => {
+    let resolveFirst: ((value: boolean) => void) | null = null;
+    let resolveSecond: ((value: boolean) => void) | null = null;
+    const onCheckDuplicate = vi.fn((slug: string) => {
+      if (slug === 'first-slug') {
+        return new Promise<boolean>(resolve => {
+          resolveFirst = resolve;
+        });
+      }
+
+      return new Promise<boolean>(resolve => {
+        resolveSecond = resolve;
+      });
+    });
+    const { rerender } = render(
+      <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="first-slug" />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    rerender(
+      <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="second-slug" />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+
+    expect(resolveSecond).toBeTypeOf('function');
+    resolveSecond!(false);
+    await screen.findByText('사용 가능한 슬러그입니다.');
+
+    expect(resolveFirst).toBeTypeOf('function');
+    resolveFirst!(true);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.'),
+      ).toBeNull();
+    });
   });
 
   it('발행 후 잠금 상태면 읽기 전용 입력으로 렌더링한다', () => {

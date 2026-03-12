@@ -27,6 +27,7 @@ describe('api/admin/slug-check route', () => {
     const response = await GET(new Request('https://chaen.dev/api/admin/slug-check?slug=test'));
 
     expect(response.status).toBe(403);
+    expect(checkContentSlugDuplicate).not.toHaveBeenCalled();
   });
 
   it('유효하지 않은 slug는 400을 반환한다', async () => {
@@ -40,6 +41,7 @@ describe('api/admin/slug-check route', () => {
     const response = await GET(new Request('https://chaen.dev/api/admin/slug-check?slug=-'));
 
     expect(response.status).toBe(400);
+    expect(checkContentSlugDuplicate).not.toHaveBeenCalled();
   });
 
   it('중복 확인 결과를 duplicate 응답으로 반환한다', async () => {
@@ -66,6 +68,30 @@ describe('api/admin/slug-check route', () => {
     expect(body).toEqual({
       duplicate: true,
       source: 'articles',
+    });
+  });
+
+  it('content schema가 없으면 503을 반환한다', async () => {
+    vi.mocked(getServerAuthState).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-user-id',
+    });
+    vi.mocked(checkContentSlugDuplicate).mockResolvedValue({
+      data: {
+        duplicate: false,
+        source: null,
+      },
+      schemaMissing: true,
+    });
+
+    const response = await GET(new Request('https://chaen.dev/api/admin/slug-check?slug=missing'));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      message: 'Slug duplicate check is temporarily unavailable',
     });
   });
 });
