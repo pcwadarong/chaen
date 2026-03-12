@@ -1,6 +1,6 @@
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
-import { getTagIdBySlug } from './query-tags';
+import { getAllTags, getTagIdBySlug } from './query-tags';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
@@ -54,5 +54,54 @@ describe('query-tags', () => {
     await expect(getTagIdBySlug('react')).rejects.toThrow(
       '[tags] slug 조회 실패: permission denied for table tags',
     );
+  });
+
+  it('전체 태그 목록을 slug 오름차순으로 조회한다', async () => {
+    const tagsQuery = {
+      order: vi.fn().mockResolvedValue({
+        data: [
+          { id: 'tag-2', slug: 'react' },
+          { id: 'tag-1', slug: 'accessibility' },
+        ],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(tagsQuery),
+    };
+
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getAllTags()).resolves.toEqual({
+      data: [
+        { id: 'tag-2', slug: 'react' },
+        { id: 'tag-1', slug: 'accessibility' },
+      ],
+      schemaMissing: false,
+    });
+    expect(tagsQuery.order).toHaveBeenCalledWith('slug', { ascending: true });
+  });
+
+  it('getAllTags는 tags schema가 없으면 schemaMissing=true로 복구한다', async () => {
+    const tagsQuery = {
+      order: vi.fn().mockResolvedValue({
+        data: [],
+        error: {
+          message: 'relation "public.tags" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(tagsQuery),
+    };
+
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getAllTags()).resolves.toEqual({
+      data: [],
+      schemaMissing: true,
+    });
   });
 });

@@ -8,7 +8,7 @@ import { css } from 'styled-system/css';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { type AppLocale, routing } from '@/i18n/routing';
 import { Button } from '@/shared/ui/button/button';
-import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
+import { Popover } from '@/shared/ui/popover/popover';
 
 const headerLocaleCodeMap: Partial<Record<AppLocale, string>> = {
   en: 'EN',
@@ -57,7 +57,7 @@ export const LocaleSwitcher = () => {
   };
 
   return (
-    <SwitcherPopover
+    <Popover
       label={t('label')}
       panelLabel={t('ariaLabel')}
       triggerContent={<span className={triggerCodeClass}>{getHeaderLocaleCode(locale)}</span>}
@@ -85,7 +85,7 @@ export const LocaleSwitcher = () => {
           })}
         </div>
       )}
-    </SwitcherPopover>
+    </Popover>
   );
 };
 

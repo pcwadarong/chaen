@@ -12,6 +12,14 @@ import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import { css, cx } from 'styled-system/css';
 
+import {
+  getLinkText,
+  getMarkdownLinkRenderMode,
+  isEmbedKeyword,
+} from '@/shared/lib/markdown/link-embed';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
+import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
+
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
 
 /**
@@ -75,18 +83,45 @@ const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImage
 /**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.
  */
-const markdownComponents: Components = {
-  a: ({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a
-      href={href}
-      className={markdownLinkClass}
-      rel={isExternalHref(href) ? 'noreferrer noopener' : undefined}
-      target={isExternalHref(href) ? '_blank' : undefined}
-      {...props}
-    >
-      {children}
-    </a>
-  ),
+const createMarkdownComponents = (): Components => ({
+  a: ({ href, children, title, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    const normalizedHref = normalizeHttpUrl(href);
+    const linkText = getLinkText(children);
+    const renderMode = isEmbedKeyword(children) ? 'embed' : getMarkdownLinkRenderMode(title);
+
+    if (normalizedHref && renderMode === 'preview') {
+      return (
+        <LinkEmbedCard
+          fallbackLabel={linkText || normalizedHref}
+          url={normalizedHref}
+          variant="preview"
+        />
+      );
+    }
+
+    if (normalizedHref && (renderMode === 'card' || renderMode === 'embed')) {
+      return (
+        <LinkEmbedCard
+          fallbackLabel={renderMode === 'embed' ? normalizedHref : linkText || normalizedHref}
+          url={normalizedHref}
+          variant="card"
+        />
+      );
+    }
+
+    return (
+      <a
+        href={href}
+        className={markdownLinkClass}
+        rel={isExternalHref(href) ? 'noreferrer noopener' : undefined}
+        target={isExternalHref(href) ? '_blank' : undefined}
+        title={title}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
   blockquote: ({ children }) => (
     <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
   ),
@@ -136,13 +171,13 @@ const markdownComponents: Components = {
       <table className={markdownTableClass}>{children}</table>
     </div>
   ),
-};
+});
 
 /**
  * 서버/클라이언트에서 공통으로 사용할 markdown 렌더링 옵션을 구성합니다.
  */
 export const getMarkdownOptions = (): MarkdownOptions => ({
-  components: markdownComponents,
+  components: createMarkdownComponents(),
   rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
   remarkPlugins: [remarkGfm, remarkBreaks],
 });

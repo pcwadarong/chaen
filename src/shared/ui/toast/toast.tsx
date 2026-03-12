@@ -4,8 +4,7 @@ import React from 'react';
 import { css, cva, cx } from 'styled-system/css';
 
 import { ReportIcon } from '@/shared/ui/icons/app-icons';
-
-import { Button } from '../button/button';
+import { XButton } from '@/shared/ui/x-button/x-button';
 
 export type ToastItem = {
   description?: string;
@@ -39,17 +38,7 @@ export const ToastViewport = ({ closeLabel: _closeLabel, items, onClose }: Toast
           {item.description ? <p className={descriptionClass}>{item.description}</p> : null}
         </div>
         {onClose ? (
-          <Button
-            aria-label={_closeLabel ?? 'Close'}
-            onClick={() => onClose(item.id)}
-            type="button"
-            variant="ghost"
-            tone="white"
-          >
-            <span aria-hidden className={closeGlyphClass}>
-              +
-            </span>
-          </Button>
+          <XButton ariaLabel={_closeLabel ?? 'Close'} onClick={() => onClose(item.id)} />
         ) : null}
       </div>
     ))}
@@ -167,11 +156,4 @@ const descriptionClass = css({
     base: 'muted',
     _dark: 'gray.300',
   },
-});
-
-const closeGlyphClass = css({
-  display: 'inline-block',
-  fontSize: '3xl',
-  lineHeight: 'none',
-  transform: 'rotate(45deg)',
 });

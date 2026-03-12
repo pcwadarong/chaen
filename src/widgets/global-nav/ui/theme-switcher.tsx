@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
-import { SwitcherPopover } from '@/shared/ui/switcher-popover/switcher-popover';
+import { Popover } from '@/shared/ui/popover/popover';
 import { ThemeIcon, type ThemeOption, themeOptions } from '@/shared/ui/theme-icon/theme-icon';
 
 /**
@@ -36,7 +36,7 @@ export const ThemeSwitcher = () => {
   })();
 
   return (
-    <SwitcherPopover
+    <Popover
       label={t('label')}
       panelLabel={t('ariaLabel')}
       triggerContent={<ThemeIcon theme={activeTheme} />}
@@ -66,7 +66,7 @@ export const ThemeSwitcher = () => {
           })}
         </>
       )}
-    </SwitcherPopover>
+    </Popover>
   );
 };
 

@@ -7,10 +7,12 @@ import { css, cx } from 'styled-system/css';
 
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
+import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
-import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
+import { XButton } from '@/shared/ui/x-button/x-button';
+import { buildGlobalNavigationItems } from '@/widgets/global-nav/model/build-navigation-items';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
 
@@ -20,6 +22,7 @@ const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
   const articlesT = useTranslations('Articles');
+  const { isAdmin } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isHidden, setIsHidden] = useState(false);
@@ -30,13 +33,17 @@ export const GlobalNav = () => {
   const isArticlesRoute = pathname === '/articles' || pathname.startsWith('/articles/');
   const currentSearchQuery = searchParams?.get('q')?.trim() ?? '';
 
-  const navigationItems: readonly GlobalNavItem[] = [
-    { href: '/', label: t('home') },
-    { href: '/resume', label: t('resume') },
-    { href: '/project', label: t('project') },
-    { href: '/articles', label: t('articles') },
-    { href: '/guest', label: t('guest') },
-  ];
+  const navigationItems = buildGlobalNavigationItems({
+    isAdmin,
+    labels: {
+      admin: '관리자',
+      articles: t('articles'),
+      guest: t('guest'),
+      home: t('home'),
+      project: t('project'),
+      resume: t('resume'),
+    },
+  });
 
   // 스크롤 방향과 위치에 따라 헤더의 가시성을 토글하는 효과
   useEffect(() => {
@@ -167,17 +174,11 @@ export const GlobalNav = () => {
               searchQuery={currentSearchQuery}
               submitText={articlesT('searchSubmit')}
             />
-            <Button
-              aria-label={articlesT('searchClose')}
+            <XButton
+              ariaLabel={articlesT('searchClose')}
               className={mobileSearchCloseClass}
               onClick={() => setIsMobileSearchOpen(false)}
-              size="sm"
-              tone="white"
-              type="button"
-              variant="ghost"
-            >
-              ×
-            </Button>
+            />
           </div>
         </div>
       ) : null}

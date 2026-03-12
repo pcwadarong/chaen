@@ -1,11 +1,11 @@
 'use client';
 
-import React, { type ReactNode, useCallback, useEffect, useId, useRef } from 'react';
+import React, { type ReactNode } from 'react';
 import { css } from 'styled-system/css';
 
-import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { KebabIcon } from '@/shared/ui/icons/app-icons';
+import { Popover } from '@/shared/ui/popover/popover';
 
 type ActionPopoverRenderArgs = {
   closePopover: () => void;
@@ -35,72 +35,19 @@ export const ActionPopover = ({
   onOpenChange,
   panelLabel,
   triggerLabel,
-}: ActionPopoverProps) => {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const panelId = useId();
-
-  /**
-   * 외부 클릭이나 액션 실행 후 팝오버를 닫습니다.
-   */
-  const closePopover = useCallback(() => {
-    onOpenChange(false);
-  }, [onOpenChange]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    /**
-     * 팝오버 바깥을 누르면 메뉴를 닫습니다.
-     */
-    const handleDocumentPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        closePopover();
-      }
-    };
-
-    window.addEventListener('pointerdown', handleDocumentPointerDown);
-
-    return () => {
-      window.removeEventListener('pointerdown', handleDocumentPointerDown);
-    };
-  }, [closePopover, isOpen]);
-
-  useDialogFocusManagement({
-    containerRef: panelRef,
-    isEnabled: isOpen,
-    onEscape: closePopover,
-  });
-
-  return (
-    <div className={rootClass} ref={rootRef}>
-      <Button
-        aria-controls={isOpen ? panelId : undefined}
-        aria-expanded={isOpen}
-        aria-haspopup="dialog"
-        aria-label={triggerLabel}
-        className={triggerClass}
-        onClick={() => onOpenChange(!isOpen)}
-        type="button"
-        variant="ghost"
-      >
-        <KebabIcon aria-hidden color="muted" size="sm" />
-      </Button>
-      {isOpen ? (
-        <div
-          aria-label={panelLabel}
-          className={panelClass}
-          id={panelId}
-          ref={panelRef}
-          role="dialog"
-          tabIndex={-1}
-        >
-          {typeof children === 'function' ? children({ closePopover }) : children}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+}: ActionPopoverProps) => (
+  <Popover
+    isOpen={isOpen}
+    onOpenChange={onOpenChange}
+    panelClassName={panelClass}
+    panelLabel={panelLabel}
+    triggerAriaLabel={triggerLabel}
+    triggerClassName={triggerClass}
+    triggerContent={<KebabIcon aria-hidden color="muted" size="sm" />}
+  >
+    {children}
+  </Popover>
+);
 
 /**
  * 액션 팝오버와 액션 행에서 공통으로 사용하는 버튼입니다.
@@ -122,10 +69,6 @@ export const ActionMenuButton = ({
     {label}
   </Button>
 );
-
-const rootClass = css({
-  position: 'relative',
-});
 
 const triggerClass = css({
   border: '[0]',
