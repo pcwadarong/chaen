@@ -52,9 +52,10 @@ describe('ProjectFeed', () => {
       isLoadingMore: false,
       items: [
         {
-          created_at: '2026-03-08T00:00:00.000Z',
           description: '설명',
           id: 'project-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'project-1',
           thumbnail_url: null,
           title: '테스트 프로젝트',
         },
@@ -85,9 +86,10 @@ describe('ProjectFeed', () => {
     const useProjectFeed = await getUseProjectFeedMock();
     const items = [
       {
-        created_at: '2026-03-08T00:00:00.000Z',
         description: '설명',
         id: 'project-1',
+        publish_at: '2026-03-08T00:00:00.000Z',
+        slug: 'project-1',
         thumbnail_url: null,
         title: '테스트 프로젝트',
       },

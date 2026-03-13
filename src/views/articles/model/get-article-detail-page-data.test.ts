@@ -4,7 +4,7 @@ import { getResolvedArticle } from '@/entities/article/api/get-article';
 import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
 import { getArticleComments } from '@/entities/article-comment';
-import { serializeLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
+import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 
 import { getArticleDetailPageData } from './get-article-detail-page-data';
 
@@ -30,10 +30,10 @@ describe('getArticleDetailPageData', () => {
   });
 
   it('현재 아티클이 목록에 없으면 맨 앞에 보정한다', async () => {
-    const nextCursor = serializeLocaleAwareCreatedAtIdCursor({
-      createdAt: '2026-03-01T00:00:00.000Z',
+    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
       id: 'archive-1',
       locale: 'ko',
+      publishedAt: '2026-03-01T00:00:00.000Z',
     });
 
     vi.mocked(getResolvedArticle).mockResolvedValue({
@@ -45,6 +45,8 @@ describe('getArticleDetailPageData', () => {
         thumbnail_url: null,
         tags: [],
         created_at: '2026-03-02T00:00:00.000Z',
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'frontend',
         updated_at: null,
         view_count: 0,
       },
@@ -57,7 +59,8 @@ describe('getArticleDetailPageData', () => {
           id: 'archive-1',
           title: 'Archive',
           description: null,
-          created_at: '2026-03-01T00:00:00.000Z',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'archive-1',
         },
       ],
       nextCursor,
@@ -72,16 +75,16 @@ describe('getArticleDetailPageData', () => {
     });
 
     const result = await getArticleDetailPageData({
-      articleId: 'frontend',
+      articleSlug: 'frontend',
       locale: 'ko',
     });
 
     expect(result.archivePage.items[0]?.id).toBe('frontend');
     expect(result.archivePage.nextCursor).toBe(
-      serializeLocaleAwareCreatedAtIdCursor({
-        createdAt: '2026-03-02T00:00:00.000Z',
+      serializeLocaleAwarePublishedAtIdCursor({
         id: 'frontend',
         locale: 'ko',
+        publishedAt: '2026-03-02T00:00:00.000Z',
       }),
     );
     expect(result.item?.id).toBe('frontend');
@@ -115,17 +118,17 @@ describe('getArticleDetailPageData', () => {
 
     await expect(
       getArticleDetailPageData({
-        articleId: 'frontend',
+        articleSlug: 'frontend',
         locale: 'ko',
       }),
     ).rejects.toThrow('archive failed');
   });
 
   it('현재 아티클이 이미 목록에 있으면 cursor를 그대로 둔다', async () => {
-    const nextCursor = serializeLocaleAwareCreatedAtIdCursor({
-      createdAt: '2026-03-01T00:00:00.000Z',
+    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
       id: 'archive-1',
       locale: 'ko',
+      publishedAt: '2026-03-01T00:00:00.000Z',
     });
 
     vi.mocked(getResolvedArticle).mockResolvedValue({
@@ -137,6 +140,8 @@ describe('getArticleDetailPageData', () => {
         thumbnail_url: null,
         tags: [],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
+        slug: 'archive-1',
         updated_at: null,
         view_count: 0,
       },
@@ -148,7 +153,8 @@ describe('getArticleDetailPageData', () => {
         title: 'Related',
         description: 'related item',
         thumbnail_url: null,
-        created_at: '2026-02-25T00:00:00.000Z',
+        publish_at: '2026-02-25T00:00:00.000Z',
+        slug: 'archive-2',
       },
     ]);
     vi.mocked(getArticleDetailList).mockResolvedValue({
@@ -157,7 +163,8 @@ describe('getArticleDetailPageData', () => {
           id: 'archive-1',
           title: 'Archive',
           description: null,
-          created_at: '2026-03-01T00:00:00.000Z',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'archive-1',
         },
       ],
       nextCursor,
@@ -172,7 +179,7 @@ describe('getArticleDetailPageData', () => {
     });
 
     const result = await getArticleDetailPageData({
-      articleId: 'archive-1',
+      articleSlug: 'archive-1',
       locale: 'ko',
     });
 
@@ -191,6 +198,8 @@ describe('getArticleDetailPageData', () => {
         thumbnail_url: null,
         tags: [],
         created_at: '2026-03-02T00:00:00.000Z',
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'frontend',
         updated_at: null,
         view_count: 0,
       },
@@ -211,7 +220,7 @@ describe('getArticleDetailPageData', () => {
     });
 
     const result = await getArticleDetailPageData({
-      articleId: 'frontend',
+      articleSlug: 'frontend',
       locale: 'ko',
     });
 

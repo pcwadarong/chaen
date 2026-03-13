@@ -3,7 +3,16 @@ export type CreatedAtIdCursor = {
   id: string;
 };
 
+export type PublishedAtIdCursor = {
+  id: string;
+  publishedAt: string;
+};
+
 export type LocaleAwareCreatedAtIdCursor = CreatedAtIdCursor & {
+  locale: string;
+};
+
+export type LocaleAwarePublishedAtIdCursor = PublishedAtIdCursor & {
   locale: string;
 };
 
@@ -38,6 +47,27 @@ export const parseCreatedAtIdCursor = (cursor?: string | null): CreatedAtIdCurso
 };
 
 /**
+ * keyset cursor 문자열을 publish_at + id 조합으로 복원합니다.
+ */
+export const parsePublishedAtIdCursor = (cursor?: string | null): PublishedAtIdCursor | null => {
+  if (!cursor) return null;
+
+  try {
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf-8');
+    const parsed = JSON.parse(decoded) as Partial<PublishedAtIdCursor>;
+
+    if (typeof parsed.publishedAt !== 'string' || typeof parsed.id !== 'string') return null;
+
+    return {
+      id: parsed.id,
+      publishedAt: parsed.publishedAt,
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
  * keyset cursor 문자열을 created_at + id + locale 조합으로 복원합니다.
  */
 export const parseLocaleAwareCreatedAtIdCursor = (
@@ -61,6 +91,36 @@ export const parseLocaleAwareCreatedAtIdCursor = (
       createdAt: parsed.createdAt,
       id: parsed.id,
       locale: parsed.locale,
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * keyset cursor 문자열을 publish_at + id + locale 조합으로 복원합니다.
+ */
+export const parseLocaleAwarePublishedAtIdCursor = (
+  cursor?: string | null,
+): LocaleAwarePublishedAtIdCursor | null => {
+  if (!cursor) return null;
+
+  try {
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf-8');
+    const parsed = JSON.parse(decoded) as Partial<LocaleAwarePublishedAtIdCursor>;
+
+    if (
+      typeof parsed.publishedAt !== 'string' ||
+      typeof parsed.id !== 'string' ||
+      typeof parsed.locale !== 'string'
+    ) {
+      return null;
+    }
+
+    return {
+      id: parsed.id,
+      locale: parsed.locale,
+      publishedAt: parsed.publishedAt,
     };
   } catch {
     return null;
@@ -102,6 +162,37 @@ export const buildCreatedAtIdPage = <T extends CreatedAtIdCursor>({
 };
 
 /**
+ * publish_at + id 조합을 URL에 안전한 keyset cursor 문자열로 직렬화합니다.
+ */
+export const serializePublishedAtIdCursor = ({ id, publishedAt }: PublishedAtIdCursor): string =>
+  Buffer.from(JSON.stringify({ id, publishedAt }), 'utf-8').toString('base64url');
+
+/**
+ * 내림차순 publish_at + id 정렬 기준 다음 페이지 cursor를 계산합니다.
+ *
+ * Supabase 쿼리에서 `limit + 1`개를 조회한 뒤 마지막 1개를 hasMore 판별용으로 사용합니다.
+ */
+export const buildPublishedAtIdPage = <T extends PublishedAtIdCursor>({
+  limit,
+  rows,
+}: {
+  limit: number;
+  rows: T[];
+}): {
+  items: T[];
+  nextCursor: string | null;
+} => {
+  const hasMore = rows.length > limit;
+  const items = rows.slice(0, limit);
+  const lastItem = items.at(-1);
+
+  return {
+    items,
+    nextCursor: hasMore && lastItem ? serializePublishedAtIdCursor(lastItem) : null,
+  };
+};
+
+/**
  * created_at + id + locale 조합을 URL에 안전한 keyset cursor 문자열로 직렬화합니다.
  */
 export const serializeLocaleAwareCreatedAtIdCursor = ({
@@ -110,3 +201,13 @@ export const serializeLocaleAwareCreatedAtIdCursor = ({
   locale,
 }: LocaleAwareCreatedAtIdCursor): string =>
   Buffer.from(JSON.stringify({ createdAt, id, locale }), 'utf-8').toString('base64url');
+
+/**
+ * publish_at + id + locale 조합을 URL에 안전한 keyset cursor 문자열로 직렬화합니다.
+ */
+export const serializeLocaleAwarePublishedAtIdCursor = ({
+  id,
+  locale,
+  publishedAt,
+}: LocaleAwarePublishedAtIdCursor): string =>
+  Buffer.from(JSON.stringify({ id, locale, publishedAt }), 'utf-8').toString('base64url');

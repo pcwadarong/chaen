@@ -32,10 +32,12 @@ const renderServerHtml = async () => {
     isAdmin: true,
     item: {
       id: 'project-1',
+      slug: 'project-1-slug',
       title: 'Project 1',
       description: 'summary',
       content: '# hello',
       created_at: '2026-03-08T00:00:00.000Z',
+      publish_at: '2026-03-08T00:00:00.000Z',
       period_start: '2026-01-01',
       period_end: '2026-02-01',
       tags: ['react'],
@@ -64,7 +66,7 @@ describe('ProjectDetailPage', () => {
 
     expect(html).toContain('"@type":"CreativeWork"');
     expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.vercel.app/en/project/project-1');
+    expect(html).toContain('https://chaen.vercel.app/en/project/project-1-slug');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
     expect(html).toContain('/admin/projects/project-1/edit');

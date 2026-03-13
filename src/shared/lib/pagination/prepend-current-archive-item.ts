@@ -1,6 +1,7 @@
+import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
-  parseLocaleAwareCreatedAtIdCursor,
-  serializeLocaleAwareCreatedAtIdCursor,
+  parseLocaleAwarePublishedAtIdCursor,
+  serializeLocaleAwarePublishedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
 
 type ArchivePage<TItem> = {
@@ -9,9 +10,10 @@ type ArchivePage<TItem> = {
 };
 
 type ArchiveSummaryItem = {
-  created_at: string;
   description: string | null;
   id: string;
+  publish_at?: string | null;
+  slug?: string | null;
   title: string;
 };
 
@@ -32,9 +34,10 @@ export const prependCurrentArchiveItem = <
   const remainingItemCount = Math.max(archivePage.items.length - 1, 0);
   const nextItems = [
     {
-      created_at: currentItem.created_at,
       description: currentItem.description,
       id: currentItem.id,
+      publish_at: currentItem.publish_at,
+      slug: currentItem.slug,
       title: currentItem.title,
     } as TItem,
     ...archivePage.items.slice(0, remainingItemCount),
@@ -47,7 +50,7 @@ export const prependCurrentArchiveItem = <
     };
   }
 
-  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(archivePage.nextCursor);
+  const parsedCursor = parseLocaleAwarePublishedAtIdCursor(archivePage.nextCursor);
   const lastItem = nextItems.at(-1);
 
   return {
@@ -55,10 +58,10 @@ export const prependCurrentArchiveItem = <
     items: nextItems,
     nextCursor:
       parsedCursor && lastItem
-        ? serializeLocaleAwareCreatedAtIdCursor({
-            createdAt: lastItem.created_at,
+        ? serializeLocaleAwarePublishedAtIdCursor({
             id: lastItem.id,
             locale: parsedCursor.locale,
+            publishedAt: resolvePublicContentPublishedAt(lastItem),
           })
         : null,
   };

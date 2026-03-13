@@ -5,6 +5,10 @@ import { css } from 'styled-system/css';
 
 import type { ArticleListItem as ArticleListItemModel } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
@@ -22,14 +26,16 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
   const t = useTranslations('Articles');
   const thumbnailSrc = normalizeImageUrl(article.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
-  const publishedDate = formatYearMonthDay(article.created_at) ?? '-';
+  const publishedAt = resolvePublicContentPublishedAt(article);
+  const publishedDate = formatYearMonthDay(publishedAt) ?? '-';
+  const articlePathSegment = resolvePublicContentPathSegment(article);
 
   return (
     <Link
       aria-label={t('viewArticle', { title: article.title })}
       className={linkClass}
       data-article-list-item="true"
-      href={`/articles/${article.id}`}
+      href={`/articles/${articlePathSegment}`}
     >
       <article className={articleClass}>
         <div className={contentClass}>
@@ -37,7 +43,7 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
             <h2 className={titleClass}>{article.title}</h2>
             {article.description ? <p className={descriptionClass}>{article.description}</p> : null}
           </div>
-          <time className={dateClass} dateTime={article.created_at}>
+          <time className={dateClass} dateTime={publishedAt}>
             {publishedDate}
           </time>
         </div>

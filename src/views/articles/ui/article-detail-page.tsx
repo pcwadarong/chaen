@@ -16,6 +16,10 @@ import type { ArticleCommentPage } from '@/entities/article-comment/model/types'
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
 import { Button } from '@/shared/ui/button/button';
@@ -91,10 +95,15 @@ export const ArticleDetailPage = async ({
   const detailUi = await getTranslations('DetailUi');
   const navigationT = await getTranslations('Navigation');
   const tagLabels = await getArticleTagLabels(item, locale);
-  const publishedDate = item.created_at.slice(0, 10);
+  if (!item.publish_at) {
+    throw new Error(`[articles] 공개 아티클 publish_at이 없습니다. id=${item.id}`);
+  }
+  const articlePathSegment = resolvePublicContentPathSegment(item);
+  const publishedAt = resolvePublicContentPublishedAt(item);
+  const publishedDate = publishedAt.slice(0, 10);
   const articlePath = buildLocalizedPathname({
     locale,
-    pathname: `/articles/${item.id}`,
+    pathname: `/articles/${articlePathSegment}`,
   });
   const structuredData = [
     buildBreadcrumbJsonLd([
@@ -176,7 +185,7 @@ export const ArticleDetailPage = async ({
             loadingText={articlesT('loading')}
             locale={locale}
             retryText={articlesT('retry')}
-            selectedId={item.id}
+            selectedPathSegment={articlePathSegment}
           />
         }
         sidebarLabel={t('archiveLabel')}

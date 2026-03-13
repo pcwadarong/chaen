@@ -6,6 +6,7 @@ import React from 'react';
 import { getResolvedProject } from '@/entities/project/api/get-project';
 import type { AppLocale } from '@/i18n/routing';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
+import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
@@ -34,16 +35,17 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
 
   if (!item) return {};
 
+  const projectPathSegment = resolvePublicContentPathSegment(item);
   const canonicalLocale = resolveCanonicalLocale({
     requestedLocale: locale as AppLocale,
     resolvedLocale,
   });
   const projectPath = buildLocalizedPathname({
     locale: canonicalLocale,
-    pathname: `/project/${id}`,
+    pathname: `/project/${projectPathSegment}`,
   });
   const ogImageUrl = buildOgImageUrl({
-    id,
+    id: projectPathSegment,
     type: 'project',
   });
 
@@ -55,7 +57,7 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
       pathnameByLocale: buildPathnameByLocale(candidateLocale =>
         buildLocalizedPathname({
           locale: candidateLocale,
-          pathname: `/project/${id}`,
+          pathname: `/project/${projectPathSegment}`,
         }),
       ),
     }),
@@ -83,7 +85,7 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const [{ archivePage, item }, authState] = await Promise.all([
     getProjectDetailPageData({
       locale,
-      projectId: id,
+      projectSlug: id,
     }),
     getServerAuthState(),
   ]);

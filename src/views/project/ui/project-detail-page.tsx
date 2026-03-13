@@ -7,6 +7,7 @@ import type { Project, ProjectArchivePage } from '@/entities/project/model/types
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
+import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
@@ -47,9 +48,10 @@ export const ProjectDetailPage = async ({
   }
 
   const tagLabels = (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
+  const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({
     locale,
-    pathname: `/project/${item.id}`,
+    pathname: `/project/${projectPathSegment}`,
   });
   const structuredData = [
     buildBreadcrumbJsonLd([
@@ -115,7 +117,7 @@ export const ProjectDetailPage = async ({
             loadingText={projectT('loading')}
             locale={locale}
             retryText={projectT('retry')}
-            selectedId={item.id}
+            selectedPathSegment={projectPathSegment}
           />
         }
         sidebarLabel={t('archiveLabel')}

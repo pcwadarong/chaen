@@ -1,6 +1,11 @@
 import { useLocale } from 'next-intl';
+import React from 'react';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { ContentCard } from '@/shared/ui/content-card/content-card';
@@ -15,13 +20,13 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   const locale = useLocale();
   const thumbnailSrc = normalizeImageUrl(article.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
-  const createdYearText = formatYear(article.created_at, locale) ?? '-';
+  const createdYearText = formatYear(resolvePublicContentPublishedAt(article), locale) ?? '-';
 
   return (
     <ContentCard
       ariaLabel={`${article.title} 상세 보기`}
       description={article.description}
-      href={`/articles/${article.id}`}
+      href={`/articles/${resolvePublicContentPathSegment(article)}`}
       metaItems={[createdYearText]}
       thumbnailAlt={`${article.title} thumbnail`}
       thumbnailSrc={previewThumbnailSrc}

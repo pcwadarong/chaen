@@ -1,6 +1,6 @@
 type PublishedContentCursor = {
-  createdAt: string;
   id: string;
+  publishedAt: string;
 };
 
 /**
@@ -16,14 +16,14 @@ export const buildReferencedPublicContentFilter = ({
   cursor?: PublishedContentCursor | null;
   nowIsoString: string;
 }) => {
-  const publishWindowCondition = `or(publish_at.is.null,publish_at.lte.${nowIsoString})`;
+  const publishWindowCondition = `publish_at.lte.${nowIsoString}`;
 
   if (!cursor) {
-    return 'publish_at.is.null,publish_at.lte.' + nowIsoString;
+    return publishWindowCondition;
   }
 
   return [
-    `and(${publishWindowCondition},created_at.lt.${cursor.createdAt})`,
-    `and(${publishWindowCondition},created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
+    `and(${publishWindowCondition},publish_at.lt.${cursor.publishedAt})`,
+    `and(${publishWindowCondition},publish_at.eq.${cursor.publishedAt},id.lt.${cursor.id})`,
   ].join(',');
 };

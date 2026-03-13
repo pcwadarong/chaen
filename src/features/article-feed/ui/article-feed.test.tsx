@@ -52,9 +52,10 @@ describe('ArticleFeed', () => {
       isLoadingMore: false,
       items: [
         {
-          created_at: '2026-03-08T00:00:00.000Z',
           description: '설명',
           id: 'article-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'article-1',
           thumbnail_url: null,
           title: '테스트 아티클',
         },
@@ -87,9 +88,10 @@ describe('ArticleFeed', () => {
     const useArticleFeed = await getUseArticleFeedMock();
     const items = [
       {
-        created_at: '2026-03-08T00:00:00.000Z',
         description: '설명',
         id: 'article-1',
+        publish_at: '2026-03-08T00:00:00.000Z',
+        slug: 'article-1',
         thumbnail_url: null,
         title: '테스트 아티클',
       },

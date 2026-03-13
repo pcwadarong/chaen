@@ -2,10 +2,11 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedEntityIdsByTagId, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
+import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
-  buildCreatedAtIdPage,
-  parseCreatedAtIdCursor,
+  buildPublishedAtIdPage,
   parseKeysetLimit,
+  parsePublishedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -44,8 +45,8 @@ export type ResolvedArticleListPage = {
 };
 
 type ArticleSearchCursor = {
-  createdAt: string;
   id: string;
+  publishedAt: string;
   rank: number;
 };
 
@@ -67,13 +68,13 @@ const normalizeSearchQuery = (query?: string | null) => query?.trim() ?? '';
 const normalizeArticleTag = (tag?: string | null) => (tag?.trim() ? tag.trim().toLowerCase() : '');
 
 /**
- * 검색 결과용 rank + created_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
+ * 검색 결과용 rank + publish_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
  */
-const serializeArticleSearchCursor = ({ createdAt, id, rank }: ArticleSearchCursor): string =>
-  Buffer.from(JSON.stringify({ createdAt, id, rank }), 'utf-8').toString('base64url');
+const serializeArticleSearchCursor = ({ id, publishedAt, rank }: ArticleSearchCursor): string =>
+  Buffer.from(JSON.stringify({ id, publishedAt, rank }), 'utf-8').toString('base64url');
 
 /**
- * 검색 결과용 keyset cursor를 rank + created_at + id 조합으로 복원합니다.
+ * 검색 결과용 keyset cursor를 rank + publish_at + id 조합으로 복원합니다.
  */
 const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor | null => {
   if (!cursor) return null;
@@ -83,16 +84,16 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
     const parsed = JSON.parse(decoded) as Partial<ArticleSearchCursor>;
 
     if (
-      typeof parsed.createdAt !== 'string' ||
       typeof parsed.id !== 'string' ||
+      typeof parsed.publishedAt !== 'string' ||
       typeof parsed.rank !== 'number'
     ) {
       return null;
     }
 
     return {
-      createdAt: parsed.createdAt,
       id: parsed.id,
+      publishedAt: parsed.publishedAt,
       rank: parsed.rank,
     };
   } catch {
@@ -101,21 +102,19 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
 };
 
 /**
- * created_at + id keyset 페이지 결과를 아티클 목록 응답 shape로 변환합니다.
+ * publish_at + id keyset 페이지 결과를 아티클 목록 응답 shape로 변환합니다.
  */
 const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticleListPage => {
-  const page = buildCreatedAtIdPage({
+  const page = buildPublishedAtIdPage({
     limit: pageSize,
     rows: rows.map(row => ({
       ...row,
-      createdAt: row.created_at,
+      publishedAt: resolvePublicContentPublishedAt(row),
     })),
   });
 
   return {
-    items: dedupeById(
-      page.items.map(({ createdAt: _createdAt, ...item }) => item as ArticleListItem),
-    ),
+    items: dedupeById(page.items.map(({ publishedAt: _publishedAt, ...item }) => item)),
     nextCursor: page.nextCursor,
     totalCount: null,
   };
@@ -137,7 +136,7 @@ const fetchArticlesByLocaleFromShadow = async (
     };
   }
 
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  const parsedCursor = parsePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
   const translationsQuery = supabase
     .from('article_translations')
@@ -145,11 +144,17 @@ const fetchArticlesByLocaleFromShadow = async (
       'article_id,title,description,articles!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
     )
     .eq('locale', locale)
+    .not('articles.publish_at', 'is', null)
+    .not('articles.slug', 'is', null)
     .eq('articles.visibility', 'public')
     .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
       referencedTable: 'articles',
     })
-    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('publish_at', {
+      ascending: false,
+      nullsFirst: false,
+      referencedTable: 'articles',
+    })
     .order('article_id', { ascending: false });
 
   const { data: translationRows, error: translationsError } = await translationsQuery.limit(
@@ -215,7 +220,7 @@ const fetchArticlesByTagAndLocale = async (
 
   if (articleIdsByTag.data.length === 0) return { items: [], nextCursor: null, totalCount: null };
 
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  const parsedCursor = parsePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
   const translationsQuery = supabase
     .from('article_translations')
@@ -224,11 +229,17 @@ const fetchArticlesByTagAndLocale = async (
     )
     .eq('locale', locale)
     .in('article_id', articleIdsByTag.data)
+    .not('articles.publish_at', 'is', null)
+    .not('articles.slug', 'is', null)
     .eq('articles.visibility', 'public')
     .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
       referencedTable: 'articles',
     })
-    .order('created_at', { ascending: false, referencedTable: 'articles' })
+    .order('publish_at', {
+      ascending: false,
+      nullsFirst: false,
+      referencedTable: 'articles',
+    })
     .order('article_id', { ascending: false });
 
   const { data: translationRows, error: translationsError } = await translationsQuery.limit(
@@ -249,7 +260,7 @@ const fetchArticlesByTagAndLocale = async (
 };
 
 /**
- * RPC 검색 결과를 rank + created_at + id keyset 페이지 형태로 변환합니다.
+ * RPC 검색 결과를 rank + publish_at + id keyset 페이지 형태로 변환합니다.
  *
  * RPC는 각 행마다 동일한 `total_count`를 포함하므로 첫 행의 메타데이터를 사용합니다.
  */
@@ -264,8 +275,8 @@ const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): Artic
     nextCursor:
       hasMore && lastItem
         ? serializeArticleSearchCursor({
-            createdAt: lastItem.created_at,
             id: lastItem.id,
+            publishedAt: resolvePublicContentPublishedAt(lastItem),
             rank: lastItem.search_rank,
           })
         : null,
@@ -287,8 +298,8 @@ const fetchSearchArticles = async (
 
   const parsedCursor = parseArticleSearchCursor(cursor);
   const { data, error } = await supabase.rpc('search_article_translations', {
-    cursor_created_at: parsedCursor?.createdAt ?? null,
     cursor_id: parsedCursor?.id ?? null,
+    cursor_publish_at: parsedCursor?.publishedAt ?? null,
     cursor_rank: parsedCursor?.rank ?? null,
     page_limit: pageSize,
     search_query: query,
@@ -316,7 +327,7 @@ const readCachedArticles = async (input: {
 
   const parsedCursor = input.normalizedQuery
     ? parseArticleSearchCursor(input.cursor)
-    : parseCreatedAtIdCursor(input.cursor);
+    : parsePublishedAtIdCursor(input.cursor);
 
   if (input.normalizedQuery) {
     return fetchSearchArticles(
@@ -444,8 +455,8 @@ export const getResolvedArticlesFirstPage = async ({
 /**
  * 아티클 목록을 keyset cursor 기반 페이지 단위로 조회합니다.
  *
- * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
- * - 검색 목록은 `rank + created_at + id` 기준 keyset pagination을 사용합니다.
+ * - 비검색 목록은 `publish_at + id` 기준 keyset pagination을 사용합니다.
+ * - 검색 목록은 `rank + publish_at + id` 기준 keyset pagination을 사용합니다.
  * - locale 우선 조회 후, 비검색 첫 페이지에서만 번역 fallback으로 `ko`를 한 번 더 조회합니다.
  * - 반환 shape는 검색 여부와 상관없이 `items/nextCursor/totalCount`로 고정합니다.
  */

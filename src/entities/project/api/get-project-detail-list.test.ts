@@ -1,7 +1,7 @@
 import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
-import { parseLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
+import { parseLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -33,6 +33,7 @@ describe('getProjectDetailList', () => {
   it('content schema 기준으로 최신순 프로젝트 요약 목록을 반환한다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -41,6 +42,8 @@ describe('getProjectDetailList', () => {
             description: 'detail',
             projects: {
               created_at: '2026-03-02T00:00:00.000Z',
+              publish_at: '2026-03-02T00:00:00.000Z',
+              slug: 'funda',
             },
           },
         ],
@@ -65,21 +68,22 @@ describe('getProjectDetailList', () => {
           id: 'funda',
           title: 'FUNDA',
           description: 'detail',
-          created_at: '2026-03-02T00:00:00.000Z',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'funda',
         },
       ],
       nextCursor: null,
     });
     expect(translationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(translationsQuery.not).toHaveBeenCalledWith('projects.publish_at', 'is', null);
+    expect(translationsQuery.not).toHaveBeenCalledWith('projects.slug', 'is', null);
     expect(translationsQuery.eq).toHaveBeenCalledWith('projects.visibility', 'public');
-    expect(translationsQuery.or).toHaveBeenCalledWith(
-      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
-      {
-        referencedTable: 'projects',
-      },
-    );
-    expect(translationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
+    expect(translationsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z', {
+      referencedTable: 'projects',
+    });
+    expect(translationsQuery.order).toHaveBeenNthCalledWith(1, 'publish_at', {
       ascending: false,
+      nullsFirst: false,
       referencedTable: 'projects',
     });
     expect(translationsQuery.order).toHaveBeenNthCalledWith(2, 'project_id', {
@@ -91,6 +95,7 @@ describe('getProjectDetailList', () => {
   it('limit보다 많은 결과가 있으면 locale을 포함한 다음 cursor를 반환한다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -99,6 +104,8 @@ describe('getProjectDetailList', () => {
             description: 'detail',
             projects: {
               created_at: '2026-03-02T00:00:00.000Z',
+              publish_at: '2026-03-02T00:00:00.000Z',
+              slug: 'project-2',
             },
           },
           {
@@ -107,6 +114,8 @@ describe('getProjectDetailList', () => {
             description: 'detail',
             projects: {
               created_at: '2026-03-01T00:00:00.000Z',
+              publish_at: '2026-03-01T00:00:00.000Z',
+              slug: 'project-1',
             },
           },
         ],
@@ -126,16 +135,17 @@ describe('getProjectDetailList', () => {
     const result = await getProjectDetailList({ locale: 'fr', limit: 1 });
 
     expect(result.items).toHaveLength(1);
-    expect(parseLocaleAwareCreatedAtIdCursor(result.nextCursor)).toEqual({
-      createdAt: '2026-03-02T00:00:00.000Z',
+    expect(parseLocaleAwarePublishedAtIdCursor(result.nextCursor)).toEqual({
       id: 'project-2',
       locale: 'fr',
+      publishedAt: '2026-03-02T00:00:00.000Z',
     });
   });
 
   it('최근 base row에 번역이 없어도 locale 번역이 있는 프로젝트 아카이브 항목을 반환한다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -144,6 +154,8 @@ describe('getProjectDetailList', () => {
             description: 'detail fr',
             projects: {
               created_at: '2026-03-01T00:00:00.000Z',
+              publish_at: '2026-03-01T00:00:00.000Z',
+              slug: 'older-fr-project',
             },
           },
         ],
@@ -168,7 +180,8 @@ describe('getProjectDetailList', () => {
           id: 'older-fr-project',
           title: 'Projet FR',
           description: 'detail fr',
-          created_at: '2026-03-01T00:00:00.000Z',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'older-fr-project',
         },
       ],
       nextCursor: null,
@@ -178,6 +191,7 @@ describe('getProjectDetailList', () => {
   it('요청 locale과 ko가 비어 있으면 다음 fallback locale 아카이브 항목을 반환한다', async () => {
     const emptyTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -188,6 +202,7 @@ describe('getProjectDetailList', () => {
     };
     const emptyKoTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -198,6 +213,7 @@ describe('getProjectDetailList', () => {
     };
     const fallbackTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -206,6 +222,8 @@ describe('getProjectDetailList', () => {
             description: 'detail en',
             projects: {
               created_at: '2026-03-03T00:00:00.000Z',
+              publish_at: '2026-03-03T00:00:00.000Z',
+              slug: 'english-project',
             },
           },
         ],
@@ -234,7 +252,8 @@ describe('getProjectDetailList', () => {
           id: 'english-project',
           title: 'English Project',
           description: 'detail en',
-          created_at: '2026-03-03T00:00:00.000Z',
+          publish_at: '2026-03-03T00:00:00.000Z',
+          slug: 'english-project',
         },
       ],
       nextCursor: null,
@@ -247,6 +266,7 @@ describe('getProjectDetailList', () => {
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -273,6 +293,7 @@ describe('getProjectDetailList', () => {
   it('권한 오류는 schema missing으로 오분류하지 않고 원래 조회 실패로 전파한다', async () => {
     const translationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {

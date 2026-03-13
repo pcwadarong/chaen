@@ -26,6 +26,8 @@ type TestArchiveItem = {
   created_at: string;
   description: string | null;
   id: string;
+  publish_at: string;
+  slug: string;
   title: string;
 };
 
@@ -77,6 +79,8 @@ describe('DetailArchiveFeed', () => {
           created_at: '2026-03-08T00:00:00.000Z',
           description: '요약',
           id: 'article-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'article-1-slug',
           title: '첫 글',
         },
       ] satisfies TestArchiveItem[],
@@ -94,13 +98,13 @@ describe('DetailArchiveFeed', () => {
         loadingText="불러오는 중"
         locale="ko"
         retryText="다시 시도"
-        selectedId="article-1"
+        selectedPathSegment="article-1-slug"
       />,
     );
 
     expect(screen.getByRole('link', { name: '2026년 첫 글 요약' })).toHaveAttribute(
       'href',
-      '/articles/article-1',
+      '/articles/article-1-slug',
     );
     expect(observerOptions?.root).toBe(container.querySelector('[data-scroll-region="true"]'));
 
@@ -124,6 +128,8 @@ describe('DetailArchiveFeed', () => {
           created_at: '2026-03-08T00:00:00.000Z',
           description: '요약',
           id: 'article-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'article-1-slug',
           title: '첫 글',
         },
       ] satisfies TestArchiveItem[],
@@ -141,7 +147,7 @@ describe('DetailArchiveFeed', () => {
         loadingText="불러오는 중"
         locale="ko"
         retryText="다시 시도"
-        selectedId="article-1"
+        selectedPathSegment="article-1-slug"
       />,
     );
 

@@ -40,7 +40,7 @@ const ArticleFeedContentBase = ({ emptyText, items }: ArticleFeedContentProps) =
   items.length > 0 ? (
     <ol className={listClass}>
       {items.map(article => (
-        <li className={itemClass} key={`${article.id}-${article.created_at}`}>
+        <li className={itemClass} key={article.id}>
           <ArticleWideListItem article={article} />
         </li>
       ))}
@@ -173,10 +173,6 @@ const itemClass = css({
 });
 
 const emptyClass = css({
-  borderRadius: 'md',
-  border: '[1px solid var(--colors-border)]',
-  px: '5',
-  py: '4',
   color: 'muted',
 });
 

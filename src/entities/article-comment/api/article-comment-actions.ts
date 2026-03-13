@@ -27,6 +27,7 @@ import {
   getActionTranslations,
   resolveActionLocale,
 } from '@/shared/lib/i18n/get-action-translations';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 import { getArticleComments } from './get-article-comments';
@@ -163,9 +164,30 @@ type ArticleCommentDeleteActionData = {
 };
 
 /**
+ * 댓글 캐시 무효화에 필요한 공개 article slug를 조회합니다.
+ */
+const getArticleSlugById = async (articleId: string): Promise<string | null> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('articles')
+    .select('slug')
+    .eq('id', articleId)
+    .not('slug', 'is', null)
+    .maybeSingle<{ slug: string | null }>();
+
+  if (error) {
+    throw new Error(`[article-comments] article slug 조회 실패: ${error.message}`);
+  }
+
+  return data?.slug?.trim() || null;
+};
+
+/**
  * 댓글 태그와 locale별 상세 페이지 HTML 캐시를 함께 갱신합니다.
  */
-const revalidateArticleCommentCaches = (articleId: string, commentId?: string) => {
+const revalidateArticleCommentCaches = async (articleId: string, commentId?: string) => {
   revalidateTag(ARTICLE_COMMENTS_CACHE_TAG);
   revalidateTag(createArticleCommentsCacheTag(articleId));
 
@@ -173,8 +195,11 @@ const revalidateArticleCommentCaches = (articleId: string, commentId?: string) =
     revalidateTag(createArticleCommentCacheTag(commentId));
   }
 
+  const articleSlug = await getArticleSlugById(articleId);
+  if (!articleSlug) return;
+
   locales.forEach(locale => {
-    revalidatePath(`/${locale}/articles/${articleId}`);
+    revalidatePath(`/${locale}/articles/${articleSlug}`);
   });
 };
 
@@ -210,7 +235,7 @@ export const submitArticleComment = async (
       replyToCommentId: validation.data.replyToCommentId,
     });
 
-    revalidateArticleCommentCaches(validation.data.articleId, comment.id);
+    await revalidateArticleCommentCaches(validation.data.articleId, comment.id);
 
     return createActionSuccess({ comment });
   } catch (error) {
@@ -285,7 +310,7 @@ export const updateArticleCommentAction = async (input: {
 
     const comment = await updateArticleComment(validation.data);
 
-    revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);
+    await revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);
 
     return createActionSuccess(comment);
   } catch (error) {
@@ -321,7 +346,7 @@ export const deleteArticleCommentAction = async (input: {
 
     const deleted = await deleteArticleComment(validation.data);
 
-    revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);
+    await revalidateArticleCommentCaches(validation.data.articleId, validation.data.commentId);
 
     return createActionSuccess({ deletedId: deleted.id });
   } catch (error) {

@@ -48,11 +48,13 @@ export const getEmbeddedProjectBaseRow = (
 export const mapProjectListItem = (row: ProjectTranslationRow): ProjectListItem | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
+  if (!projectBase.publish_at || !projectBase.slug) return null;
 
   return {
-    created_at: projectBase.created_at,
     description: row.description,
     id: row.project_id,
+    publish_at: projectBase.publish_at,
+    slug: projectBase.slug,
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
   };
@@ -81,11 +83,13 @@ export const mapProjectDetailListItem = (
 ): ProjectDetailListItem | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
+  if (!projectBase.publish_at || !projectBase.slug) return null;
 
   return {
-    created_at: projectBase.created_at,
     description: row.description,
     id: row.project_id,
+    publish_at: projectBase.publish_at,
+    slug: projectBase.slug,
     title: row.title,
   };
 };
@@ -112,6 +116,7 @@ export const mapProjectDetailListItems = (rows: ProjectTranslationRow[]): Projec
 export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
+  if (!projectBase.publish_at || !projectBase.slug) return null;
 
   return {
     allow_comments: projectBase.allow_comments,

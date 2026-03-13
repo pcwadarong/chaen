@@ -2,9 +2,10 @@ import { vi } from 'vitest';
 
 import sitemap from './sitemap';
 
-const { fromMock, inMock, selectMock, supabaseClientMock } = vi.hoisted(() => ({
+const { fromMock, inMock, notMock, selectMock, supabaseClientMock } = vi.hoisted(() => ({
   fromMock: vi.fn(),
   inMock: vi.fn(),
+  notMock: vi.fn(),
   selectMock: vi.fn(),
   supabaseClientMock: {
     from: vi.fn(),
@@ -22,35 +23,51 @@ describe('sitemap', () => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.dev';
 
     inMock.mockReset();
+    notMock.mockReset();
     selectMock.mockReset();
     fromMock.mockReset();
     supabaseClientMock.from.mockReset();
 
-    inMock
+    const articleQuery = {
+      not: notMock,
+    };
+    const projectQuery = {
+      not: notMock,
+    };
+
+    notMock
+      .mockImplementationOnce(() => articleQuery)
       .mockResolvedValueOnce({
         data: [
           {
             article_id: 'article-1',
             locale: 'ko',
             articles: {
+              publish_at: '2026-03-10T00:00:00.000Z',
+              slug: 'article-1-slug',
               updated_at: '2026-03-10T00:00:00.000Z',
             },
           },
         ],
         error: null,
       })
+      .mockImplementationOnce(() => projectQuery)
       .mockResolvedValueOnce({
         data: [
           {
             locale: 'en',
             project_id: 'project-1',
             projects: {
-              created_at: '2026-03-09T00:00:00.000Z',
+              publish_at: '2026-03-09T00:00:00.000Z',
+              slug: 'project-1-slug',
+              updated_at: '2026-03-09T00:00:00.000Z',
             },
           },
         ],
         error: null,
       });
+
+    inMock.mockImplementationOnce(() => articleQuery).mockImplementationOnce(() => projectQuery);
 
     selectMock.mockReturnValue({
       in: inMock,
@@ -86,11 +103,11 @@ describe('sitemap', () => {
         }),
         expect.objectContaining({
           priority: 0.8,
-          url: 'https://chaen.dev/ko/articles/article-1',
+          url: 'https://chaen.dev/ko/articles/article-1-slug',
         }),
         expect.objectContaining({
           priority: 0.8,
-          url: 'https://chaen.dev/en/project/project-1',
+          url: 'https://chaen.dev/en/project/project-1-slug',
         }),
       ]),
     );

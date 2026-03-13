@@ -4,6 +4,10 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ActionResult } from '@/shared/lib/action/action-result';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
@@ -16,9 +20,10 @@ import {
 } from './list';
 
 type DetailArchiveRecord = {
-  created_at: string;
   description: string | null;
   id: string;
+  publish_at?: string | null;
+  slug?: string | null;
   title: string;
 };
 
@@ -41,7 +46,7 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   loadingText: string;
   locale: string;
   retryText: string;
-  selectedId: string;
+  selectedPathSegment: string;
 };
 
 const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
@@ -59,7 +64,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   loadingText,
   locale,
   retryText,
-  selectedId,
+  selectedPathSegment,
 }: DetailArchiveFeedProps<TItem>) => {
   const loadPage = useCallback(
     async ({
@@ -135,7 +140,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     hrefBasePath,
     items,
     locale,
-    selectedId,
+    selectedPathSegment,
   });
 
   return (
@@ -179,7 +184,7 @@ type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
   hrefBasePath: string;
   items: TItem[];
   locale: string;
-  selectedId: string;
+  selectedPathSegment: string;
 };
 
 /**
@@ -189,14 +194,14 @@ const buildDetailArchiveLinkItems = <TItem extends DetailArchiveRecord>({
   hrefBasePath,
   items,
   locale,
-  selectedId,
+  selectedPathSegment,
 }: BuildDetailArchiveLinkItemsInput<TItem>): DetailArchiveLinkItem[] =>
   items.map(item => ({
     description: item.description,
-    href: `${hrefBasePath}/${item.id}`,
-    isActive: item.id === selectedId,
+    href: `${hrefBasePath}/${resolvePublicContentPathSegment(item)}`,
+    isActive: resolvePublicContentPathSegment(item) === selectedPathSegment,
     title: item.title,
-    yearText: formatYear(item.created_at, locale) ?? '-',
+    yearText: formatYear(resolvePublicContentPublishedAt(item), locale) ?? '-',
   }));
 
 const sidebarStateTextClass = css({

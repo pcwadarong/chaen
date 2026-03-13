@@ -24,11 +24,15 @@ type RelatedArticleTranslationRow = {
     | {
         created_at: string;
         id: string;
+        publish_at: string | null;
+        slug: string | null;
         thumbnail_url: string | null;
       }
     | {
         created_at: string;
         id: string;
+        publish_at: string | null;
+        slug: string | null;
         thumbnail_url: string | null;
       }[]
     | null;
@@ -69,11 +73,13 @@ const pickBestTranslation = (
 const toArticleListItem = (row: RelatedArticleTranslationRow): ArticleListItem | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
+  if (!articleBase.publish_at || !articleBase.slug) return null;
 
   return {
-    created_at: articleBase.created_at,
     description: row.description,
     id: row.article_id,
+    publish_at: articleBase.publish_at,
+    slug: articleBase.slug,
     thumbnail_url: articleBase.thumbnail_url,
     title: row.title,
   };
@@ -163,9 +169,13 @@ const fetchRelatedArticlesByIds = async ({
   const targetArticleIds = articleIds.slice(0, Math.max(limit * 4, limit));
   const { data, error } = await supabase
     .from('article_translations')
-    .select('article_id,locale,title,description,articles!inner(id,created_at,thumbnail_url)')
+    .select(
+      'article_id,locale,title,description,articles!inner(id,created_at,publish_at,slug,thumbnail_url)',
+    )
     .in('article_id', targetArticleIds)
-    .in('locale', localeFallbackChain);
+    .in('locale', localeFallbackChain)
+    .not('articles.publish_at', 'is', null)
+    .not('articles.slug', 'is', null);
 
   if (error) {
     const normalizedMessage = error.message.toLowerCase();
@@ -219,10 +229,14 @@ const fetchRecentArticles = async ({
   for (const candidateLocale of localeFallbackChain) {
     const { data, error } = await supabase
       .from('article_translations')
-      .select('article_id,locale,title,description,articles!inner(id,created_at,thumbnail_url)')
+      .select(
+        'article_id,locale,title,description,articles!inner(id,created_at,publish_at,slug,thumbnail_url)',
+      )
       .eq('locale', candidateLocale)
       .neq('article_id', articleId)
-      .order('created_at', { ascending: false, referencedTable: 'articles' })
+      .not('articles.publish_at', 'is', null)
+      .not('articles.slug', 'is', null)
+      .order('publish_at', { ascending: false, referencedTable: 'articles' })
       .limit(limit);
 
     if (error) {

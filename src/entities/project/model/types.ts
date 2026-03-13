@@ -20,7 +20,10 @@ export type Project = {
 /**
  * 프로젝트 상세 좌측 아카이브 목록에 필요한 최소 요약 타입입니다.
  */
-export type ProjectDetailListItem = Pick<Project, 'id' | 'title' | 'description' | 'created_at'>;
+export type ProjectDetailListItem = Pick<
+  Project,
+  'id' | 'title' | 'description' | 'publish_at' | 'slug'
+>;
 
 /**
  * 프로젝트 상세 좌측 아카이브 목록의 cursor 기반 페이지 응답입니다.
@@ -35,7 +38,7 @@ export type ProjectArchivePage = {
  */
 export type ProjectListItem = Pick<
   Project,
-  'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'
+  'id' | 'title' | 'description' | 'thumbnail_url' | 'publish_at' | 'slug'
 >;
 
 /**

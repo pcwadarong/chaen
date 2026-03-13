@@ -19,8 +19,8 @@ vi.mock('@/widgets/article-comments', () => ({
 }));
 
 vi.mock('@/entities/article/ui/article-list-item', () => ({
-  ArticleListItem: ({ article }: { article: { id: string; title: string } }) => (
-    <a href={`/articles/${article.id}`}>{article.title}</a>
+  ArticleListItem: ({ article }: { article: { slug?: string | null; title: string } }) => (
+    <a href={`/articles/${article.slug}`}>{article.title}</a>
   ),
 }));
 
@@ -61,10 +61,12 @@ const renderServerHtml = async () => {
     isAdmin: true,
     item: {
       id: 'article-1',
+      slug: 'article-1-slug',
       title: 'Article 1',
       description: 'summary',
       content: '# hello',
       created_at: '2026-03-08T00:00:00.000Z',
+      publish_at: '2026-03-08T00:00:00.000Z',
       tags: ['react'],
       thumbnail_url: null,
       updated_at: null,
@@ -74,10 +76,11 @@ const renderServerHtml = async () => {
     relatedArticles: [
       {
         id: 'article-2',
+        slug: 'article-2-slug',
         title: 'Article 2',
         description: 'related summary',
         thumbnail_url: null,
-        created_at: '2026-03-07T00:00:00.000Z',
+        publish_at: '2026-03-07T00:00:00.000Z',
       },
     ],
   });
@@ -108,7 +111,7 @@ describe('ArticleDetailPage', () => {
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('"@type":"BlogPosting"');
     expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.vercel.app/ko/articles/article-1');
+    expect(html).toContain('https://chaen.vercel.app/ko/articles/article-1-slug');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');

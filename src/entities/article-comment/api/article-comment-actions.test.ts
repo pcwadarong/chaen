@@ -21,6 +21,10 @@ import {
   updateArticleComment,
 } from './mutate-article-comment';
 
+const { createOptionalPublicServerSupabaseClient } = vi.hoisted(() => ({
+  createOptionalPublicServerSupabaseClient: vi.fn(),
+}));
+
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
@@ -28,6 +32,10 @@ vi.mock('next/cache', () => ({
 
 vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
   getServerAuthState: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/supabase/public-server', () => ({
+  createOptionalPublicServerSupabaseClient,
 }));
 
 vi.mock('@/shared/lib/i18n/get-action-translations', () => ({
@@ -71,6 +79,19 @@ describe('article-comment-actions', () => {
       userEmail: null,
       userId: null,
     });
+    createOptionalPublicServerSupabaseClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        not: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: {
+            slug: 'article-1-slug',
+          },
+          error: null,
+        }),
+      }),
+    });
   });
 
   it('댓글 작성 action은 formData를 검증하고 생성 결과를 반환한다', async () => {
@@ -111,7 +132,7 @@ describe('article-comment-actions', () => {
     expect(revalidateTag).toHaveBeenCalledWith('article-comments');
     expect(revalidateTag).toHaveBeenCalledWith('article-comments:article-1');
     expect(revalidateTag).toHaveBeenCalledWith('article-comment:comment-2');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/article-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/article-1-slug');
     expect(result.ok).toBe(true);
   });
 

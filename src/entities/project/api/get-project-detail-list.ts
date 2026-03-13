@@ -1,14 +1,15 @@
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 
+import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
   buildContentLocaleFallbackChain,
   resolveFirstAvailableLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
 import {
-  buildCreatedAtIdPage,
+  buildPublishedAtIdPage,
   parseKeysetLimit,
-  parseLocaleAwareCreatedAtIdCursor,
-  serializeLocaleAwareCreatedAtIdCursor,
+  parseLocaleAwarePublishedAtIdCursor,
+  serializeLocaleAwarePublishedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -17,7 +18,7 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 import 'server-only';
 
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
-import type { ProjectArchivePage, ProjectDetailListItem } from '../model/types';
+import type { ProjectArchivePage } from '../model/types';
 
 import { mapProjectDetailListItems, type ProjectTranslationRow } from './map-project-translation';
 
@@ -51,17 +52,23 @@ const fetchProjectDetailListFromContentSchema = async (
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: { items: [], nextCursor: null }, schemaMissing: false };
 
-  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(cursor);
+  const parsedCursor = parseLocaleAwarePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
   const translationsQuery = supabase
     .from('project_translations')
     .select('project_id,title,description,projects!inner(created_at,slug,visibility,publish_at)')
     .eq('locale', locale)
+    .not('projects.publish_at', 'is', null)
+    .not('projects.slug', 'is', null)
     .eq('projects.visibility', 'public')
     .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
       referencedTable: 'projects',
     })
-    .order('created_at', { ascending: false, referencedTable: 'projects' })
+    .order('publish_at', {
+      ascending: false,
+      nullsFirst: false,
+      referencedTable: 'projects',
+    })
     .order('project_id', { ascending: false });
 
   const { data: translationRows, error: translationError } = await translationsQuery.limit(
@@ -77,23 +84,23 @@ const fetchProjectDetailListFromContentSchema = async (
   }
 
   const rows = mapProjectDetailListItems((translationRows ?? []) as ProjectTranslationRow[]);
-  const page = buildCreatedAtIdPage({
+  const page = buildPublishedAtIdPage({
     limit: pageSize,
     rows: rows.map(row => ({
       ...row,
-      createdAt: row.created_at,
+      publishedAt: resolvePublicContentPublishedAt(row),
     })),
   });
 
   return {
     data: {
-      items: page.items.map(({ createdAt: _createdAt, ...item }) => item as ProjectDetailListItem),
+      items: page.items.map(({ publishedAt: _publishedAt, ...item }) => item),
       nextCursor:
         page.nextCursor && page.items.at(-1)
-          ? serializeLocaleAwareCreatedAtIdCursor({
-              createdAt: page.items.at(-1)?.createdAt ?? '',
+          ? serializeLocaleAwarePublishedAtIdCursor({
               id: page.items.at(-1)?.id ?? '',
               locale,
+              publishedAt: page.items.at(-1)?.publishedAt ?? '',
             })
           : null,
     },
@@ -126,7 +133,7 @@ const readCachedProjectDetailList = async (input: {
 
   cacheTag(PROJECTS_CACHE_TAG);
 
-  const parsedCursor = parseLocaleAwareCreatedAtIdCursor(input.cursor);
+  const parsedCursor = parseLocaleAwarePublishedAtIdCursor(input.cursor);
   const localeFallbackChain = parsedCursor
     ? [parsedCursor.locale]
     : buildContentLocaleFallbackChain(input.normalizedLocale);

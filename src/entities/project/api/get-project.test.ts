@@ -17,6 +17,16 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
+const createProjectSlugLookupQuery = (id = 'funda-project') => ({
+  eq: vi.fn().mockReturnThis(),
+  not: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({
+    data: { id },
+    error: null,
+  }),
+  select: vi.fn().mockReturnThis(),
+});
+
 describe('getProject', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -32,9 +42,11 @@ describe('getProject', () => {
   });
 
   it('content schema를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           project_id: 'funda-project',
@@ -45,6 +57,8 @@ describe('getProject', () => {
             id: 'funda-project',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'funda-project',
             period_start: '2025-01-01',
             period_end: null,
           },
@@ -72,6 +86,7 @@ describe('getProject', () => {
     const supabaseClient = {
       from: vi
         .fn()
+        .mockReturnValueOnce(projectSlugQuery)
         .mockReturnValueOnce(translationQuery)
         .mockReturnValueOnce(projectTagsV2Query)
         .mockReturnValueOnce(tagsQuery),
@@ -91,9 +106,11 @@ describe('getProject', () => {
   });
 
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -103,7 +120,7 @@ describe('getProject', () => {
       }),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery),
+      from: vi.fn().mockReturnValueOnce(projectSlugQuery).mockReturnValueOnce(translationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -115,9 +132,11 @@ describe('getProject', () => {
   });
 
   it('권한 오류는 schema missing으로 오인하지 않고 조회 실패로 surface한다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -127,7 +146,7 @@ describe('getProject', () => {
       }),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery),
+      from: vi.fn().mockReturnValueOnce(projectSlugQuery).mockReturnValueOnce(translationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -139,9 +158,11 @@ describe('getProject', () => {
   });
 
   it('code가 없어도 project relation missing 메시지는 content schema missing으로 본다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -150,7 +171,7 @@ describe('getProject', () => {
       }),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery),
+      from: vi.fn().mockReturnValueOnce(projectSlugQuery).mockReturnValueOnce(translationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -162,9 +183,11 @@ describe('getProject', () => {
   });
 
   it('다른 relation missing 메시지는 content schema missing으로 오인하지 않는다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -173,7 +196,7 @@ describe('getProject', () => {
       }),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery),
+      from: vi.fn().mockReturnValueOnce(projectSlugQuery).mockReturnValueOnce(translationQuery),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -185,9 +208,11 @@ describe('getProject', () => {
   });
 
   it('대상 locale 번역이 없으면 공통 locale fallback 체인 순서로 조회한다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const targetLocaleTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: null,
@@ -196,6 +221,7 @@ describe('getProject', () => {
     const koreanTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           project_id: 'funda-project',
@@ -206,6 +232,8 @@ describe('getProject', () => {
             id: 'funda-project',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'funda-project',
             period_start: null,
             period_end: null,
           },
@@ -223,6 +251,7 @@ describe('getProject', () => {
     const supabaseClient = {
       from: vi
         .fn()
+        .mockReturnValueOnce(projectSlugQuery)
         .mockReturnValueOnce(targetLocaleTranslationQuery)
         .mockReturnValueOnce(koreanTranslationQuery)
         .mockReturnValueOnce(projectTagsV2Query),
@@ -239,9 +268,11 @@ describe('getProject', () => {
   });
 
   it('ko도 없으면 다음 fallback locale을 이어서 조회한다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const targetLocaleTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: null,
@@ -250,6 +281,7 @@ describe('getProject', () => {
     const koreanTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
         error: null,
@@ -258,6 +290,7 @@ describe('getProject', () => {
     const englishTranslationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           project_id: 'funda-project',
@@ -268,6 +301,8 @@ describe('getProject', () => {
             id: 'funda-project',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'funda-project',
             period_start: null,
             period_end: null,
           },
@@ -285,6 +320,7 @@ describe('getProject', () => {
     const supabaseClient = {
       from: vi
         .fn()
+        .mockReturnValueOnce(projectSlugQuery)
         .mockReturnValueOnce(targetLocaleTranslationQuery)
         .mockReturnValueOnce(koreanTranslationQuery)
         .mockReturnValueOnce(englishTranslationQuery)
@@ -303,9 +339,11 @@ describe('getProject', () => {
   });
 
   it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
     const translationQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           project_id: 'funda-project',
@@ -316,6 +354,8 @@ describe('getProject', () => {
             id: 'funda-project',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'funda-project',
             period_start: '2025-01-01',
             period_end: null,
           },
@@ -333,7 +373,11 @@ describe('getProject', () => {
       select: vi.fn().mockReturnThis(),
     };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(translationQuery).mockReturnValueOnce(projectTagsV2Query),
+      from: vi
+        .fn()
+        .mockReturnValueOnce(projectSlugQuery)
+        .mockReturnValueOnce(translationQuery)
+        .mockReturnValueOnce(projectTagsV2Query),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

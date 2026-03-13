@@ -44,6 +44,7 @@ describe('getArticles', () => {
   it('첫 페이지 조회는 locale 번역을 먼저 기준으로 조회하고 articles cache tag를 기록한다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -53,6 +54,8 @@ describe('getArticles', () => {
             articles: {
               thumbnail_url: null,
               created_at: '2026-03-02T09:07:50.797695+00:00',
+              publish_at: '2026-03-02T09:07:50.797695+00:00',
+              slug: 'typography-rhythm',
             },
           },
         ],
@@ -75,15 +78,18 @@ describe('getArticles', () => {
     expect(result.totalCount).toBeNull();
     expect(result.items[0]?.title).toBe('Typography Rhythm');
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.not).toHaveBeenCalledWith('articles.publish_at', 'is', null);
+    expect(articleTranslationsQuery.not).toHaveBeenCalledWith('articles.slug', 'is', null);
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('articles.visibility', 'public');
     expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
-      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      'publish_at.lte.2026-03-11T12:00:00.000Z',
       {
         referencedTable: 'articles',
       },
     );
-    expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'created_at', {
+    expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(1, 'publish_at', {
       ascending: false,
+      nullsFirst: false,
       referencedTable: 'articles',
     });
     expect(articleTranslationsQuery.order).toHaveBeenNthCalledWith(2, 'article_id', {
@@ -92,9 +98,10 @@ describe('getArticles', () => {
     expect(unstable_cacheTag).toHaveBeenCalledWith('articles');
   });
 
-  it('비검색 다음 페이지 조회는 locale 번역 목록에도 created_at + id keyset 조건을 사용한다', async () => {
+  it('비검색 다음 페이지 조회는 locale 번역 목록에도 publish_at + id keyset 조건을 사용한다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -112,8 +119,8 @@ describe('getArticles', () => {
 
     const cursor = Buffer.from(
       JSON.stringify({
-        createdAt: '2026-03-02T09:07:50.797695+00:00',
         id: 'article-9',
+        publishedAt: '2026-03-02T09:07:50.797695+00:00',
       }),
       'utf-8',
     ).toString('base64url');
@@ -121,7 +128,7 @@ describe('getArticles', () => {
     await getArticles({ cursor, locale: 'ko' });
 
     expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
-      'and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.lt.2026-03-02T09:07:50.797695+00:00),and(or(publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z),created_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
+      'and(publish_at.lte.2026-03-11T12:00:00.000Z,publish_at.lt.2026-03-02T09:07:50.797695+00:00),and(publish_at.lte.2026-03-11T12:00:00.000Z,publish_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.article-9)',
       {
         referencedTable: 'articles',
       },
@@ -131,6 +138,7 @@ describe('getArticles', () => {
   it('최근 base row에 번역이 없어도 locale 번역이 있으면 ko fallback 없이 localized 목록을 반환한다', async () => {
     const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -140,6 +148,8 @@ describe('getArticles', () => {
             articles: {
               thumbnail_url: null,
               created_at: '2026-03-01T09:07:50.797695+00:00',
+              publish_at: '2026-03-01T09:07:50.797695+00:00',
+              slug: 'older-fr-article',
             },
           },
         ],
@@ -164,7 +174,8 @@ describe('getArticles', () => {
         title: 'Article FR',
         description: 'description fr',
         thumbnail_url: null,
-        created_at: '2026-03-01T09:07:50.797695+00:00',
+        publish_at: '2026-03-01T09:07:50.797695+00:00',
+        slug: 'older-fr-article',
       },
     ]);
     expect(supabaseClient.from).toHaveBeenCalledTimes(1);
@@ -174,6 +185,7 @@ describe('getArticles', () => {
   it('첫 페이지에서 대상 locale 번역이 정말 없으면 ko locale로 fallback 조회한다', async () => {
     const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -184,6 +196,7 @@ describe('getArticles', () => {
     };
     const fallbackTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -193,6 +206,8 @@ describe('getArticles', () => {
             articles: {
               thumbnail_url: null,
               created_at: '2026-03-02T09:07:50.797695+00:00',
+              publish_at: '2026-03-02T09:07:50.797695+00:00',
+              slug: 'frontend-performance',
             },
           },
         ],
@@ -223,6 +238,7 @@ describe('getArticles', () => {
   it('resolved 첫 페이지 조회는 실제 fallback locale을 함께 반환한다', async () => {
     const targetLocaleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -233,6 +249,7 @@ describe('getArticles', () => {
     };
     const fallbackTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -242,6 +259,8 @@ describe('getArticles', () => {
             articles: {
               thumbnail_url: null,
               created_at: '2026-03-02T09:07:50.797695+00:00',
+              publish_at: '2026-03-02T09:07:50.797695+00:00',
+              slug: 'frontend-performance',
             },
           },
         ],
@@ -277,6 +296,8 @@ describe('getArticles', () => {
             description: 'client rendering',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'react-start',
             search_rank: 0.9,
             total_count: 19,
           },
@@ -286,6 +307,8 @@ describe('getArticles', () => {
             description: 'server components',
             thumbnail_url: null,
             created_at: '2026-03-01T09:07:50.797695+00:00',
+            publish_at: '2026-03-01T09:07:50.797695+00:00',
+            slug: 'react-next',
             search_rank: 0.7,
             total_count: 19,
           },
@@ -304,8 +327,8 @@ describe('getArticles', () => {
     expect(result.totalCount).toBe(19);
     expect(result.nextCursor).not.toBeNull();
     expect(supabaseClient.rpc).toHaveBeenCalledWith('search_article_translations', {
-      cursor_created_at: null,
       cursor_id: null,
+      cursor_publish_at: null,
       cursor_rank: null,
       page_limit: 1,
       search_query: 'react',
@@ -333,8 +356,8 @@ describe('getArticles', () => {
 
     expect(supabaseClient.from).not.toHaveBeenCalled();
     expect(supabaseClient.rpc).toHaveBeenCalledWith('search_article_translations', {
-      cursor_created_at: null,
       cursor_id: null,
+      cursor_publish_at: null,
       cursor_rank: null,
       page_limit: 10,
       search_query: 'react',
@@ -399,6 +422,7 @@ describe('getArticles', () => {
   it('content schema가 없으면 locale-row fallback 대신 에러를 던진다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -424,6 +448,7 @@ describe('getArticles', () => {
   it('relation 이름만 포함한 권한 오류는 content schema missing으로 오인하지 않는다', async () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -465,6 +490,7 @@ describe('getArticles', () => {
     const articleTranslationsQuery = {
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: [
           {
@@ -474,6 +500,8 @@ describe('getArticles', () => {
             articles: {
               thumbnail_url: null,
               created_at: '2026-03-01T09:07:50.797695+00:00',
+              publish_at: '2026-03-01T09:07:50.797695+00:00',
+              slug: 'older-localized',
             },
           },
         ],
@@ -499,9 +527,11 @@ describe('getArticles', () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.id).toBe('older-localized');
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('locale', 'ko');
+    expect(articleTranslationsQuery.not).toHaveBeenCalledWith('articles.publish_at', 'is', null);
+    expect(articleTranslationsQuery.not).toHaveBeenCalledWith('articles.slug', 'is', null);
     expect(articleTranslationsQuery.eq).toHaveBeenCalledWith('articles.visibility', 'public');
     expect(articleTranslationsQuery.or).toHaveBeenCalledWith(
-      'publish_at.is.null,publish_at.lte.2026-03-11T12:00:00.000Z',
+      'publish_at.lte.2026-03-11T12:00:00.000Z',
       {
         referencedTable: 'articles',
       },
