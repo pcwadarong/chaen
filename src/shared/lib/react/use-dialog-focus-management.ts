@@ -7,6 +7,7 @@ type UseDialogFocusManagementParams = {
   initialFocusRef?: RefObject<HTMLElement | null>;
   isEnabled: boolean;
   onEscape: () => void;
+  restoreFocusRef?: RefObject<boolean>;
 };
 
 /**
@@ -18,6 +19,7 @@ export const useDialogFocusManagement = ({
   initialFocusRef,
   isEnabled,
   onEscape,
+  restoreFocusRef,
 }: UseDialogFocusManagementParams) => {
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const onEscapeRef = useRef(onEscape);
@@ -92,8 +94,13 @@ export const useDialogFocusManagement = ({
     return () => {
       window.cancelAnimationFrame(rafId);
       window.removeEventListener('keydown', handleKeydown);
-      // 모달이 닫힐 때 이전 활성 요소로 포커스를 복원
-      previousActiveElementRef.current?.focus();
+      // 다이얼로그가 닫힐 때 필요할 경우에만 이전 활성 요소로 포커스를 복원
+      if (restoreFocusRef?.current !== false) {
+        previousActiveElementRef.current?.focus();
+      }
+      if (restoreFocusRef) {
+        restoreFocusRef.current = true;
+      }
     };
-  }, [containerRef, initialFocusRef, isEnabled]);
+  }, [containerRef, initialFocusRef, isEnabled, restoreFocusRef]);
 };

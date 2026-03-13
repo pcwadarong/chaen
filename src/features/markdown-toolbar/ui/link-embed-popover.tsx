@@ -6,12 +6,12 @@ import { css } from 'styled-system/css';
 import { Button } from '@/shared/ui/button/button';
 import { LinkIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
-import { Popover } from '@/shared/ui/popover/popover';
+import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type LinkEmbedMode = 'card' | 'link' | 'preview';
 
 type LinkEmbedPopoverProps = {
-  onApply: (url: string, mode: LinkEmbedMode, closePopover?: () => void) => void;
+  onApply: (url: string, mode: LinkEmbedMode, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -26,7 +26,7 @@ export const LinkEmbedPopover = ({
 }: LinkEmbedPopoverProps) => {
   const [linkInput, setLinkInput] = useState('');
 
-  const handleApply = (mode: LinkEmbedMode, closePopover?: () => void) => {
+  const handleApply = (mode: LinkEmbedMode, closePopover?: ClosePopover) => {
     const normalizedInput = linkInput.trim();
 
     if (!normalizedInput) return;

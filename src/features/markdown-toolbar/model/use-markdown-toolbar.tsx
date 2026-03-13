@@ -28,6 +28,7 @@ import {
   SubtextIcon,
   TableIcon,
 } from '@/shared/ui/icons/app-icons';
+import type { ClosePopover } from '@/shared/ui/popover/popover';
 
 import type {
   LinkMode,
@@ -106,15 +107,15 @@ export const useMarkdownToolbar = ({
   );
 
   const handleAlignApply = React.useCallback(
-    (align: 'center' | 'left' | 'right', closePopover?: () => void) => {
+    (align: 'center' | 'left' | 'right', closePopover?: ClosePopover) => {
       applyAlign(align);
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyAlign],
   );
 
   const handleLinkApply = React.useCallback(
-    (url: string, mode: LinkMode, closePopover?: () => void) => {
+    (url: string, mode: LinkMode, closePopover?: ClosePopover) => {
       const selectedText = getSelectedText();
       const nextValue = createMarkdownLinkByMode({
         label: selectedText || url,
@@ -125,13 +126,13 @@ export const useMarkdownToolbar = ({
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyTextTransform, getSelectedText],
   );
 
   const handleImageApply = React.useCallback(
-    (url: string, closePopover?: () => void) => {
+    (url: string, closePopover?: ClosePopover) => {
       const selectedText = getSelectedText();
       const altText = selectedText || '이미지 설명';
       const nextValue = `![${altText}](${url})`;
@@ -139,31 +140,31 @@ export const useMarkdownToolbar = ({
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyTextTransform, getSelectedText],
   );
 
   const handleTextColorApply = React.useCallback(
-    (colorHex: string, closePopover?: () => void) => {
+    (colorHex: string, closePopover?: ClosePopover) => {
       applyWrap(`<span style="color:${colorHex}">`, '</span>', '텍스트');
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyWrap],
   );
 
   const handleBackgroundColorApply = React.useCallback(
-    (colorHex: string, closePopover?: () => void) => {
+    (colorHex: string, closePopover?: ClosePopover) => {
       applyWrap(`<span style="background-color:${colorHex}">`, '</span>', '강조');
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyWrap],
   );
 
   const handleYoutubeApply = React.useCallback(
-    (videoId: string, closePopover?: () => void) => {
+    (videoId: string, closePopover?: ClosePopover) => {
       applyTemplate(`<YouTube id="${videoId}" />`);
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
   );

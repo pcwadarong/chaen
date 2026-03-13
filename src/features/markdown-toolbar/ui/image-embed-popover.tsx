@@ -6,10 +6,10 @@ import { css } from 'styled-system/css';
 import { Button } from '@/shared/ui/button/button';
 import { ImageIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
-import { Popover } from '@/shared/ui/popover/popover';
+import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type ImageEmbedPopoverProps = {
-  onApply: (url: string, closePopover?: () => void) => void;
+  onApply: (url: string, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -24,7 +24,7 @@ export const ImageEmbedPopover = ({
 }: ImageEmbedPopoverProps) => {
   const [imageInput, setImageInput] = useState('');
 
-  const handleApply = (closePopover?: () => void) => {
+  const handleApply = (closePopover?: ClosePopover) => {
     const normalizedInput = imageInput.trim();
 
     if (!normalizedInput) return;

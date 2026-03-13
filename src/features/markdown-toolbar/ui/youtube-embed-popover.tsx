@@ -6,10 +6,10 @@ import { css } from 'styled-system/css';
 import { Button } from '@/shared/ui/button/button';
 import { YoutubeIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
-import { Popover } from '@/shared/ui/popover/popover';
+import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type YoutubeEmbedPopoverProps = {
-  onApply: (videoId: string, closePopover?: () => void) => void;
+  onApply: (videoId: string, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -69,7 +69,7 @@ export const YoutubeEmbedPopover = ({
 }: YoutubeEmbedPopoverProps) => {
   const [youtubeInput, setYoutubeInput] = useState('');
 
-  const handleApply = (closePopover?: () => void) => {
+  const handleApply = (closePopover?: ClosePopover) => {
     const videoId = extractYoutubeId(youtubeInput);
 
     if (!videoId) return;

@@ -93,6 +93,30 @@ describe('MarkdownToolbar', () => {
     });
   });
 
+  it('팝오버 삽입 뒤에도 textarea 포커스와 커서 위치를 유지한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'Hello suffix' } });
+    textarea.focus();
+    textarea.setSelectionRange(6, 6);
+
+    fireEvent.click(screen.getByRole('button', { name: '링크 임베드' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '링크 URL' }), {
+      target: { value: 'https://openai.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '제목 링크' }));
+
+    const insertedLink = '[https://openai.com](https://openai.com/ "preview")';
+
+    await waitFor(() => {
+      expect(textarea.value).toBe(`Hello ${insertedLink}suffix`);
+      expect(document.activeElement).toBe(textarea);
+      expect(textarea.selectionStart).toBe(6 + insertedLink.length);
+      expect(textarea.selectionEnd).toBe(6 + insertedLink.length);
+    });
+  });
+
   it('이미지 팝오버에서 URL을 입력해 markdown 이미지 문법을 삽입한다', async () => {
     render(<ToolbarHarness />);
 
