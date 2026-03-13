@@ -32,12 +32,24 @@ describe('api/editor/drafts route', () => {
         title: '초안',
         updatedAt: '2026-03-12T10:00:00.000Z',
       },
+      {
+        contentId: null,
+        contentType: 'resume',
+        id: 'resume-draft-1',
+        title: '이력서 초안',
+        updatedAt: '2026-03-13T09:00:00.000Z',
+      },
     ]);
 
     const response = await GET();
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toHaveLength(1);
+    expect(body).toHaveLength(2);
+    expect(body[1]).toMatchObject({
+      contentType: 'resume',
+      id: 'resume-draft-1',
+      title: '이력서 초안',
+    });
   });
 });
