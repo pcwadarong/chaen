@@ -193,6 +193,40 @@ describe('ArticleSearchForm', () => {
     expect(onSubmitComplete).toHaveBeenCalledTimes(1);
   });
 
+  it('rerender 이후 최신 onSubmitComplete를 사용한다', () => {
+    const staleOnSubmitComplete = vi.fn();
+    const nextOnSubmitComplete = vi.fn();
+    const { rerender } = render(
+      <ArticleSearchForm
+        clearText="초기화"
+        onSubmitComplete={staleOnSubmitComplete}
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchMode="submit-only"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    rerender(
+      <ArticleSearchForm
+        clearText="초기화"
+        onSubmitComplete={nextOnSubmitComplete}
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchMode="submit-only"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    fireEvent.submit(screen.getByRole('search'));
+
+    expect(replaceMock).not.toHaveBeenCalled();
+    expect(staleOnSubmitComplete).not.toHaveBeenCalled();
+    expect(nextOnSubmitComplete).toHaveBeenCalledTimes(1);
+  });
+
   it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
     vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
 
