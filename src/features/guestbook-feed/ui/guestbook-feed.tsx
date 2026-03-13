@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -30,7 +30,7 @@ type GuestbookFeedProps = {
 /**
  * 방명록 스레드 목록을 렌더링하고 무한스크롤을 처리합니다.
  */
-export const GuestbookFeed = ({
+const GuestbookFeedBase = ({
   canReply,
   errorMessage,
   hasMore,
@@ -49,7 +49,10 @@ export const GuestbookFeed = ({
   const t = useTranslations('Guest');
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const formatDateText = (isoDate: string) => formatYearMonthDay(isoDate) ?? '-';
+  const formatDateText = useCallback((isoDate: string) => formatYearMonthDay(isoDate) ?? '-', []);
+  const handleRetry = useCallback(() => {
+    void onRetry();
+  }, [onRetry]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -83,7 +86,7 @@ export const GuestbookFeed = ({
     return (
       <section className={stateWrapClass}>
         <p className={stateTextClass}>{t('loadError')}</p>
-        <Button onClick={() => void onRetry()} tone="white" variant="ghost">
+        <Button onClick={handleRetry} tone="white" variant="ghost">
           {t('retry')}
         </Button>
       </section>
@@ -136,6 +139,10 @@ export const GuestbookFeed = ({
     </section>
   );
 };
+
+GuestbookFeedBase.displayName = 'GuestbookFeed';
+
+export const GuestbookFeed = React.memo(GuestbookFeedBase);
 
 const sectionClass = css({
   width: 'full',

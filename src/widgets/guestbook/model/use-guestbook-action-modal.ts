@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { GUESTBOOK_ERROR_CODE } from '@/entities/guestbook/model/guestbook-error';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -74,60 +74,72 @@ export const useGuestbookActionModal = ({
   const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModalState(null);
     setModalPassword('');
     setModalContent('');
     setModalError(null);
-  };
+  }, []);
 
-  const openEditModal = (entry: GuestbookThreadItem) => {
-    if (entry.is_admin_author && !isAdmin) return;
+  const openEditModal = useCallback(
+    (entry: GuestbookThreadItem) => {
+      if (entry.is_admin_author && !isAdmin) return;
 
-    if (entry.is_secret && entry.is_content_masked) {
-      pushToast(text.toastSecretUnlockRequired, 'error');
-      return;
-    }
+      if (entry.is_secret && entry.is_content_masked) {
+        pushToast(text.toastSecretUnlockRequired, 'error');
+        return;
+      }
 
-    setModalState({ mode: 'edit', entry, parentThreadId: null });
-    setModalPassword('');
-    setModalContent(entry.content);
-    setModalError(null);
-  };
+      setModalState({ mode: 'edit', entry, parentThreadId: null });
+      setModalPassword('');
+      setModalContent(entry.content);
+      setModalError(null);
+    },
+    [isAdmin, pushToast, text.toastSecretUnlockRequired],
+  );
 
-  const openDeleteModal = (entry: GuestbookThreadItem) => {
-    if (entry.is_admin_author && !isAdmin) return;
+  const openDeleteModal = useCallback(
+    (entry: GuestbookThreadItem) => {
+      if (entry.is_admin_author && !isAdmin) return;
 
-    setModalState({ mode: 'delete', entry, parentThreadId: null });
-    setModalPassword('');
-    setModalContent('');
-    setModalError(null);
-  };
+      setModalState({ mode: 'delete', entry, parentThreadId: null });
+      setModalPassword('');
+      setModalContent('');
+      setModalError(null);
+    },
+    [isAdmin],
+  );
 
-  const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
-    if (!isAdmin) return;
+  const openEditReplyModal = useCallback(
+    (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+      if (!isAdmin) return;
 
-    if (entry.is_secret && entry.is_content_masked) {
-      pushToast(text.toastSecretUnlockRequired, 'error');
-      return;
-    }
+      if (entry.is_secret && entry.is_content_masked) {
+        pushToast(text.toastSecretUnlockRequired, 'error');
+        return;
+      }
 
-    setModalState({ mode: 'edit', entry, parentThreadId: parentEntry.id });
-    setModalPassword('');
-    setModalContent(entry.content);
-    setModalError(null);
-  };
+      setModalState({ mode: 'edit', entry, parentThreadId: parentEntry.id });
+      setModalPassword('');
+      setModalContent(entry.content);
+      setModalError(null);
+    },
+    [isAdmin, pushToast, text.toastSecretUnlockRequired],
+  );
 
-  const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
-    if (!isAdmin) return;
+  const openDeleteReplyModal = useCallback(
+    (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+      if (!isAdmin) return;
 
-    setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
-    setModalPassword('');
-    setModalContent('');
-    setModalError(null);
-  };
+      setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
+      setModalPassword('');
+      setModalContent('');
+      setModalError(null);
+    },
+    [isAdmin],
+  );
 
-  const handleConfirmModal = async () => {
+  const handleConfirmModal = useCallback(async () => {
     if (!modalState || isModalSubmitting) return;
 
     const target = modalState.entry;
@@ -309,7 +321,28 @@ export const useGuestbookActionModal = ({
     } finally {
       setIsModalSubmitting(false);
     }
-  };
+  }, [
+    applyServerThread,
+    applyServerThreadEntry,
+    closeModal,
+    isAdmin,
+    isModalSubmitting,
+    items,
+    locale,
+    modalContent,
+    modalPassword,
+    modalState,
+    pushToast,
+    removeThreadById,
+    text.editContentUnchanged,
+    text.requiredField,
+    text.secretVerifyFailed,
+    text.toastDeleteError,
+    text.toastDeleteSuccess,
+    text.toastEditError,
+    text.toastEditSuccess,
+    updateThreadById,
+  ]);
 
   const modalTitle = useMemo(() => {
     if (!modalState) return '';

@@ -71,6 +71,12 @@ export const GuestbookBoard = ({
     const id = createOptimisticId();
     setToasts(previous => [...previous, { id, message, tone }]);
   }, []);
+  const handleReply = useCallback((entry: GuestbookThreadItem) => {
+    setReplyTarget(entry);
+  }, []);
+  const handleReplyTargetReset = useCallback(() => {
+    setReplyTarget(null);
+  }, []);
 
   useEffect(() => {
     if (toasts.length === 0) return;
@@ -188,7 +194,7 @@ export const GuestbookBoard = ({
           onEdit={openEditModal}
           onLoadMore={loadMore}
           onRevealSecretSuccess={applyServerThreadEntry}
-          onReply={entry => setReplyTarget(entry)}
+          onReply={handleReply}
           onRetry={retryInitialLoad}
         />
       </section>
@@ -211,7 +217,7 @@ export const GuestbookBoard = ({
         }}
         isSubmittingOverride={isComposePending}
         isReplyMode={Boolean(replyTarget && isAdmin)}
-        onReplyTargetReset={() => setReplyTarget(null)}
+        onReplyTargetReset={handleReplyTargetReset}
         passwordPlaceholder={t('composePasswordPlaceholder')}
         passwordLabel={t('composePasswordLabel')}
         presetAuthorName="admin"
