@@ -2,20 +2,20 @@
 
 import React from 'react';
 
+import {
+  applyTextareaTransform,
+  createMarkdownLinkByMode,
+  insertTemplate,
+  prefixLine,
+  toggleHeadingLine,
+  wrapSelection,
+} from '@/entities/editor';
 import { AlignPopover } from '@/features/markdown-toolbar/ui/align-popover';
 import { ImageEmbedPopover } from '@/features/markdown-toolbar/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/markdown-toolbar/ui/link-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/markdown-toolbar/ui/text-background-color-popover';
 import { TextColorPopover } from '@/features/markdown-toolbar/ui/text-color-popover';
 import { YoutubeEmbedPopover } from '@/features/markdown-toolbar/ui/youtube-embed-popover';
-import { createMarkdownLinkByMode } from '@/shared/lib/editor/markdown-link';
-import {
-  applyTextareaTransform,
-  insertTemplate,
-  prefixLine,
-  toggleHeadingLine,
-  wrapSelection,
-} from '@/shared/lib/editor/selection-utils';
 import {
   CodeBlockIcon,
   DashIcon,

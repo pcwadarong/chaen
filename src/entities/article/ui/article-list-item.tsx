@@ -6,8 +6,8 @@ import { css } from 'styled-system/css';
 import type { ArticleListItem as ArticleListItemModel } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
-import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
+import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
 
 type ArticleListItemProps = {
   article: ArticleListItemModel;

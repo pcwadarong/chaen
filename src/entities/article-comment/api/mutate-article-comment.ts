@@ -1,4 +1,7 @@
-import { hashGuestbookPassword, verifyGuestbookPassword } from '@/entities/guestbook/lib/password';
+import {
+  hashGuestbookPassword,
+  verifyGuestbookPassword,
+} from '@/entities/guestbook/model/password';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 

@@ -2,9 +2,9 @@ import { useLocale } from 'next-intl';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { formatYear } from '@/shared/lib/date/format-year';
-import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { ContentCard } from '@/shared/ui/content-card/content-card';
+import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
 
 type ProjectCardProps = {
   item: ProjectListItem;

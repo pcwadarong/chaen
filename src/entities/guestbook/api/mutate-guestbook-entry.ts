@@ -2,7 +2,7 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 
 import 'server-only';
 
-import { hashGuestbookPassword, verifyGuestbookPassword } from '../lib/password';
+import { hashGuestbookPassword, verifyGuestbookPassword } from '../model/password';
 import type { GuestbookEntry, GuestbookEntryRow } from '../model/types';
 
 const isAdminAuthoredEntry = (entry: GuestbookEntryRow) => Boolean(entry.is_admin_author);

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import React from 'react';
 
-import { AdminLoginPage, getAdminLoginPageData } from '@/views/admin-login';
+import { getLoginPageData, LoginPage } from '@/views/auth';
 
 export const metadata: Metadata = {
   robots: {
@@ -22,13 +22,13 @@ const AdminLoginRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const pageData = await getAdminLoginPageData({ locale });
+  const pageData = await getLoginPageData({ locale });
 
   if (pageData.redirectPath) {
     redirect(pageData.redirectPath);
   }
 
-  return <AdminLoginPage locale={locale} />;
+  return <LoginPage locale={locale} />;
 };
 
 export default AdminLoginRoute;

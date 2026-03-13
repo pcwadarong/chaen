@@ -3,7 +3,7 @@ import {
   getGuestbookThreads,
   verifyGuestbookSecret,
 } from '@/entities/guestbook';
-import { revalidateGuestbookCache } from '@/entities/guestbook/lib/revalidate-guestbook-cache';
+import { revalidateGuestbookCache } from '@/entities/guestbook/api/revalidate-guestbook-cache';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import {
@@ -24,7 +24,7 @@ vi.mock('@/entities/guestbook', () => ({
   verifyGuestbookSecret: vi.fn(),
 }));
 
-vi.mock('@/entities/guestbook/lib/revalidate-guestbook-cache', () => ({
+vi.mock('@/entities/guestbook/api/revalidate-guestbook-cache', () => ({
   revalidateGuestbookCache: vi.fn(),
 }));
 

@@ -3,8 +3,8 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/lib/use-guestbook-bubble-action-menu';
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
+import { useGuestbookBubbleActionMenu } from '@/entities/guestbook/model/use-guestbook-bubble-action-menu';
 import { GuestbookEntryActionMenu } from '@/entities/guestbook/ui/guestbook-entry-action-menu';
 import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
 import { useAuth } from '@/shared/providers';

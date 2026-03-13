@@ -9,7 +9,7 @@ import {
   updateGuestbookEntry,
   verifyGuestbookSecret,
 } from '@/entities/guestbook';
-import { revalidateGuestbookCache } from '@/entities/guestbook/lib/revalidate-guestbook-cache';
+import { revalidateGuestbookCache } from '@/entities/guestbook/api/revalidate-guestbook-cache';
 import type { GuestbookEntry, GuestbookThreadPage } from '@/entities/guestbook/model/types';
 import {
   type ActionResult,
