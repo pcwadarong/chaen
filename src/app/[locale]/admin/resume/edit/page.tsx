@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
-import { getResumeEditorContentMap } from '@/entities/resume/api/resume-editor-read';
+import { getResumeEditorSeed } from '@/entities/resume/api/resume-editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { ResumeEditorPage } from '@/views/resume-editor';
 
@@ -26,9 +26,15 @@ const AdminResumeEditRoute = async ({
 
   await requireAdmin({ locale });
 
-  const initialContents = await getResumeEditorContentMap();
+  const { initialContents, initialPublishSettings, initialSavedAt } = await getResumeEditorSeed();
 
-  return <ResumeEditorPage initialContents={initialContents} />;
+  return (
+    <ResumeEditorPage
+      initialContents={initialContents}
+      initialPublishSettings={initialPublishSettings}
+      initialSavedAt={initialSavedAt}
+    />
+  );
 };
 
 export default AdminResumeEditRoute;

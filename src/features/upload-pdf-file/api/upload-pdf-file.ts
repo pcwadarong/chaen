@@ -8,6 +8,8 @@ type UploadPdfFileOptions = {
   bucket?: string;
   directory?: string;
   file: File;
+  filePath?: string;
+  upsert?: boolean;
 };
 
 const DEFAULT_PDF_FILE_BUCKET = STORAGE_BUCKET.pdf;
@@ -21,17 +23,19 @@ export const uploadPdfFile = async ({
   bucket = DEFAULT_PDF_FILE_BUCKET,
   directory = DEFAULT_PDF_FILE_DIRECTORY,
   file,
+  filePath,
+  upsert = false,
 }: UploadPdfFileOptions): Promise<string> => {
   const supabase = await createServerSupabaseClient();
-  const uniqueFileName = createUniqueStorageFileName(file.name);
-  const filePath = createStoragePath(directory, uniqueFileName);
+  const resolvedFilePath =
+    filePath ?? createStoragePath(directory, createUniqueStorageFileName(file.name));
 
-  const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+  const { error } = await supabase.storage.from(bucket).upload(resolvedFilePath, file, {
     contentType: file.type || 'application/pdf',
-    upsert: false,
+    upsert,
   });
 
   if (error) throw new Error(`[pdf-file] 파일 업로드 실패: ${error.message}`);
 
-  return filePath;
+  return resolvedFilePath;
 };

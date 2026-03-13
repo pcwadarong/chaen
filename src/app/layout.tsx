@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   verification: {
-    google: 'rblhpthEHMjnCUXO4X7CsGUhLuENAPIs9Q7tA7HtHF8',
+    google: '3UTJWRAv_ZKFjyxdzQSTJ0E4twrRsQ-IBJc86xfFHwQ',
   },
 };
 
