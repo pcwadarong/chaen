@@ -1,7 +1,6 @@
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
@@ -42,24 +41,6 @@ type ProjectPublicBaseRow = Pick<ProjectListItem, 'id' | 'publish_at' | 'slug' |
 type ProjectListTranslationSummaryRow = Pick<ProjectListItem, 'description' | 'title'> & {
   locale: string;
   project_id: string;
-};
-
-/**
- * keyset 페이지 결과를 프로젝트 목록 응답 shape로 변환합니다.
- */
-const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectListPage => {
-  const page = buildPublishedAtIdPage({
-    limit: pageSize,
-    rows: rows.map(row => ({
-      ...row,
-      publishedAt: resolvePublicContentPublishedAt(row),
-    })),
-  });
-
-  return {
-    items: dedupeById(page.items.map(({ publishedAt: _publishedAt, ...item }) => item)),
-    nextCursor: page.nextCursor,
-  };
 };
 
 /**
@@ -205,6 +186,19 @@ const resolveProjectItemsWithLocaleFallback = async (
 };
 
 /**
+ * 공개 base row를 keyset 페이지 계산용 shape로 정규화합니다.
+ *
+ * 공개 목록은 `publish_at IS NOT NULL` 조건으로 조회하므로 여기서는 string으로 고정합니다.
+ */
+const toPublishedProjectPageRows = (
+  rows: ProjectPublicBaseRow[],
+): Array<ProjectPublicBaseRow & { publishedAt: string }> =>
+  rows.map(row => ({
+    ...row,
+    publishedAt: row.publish_at ?? '',
+  }));
+
+/**
  * 공개 프로젝트 기본 목록을 base row + locale fallback 번역으로 조회합니다.
  */
 const fetchProjectsByLocaleFallback = async (
@@ -217,19 +211,23 @@ const fetchProjectsByLocaleFallback = async (
 
   const page = buildPublishedAtIdPage({
     limit: pageSize,
-    rows: baseRowsResult.data.map(row => ({
-      ...row,
-      publishedAt: resolvePublicContentPublishedAt(row),
-    })),
+    rows: toPublishedProjectPageRows(baseRowsResult.data),
   });
 
-  return toProjectsPage(
-    await resolveProjectItemsWithLocaleFallback(
-      page.items.map(({ publishedAt: _publishedAt, ...row }) => row),
-      locale,
+  return {
+    items: dedupeById(
+      await resolveProjectItemsWithLocaleFallback(
+        page.items.map(({ id, publish_at, slug, thumbnail_url }) => ({
+          id,
+          publish_at,
+          slug,
+          thumbnail_url,
+        })),
+        locale,
+      ),
     ),
-    pageSize,
-  );
+    nextCursor: page.nextCursor,
+  };
 };
 
 /**

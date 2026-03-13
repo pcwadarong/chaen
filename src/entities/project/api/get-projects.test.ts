@@ -231,6 +231,49 @@ describe('getProjects', () => {
     );
   });
 
+  it('base row가 limit + 1개면 번역 결합 뒤에도 다음 cursor를 유지한다', async () => {
+    const projectsQuery = createQueryMock({
+      result: {
+        data: Array.from({ length: 11 }, (_, index) => ({
+          id: `project-${11 - index}`,
+          thumbnail_url: null,
+          publish_at: `2026-03-${String(11 - index).padStart(2, '0')}T09:07:50.797695+00:00`,
+          slug: `project-${11 - index}`,
+        })),
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const translationsQuery = createQueryMock({
+      result: {
+        data: Array.from({ length: 11 }, (_, index) => ({
+          project_id: `project-${11 - index}`,
+          locale: 'ko',
+          title: `한국어 프로젝트 ${11 - index}`,
+          description: `요약 ${11 - index}`,
+        })),
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    const supabaseClient = {
+      from: vi.fn((table: string) => {
+        if (table === 'projects') return projectsQuery;
+        if (table === 'project_translations') return translationsQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProjects({ limit: 10, locale: 'ko' });
+
+    expect(result.items).toHaveLength(10);
+    expect(result.nextCursor).not.toBeNull();
+  });
+
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
     const projectsQuery = createQueryMock({
       result: {

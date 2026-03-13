@@ -111,25 +111,6 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
 };
 
 /**
- * publish_at + id keyset 페이지 결과를 아티클 목록 응답 shape로 변환합니다.
- */
-const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticleListPage => {
-  const page = buildPublishedAtIdPage({
-    limit: pageSize,
-    rows: rows.map(row => ({
-      ...row,
-      publishedAt: resolvePublicContentPublishedAt(row),
-    })),
-  });
-
-  return {
-    items: dedupeById(page.items.map(({ publishedAt: _publishedAt, ...item }) => item)),
-    nextCursor: page.nextCursor,
-    totalCount: null,
-  };
-};
-
-/**
  * 공개 아티클 base row를 `publish_at + id` 기준으로 조회합니다.
  */
 const fetchPublicArticleBaseRows = async ({
@@ -278,6 +259,19 @@ const resolveArticleItemsWithLocaleFallback = async (
 };
 
 /**
+ * 공개 base row를 keyset 페이지 계산용 shape로 정규화합니다.
+ *
+ * 공개 목록은 `publish_at IS NOT NULL` 조건으로 조회하므로 여기서는 string으로 고정합니다.
+ */
+const toPublishedArticlePageRows = (
+  rows: ArticlePublicBaseRow[],
+): Array<ArticlePublicBaseRow & { publishedAt: string }> =>
+  rows.map(row => ({
+    ...row,
+    publishedAt: row.publish_at ?? '',
+  }));
+
+/**
  * 공개 아티클 기본 목록을 base row + locale fallback 번역으로 조회합니다.
  */
 const fetchArticlesByLocaleFallback = async (
@@ -295,19 +289,24 @@ const fetchArticlesByLocaleFallback = async (
 
   const page = buildPublishedAtIdPage({
     limit: pageSize,
-    rows: baseRowsResult.data.map(row => ({
-      ...row,
-      publishedAt: resolvePublicContentPublishedAt(row),
-    })),
+    rows: toPublishedArticlePageRows(baseRowsResult.data),
   });
 
-  return toArticlesPage(
-    await resolveArticleItemsWithLocaleFallback(
-      page.items.map(({ publishedAt: _publishedAt, ...row }) => row),
-      locale,
+  return {
+    items: dedupeById(
+      await resolveArticleItemsWithLocaleFallback(
+        page.items.map(({ id, publish_at, slug, thumbnail_url }) => ({
+          id,
+          publish_at,
+          slug,
+          thumbnail_url,
+        })),
+        locale,
+      ),
     ),
-    pageSize,
-  );
+    nextCursor: page.nextCursor,
+    totalCount: null,
+  };
 };
 
 /**

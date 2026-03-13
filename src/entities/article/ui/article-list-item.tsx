@@ -123,6 +123,7 @@ const descriptionClass = css({
 const dateClass = css({
   color: 'muted',
   fontSize: 'sm',
+  marginTop: '[0.5rem]',
 });
 
 const mediaClass = css({

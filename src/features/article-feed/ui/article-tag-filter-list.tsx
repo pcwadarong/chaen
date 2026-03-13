@@ -9,7 +9,7 @@ import { Link } from '@/i18n/navigation';
 type ArticleTagFilterListProps = {
   activeTag: string;
   emptyText: string;
-  items: LocalizedArticleTagStat[];
+  items: readonly LocalizedArticleTagStat[];
   title: string;
 };
 
@@ -31,7 +31,7 @@ const createTagHref = (tag: string, activeTag: string) => {
  * 태그 필터 렌더링에 필요한 파생 링크 모델만 미리 계산합니다.
  */
 const buildTagLinkItems = (
-  items: LocalizedArticleTagStat[],
+  items: readonly LocalizedArticleTagStat[],
   activeTag: string,
 ): ArticleTagLinkItem[] =>
   items.map(item => ({
