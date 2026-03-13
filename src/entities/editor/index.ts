@@ -1,6 +1,10 @@
 export { checkSlugDuplicate } from './api/check-slug-duplicate';
 export type { EditorDraftSummary, EditorSeed } from './api/editor.types';
-export { publishEditorContentAction, saveEditorDraftAction } from './api/editor-actions';
+export {
+  deleteEditorDraftAction,
+  publishEditorContentAction,
+  saveEditorDraftAction,
+} from './api/editor-actions';
 export {
   createEditorSeed,
   getEditorDraftSeed,

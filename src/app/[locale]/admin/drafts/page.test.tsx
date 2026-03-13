@@ -56,6 +56,7 @@ describe('AdminDraftsRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.props.items).toHaveLength(2);
+    expect(typeof element.props.onDeleteDraft).toBe('function');
     expect(element.props.items[1]).toMatchObject({
       contentType: 'resume',
       id: 'resume-draft-1',

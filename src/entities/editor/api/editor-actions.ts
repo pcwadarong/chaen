@@ -69,6 +69,12 @@ type PublishEditorContentActionInput = {
   settings: PublishSettings;
 };
 
+type DeleteEditorDraftActionInput = {
+  contentType: 'article' | 'project' | 'resume';
+  draftId: string;
+  locale?: string | null;
+};
+
 /**
  * article/project/resume 관리자 draft를 upsert하고 마지막 저장 시각을 반환합니다.
  */
@@ -263,6 +269,52 @@ export const publishEditorContentAction = async ({
         contentId: targetContentId,
         contentType,
       }),
+    }),
+  );
+};
+
+/**
+ * draft 목록 화면에서 선택한 임시저장을 삭제합니다.
+ * resume는 전용 `resume_drafts`, article/project는 공용 `drafts`에서 제거합니다.
+ */
+export const deleteEditorDraftAction = async ({
+  contentType,
+  draftId,
+  locale,
+}: DeleteEditorDraftActionInput) => {
+  await requireAdmin({ locale, onUnauthorized: 'throw' });
+
+  const supabase = await createServerSupabaseClient();
+
+  if (contentType === 'resume') {
+    const { error } = await supabase.from('resume_drafts').delete().eq('id', draftId);
+
+    if (error) {
+      throw new Error(`[editor] resume draft 삭제 실패: ${error.message}`);
+    }
+
+    revalidatePath(
+      buildLocalizedPathname({
+        locale: resolveActionLocale(locale),
+        pathname: '/admin/resume/edit',
+      }),
+    );
+  } else {
+    const { error } = await supabase
+      .from('drafts')
+      .delete()
+      .eq('id', draftId)
+      .eq('content_type', contentType);
+
+    if (error) {
+      throw new Error(`[editor] draft 삭제 실패: ${error.message}`);
+    }
+  }
+
+  revalidatePath(
+    buildLocalizedPathname({
+      locale: resolveActionLocale(locale),
+      pathname: '/admin/drafts',
     }),
   );
 };

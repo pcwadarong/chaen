@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -7,52 +9,114 @@ import { Button } from '@/shared/ui/button/button';
 
 type EditorDraftsPageProps = {
   items: EditorDraftSummary[];
+  onDeleteDraft?: (
+    draftId: string,
+    contentType: EditorDraftSummary['contentType'],
+  ) => Promise<void>;
 };
 
 /**
  * 관리자 임시저장 목록을 표 형태로 렌더링합니다.
  */
-export const EditorDraftsPage = ({ items }: EditorDraftsPageProps) => (
-  <main className={pageClass}>
-    <section className={panelClass}>
-      <div className={headerClass}>
-        <h1 className={titleClass}>임시저장 목록</h1>
-        <p className={descriptionClass}>최근 수정 순서로 이어쓰기 가능한 draft를 보여줍니다.</p>
-      </div>
+export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps) => {
+  const [draftItems, setDraftItems] = React.useState(items);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [pendingDraftId, setPendingDraftId] = React.useState<string | null>(null);
 
-      {items.length > 0 ? (
-        <div className={tableFrameClass}>
-          <table className={tableClass}>
-            <thead>
-              <tr>
-                <th>타입</th>
-                <th>제목 (KO)</th>
-                <th>수정일</th>
-                <th aria-label="동작" />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(item => (
-                <tr key={item.id}>
-                  <td>{item.contentType}</td>
-                  <td>{item.title}</td>
-                  <td>{formatDraftUpdatedAt(item.updatedAt)}</td>
-                  <td>
-                    <Button asChild size="sm" tone="primary" variant="ghost">
-                      <Link href={buildDraftContinueHref(item)}>이어쓰기</Link>
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  React.useEffect(() => {
+    setDraftItems(items);
+  }, [items]);
+
+  /**
+   * 사용자 확인 후 선택한 draft를 삭제하고, 성공하면 현재 목록에서도 제거합니다.
+   */
+  const handleDeleteDraft = async (item: EditorDraftSummary) => {
+    if (!onDeleteDraft) {
+      return;
+    }
+
+    const confirmed = window.confirm(`"${item.title}" 임시저장을 삭제할까요?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteError(null);
+    setPendingDraftId(item.id);
+
+    try {
+      await onDeleteDraft(item.id, item.contentType);
+      setDraftItems(currentItems => currentItems.filter(currentItem => currentItem.id !== item.id));
+    } catch {
+      setDeleteError('임시저장을 삭제하지 못했습니다.');
+    } finally {
+      setPendingDraftId(currentDraftId => (currentDraftId === item.id ? null : currentDraftId));
+    }
+  };
+
+  return (
+    <main className={pageClass}>
+      <section className={panelClass}>
+        <div className={headerClass}>
+          <h1 className={titleClass}>임시저장 목록</h1>
+          <p className={descriptionClass}>최근 수정 순서로 이어쓰기 가능한 draft를 보여줍니다.</p>
         </div>
-      ) : (
-        <div className={emptyStateClass}>저장된 draft가 없습니다.</div>
-      )}
-    </section>
-  </main>
-);
+
+        {deleteError ? (
+          <p aria-live="polite" className={errorMessageClass} role="alert">
+            {deleteError}
+          </p>
+        ) : null}
+
+        {draftItems.length > 0 ? (
+          <div className={tableFrameClass}>
+            <table className={tableClass}>
+              <thead>
+                <tr>
+                  <th>타입</th>
+                  <th>제목 (KO)</th>
+                  <th>수정일</th>
+                  <th aria-label="동작" />
+                </tr>
+              </thead>
+              <tbody>
+                {draftItems.map(item => (
+                  <tr key={item.id}>
+                    <td>{item.contentType}</td>
+                    <td>{item.title}</td>
+                    <td>{formatDraftUpdatedAt(item.updatedAt)}</td>
+                    <td>
+                      <div className={rowActionsClass}>
+                        <Button asChild size="sm" tone="primary" variant="ghost">
+                          <Link href={buildDraftContinueHref(item)}>이어쓰기</Link>
+                        </Button>
+                        {onDeleteDraft ? (
+                          <Button
+                            disabled={pendingDraftId === item.id}
+                            onClick={() => {
+                              void handleDeleteDraft(item);
+                            }}
+                            size="sm"
+                            tone="black"
+                            variant="ghost"
+                          >
+                            {pendingDraftId === item.id ? '삭제 중...' : '삭제'}
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={emptyStateClass}>저장된 draft가 없습니다.</div>
+        )}
+      </section>
+    </main>
+  );
+};
 
 /**
  * draft 타입과 contentId 여부에 따라 이어쓰기 경로를 계산합니다.
@@ -122,6 +186,12 @@ const descriptionClass = css({
   color: 'muted',
 });
 
+const errorMessageClass = css({
+  m: '0',
+  color: 'red.600',
+  fontSize: 'sm',
+});
+
 const tableFrameClass = css({
   width: 'full',
   overflowX: 'auto',
@@ -147,6 +217,13 @@ const tableClass = css({
   '& tbody tr:last-child td': {
     borderBottom: 'none',
   },
+});
+
+const rowActionsClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '2',
+  justifyContent: 'flex-end',
 });
 
 const emptyStateClass = css({

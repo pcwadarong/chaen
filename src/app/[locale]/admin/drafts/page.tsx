@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
+import { deleteEditorDraftAction } from '@/entities/editor';
+import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorDraftsPage } from '@/views/editor-drafts';
@@ -27,8 +29,20 @@ const AdminDraftsRoute = async ({
   await requireAdmin({ locale });
 
   const items = await getEditorDraftSummaries();
+  const handleDeleteDraft = async (
+    draftId: string,
+    contentType: EditorDraftSummary['contentType'],
+  ) => {
+    'use server';
 
-  return <EditorDraftsPage items={items} />;
+    await deleteEditorDraftAction({
+      contentType,
+      draftId,
+      locale,
+    });
+  };
+
+  return <EditorDraftsPage items={items} onDeleteDraft={handleDeleteDraft} />;
 };
 
 export default AdminDraftsRoute;
