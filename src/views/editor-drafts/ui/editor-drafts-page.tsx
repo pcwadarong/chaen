@@ -4,8 +4,10 @@ import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
+import { parseEditorError } from '@/entities/editor/model/editor-error';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
+import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 
 type EditorDraftsPageProps = {
   items: EditorDraftSummary[];
@@ -20,12 +22,26 @@ type EditorDraftsPageProps = {
  */
 export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps) => {
   const [draftItems, setDraftItems] = React.useState(items);
-  const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const [pendingDraftId, setPendingDraftId] = React.useState<string | null>(null);
+  const [toastItems, setToastItems] = React.useState<ToastItem[]>([]);
 
   React.useEffect(() => {
     setDraftItems(items);
   }, [items]);
+
+  /**
+   * 삭제 성공/실패 토스트를 추가합니다.
+   */
+  const pushToast = React.useCallback((message: string, tone: ToastItem['tone']) => {
+    setToastItems(previous => [
+      ...previous,
+      {
+        id: `editor-drafts-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        message,
+        tone,
+      },
+    ]);
+  }, []);
 
   /**
    * 사용자 확인 후 선택한 draft를 삭제하고, 성공하면 현재 목록에서도 제거합니다.
@@ -41,14 +57,15 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
       return;
     }
 
-    setDeleteError(null);
     setPendingDraftId(item.id);
 
     try {
       await onDeleteDraft(item.id, item.contentType);
       setDraftItems(currentItems => currentItems.filter(currentItem => currentItem.id !== item.id));
-    } catch {
-      setDeleteError('임시저장을 삭제하지 못했습니다.');
+      pushToast('임시저장을 삭제했습니다.', 'success');
+    } catch (error) {
+      const parsedError = parseEditorError(error, 'draftDeleteFailed');
+      pushToast(parsedError.message, 'error');
     } finally {
       setPendingDraftId(currentDraftId => (currentDraftId === item.id ? null : currentDraftId));
     }
@@ -61,13 +78,6 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
           <h1 className={titleClass}>임시저장 목록</h1>
           <p className={descriptionClass}>최근 수정 순서로 이어쓰기 가능한 draft를 보여줍니다.</p>
         </div>
-
-        {deleteError ? (
-          <p aria-live="polite" className={errorMessageClass} role="alert">
-            {deleteError}
-          </p>
-        ) : null}
-
         {draftItems.length > 0 ? (
           <div className={tableFrameClass}>
             <table className={tableClass}>
@@ -114,6 +124,11 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
           <div className={emptyStateClass}>저장된 draft가 없습니다.</div>
         )}
       </section>
+
+      <ToastViewport
+        items={toastItems}
+        onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
+      />
     </main>
   );
 };
@@ -184,12 +199,6 @@ const titleClass = css({
 const descriptionClass = css({
   m: '0',
   color: 'muted',
-});
-
-const errorMessageClass = css({
-  m: '0',
-  color: 'red.600',
-  fontSize: 'sm',
 });
 
 const tableFrameClass = css({

@@ -5,6 +5,12 @@ import { css } from 'styled-system/css';
 
 import type { ResumePublishSettings } from '@/entities/resume/model/resume-editor.types';
 import { validateResumePublishState } from '@/entities/resume/model/resume-editor.utils';
+import {
+  createResumeEditorError,
+  parseResumeEditorError,
+  resolveResumePublishInlineErrorField,
+  RESUME_EDITOR_ERROR_MESSAGE,
+} from '@/entities/resume/model/resume-editor-error';
 import { Button } from '@/shared/ui/button/button';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
@@ -13,7 +19,7 @@ import { XButton } from '@/shared/ui/x-button/x-button';
 import type { ResumePublishPanelProps } from '../model/resume-editor.types';
 
 const defaultUploadResumePdfFile = async (_file: File): Promise<ResumePublishSettings> => {
-  throw new Error('이력서 PDF 업로드 처리기가 연결되지 않았습니다.');
+  throw createResumeEditorError('pdfUploadNotConfigured');
 };
 
 /**
@@ -82,14 +88,15 @@ export const ResumePublishPanel = ({
 
       setSettings(nextSettings);
     } catch (error) {
-      pushToast(
-        error instanceof Error
-          ? error.message
-          : '이력서 PDF 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.',
-      );
+      const parsedError = parseResumeEditorError(error, 'pdfUploadFailed');
+
+      pushToast(parsedError.message);
       setErrors(previous => ({
         ...previous,
-        pdf: '이력서 PDF 업로드에 실패했습니다',
+        pdf:
+          resolveResumePublishInlineErrorField(parsedError.code) === 'pdf'
+            ? parsedError.message
+            : RESUME_EDITOR_ERROR_MESSAGE.pdfUploadFailed,
       }));
     } finally {
       setIsUploading(false);
@@ -118,11 +125,18 @@ export const ResumePublishPanel = ({
       await onSubmit(settings);
       onClose();
     } catch (error) {
-      pushToast(
-        error instanceof Error
-          ? error.message
-          : '이력서 게시 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-      );
+      const parsedError = parseResumeEditorError(error, 'publishFailed');
+      const inlineField = resolveResumePublishInlineErrorField(parsedError.code);
+
+      if (inlineField) {
+        setErrors(previous => ({
+          ...previous,
+          [inlineField]: parsedError.message,
+        }));
+        return;
+      }
+
+      pushToast(parsedError.message);
     } finally {
       setIsSubmitting(false);
     }

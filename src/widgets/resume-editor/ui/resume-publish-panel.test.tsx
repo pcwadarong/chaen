@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { createResumeEditorError } from '@/entities/resume/model/resume-editor-error';
 import { ResumePublishPanel } from '@/widgets/resume-editor/ui/resume-publish-panel';
 
 import '@testing-library/jest-dom/vitest';
@@ -112,5 +113,32 @@ describe('ResumePublishPanel', () => {
 
     expect(await screen.findByText('이력서 PDF를 업로드해주세요')).toBeTruthy();
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('게시 중 한국어 제목 오류가 오면 인라인 에러로 표시한다', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(createResumeEditorError('missingKoTitle'));
+
+    render(
+      <ResumePublishPanel
+        editorState={baseEditorState}
+        initialSettings={{
+          ...baseSettings,
+          isPdfReady: true,
+        }}
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('dialog', { hidden: true, name: '이력서 게시 설정' }),
+      ).toHaveAttribute('aria-hidden', 'false');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
+
+    expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
   });
 });

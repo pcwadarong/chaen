@@ -1,5 +1,6 @@
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
+import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { isPdfFileKind } from '@/entities/pdf-file/model/types';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
@@ -21,14 +22,14 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
       const { kind } = await params;
 
       if (!isPdfFileKind(kind)) {
-        return createApiErrorResponse('Not Found', 404);
+        return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.notFound, 404);
       }
 
       const formData = await request.formData();
       const file = formData.get('file');
 
       if (!(file instanceof File) || file.type !== 'application/pdf') {
-        return createApiErrorResponse('Invalid PDF upload payload', 400);
+        return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
       }
 
       const storageConfig = getPdfFileStorageConfig(kind);
@@ -46,5 +47,5 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
         isPdfReady: true,
       };
     },
-    errorMessage: 'PDF upload failed',
+    errorMessage: PDF_FILE_API_ERROR_MESSAGE.uploadFailed,
   });

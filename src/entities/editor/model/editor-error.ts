@@ -1,6 +1,7 @@
 const EDITOR_ERROR_PREFIX = '__EDITOR_ERROR__';
 
 export const EDITOR_ERROR_MESSAGE = {
+  draftDeleteFailed: '임시저장을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
   duplicateSlug: '이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.',
   draftSaveFailed: '임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
   draftSaveInvalidState: '임시 저장 요청을 확인해주세요.',
@@ -25,6 +26,7 @@ const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
   EditorErrorCode,
   EditorPublishInlineErrorField | null
 > = {
+  draftDeleteFailed: null,
   duplicateSlug: 'slug',
   draftSaveFailed: null,
   draftSaveInvalidSettings: null,

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
-import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { EDITOR_ERROR_MESSAGE, parseEditorError } from '@/entities/editor/model/editor-error';
 import { buildEditorLinkInsertion } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
@@ -305,10 +305,11 @@ export const EditorCore = ({
 
         setSavedState({ ...requestState, dirty: false });
         setLastSavedAt(resolveSavedAt(result));
-      } catch {
+      } catch (error) {
         if (saveRequestIdRef.current !== requestId) return;
 
-        pushToast(createSaveErrorToast(EDITOR_ERROR_MESSAGE.draftSaveFailed));
+        const parsedError = parseEditorError(error, 'draftSaveFailed');
+        pushToast(createSaveErrorToast(parsedError.message));
       } finally {
         if (saveRequestIdRef.current === requestId) {
           setIsSaving(false);

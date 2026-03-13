@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getEditorSeed } from '@/entities/editor/api/editor-read';
+import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
@@ -18,7 +19,7 @@ export const GET = async (_request: Request, { params }: { params: Promise<{ id:
       });
 
       if (!seed) {
-        return createApiErrorResponse('Project not found', 404);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.projectNotFound, 404);
       }
 
       return NextResponse.json(seed);

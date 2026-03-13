@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { css, cva } from 'styled-system/css';
 
 import { isResumeEditorContentMapEqual } from '@/entities/resume/model/resume-editor.utils';
+import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 import { Textarea } from '@/shared/ui/textarea/textarea';
@@ -102,11 +103,7 @@ export const ResumeEditorCore = ({
       setSaveStatus('idle');
     } catch (error) {
       setSaveStatus('dirty');
-      pushToast(
-        error instanceof Error
-          ? error.message
-          : '이력서 임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
-      );
+      pushToast(parseResumeEditorError(error, 'draftSaveFailed').message);
     }
   }, [contents, dirty, onDraftSave]);
 

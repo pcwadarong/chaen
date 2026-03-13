@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
+import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
@@ -18,11 +19,11 @@ export const GET = async (request: Request) =>
       const normalizedSlug = normalizeSlugInput(searchParams.get('slug') ?? '');
 
       if (!normalizedSlug || !isValidSlugFormat(normalizedSlug)) {
-        return createApiErrorResponse('Invalid slug', 400);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.slugCheckInvalidSlug, 400);
       }
 
       if (type !== 'article' && type !== 'project') {
-        return createApiErrorResponse('Invalid content type', 400);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.slugCheckInvalidContentType, 400);
       }
 
       const result = await checkSlugDuplicate(normalizedSlug, {
@@ -31,7 +32,7 @@ export const GET = async (request: Request) =>
       });
 
       if (result.schemaMissing) {
-        return createApiErrorResponse('Slug duplicate check is temporarily unavailable', 503);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.slugCheckUnavailable, 503);
       }
 
       return NextResponse.json({
@@ -39,5 +40,5 @@ export const GET = async (request: Request) =>
         source: result.data.source,
       });
     },
-    errorMessage: 'Slug duplicate check failed',
+    errorMessage: EDITOR_API_ERROR_MESSAGE.slugCheckFailed,
   });

@@ -69,7 +69,43 @@ describe('EditorDraftsPage', () => {
       expect(onDeleteDraft).toHaveBeenCalledWith('resume-draft-1', 'resume');
     });
     await waitFor(() => {
+      expect(screen.getByText('임시저장을 삭제했습니다.')).toBeTruthy();
+    });
+    await waitFor(() => {
       expect(screen.getByText('저장된 draft가 없습니다.')).toBeTruthy();
     });
+  });
+
+  it('삭제에 실패하면 토스트로 오류를 보여준다', async () => {
+    const onDeleteDraft = vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          '__EDITOR_ERROR__:draftDeleteFailed:임시저장을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
+        ),
+      );
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(
+      <EditorDraftsPage
+        items={[
+          {
+            contentId: null,
+            contentType: 'article',
+            id: 'draft-1',
+            title: '글 초안',
+            updatedAt: '2026-03-13T09:00:00.000Z',
+          },
+        ]}
+        onDeleteDraft={onDeleteDraft}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '삭제' }));
+
+    expect(
+      await screen.findByText('임시저장을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'),
+    ).toBeTruthy();
   });
 });

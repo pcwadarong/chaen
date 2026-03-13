@@ -10,6 +10,7 @@ import type {
   ResumePublishSettings,
   ResumePublishValidationErrors,
 } from './resume-editor.types';
+import { RESUME_EDITOR_ERROR_MESSAGE } from './resume-editor-error';
 
 const EMPTY_RESUME_EDITOR_ERROR: ResumePublishValidationErrors = {};
 
@@ -119,15 +120,15 @@ export const validateResumePublishState = ({
   const errors: ResumePublishValidationErrors = {};
 
   if (!koContent.title.trim()) {
-    errors.koTitle = '한국어 제목을 입력해주세요';
+    errors.koTitle = RESUME_EDITOR_ERROR_MESSAGE.missingKoTitle;
   }
 
   if (!koContent.body.trim()) {
-    errors.koBody = '한국어 본문을 입력해주세요';
+    errors.koBody = RESUME_EDITOR_ERROR_MESSAGE.missingKoBody;
   }
 
   if (!settings.isPdfReady) {
-    errors.pdf = '이력서 PDF를 업로드해주세요';
+    errors.pdf = RESUME_EDITOR_ERROR_MESSAGE.missingPdf;
   }
 
   return Object.keys(errors).length === 0 ? EMPTY_RESUME_EDITOR_ERROR : errors;

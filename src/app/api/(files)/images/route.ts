@@ -1,3 +1,4 @@
+import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
@@ -17,7 +18,7 @@ export const POST = async (request: Request) =>
       const contentType = formData.get('contentType');
 
       if (!(file instanceof File)) {
-        return createApiErrorResponse('Image file is required', 400);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.imageUploadMissingFile, 400);
       }
 
       if (
@@ -25,7 +26,7 @@ export const POST = async (request: Request) =>
         !contentTypes.includes(contentType as EditorContentType) ||
         !file.type.startsWith('image/')
       ) {
-        return createApiErrorResponse('Invalid image upload payload', 400);
+        return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.imageUploadInvalidPayload, 400);
       }
 
       return {
@@ -35,5 +36,5 @@ export const POST = async (request: Request) =>
         }),
       };
     },
-    errorMessage: 'Image upload failed',
+    errorMessage: EDITOR_API_ERROR_MESSAGE.imageUploadFailed,
   });

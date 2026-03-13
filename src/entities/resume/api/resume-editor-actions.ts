@@ -25,6 +25,7 @@ import {
   buildResumeDraftContentRecord,
   validateResumePublishState,
 } from '../model/resume-editor.utils';
+import { createResumeEditorError, RESUME_EDITOR_ERROR_MESSAGE } from '../model/resume-editor-error';
 
 const resumeContentSchema = z.object({
   body: z.string(),
@@ -82,8 +83,9 @@ export const saveResumeDraftAction = async ({
   const parsedState = resumeEditorStateSchema.safeParse(state);
 
   if (!parsedState.success) {
-    throw new Error(
-      parsedState.error.issues[0]?.message ?? '이력서 임시 저장 요청을 확인해주세요.',
+    throw createResumeEditorError(
+      'draftSaveInvalidState',
+      parsedState.error.issues[0]?.message ?? RESUME_EDITOR_ERROR_MESSAGE.draftSaveInvalidState,
     );
   }
 
@@ -103,7 +105,7 @@ export const saveResumeDraftAction = async ({
       .single<ResumeDraftRow>();
 
     if (error) {
-      throw new Error(`[resume-editor] draft 업데이트 실패: ${error.message}`);
+      throw createResumeEditorError('draftSaveFailed');
     }
 
     revalidateResumeEditorPaths(normalizedLocale);
@@ -121,7 +123,7 @@ export const saveResumeDraftAction = async ({
     .single<ResumeDraftRow>();
 
   if (error) {
-    throw new Error(`[resume-editor] draft 생성 실패: ${error.message}`);
+    throw createResumeEditorError('draftSaveFailed');
   }
 
   revalidateResumeEditorPaths(normalizedLocale);
@@ -147,11 +149,17 @@ export const publishResumeContentAction = async ({
   const parsedSettings = resumePublishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success) {
-    throw new Error(parsedState.error.issues[0]?.message ?? '이력서 편집 상태를 확인해주세요.');
+    throw createResumeEditorError(
+      'publishInvalidState',
+      parsedState.error.issues[0]?.message ?? RESUME_EDITOR_ERROR_MESSAGE.publishInvalidState,
+    );
   }
 
   if (!parsedSettings.success) {
-    throw new Error(parsedSettings.error.issues[0]?.message ?? '이력서 게시 설정을 확인해주세요.');
+    throw createResumeEditorError(
+      'publishInvalidSettings',
+      parsedSettings.error.issues[0]?.message ?? RESUME_EDITOR_ERROR_MESSAGE.publishInvalidSettings,
+    );
   }
 
   const validation = validateResumePublishState({
@@ -160,11 +168,11 @@ export const publishResumeContentAction = async ({
   });
 
   if (validation.koTitle) {
-    throw new Error(validation.koTitle);
+    throw createResumeEditorError('missingKoTitle', validation.koTitle);
   }
 
   if (validation.koBody) {
-    throw new Error(validation.koBody);
+    throw createResumeEditorError('missingKoBody', validation.koBody);
   }
 
   const isPdfReady = await getPdfFileAvailability({
@@ -172,7 +180,10 @@ export const publishResumeContentAction = async ({
   }).catch(() => false);
 
   if (!parsedSettings.data.isPdfReady || !isPdfReady) {
-    throw new Error(validation.pdf ?? '이력서 PDF를 업로드해주세요');
+    throw createResumeEditorError(
+      'missingPdf',
+      validation.pdf ?? RESUME_EDITOR_ERROR_MESSAGE.missingPdf,
+    );
   }
 
   const supabase = await createServerSupabaseClient();
@@ -187,7 +198,7 @@ export const publishResumeContentAction = async ({
   });
 
   if (error) {
-    throw new Error(`[resume-editor] resume_contents 저장 실패: ${error.message}`);
+    throw createResumeEditorError('publishFailed');
   }
 
   await deleteResumeDrafts(draftId);
@@ -237,7 +248,7 @@ const deleteResumeDrafts = async (draftId?: string | null) => {
   const { error } = await query;
 
   if (error) {
-    throw new Error(`[resume-editor] draft 정리 실패: ${error.message}`);
+    throw createResumeEditorError('publishFailed');
   }
 };
 
@@ -253,7 +264,7 @@ const resolveLatestResumeDraftId = async () => {
     .limit(1);
 
   if (error) {
-    throw new Error(`[resume-editor] draft 탐색 실패: ${error.message}`);
+    throw createResumeEditorError('draftSaveFailed');
   }
 
   return (data?.[0] as { id: string } | undefined)?.id ?? null;

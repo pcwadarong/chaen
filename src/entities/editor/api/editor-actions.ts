@@ -95,11 +95,13 @@ export const saveEditorDraftAction = async ({
   const parsedSettings = publishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success)
-    throw new Error(
+    throw createEditorError(
+      'draftSaveInvalidState',
       parsedState.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidState,
     );
   if (!parsedSettings.success)
-    throw new Error(
+    throw createEditorError(
+      'draftSaveInvalidSettings',
       parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidSettings,
     );
 
@@ -134,7 +136,7 @@ export const saveEditorDraftAction = async ({
       .select('id,updated_at')
       .single<EditorDraftRow>();
 
-    if (error) throw new Error(`[editor] draft 업데이트 실패: ${error.message}`);
+    if (error) throw createEditorError('draftSaveFailed');
 
     revalidatePath(
       buildLocalizedPathname({
@@ -155,7 +157,7 @@ export const saveEditorDraftAction = async ({
     .select('id,updated_at')
     .single<EditorDraftRow>();
 
-  if (error) throw new Error(`[editor] draft 생성 실패: ${error.message}`);
+  if (error) throw createEditorError('draftSaveFailed');
 
   revalidatePath(
     buildLocalizedPathname({
@@ -309,7 +311,7 @@ export const deleteEditorDraftAction = async ({
     const { error } = await supabase.from('resume_drafts').delete().eq('id', draftId);
 
     if (error) {
-      throw new Error(`[editor] resume draft 삭제 실패: ${error.message}`);
+      throw createEditorError('draftDeleteFailed');
     }
 
     revalidatePath(
@@ -326,7 +328,7 @@ export const deleteEditorDraftAction = async ({
       .eq('content_type', contentType);
 
     if (error) {
-      throw new Error(`[editor] draft 삭제 실패: ${error.message}`);
+      throw createEditorError('draftDeleteFailed');
     }
   }
 
