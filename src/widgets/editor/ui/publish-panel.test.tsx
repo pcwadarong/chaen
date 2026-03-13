@@ -60,6 +60,10 @@ describe('PublishPanel', () => {
     vi.mocked(optimizeThumbnailImageFile).mockImplementation(async (file: File) => file);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('공개 설정은 공개와 비공개만 노출한다', async () => {
     renderPublishPanel();
 
@@ -95,6 +99,47 @@ describe('PublishPanel', () => {
     });
 
     expect(await screen.findByText('UTC: 2026-03-20T01:00:00.000Z')).toBeTruthy();
+  });
+
+  it('이미 발행된 글을 수정할 때는 publishAt이 있어도 기본 모드를 지금 발행으로 둔다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T09:00:00.000Z'));
+
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: '2026-03-10T09:00:00.000Z',
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+    });
+
+    expect(screen.getByLabelText('지금 발행')).toBeChecked();
+    expect(screen.getByLabelText('예약 발행')).not.toBeChecked();
+    expect(screen.queryByLabelText('날짜')).toBeNull();
+  });
+
+  it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {
+    vi.useFakeTimers();
+    const now = new Date('2026-03-14T09:27:45.000Z');
+    const expectedDate = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}-${`${now.getDate()}`.padStart(2, '0')}`;
+    const expectedTime = `${`${now.getHours()}`.padStart(2, '0')}:${`${now.getMinutes()}`.padStart(2, '0')}`;
+    vi.setSystemTime(now);
+
+    renderPublishPanel();
+
+    fireEvent.click(screen.getByLabelText('예약 발행'));
+
+    expect(screen.getByLabelText('날짜')).toHaveAttribute('min', expectedDate);
+    expect(screen.getByLabelText('시간')).toHaveAttribute('min', expectedTime);
+
+    fireEvent.change(screen.getByLabelText('날짜'), {
+      target: { value: '2026-03-15' },
+    });
+
+    expect(screen.getByLabelText('시간')).not.toHaveAttribute('min');
   });
 
   it('draft slug가 있는 상태에서 패널이 열리면 부모 동기화로 빈 값으로 되돌아가지 않는다', async () => {

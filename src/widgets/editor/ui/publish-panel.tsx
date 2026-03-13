@@ -54,6 +54,8 @@ type PublishThumbnailSectionProps = {
 type PublishScheduleSectionProps = {
   dateInput: string;
   error?: string;
+  minDateInput: string;
+  minTimeInput?: string;
   onDateChange: (value: string) => void;
   onPublishModeChange: (mode: PublishMode) => void;
   onTimeChange: (value: string) => void;
@@ -153,6 +155,8 @@ const PublishThumbnailSection = React.memo(PublishThumbnailSectionBase);
 const PublishScheduleSectionBase = ({
   dateInput,
   error,
+  minDateInput,
+  minTimeInput,
   onDateChange,
   onPublishModeChange,
   onTimeChange,
@@ -192,6 +196,7 @@ const PublishScheduleSectionBase = ({
           <span className={scheduleLabelClass}>날짜</span>
           <Input
             className={scheduleInputClass}
+            min={minDateInput}
             onChange={event => onDateChange(event.target.value)}
             type="date"
             value={dateInput}
@@ -201,6 +206,7 @@ const PublishScheduleSectionBase = ({
           <span className={scheduleLabelClass}>시간</span>
           <Input
             className={scheduleInputClass}
+            min={minTimeInput}
             onChange={event => onTimeChange(event.target.value)}
             type="time"
             value={timeInput}
@@ -224,7 +230,7 @@ const PublishScheduleSection = React.memo(PublishScheduleSectionBase);
 /**
  * 패널 초기값으로 사용할 로컬 날짜/시간 문자열을 계산합니다.
  */
-const getInitialScheduleFields = (publishAt: string | null) => {
+const getInitialScheduleFields = (publishAt: string | null, now: Date = new Date()) => {
   if (!publishAt) {
     return {
       dateInput: '',
@@ -243,6 +249,14 @@ const getInitialScheduleFields = (publishAt: string | null) => {
     };
   }
 
+  if (scheduledDate.getTime() <= now.getTime()) {
+    return {
+      dateInput: '',
+      publishMode: 'immediate' as PublishMode,
+      timeInput: '',
+    };
+  }
+
   const year = `${scheduledDate.getFullYear()}`;
   const month = `${scheduledDate.getMonth() + 1}`.padStart(2, '0');
   const date = `${scheduledDate.getDate()}`.padStart(2, '0');
@@ -253,6 +267,22 @@ const getInitialScheduleFields = (publishAt: string | null) => {
     dateInput: `${year}-${month}-${date}`,
     publishMode: 'scheduled' as PublishMode,
     timeInput: `${hours}:${minutes}`,
+  };
+};
+
+/**
+ * 로컬 기준 현재 시각을 date/time input에 넣을 수 있는 최소값 문자열로 반환합니다.
+ */
+const getLocalScheduleMinFields = (now: Date = new Date()) => {
+  const year = `${now.getFullYear()}`;
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const date = `${now.getDate()}`.padStart(2, '0');
+  const hours = `${now.getHours()}`.padStart(2, '0');
+  const minutes = `${now.getMinutes()}`.padStart(2, '0');
+
+  return {
+    minDateInput: `${year}-${month}-${date}`,
+    minTimeInput: `${hours}:${minutes}`,
   };
 };
 
@@ -316,15 +346,19 @@ export const PublishPanel = ({
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const hasInitializedWhileOpenRef = useRef(false);
   const pendingInitialSettingsRef = useRef<PublishSettings | null>(null);
+  const openedAtRef = useRef<Date | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       hasInitializedWhileOpenRef.current = false;
       pendingInitialSettingsRef.current = null;
+      openedAtRef.current = null;
       return;
     }
 
     if (hasInitializedWhileOpenRef.current) return;
+
+    openedAtRef.current = new Date();
 
     const nextFormState = createInitialFormState({
       editorSlug: editorState.slug,
@@ -352,6 +386,13 @@ export const PublishPanel = ({
     () => toScheduledPublishUtcIso(dateInput, timeInput),
     [dateInput, timeInput],
   );
+  const { minDateInput, minTimeInput } = getLocalScheduleMinFields(
+    openedAtRef.current ?? new Date(),
+  );
+  const effectiveMinTimeInput =
+    publishMode === 'scheduled' && (!dateInput || dateInput === minDateInput)
+      ? minTimeInput
+      : undefined;
   const currentSettings = useMemo(
     () =>
       buildPublishSettings({
@@ -599,6 +640,8 @@ export const PublishPanel = ({
           <PublishScheduleSection
             dateInput={dateInput}
             error={errors.publishAt}
+            minDateInput={minDateInput}
+            minTimeInput={effectiveMinTimeInput}
             onDateChange={handleDateInputChange}
             onPublishModeChange={handlePublishModeChange}
             onTimeChange={handleTimeInputChange}
