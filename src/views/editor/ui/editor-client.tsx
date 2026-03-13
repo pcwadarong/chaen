@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import {
   type DraftSaveResult,
@@ -41,6 +41,10 @@ type EditorClientProps = {
   ) => Promise<void>;
 };
 
+const EMPTY_TAGS: string[] = [];
+const MemoizedEditorCore = React.memo(EditorCore);
+const MemoizedPublishPanel = React.memo(PublishPanel);
+
 /**
  * 관리자 article/project 편집 페이지에서 EditorCore와 PublishPanel을 연결합니다.
  */
@@ -53,7 +57,7 @@ export const EditorClient = ({
   initialSavedAt = null,
   initialSettings,
   initialSlug = '',
-  initialTags = [],
+  initialTags = EMPTY_TAGS,
   initialTranslations,
   onDraftSave,
   onPublishSubmit,
@@ -76,43 +80,62 @@ export const EditorClient = ({
   /**
    * EditorCore의 단일 인자 callback 계약을 draftId 추적 가능한 형태로 감쌉니다.
    */
-  const handleDraftSave = async (state: EditorState) => {
-    if (!onDraftSave) {
-      return undefined;
-    }
+  const handleDraftSave = useCallback(
+    async (state: EditorState) => {
+      if (!onDraftSave) {
+        return undefined;
+      }
 
-    const result = await onDraftSave(state, publishSettings, draftId);
+      const result = await onDraftSave(state, publishSettings, draftId);
 
-    if (result?.draftId) {
-      setDraftId(result.draftId);
-    }
+      if (result?.draftId) {
+        setDraftId(result.draftId);
+      }
 
-    return result;
-  };
+      return result;
+    },
+    [draftId, onDraftSave, publishSettings],
+  );
 
   /**
    * EditorCore에서 현재 snapshot을 받아 발행 패널을 엽니다.
    */
-  const handleOpenPublishPanel = (state: EditorState) => {
+  const handleOpenPublishPanel = useCallback((state: EditorState) => {
     setEditorState(state);
     setIsPublishPanelOpen(true);
-  };
+  }, []);
+
+  /**
+   * 발행 패널을 닫습니다.
+   */
+  const handleClosePublishPanel = useCallback(() => {
+    setIsPublishPanelOpen(false);
+  }, []);
+
+  /**
+   * 발행 패널에서 편집한 설정을 로컬 상태에 반영합니다.
+   */
+  const handleSettingsChange = useCallback((settings: PublishSettings) => {
+    setPublishSettings(settings);
+  }, []);
 
   /**
    * 발행 패널 제출 시 server action 또는 로컬 상태를 갱신합니다.
    */
-  const handlePublishSubmit = async (settings: PublishSettings) => {
-    setPublishSettings(settings);
+  const handlePublishSubmit = useCallback(
+    async (settings: PublishSettings) => {
+      setPublishSettings(settings);
 
-    if (onPublishSubmit) {
-      await onPublishSubmit(settings, editorState, draftId);
-      return;
-    }
-  };
+      if (onPublishSubmit) {
+        await onPublishSubmit(settings, editorState, draftId);
+      }
+    },
+    [draftId, editorState, onPublishSubmit],
+  );
 
   return (
     <>
-      <EditorCore
+      <MemoizedEditorCore
         availableTags={availableTags}
         contentId={contentId}
         contentType={contentType}
@@ -124,15 +147,15 @@ export const EditorClient = ({
         onDraftSave={handleDraftSave}
         onOpenPublishPanel={handleOpenPublishPanel}
       />
-      <PublishPanel
+      <MemoizedPublishPanel
         contentId={contentId}
         contentType={contentType}
         editorState={editorState}
         initialSettings={publishSettings}
         isOpen={isPublishPanelOpen}
         isPublished={initialPublished}
-        onClose={() => setIsPublishPanelOpen(false)}
-        onSettingsChange={setPublishSettings}
+        onClose={handleClosePublishPanel}
+        onSettingsChange={handleSettingsChange}
         onSubmit={handlePublishSubmit}
       />
     </>
