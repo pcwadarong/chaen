@@ -448,7 +448,7 @@ const markdownInlineCodeClass = css({
   px: '[0.375rem]',
   py: '[0.125rem]',
   borderRadius: 'xs',
-  background: 'surfaceMuted',
+  background: '[rgba(59, 130, 246, 0.16)]',
   fontFamily: 'mono',
   fontSize: '[0.95em]',
 });
