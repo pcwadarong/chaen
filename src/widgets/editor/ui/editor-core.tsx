@@ -120,6 +120,16 @@ const createTimestamp = () => new Date().toISOString();
 const resolveSavedAt = (result: DraftSaveResult | void) => result?.savedAt ?? createTimestamp();
 
 /**
+ * 숨겨진 panel에서 먼저 마운트된 textarea 높이를 현재 내용 기준으로 다시 계산합니다.
+ */
+const resizeTextareaToContent = (element: HTMLTextAreaElement | null) => {
+  if (!element) return;
+
+  element.style.height = '0px';
+  element.style.height = `${element.scrollHeight}px`;
+};
+
+/**
  * 현재 locale textarea scrollTop을 기억합니다.
  */
 const rememberTextareaScroll = (
@@ -172,6 +182,15 @@ const EditorLocalePanelBase = ({
   translation,
 }: EditorLocalePanelProps) => {
   const localeLabel = LOCALE_LABELS[locale];
+  const titleTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    resizeTextareaToContent(titleTextareaRef.current);
+    resizeTextareaToContent(descriptionTextareaRef.current);
+  }, [isActive, translation.description, translation.title]);
 
   return (
     <section
@@ -195,6 +214,7 @@ const EditorLocalePanelBase = ({
             id={`editor-title-${locale}`}
             onChange={event => onTitleChange(locale, event.target.value)}
             placeholder={`${localeLabel} 제목`}
+            ref={titleTextareaRef}
             value={translation.title}
           />
           {activeLocaleHasTitleError ? (
@@ -213,6 +233,7 @@ const EditorLocalePanelBase = ({
             id={`editor-description-${locale}`}
             onChange={event => onDescriptionChange(locale, event.target.value)}
             placeholder={`${localeLabel} 설명`}
+            ref={descriptionTextareaRef}
             value={translation.description}
           />
         </div>
@@ -795,22 +816,24 @@ const localeTabListClass = css({
   alignItems: 'center',
   gap: '4',
   minWidth: '0',
-  overflowX: 'auto',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
-  scrollbarWidth: '[thin]',
 });
 
 const localeTabRecipe = cva({
   base: {
     position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     minHeight: '[2.875rem]',
     px: '2',
     pb: '3',
     fontSize: 'sm',
     fontWeight: 'semibold',
     lineHeight: 'tight',
+    textAlign: 'center',
     transition: 'colors',
     _focusVisible: {
       outline: '[2px solid var(--colors-focus-ring)]',
@@ -839,15 +862,12 @@ const localeTabRecipe = cva({
 });
 
 const mobilePaneTabListClass = css({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   minWidth: '0',
-  overflowX: 'auto',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
-  scrollbarWidth: '[thin]',
   '@media (min-width: 761px)': {
     display: 'none',
   },

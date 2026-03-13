@@ -59,6 +59,7 @@ const availableTags = [
  * 공용 EditorCore를 테스트 기본값과 함께 렌더링합니다.
  */
 const renderEditorCore = (options?: {
+  initialTranslations?: React.ComponentProps<typeof EditorCore>['initialTranslations'];
   initialSavedAt?: string | null;
   onDraftSave?: (
     state: Parameters<NonNullable<React.ComponentProps<typeof EditorCore>['onDraftSave']>>[0],
@@ -76,12 +77,14 @@ const renderEditorCore = (options?: {
       initialSavedAt={options?.initialSavedAt ?? null}
       initialSlug=""
       initialTags={[]}
-      initialTranslations={{
-        en: { content: '', description: '', title: '' },
-        fr: { content: '', description: '', title: '' },
-        ja: { content: '', description: '', title: '' },
-        ko: { content: '', description: '', title: '' },
-      }}
+      initialTranslations={
+        options?.initialTranslations ?? {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '', description: '', title: '' },
+        }
+      }
       onDraftSave={onDraftSave}
       onOpenPublishPanel={onOpenPublishPanel}
     />,
@@ -202,6 +205,42 @@ describe('EditorCore', () => {
 
     expect(screen.getByRole('region', { name: '본문 편집' })).toBeTruthy();
     expect(screen.getByRole('region', { name: '본문 미리보기' })).toBeTruthy();
+  });
+
+  it('숨겨진 locale panel의 제목과 설명도 탭 전환 시 높이를 다시 계산한다', async () => {
+    renderEditorCore({
+      initialTranslations: {
+        en: {
+          content: '',
+          description: '영문 설명이 두 줄로 보이도록 충분히 길게 들어갑니다.',
+          title: 'English title that should expand after the tab becomes visible.',
+        },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
+      },
+    });
+
+    const enTitleTextarea = document.getElementById('editor-title-en') as HTMLTextAreaElement;
+    const enDescriptionTextarea = document.getElementById(
+      'editor-description-en',
+    ) as HTMLTextAreaElement;
+
+    Object.defineProperty(enTitleTextarea, 'scrollHeight', {
+      configurable: true,
+      value: 92,
+    });
+    Object.defineProperty(enDescriptionTextarea, 'scrollHeight', {
+      configurable: true,
+      value: 76,
+    });
+
+    fireEvent.click(screen.getByRole('tab', { name: 'EN' }));
+
+    await waitFor(() => {
+      expect(enTitleTextarea.style.height).toBe('92px');
+      expect(enDescriptionTextarea.style.height).toBe('76px');
+    });
   });
 
   it('toolbar는 active locale textarea에만 값을 적용한다', async () => {
