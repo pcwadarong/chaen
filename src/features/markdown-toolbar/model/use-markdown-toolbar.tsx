@@ -2,14 +2,14 @@
 
 import React from 'react';
 
+import { createMarkdownLinkByMode } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
-  createMarkdownLinkByMode,
   insertTemplate,
   prefixLine,
   toggleHeadingLine,
   wrapSelection,
-} from '@/entities/editor';
+} from '@/entities/editor/model/selection-utils';
 import { AlignPopover } from '@/features/markdown-toolbar/ui/align-popover';
 import { ImageEmbedPopover } from '@/features/markdown-toolbar/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/markdown-toolbar/ui/link-embed-popover';

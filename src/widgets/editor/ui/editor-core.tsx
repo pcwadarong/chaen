@@ -4,14 +4,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
+import { buildEditorLinkInsertion } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
-  buildEditorLinkInsertion,
   continueMarkdownList,
   indentMarkdownList,
   insertTemplate,
   outdentMarkdownList,
-} from '@/entities/editor';
+} from '@/entities/editor/model/selection-utils';
 import { MarkdownToolbar } from '@/features/markdown-toolbar/ui/markdown-toolbar';
 import { getMarkdownOptions, markdownBodyClass } from '@/shared/lib/markdown/markdown-config';
 import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';

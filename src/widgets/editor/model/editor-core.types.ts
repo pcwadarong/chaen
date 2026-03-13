@@ -1,5 +1,3 @@
-'use client';
-
 export const EDITOR_LOCALES = ['ko', 'en', 'ja', 'fr'] as const;
 
 export type Locale = (typeof EDITOR_LOCALES)[number];
