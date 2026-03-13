@@ -26,4 +26,13 @@ describe('editor-error', () => {
       message: EDITOR_ERROR_MESSAGE.duplicateSlug,
     });
   });
+
+  it('일반 에러는 fallback code의 사용자 메시지로 정규화한다', () => {
+    const payload = parseEditorError(new Error('save failed'), 'draftSaveFailed');
+
+    expect(payload).toEqual({
+      code: 'draftSaveFailed',
+      message: EDITOR_ERROR_MESSAGE.draftSaveFailed,
+    });
+  });
 });

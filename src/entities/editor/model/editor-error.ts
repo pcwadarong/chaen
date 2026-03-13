@@ -80,7 +80,7 @@ export const parseEditorError = (
   if (error instanceof Error && error.message) {
     return {
       code: fallbackCode,
-      message: error.message,
+      message: resolveEditorErrorMessage(fallbackCode),
     };
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useCallback, useId, useState } from 'react';
 import { css, cva, cx } from 'styled-system/css';
 
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
@@ -28,7 +28,7 @@ const hasSelectedTag = (selectedTagSlugs: string[], tagSlug: string) =>
  * 에디터 전반에서 재사용하는 태그 선택 UI입니다.
  * 태그 풀 안에서만 선택 상태를 토글하고, 선택값은 slug 배열로 유지합니다.
  */
-export const TagSelector = ({
+const TagSelectorBase = ({
   availableTags,
   className,
   onChange,
@@ -40,14 +40,20 @@ export const TagSelector = ({
   /**
    * 태그 선택 상태를 토글한 다음 상위 컨트롤러에 최신 slug 목록을 전달합니다.
    */
-  const handleTagToggle = (tagSlug: string) => {
-    if (hasSelectedTag(selectedTagSlugs, tagSlug)) {
-      onChange(selectedTagSlugs.filter(slug => slug !== tagSlug));
-      return;
-    }
+  const handleTagToggle = useCallback(
+    (tagSlug: string) => {
+      if (hasSelectedTag(selectedTagSlugs, tagSlug)) {
+        onChange(selectedTagSlugs.filter(slug => slug !== tagSlug));
+        return;
+      }
 
-    onChange([...selectedTagSlugs, tagSlug]);
-  };
+      onChange([...selectedTagSlugs, tagSlug]);
+    },
+    [onChange, selectedTagSlugs],
+  );
+  const handleExpandedToggle = useCallback(() => {
+    setIsExpanded(previous => !previous);
+  }, []);
 
   return (
     <section aria-label="태그 선택기" className={cx(rootClass, className)}>
@@ -58,7 +64,7 @@ export const TagSelector = ({
           aria-expanded={isExpanded}
           aria-label={isExpanded ? '태그 풀 접기' : '태그 풀 열기'}
           className={toggleButtonClass}
-          onClick={() => setIsExpanded(previous => !previous)}
+          onClick={handleExpandedToggle}
           type="button"
         >
           <span>{isExpanded ? '접기' : '열기'}</span>
@@ -101,6 +107,10 @@ export const TagSelector = ({
     </section>
   );
 };
+
+TagSelectorBase.displayName = 'TagSelector';
+
+export const TagSelector = React.memo(TagSelectorBase);
 
 const rootClass = css({
   display: 'grid',
