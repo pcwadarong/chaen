@@ -23,7 +23,7 @@ type CommentComposeContentFieldProps = {
 };
 
 /** 본문 입력과 보조 메타(단축키/글자 수)를 렌더링합니다. */
-export const CommentComposeContentField = ({
+const CommentComposeContentFieldBase = ({
   characterCountId,
   characterCountLabel,
   charCountText,
@@ -67,6 +67,10 @@ export const CommentComposeContentField = ({
     </div>
   </div>
 );
+
+CommentComposeContentFieldBase.displayName = 'CommentComposeContentField';
+
+export const CommentComposeContentField = React.memo(CommentComposeContentFieldBase);
 
 const textareaWrapClass = css({
   display: 'grid',

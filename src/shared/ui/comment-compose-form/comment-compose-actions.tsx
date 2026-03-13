@@ -16,7 +16,7 @@ type GuestbookComposeActionsProps = {
 };
 
 /** 비밀글 토글과 전송 버튼 액션 영역을 렌더링합니다. */
-export const CommentComposeActions = ({
+const CommentComposeActionsBase = ({
   allowSecretToggle,
   isSecret,
   isSubmitting,
@@ -66,6 +66,10 @@ export const CommentComposeActions = ({
     </Button>
   </div>
 );
+
+CommentComposeActionsBase.displayName = 'CommentComposeActions';
+
+export const CommentComposeActions = React.memo(CommentComposeActionsBase);
 
 const secretControlGroupClass = css({
   display: 'inline-flex',

@@ -156,4 +156,21 @@ describe('CommentComposeForm', () => {
       });
     });
   });
+
+  it('답글 미리보기 reset 버튼이 콜백을 호출한다', () => {
+    const onReplyTargetReset = vi.fn();
+
+    render(
+      <CommentComposeForm
+        {...createProps()}
+        isReplyMode
+        onReplyTargetReset={onReplyTargetReset}
+        replyTargetContent="이전 댓글 내용"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '답신 취소' }));
+
+    expect(onReplyTargetReset).toHaveBeenCalledTimes(1);
+  });
 });

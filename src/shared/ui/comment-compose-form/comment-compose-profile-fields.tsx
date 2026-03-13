@@ -28,7 +28,7 @@ type CommentComposeProfileFieldsProps = {
 };
 
 /** 작성자 프로필(닉네임/비밀번호/홈페이지) 입력 필드를 렌더링합니다. */
-export const CommentComposeProfileFields = ({
+const CommentComposeProfileFieldsBase = ({
   authorBlogUrlDescribedBy,
   authorBlogUrlErrorMessage,
   authorBlogUrlId,
@@ -98,6 +98,10 @@ export const CommentComposeProfileFields = ({
     </label>
   </div>
 );
+
+CommentComposeProfileFieldsBase.displayName = 'CommentComposeProfileFields';
+
+export const CommentComposeProfileFields = React.memo(CommentComposeProfileFieldsBase);
 
 const leftFieldsClass = css({
   display: 'grid',
