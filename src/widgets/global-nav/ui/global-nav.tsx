@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
@@ -18,6 +18,52 @@ import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-m
 
 const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
 
+type GlobalNavMobileSearchOverlayProps = {
+  clearText: string;
+  closeLabel: string;
+  onClose: () => void;
+  onSubmitComplete: () => void;
+  pendingText: string;
+  placeholder: string;
+  searchQuery: string;
+  submitText: string;
+};
+
+/**
+ * 모바일 아티클 검색 overlay와 닫기 액션을 함께 렌더링합니다.
+ */
+const GlobalNavMobileSearchOverlayBase = ({
+  clearText,
+  closeLabel,
+  onClose,
+  onSubmitComplete,
+  pendingText,
+  placeholder,
+  searchQuery,
+  submitText,
+}: GlobalNavMobileSearchOverlayProps) => (
+  <div className={mobileSearchOverlayClass}>
+    <div className={mobileSearchOverlayInnerClass}>
+      <ArticleSearchForm
+        autoFocus
+        clearText={clearText}
+        fullWidth
+        onSubmitComplete={onSubmitComplete}
+        pendingText={pendingText}
+        placeholder={placeholder}
+        searchMode="submit-only"
+        searchQuery={searchQuery}
+        submitText={submitText}
+      />
+      <XButton ariaLabel={closeLabel} className={mobileSearchCloseClass} onClick={onClose} />
+    </div>
+  </div>
+);
+
+GlobalNavMobileSearchOverlayBase.displayName = 'GlobalNavMobileSearchOverlay';
+
+const GlobalNavMobileSearchOverlay = React.memo(GlobalNavMobileSearchOverlayBase);
+
 /** 전역 네비게이션 위젯입니다. */
 export const GlobalNav = () => {
   const t = useTranslations('Navigation');
@@ -32,18 +78,64 @@ export const GlobalNav = () => {
   const rafIdRef = useRef<number | null>(null);
   const isArticlesRoute = pathname === '/articles' || pathname.startsWith('/articles/');
   const currentSearchQuery = searchParams?.get('q')?.trim() ?? '';
+  const homeLabel = t('home');
+  const resumeLabel = t('resume');
+  const projectLabel = t('project');
+  const articlesLabel = t('articles');
+  const guestLabel = t('guest');
+  const ariaLabel = t('ariaLabel');
+  const openMenuLabel = t('openMenu');
+  const closeMenuLabel = t('closeMenu');
+  const brandLabel = t('brand');
+  const searchSubmitLabel = articlesT('searchSubmit');
+  const searchClearLabel = articlesT('searchClear');
+  const searchPlaceholderLabel = articlesT('searchPlaceholder');
+  const searchLoadingLabel = articlesT('loading');
+  const searchCloseLabel = articlesT('searchClose');
 
-  const navigationItems = buildGlobalNavigationItems({
-    isAdmin,
-    labels: {
-      admin: '관리자',
-      articles: t('articles'),
-      guest: t('guest'),
-      home: t('home'),
-      project: t('project'),
-      resume: t('resume'),
-    },
-  });
+  const navigationItems = useMemo(
+    () =>
+      buildGlobalNavigationItems({
+        isAdmin,
+        labels: {
+          admin: '관리자',
+          articles: articlesLabel,
+          guest: guestLabel,
+          home: homeLabel,
+          project: projectLabel,
+          resume: resumeLabel,
+        },
+      }),
+    [articlesLabel, guestLabel, homeLabel, isAdmin, projectLabel, resumeLabel],
+  );
+
+  /**
+   * 모바일 메뉴를 닫습니다.
+   */
+  const handleMobileMenuClose = useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+
+  /**
+   * 모바일 검색 overlay를 닫습니다.
+   */
+  const handleMobileSearchClose = useCallback(() => {
+    setIsMobileSearchOpen(false);
+  }, []);
+
+  /**
+   * 모바일 검색 overlay를 엽니다.
+   */
+  const handleMobileSearchOpen = useCallback(() => {
+    setIsMobileSearchOpen(true);
+  }, []);
+
+  /**
+   * 모바일 메뉴 열림 상태를 토글합니다.
+   */
+  const handleMobileMenuToggle = useCallback(() => {
+    setIsMobileMenuOpen(previous => !previous);
+  }, []);
 
   // 스크롤 방향과 위치에 따라 헤더의 가시성을 토글하는 효과
   useEffect(() => {
@@ -117,12 +209,12 @@ export const GlobalNav = () => {
   }, []);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+    handleMobileMenuClose();
+  }, [handleMobileMenuClose, pathname]);
 
   useEffect(() => {
-    setIsMobileSearchOpen(false);
-  }, [pathname, currentSearchQuery]);
+    handleMobileSearchClose();
+  }, [currentSearchQuery, handleMobileSearchClose, pathname]);
 
   useEffect(() => {
     if (!isMobileSearchOpen) return;
@@ -130,9 +222,7 @@ export const GlobalNav = () => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
 
-      if (isMobileSearchOpen) {
-        setIsMobileSearchOpen(false);
-      }
+      handleMobileSearchClose();
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -140,66 +230,62 @@ export const GlobalNav = () => {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isMobileSearchOpen]);
+  }, [handleMobileSearchClose, isMobileSearchOpen]);
+
+  const mobileSearchLeadingAction = useMemo(() => {
+    if (!isArticlesRoute) {
+      return null;
+    }
+
+    return (
+      <Button
+        aria-expanded={isMobileSearchOpen}
+        aria-label={searchSubmitLabel}
+        className={mobileSearchActionClass}
+        onClick={handleMobileSearchOpen}
+        size="sm"
+        tone="white"
+        type="button"
+        variant="ghost"
+      >
+        <SearchIcon aria-hidden color="text" size="md" />
+        <span className={srOnlyClass}>{searchSubmitLabel}</span>
+      </Button>
+    );
+  }, [handleMobileSearchOpen, isArticlesRoute, isMobileSearchOpen, searchSubmitLabel]);
 
   return (
     <header className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}>
       {isArticlesRoute && isMobileSearchOpen ? (
-        <div className={mobileSearchOverlayClass}>
-          <div className={mobileSearchOverlayInnerClass}>
-            <ArticleSearchForm
-              autoFocus
-              clearText={articlesT('searchClear')}
-              fullWidth
-              onSubmitComplete={() => setIsMobileSearchOpen(false)}
-              pendingText={articlesT('loading')}
-              placeholder={articlesT('searchPlaceholder')}
-              searchMode="submit-only"
-              searchQuery={currentSearchQuery}
-              submitText={articlesT('searchSubmit')}
-            />
-            <XButton
-              ariaLabel={articlesT('searchClose')}
-              className={mobileSearchCloseClass}
-              onClick={() => setIsMobileSearchOpen(false)}
-            />
-          </div>
-        </div>
+        <GlobalNavMobileSearchOverlay
+          clearText={searchClearLabel}
+          closeLabel={searchCloseLabel}
+          onClose={handleMobileSearchClose}
+          onSubmitComplete={handleMobileSearchClose}
+          pendingText={searchLoadingLabel}
+          placeholder={searchPlaceholderLabel}
+          searchQuery={currentSearchQuery}
+          submitText={searchSubmitLabel}
+        />
       ) : null}
       <div className={innerClass}>
         <Link className={brandLinkClass} href="/" prefetch>
-          {t('brand')}
+          {brandLabel}
         </Link>
         <GlobalNavDesktopContent
-          ariaLabel={t('ariaLabel')}
+          ariaLabel={ariaLabel}
           navigationItems={navigationItems}
           pathname={pathname}
         />
         <GlobalNavMobileMenu
-          ariaLabel={t('ariaLabel')}
-          closeMenuLabel={t('closeMenu')}
+          ariaLabel={ariaLabel}
+          closeMenuLabel={closeMenuLabel}
           isOpen={isMobileMenuOpen}
-          leadingAction={
-            isArticlesRoute ? (
-              <Button
-                aria-expanded={isMobileSearchOpen}
-                aria-label={articlesT('searchSubmit')}
-                className={mobileSearchActionClass}
-                onClick={() => setIsMobileSearchOpen(true)}
-                size="sm"
-                tone="white"
-                type="button"
-                variant="ghost"
-              >
-                <SearchIcon aria-hidden color="text" size="md" />
-                <span className={srOnlyClass}>{articlesT('searchSubmit')}</span>
-              </Button>
-            ) : null
-          }
+          leadingAction={mobileSearchLeadingAction}
           navigationItems={navigationItems}
-          onClose={() => setIsMobileMenuOpen(false)}
-          onToggle={() => setIsMobileMenuOpen(previous => !previous)}
-          openMenuLabel={t('openMenu')}
+          onClose={handleMobileMenuClose}
+          onToggle={handleMobileMenuToggle}
+          openMenuLabel={openMenuLabel}
           pathname={pathname}
         />
       </div>

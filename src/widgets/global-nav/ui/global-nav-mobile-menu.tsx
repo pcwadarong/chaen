@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, Suspense } from 'react';
+import React, { type ReactNode, Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
@@ -28,7 +28,7 @@ type GlobalNavMobileMenuProps = {
 const MOBILE_NAV_DRAWER_ID = 'mobile-nav-drawer';
 
 /** 모바일 뷰에서 사용하는 햄버거 트리거와 슬라이드 드로어 메뉴입니다. */
-export const GlobalNavMobileMenu = ({
+const GlobalNavMobileMenuBase = ({
   ariaLabel,
   closeMenuLabel,
   isOpen,
@@ -90,6 +90,10 @@ export const GlobalNavMobileMenu = ({
     </SlideOver>
   </>
 );
+
+GlobalNavMobileMenuBase.displayName = 'GlobalNavMobileMenu';
+
+export const GlobalNavMobileMenu = React.memo(GlobalNavMobileMenuBase);
 
 const mobileControlsClass = css({
   display: 'none',
