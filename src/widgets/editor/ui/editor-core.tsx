@@ -18,7 +18,6 @@ import { getMarkdownOptions, markdownBodyClass } from '@/shared/lib/markdown/mar
 import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
 import { Button } from '@/shared/ui/button/button';
 import { ChevronRightIcon, EditIcon, EyeIcon } from '@/shared/ui/icons/app-icons';
-import { Input } from '@/shared/ui/input/input';
 import { TagSelector } from '@/shared/ui/tag-selector/tag-selector';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
@@ -550,37 +549,41 @@ export const EditorCore = ({
             key={locale}
             role="tabpanel"
           >
-            <div className={titleFieldClass}>
-              <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
-                제목
-              </label>
-              <Input
-                aria-describedby={
-                  activeLocaleHasTitleError && isActive ? `editor-title-error-${locale}` : undefined
-                }
-                aria-invalid={isActive && activeLocaleHasTitleError ? true : undefined}
-                id={`editor-title-${locale}`}
-                onChange={event => handleTitleChange(locale, event.target.value)}
-                placeholder={`${LOCALE_LABELS[locale]} 제목`}
-                value={translation.title}
-              />
-              {isActive && activeLocaleHasTitleError ? (
-                <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
-                  제목을 입력해주세요
-                </p>
-              ) : null}
-            </div>
+            <div className={summaryGridClass}>
+              <div className={summaryFieldClass}>
+                <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
+                  제목
+                </label>
+                <Textarea
+                  aria-describedby={
+                    activeLocaleHasTitleError && isActive
+                      ? `editor-title-error-${locale}`
+                      : undefined
+                  }
+                  aria-invalid={isActive && activeLocaleHasTitleError ? true : undefined}
+                  id={`editor-title-${locale}`}
+                  onChange={event => handleTitleChange(locale, event.target.value)}
+                  placeholder={`${LOCALE_LABELS[locale]} 제목`}
+                  value={translation.title}
+                />
+                {isActive && activeLocaleHasTitleError ? (
+                  <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
+                    제목을 입력해주세요
+                  </p>
+                ) : null}
+              </div>
 
-            <div className={descriptionFieldClass}>
-              <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
-                설명
-              </label>
-              <Input
-                id={`editor-description-${locale}`}
-                onChange={event => handleDescriptionChange(locale, event.target.value)}
-                placeholder={`${LOCALE_LABELS[locale]} 설명`}
-                value={translation.description}
-              />
+              <div className={summaryFieldClass}>
+                <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
+                  설명
+                </label>
+                <Textarea
+                  id={`editor-description-${locale}`}
+                  onChange={event => handleDescriptionChange(locale, event.target.value)}
+                  placeholder={`${LOCALE_LABELS[locale]} 설명`}
+                  value={translation.description}
+                />
+              </div>
             </div>
 
             <div className={editorGridClass}>
@@ -589,26 +592,30 @@ export const EditorCore = ({
                 hidden={isMobileLayout && mobileEditorPane !== 'edit'}
                 id={isMobileLayout ? `editor-pane-edit-${locale}` : undefined}
               >
-                <MarkdownToolbar
-                  onChange={nextValue => handleContentChange(locale, nextValue)}
-                  textareaRef={textareaRefs[locale]}
-                  value={translation.content}
-                />
-                <Textarea
-                  aria-label="본문 입력"
-                  autoResize={false}
-                  className={editorTextareaClass}
-                  onChange={event => handleContentChange(locale, event.target.value)}
-                  onKeyDown={handleTextareaKeyDown(locale)}
-                  onPaste={handleTextareaPaste(locale)}
-                  onScroll={event => {
-                    scrollTopByLocaleRef.current[locale] = event.currentTarget.scrollTop;
-                  }}
-                  placeholder="마크다운 본문을 입력하세요"
-                  ref={textareaRefs[locale]}
-                  rows={18}
-                  value={translation.content}
-                />
+                <div className={editorToolbarWrapClass}>
+                  <MarkdownToolbar
+                    onChange={nextValue => handleContentChange(locale, nextValue)}
+                    textareaRef={textareaRefs[locale]}
+                    value={translation.content}
+                  />
+                </div>
+                <div className={editorTextareaWrapClass}>
+                  <Textarea
+                    aria-label="본문 입력"
+                    autoResize={false}
+                    className={editorTextareaClass}
+                    onChange={event => handleContentChange(locale, event.target.value)}
+                    onKeyDown={handleTextareaKeyDown(locale)}
+                    onPaste={handleTextareaPaste(locale)}
+                    onScroll={event => {
+                      scrollTopByLocaleRef.current[locale] = event.currentTarget.scrollTop;
+                    }}
+                    placeholder="마크다운 본문을 입력하세요"
+                    ref={textareaRefs[locale]}
+                    rows={18}
+                    value={translation.content}
+                  />
+                </div>
               </section>
 
               <section
@@ -799,15 +806,20 @@ const localePanelClass = css({
   gap: '4',
 });
 
-const titleFieldClass = css({
+const summaryGridClass = css({
   display: 'grid',
-  gap: '2',
+  gap: '4',
+  alignItems: 'stretch',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  '@media (max-width: 760px)': {
+    gridTemplateColumns: '1fr',
+  },
 });
 
-const descriptionFieldClass = css({
+const summaryFieldClass = css({
   display: 'grid',
   gap: '2',
-  mt: '4',
+  alignContent: 'start',
 });
 
 const fieldLabelClass = css({
@@ -831,8 +843,8 @@ const editorGridClass = css({
 });
 
 const editorPaneClass = css({
-  display: 'grid',
-  gap: '3',
+  display: 'flex',
+  flexDirection: 'column',
   minHeight: '[36rem]',
   p: '4',
   borderRadius: '2xl',
@@ -840,6 +852,16 @@ const editorPaneClass = css({
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surface',
+});
+
+const editorToolbarWrapClass = css({
+  flex: 'none',
+});
+
+const editorTextareaWrapClass = css({
+  display: 'flex',
+  flex: '1',
+  minHeight: '0',
 });
 
 const previewPaneClass = css({
@@ -856,6 +878,7 @@ const previewPaneClass = css({
 const editorTextareaClass = css({
   minHeight: '[30rem]',
   height: 'full',
+  flex: '1',
   resize: 'none',
   overflowY: 'auto',
   fontFamily: 'mono',
