@@ -76,6 +76,7 @@ describe('ProjectDetailRoute', () => {
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
     });
 
@@ -111,6 +112,7 @@ describe('ProjectDetailRoute', () => {
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
     });
     vi.mocked(getServerAuthState).mockResolvedValueOnce({
@@ -141,6 +143,7 @@ describe('ProjectDetailRoute', () => {
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
       resolvedLocale: 'ko',
     });

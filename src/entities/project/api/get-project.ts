@@ -60,6 +60,7 @@ const resolveProjectLookup = async (
     .select('id')
     .eq('slug', projectSlug)
     .eq('visibility', 'public')
+    .lte('publish_at', new Date().toISOString())
     .not('publish_at', 'is', null)
     .maybeSingle<ProjectLookup>();
   const { data: projectBySlug, error: projectBySlugError } = await projectSlugQuery;
@@ -96,6 +97,7 @@ const fetchProjectFromContentSchema = async (
     .eq('project_id', projectId)
     .eq('locale', locale)
     .eq('projects.visibility', 'public')
+    .lte('projects.publish_at', new Date().toISOString())
     .not('projects.publish_at', 'is', null)
     .maybeSingle<ProjectTranslationRow>();
 
@@ -155,11 +157,7 @@ const readCachedProject = async (
     locales: buildContentLocaleFallbackChain(normalizedLocale),
   });
 
-  if (resolvedProject?.value) {
-    cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(resolvedProject.value.id));
-  } else {
-    cacheTag(PROJECTS_CACHE_TAG);
-  }
+  cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(resolvedProjectId));
 
   return {
     item: resolvedProject?.value ?? null,

@@ -106,11 +106,14 @@ const buildArchiveEntries = (): MetadataRoute.Sitemap =>
 const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
+  const nowIsoString = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('article_translations')
     .select('article_id,locale,articles!inner(updated_at,publish_at,slug)')
     .in('locale', [...locales])
+    .eq('articles.visibility', 'public')
+    .lte('articles.publish_at', nowIsoString)
     .not('articles.publish_at', 'is', null)
     .not('articles.slug', 'is', null);
 
@@ -124,7 +127,11 @@ const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
     return [
       {
         changeFrequency: 'weekly' as const,
-        lastModified: article?.updated_at ? new Date(article.updated_at) : new Date(),
+        lastModified: article?.updated_at
+          ? new Date(article.updated_at)
+          : article?.publish_at
+            ? new Date(article.publish_at)
+            : undefined,
         priority: 0.8,
         url: buildAbsoluteSiteUrl(`/${row.locale}/articles/${articleSlug}`),
       },
@@ -138,11 +145,14 @@ const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
 const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
+  const nowIsoString = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('project_translations')
     .select('project_id,locale,projects!inner(updated_at,publish_at,slug)')
     .in('locale', [...locales])
+    .eq('projects.visibility', 'public')
+    .lte('projects.publish_at', nowIsoString)
     .not('projects.publish_at', 'is', null)
     .not('projects.slug', 'is', null);
 
@@ -156,9 +166,11 @@ const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
     return [
       {
         changeFrequency: 'monthly' as const,
-        lastModified: new Date(
-          project?.updated_at ?? project?.publish_at ?? new Date().toISOString(),
-        ),
+        lastModified: project?.updated_at
+          ? new Date(project.updated_at)
+          : project?.publish_at
+            ? new Date(project.publish_at)
+            : undefined,
         priority: 0.8,
         url: buildAbsoluteSiteUrl(`/${row.locale}/project/${projectSlug}`),
       },

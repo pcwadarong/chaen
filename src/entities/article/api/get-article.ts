@@ -65,6 +65,7 @@ const resolveArticleLookup = async (
     .select('id')
     .eq('slug', articleSlug)
     .eq('visibility', 'public')
+    .lte('publish_at', new Date().toISOString())
     .not('publish_at', 'is', null)
     .maybeSingle<ArticleLookup>();
   const { data: articleBySlug, error: articleBySlugError } = await articleSlugQuery;

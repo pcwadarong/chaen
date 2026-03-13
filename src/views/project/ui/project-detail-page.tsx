@@ -39,6 +39,11 @@ export const ProjectDetailPage = async ({
   const projectT = await getTranslations('Project');
   const detailUi = await getTranslations('DetailUi');
   const navigationT = await getTranslations('Navigation');
+
+  if (!item.publish_at) {
+    throw new Error(`[projects] 공개 프로젝트 publish_at이 없습니다. id=${item.id}`);
+  }
+
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
   const tagLabelMap = await getTagLabelMapBySlugs({
     locale,

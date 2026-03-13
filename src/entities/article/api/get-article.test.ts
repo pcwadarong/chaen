@@ -19,6 +19,7 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
 
 const createArticleSlugLookupQuery = (id = 'frontend-performance') => ({
   eq: vi.fn().mockReturnThis(),
+  lte: vi.fn().mockReturnThis(),
   not: vi.fn().mockReturnThis(),
   maybeSingle: vi.fn().mockResolvedValue({
     data: { id },
@@ -102,6 +103,7 @@ describe('getArticle', () => {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
       target_article_id: 'frontend-performance',
     });
+    expect(articleSlugQuery.lte).toHaveBeenCalledTimes(1);
     expect(unstable_cacheTag).toHaveBeenCalledWith('articles', 'article:frontend-performance');
   });
 
@@ -268,6 +270,7 @@ describe('getArticle', () => {
   it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
     const articleSlugQuery = {
       eq: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
