@@ -1,4 +1,5 @@
 import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
+import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
 /**
@@ -10,5 +11,5 @@ export const GET = async (request: Request) =>
       const locale = new URL(request.url).searchParams.get('locale')?.trim() || 'ko';
       return getTagOptionsByLocale(locale);
     },
-    errorMessage: '태그 목록을 불러오지 못했습니다.',
+    errorMessage: API_INTERNAL_ERROR_MESSAGE.tagsFetchFailed,
   });

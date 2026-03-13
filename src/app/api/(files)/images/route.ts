@@ -1,5 +1,6 @@
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
+import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 import type { EditorContentType } from '@/widgets/editor/model/editor-core.types';
@@ -36,5 +37,5 @@ export const POST = async (request: Request) =>
         }),
       };
     },
-    errorMessage: EDITOR_API_ERROR_MESSAGE.imageUploadFailed,
+    errorMessage: API_INTERNAL_ERROR_MESSAGE.imageUploadFailed,
   });

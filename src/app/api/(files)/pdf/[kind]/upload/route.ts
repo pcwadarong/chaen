@@ -3,6 +3,7 @@ import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { isPdfFileKind } from '@/entities/pdf-file/model/types';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
+import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
@@ -47,5 +48,5 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
         isPdfReady: true,
       };
     },
-    errorMessage: PDF_FILE_API_ERROR_MESSAGE.uploadFailed,
+    errorMessage: API_INTERNAL_ERROR_MESSAGE.pdfUploadFailed,
   });

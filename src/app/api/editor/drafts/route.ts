@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
+import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
 /**
@@ -10,5 +11,5 @@ export const GET = async () =>
   runJsonRoute({
     adminOnly: true,
     action: async () => NextResponse.json(await getEditorDraftSummaries()),
-    errorMessage: '임시저장 목록을 불러오지 못했습니다.',
+    errorMessage: API_INTERNAL_ERROR_MESSAGE.editorDraftsFetchFailed,
   });

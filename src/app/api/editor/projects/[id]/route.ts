@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getEditorSeed } from '@/entities/editor/api/editor-read';
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
+import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
@@ -24,5 +25,5 @@ export const GET = async (_request: Request, { params }: { params: Promise<{ id:
 
       return NextResponse.json(seed);
     },
-    errorMessage: '프로젝트 데이터를 불러오지 못했습니다.',
+    errorMessage: API_INTERNAL_ERROR_MESSAGE.editorProjectFetchFailed,
   });
