@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { createApiErrorResponse } from '@/shared/lib/http/api-response';
+import { OG_API_ERROR_MESSAGE } from '@/shared/lib/seo/og-api-error';
 import { isOgImageType, OG_IMAGE_PLACEHOLDER_URL } from '@/shared/lib/seo/og-image';
 
 type OgImageRouteContext = {
@@ -15,7 +17,7 @@ type OgImageRouteContext = {
 export const GET = async (_request: Request, { params }: OgImageRouteContext) => {
   const { type } = await params;
   if (!isOgImageType(type)) {
-    return NextResponse.json({ message: 'Not Found' }, { status: 404 });
+    return createApiErrorResponse(OG_API_ERROR_MESSAGE.notFound, 404);
   }
 
   return NextResponse.redirect(OG_IMAGE_PLACEHOLDER_URL);

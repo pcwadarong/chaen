@@ -17,6 +17,9 @@ describe('api/og metadata route', () => {
     const response = await GET(new Request('https://chaen.dev/api/og?url=javascript:alert(1)'));
 
     expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: 'Invalid url',
+    });
   });
 
   it('OG 결과를 카드 응답 형태로 정규화한다', async () => {
