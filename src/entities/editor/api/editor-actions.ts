@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
-import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
@@ -188,30 +188,31 @@ export const publishEditorContentAction = async ({
   const parsedSettings = publishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success)
-    throw new Error(
+    throw createEditorError(
+      'publishInvalidState',
       parsedState.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.publishInvalidState,
     );
   if (!parsedSettings.success)
-    throw new Error(
+    throw createEditorError(
+      'publishInvalidSettings',
       parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.publishInvalidSettings,
     );
 
   const validation = validateEditorState(parsedState.data.translations);
 
-  if (!validation.canSave) throw new Error(EDITOR_ERROR_MESSAGE.missingCompleteTranslation);
-  if (!parsedState.data.translations.ko.title.trim())
-    throw new Error(EDITOR_ERROR_MESSAGE.missingKoTitle);
+  if (!validation.canSave) throw createEditorError('missingCompleteTranslation');
+  if (!parsedState.data.translations.ko.title.trim()) throw createEditorError('missingKoTitle');
 
   const normalizedSlug = normalizeSlugInput(parsedSettings.data.slug);
-  if (!normalizedSlug) throw new Error(EDITOR_ERROR_MESSAGE.missingSlug);
+  if (!normalizedSlug) throw createEditorError('missingSlug');
 
-  if (!isValidSlugFormat(normalizedSlug)) throw new Error(EDITOR_ERROR_MESSAGE.slugFormatInvalid);
+  if (!isValidSlugFormat(normalizedSlug)) throw createEditorError('slugFormatInvalid');
 
   if (parsedSettings.data.publishAt) {
     const scheduledDate = new Date(parsedSettings.data.publishAt);
 
     if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= new Date().getTime()) {
-      throw new Error(EDITOR_ERROR_MESSAGE.scheduledPublishMustBeFuture);
+      throw createEditorError('scheduledPublishMustBeFuture');
     }
   }
 
@@ -220,7 +221,7 @@ export const publishEditorContentAction = async ({
     type: contentType,
   });
 
-  if (duplicateResult.data.duplicate) throw new Error(EDITOR_ERROR_MESSAGE.duplicateSlug);
+  if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
   const supabase = await createServerSupabaseClient();
   const targetContentId = contentId ?? crypto.randomUUID();
@@ -241,7 +242,7 @@ export const publishEditorContentAction = async ({
       .update(contentPayload)
       .eq('id', targetContentId);
 
-    if (error) throw new Error(`[editor] ${contentType} 수정 실패: ${error.message}`);
+    if (error) throw createEditorError('publishFailed');
   } else {
     const { error } = await supabase.from(config.table).insert({
       ...contentPayload,
@@ -249,26 +250,30 @@ export const publishEditorContentAction = async ({
       id: targetContentId,
     });
 
-    if (error) throw new Error(`[editor] ${contentType} 생성 실패: ${error.message}`);
+    if (error) throw createEditorError('publishFailed');
   }
 
-  await syncEditorContentTranslations({
-    config,
-    contentId: targetContentId,
-    supabase,
-    translations: parsedState.data.translations,
-  });
-  await syncEditorContentTags({
-    config,
-    contentId: targetContentId,
-    supabase,
-    tagSlugs: parsedState.data.tags,
-  });
-  await deleteEditorDrafts({
-    contentId: targetContentId,
-    contentType,
-    draftId,
-  });
+  try {
+    await syncEditorContentTranslations({
+      config,
+      contentId: targetContentId,
+      supabase,
+      translations: parsedState.data.translations,
+    });
+    await syncEditorContentTags({
+      config,
+      contentId: targetContentId,
+      supabase,
+      tagSlugs: parsedState.data.tags,
+    });
+    await deleteEditorDrafts({
+      contentId: targetContentId,
+      contentType,
+      draftId,
+    });
+  } catch {
+    throw createEditorError('publishFailed');
+  }
 
   revalidateEditorContent({
     contentId: targetContentId,

@@ -1,3 +1,5 @@
+const EDITOR_ERROR_PREFIX = '__EDITOR_ERROR__';
+
 export const EDITOR_ERROR_MESSAGE = {
   duplicateSlug: '이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.',
   draftSaveFailed: '임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
@@ -16,35 +18,79 @@ export const EDITOR_ERROR_MESSAGE = {
   thumbnailUploadFailedWithRetry: '썸네일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.',
 } as const;
 
+export type EditorErrorCode = keyof typeof EDITOR_ERROR_MESSAGE;
 export type EditorPublishInlineErrorField = 'koTitle' | 'publishAt' | 'slug';
 
-const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_MESSAGE: Record<
-  (typeof EDITOR_ERROR_MESSAGE)[keyof typeof EDITOR_ERROR_MESSAGE],
+const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
+  EditorErrorCode,
   EditorPublishInlineErrorField | null
 > = {
-  [EDITOR_ERROR_MESSAGE.duplicateSlug]: 'slug',
-  [EDITOR_ERROR_MESSAGE.draftSaveFailed]: null,
-  [EDITOR_ERROR_MESSAGE.draftSaveInvalidSettings]: null,
-  [EDITOR_ERROR_MESSAGE.draftSaveInvalidState]: null,
-  [EDITOR_ERROR_MESSAGE.missingCompleteTranslation]: null,
-  [EDITOR_ERROR_MESSAGE.missingKoTitle]: 'koTitle',
-  [EDITOR_ERROR_MESSAGE.missingSlug]: 'slug',
-  [EDITOR_ERROR_MESSAGE.publishFailed]: null,
-  [EDITOR_ERROR_MESSAGE.publishInvalidSettings]: null,
-  [EDITOR_ERROR_MESSAGE.publishInvalidState]: null,
-  [EDITOR_ERROR_MESSAGE.scheduledPublishMustBeFuture]: 'publishAt',
-  [EDITOR_ERROR_MESSAGE.slugCheckFailed]: null,
-  [EDITOR_ERROR_MESSAGE.slugFormatInvalid]: 'slug',
-  [EDITOR_ERROR_MESSAGE.thumbnailUploadFailed]: null,
-  [EDITOR_ERROR_MESSAGE.thumbnailUploadFailedWithRetry]: null,
+  duplicateSlug: 'slug',
+  draftSaveFailed: null,
+  draftSaveInvalidSettings: null,
+  draftSaveInvalidState: null,
+  missingCompleteTranslation: null,
+  missingKoTitle: 'koTitle',
+  missingSlug: 'slug',
+  publishFailed: null,
+  publishInvalidSettings: null,
+  publishInvalidState: null,
+  scheduledPublishMustBeFuture: 'publishAt',
+  slugCheckFailed: null,
+  slugFormatInvalid: 'slug',
+  thumbnailUploadFailed: null,
+  thumbnailUploadFailedWithRetry: null,
 };
 
 /**
- * publish panel에서 서버/검증 에러를 어떤 인라인 필드에 매핑할지 계산합니다.
+ * editor 도메인 에러 코드를 사용자 노출 메시지로 변환합니다.
+ */
+export const resolveEditorErrorMessage = (code: EditorErrorCode) => EDITOR_ERROR_MESSAGE[code];
+
+/**
+ * server action과 client 사이에서 안전하게 전달할 수 있는 editor 에러를 만듭니다.
+ */
+export const createEditorError = (
+  code: EditorErrorCode,
+  message: string = resolveEditorErrorMessage(code),
+) => new Error(`${EDITOR_ERROR_PREFIX}:${code}:${message}`);
+
+/**
+ * 외부에서 받은 에러를 editor 에러 코드와 사용자 메시지로 정규화합니다.
+ */
+export const parseEditorError = (
+  error: unknown,
+  fallbackCode: EditorErrorCode,
+): {
+  code: EditorErrorCode;
+  message: string;
+} => {
+  if (error instanceof Error && error.message.startsWith(`${EDITOR_ERROR_PREFIX}:`)) {
+    const [, code, ...messageParts] = error.message.split(':');
+    const normalizedCode = code as EditorErrorCode;
+
+    return {
+      code: normalizedCode,
+      message: messageParts.join(':') || resolveEditorErrorMessage(normalizedCode),
+    };
+  }
+
+  if (error instanceof Error && error.message) {
+    return {
+      code: fallbackCode,
+      message: error.message,
+    };
+  }
+
+  return {
+    code: fallbackCode,
+    message: resolveEditorErrorMessage(fallbackCode),
+  };
+};
+
+/**
+ * publish panel에서 editor 에러 코드를 어떤 인라인 필드에 매핑할지 계산합니다.
  */
 export const resolveEditorPublishInlineErrorField = (
-  message: string,
-): EditorPublishInlineErrorField | null =>
-  EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_MESSAGE[
-    message as keyof typeof EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_MESSAGE
-  ] ?? null;
+  code: EditorErrorCode,
+): EditorPublishInlineErrorField | null => EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE[code] ?? null;

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { PublishPanel } from '@/widgets/editor/ui/publish-panel';
 
 import '@testing-library/jest-dom/vitest';
@@ -113,7 +114,7 @@ describe('PublishPanel', () => {
     fireEvent.change(screen.getByLabelText('시간'), {
       target: { value: '10:00' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
 
     expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
     expect(screen.getByText('슬러그를 입력해주세요')).toBeTruthy();
@@ -159,7 +160,7 @@ describe('PublishPanel', () => {
       expect(screen.getByRole('button', { name: '발행하기' })).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /발행 중/ })).toBeDisabled();
@@ -174,5 +175,26 @@ describe('PublishPanel', () => {
     await waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('publish 중 slug 중복 에러가 오면 인라인 에러로 표시한다', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(createEditorError('duplicateSlug'));
+
+    renderPublishPanel({ onSubmit });
+
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    expect(await screen.findByText(EDITOR_ERROR_MESSAGE.duplicateSlug)).toBeTruthy();
+    expect(screen.queryByText(EDITOR_ERROR_MESSAGE.publishFailed)).toBeNull();
+  });
+
+  it('publish 중 일반 서버 오류가 오면 toast로 표시한다', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(createEditorError('publishFailed'));
+
+    renderPublishPanel({ onSubmit });
+
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    expect(await screen.findByText(EDITOR_ERROR_MESSAGE.publishFailed)).toBeTruthy();
   });
 });

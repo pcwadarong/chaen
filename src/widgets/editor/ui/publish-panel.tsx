@@ -5,7 +5,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import {
+  createEditorError,
   EDITOR_ERROR_MESSAGE,
+  parseEditorError,
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
 import { Button } from '@/shared/ui/button/button';
@@ -205,7 +207,10 @@ export const PublishPanel = ({
     };
 
     if (!response.ok || typeof body.duplicate !== 'boolean') {
-      throw new Error(body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed);
+      throw createEditorError(
+        'slugCheckFailed',
+        body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
+      );
     }
 
     return body.duplicate;
@@ -235,7 +240,10 @@ export const PublishPanel = ({
       const body = (await response.json()) as { error?: string; message?: string; url?: string };
 
       if (!response.ok || !body.url) {
-        throw new Error(body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed);
+        throw createEditorError(
+          'thumbnailUploadFailed',
+          body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
+        );
       }
 
       setThumbnailUrl(body.url);
@@ -271,16 +279,16 @@ export const PublishPanel = ({
       await onSubmit(nextSettings);
       onClose();
     } catch (error) {
-      const message = error instanceof Error ? error.message : EDITOR_ERROR_MESSAGE.publishFailed;
-      const inlineField = resolveEditorPublishInlineErrorField(message);
+      const parsedError = parseEditorError(error, 'publishFailed');
+      const inlineField = resolveEditorPublishInlineErrorField(parsedError.code);
 
       if (inlineField) {
         setErrors(previous => ({
           ...previous,
-          [inlineField]: message,
+          [inlineField]: parsedError.message,
         }));
       } else {
-        pushToast(message);
+        pushToast(parsedError.message);
       }
     } finally {
       setIsSubmitting(false);
