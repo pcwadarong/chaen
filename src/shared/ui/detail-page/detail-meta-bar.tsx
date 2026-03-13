@@ -1,6 +1,6 @@
 'use client';
 
-import React, { type ReactNode, useEffect, useRef, useState } from 'react';
+import React, { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ActionResult } from '@/shared/lib/action/action-result';
@@ -23,10 +23,94 @@ type DetailMetaBarProps = {
 
 const DETAIL_VIEW_COUNT_TRACK_ERROR_CODE = 'detailMetaBar.viewCountTrackFailed';
 
+type DetailMetaPrimaryProps = {
+  primaryMetaScreenReaderText?: string;
+  primaryMetaText: string;
+};
+
+type DetailMetaShareActionProps = {
+  copiedText: string;
+  isCopied: boolean;
+  onShare: () => void;
+  shareText: string;
+};
+
+type DetailMetaViewCountProps = {
+  formattedViewCount: string;
+  viewCountLabel: string;
+};
+
+const ShareButtonIcon = <ShareIcon aria-hidden color="current" size="md" />;
+
+/**
+ * 디테일 메타의 주 기간/날짜 정보를 렌더링합니다.
+ */
+const DetailMetaPrimaryBase = ({
+  primaryMetaScreenReaderText,
+  primaryMetaText,
+}: DetailMetaPrimaryProps) => (
+  <span className={metaItemClass}>
+    <CalendarIcon aria-hidden color="muted" size="md" />
+    <span>
+      {primaryMetaScreenReaderText ? (
+        <span className={srOnlyClass}>{primaryMetaScreenReaderText}</span>
+      ) : null}
+      <span aria-hidden={Boolean(primaryMetaScreenReaderText)}>{primaryMetaText}</span>
+    </span>
+  </span>
+);
+
+DetailMetaPrimaryBase.displayName = 'DetailMetaPrimary';
+
+const DetailMetaPrimary = React.memo(DetailMetaPrimaryBase);
+
+/**
+ * 조회수 텍스트를 별도 경계로 렌더링합니다.
+ */
+const DetailMetaViewCountBase = ({
+  formattedViewCount,
+  viewCountLabel,
+}: DetailMetaViewCountProps) => (
+  <span aria-label={viewCountLabel} className={metaItemClass}>
+    <EyeIcon aria-hidden color="muted" size="md" />
+    <span>{formattedViewCount}</span>
+  </span>
+);
+
+DetailMetaViewCountBase.displayName = 'DetailMetaViewCount';
+
+const DetailMetaViewCount = React.memo(DetailMetaViewCountBase);
+
+/**
+ * 링크 복사 버튼만 별도 경계로 분리합니다.
+ */
+const DetailMetaShareActionBase = ({
+  copiedText,
+  isCopied,
+  onShare,
+  shareText,
+}: DetailMetaShareActionProps) => (
+  <Button
+    className={shareButtonClass}
+    leadingVisual={ShareButtonIcon}
+    onClick={onShare}
+    size="sm"
+    tone="white"
+    type="button"
+    variant="ghost"
+  >
+    {isCopied ? copiedText : shareText}
+  </Button>
+);
+
+DetailMetaShareActionBase.displayName = 'DetailMetaShareAction';
+
+const DetailMetaShareAction = React.memo(DetailMetaShareActionBase);
+
 /**
  * 디테일 페이지 메타 바에서 조회수 증가와 링크 복사를 함께 처리합니다.
  */
-export const DetailMetaBar = ({
+const DetailMetaBarBase = ({
   actionSlot,
   copyFailedText,
   copiedText,
@@ -87,7 +171,7 @@ export const DetailMetaBar = ({
   /**
    * 현재 페이지 주소를 클립보드에 복사합니다.
    */
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setAnnouncement('');
@@ -104,45 +188,41 @@ export const DetailMetaBar = ({
       setAnnouncement(copyFailedText);
       setShareState('idle');
     }
-  };
+  }, [copyFailedText]);
+  const handleShareClick = useCallback(() => {
+    void handleShare();
+  }, [handleShare]);
 
-  const formattedViewCount = new Intl.NumberFormat(locale).format(Number(currentViewCount ?? 0));
+  const formattedViewCount = useMemo(
+    () => new Intl.NumberFormat(locale).format(Number(currentViewCount ?? 0)),
+    [currentViewCount, locale],
+  );
 
   return (
     <div className={metaBarWrapClass}>
       <div className={metaBarClass}>
-        <span className={metaItemClass}>
-          <CalendarIcon aria-hidden color="muted" size="md" />
-          <span>
-            {primaryMetaScreenReaderText ? (
-              <span className={srOnlyClass}>{primaryMetaScreenReaderText}</span>
-            ) : null}
-            <span aria-hidden={Boolean(primaryMetaScreenReaderText)}>{primaryMetaText}</span>
-          </span>
-        </span>
+        <DetailMetaPrimary
+          primaryMetaScreenReaderText={primaryMetaScreenReaderText}
+          primaryMetaText={primaryMetaText}
+        />
         {typeof viewCount === 'number' && viewCountLabel ? (
           <>
             <span className={dividerClass} />
-            <span aria-label={viewCountLabel} className={metaItemClass}>
-              <EyeIcon aria-hidden color="muted" size="md" />
-              <span>{formattedViewCount}</span>
-            </span>
+            <DetailMetaViewCount
+              formattedViewCount={formattedViewCount}
+              viewCountLabel={viewCountLabel}
+            />
             <span className={dividerClass} />
           </>
         ) : (
           <span className={dividerClass} />
         )}
-        <Button
-          className={shareButtonClass}
-          leadingVisual={<ShareIcon aria-hidden color="current" size="md" />}
-          onClick={handleShare}
-          size="sm"
-          tone="white"
-          type="button"
-          variant="ghost"
-        >
-          {shareState === 'copied' ? copiedText : shareText}
-        </Button>
+        <DetailMetaShareAction
+          copiedText={copiedText}
+          isCopied={shareState === 'copied'}
+          onShare={handleShareClick}
+          shareText={shareText}
+        />
         {actionSlot ? (
           <>
             <span className={dividerClass} />
@@ -156,6 +236,10 @@ export const DetailMetaBar = ({
     </div>
   );
 };
+
+DetailMetaBarBase.displayName = 'DetailMetaBar';
+
+export const DetailMetaBar = React.memo(DetailMetaBarBase);
 
 const metaBarWrapClass = css({
   display: 'flex',
