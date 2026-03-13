@@ -110,7 +110,7 @@ describe('EditorDraftsPage', () => {
   });
 
   it('삭제 중 상태는 선택한 draft row에만 반영한다', async () => {
-    let resolveDelete: (() => void) | null = null;
+    let resolveDelete: ((value: void | PromiseLike<void>) => void) | undefined;
     const onDeleteDraft = vi.fn(
       () =>
         new Promise<void>(resolve => {
@@ -150,7 +150,9 @@ describe('EditorDraftsPage', () => {
     });
     expect(screen.getAllByRole('button', { name: '삭제' })).toHaveLength(1);
 
-    resolveDelete?.();
+    if (resolveDelete) {
+      resolveDelete(undefined);
+    }
 
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: '삭제 중...' })).toBeNull();

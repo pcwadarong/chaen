@@ -150,7 +150,7 @@ describe('editor-actions', () => {
       userId: 'admin-id',
     });
     vi.mocked(checkSlugDuplicate).mockResolvedValue({
-      data: { duplicate: false },
+      data: { duplicate: false, source: null },
       schemaMissing: false,
     });
 
@@ -239,7 +239,7 @@ describe('editor-actions', () => {
       userId: 'admin-id',
     });
     vi.mocked(checkSlugDuplicate).mockResolvedValue({
-      data: { duplicate: false },
+      data: { duplicate: false, source: null },
       schemaMissing: false,
     });
 
@@ -322,7 +322,7 @@ describe('editor-actions', () => {
       userId: 'admin-id',
     });
     vi.mocked(checkSlugDuplicate).mockResolvedValue({
-      data: { duplicate: false },
+      data: { duplicate: false, source: null },
       schemaMissing: false,
     });
 
