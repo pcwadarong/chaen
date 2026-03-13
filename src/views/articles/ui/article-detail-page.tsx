@@ -175,6 +175,7 @@ export const ArticleDetailPage = async ({
             trackViewAction={incrementArticleViewCountAction.bind(null, {
               articleId: item.id,
             })}
+            trackViewStorageKey={`article:${item.id}`}
             viewCount={Number(item.view_count ?? 0)}
             viewCountLabel={detailUi('viewCount')}
           />

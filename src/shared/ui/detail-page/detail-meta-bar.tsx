@@ -17,11 +17,13 @@ type DetailMetaBarProps = {
   primaryMetaText: string;
   shareText: string;
   trackViewAction?: () => Promise<ActionResult<{ viewCount: number }>>;
+  trackViewStorageKey?: string;
   viewCountLabel?: string;
   viewCount?: number;
 };
 
 const DETAIL_VIEW_COUNT_TRACK_ERROR_CODE = 'detailMetaBar.viewCountTrackFailed';
+const DETAIL_VIEW_TRACK_STORAGE_PREFIX = 'detail-view-tracked:';
 
 type DetailMetaPrimaryProps = {
   primaryMetaScreenReaderText?: string;
@@ -119,6 +121,7 @@ const DetailMetaBarBase = ({
   primaryMetaText,
   shareText,
   trackViewAction,
+  trackViewStorageKey,
   viewCount,
   viewCountLabel,
 }: DetailMetaBarProps) => {
@@ -131,6 +134,25 @@ const DetailMetaBarBase = ({
   useEffect(() => {
     if (!trackViewAction || typeof viewCount !== 'number') return;
     if (hasTrackedViewRef.current) return;
+
+    const normalizedTrackKey = trackViewStorageKey?.trim() || null;
+    const storageKey = normalizedTrackKey
+      ? `${DETAIL_VIEW_TRACK_STORAGE_PREFIX}${normalizedTrackKey}`
+      : null;
+
+    if (storageKey) {
+      try {
+        if (window.sessionStorage.getItem(storageKey)) {
+          hasTrackedViewRef.current = true;
+          return;
+        }
+
+        window.sessionStorage.setItem(storageKey, 'pending');
+      } catch {
+        // sessionStorage를 사용할 수 없는 환경에서는 메모리 기준으로만 중복을 막음
+      }
+    }
+
     hasTrackedViewRef.current = true;
 
     let isMounted = true;
@@ -146,9 +168,26 @@ const DetailMetaBarBase = ({
 
         if (!isMounted) return;
         setCurrentViewCount(Number(result.data.viewCount ?? viewCount));
+
+        if (storageKey) {
+          try {
+            window.sessionStorage.setItem(storageKey, '1');
+          } catch {
+            // no-op
+          }
+        }
       } catch {
         if (!isMounted) return;
         setCurrentViewCount(viewCount);
+        hasTrackedViewRef.current = false;
+
+        if (storageKey) {
+          try {
+            window.sessionStorage.removeItem(storageKey);
+          } catch {
+            // no-op
+          }
+        }
       }
     };
 
@@ -157,7 +196,7 @@ const DetailMetaBarBase = ({
     return () => {
       isMounted = false;
     };
-  }, [trackViewAction, viewCount]);
+  }, [trackViewAction, trackViewStorageKey, viewCount]);
 
   useEffect(
     () => () => {

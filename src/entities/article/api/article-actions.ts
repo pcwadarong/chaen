@@ -150,9 +150,6 @@ export const incrementArticleViewCountAction = async (input: {
   try {
     const viewCount = await incrementArticleViewCount(validation.data.articleId);
 
-    revalidateTag(ARTICLES_CACHE_TAG);
-    revalidateTag(createArticleCacheTag(validation.data.articleId));
-
     return createActionSuccess({ viewCount });
   } catch (_error) {
     return createActionFailure(

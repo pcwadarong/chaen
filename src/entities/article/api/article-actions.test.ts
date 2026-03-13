@@ -119,7 +119,7 @@ describe('article-actions', () => {
     expect(result.data?.nextCursor).toBe('cursor-2');
   });
 
-  it('조회수 증가 action은 쓰기 후 관련 캐시 태그를 갱신한다', async () => {
+  it('조회수 증가 action은 최신 조회수만 반환하고 현재 route 캐시는 다시 검증하지 않는다', async () => {
     vi.mocked(incrementArticleViewCount).mockResolvedValue(34);
 
     const result = await incrementArticleViewCountAction({
@@ -128,8 +128,7 @@ describe('article-actions', () => {
 
     expect(getServerAuthState).toHaveBeenCalledTimes(1);
     expect(incrementArticleViewCount).toHaveBeenCalledWith('article-1');
-    expect(revalidateTag).toHaveBeenCalledWith('articles');
-    expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
+    expect(revalidateTag).not.toHaveBeenCalled();
     expect(result).toEqual({
       data: {
         viewCount: 34,
