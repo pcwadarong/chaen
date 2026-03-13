@@ -17,6 +17,7 @@ import type {
 } from '@/widgets/editor/model/editor-core.types';
 import {
   buildPublishSettings,
+  createDefaultPublishSettings,
   toScheduledPublishUtcIso,
   validatePublishSettings,
 } from '@/widgets/editor/model/publish-panel.utils';
@@ -103,6 +104,7 @@ export const PublishPanel = ({
   isOpen,
   isPublished = false,
   onClose,
+  onSettingsChange,
   onSubmit,
 }: PublishPanelProps) => {
   const [slug, setSlug] = useState('');
@@ -122,7 +124,10 @@ export const PublishPanel = ({
 
     const nextFormState = createInitialFormState({
       editorSlug: editorState.slug,
-      initialSettings,
+      initialSettings: createDefaultPublishSettings({
+        initialSettings,
+        slug: editorState.slug,
+      }),
     });
 
     setSlug(nextFormState.slug);
@@ -139,8 +144,27 @@ export const PublishPanel = ({
     () => toScheduledPublishUtcIso(dateInput, timeInput),
     [dateInput, timeInput],
   );
+  const currentSettings = useMemo(
+    () =>
+      buildPublishSettings({
+        allowComments,
+        dateInput,
+        publishMode,
+        slug,
+        thumbnailUrl,
+        timeInput,
+        visibility,
+      }),
+    [allowComments, dateInput, publishMode, slug, thumbnailUrl, timeInput, visibility],
+  );
 
   const thumbnailPreviewUrl = thumbnailUrl.trim();
+
+  useEffect(() => {
+    if (!isOpen || !onSettingsChange) return;
+
+    onSettingsChange(currentSettings);
+  }, [currentSettings, isOpen, onSettingsChange]);
 
   /**
    * 업로드/제출 실패 토스트를 추가합니다.
@@ -224,15 +248,7 @@ export const PublishPanel = ({
    * 현재 form 값으로 최종 발행 설정을 검증한 뒤 제출합니다.
    */
   const handleSubmit = async () => {
-    const nextSettings = buildPublishSettings({
-      allowComments,
-      dateInput,
-      publishMode,
-      slug,
-      thumbnailUrl,
-      timeInput,
-      visibility,
-    });
+    const nextSettings = currentSettings;
     const nextErrors = validatePublishSettings({
       editorState,
       settings: nextSettings,

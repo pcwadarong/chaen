@@ -65,5 +65,6 @@ export interface PublishPanelProps {
   isOpen: boolean;
   isPublished?: boolean;
   onClose: () => void;
+  onSettingsChange?: (settings: PublishSettings) => void;
   onSubmit: (settings: PublishSettings) => Promise<void>;
 }

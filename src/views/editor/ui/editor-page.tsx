@@ -25,7 +25,11 @@ type EditorPageProps = {
   initialSlug?: string;
   initialTags?: string[];
   initialTranslations: Record<Locale, TranslationField>;
-  onDraftSave?: (state: EditorState, draftId?: string | null) => Promise<DraftSaveResult | void>;
+  onDraftSave?: (
+    state: EditorState,
+    settings: PublishSettings,
+    draftId?: string | null,
+  ) => Promise<DraftSaveResult | void>;
   onPublishSubmit?: (
     settings: PublishSettings,
     editorState: EditorState,

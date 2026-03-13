@@ -128,10 +128,10 @@ describe('editor.utils', () => {
       initialPublished: true,
       initialSavedAt: '2026-03-14T09:00:00.000Z',
       initialSettings: {
-        allowComments: true,
-        publishAt: null,
+        allowComments: false,
+        publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'draft-slug',
-        thumbnailUrl: '',
+        thumbnailUrl: 'https://example.com/thumb.png',
         visibility: 'public',
       },
       initialSlug: 'draft-slug',

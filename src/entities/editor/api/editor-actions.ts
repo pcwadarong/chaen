@@ -58,6 +58,7 @@ type SaveEditorDraftActionInput = {
   contentType: 'article' | 'project';
   draftId?: string | null;
   locale?: string | null;
+  settings: PublishSettings;
   state: EditorState;
 };
 
@@ -84,30 +85,34 @@ export const saveEditorDraftAction = async ({
   contentType,
   draftId,
   locale,
+  settings,
   state,
 }: SaveEditorDraftActionInput): Promise<DraftSaveResult> => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
   const parsedState = editorStateSchema.safeParse(state);
+  const parsedSettings = publishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success)
     throw new Error(parsedState.error.issues[0]?.message ?? '임시 저장 요청을 확인해주세요.');
+  if (!parsedSettings.success)
+    throw new Error(parsedSettings.error.issues[0]?.message ?? '임시 저장 설정을 확인해주세요.');
 
   const supabase = await createServerSupabaseClient();
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
-    allow_comments: true,
+    allow_comments: parsedSettings.data.allowComments,
     content: buildDraftFieldRecord(parsedState.data.translations, 'content'),
     content_id: contentId ?? null,
     content_type: contentType,
     description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
-    publish_at: null,
-    slug: normalizeSlugInput(parsedState.data.slug) || null,
+    publish_at: parsedSettings.data.publishAt,
+    slug: normalizeSlugInput(parsedSettings.data.slug) || null,
     tags: normalizedTagIds,
-    thumbnail_url: null,
+    thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     title: buildDraftFieldRecord(parsedState.data.translations, 'title'),
-    visibility: 'public',
+    visibility: parsedSettings.data.visibility,
   };
   const resolvedDraftId =
     draftId ??

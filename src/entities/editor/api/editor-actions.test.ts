@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
-import { deleteEditorDraftAction } from './editor-actions';
+import { deleteEditorDraftAction, saveEditorDraftAction } from './editor-actions';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -26,6 +26,75 @@ vi.mock('@/shared/lib/supabase/server', () => ({
 describe('editor-actions', () => {
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('draft 저장 시 publish settings를 drafts payload에 함께 저장한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const tagsQuery = {
+      from: vi.fn(),
+      in: vi.fn().mockResolvedValue({
+        data: [{ id: 'tag-id-1', slug: 'react' }],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const draftsInsertQuery = {
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'draft-1',
+          updated_at: '2026-03-13T10:00:00.000Z',
+        },
+        error: null,
+      }),
+    };
+
+    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+      from: vi
+        .fn()
+        .mockImplementation((table: string) => (table === 'tags' ? tagsQuery : draftsInsertQuery)),
+    } as never);
+
+    await saveEditorDraftAction({
+      contentType: 'article',
+      locale: 'ko',
+      settings: {
+        allowComments: false,
+        publishAt: '2026-03-20T01:00:00.000Z',
+        slug: 'draft-slug',
+        thumbnailUrl: 'https://example.com/thumb.png',
+        visibility: 'private',
+      },
+      state: {
+        dirty: true,
+        slug: '',
+        tags: ['react'],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '설명', title: '제목' },
+        },
+      },
+    });
+
+    expect(draftsInsertQuery.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allow_comments: false,
+        publish_at: '2026-03-20T01:00:00.000Z',
+        slug: 'draft-slug',
+        tags: ['tag-id-1'],
+        thumbnail_url: 'https://example.com/thumb.png',
+        visibility: 'private',
+      }),
+    );
   });
 
   it('article draft를 공용 drafts 테이블에서 삭제한다', async () => {

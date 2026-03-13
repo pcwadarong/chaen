@@ -21,6 +21,23 @@ export type PublishPanelValidationErrors = {
 };
 
 /**
+ * editor draft 저장과 publish panel 초기화에서 공통으로 쓰는 발행 설정 기본값을 만듭니다.
+ */
+export const createDefaultPublishSettings = ({
+  initialSettings,
+  slug,
+}: {
+  initialSettings?: PublishSettings;
+  slug: string;
+}): PublishSettings => ({
+  allowComments: initialSettings?.allowComments ?? true,
+  publishAt: initialSettings?.publishAt ?? null,
+  slug: initialSettings?.slug ?? slug,
+  thumbnailUrl: initialSettings?.thumbnailUrl ?? '',
+  visibility: initialSettings?.visibility ?? 'public',
+});
+
+/**
  * 예약 발행용 로컬 날짜/시간 입력을 UTC ISO 문자열로 변환합니다.
  */
 export const toScheduledPublishUtcIso = (dateInput: string, timeInput: string) => {

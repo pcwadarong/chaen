@@ -12,6 +12,7 @@ import {
   type PublishSettings,
   type TranslationField,
 } from '@/widgets/editor';
+import { createDefaultPublishSettings } from '@/widgets/editor/model/publish-panel.utils';
 
 type EditorClientProps = {
   availableTags: {
@@ -28,7 +29,11 @@ type EditorClientProps = {
   initialSlug?: string;
   initialTags?: string[];
   initialTranslations: Record<Locale, TranslationField>;
-  onDraftSave?: (state: EditorState, draftId?: string | null) => Promise<DraftSaveResult | void>;
+  onDraftSave?: (
+    state: EditorState,
+    settings: PublishSettings,
+    draftId?: string | null,
+  ) => Promise<DraftSaveResult | void>;
   onPublishSubmit?: (
     settings: PublishSettings,
     editorState: EditorState,
@@ -61,8 +66,11 @@ export const EditorClient = ({
     tags: initialTags,
     translations: initialTranslations,
   }));
-  const [publishSettings, setPublishSettings] = useState<PublishSettings | undefined>(
-    initialSettings,
+  const [publishSettings, setPublishSettings] = useState<PublishSettings>(() =>
+    createDefaultPublishSettings({
+      initialSettings,
+      slug: initialSlug,
+    }),
   );
 
   /**
@@ -73,7 +81,7 @@ export const EditorClient = ({
       return undefined;
     }
 
-    const result = await onDraftSave(state, draftId);
+    const result = await onDraftSave(state, publishSettings, draftId);
 
     if (result?.draftId) {
       setDraftId(result.draftId);
@@ -87,14 +95,6 @@ export const EditorClient = ({
    */
   const handleOpenPublishPanel = (state: EditorState) => {
     setEditorState(state);
-    setPublishSettings(previous =>
-      previous
-        ? {
-            ...previous,
-            slug: state.slug,
-          }
-        : undefined,
-    );
     setIsPublishPanelOpen(true);
   };
 
@@ -102,12 +102,12 @@ export const EditorClient = ({
    * 발행 패널 제출 시 server action 또는 로컬 상태를 갱신합니다.
    */
   const handlePublishSubmit = async (settings: PublishSettings) => {
+    setPublishSettings(settings);
+
     if (onPublishSubmit) {
       await onPublishSubmit(settings, editorState, draftId);
       return;
     }
-
-    setPublishSettings(settings);
   };
 
   return (
@@ -132,6 +132,7 @@ export const EditorClient = ({
         isOpen={isPublishPanelOpen}
         isPublished={initialPublished}
         onClose={() => setIsPublishPanelOpen(false)}
+        onSettingsChange={setPublishSettings}
         onSubmit={handlePublishSubmit}
       />
     </>

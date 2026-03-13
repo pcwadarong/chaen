@@ -47,6 +47,7 @@ const AdminProjectEditRoute = async ({
 
   const handleDraftSave = async (
     state: Parameters<NonNullable<React.ComponentProps<typeof EditorPage>['onDraftSave']>>[0],
+    settings: Parameters<NonNullable<React.ComponentProps<typeof EditorPage>['onDraftSave']>>[1],
     draftId?: string | null,
   ) => {
     'use server';
@@ -56,6 +57,7 @@ const AdminProjectEditRoute = async ({
       contentType: 'project',
       draftId,
       locale,
+      settings,
       state,
     });
   };

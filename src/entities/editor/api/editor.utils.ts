@@ -130,13 +130,11 @@ export const mergeEditorSeedWithDraft = (
   initialPublished: seed.initialPublished,
   initialSavedAt: draftSeed.updatedAt,
   initialSettings: {
-    allowComments: seed.initialSettings
-      ? seed.initialSettings.allowComments
-      : draftSeed.allowComments,
-    publishAt: seed.initialSettings ? seed.initialSettings.publishAt : draftSeed.publishAt,
+    allowComments: draftSeed.allowComments,
+    publishAt: draftSeed.publishAt,
     slug: draftSeed.slug,
-    thumbnailUrl: seed.initialSettings ? seed.initialSettings.thumbnailUrl : draftSeed.thumbnailUrl,
-    visibility: seed.initialSettings ? seed.initialSettings.visibility : draftSeed.visibility,
+    thumbnailUrl: draftSeed.thumbnailUrl,
+    visibility: draftSeed.visibility,
   },
   initialSlug: draftSeed.slug,
   initialTags: draftSeed.tags,
