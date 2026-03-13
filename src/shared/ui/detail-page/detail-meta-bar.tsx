@@ -21,6 +21,8 @@ type DetailMetaBarProps = {
   viewCount?: number;
 };
 
+const DETAIL_VIEW_COUNT_TRACK_ERROR_CODE = 'detailMetaBar.viewCountTrackFailed';
+
 /**
  * 디테일 페이지 메타 바에서 조회수 증가와 링크 복사를 함께 처리합니다.
  */
@@ -53,7 +55,9 @@ export const DetailMetaBar = ({
       try {
         const result = await trackViewAction();
         if (!result.ok || !result.data) {
-          throw new Error(result.errorMessage ?? 'failed to increase view count');
+          throw new Error(
+            result.errorCode ?? result.errorMessage ?? DETAIL_VIEW_COUNT_TRACK_ERROR_CODE,
+          );
         }
 
         if (!isMounted) return;

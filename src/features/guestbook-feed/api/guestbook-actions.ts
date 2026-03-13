@@ -10,6 +10,11 @@ import {
   verifyGuestbookSecret,
 } from '@/entities/guestbook';
 import { revalidateGuestbookCache } from '@/entities/guestbook/api/revalidate-guestbook-cache';
+import {
+  GUESTBOOK_ERROR_CODE,
+  type GuestbookErrorCode,
+  resolveGuestbookErrorCode,
+} from '@/entities/guestbook/model/guestbook-error';
 import type { GuestbookEntry, GuestbookThreadPage } from '@/entities/guestbook/model/types';
 import {
   type ActionResult,
@@ -45,24 +50,30 @@ const getGuestbookActionErrorMessage = (
   fallbackMessage: string,
   messages: GuestbookActionMessages,
 ) => {
-  if (!(error instanceof Error)) {
-    return fallbackMessage;
-  }
+  const errorCode = resolveGuestbookErrorCode(error);
 
   const guestbookBusinessErrorMessageMap = {
-    'admin auth required': messages.adminRequired,
-    'entry not found': messages.entryNotFound,
-    'invalid password': messages.invalidPassword,
-    'parent entry not found': messages.entryNotFound,
-    'parent password is missing': messages.missingParentSecret,
-  } as const satisfies Record<string, string>;
+    [GUESTBOOK_ERROR_CODE.adminAuthRequired]: messages.adminRequired,
+    [GUESTBOOK_ERROR_CODE.entryNotFound]: messages.entryNotFound,
+    [GUESTBOOK_ERROR_CODE.invalidPassword]: messages.invalidPassword,
+    [GUESTBOOK_ERROR_CODE.parentEntryNotFound]: messages.entryNotFound,
+    [GUESTBOOK_ERROR_CODE.parentPasswordMissing]: messages.missingParentSecret,
+  } as const satisfies Partial<Record<GuestbookErrorCode, string>>;
 
-  return (
-    guestbookBusinessErrorMessageMap[
-      error.message as keyof typeof guestbookBusinessErrorMessageMap
-    ] ?? fallbackMessage
-  );
+  if (errorCode && errorCode in guestbookBusinessErrorMessageMap) {
+    return guestbookBusinessErrorMessageMap[
+      errorCode as keyof typeof guestbookBusinessErrorMessageMap
+    ];
+  }
+
+  return fallbackMessage;
 };
+
+/**
+ * 방명록 action 에러 코드를 추출합니다.
+ */
+const getGuestbookActionErrorCode = (error: unknown): GuestbookErrorCode | null =>
+  resolveGuestbookErrorCode(error);
 
 /**
  * 방명록 action에서 사용하는 locale별 메시지 묶음을 생성합니다.
@@ -200,6 +211,7 @@ export const submitGuestbookEntry = async (
   } catch (error) {
     return createActionFailure(
       getGuestbookActionErrorMessage(error, messages.submitFailed, messages),
+      getGuestbookActionErrorCode(error),
     );
   }
 };
@@ -230,6 +242,7 @@ export const verifyGuestbookSecretAction = async (
   } catch (error) {
     return createActionFailure(
       getGuestbookActionErrorMessage(error, messages.verifyFailed, messages),
+      getGuestbookActionErrorCode(error),
     );
   }
 };
@@ -273,6 +286,7 @@ export const updateGuestbookEntryAction = async (input: {
   } catch (error) {
     return createActionFailure(
       getGuestbookActionErrorMessage(error, messages.updateFailed, messages),
+      getGuestbookActionErrorCode(error),
     );
   }
 };
@@ -314,6 +328,7 @@ export const deleteGuestbookEntryAction = async (input: {
   } catch (error) {
     return createActionFailure(
       getGuestbookActionErrorMessage(error, messages.deleteFailed, messages),
+      getGuestbookActionErrorCode(error),
     );
   }
 };
@@ -350,6 +365,7 @@ export const getGuestbookThreadsPage = async (input: {
   } catch (error) {
     return createActionFailure(
       getGuestbookActionErrorMessage(error, messages.fetchFailed, messages),
+      getGuestbookActionErrorCode(error),
     );
   }
 };

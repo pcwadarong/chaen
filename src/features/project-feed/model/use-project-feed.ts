@@ -13,6 +13,8 @@ type UseProjectFeedOptions = {
   locale: string;
 };
 
+const PROJECT_FEED_LOAD_ERROR_CODE = 'projectFeed.loadFailed';
+
 /**
  * 프로젝트 목록 무한 스크롤 상태를 관리합니다.
  */
@@ -34,7 +36,7 @@ export const useProjectFeed = ({ initialCursor, initialItems, locale }: UseProje
       });
 
       if (!result.ok || !result.data) {
-        throw new Error(result.errorMessage ?? 'failed to fetch list');
+        throw new Error(result.errorCode ?? result.errorMessage ?? PROJECT_FEED_LOAD_ERROR_CODE);
       }
 
       return {

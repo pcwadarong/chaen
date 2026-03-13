@@ -15,6 +15,8 @@ type UseArticleFeedOptions = {
   query: string;
 };
 
+const ARTICLE_FEED_LOAD_ERROR_CODE = 'articleFeed.loadFailed';
+
 /**
  * 아티클 목록 무한 스크롤 상태를 관리합니다.
  */
@@ -46,7 +48,7 @@ export const useArticleFeed = ({
       });
 
       if (!result.ok || !result.data) {
-        throw new Error(result.errorMessage ?? 'failed to fetch list');
+        throw new Error(result.errorCode ?? result.errorMessage ?? ARTICLE_FEED_LOAD_ERROR_CODE);
       }
 
       return {

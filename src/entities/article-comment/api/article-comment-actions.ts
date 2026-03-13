@@ -4,6 +4,11 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 
 import {
+  ARTICLE_COMMENT_ERROR_CODE,
+  type ArticleCommentErrorCode,
+  resolveArticleCommentErrorCode,
+} from '@/entities/article-comment/model/article-comment-error';
+import {
   ARTICLE_COMMENTS_CACHE_TAG,
   createArticleCommentCacheTag,
   createArticleCommentsCacheTag,
@@ -71,23 +76,29 @@ const getArticleCommentActionErrorMessage = (
   fallbackMessage: string,
   messages: ArticleCommentActionMessages,
 ) => {
-  if (!(error instanceof Error)) {
-    return fallbackMessage;
-  }
+  const errorCode = resolveArticleCommentErrorCode(error);
 
   const businessErrorMessageMap = {
-    'comment not found': messages.commentNotFound,
-    'comment does not belong to article': messages.commentNotFound,
-    'invalid password': messages.invalidPassword,
-    'parent comment does not belong to article': messages.commentNotFound,
-    'reply target must belong to parent thread': messages.commentNotFound,
-  } as const satisfies Record<string, string>;
+    [ARTICLE_COMMENT_ERROR_CODE.commentNotFound]: messages.commentNotFound,
+    [ARTICLE_COMMENT_ERROR_CODE.commentArticleMismatch]: messages.commentNotFound,
+    [ARTICLE_COMMENT_ERROR_CODE.invalidParentReference]: messages.commentNotFound,
+    [ARTICLE_COMMENT_ERROR_CODE.invalidPassword]: messages.invalidPassword,
+    [ARTICLE_COMMENT_ERROR_CODE.parentCommentArticleMismatch]: messages.commentNotFound,
+    [ARTICLE_COMMENT_ERROR_CODE.replyTargetMismatch]: messages.commentNotFound,
+  } as const satisfies Partial<Record<ArticleCommentErrorCode, string>>;
 
-  return (
-    businessErrorMessageMap[error.message as keyof typeof businessErrorMessageMap] ??
-    fallbackMessage
-  );
+  if (errorCode && errorCode in businessErrorMessageMap) {
+    return businessErrorMessageMap[errorCode as keyof typeof businessErrorMessageMap];
+  }
+
+  return fallbackMessage;
 };
+
+/**
+ * 댓글 action 에러 코드를 추출합니다.
+ */
+const getArticleCommentActionErrorCode = (error: unknown): ArticleCommentErrorCode | null =>
+  resolveArticleCommentErrorCode(error);
 
 const createArticleCommentSchema = (messages: ArticleCommentActionMessages) =>
   z.object({
@@ -205,6 +216,7 @@ export const submitArticleComment = async (
   } catch (error) {
     return createActionFailure(
       getArticleCommentActionErrorMessage(error, messages.submitFailed, messages),
+      getArticleCommentActionErrorCode(error),
     );
   }
 };
@@ -242,6 +254,7 @@ export const getArticleCommentsPageAction = async (input: {
   } catch (error) {
     return createActionFailure(
       getArticleCommentActionErrorMessage(error, messages.fetchFailed, messages),
+      getArticleCommentActionErrorCode(error),
     );
   }
 };
@@ -278,6 +291,7 @@ export const updateArticleCommentAction = async (input: {
   } catch (error) {
     return createActionFailure(
       getArticleCommentActionErrorMessage(error, messages.updateFailed, messages),
+      getArticleCommentActionErrorCode(error),
     );
   }
 };
@@ -313,6 +327,7 @@ export const deleteArticleCommentAction = async (input: {
   } catch (error) {
     return createActionFailure(
       getArticleCommentActionErrorMessage(error, messages.deleteFailed, messages),
+      getArticleCommentActionErrorCode(error),
     );
   }
 };

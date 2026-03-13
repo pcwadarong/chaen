@@ -2,6 +2,7 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 
 import 'server-only';
 
+import { createGuestbookError, GUESTBOOK_ERROR_CODE } from '../model/guestbook-error';
 import { hashGuestbookPassword, verifyGuestbookPassword } from '../model/password';
 import type { GuestbookEntry, GuestbookEntryRow } from '../model/types';
 
@@ -65,10 +66,11 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
   const authorBlogUrl = input.authorBlogUrl?.trim() || null;
   const parentId = input.parentId?.trim() || null;
   const isAdminAuthor = Boolean(input.isAdminAuthor);
-  if (!authorName) throw new Error('authorName is required');
-  if (!content) throw new Error('content is required');
-  if (content.length > 3000) throw new Error('content length must be 3000 or less');
-  if (!isAdminAuthor && !password) throw new Error('password is required');
+  if (!authorName) throw createGuestbookError(GUESTBOOK_ERROR_CODE.nameRequired);
+  if (!content) throw createGuestbookError(GUESTBOOK_ERROR_CODE.contentRequired);
+  if (content.length > 3000) throw createGuestbookError(GUESTBOOK_ERROR_CODE.contentTooLong);
+  if (!isAdminAuthor && !password)
+    throw createGuestbookError(GUESTBOOK_ERROR_CODE.passwordRequired);
 
   return {
     authorBlogUrl,
@@ -86,7 +88,7 @@ const normalizeCreateInput = (input: CreateGuestbookEntryInput) => {
  */
 const assertPasswordMatches = (password: string, row: GuestbookEntryRow) => {
   const isValid = verifyGuestbookPassword(password.trim(), row.password_hash);
-  if (!isValid) throw new Error('invalid password');
+  if (!isValid) throw createGuestbookError(GUESTBOOK_ERROR_CODE.invalidPassword);
 };
 
 /**
@@ -99,13 +101,14 @@ export const updateGuestbookEntry = async ({
   password,
 }: UpdateGuestbookEntryInput): Promise<GuestbookEntry> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) throw createGuestbookError(GUESTBOOK_ERROR_CODE.serviceRoleUnavailable);
 
   const normalizedEntryId = entryId.trim();
   const normalizedContent = content.trim();
-  if (!normalizedEntryId) throw new Error('entryId is required');
-  if (!normalizedContent) throw new Error('content is required');
-  if (normalizedContent.length > 3000) throw new Error('content length must be 3000 or less');
+  if (!normalizedEntryId) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryIdRequired);
+  if (!normalizedContent) throw createGuestbookError(GUESTBOOK_ERROR_CODE.contentRequired);
+  if (normalizedContent.length > 3000)
+    throw createGuestbookError(GUESTBOOK_ERROR_CODE.contentTooLong);
 
   const { data: current, error: currentError } = await supabase
     .from('guestbook_entries')
@@ -114,10 +117,10 @@ export const updateGuestbookEntry = async ({
     .is('deleted_at', null)
     .single();
 
-  if (currentError || !current) throw new Error('entry not found');
+  if (currentError || !current) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryNotFound);
   const currentRow = current as GuestbookEntryRow;
   if (isAdminAuthoredEntry(currentRow) && !isAdminActor) {
-    throw new Error('admin auth required');
+    throw createGuestbookError(GUESTBOOK_ERROR_CODE.adminAuthRequired);
   }
   if (!isAdminActor) {
     assertPasswordMatches(password, currentRow);
@@ -132,8 +135,12 @@ export const updateGuestbookEntry = async ({
     .select('*')
     .single();
 
-  if (error || !data)
-    throw new Error(`failed to update entry: ${error?.message ?? 'unknown error'}`);
+  if (error || !data) {
+    throw createGuestbookError(
+      GUESTBOOK_ERROR_CODE.updateFailed,
+      error?.message ?? 'unknown error',
+    );
+  }
 
   return toPublicEntry(data as GuestbookEntryRow, true);
 };
@@ -147,10 +154,10 @@ export const deleteGuestbookEntry = async ({
   password,
 }: DeleteGuestbookEntryInput): Promise<{ id: string; parentId: string | null }> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) throw createGuestbookError(GUESTBOOK_ERROR_CODE.serviceRoleUnavailable);
 
   const normalizedEntryId = entryId.trim();
-  if (!normalizedEntryId) throw new Error('entryId is required');
+  if (!normalizedEntryId) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryIdRequired);
 
   const { data: current, error: currentError } = await supabase
     .from('guestbook_entries')
@@ -159,10 +166,10 @@ export const deleteGuestbookEntry = async ({
     .is('deleted_at', null)
     .single();
 
-  if (currentError || !current) throw new Error('entry not found');
+  if (currentError || !current) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryNotFound);
   const currentRow = current as GuestbookEntryRow;
   if (isAdminAuthoredEntry(currentRow) && !isAdminActor) {
-    throw new Error('admin auth required');
+    throw createGuestbookError(GUESTBOOK_ERROR_CODE.adminAuthRequired);
   }
   if (!isAdminActor) {
     assertPasswordMatches(password, currentRow);
@@ -175,7 +182,7 @@ export const deleteGuestbookEntry = async ({
     })
     .eq('id', normalizedEntryId);
 
-  if (error) throw new Error(`failed to delete entry: ${error.message}`);
+  if (error) throw createGuestbookError(GUESTBOOK_ERROR_CODE.deleteFailed, error.message);
 
   return { id: normalizedEntryId, parentId: currentRow.parent_id };
 };
@@ -188,10 +195,10 @@ export const verifyGuestbookSecret = async ({
   password,
 }: VerifyGuestbookSecretInput): Promise<GuestbookEntry> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) throw createGuestbookError(GUESTBOOK_ERROR_CODE.serviceRoleUnavailable);
 
   const normalizedEntryId = entryId.trim();
-  if (!normalizedEntryId) throw new Error('entryId is required');
+  if (!normalizedEntryId) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryIdRequired);
 
   const { data, error } = await supabase
     .from('guestbook_entries')
@@ -200,7 +207,7 @@ export const verifyGuestbookSecret = async ({
     .is('deleted_at', null)
     .single();
 
-  if (error || !data) throw new Error('entry not found');
+  if (error || !data) throw createGuestbookError(GUESTBOOK_ERROR_CODE.entryNotFound);
   const row = data as GuestbookEntryRow;
   assertPasswordMatches(password, row);
 
@@ -214,7 +221,7 @@ export const createGuestbookEntry = async (
   input: CreateGuestbookEntryInput,
 ): Promise<GuestbookEntry> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) throw createGuestbookError(GUESTBOOK_ERROR_CODE.serviceRoleUnavailable);
 
   const normalized = normalizeCreateInput(input);
   let passwordHash: string | null = null;
@@ -231,11 +238,12 @@ export const createGuestbookEntry = async (
       .is('deleted_at', null)
       .single();
 
-    if (parentError || !parent) throw new Error('parent entry not found');
+    if (parentError || !parent)
+      throw createGuestbookError(GUESTBOOK_ERROR_CODE.parentEntryNotFound);
 
     const parentRow = parent as GuestbookEntryRow;
     if (!parentRow.password_hash) {
-      throw new Error('parent password is missing');
+      throw createGuestbookError(GUESTBOOK_ERROR_CODE.parentPasswordMissing);
     }
 
     passwordHash = parentRow.password_hash;
@@ -255,8 +263,12 @@ export const createGuestbookEntry = async (
     .select('*')
     .single();
 
-  if (error || !data)
-    throw new Error(`failed to create entry: ${error?.message ?? 'unknown error'}`);
+  if (error || !data) {
+    throw createGuestbookError(
+      GUESTBOOK_ERROR_CODE.createFailed,
+      error?.message ?? 'unknown error',
+    );
+  }
 
   return toPublicEntry(data as GuestbookEntryRow, normalized.isAdminAuthor);
 };

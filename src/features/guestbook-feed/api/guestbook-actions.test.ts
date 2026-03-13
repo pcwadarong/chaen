@@ -4,6 +4,10 @@ import {
   verifyGuestbookSecret,
 } from '@/entities/guestbook';
 import { revalidateGuestbookCache } from '@/entities/guestbook/api/revalidate-guestbook-cache';
+import {
+  createGuestbookError,
+  GUESTBOOK_ERROR_CODE,
+} from '@/entities/guestbook/model/guestbook-error';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import {
@@ -128,7 +132,9 @@ describe('guestbook-actions', () => {
   });
 
   it('비밀글 검증 실패 시 에러 메시지를 반환한다', async () => {
-    vi.mocked(verifyGuestbookSecret).mockRejectedValue(new Error('invalid password'));
+    vi.mocked(verifyGuestbookSecret).mockRejectedValue(
+      createGuestbookError(GUESTBOOK_ERROR_CODE.invalidPassword),
+    );
 
     const formData = new FormData();
     formData.set('locale', 'ko');
@@ -139,6 +145,7 @@ describe('guestbook-actions', () => {
       verifyGuestbookSecretAction(initialVerifyGuestbookSecretState, formData),
     ).resolves.toEqual({
       data: null,
+      errorCode: GUESTBOOK_ERROR_CODE.invalidPassword,
       errorMessage: '비밀번호가 올바르지 않습니다.',
       ok: false,
     });

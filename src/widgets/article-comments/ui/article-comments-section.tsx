@@ -19,6 +19,7 @@ import {
   submitArticleComment,
   updateArticleCommentAction,
 } from '@/entities/article-comment/api/article-comment-actions';
+import { ARTICLE_COMMENT_ERROR_CODE } from '@/entities/article-comment/model/article-comment-error';
 import type {
   ArticleComment,
   ArticleCommentPage,
@@ -65,7 +66,6 @@ type CommentQueryState = {
 };
 
 const LOAD_LAST_PAGE = 9999;
-const INVALID_PASSWORD_REASON = 'invalid password';
 const TOAST_DURATION_MS = 2600;
 
 /**
@@ -79,12 +79,6 @@ const formatCommentDate = (timestamp: string, locale: string) =>
     month: 'short',
     year: 'numeric',
   }).format(new Date(timestamp));
-
-/**
- * action 에러가 비밀번호 오류인지 판별합니다.
- */
-const isInvalidPasswordError = (error: unknown) =>
-  error instanceof Error && error.message === INVALID_PASSWORD_REASON;
 
 /**
  * 아티클 상세 하단 댓글 섹션 위젯입니다.
@@ -181,7 +175,8 @@ export const ArticleCommentsSection = ({
         });
 
         if (!result.ok || !result.data) {
-          throw new Error(result.errorMessage ?? 'failed to load comments');
+          setErrorMessage(result.errorMessage ?? 'article-comments-load-failed');
+          return;
         }
 
         setPageData(result.data);
@@ -274,7 +269,13 @@ export const ArticleCommentsSection = ({
           password: trimmedPassword,
         });
         if (!result.ok || !result.data) {
-          throw new Error(result.errorMessage ?? 'failed to update comment');
+          if (result.errorCode === ARTICLE_COMMENT_ERROR_CODE.invalidPassword) {
+            setModalError(t('secretVerifyFailed'));
+            return;
+          }
+
+          pushToast(t('toastEditError'), 'error');
+          return;
         }
         pushToast(t('toastEditSuccess'), 'success');
       }
@@ -287,7 +288,13 @@ export const ArticleCommentsSection = ({
           password: trimmedPassword,
         });
         if (!result.ok || !result.data) {
-          throw new Error(result.errorMessage ?? 'failed to delete comment');
+          if (result.errorCode === ARTICLE_COMMENT_ERROR_CODE.invalidPassword) {
+            setModalError(t('secretVerifyFailed'));
+            return;
+          }
+
+          pushToast(t('toastDeleteError'), 'error');
+          return;
         }
         pushToast(t('toastDeleteSuccess'), 'success');
       }
@@ -296,15 +303,8 @@ export const ArticleCommentsSection = ({
       await loadPage(pageData.page, pageData.sort, {
         fresh: true,
       });
-    } catch (error) {
-      if (isInvalidPasswordError(error)) {
-        setModalError(t('secretVerifyFailed'));
-      } else {
-        pushToast(
-          modalState.mode === 'edit' ? t('toastEditError') : t('toastDeleteError'),
-          'error',
-        );
-      }
+    } catch (_error) {
+      pushToast(modalState.mode === 'edit' ? t('toastEditError') : t('toastDeleteError'), 'error');
     } finally {
       setIsModalSubmitting(false);
     }
