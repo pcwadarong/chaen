@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { type ReactNode, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ActionResult } from '@/shared/lib/action/action-result';
@@ -9,6 +9,7 @@ import { CalendarIcon, EyeIcon, ShareIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type DetailMetaBarProps = {
+  actionSlot?: ReactNode;
   copyFailedText: string;
   copiedText: string;
   locale: string;
@@ -20,10 +21,13 @@ type DetailMetaBarProps = {
   viewCount?: number;
 };
 
+const DETAIL_VIEW_COUNT_TRACK_ERROR_CODE = 'detailMetaBar.viewCountTrackFailed';
+
 /**
  * 디테일 페이지 메타 바에서 조회수 증가와 링크 복사를 함께 처리합니다.
  */
 export const DetailMetaBar = ({
+  actionSlot,
   copyFailedText,
   copiedText,
   locale,
@@ -51,7 +55,9 @@ export const DetailMetaBar = ({
       try {
         const result = await trackViewAction();
         if (!result.ok || !result.data) {
-          throw new Error(result.errorMessage ?? 'failed to increase view count');
+          throw new Error(
+            result.errorCode ?? result.errorMessage ?? DETAIL_VIEW_COUNT_TRACK_ERROR_CODE,
+          );
         }
 
         if (!isMounted) return;
@@ -137,6 +143,12 @@ export const DetailMetaBar = ({
         >
           {shareState === 'copied' ? copiedText : shareText}
         </Button>
+        {actionSlot ? (
+          <>
+            <span className={dividerClass} />
+            {actionSlot}
+          </>
+        ) : null}
       </div>
       <span aria-live="polite" className={srOnlyClass}>
         {announcement}

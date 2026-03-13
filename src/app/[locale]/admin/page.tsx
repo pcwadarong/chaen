@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import React from 'react';
 
-import { AdminPage, getAdminPageData } from '@/views/admin';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
+import { DashboardPage } from '@/views/dashboard';
 
 export const metadata: Metadata = {
   robots: {
@@ -22,13 +22,9 @@ const AdminRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
-  const pageData = await getAdminPageData({ locale });
+  await requireAdmin({ locale });
 
-  if (pageData.redirectPath) {
-    redirect(pageData.redirectPath);
-  }
-
-  return <AdminPage locale={locale} />;
+  return <DashboardPage locale={locale} />;
 };
 
 export default AdminRoute;

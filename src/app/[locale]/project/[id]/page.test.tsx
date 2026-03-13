@@ -2,6 +2,7 @@ import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
 import { getResolvedProject } from '@/entities/project/api/get-project';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { getProjectDetailPageData } from '@/views/project';
 
 import ProjectDetailRoute, { generateMetadata } from './page';
@@ -18,6 +19,15 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
+}));
+
+vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
+  getServerAuthState: vi.fn(async () => ({
+    isAdmin: false,
+    isAuthenticated: false,
+    userEmail: null,
+    userId: null,
+  })),
 }));
 
 vi.mock('@/entities/project/api/get-project', () => ({
@@ -78,10 +88,44 @@ describe('ProjectDetailRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ProjectDetailPage');
     expect(element.props.locale).toBe('ko');
+    expect(element.props.isAdmin).toBe(false);
     expect(getProjectDetailPageData).toHaveBeenCalledWith({
       locale: 'ko',
       projectId: 'supabase-editorial',
     });
+  });
+
+  it('관리자면 프로젝트 상세 페이지에 수정 버튼 노출용 isAdmin을 전달한다', async () => {
+    vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
+      archivePage: {
+        items: [],
+        nextCursor: null,
+      },
+      item: {
+        id: 'supabase-editorial',
+        title: 'Supabase Editorial',
+        description: 'detail',
+        content: '# heading',
+        thumbnail_url: null,
+        tags: ['supabase'],
+        created_at: '2026-03-01T00:00:00.000Z',
+      },
+    });
+    vi.mocked(getServerAuthState).mockResolvedValueOnce({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const element = await ProjectDetailRoute({
+      params: Promise.resolve({
+        id: 'supabase-editorial',
+        locale: 'ko',
+      }),
+    });
+
+    expect(element.props.isAdmin).toBe(true);
   });
 
   it('프로젝트 상세 메타데이터에 OG 이미지를 포함한다', async () => {

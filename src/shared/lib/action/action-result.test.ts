@@ -28,4 +28,13 @@ describe('action-result', () => {
       ok: false,
     });
   });
+
+  it('실패 결과에 선택적 errorCode를 포함할 수 있다', () => {
+    expect(createActionFailure('invalid input', 'form.invalidInput')).toEqual({
+      data: null,
+      errorCode: 'form.invalidInput',
+      errorMessage: 'invalid input',
+      ok: false,
+    });
+  });
 });

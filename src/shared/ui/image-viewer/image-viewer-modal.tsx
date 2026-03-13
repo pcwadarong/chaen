@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { createImageViewerUrl } from '@/shared/lib/url/create-image-viewer-url';
+import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
 import { Modal } from '@/shared/ui/modal/modal';
 
 type ImageViewerItem = {

@@ -44,6 +44,8 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   selectedId: string;
 };
 
+const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
+
 /**
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
  */
@@ -76,7 +78,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
       });
 
       if (!result.ok || !result.data) {
-        throw new Error(result.errorMessage ?? 'failed to fetch list');
+        throw new Error(result.errorCode ?? result.errorMessage ?? DETAIL_ARCHIVE_LOAD_ERROR_CODE);
       }
 
       return {

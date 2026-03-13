@@ -31,6 +31,11 @@ const projectArchivePageSchema = z.object({
   locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
 });
 
+const PROJECT_ACTION_ERROR_MESSAGE = {
+  archiveFetchFailed: 'project.archiveFetchFailed',
+  listFetchFailed: 'project.listFetchFailed',
+} as const;
+
 /**
  * 프로젝트 목록 무한 스크롤용 페이지를 반환합니다.
  */
@@ -53,9 +58,10 @@ export const getProjectsPageAction = async (input: {
     });
 
     return createActionSuccess(page);
-  } catch (error) {
+  } catch (_error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '프로젝트 목록을 불러오지 못했습니다.',
+      PROJECT_ACTION_ERROR_MESSAGE.listFetchFailed,
+      PROJECT_ACTION_ERROR_MESSAGE.listFetchFailed,
     );
   }
 };
@@ -82,9 +88,10 @@ export const getProjectDetailArchivePageAction = async (input: {
     });
 
     return createActionSuccess(page);
-  } catch (error) {
+  } catch (_error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '아카이브를 불러오지 못했습니다.',
+      PROJECT_ACTION_ERROR_MESSAGE.archiveFetchFailed,
+      PROJECT_ACTION_ERROR_MESSAGE.archiveFetchFailed,
     );
   }
 };

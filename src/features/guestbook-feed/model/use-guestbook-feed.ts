@@ -33,6 +33,7 @@ type UseGuestbookFeedResult = {
 
 const DEFAULT_LIMIT = 12;
 type GuestbookEntryLike = GuestbookEntry;
+const GUESTBOOK_THREADS_LOAD_ERROR_CODE = 'guestbookFeed.loadFailed';
 
 /**
  * 방명록 스레드 목록을 클라이언트에서 무한스크롤 방식으로 관리합니다.
@@ -77,7 +78,9 @@ export const useGuestbookFeed = ({
       });
 
       if (!result.ok || !result.data) {
-        throw new Error(result.errorMessage ?? 'failed to fetch guestbook threads');
+        throw new Error(
+          result.errorCode ?? result.errorMessage ?? GUESTBOOK_THREADS_LOAD_ERROR_CODE,
+        );
       }
 
       mergeUniqueById(result.data.items);

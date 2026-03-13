@@ -51,6 +51,12 @@ type ArticleViewCountActionData = {
   viewCount: number;
 };
 
+const ARTICLE_ACTION_ERROR_MESSAGE = {
+  archiveFetchFailed: 'article.archiveFetchFailed',
+  listFetchFailed: 'article.listFetchFailed',
+  viewCountUpdateFailed: 'article.viewCountUpdateFailed',
+} as const;
+
 /**
  * 아티클 목록 무한 스크롤용 페이지를 반환합니다.
  */
@@ -77,9 +83,10 @@ export const getArticlesPageAction = async (input: {
     });
 
     return createActionSuccess(page);
-  } catch (error) {
+  } catch (_error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '아티클 목록을 불러오지 못했습니다.',
+      ARTICLE_ACTION_ERROR_MESSAGE.listFetchFailed,
+      ARTICLE_ACTION_ERROR_MESSAGE.listFetchFailed,
     );
   }
 };
@@ -106,9 +113,10 @@ export const getArticleDetailArchivePageAction = async (input: {
     });
 
     return createActionSuccess(page);
-  } catch (error) {
+  } catch (_error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '아카이브를 불러오지 못했습니다.',
+      ARTICLE_ACTION_ERROR_MESSAGE.archiveFetchFailed,
+      ARTICLE_ACTION_ERROR_MESSAGE.archiveFetchFailed,
     );
   }
 };
@@ -134,9 +142,10 @@ export const incrementArticleViewCountAction = async (input: {
     revalidateTag(createArticleCacheTag(validation.data.articleId));
 
     return createActionSuccess({ viewCount });
-  } catch (error) {
+  } catch (_error) {
     return createActionFailure(
-      error instanceof Error ? error.message : '조회수 반영에 실패했습니다.',
+      ARTICLE_ACTION_ERROR_MESSAGE.viewCountUpdateFailed,
+      ARTICLE_ACTION_ERROR_MESSAGE.viewCountUpdateFailed,
     );
   }
 };

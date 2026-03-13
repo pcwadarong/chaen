@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getAdminLoginPageData } from '@/views/admin-login';
+import { getLoginPageData } from '@/views/auth';
 
 import AdminLoginRoute, { metadata } from './page';
 
@@ -17,9 +17,9 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('@/views/admin-login', () => ({
-  AdminLoginPage: adminLoginPageMock,
-  getAdminLoginPageData: vi.fn(),
+vi.mock('@/views/auth', () => ({
+  getLoginPageData: vi.fn(),
+  LoginPage: adminLoginPageMock,
 }));
 
 describe('AdminLoginRoute', () => {
@@ -28,7 +28,7 @@ describe('AdminLoginRoute', () => {
   });
 
   it('관리자 세션이 없으면 로그인 페이지를 렌더링한다', async () => {
-    vi.mocked(getAdminLoginPageData).mockResolvedValue({
+    vi.mocked(getLoginPageData).mockResolvedValue({
       redirectPath: null,
     });
 
@@ -40,11 +40,11 @@ describe('AdminLoginRoute', () => {
 
     expect(isValidElement(element)).toBe(true);
     expect(element.type).toBe(adminLoginPageMock);
-    expect(getAdminLoginPageData).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(getLoginPageData).toHaveBeenCalledWith({ locale: 'ko' });
   });
 
   it('관리자 세션이면 즉시 리다이렉트한다', async () => {
-    vi.mocked(getAdminLoginPageData).mockResolvedValue({
+    vi.mocked(getLoginPageData).mockResolvedValue({
       redirectPath: '/ko/admin',
     });
 

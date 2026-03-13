@@ -22,5 +22,8 @@ describe('api/og route', () => {
     });
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+    });
   });
 });

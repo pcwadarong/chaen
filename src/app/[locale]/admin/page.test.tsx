@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getAdminPageData } from '@/views/admin';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
 
 import AdminRoute, { metadata } from './page';
 
@@ -10,11 +10,14 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
-vi.mock('@/views/admin', () => ({
-  AdminPage: function AdminPage() {
+vi.mock('@/shared/lib/auth/require-admin', () => ({
+  requireAdmin: vi.fn(),
+}));
+
+vi.mock('@/views/dashboard', () => ({
+  DashboardPage: function DashboardPage() {
     return null;
   },
-  getAdminPageData: vi.fn(),
 }));
 
 describe('AdminRoute', () => {
@@ -23,8 +26,11 @@ describe('AdminRoute', () => {
   });
 
   it('관리자 세션이 있으면 관리자 페이지를 렌더링한다', async () => {
-    vi.mocked(getAdminPageData).mockResolvedValue({
-      redirectPath: null,
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
     });
 
     const element = await AdminRoute({
@@ -34,14 +40,12 @@ describe('AdminRoute', () => {
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(element.type.name).toBe('AdminPage');
+    expect(element.type.name).toBe('DashboardPage');
     expect(element.props.locale).toBe('ko');
   });
 
   it('관리자 세션이 없으면 로그인 페이지로 리다이렉트한다', async () => {
-    vi.mocked(getAdminPageData).mockResolvedValue({
-      redirectPath: '/ko/admin/login',
-    });
+    vi.mocked(requireAdmin).mockImplementation(async () => redirect('/ko/admin/login'));
 
     await AdminRoute({
       params: Promise.resolve({

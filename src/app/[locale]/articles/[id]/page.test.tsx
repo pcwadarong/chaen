@@ -2,6 +2,7 @@ import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
 import { getResolvedArticle } from '@/entities/article/api/get-article';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { getArticleDetailPageData } from '@/views/articles';
 
 import ArticleDetailRoute, { generateMetadata } from './page';
@@ -18,6 +19,15 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
+}));
+
+vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
+  getServerAuthState: vi.fn(async () => ({
+    isAdmin: false,
+    isAuthenticated: false,
+    userEmail: null,
+    userId: null,
+  })),
 }));
 
 vi.mock('@/entities/article/api/get-article', () => ({
@@ -97,11 +107,55 @@ describe('ArticleDetailRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticleDetailPage');
     expect(element.props.locale).toBe('ko');
+    expect(element.props.isAdmin).toBe(false);
     expect(element.props.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleDetailPageData).toHaveBeenCalledWith({
       articleId: 'frontend-performance',
       locale: 'ko',
     });
+  });
+
+  it('관리자면 상세 페이지에 수정 버튼 노출용 isAdmin을 전달한다', async () => {
+    vi.mocked(getArticleDetailPageData).mockResolvedValueOnce({
+      archivePage: {
+        items: [],
+        nextCursor: null,
+      },
+      initialCommentsPage: {
+        items: [],
+        page: 1,
+        pageSize: 10,
+        sort: 'latest',
+        totalCount: 0,
+        totalPages: 0,
+      },
+      relatedArticles: [],
+      item: {
+        id: 'frontend-performance',
+        title: 'Frontend Performance',
+        description: 'detail',
+        content: '# heading',
+        thumbnail_url: null,
+        tags: ['react'],
+        created_at: '2026-03-01T00:00:00.000Z',
+        updated_at: null,
+      },
+    });
+    vi.mocked(getServerAuthState).mockResolvedValueOnce({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const element = await ArticleDetailRoute({
+      params: Promise.resolve({
+        id: 'frontend-performance',
+        locale: 'ko',
+      }),
+    });
+
+    expect(element.props.isAdmin).toBe(true);
   });
 
   it('아티클 상세 메타데이터에 OG 이미지를 포함한다', async () => {

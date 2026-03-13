@@ -1,9 +1,16 @@
-import { hashGuestbookPassword, verifyGuestbookPassword } from '@/entities/guestbook/lib/password';
+import {
+  hashGuestbookPassword,
+  verifyGuestbookPassword,
+} from '@/entities/guestbook/model/password';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 import 'server-only';
 
+import {
+  ARTICLE_COMMENT_ERROR_CODE,
+  createArticleCommentError,
+} from '../model/article-comment-error';
 import type { ArticleComment, ArticleCommentRow } from '../model/types';
 
 type ServiceRoleClient = NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
@@ -45,7 +52,7 @@ const toPublicArticleComment = (comment: ArticleCommentRow): ArticleComment => {
  */
 const assertPasswordMatches = (password: string, row: ArticleCommentRow) => {
   const isValid = verifyGuestbookPassword(password.trim(), row.password_hash);
-  if (!isValid) throw new Error('invalid password');
+  if (!isValid) throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidPassword);
 };
 
 /**
@@ -55,7 +62,9 @@ const readActiveComment = async (
   commentId: string,
 ): Promise<{ row: ArticleCommentRow; supabase: ServiceRoleClient }> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.serviceRoleUnavailable);
+  }
 
   const { data, error } = await supabase
     .from('article_comments')
@@ -64,7 +73,7 @@ const readActiveComment = async (
     .is('deleted_at', null)
     .single();
 
-  if (error || !data) throw new Error('comment not found');
+  if (error || !data) throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.commentNotFound);
 
   return {
     row: data as ArticleCommentRow,
@@ -84,17 +93,21 @@ const normalizeCreateInput = (input: CreateArticleCommentInput) => {
   const parentId = input.parentId?.trim() || null;
   const replyToCommentId = input.replyToCommentId?.trim() || null;
 
-  if (!articleId) throw new Error('articleId is required');
-  if (!authorName) throw new Error('authorName is required');
-  if (!content) throw new Error('content is required');
-  if (content.length > 3000) throw new Error('content length must be 3000 or less');
-  if (!password) throw new Error('password is required');
+  if (!articleId) throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.articleIdRequired);
+  if (!authorName) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.authorNameRequired);
+  }
+  if (!content) throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.contentRequired);
+  if (content.length > 3000) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.contentTooLong);
+  }
+  if (!password) throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.passwordRequired);
   if (!parentId && replyToCommentId)
-    throw new Error('replyToCommentId is only allowed for replies');
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidParentReference);
 
   const authorBlogUrl = rawAuthorBlogUrl ? normalizeHttpUrl(rawAuthorBlogUrl) : null;
   if (rawAuthorBlogUrl && !authorBlogUrl) {
-    throw new Error('authorBlogUrl must be a valid http/https URL');
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidAuthorBlogUrl);
   }
 
   return {
@@ -116,7 +129,9 @@ export const createArticleComment = async (
 ): Promise<ArticleComment> => {
   const normalized = normalizeCreateInput(input);
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('service role env is not configured');
+  if (!supabase) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.serviceRoleUnavailable);
+  }
 
   let parentId: string | null = null;
   let replyToCommentId: string | null = null;
@@ -126,16 +141,18 @@ export const createArticleComment = async (
     const { row: parentRow } = await readActiveComment(normalized.parentId);
 
     if (parentRow.article_id !== normalized.articleId) {
-      throw new Error('parent comment does not belong to article');
+      throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.parentCommentArticleMismatch);
     }
-    if (parentRow.parent_id) throw new Error('parentId must reference a root comment');
+    if (parentRow.parent_id) {
+      throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidParentReference);
+    }
 
     const targetCommentId = normalized.replyToCommentId ?? normalized.parentId;
     const { row: targetRow } = await readActiveComment(targetCommentId);
     const isTargetInThread = targetRow.id === parentRow.id || targetRow.parent_id === parentRow.id;
 
     if (targetRow.article_id !== normalized.articleId || !isTargetInThread) {
-      throw new Error('reply target must belong to parent thread');
+      throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.replyTargetMismatch);
     }
 
     parentId = parentRow.id;
@@ -159,7 +176,10 @@ export const createArticleComment = async (
     .single();
 
   if (error || !data) {
-    throw new Error(`failed to create comment: ${error?.message ?? 'unknown error'}`);
+    throw createArticleCommentError(
+      ARTICLE_COMMENT_ERROR_CODE.createFailed,
+      error?.message ?? 'unknown error',
+    );
   }
 
   return toPublicArticleComment(data as ArticleCommentRow);
@@ -178,14 +198,22 @@ export const updateArticleComment = async ({
   const normalizedCommentId = commentId.trim();
   const normalizedContent = content.trim();
 
-  if (!normalizedArticleId) throw new Error('articleId is required');
-  if (!normalizedCommentId) throw new Error('commentId is required');
-  if (!normalizedContent) throw new Error('content is required');
-  if (normalizedContent.length > 3000) throw new Error('content length must be 3000 or less');
+  if (!normalizedArticleId) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.articleIdRequired);
+  }
+  if (!normalizedCommentId) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.commentIdRequired);
+  }
+  if (!normalizedContent) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.contentRequired);
+  }
+  if (normalizedContent.length > 3000) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.contentTooLong);
+  }
 
   const { row: currentRow, supabase } = await readActiveComment(normalizedCommentId);
   if (currentRow.article_id !== normalizedArticleId)
-    throw new Error('comment does not belong to article');
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.commentArticleMismatch);
   assertPasswordMatches(password, currentRow);
 
   const { data, error } = await supabase
@@ -198,7 +226,10 @@ export const updateArticleComment = async ({
     .single();
 
   if (error || !data) {
-    throw new Error(`failed to update comment: ${error?.message ?? 'unknown error'}`);
+    throw createArticleCommentError(
+      ARTICLE_COMMENT_ERROR_CODE.updateFailed,
+      error?.message ?? 'unknown error',
+    );
   }
 
   return toPublicArticleComment(data as ArticleCommentRow);
@@ -219,12 +250,16 @@ export const deleteArticleComment = async ({
   const normalizedArticleId = articleId.trim();
   const normalizedCommentId = commentId.trim();
 
-  if (!normalizedArticleId) throw new Error('articleId is required');
-  if (!normalizedCommentId) throw new Error('commentId is required');
+  if (!normalizedArticleId) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.articleIdRequired);
+  }
+  if (!normalizedCommentId) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.commentIdRequired);
+  }
 
   const { row: currentRow, supabase } = await readActiveComment(normalizedCommentId);
   if (currentRow.article_id !== normalizedArticleId)
-    throw new Error('comment does not belong to article');
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.commentArticleMismatch);
   assertPasswordMatches(password, currentRow);
 
   const { error } = await supabase
@@ -234,7 +269,9 @@ export const deleteArticleComment = async ({
     })
     .eq('id', normalizedCommentId);
 
-  if (error) throw new Error(`failed to delete comment: ${error.message}`);
+  if (error) {
+    throw createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.deleteFailed, error.message);
+  }
 
   return {
     articleId: normalizedArticleId,

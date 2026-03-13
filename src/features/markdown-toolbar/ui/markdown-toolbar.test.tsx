@@ -175,7 +175,7 @@ describe('MarkdownToolbar', () => {
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
 
-    fireEvent.click(screen.getByRole('button', { name: '토글 4' }));
+    fireEvent.click(screen.getByRole('button', { name: '토글 제목 4' }));
 
     await waitFor(() => {
       expect(textarea.value).toBe(':::toggle #### \n:::');
@@ -191,7 +191,7 @@ describe('MarkdownToolbar', () => {
     expect(screen.queryByRole('button', { name: '인라인 코드' })).toBeNull();
     expect(screen.queryByRole('button', { name: '줄바꿈' })).toBeNull();
     expect(screen.queryByRole('button', { name: '토글 목록' })).toBeNull();
-    expect(screen.getByRole('button', { name: '토글 4' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '토글 제목 4' })).toBeTruthy();
   });
 
   it('툴팁으로 액션 이름을 노출한다', async () => {

@@ -125,29 +125,13 @@ export const GlobalNav = () => {
   }, [pathname, currentSearchQuery]);
 
   useEffect(() => {
-    if (!isMobileMenuOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMobileMenuOpen]);
-
-  useEffect(() => {
-    if (!isMobileMenuOpen && !isMobileSearchOpen) return;
+    if (!isMobileSearchOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
 
       if (isMobileSearchOpen) {
         setIsMobileSearchOpen(false);
-        return;
-      }
-
-      if (isMobileMenuOpen) {
-        setIsMobileMenuOpen(false);
       }
     };
 
@@ -156,7 +140,7 @@ export const GlobalNav = () => {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isMobileMenuOpen, isMobileSearchOpen]);
+  }, [isMobileSearchOpen]);
 
   return (
     <header className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}>

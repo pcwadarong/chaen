@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
+import { AUTH_ACTION_ERROR_CODE } from '@/features/auth/model/auth-action-error';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
@@ -99,6 +100,7 @@ describe('signInAdmin', () => {
 
     await expect(signInAdmin(initialSignInAdminState, formData)).resolves.toEqual({
       data: null,
+      errorCode: AUTH_ACTION_ERROR_CODE.invalidCredentials,
       errorMessage: '이메일 또는 비밀번호를 다시 확인해주세요.',
       ok: false,
     });

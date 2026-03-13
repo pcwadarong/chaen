@@ -1,5 +1,6 @@
 export type ActionResult<T> = {
   data: T | null;
+  errorCode?: string | null;
   errorMessage: string | null;
   ok: boolean;
 };
@@ -25,7 +26,11 @@ export const createActionSuccess = <T>(data: T): ActionResult<T> => ({
 /**
  * Server Action 실패 결과를 공통 형태로 생성합니다.
  */
-export const createActionFailure = <T>(errorMessage: string): ActionResult<T> => ({
+export const createActionFailure = <T>(
+  errorMessage: string,
+  errorCode?: string | null,
+): ActionResult<T> => ({
+  ...(errorCode ? { errorCode } : {}),
   data: null,
   errorMessage,
   ok: false,

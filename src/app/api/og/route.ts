@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import ogs from 'open-graph-scraper';
 
+import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import {
   extractEmbedMetaFromHtml,
   type LinkEmbedData,
   resolveEmbedAssetUrl,
   shouldFallbackToPlainLink,
 } from '@/shared/lib/markdown/link-embed';
+import { OG_API_ERROR_MESSAGE } from '@/shared/lib/seo/og-api-error';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 const OG_CACHE_CONTROL = 'public, max-age=86400';
@@ -74,7 +76,7 @@ export const GET = async (request: Request) => {
   const normalizedUrl = normalizeHttpUrl(new URL(request.url).searchParams.get('url'));
 
   if (!normalizedUrl) {
-    return NextResponse.json({ message: 'Invalid url' }, { status: 400 });
+    return createApiErrorResponse(OG_API_ERROR_MESSAGE.invalidUrl, 400);
   }
 
   try {

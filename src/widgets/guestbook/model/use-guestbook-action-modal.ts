@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 
+import { GUESTBOOK_ERROR_CODE } from '@/entities/guestbook/model/guestbook-error';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import {
   deleteGuestbookEntryAction,
@@ -181,14 +182,20 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok || !result.data) {
-            throw new Error(result.errorMessage ?? text.toastEditError);
+            if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
+              setModalError(text.secretVerifyFailed);
+            } else {
+              pushToast(text.toastEditError, 'error');
+            }
+
+            return;
           }
           if (!modalState.parentThreadId) {
             applyServerThreadEntry(result.data);
           }
           pushToast(text.toastEditSuccess, 'success');
           closeModal();
-        } catch (error) {
+        } catch (_error) {
           if (modalState.parentThreadId) {
             updateThreadById(modalState.parentThreadId, item => ({
               ...item,
@@ -202,11 +209,7 @@ export const useGuestbookActionModal = ({
               content: previousContent,
             }));
           }
-          if (error instanceof Error && error.message === 'invalid password') {
-            setModalError(text.secretVerifyFailed);
-          } else {
-            pushToast(text.toastEditError, 'error');
-          }
+          pushToast(text.toastEditError, 'error');
         }
       }
 
@@ -237,11 +240,17 @@ export const useGuestbookActionModal = ({
               password: shouldSkipPassword ? '' : trimmedPassword,
             });
             if (!result.ok) {
-              throw new Error(result.errorMessage ?? text.toastDeleteError);
+              if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
+                setModalError(text.secretVerifyFailed);
+              } else {
+                pushToast(text.toastDeleteError, 'error');
+              }
+
+              return;
             }
             pushToast(text.toastDeleteSuccess, 'success');
             closeModal();
-          } catch (error) {
+          } catch (_error) {
             updateThreadById(modalState.parentThreadId, item => ({
               ...item,
               replies: [
@@ -250,11 +259,7 @@ export const useGuestbookActionModal = ({
                 ...item.replies.slice(replyIndex),
               ],
             }));
-            if (error instanceof Error && error.message === 'invalid password') {
-              setModalError(text.secretVerifyFailed);
-            } else {
-              pushToast(text.toastDeleteError, 'error');
-            }
+            pushToast(text.toastDeleteError, 'error');
           }
 
           return;
@@ -286,17 +291,19 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok) {
-            throw new Error(result.errorMessage ?? text.toastDeleteError);
+            if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
+              setModalError(text.secretVerifyFailed);
+            } else {
+              pushToast(text.toastDeleteError, 'error');
+            }
+
+            return;
           }
           pushToast(text.toastDeleteSuccess, 'success');
           closeModal();
-        } catch (error) {
+        } catch (_error) {
           applyServerThread(deletedThread);
-          if (error instanceof Error && error.message === 'invalid password') {
-            setModalError(text.secretVerifyFailed);
-          } else {
-            pushToast(text.toastDeleteError, 'error');
-          }
+          pushToast(text.toastDeleteError, 'error');
         }
       }
     } finally {

@@ -1,6 +1,10 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
+import {
+  ARTICLE_COMMENT_ERROR_CODE,
+  createArticleCommentError,
+} from '@/entities/article-comment/model/article-comment-error';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 import { initialSubmitArticleCommentState } from './article-comment-action-state';
@@ -160,7 +164,9 @@ describe('article-comment-actions', () => {
   });
 
   it('댓글 수정 action은 비밀번호 오류를 그대로 반환한다', async () => {
-    vi.mocked(updateArticleComment).mockRejectedValue(new Error('invalid password'));
+    vi.mocked(updateArticleComment).mockRejectedValue(
+      createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidPassword),
+    );
 
     const result = await updateArticleCommentAction({
       articleId: 'article-1',
@@ -173,6 +179,7 @@ describe('article-comment-actions', () => {
     expect(getServerAuthState).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       data: null,
+      errorCode: ARTICLE_COMMENT_ERROR_CODE.invalidPassword,
       errorMessage: '비밀번호가 올바르지 않습니다.',
       ok: false,
     });

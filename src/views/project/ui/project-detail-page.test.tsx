@@ -29,6 +29,7 @@ const renderServerHtml = async () => {
       items: [],
       nextCursor: null,
     },
+    isAdmin: true,
     item: {
       id: 'project-1',
       title: 'Project 1',
@@ -66,5 +67,7 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('https://chaen.vercel.app/en/project/project-1');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
+    expect(html).toContain('/admin/projects/project-1/edit');
+    expect(html).toContain('수정하기');
   }, 30000);
 });

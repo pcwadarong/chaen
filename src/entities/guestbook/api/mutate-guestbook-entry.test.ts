@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
-import { hashGuestbookPassword } from '../lib/password';
+import { hashGuestbookPassword } from '../model/password';
 
 import {
   createGuestbookEntry,
@@ -14,7 +14,7 @@ vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
-vi.mock('../lib/password', () => ({
+vi.mock('../model/password', () => ({
   hashGuestbookPassword: vi.fn(() => 'hashed-password'),
   verifyGuestbookPassword: vi.fn(() => true),
 }));

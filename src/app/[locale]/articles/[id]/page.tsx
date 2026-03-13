@@ -5,6 +5,7 @@ import React from 'react';
 
 import { getResolvedArticle } from '@/entities/article/api/get-article';
 import type { AppLocale } from '@/i18n/routing';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
@@ -79,17 +80,21 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archivePage, initialCommentsPage, item, relatedArticles } =
-    await getArticleDetailPageData({
-      articleId: id,
-      locale,
-    });
+  const [{ archivePage, initialCommentsPage, item, relatedArticles }, authState] =
+    await Promise.all([
+      getArticleDetailPageData({
+        articleId: id,
+        locale,
+      }),
+      getServerAuthState(),
+    ]);
   if (!item) notFound();
 
   return (
     <ArticleDetailPage
       archivePage={archivePage}
       initialCommentsPage={initialCommentsPage}
+      isAdmin={authState.isAdmin}
       item={item}
       locale={locale as AppLocale}
       relatedArticles={relatedArticles}

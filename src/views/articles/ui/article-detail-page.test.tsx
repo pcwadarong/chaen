@@ -58,6 +58,7 @@ const renderServerHtml = async () => {
       nextCursor: null,
     },
     initialCommentsPage,
+    isAdmin: true,
     item: {
       id: 'article-1',
       title: 'Article 1',
@@ -114,6 +115,8 @@ describe('ArticleDetailPage', () => {
     expect(textContent).toContain('#React');
     expect(textContent).toContain('relatedArticlesTitle');
     expect(textContent).toContain('Article 2');
+    expect(html).toContain('/admin/articles/article-1/edit');
+    expect(textContent).toContain('수정하기');
   }, 30000);
 
   it('태그 스키마가 없어도 원본 태그명으로 상세 페이지를 렌더링한다', async () => {
