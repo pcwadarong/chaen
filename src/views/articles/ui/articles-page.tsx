@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
@@ -6,7 +7,6 @@ import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
 import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
-import { PaginationLinks } from '@/shared/ui/pagination/pagination-links';
 
 export type ArticlesPageProps = {
   activeTag: string;
@@ -28,7 +28,6 @@ export const ArticlesPage = ({
   feedLocale,
   initialCursor,
   initialItems,
-  pagination,
   popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
@@ -52,13 +51,6 @@ export const ArticlesPage = ({
               locale={feedLocale}
               query={searchQuery}
               retryText={t('retry')}
-            />
-            <PaginationLinks
-              ariaLabel={t('paginationLabel')}
-              nextHref={pagination.nextHref}
-              nextText={t('paginationNext')}
-              previousHref={pagination.previousHref}
-              previousText={t('paginationPrevious')}
             />
           </div>
           <aside className={sidebarClass}>
