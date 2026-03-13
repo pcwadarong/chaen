@@ -3,8 +3,10 @@ import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/model/editor-core.types';
 
 import type {
+  ResumeDraftSeed,
   ResumeEditorContent,
   ResumeEditorContentMap,
+  ResumeEditorSeed,
   ResumePublishSettings,
   ResumePublishValidationErrors,
 } from './resume-editor.types';
@@ -130,3 +132,33 @@ export const validateResumePublishState = ({
 
   return Object.keys(errors).length === 0 ? EMPTY_RESUME_EDITOR_ERROR : errors;
 };
+
+/**
+ * resume_drafts.contents jsonb에 저장할 locale별 resume 필드 레코드를 생성합니다.
+ */
+export const buildResumeDraftContentRecord = (contents: ResumeEditorContentMap) =>
+  Object.fromEntries(
+    EDITOR_LOCALES.map(locale => [
+      locale,
+      {
+        body: contents[locale].body,
+        description: contents[locale].description,
+        download_button_label: contents[locale].download_button_label,
+        download_unavailable_label: contents[locale].download_unavailable_label,
+        title: contents[locale].title,
+      },
+    ]),
+  ) as Record<Locale, ResumeEditorContent>;
+
+/**
+ * 기존 resume seed 위에 draft 내용을 덮어써 이어쓰기 초기값을 구성합니다.
+ */
+export const mergeResumeEditorSeedWithDraft = (
+  seed: ResumeEditorSeed,
+  draftSeed: ResumeDraftSeed,
+): ResumeEditorSeed => ({
+  ...seed,
+  initialContents: draftSeed.contents,
+  initialDraftId: draftSeed.draftId,
+  initialSavedAt: draftSeed.updatedAt,
+});

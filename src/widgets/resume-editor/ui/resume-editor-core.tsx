@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { css, cva } from 'styled-system/css';
 
 import { isResumeEditorContentMapEqual } from '@/entities/resume/model/resume-editor.utils';
@@ -12,8 +12,6 @@ import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/model/editor-core.
 import { formatSavedAtLabel } from '@/widgets/editor/model/editor-core.utils';
 
 import type { ResumeEditorCoreProps } from '../model/resume-editor.types';
-
-const AUTOSAVE_DEBOUNCE_MS = 180 * 1000;
 
 const RESUME_LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',
@@ -46,7 +44,6 @@ export const ResumeEditorCore = ({
   const [savedAt, setSavedAt] = useState<string | null>(initialSavedAt);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
-  const autosaveTimerRef = useRef<number | null>(null);
   const dirty = useMemo(
     () => !isResumeEditorContentMapEqual(contents, savedSnapshot),
     [contents, savedSnapshot],
@@ -134,37 +131,6 @@ export const ResumeEditorCore = ({
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [dirty]);
-
-  useEffect(() => {
-    if (autosaveTimerRef.current !== null) {
-      window.clearTimeout(autosaveTimerRef.current);
-      autosaveTimerRef.current = null;
-    }
-
-    if (!onDraftSave || !dirty) {
-      return;
-    }
-
-    autosaveTimerRef.current = window.setTimeout(() => {
-      void runDraftSave();
-    }, AUTOSAVE_DEBOUNCE_MS);
-
-    return () => {
-      if (autosaveTimerRef.current !== null) {
-        window.clearTimeout(autosaveTimerRef.current);
-        autosaveTimerRef.current = null;
-      }
-    };
-  }, [dirty, onDraftSave, runDraftSave]);
-
-  useEffect(
-    () => () => {
-      if (autosaveTimerRef.current !== null) {
-        window.clearTimeout(autosaveTimerRef.current);
-      }
-    },
-    [],
-  );
 
   return (
     <main className={pageClass}>

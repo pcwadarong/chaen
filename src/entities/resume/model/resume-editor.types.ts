@@ -29,7 +29,14 @@ export type ResumePublishValidationErrors = {
 };
 
 export type ResumeEditorSeed = {
+  initialDraftId?: string | null;
   initialContents: ResumeEditorContentMap;
   initialPublishSettings: ResumePublishSettings;
   initialSavedAt: string | null;
+};
+
+export type ResumeDraftSeed = {
+  contents: ResumeEditorContentMap;
+  draftId: string;
+  updatedAt: string;
 };

@@ -11,11 +11,19 @@ import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 import { ResumeEditorCore, ResumePublishPanel } from '@/widgets/resume-editor';
 
 type ResumeEditorClientProps = {
+  initialDraftId?: string | null;
   initialContents: ResumeEditorState['contents'];
   initialPublishSettings: ResumePublishSettings;
   initialSavedAt?: string | null;
-  onDraftSave?: (state: ResumeEditorState) => Promise<DraftSaveResult | void>;
-  onPublishSubmit?: (settings: ResumePublishSettings, state: ResumeEditorState) => Promise<void>;
+  onDraftSave?: (
+    state: ResumeEditorState,
+    draftId?: string | null,
+  ) => Promise<DraftSaveResult | void>;
+  onPublishSubmit?: (
+    settings: ResumePublishSettings,
+    state: ResumeEditorState,
+    draftId?: string | null,
+  ) => Promise<void>;
   onUploadPdf?: (file: File) => Promise<ResumePublishSettings>;
 };
 
@@ -23,6 +31,7 @@ type ResumeEditorClientProps = {
  * resume 전용 관리자 화면에서 편집 셸과 게시 패널을 연결합니다.
  */
 export const ResumeEditorClient = ({
+  initialDraftId = null,
   initialContents,
   initialPublishSettings,
   initialSavedAt = null,
@@ -31,12 +40,27 @@ export const ResumeEditorClient = ({
   onUploadPdf,
 }: ResumeEditorClientProps) => {
   const [isPublishPanelOpen, setIsPublishPanelOpen] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(initialDraftId);
   const [editorState, setEditorState] = useState<ResumeEditorState>({
     contents: initialContents,
     dirty: false,
   });
   const [publishSettings, setPublishSettings] =
     useState<ResumePublishSettings>(initialPublishSettings);
+
+  const handleDraftSave = async (state: ResumeEditorState) => {
+    if (!onDraftSave) {
+      return undefined;
+    }
+
+    const result = await onDraftSave(state, draftId);
+
+    if (result?.draftId) {
+      setDraftId(result.draftId);
+    }
+
+    return result;
+  };
 
   /**
    * 편집 셸에서 현재 snapshot을 받아 게시 패널을 엽니다.
@@ -51,7 +75,7 @@ export const ResumeEditorClient = ({
    */
   const handlePublishSubmit = async (settings: ResumePublishSettings) => {
     if (onPublishSubmit) {
-      await onPublishSubmit(settings, editorState);
+      await onPublishSubmit(settings, editorState, draftId);
       return;
     }
 
@@ -63,7 +87,7 @@ export const ResumeEditorClient = ({
       <ResumeEditorCore
         initialContents={initialContents}
         initialSavedAt={initialSavedAt}
-        onDraftSave={onDraftSave}
+        onDraftSave={handleDraftSave}
         onOpenPublishPanel={handleOpenPublishPanel}
       />
       <ResumePublishPanel

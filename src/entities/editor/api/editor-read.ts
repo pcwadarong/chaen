@@ -53,6 +53,12 @@ type DraftRow = {
   visibility: string | null;
 };
 
+type ResumeDraftRow = {
+  contents: Record<string, unknown> | null;
+  id: string;
+  updated_at: string;
+};
+
 /**
  * 신규 작성 화면에서 사용하는 빈 editor seed를 구성합니다.
  */
@@ -191,18 +197,37 @@ export const getEditorDraftSummaries = async (): Promise<EditorDraftSummary[]> =
     .from('drafts')
     .select('id,content_type,content_id,title,updated_at')
     .order('updated_at', { ascending: false });
+  const { data: resumeDrafts, error: resumeDraftsError } = await supabase
+    .from('resume_drafts')
+    .select('id,contents,updated_at')
+    .order('updated_at', { ascending: false });
 
   if (error) {
     throw new Error(`[editor] draft 목록 조회 실패: ${error.message}`);
   }
 
-  return ((data ?? []) as DraftRow[]).map(row => ({
+  if (resumeDraftsError) {
+    throw new Error(`[editor] resume draft 목록 조회 실패: ${resumeDraftsError.message}`);
+  }
+
+  const contentDrafts = ((data ?? []) as DraftRow[]).map(row => ({
     contentId: row.content_id,
     contentType: row.content_type,
     id: row.id,
     title: getKoreanDraftTitle(row.title),
     updatedAt: row.updated_at,
   }));
+  const resumeDraftItems = ((resumeDrafts ?? []) as ResumeDraftRow[]).map(row => ({
+    contentId: null,
+    contentType: 'resume' as const,
+    id: row.id,
+    title: getKoreanResumeDraftTitle(row.contents),
+    updatedAt: row.updated_at,
+  }));
+
+  return [...contentDrafts, ...resumeDraftItems].sort(
+    (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+  );
 };
 
 /**
@@ -210,6 +235,21 @@ export const getEditorDraftSummaries = async (): Promise<EditorDraftSummary[]> =
  */
 const getKoreanDraftTitle = (title: Record<string, unknown> | null) => {
   const koTitle = title?.ko;
+
+  return typeof koTitle === 'string' && koTitle.trim().length > 0 ? koTitle : '(제목 없음)';
+};
+
+/**
+ * resume_drafts.contents에서 목록 표시용 한국어 제목만 안전하게 추출합니다.
+ */
+const getKoreanResumeDraftTitle = (contents: Record<string, unknown> | null) => {
+  const koContent = contents?.ko;
+
+  if (typeof koContent !== 'object' || koContent === null) {
+    return '(제목 없음)';
+  }
+
+  const koTitle = (koContent as { title?: unknown }).title;
 
   return typeof koTitle === 'string' && koTitle.trim().length > 0 ? koTitle : '(제목 없음)';
 };
