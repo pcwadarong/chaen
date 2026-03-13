@@ -7,6 +7,9 @@ import type { ArticleCommentPage } from '@/entities/article-comment/model/types'
 import { ArticleCommentsSection } from './article-comments-section';
 
 const composeFormSpy = vi.fn();
+const actionPopoverRenderCount = vi.hoisted(() => ({
+  value: 0,
+}));
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, values?: Record<string, string>) => {
@@ -33,12 +36,64 @@ vi.mock('@/entities/article-comment/api/article-comment-actions', () => ({
 vi.mock('@/shared/ui/comment-compose-form', () => ({
   CommentComposeForm: (props: Record<string, unknown> & { isReplyMode?: boolean }) => {
     composeFormSpy(props);
+    const [value, setValue] = React.useState('');
 
     return (
       <div>
+        <input
+          aria-label={props.isReplyMode ? 'reply-compose-input' : 'root-compose-input'}
+          onChange={event => setValue(event.target.value)}
+          value={value}
+        />
         <button type="button">
           {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
         </button>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/shared/ui/action-popover/action-popover', () => ({
+  ActionMenuButton: ({
+    ariaDisabled,
+    label,
+    onClick,
+  }: {
+    ariaDisabled?: boolean;
+    label: string;
+    onClick?: () => void;
+  }) => (
+    <button aria-disabled={ariaDisabled} onClick={onClick} type="button">
+      {label}
+    </button>
+  ),
+  ActionPopover: ({
+    children,
+    isOpen,
+    onOpenChange,
+    panelLabel,
+    triggerLabel,
+  }: {
+    children: (controls: { closePopover: () => void }) => React.ReactNode;
+    isOpen: boolean;
+    onOpenChange: (nextOpen: boolean) => void;
+    panelLabel: string;
+    triggerLabel: string;
+  }) => {
+    actionPopoverRenderCount.value += 1;
+
+    return (
+      <div>
+        <button onClick={() => onOpenChange(!isOpen)} type="button">
+          {triggerLabel}
+        </button>
+        {isOpen ? (
+          <div aria-label={panelLabel} role="dialog">
+            {children({
+              closePopover: () => onOpenChange(false),
+            })}
+          </div>
+        ) : null}
       </div>
     );
   },
@@ -94,6 +149,7 @@ const initialPage: ArticleCommentPage = {
 describe('ArticleCommentsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    actionPopoverRenderCount.value = 0;
   });
 
   it('루트 작성 폼에 embedded textarea 설정을 전달한다', () => {
@@ -267,5 +323,18 @@ describe('ArticleCommentsSection', () => {
     expect(screen.getByRole('button', { name: 'edit' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'delete' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'report' })).toBeTruthy();
+  });
+
+  it('루트 작성 폼 입력 중에는 기존 댓글 액션 카드를 다시 그리지 않는다', () => {
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    expect(actionPopoverRenderCount.value).toBe(2);
+
+    fireEvent.change(screen.getByLabelText('root-compose-input'), {
+      target: { value: 'hello comments' },
+    });
+
+    expect(actionPopoverRenderCount.value).toBe(2);
+    expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
   });
 });
