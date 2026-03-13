@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ActionResult } from '@/shared/lib/action/action-result';
@@ -136,12 +136,16 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     return () => observer.disconnect();
   }, [errorMessage, loadMore]);
 
-  const linkItems = buildDetailArchiveLinkItems({
-    hrefBasePath,
-    items,
-    locale,
-    selectedPathSegment,
-  });
+  const linkItems = useMemo(
+    () =>
+      buildDetailArchiveLinkItems({
+        hrefBasePath,
+        items,
+        locale,
+        selectedPathSegment,
+      }),
+    [hrefBasePath, items, locale, selectedPathSegment],
+  );
 
   return (
     <div
