@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
+import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
@@ -94,9 +95,13 @@ export const saveEditorDraftAction = async ({
   const parsedSettings = publishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success)
-    throw new Error(parsedState.error.issues[0]?.message ?? '임시 저장 요청을 확인해주세요.');
+    throw new Error(
+      parsedState.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidState,
+    );
   if (!parsedSettings.success)
-    throw new Error(parsedSettings.error.issues[0]?.message ?? '임시 저장 설정을 확인해주세요.');
+    throw new Error(
+      parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidSettings,
+    );
 
   const supabase = await createServerSupabaseClient();
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
@@ -183,27 +188,30 @@ export const publishEditorContentAction = async ({
   const parsedSettings = publishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success)
-    throw new Error(parsedState.error.issues[0]?.message ?? '발행할 편집 상태를 확인해주세요.');
+    throw new Error(
+      parsedState.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.publishInvalidState,
+    );
   if (!parsedSettings.success)
-    throw new Error(parsedSettings.error.issues[0]?.message ?? '발행 설정을 확인해주세요.');
+    throw new Error(
+      parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.publishInvalidSettings,
+    );
 
   const validation = validateEditorState(parsedState.data.translations);
 
-  if (!validation.canSave)
-    throw new Error('제목과 본문이 모두 있는 언어 버전이 최소 하나는 필요합니다.');
-  if (!parsedState.data.translations.ko.title.trim()) throw new Error('한국어 제목을 입력해주세요');
+  if (!validation.canSave) throw new Error(EDITOR_ERROR_MESSAGE.missingCompleteTranslation);
+  if (!parsedState.data.translations.ko.title.trim())
+    throw new Error(EDITOR_ERROR_MESSAGE.missingKoTitle);
 
   const normalizedSlug = normalizeSlugInput(parsedSettings.data.slug);
-  if (!normalizedSlug) throw new Error('슬러그를 입력해주세요');
+  if (!normalizedSlug) throw new Error(EDITOR_ERROR_MESSAGE.missingSlug);
 
-  if (!isValidSlugFormat(normalizedSlug))
-    throw new Error('슬러그는 영문 소문자, 숫자, 하이픈만 사용 가능합니다');
+  if (!isValidSlugFormat(normalizedSlug)) throw new Error(EDITOR_ERROR_MESSAGE.slugFormatInvalid);
 
   if (parsedSettings.data.publishAt) {
     const scheduledDate = new Date(parsedSettings.data.publishAt);
 
     if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= new Date().getTime()) {
-      throw new Error('발행 시간은 현재 시간 이후여야 합니다');
+      throw new Error(EDITOR_ERROR_MESSAGE.scheduledPublishMustBeFuture);
     }
   }
 
@@ -212,8 +220,7 @@ export const publishEditorContentAction = async ({
     type: contentType,
   });
 
-  if (duplicateResult.data.duplicate)
-    throw new Error('이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.');
+  if (duplicateResult.data.duplicate) throw new Error(EDITOR_ERROR_MESSAGE.duplicateSlug);
 
   const supabase = await createServerSupabaseClient();
   const targetContentId = contentId ?? crypto.randomUUID();

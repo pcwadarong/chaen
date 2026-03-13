@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
+import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { buildEditorLinkInsertion } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
@@ -272,9 +273,7 @@ export const EditorCore = ({
 
       if (source === 'manual') {
         pushToast(
-          createSaveErrorToast(
-            '저장하려면 제목과 본문이 모두 있는 언어 버전이 최소 하나는 필요합니다.',
-          ),
+          createSaveErrorToast(`저장하려면 ${EDITOR_ERROR_MESSAGE.missingCompleteTranslation}`),
         );
       }
 
@@ -310,7 +309,7 @@ export const EditorCore = ({
       } catch {
         if (saveRequestIdRef.current !== requestId) return;
 
-        pushToast(createSaveErrorToast('임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.'));
+        pushToast(createSaveErrorToast(EDITOR_ERROR_MESSAGE.draftSaveFailed));
       } finally {
         if (saveRequestIdRef.current === requestId) {
           setIsSaving(false);

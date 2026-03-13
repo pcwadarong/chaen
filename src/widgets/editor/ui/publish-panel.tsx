@@ -4,6 +4,10 @@ import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import {
+  EDITOR_ERROR_MESSAGE,
+  resolveEditorPublishInlineErrorField,
+} from '@/entities/editor/model/editor-error';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
@@ -201,7 +205,7 @@ export const PublishPanel = ({
     };
 
     if (!response.ok || typeof body.duplicate !== 'boolean') {
-      throw new Error(body.error ?? body.message ?? '중복 확인에 실패했습니다.');
+      throw new Error(body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed);
     }
 
     return body.duplicate;
@@ -231,13 +235,16 @@ export const PublishPanel = ({
       const body = (await response.json()) as { error?: string; message?: string; url?: string };
 
       if (!response.ok || !body.url) {
-        throw new Error(body.error ?? body.message ?? '썸네일 업로드에 실패했습니다.');
+        throw new Error(body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed);
       }
 
       setThumbnailUrl(body.url);
     } catch {
-      setErrors(previous => ({ ...previous, thumbnail: '썸네일 업로드에 실패했습니다' }));
-      pushToast('썸네일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      setErrors(previous => ({
+        ...previous,
+        thumbnail: EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
+      }));
+      pushToast(EDITOR_ERROR_MESSAGE.thumbnailUploadFailedWithRetry);
     } finally {
       setIsUploading(false);
       event.target.value = '';
@@ -264,25 +271,13 @@ export const PublishPanel = ({
       await onSubmit(nextSettings);
       onClose();
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : '발행 처리에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      const message = error instanceof Error ? error.message : EDITOR_ERROR_MESSAGE.publishFailed;
+      const inlineField = resolveEditorPublishInlineErrorField(message);
 
-      if (message.includes('슬러그') || message.includes('이미 사용 중인 슬러그')) {
+      if (inlineField) {
         setErrors(previous => ({
           ...previous,
-          slug: message,
-        }));
-      } else if (message.includes('발행 시간')) {
-        setErrors(previous => ({
-          ...previous,
-          publishAt: message,
-        }));
-      } else if (message.includes('한국어 제목')) {
-        setErrors(previous => ({
-          ...previous,
-          koTitle: message,
+          [inlineField]: message,
         }));
       } else {
         pushToast(message);
@@ -313,7 +308,7 @@ export const PublishPanel = ({
               isPublished={isPublished}
               onChange={setSlug}
               onCheckDuplicate={handleCheckDuplicate}
-              showEmptyError={errors.slug === '슬러그를 입력해주세요'}
+              showEmptyError={errors.slug === EDITOR_ERROR_MESSAGE.missingSlug}
               value={slug}
             />
             {errors.slug ? (

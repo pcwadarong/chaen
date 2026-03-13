@@ -11,6 +11,7 @@ export {
   getEditorDraftSummaries,
   getEditorSeed,
 } from './api/editor-read';
+export { EDITOR_ERROR_MESSAGE, resolveEditorPublishInlineErrorField } from './model/editor-error';
 export {
   buildEditorLinkInsertion,
   createMarkdownLink,

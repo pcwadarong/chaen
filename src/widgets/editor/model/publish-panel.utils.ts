@@ -1,3 +1,4 @@
+import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import type {
   EditorState,
   PublishSettings,
@@ -79,20 +80,20 @@ export const validatePublishSettings = ({
   const errors: PublishPanelValidationErrors = {};
 
   if (!editorState.translations.ko.title.trim()) {
-    errors.koTitle = '한국어 제목을 입력해주세요';
+    errors.koTitle = EDITOR_ERROR_MESSAGE.missingKoTitle;
   }
 
   if (!settings.slug) {
-    errors.slug = '슬러그를 입력해주세요';
+    errors.slug = EDITOR_ERROR_MESSAGE.missingSlug;
   } else if (!/^[a-z0-9-]+$/.test(settings.slug)) {
-    errors.slug = '슬러그는 영문 소문자, 숫자, 하이픈만 사용 가능합니다';
+    errors.slug = EDITOR_ERROR_MESSAGE.slugFormatInvalid;
   }
 
   if (settings.publishAt) {
     const scheduledDate = new Date(settings.publishAt);
 
     if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= now.getTime()) {
-      errors.publishAt = '발행 시간은 현재 시간 이후여야 합니다';
+      errors.publishAt = EDITOR_ERROR_MESSAGE.scheduledPublishMustBeFuture;
     }
   }
 
