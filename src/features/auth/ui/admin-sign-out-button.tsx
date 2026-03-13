@@ -26,7 +26,7 @@ export const AdminSignOutButton = ({
   return (
     <form action={formAction} className={wrapperClass}>
       <input name="redirectPath" type="hidden" value={redirectPath} />
-      <Button disabled={isPending} tone="black" type="submit">
+      <Button disabled={isPending} tone="black" type="submit" variant="ghost">
         {isPending ? submitPendingLabel : submitLabel}
       </Button>
       {state.errorMessage ? (

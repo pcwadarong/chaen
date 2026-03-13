@@ -288,13 +288,47 @@ export const publishEditorContentAction = async ({
   redirect(
     buildLocalizedPathname({
       locale: resolveActionLocale(locale),
-      pathname: getEditorEditPath({
-        contentId: targetContentId,
+      pathname: getPublishRedirectPath({
         contentType,
+        publishAt: parsedSettings.data.publishAt,
+        slug: normalizedSlug,
       }),
     }),
   );
 };
+
+/**
+ * 발행 시점과 콘텐츠 타입에 따라 최종 redirect 경로를 계산합니다.
+ */
+const getPublishRedirectPath = ({
+  contentType,
+  publishAt,
+  slug,
+}: {
+  contentType: 'article' | 'project';
+  publishAt: string | null;
+  slug: string;
+}) => {
+  if (publishAt) {
+    return contentType === 'article' ? '/articles' : '/project';
+  }
+
+  return contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`;
+};
+
+/**
+ * 콘텐츠 타입별 관리자 편집 화면 경로를 계산합니다.
+ */
+const getEditorEditPath = ({
+  contentId,
+  contentType,
+}: {
+  contentId: string;
+  contentType: 'article' | 'project';
+}) =>
+  contentType === 'article'
+    ? `/admin/articles/${contentId}/edit`
+    : `/admin/projects/${contentId}/edit`;
 
 /**
  * draft 목록 화면에서 선택한 임시저장을 삭제합니다.
@@ -529,17 +563,3 @@ const revalidateEditorContent = ({
   revalidateTag(PROJECTS_CACHE_TAG);
   revalidateTag(createProjectCacheTag(contentId));
 };
-
-/**
- * 콘텐츠 타입별 관리자 편집 화면 경로를 계산합니다.
- */
-const getEditorEditPath = ({
-  contentId,
-  contentType,
-}: {
-  contentId: string;
-  contentType: 'article' | 'project';
-}) =>
-  contentType === 'article'
-    ? `/admin/articles/${contentId}/edit`
-    : `/admin/projects/${contentId}/edit`;
