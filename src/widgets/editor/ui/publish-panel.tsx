@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import {
@@ -36,10 +36,189 @@ type PublishErrors = {
   thumbnail?: string;
 };
 
+type PublishVisibilitySectionProps = {
+  onChange: (value: PublishVisibility) => void;
+  value: PublishVisibility;
+};
+
+type PublishThumbnailSectionProps = {
+  error?: string;
+  isUploading: boolean;
+  onFileChange: React.ChangeEventHandler<HTMLInputElement>;
+  onThumbnailUrlChange: (value: string) => void;
+  thumbnailPreviewUrl: string;
+  thumbnailUrl: string;
+};
+
+type PublishScheduleSectionProps = {
+  dateInput: string;
+  error?: string;
+  onDateChange: (value: string) => void;
+  onPublishModeChange: (mode: PublishMode) => void;
+  onTimeChange: (value: string) => void;
+  publishMode: PublishMode;
+  scheduledUtcIso: string | null;
+  timeInput: string;
+};
+
 const visibilityOptions: Array<{ label: string; value: PublishVisibility }> = [
   { label: '공개', value: 'public' },
   { label: '비공개', value: 'private' },
 ];
+
+const PublishVisibilitySectionBase = ({ onChange, value }: PublishVisibilitySectionProps) => (
+  <section className={sectionClass}>
+    <p className={fieldLabelClass}>공개 설정</p>
+    <div className={inlineOptionRowClass}>
+      {visibilityOptions.map(option => (
+        <label className={optionLabelClass} key={option.value}>
+          <input
+            checked={value === option.value}
+            className={radioClass}
+            name="publish-visibility"
+            onChange={() => onChange(option.value)}
+            type="radio"
+            value={option.value}
+          />
+          <span className={optionTitleClass}>{option.label}</span>
+        </label>
+      ))}
+    </div>
+  </section>
+);
+
+PublishVisibilitySectionBase.displayName = 'PublishVisibilitySection';
+
+const PublishVisibilitySection = React.memo(PublishVisibilitySectionBase);
+
+const PublishThumbnailSectionBase = ({
+  error,
+  isUploading,
+  onFileChange,
+  onThumbnailUrlChange,
+  thumbnailPreviewUrl,
+  thumbnailUrl,
+}: PublishThumbnailSectionProps) => (
+  <section className={sectionClass}>
+    <label className={fieldLabelClass} htmlFor="publish-panel-thumbnail-url">
+      썸네일
+    </label>
+    <div className={thumbnailRowClass}>
+      <Input
+        className={thumbnailInputClass}
+        id="publish-panel-thumbnail-url"
+        onChange={event => onThumbnailUrlChange(event.target.value)}
+        placeholder="https://example.com/thumbnail.png"
+        value={thumbnailUrl}
+      />
+      <label className={uploadButtonWrapClass}>
+        <span className={uploadButtonLabelClass}>
+          {isUploading ? '업로드 중...' : '파일 업로드'}
+        </span>
+        <input
+          accept="image/*"
+          aria-label="파일 업로드"
+          className={fileInputClass}
+          disabled={isUploading}
+          onChange={onFileChange}
+          type="file"
+        />
+      </label>
+    </div>
+    {error ? (
+      <p className={errorTextClass} role="alert">
+        {error}
+      </p>
+    ) : null}
+    {thumbnailPreviewUrl ? (
+      <div className={thumbnailPreviewFrameClass}>
+        <Image
+          alt="썸네일 미리보기"
+          className={thumbnailPreviewImageClass}
+          fill
+          sizes="(max-width: 480px) 100vw, 480px"
+          src={thumbnailPreviewUrl}
+          unoptimized
+        />
+      </div>
+    ) : null}
+  </section>
+);
+
+PublishThumbnailSectionBase.displayName = 'PublishThumbnailSection';
+
+const PublishThumbnailSection = React.memo(PublishThumbnailSectionBase);
+
+const PublishScheduleSectionBase = ({
+  dateInput,
+  error,
+  onDateChange,
+  onPublishModeChange,
+  onTimeChange,
+  publishMode,
+  scheduledUtcIso,
+  timeInput,
+}: PublishScheduleSectionProps) => (
+  <section className={sectionClass}>
+    <p className={fieldLabelClass}>발행 시간</p>
+    <div className={inlineOptionRowClass}>
+      <label className={optionLabelClass}>
+        <input
+          checked={publishMode === 'immediate'}
+          className={radioClass}
+          name="publish-time"
+          onChange={() => onPublishModeChange('immediate')}
+          type="radio"
+          value="immediate"
+        />
+        <span className={optionTitleClass}>지금 발행</span>
+      </label>
+      <label className={optionLabelClass}>
+        <input
+          checked={publishMode === 'scheduled'}
+          className={radioClass}
+          name="publish-time"
+          onChange={() => onPublishModeChange('scheduled')}
+          type="radio"
+          value="scheduled"
+        />
+        <span className={optionTitleClass}>예약 발행</span>
+      </label>
+    </div>
+    {publishMode === 'scheduled' ? (
+      <div className={scheduleFieldGridClass}>
+        <label className={scheduleFieldClass}>
+          <span className={scheduleLabelClass}>날짜</span>
+          <Input
+            className={scheduleInputClass}
+            onChange={event => onDateChange(event.target.value)}
+            type="date"
+            value={dateInput}
+          />
+        </label>
+        <label className={scheduleFieldClass}>
+          <span className={scheduleLabelClass}>시간</span>
+          <Input
+            className={scheduleInputClass}
+            onChange={event => onTimeChange(event.target.value)}
+            type="time"
+            value={timeInput}
+          />
+        </label>
+        <p className={utcPreviewClass}>UTC: {scheduledUtcIso ?? '날짜와 시간을 입력해주세요'}</p>
+        {error ? (
+          <p className={errorTextClass} role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    ) : null}
+  </section>
+);
+
+PublishScheduleSectionBase.displayName = 'PublishScheduleSection';
+
+const PublishScheduleSection = React.memo(PublishScheduleSectionBase);
 
 /**
  * 패널 초기값으로 사용할 로컬 날짜/시간 문자열을 계산합니다.
@@ -175,7 +354,7 @@ export const PublishPanel = ({
   /**
    * 업로드/제출 실패 토스트를 추가합니다.
    */
-  const pushToast = (message: string) => {
+  const pushToast = useCallback((message: string) => {
     setToastItems(previous => [
       ...previous,
       {
@@ -184,85 +363,118 @@ export const PublishPanel = ({
         tone: 'error',
       },
     ]);
-  };
+  }, []);
+  const closeToast = useCallback((id: string) => {
+    setToastItems(previous => previous.filter(item => item.id !== id));
+  }, []);
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+  const handleSlugChange = useCallback((value: string) => {
+    setSlug(previous => (previous === value ? previous : value));
+  }, []);
+  const handleThumbnailUrlChange = useCallback((value: string) => {
+    setThumbnailUrl(previous => (previous === value ? previous : value));
+  }, []);
+  const handleAllowCommentsChange = useCallback((checked: boolean) => {
+    setAllowComments(previous => (previous === checked ? previous : checked));
+  }, []);
+  const handleVisibilityChange = useCallback((nextVisibility: PublishVisibility) => {
+    setVisibility(previous => (previous === nextVisibility ? previous : nextVisibility));
+  }, []);
+  const handlePublishModeChange = useCallback((nextMode: PublishMode) => {
+    setPublishMode(previous => (previous === nextMode ? previous : nextMode));
+  }, []);
+  const handleDateInputChange = useCallback((value: string) => {
+    setDateInput(previous => (previous === value ? previous : value));
+  }, []);
+  const handleTimeInputChange = useCallback((value: string) => {
+    setTimeInput(previous => (previous === value ? previous : value));
+  }, []);
 
   /**
    * 슬러그 중복 여부를 관리자 확인 API로 검사합니다.
    */
-  const handleCheckDuplicate = async (nextSlug: string) => {
-    const searchParams = new URLSearchParams({
-      slug: nextSlug,
-      type: contentType,
-    });
+  const handleCheckDuplicate = useCallback(
+    async (nextSlug: string) => {
+      const searchParams = new URLSearchParams({
+        slug: nextSlug,
+        type: contentType,
+      });
 
-    if (contentId) {
-      searchParams.set('excludeId', contentId);
-    }
+      if (contentId) {
+        searchParams.set('excludeId', contentId);
+      }
 
-    const response = await fetch(`/api/editor/slug-check?${searchParams.toString()}`);
-    const body = (await response.json()) as {
-      duplicate?: boolean;
-      error?: string;
-      message?: string;
-    };
+      const response = await fetch(`/api/editor/slug-check?${searchParams.toString()}`);
+      const body = (await response.json()) as {
+        duplicate?: boolean;
+        error?: string;
+        message?: string;
+      };
 
-    if (!response.ok || typeof body.duplicate !== 'boolean') {
-      throw createEditorError(
-        'slugCheckFailed',
-        body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
-      );
-    }
+      if (!response.ok || typeof body.duplicate !== 'boolean') {
+        throw createEditorError(
+          'slugCheckFailed',
+          body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
+        );
+      }
 
-    return body.duplicate;
-  };
+      return body.duplicate;
+    },
+    [contentId, contentType],
+  );
 
   /**
    * 썸네일 파일을 업로드하고 공개 URL을 form 상태에 반영합니다.
    */
-  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async event => {
-    const file = event.target.files?.[0];
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
 
-    if (!file) return;
+      if (!file) return;
 
-    const formData = new FormData();
-    formData.set('contentType', contentType);
-    formData.set('file', file);
+      const formData = new FormData();
+      formData.set('contentType', contentType);
+      formData.set('file', file);
 
-    setIsUploading(true);
-    setErrors(previous => ({ ...previous, thumbnail: undefined }));
+      setIsUploading(true);
+      setErrors(previous => ({ ...previous, thumbnail: undefined }));
 
-    try {
-      const response = await fetch('/api/images', {
-        body: formData,
-        method: 'POST',
-      });
+      try {
+        const response = await fetch('/api/images', {
+          body: formData,
+          method: 'POST',
+        });
 
-      const body = (await response.json()) as { error?: string; message?: string; url?: string };
+        const body = (await response.json()) as { error?: string; message?: string; url?: string };
 
-      if (!response.ok || !body.url) {
-        throw createEditorError(
-          'thumbnailUploadFailed',
-          body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
-        );
+        if (!response.ok || !body.url) {
+          throw createEditorError(
+            'thumbnailUploadFailed',
+            body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
+          );
+        }
+
+        setThumbnailUrl(body.url);
+      } catch {
+        setErrors(previous => ({
+          ...previous,
+          thumbnail: EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
+        }));
+        pushToast(EDITOR_ERROR_MESSAGE.thumbnailUploadFailedWithRetry);
+      } finally {
+        setIsUploading(false);
+        event.target.value = '';
       }
-
-      setThumbnailUrl(body.url);
-    } catch {
-      setErrors(previous => ({
-        ...previous,
-        thumbnail: EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
-      }));
-      pushToast(EDITOR_ERROR_MESSAGE.thumbnailUploadFailedWithRetry);
-    } finally {
-      setIsUploading(false);
-      event.target.value = '';
-    }
-  };
+    },
+    [contentType, pushToast],
+  );
 
   /**
    * 현재 form 값으로 최종 발행 설정을 검증한 뒤 제출합니다.
    */
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const nextSettings = currentSettings;
     const nextErrors = validatePublishSettings({
       editorState,
@@ -293,7 +505,10 @@ export const PublishPanel = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [currentSettings, editorState, onClose, onSubmit, pushToast]);
+  const handleSubmitClick = useCallback(() => {
+    void handleSubmit();
+  }, [handleSubmit]);
 
   return (
     <>
@@ -301,20 +516,20 @@ export const PublishPanel = ({
         ariaLabelledBy="publish-panel-title"
         className={panelClass}
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
       >
         <div className={panelHeaderClass}>
           <h2 className={panelTitleClass} id="publish-panel-title">
             발행 설정
           </h2>
-          <XButton ariaLabel="발행 설정 닫기" onClick={onClose} />
+          <XButton ariaLabel="발행 설정 닫기" onClick={handleClose} />
         </div>
 
         <div className={panelBodyClass} onClick={event => event.stopPropagation()}>
           <section className={sectionClass}>
             <SlugInput
               isPublished={isPublished}
-              onChange={setSlug}
+              onChange={handleSlugChange}
               onCheckDuplicate={handleCheckDuplicate}
               showEmptyError={errors.slug === EDITOR_ERROR_MESSAGE.missingSlug}
               value={slug}
@@ -326,139 +541,39 @@ export const PublishPanel = ({
             ) : null}
           </section>
 
-          <section className={sectionClass}>
-            <p className={fieldLabelClass}>공개 설정</p>
-            <div className={inlineOptionRowClass}>
-              {visibilityOptions.map(option => (
-                <label className={optionLabelClass} key={option.value}>
-                  <input
-                    checked={visibility === option.value}
-                    className={radioClass}
-                    name="publish-visibility"
-                    onChange={() => setVisibility(option.value)}
-                    type="radio"
-                    value={option.value}
-                  />
-                  <span className={optionTitleClass}>{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </section>
+          <PublishVisibilitySection onChange={handleVisibilityChange} value={visibility} />
 
-          <section className={sectionClass}>
-            <label className={fieldLabelClass} htmlFor="publish-panel-thumbnail-url">
-              썸네일
-            </label>
-            <div className={thumbnailRowClass}>
-              <Input
-                className={thumbnailInputClass}
-                id="publish-panel-thumbnail-url"
-                onChange={event => setThumbnailUrl(event.target.value)}
-                placeholder="https://example.com/thumbnail.png"
-                value={thumbnailUrl}
-              />
-              <label className={uploadButtonWrapClass}>
-                <span className={uploadButtonLabelClass}>
-                  {isUploading ? '업로드 중...' : '파일 업로드'}
-                </span>
-                <input
-                  accept="image/*"
-                  aria-label="파일 업로드"
-                  className={fileInputClass}
-                  disabled={isUploading}
-                  onChange={handleFileChange}
-                  type="file"
-                />
-              </label>
-            </div>
-            {errors.thumbnail ? (
-              <p className={errorTextClass} role="alert">
-                {errors.thumbnail}
-              </p>
-            ) : null}
-            {thumbnailPreviewUrl ? (
-              <div className={thumbnailPreviewFrameClass}>
-                <Image
-                  alt="썸네일 미리보기"
-                  className={thumbnailPreviewImageClass}
-                  fill
-                  sizes="(max-width: 480px) 100vw, 480px"
-                  src={thumbnailPreviewUrl}
-                  unoptimized
-                />
-              </div>
-            ) : null}
-          </section>
+          <PublishThumbnailSection
+            error={errors.thumbnail}
+            isUploading={isUploading}
+            onFileChange={handleFileChange}
+            onThumbnailUrlChange={handleThumbnailUrlChange}
+            thumbnailPreviewUrl={thumbnailPreviewUrl}
+            thumbnailUrl={thumbnailUrl}
+          />
 
           <section className={sectionClass}>
             <label className={checkboxLabelClass}>
               <input
                 checked={allowComments}
                 className={checkboxClass}
-                onChange={event => setAllowComments(event.target.checked)}
+                onChange={event => handleAllowCommentsChange(event.target.checked)}
                 type="checkbox"
               />
               댓글 허용
             </label>
           </section>
 
-          <section className={sectionClass}>
-            <p className={fieldLabelClass}>발행 시간</p>
-            <div className={inlineOptionRowClass}>
-              <label className={optionLabelClass}>
-                <input
-                  checked={publishMode === 'immediate'}
-                  className={radioClass}
-                  name="publish-time"
-                  onChange={() => setPublishMode('immediate')}
-                  type="radio"
-                  value="immediate"
-                />
-                <span className={optionTitleClass}>지금 발행</span>
-              </label>
-              <label className={optionLabelClass}>
-                <input
-                  checked={publishMode === 'scheduled'}
-                  className={radioClass}
-                  name="publish-time"
-                  onChange={() => setPublishMode('scheduled')}
-                  type="radio"
-                  value="scheduled"
-                />
-                <span className={optionTitleClass}>예약 발행</span>
-              </label>
-            </div>
-            {publishMode === 'scheduled' ? (
-              <div className={scheduleFieldGridClass}>
-                <label className={scheduleFieldClass}>
-                  <span className={scheduleLabelClass}>날짜</span>
-                  <Input
-                    className={scheduleInputClass}
-                    onChange={event => setDateInput(event.target.value)}
-                    type="date"
-                    value={dateInput}
-                  />
-                </label>
-                <label className={scheduleFieldClass}>
-                  <span className={scheduleLabelClass}>시간</span>
-                  <Input
-                    className={scheduleInputClass}
-                    onChange={event => setTimeInput(event.target.value)}
-                    type="time"
-                    value={timeInput}
-                  />
-                </label>
-                <p className={utcPreviewClass}>
-                  UTC: {scheduledUtcIso ?? '날짜와 시간을 입력해주세요'}
-                </p>
-                {errors.publishAt ? (
-                  <p className={errorTextClass} role="alert">
-                    {errors.publishAt}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </section>
+          <PublishScheduleSection
+            dateInput={dateInput}
+            error={errors.publishAt}
+            onDateChange={handleDateInputChange}
+            onPublishModeChange={handlePublishModeChange}
+            onTimeChange={handleTimeInputChange}
+            publishMode={publishMode}
+            scheduledUtcIso={scheduledUtcIso}
+            timeInput={timeInput}
+          />
 
           {errors.koTitle ? (
             <p className={errorTextClass} role="alert">
@@ -468,15 +583,10 @@ export const PublishPanel = ({
         </div>
 
         <div className={panelFooterClass}>
-          <Button onClick={onClose} size="sm" tone="white">
+          <Button onClick={handleClose} size="sm" tone="white">
             취소
           </Button>
-          <Button
-            disabled={isSubmitting}
-            onClick={() => void handleSubmit()}
-            size="sm"
-            tone="primary"
-          >
+          <Button disabled={isSubmitting} onClick={handleSubmitClick} size="sm" tone="primary">
             {isSubmitting ? (
               <>
                 <span aria-hidden className={loadingSpinnerClass} />
@@ -489,10 +599,7 @@ export const PublishPanel = ({
         </div>
       </SlideOver>
 
-      <ToastViewport
-        items={toastItems}
-        onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport items={toastItems} onClose={closeToast} />
     </>
   );
 };
