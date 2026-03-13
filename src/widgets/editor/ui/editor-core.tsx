@@ -738,6 +738,7 @@ export const EditorCore = ({
 const rootClass = css({
   width: 'full',
   maxWidth: '[88rem]',
+  minWidth: '0',
   mx: 'auto',
   display: 'grid',
   gap: '5',
@@ -782,16 +783,19 @@ const buttonGroupClass = css({
 });
 
 const textareaInfoClass = css({
-  minHeight: '[2.5rem]',
+  minHeight: '[2.7rem]',
 });
 
 const localeTabListClass = css({
   display: 'flex',
   alignItems: 'center',
   gap: '4',
+  minWidth: '0',
+  overflowX: 'auto',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
+  scrollbarWidth: '[thin]',
 });
 
 const localeTabRecipe = cva({
@@ -834,9 +838,12 @@ const mobilePaneTabListClass = css({
   display: 'flex',
   alignItems: 'center',
   gap: '4',
+  minWidth: '0',
+  overflowX: 'auto',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
+  scrollbarWidth: '[thin]',
   '@media (min-width: 761px)': {
     display: 'none',
   },
@@ -889,6 +896,7 @@ const tabIconClass = css({
 const localePanelClass = css({
   display: 'grid',
   gap: '4',
+  minWidth: '0',
 });
 
 const summaryGridClass = css({
@@ -920,6 +928,7 @@ const titleErrorClass = css({
 const editorGridClass = css({
   display: 'grid',
   gap: '4',
+  minWidth: '0',
   alignItems: 'stretch',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   '@media (max-width: 760px)': {
@@ -930,7 +939,9 @@ const editorGridClass = css({
 const editorPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
+  minWidth: '0',
   minHeight: '[36rem]',
+  overflow: 'hidden',
   p: '4',
   borderRadius: '2xl',
   borderWidth: '1px',
@@ -941,12 +952,16 @@ const editorPaneClass = css({
 
 const editorToolbarWrapClass = css({
   flex: 'none',
+  minWidth: '0',
+  overflowX: 'auto',
+  scrollbarWidth: '[thin]',
 });
 
 const editorTextareaWrapClass = css({
   display: 'flex',
   flex: '1',
   minHeight: '0',
+  minWidth: '0',
 });
 
 const previewPaneClass = css({
@@ -960,6 +975,8 @@ const previewPaneClass = css({
 });
 
 const editorTextareaClass = css({
+  width: 'full',
+  minWidth: '0',
   minHeight: '[30rem]',
   height: 'full',
   flex: '1',
