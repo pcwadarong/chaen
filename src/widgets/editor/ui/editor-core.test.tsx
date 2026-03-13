@@ -197,6 +197,13 @@ describe('EditorCore', () => {
     });
   });
 
+  it('데스크톱에서는 편집 pane과 미리보기 pane을 동시에 렌더링한다', () => {
+    renderEditorCore();
+
+    expect(screen.getByRole('region', { name: '본문 편집' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: '본문 미리보기' })).toBeTruthy();
+  });
+
   it('toolbar는 active locale textarea에만 값을 적용한다', async () => {
     renderEditorCore();
 

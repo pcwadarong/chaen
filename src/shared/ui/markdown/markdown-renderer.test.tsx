@@ -158,6 +158,8 @@ describe('MarkdownRenderer', () => {
       '<br />',
       '<hr />',
     ]);
+    expect(inlineCodes[0]?.getAttribute('style')).toContain('background-color');
+    expect(inlineCodes[0]?.getAttribute('style')).toContain('rgba(59, 130, 246, 0.16)');
     expect(document.querySelector('button[aria-expanded]')).toBeNull();
     expect(document.querySelector('hr')).toBeNull();
   });

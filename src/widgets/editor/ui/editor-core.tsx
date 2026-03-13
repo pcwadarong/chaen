@@ -38,6 +38,8 @@ import {
 
 const AUTOSAVE_DELAY_MS = 180_000;
 const MOBILE_MEDIA_QUERY = '(max-width: 760px)';
+const EDITOR_PANE_MAX_HEIGHT = '[min(70vh,44rem)]';
+const MOBILE_EDITOR_PANE_MAX_HEIGHT = '[60vh]';
 const LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',
   fr: 'FR',
@@ -218,6 +220,7 @@ const EditorLocalePanelBase = ({
 
       <div className={editorGridClass}>
         <section
+          aria-label="본문 편집"
           className={editorPaneClass}
           hidden={isMobileLayout && mobileEditorPane !== 'edit'}
           id={isMobileLayout ? `editor-pane-edit-${locale}` : undefined}
@@ -247,6 +250,7 @@ const EditorLocalePanelBase = ({
         </section>
 
         <section
+          aria-label="본문 미리보기"
           className={previewPaneClass}
           hidden={isMobileLayout && mobileEditorPane !== 'preview'}
           id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
@@ -941,6 +945,7 @@ const editorPaneClass = css({
   flexDirection: 'column',
   minWidth: '0',
   minHeight: '[36rem]',
+  maxHeight: EDITOR_PANE_MAX_HEIGHT,
   overflow: 'hidden',
   p: '4',
   borderRadius: '2xl',
@@ -948,12 +953,17 @@ const editorPaneClass = css({
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surface',
+  '@media (max-width: 760px)': {
+    minHeight: '[28rem]',
+    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
+  },
 });
 
 const editorToolbarWrapClass = css({
   flex: 'none',
   minWidth: '0',
   overflowX: 'auto',
+  overflowY: 'hidden',
   scrollbarWidth: '[thin]',
 });
 
@@ -962,26 +972,39 @@ const editorTextareaWrapClass = css({
   flex: '1',
   minHeight: '0',
   minWidth: '0',
+  overflow: 'hidden',
 });
 
 const previewPaneClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: '0',
   minHeight: '[36rem]',
+  maxHeight: EDITOR_PANE_MAX_HEIGHT,
   overflowY: 'auto',
+  overscrollBehaviorY: 'contain',
   p: '4',
   borderRadius: '2xl',
   borderWidth: '1px',
   borderStyle: 'solid',
   borderColor: 'border',
+  background: 'surface',
+  '@media (max-width: 760px)': {
+    minHeight: '[28rem]',
+    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
+  },
 });
 
 const editorTextareaClass = css({
   width: 'full',
   minWidth: '0',
-  minHeight: '[30rem]',
+  minHeight: '0',
   height: 'full',
+  maxHeight: 'full',
   flex: '1',
   resize: 'none',
   overflowY: 'auto',
+  overscrollBehaviorY: 'contain',
   fontFamily: 'mono',
 });
 

@@ -126,14 +126,10 @@ const getCodeBlockAriaLabel = (children: ReactNode) =>
   `Code block: ${getCodeBlockLanguage(children)}`;
 
 /**
- * 현재 code 노드가 블록 코드 내부인지 판별합니다.
+ * 현재 code 노드가 fenced code block인지 판별합니다.
+ * rehype-pretty-code는 inline code에도 data attribute를 주입할 수 있어 className 기준으로만 구분합니다.
  */
-const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
-  Boolean(
-    className ||
-    (typeof props?.['data-language'] === 'string' && props['data-language'].length > 0) ||
-    (typeof props?.['data-theme'] === 'string' && props['data-theme'].length > 0),
-  );
+const isBlockCode = (className?: string) => Boolean(className && className.length > 0);
 
 const markdownInlineCodeStyle = {
   backgroundColor: 'rgba(59, 130, 246, 0.16)',
@@ -265,7 +261,7 @@ const createMarkdownComponents = (): Components => ({
     <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
   ),
   code: ({ children, className, ...props }) => {
-    if (isBlockCode(className, props as Record<string, unknown>)) {
+    if (isBlockCode(className)) {
       return (
         <code className={className} {...props}>
           {children}
