@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
+import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { isPdfFileKind } from '@/entities/pdf-file/model/types';
+import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 
 type PdfFileRouteContext = {
   params: Promise<{
@@ -15,7 +15,7 @@ type PdfFileRouteContext = {
 export const GET = async (_request: Request, { params }: PdfFileRouteContext) => {
   const { kind } = await params;
   if (!isPdfFileKind(kind)) {
-    return NextResponse.json({ message: 'Not Found' }, { status: 404 });
+    return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.notFound, 404);
   }
 
   const signedUrl = await getPdfFileUrl({
@@ -24,8 +24,8 @@ export const GET = async (_request: Request, { params }: PdfFileRouteContext) =>
   });
 
   if (!signedUrl) {
-    return NextResponse.json({ message: 'Not Found' }, { status: 404 });
+    return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.notFound, 404);
   }
 
-  return NextResponse.redirect(signedUrl);
+  return Response.redirect(signedUrl);
 };

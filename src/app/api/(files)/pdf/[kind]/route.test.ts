@@ -26,7 +26,7 @@ describe('api/pdf route', () => {
       accessType: 'signed',
       kind: 'resume',
     });
-    expect(response.status).toBe(307);
+    expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe('https://example.com/resume-signed.pdf');
   });
 
@@ -38,6 +38,9 @@ describe('api/pdf route', () => {
     });
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+    });
   });
 
   it('파일이 없으면 404를 반환한다', async () => {
@@ -50,5 +53,8 @@ describe('api/pdf route', () => {
     });
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+    });
   });
 });
