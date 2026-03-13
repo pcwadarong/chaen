@@ -49,11 +49,17 @@ const tableTemplate = [
 export const useMarkdownToolbar = ({
   onChange,
   textareaRef,
-  value,
   popoverTriggerClassName,
 }: MarkdownToolbarProps & {
   popoverTriggerClassName: string;
 }) => {
+  const getSelectedText = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return '';
+
+    return textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+  }, [textareaRef]);
+
   const applyTextTransform = React.useCallback(
     (transform: (textarea: HTMLTextAreaElement) => string) => {
       const textarea = textareaRef.current;
@@ -109,10 +115,7 @@ export const useMarkdownToolbar = ({
 
   const handleLinkApply = React.useCallback(
     (url: string, mode: LinkMode, closePopover?: () => void) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+      const selectedText = getSelectedText();
       const nextValue = createMarkdownLinkByMode({
         label: selectedText || url,
         mode,
@@ -124,15 +127,12 @@ export const useMarkdownToolbar = ({
       );
       closePopover?.();
     },
-    [applyTextTransform, textareaRef, value],
+    [applyTextTransform, getSelectedText],
   );
 
   const handleImageApply = React.useCallback(
     (url: string, closePopover?: () => void) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+      const selectedText = getSelectedText();
       const altText = selectedText || '이미지 설명';
       const nextValue = `![${altText}](${url})`;
 
@@ -141,7 +141,7 @@ export const useMarkdownToolbar = ({
       );
       closePopover?.();
     },
-    [applyTextTransform, textareaRef, value],
+    [applyTextTransform, getSelectedText],
   );
 
   const handleTextColorApply = React.useCallback(
@@ -170,10 +170,9 @@ export const useMarkdownToolbar = ({
 
   const handleToggleApply = React.useCallback(
     (level: 1 | 2 | 3 | 4) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
+      if (!textareaRef.current) return;
 
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+      const selectedText = getSelectedText();
       const headingPrefix = '#'.repeat(level);
 
       if (!selectedText) {
@@ -183,7 +182,7 @@ export const useMarkdownToolbar = ({
 
       applyWrap(`:::toggle ${headingPrefix} `, '\n내용\n:::', '제목');
     },
-    [applyTemplate, applyWrap, textareaRef, value],
+    [applyTemplate, applyWrap, getSelectedText, textareaRef],
   );
 
   const headingActions = React.useMemo<ToolbarActionItem[]>(

@@ -250,7 +250,6 @@ const EditorLocalePanelBase = ({
             <MarkdownToolbar
               onChange={nextValue => onContentChange(locale, nextValue)}
               textareaRef={textareaRef}
-              value={translation.content}
             />
           </div>
           <div className={editorTextareaWrapClass}>

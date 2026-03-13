@@ -13,7 +13,7 @@ const ToolbarHarness = () => {
 
   return (
     <>
-      <MarkdownToolbar onChange={setValue} textareaRef={textareaRef} value={value} />
+      <MarkdownToolbar onChange={setValue} textareaRef={textareaRef} />
       <Textarea
         aria-label="본문 입력"
         autoResize={false}
