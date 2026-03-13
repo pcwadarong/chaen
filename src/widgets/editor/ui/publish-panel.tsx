@@ -32,7 +32,6 @@ type PublishErrors = {
 const visibilityOptions: Array<{ label: string; value: PublishVisibility }> = [
   { label: '공개', value: 'public' },
   { label: '비공개', value: 'private' },
-  { label: '임시', value: 'draft' },
 ];
 
 /**

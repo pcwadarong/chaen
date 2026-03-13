@@ -10,10 +10,10 @@ const baseEditorState = {
   slug: 'editor-core',
   tags: [],
   translations: {
-    en: { content: '', title: '' },
-    fr: { content: '', title: '' },
-    ja: { content: '', title: '' },
-    ko: { content: '본문', title: '한국어 제목' },
+    en: { content: '', description: '', title: '' },
+    fr: { content: '', description: '', title: '' },
+    ja: { content: '', description: '', title: '' },
+    ko: { content: '본문', description: '', title: '한국어 제목' },
   },
 };
 
@@ -51,6 +51,18 @@ describe('PublishPanel', () => {
     vi.restoreAllMocks();
   });
 
+  it('공개 설정은 공개와 비공개만 노출한다', async () => {
+    renderPublishPanel();
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '발행 설정' })).toBeTruthy();
+    });
+
+    expect(screen.getByLabelText('공개')).toBeTruthy();
+    expect(screen.getByLabelText('비공개')).toBeTruthy();
+    expect(screen.queryByLabelText('임시')).toBeNull();
+  });
+
   it('backdrop 클릭 시 패널을 닫는다', async () => {
     const { onClose } = renderPublishPanel();
 
@@ -82,7 +94,7 @@ describe('PublishPanel', () => {
         ...baseEditorState,
         translations: {
           ...baseEditorState.translations,
-          ko: { content: '본문', title: '' },
+          ko: { content: '본문', description: '', title: '' },
         },
       },
     });

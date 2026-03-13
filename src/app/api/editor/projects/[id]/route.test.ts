@@ -33,10 +33,10 @@ describe('api/editor/projects/[id] route', () => {
       initialSlug: '',
       initialTags: [],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: '' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
       },
     });
 

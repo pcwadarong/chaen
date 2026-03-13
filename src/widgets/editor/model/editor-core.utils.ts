@@ -12,18 +12,22 @@ import {
 export const createEmptyTranslations = (): Record<Locale, TranslationField> => ({
   en: {
     content: '',
+    description: '',
     title: '',
   },
   fr: {
     content: '',
+    description: '',
     title: '',
   },
   ja: {
     content: '',
+    description: '',
     title: '',
   },
   ko: {
     content: '',
+    description: '',
     title: '',
   },
 });
@@ -44,6 +48,7 @@ export const normalizeEditorState = (state: EditorState): EditorState => ({
   translations: EDITOR_LOCALES.reduce<Record<Locale, TranslationField>>((accumulator, locale) => {
     accumulator[locale] = {
       content: state.translations[locale]?.content ?? '',
+      description: state.translations[locale]?.description ?? '',
       title: state.translations[locale]?.title ?? '',
     };
 
@@ -72,6 +77,7 @@ export const isEditorStateEqual = (left: EditorState, right: EditorState) => {
 
     return (
       leftTranslation.title === rightTranslation.title &&
+      leftTranslation.description === rightTranslation.description &&
       leftTranslation.content === rightTranslation.content
     );
   });

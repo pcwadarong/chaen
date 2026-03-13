@@ -28,7 +28,7 @@ export type EditorDraftSeed = {
   visibility: PublishSettings['visibility'];
 };
 
-type DraftFieldKey = 'content' | 'title';
+type DraftFieldKey = 'content' | 'description' | 'title';
 
 type DraftFieldRecord = Record<string, unknown> | null;
 
@@ -82,7 +82,7 @@ export const buildEditorTranslationRows = ({
   (Object.keys(translations) as Locale[])
     .map(locale => ({
       content: translations[locale].content.trim() || null,
-      description: null,
+      description: translations[locale].description.trim() || null,
       [foreignKey]: contentId,
       locale,
       title: translations[locale].title.trim(),
@@ -97,9 +97,11 @@ export const buildEditorTranslationRows = ({
  */
 export const buildDraftTranslations = ({
   contentRecord,
+  descriptionRecord,
   titleRecord,
 }: {
   contentRecord: DraftFieldRecord;
+  descriptionRecord: DraftFieldRecord;
   titleRecord: DraftFieldRecord;
 }) => {
   const translations = createEmptyTranslations();
@@ -107,6 +109,7 @@ export const buildDraftTranslations = ({
   (Object.keys(translations) as Locale[]).forEach(locale => {
     translations[locale] = {
       content: getDraftFieldValue(contentRecord, locale),
+      description: getDraftFieldValue(descriptionRecord, locale),
       title: getDraftFieldValue(titleRecord, locale),
     };
   });
@@ -124,14 +127,16 @@ export const mergeEditorSeedWithDraft = (
   ...seed,
   contentId: draftSeed.contentId ?? seed.contentId,
   initialDraftId: draftSeed.draftId,
-  initialPublished: draftSeed.visibility !== 'draft',
+  initialPublished: seed.initialPublished,
   initialSavedAt: draftSeed.updatedAt,
   initialSettings: {
-    allowComments: draftSeed.allowComments,
-    publishAt: draftSeed.publishAt,
+    allowComments: seed.initialSettings
+      ? seed.initialSettings.allowComments
+      : draftSeed.allowComments,
+    publishAt: seed.initialSettings ? seed.initialSettings.publishAt : draftSeed.publishAt,
     slug: draftSeed.slug,
-    thumbnailUrl: draftSeed.thumbnailUrl,
-    visibility: draftSeed.visibility,
+    thumbnailUrl: seed.initialSettings ? seed.initialSettings.thumbnailUrl : draftSeed.thumbnailUrl,
+    visibility: seed.initialSettings ? seed.initialSettings.visibility : draftSeed.visibility,
   },
   initialSlug: draftSeed.slug,
   initialTags: draftSeed.tags,
@@ -144,7 +149,7 @@ export const mergeEditorSeedWithDraft = (
 export const normalizeEditorVisibility = (
   visibility: string | null | undefined,
 ): PublishSettings['visibility'] => {
-  if (visibility === 'private' || visibility === 'draft') {
+  if (visibility === 'private') {
     return visibility;
   }
 

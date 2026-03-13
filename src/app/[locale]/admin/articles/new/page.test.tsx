@@ -54,10 +54,10 @@ describe('AdminArticleNewRoute', () => {
       initialSlug: '',
       initialTags: [],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: '' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
       },
     });
 
@@ -95,15 +95,15 @@ describe('AdminArticleNewRoute', () => {
         publishAt: null,
         slug: 'draft-slug',
         thumbnailUrl: '',
-        visibility: 'draft',
+        visibility: 'public',
       },
       initialSlug: 'draft-slug',
       initialTags: ['react'],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '초안 본문', title: '초안 제목' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '초안 본문', description: '초안 설명', title: '초안 제목' },
       },
     });
 

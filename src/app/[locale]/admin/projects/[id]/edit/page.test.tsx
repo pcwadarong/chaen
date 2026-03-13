@@ -58,10 +58,10 @@ describe('AdminProjectEditRoute', () => {
       initialSlug: 'project-slug',
       initialTags: [],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '프로젝트 본문', title: '프로젝트 제목' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '프로젝트 본문', description: '프로젝트 설명', title: '프로젝트 제목' },
       },
     });
 

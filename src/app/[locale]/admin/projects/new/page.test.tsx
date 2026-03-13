@@ -52,10 +52,10 @@ describe('AdminProjectNewRoute', () => {
       initialSlug: '',
       initialTags: [],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: '' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
       },
     });
 
@@ -90,15 +90,15 @@ describe('AdminProjectNewRoute', () => {
         publishAt: null,
         slug: 'project-draft',
         thumbnailUrl: '',
-        visibility: 'draft',
+        visibility: 'public',
       },
       initialSlug: 'project-draft',
       initialTags: [],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '초안 프로젝트', title: '프로젝트 초안' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '초안 프로젝트', description: '프로젝트 설명', title: '프로젝트 초안' },
       },
     });
 

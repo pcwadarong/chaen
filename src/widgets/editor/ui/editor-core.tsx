@@ -88,6 +88,7 @@ const buildEditorStateSnapshot = ({
     (accumulator, locale) => {
       accumulator[locale] = {
         content: translations[locale]?.content ?? '',
+        description: translations[locale]?.description ?? '',
         title: translations[locale]?.title ?? '',
       };
 
@@ -357,6 +358,19 @@ export const EditorCore = ({
   };
 
   /**
+   * 설명 입력을 locale별로 갱신합니다.
+   */
+  const handleDescriptionChange = (locale: Locale, value: string) => {
+    setTranslations(previous => ({
+      ...previous,
+      [locale]: {
+        ...previous[locale],
+        description: value,
+      },
+    }));
+  };
+
+  /**
    * 본문 입력을 locale별로 갱신합니다.
    */
   const handleContentChange = (locale: Locale, value: string) => {
@@ -556,6 +570,18 @@ export const EditorCore = ({
                   제목을 입력해주세요
                 </p>
               ) : null}
+            </div>
+
+            <div className={descriptionFieldClass}>
+              <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
+                설명
+              </label>
+              <Input
+                id={`editor-description-${locale}`}
+                onChange={event => handleDescriptionChange(locale, event.target.value)}
+                placeholder={`${LOCALE_LABELS[locale]} 설명`}
+                value={translation.description}
+              />
             </div>
 
             <div className={editorGridClass}>
@@ -777,6 +803,12 @@ const localePanelClass = css({
 const titleFieldClass = css({
   display: 'grid',
   gap: '2',
+});
+
+const descriptionFieldClass = css({
+  display: 'grid',
+  gap: '2',
+  mt: '4',
 });
 
 const fieldLabelClass = css({

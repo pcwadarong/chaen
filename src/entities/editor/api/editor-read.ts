@@ -20,11 +20,12 @@ type ContentRow = {
   slug: string | null;
   thumbnail_url: string | null;
   updated_at: string | null;
-  visibility: 'draft' | 'private' | 'public' | null;
+  visibility: 'private' | 'public' | null;
 };
 
 type TranslationRow = {
   content: string | null;
+  description: string | null;
   locale: string;
   title: string | null;
 };
@@ -43,6 +44,7 @@ type DraftRow = {
   content: Record<string, unknown> | null;
   content_id: string | null;
   content_type: EditorContentType;
+  description: Record<string, unknown> | null;
   id: string;
   publish_at: string | null;
   slug: string | null;
@@ -102,7 +104,7 @@ export const getEditorSeed = async ({
 
   const { data: translationRows, error: translationError } = await supabase
     .from(config.translationTable)
-    .select('locale,title,content')
+    .select('locale,title,description,content')
     .eq(config.translationForeignKey, contentId);
 
   if (translationError) {
@@ -132,6 +134,7 @@ export const getEditorSeed = async ({
 
     translations[normalizedLocale] = {
       content: row.content ?? '',
+      description: row.description ?? '',
       title: row.title ?? '',
     };
   });
@@ -142,7 +145,7 @@ export const getEditorSeed = async ({
     contentId: contentRow.id,
     contentType,
     initialDraftId: null,
-    initialPublished: visibility !== 'draft',
+    initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {
       allowComments: contentRow.allow_comments,
@@ -270,7 +273,7 @@ const getDraftSeed = async ({
   let query = supabase
     .from('drafts')
     .select(
-      'id,content_type,content_id,title,content,tags,slug,thumbnail_url,visibility,allow_comments,publish_at,updated_at',
+      'id,content_type,content_id,title,description,content,tags,slug,thumbnail_url,visibility,allow_comments,publish_at,updated_at',
     )
     .eq('content_type', contentType)
     .order('updated_at', { ascending: false })
@@ -310,6 +313,7 @@ const getDraftSeed = async ({
     thumbnailUrl: draftRow.thumbnail_url ?? '',
     translations: buildDraftTranslations({
       contentRecord: draftRow.content,
+      descriptionRecord: draftRow.description,
       titleRecord: draftRow.title,
     }),
     updatedAt: draftRow.updated_at,

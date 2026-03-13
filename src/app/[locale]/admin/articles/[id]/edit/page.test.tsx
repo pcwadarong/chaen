@@ -67,10 +67,10 @@ describe('AdminArticleEditRoute', () => {
       initialSlug: 'hello-world',
       initialTags: ['react'],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '본문', title: '제목' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '본문', description: '설명', title: '제목' },
       },
     });
 

@@ -77,10 +77,10 @@ const renderEditorCore = (options?: {
       initialSlug=""
       initialTags={[]}
       initialTranslations={{
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: '' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
       }}
       onDraftSave={onDraftSave}
       onOpenPublishPanel={onOpenPublishPanel}
@@ -238,10 +238,10 @@ describe('EditorCore', () => {
         slug: '',
         tags: ['react'],
         translations: {
-          en: { content: '', title: '' },
-          fr: { content: '', title: '' },
-          ja: { content: '', title: '' },
-          ko: { content: '저장 본문', title: '저장 제목' },
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '저장 본문', description: '', title: '저장 제목' },
         },
       });
     });
@@ -320,10 +320,10 @@ describe('EditorCore', () => {
       slug: '',
       tags: [],
       translations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: '' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: '' },
       },
     });
 
@@ -337,10 +337,10 @@ describe('EditorCore', () => {
       slug: '',
       tags: [],
       translations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '', title: 'publish-title' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '', description: '', title: 'publish-title' },
       },
     });
   });

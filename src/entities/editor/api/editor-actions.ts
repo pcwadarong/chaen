@@ -24,6 +24,7 @@ import {
 
 const translationFieldSchema = z.object({
   content: z.string(),
+  description: z.string(),
   title: z.string(),
 });
 
@@ -44,7 +45,7 @@ const publishSettingsSchema = z.object({
   publishAt: z.string().nullable(),
   slug: z.string(),
   thumbnailUrl: z.string(),
-  visibility: z.enum(['public', 'private', 'draft']),
+  visibility: z.enum(['public', 'private']),
 });
 
 type EditorDraftRow = {
@@ -54,7 +55,7 @@ type EditorDraftRow = {
 
 type SaveEditorDraftActionInput = {
   contentId?: string;
-  contentType: 'article' | 'project' | 'resume';
+  contentType: 'article' | 'project';
   draftId?: string | null;
   locale?: string | null;
   state: EditorState;
@@ -76,7 +77,7 @@ type DeleteEditorDraftActionInput = {
 };
 
 /**
- * article/project/resume 관리자 draft를 upsert하고 마지막 저장 시각을 반환합니다.
+ * article/project 관리자 draft를 upsert하고 마지막 저장 시각을 반환합니다.
  */
 export const saveEditorDraftAction = async ({
   contentId,
@@ -100,12 +101,13 @@ export const saveEditorDraftAction = async ({
     content: buildDraftFieldRecord(parsedState.data.translations, 'content'),
     content_id: contentId ?? null,
     content_type: contentType,
+    description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
     publish_at: null,
     slug: normalizeSlugInput(parsedState.data.slug) || null,
     tags: normalizedTagIds,
     thumbnail_url: null,
     title: buildDraftFieldRecord(parsedState.data.translations, 'title'),
-    visibility: 'draft',
+    visibility: 'public',
   };
   const resolvedDraftId =
     draftId ??
@@ -327,7 +329,7 @@ const resolveEditorDraftId = async ({
   contentType,
 }: {
   contentId?: string;
-  contentType: 'article' | 'project' | 'resume';
+  contentType: 'article' | 'project';
 }) => {
   if (!contentId) return null;
 

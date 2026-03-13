@@ -4,6 +4,7 @@ export type Locale = (typeof EDITOR_LOCALES)[number];
 
 export interface TranslationField {
   content: string;
+  description: string;
   title: string;
 }
 
@@ -20,7 +21,7 @@ export type DraftSaveResult = {
 };
 
 export type EditorContentType = 'article' | 'project' | 'resume';
-export type PublishVisibility = 'public' | 'private' | 'draft';
+export type PublishVisibility = 'public' | 'private';
 
 export interface EditorCoreProps {
   availableTags: { id: string; label: string; slug: string }[];

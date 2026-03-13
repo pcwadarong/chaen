@@ -11,7 +11,7 @@ describe('editor.utils', () => {
   it('draft json 필드를 locale 레코드로 만든다', () => {
     const translations = {
       ...createEmptyTranslations(),
-      ko: { content: '본문', title: '제목' },
+      ko: { content: '본문', description: '설명', title: '제목' },
     };
 
     expect(buildDraftFieldRecord(translations, 'title')).toEqual({
@@ -26,14 +26,24 @@ describe('editor.utils', () => {
       ja: '',
       ko: '본문',
     });
+    expect(buildDraftFieldRecord(translations, 'description')).toEqual({
+      en: '',
+      fr: '',
+      ja: '',
+      ko: '설명',
+    });
   });
 
-  it('draft json title/content를 editor translations로 복원한다', () => {
+  it('draft json title/description/content를 editor translations로 복원한다', () => {
     expect(
       buildDraftTranslations({
         contentRecord: {
           en: 'Body',
           ko: '본문',
+        },
+        descriptionRecord: {
+          en: 'Summary',
+          ko: '설명',
         },
         titleRecord: {
           en: 'Title',
@@ -41,10 +51,10 @@ describe('editor.utils', () => {
         },
       }),
     ).toEqual({
-      en: { content: 'Body', title: 'Title' },
-      fr: { content: '', title: '' },
-      ja: { content: '', title: '' },
-      ko: { content: '본문', title: '제목' },
+      en: { content: 'Body', description: 'Summary', title: 'Title' },
+      fr: { content: '', description: '', title: '' },
+      ja: { content: '', description: '', title: '' },
+      ko: { content: '본문', description: '설명', title: '제목' },
     });
   });
 
@@ -54,8 +64,8 @@ describe('editor.utils', () => {
       foreignKey: 'article_id',
       translations: {
         ...createEmptyTranslations(),
-        en: { content: '', title: 'English title' },
-        ko: { content: '본문', title: '제목' },
+        en: { content: '', description: '', title: 'English title' },
+        ko: { content: '본문', description: '설명', title: '제목' },
       },
     });
 
@@ -70,7 +80,7 @@ describe('editor.utils', () => {
       {
         article_id: 'article-1',
         content: '본문',
-        description: null,
+        description: '설명',
         locale: 'ko',
         title: '제목',
       },
@@ -106,31 +116,31 @@ describe('editor.utils', () => {
         thumbnailUrl: 'https://example.com/thumb.png',
         translations: {
           ...createEmptyTranslations(),
-          ko: { content: '임시 본문', title: '임시 제목' },
+          ko: { content: '임시 본문', description: '임시 설명', title: '임시 제목' },
         },
         updatedAt: '2026-03-14T09:00:00.000Z',
-        visibility: 'draft',
+        visibility: 'public',
       }),
     ).toEqual({
       contentId: 'article-1',
       contentType: 'article',
       initialDraftId: 'draft-1',
-      initialPublished: false,
+      initialPublished: true,
       initialSavedAt: '2026-03-14T09:00:00.000Z',
       initialSettings: {
-        allowComments: false,
-        publishAt: '2026-03-20T01:00:00.000Z',
+        allowComments: true,
+        publishAt: null,
         slug: 'draft-slug',
-        thumbnailUrl: 'https://example.com/thumb.png',
-        visibility: 'draft',
+        thumbnailUrl: '',
+        visibility: 'public',
       },
       initialSlug: 'draft-slug',
       initialTags: ['nextjs'],
       initialTranslations: {
-        en: { content: '', title: '' },
-        fr: { content: '', title: '' },
-        ja: { content: '', title: '' },
-        ko: { content: '임시 본문', title: '임시 제목' },
+        en: { content: '', description: '', title: '' },
+        fr: { content: '', description: '', title: '' },
+        ja: { content: '', description: '', title: '' },
+        ko: { content: '임시 본문', description: '임시 설명', title: '임시 제목' },
       },
     });
   });
@@ -138,7 +148,7 @@ describe('editor.utils', () => {
   it('visibility를 editor visibility 타입으로 정규화한다', () => {
     expect(normalizeEditorVisibility('public')).toBe('public');
     expect(normalizeEditorVisibility('private')).toBe('private');
-    expect(normalizeEditorVisibility('draft')).toBe('draft');
+    expect(normalizeEditorVisibility('draft')).toBe('public');
     expect(normalizeEditorVisibility(null)).toBe('public');
   });
 });
