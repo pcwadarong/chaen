@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { css, cva } from 'styled-system/css';
 
+import type { ResumeEditorContentMap } from '@/entities/resume/model/resume-editor.types';
 import { isResumeEditorContentMapEqual } from '@/entities/resume/model/resume-editor.utils';
 import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
 import { Button } from '@/shared/ui/button/button';
@@ -30,6 +31,65 @@ type ResumeEditorFieldKey =
 
 type SaveStatus = 'dirty' | 'idle' | 'saving';
 
+type ResumeLocaleFieldsProps = {
+  activeContent: ResumeEditorContentMap[Locale];
+  onFieldChange: (key: ResumeEditorFieldKey, value: string) => void;
+};
+
+/**
+ * 현재 locale의 resume 입력 필드를 렌더링합니다.
+ */
+const ResumeLocaleFieldsBase = ({ activeContent, onFieldChange }: ResumeLocaleFieldsProps) => (
+  <section className={formGridClass}>
+    <label className={fieldClass}>
+      <span className={labelClass}>제목</span>
+      <Input
+        aria-label="제목"
+        onChange={event => onFieldChange('title', event.target.value)}
+        value={activeContent.title}
+      />
+    </label>
+    <label className={fieldClass}>
+      <span className={labelClass}>설명</span>
+      <Input
+        aria-label="설명"
+        onChange={event => onFieldChange('description', event.target.value)}
+        value={activeContent.description}
+      />
+    </label>
+    <label className={fieldClass}>
+      <span className={labelClass}>다운로드 버튼 라벨</span>
+      <Input
+        aria-label="다운로드 버튼 라벨"
+        onChange={event => onFieldChange('download_button_label', event.target.value)}
+        value={activeContent.download_button_label}
+      />
+    </label>
+    <label className={fieldClass}>
+      <span className={labelClass}>미준비 버튼 라벨</span>
+      <Input
+        aria-label="미준비 버튼 라벨"
+        onChange={event => onFieldChange('download_unavailable_label', event.target.value)}
+        value={activeContent.download_unavailable_label}
+      />
+    </label>
+    <label className={bodyFieldClass}>
+      <span className={labelClass}>본문</span>
+      <Textarea
+        aria-label="본문"
+        autoResize={false}
+        onChange={event => onFieldChange('body', event.target.value)}
+        rows={18}
+        value={activeContent.body}
+      />
+    </label>
+  </section>
+);
+
+ResumeLocaleFieldsBase.displayName = 'ResumeLocaleFields';
+
+const ResumeLocaleFields = React.memo(ResumeLocaleFieldsBase);
+
 /**
  * resume 전용 편집 셸에서 locale별 소개 텍스트와 저장 상태를 관리합니다.
  */
@@ -54,20 +114,27 @@ export const ResumeEditorCore = ({
   /**
    * 현재 locale 필드 값을 부분 갱신합니다.
    */
-  const updateActiveContent = (key: ResumeEditorFieldKey, value: string) => {
-    setContents(previous => ({
-      ...previous,
-      [activeLocale]: {
-        ...previous[activeLocale],
-        [key]: value,
-      },
-    }));
-  };
+  const updateActiveContent = useCallback(
+    (key: ResumeEditorFieldKey, value: string) => {
+      setContents(previous => {
+        if (previous[activeLocale][key] === value) return previous;
+
+        return {
+          ...previous,
+          [activeLocale]: {
+            ...previous[activeLocale],
+            [key]: value,
+          },
+        };
+      });
+    },
+    [activeLocale],
+  );
 
   /**
    * 저장 실패 토스트를 추가합니다.
    */
-  const pushToast = (message: string) => {
+  const pushToast = useCallback((message: string) => {
     setToastItems(previous => [
       ...previous,
       {
@@ -76,7 +143,10 @@ export const ResumeEditorCore = ({
         tone: 'error',
       },
     ]);
-  };
+  }, []);
+  const closeToast = useCallback((id: string) => {
+    setToastItems(previous => previous.filter(item => item.id !== id));
+  }, []);
 
   /**
    * draft 저장 callback을 실행하고 저장 시각 snapshot을 갱신합니다.
@@ -105,7 +175,19 @@ export const ResumeEditorCore = ({
       setSaveStatus('dirty');
       pushToast(parseResumeEditorError(error, 'draftSaveFailed').message);
     }
-  }, [contents, dirty, onDraftSave]);
+  }, [contents, dirty, onDraftSave, pushToast]);
+  const handleDraftSave = useCallback(() => {
+    void runDraftSave();
+  }, [runDraftSave]);
+  const handleOpenPublishPanel = useCallback(() => {
+    onOpenPublishPanel({
+      contents,
+      dirty,
+    });
+  }, [contents, dirty, onOpenPublishPanel]);
+  const handleLocaleChange = useCallback((locale: Locale) => {
+    setActiveLocale(locale);
+  }, []);
 
   useEffect(() => {
     setSaveStatus(dirty ? 'dirty' : 'idle');
@@ -150,24 +232,11 @@ export const ResumeEditorCore = ({
                     : ''}
             </p>
             {onDraftSave ? (
-              <Button
-                disabled={saveStatus === 'saving'}
-                onClick={() => void runDraftSave()}
-                size="sm"
-              >
+              <Button disabled={saveStatus === 'saving'} onClick={handleDraftSave} size="sm">
                 임시저장
               </Button>
             ) : null}
-            <Button
-              onClick={() =>
-                onOpenPublishPanel({
-                  contents,
-                  dirty,
-                })
-              }
-              size="sm"
-              tone="primary"
-            >
+            <Button onClick={handleOpenPublishPanel} size="sm" tone="primary">
               게시하기
             </Button>
           </div>
@@ -179,7 +248,7 @@ export const ResumeEditorCore = ({
               aria-selected={locale === activeLocale}
               className={tabRecipe({ active: locale === activeLocale })}
               key={locale}
-              onClick={() => setActiveLocale(locale)}
+              onClick={() => handleLocaleChange(locale)}
               role="tab"
               type="button"
             >
@@ -188,58 +257,10 @@ export const ResumeEditorCore = ({
           ))}
         </div>
 
-        <section className={formGridClass}>
-          <label className={fieldClass}>
-            <span className={labelClass}>제목</span>
-            <Input
-              aria-label="제목"
-              onChange={event => updateActiveContent('title', event.target.value)}
-              value={activeContent.title}
-            />
-          </label>
-          <label className={fieldClass}>
-            <span className={labelClass}>설명</span>
-            <Input
-              aria-label="설명"
-              onChange={event => updateActiveContent('description', event.target.value)}
-              value={activeContent.description}
-            />
-          </label>
-          <label className={fieldClass}>
-            <span className={labelClass}>다운로드 버튼 라벨</span>
-            <Input
-              aria-label="다운로드 버튼 라벨"
-              onChange={event => updateActiveContent('download_button_label', event.target.value)}
-              value={activeContent.download_button_label}
-            />
-          </label>
-          <label className={fieldClass}>
-            <span className={labelClass}>미준비 버튼 라벨</span>
-            <Input
-              aria-label="미준비 버튼 라벨"
-              onChange={event =>
-                updateActiveContent('download_unavailable_label', event.target.value)
-              }
-              value={activeContent.download_unavailable_label}
-            />
-          </label>
-          <label className={bodyFieldClass}>
-            <span className={labelClass}>본문</span>
-            <Textarea
-              aria-label="본문"
-              autoResize={false}
-              onChange={event => updateActiveContent('body', event.target.value)}
-              rows={18}
-              value={activeContent.body}
-            />
-          </label>
-        </section>
+        <ResumeLocaleFields activeContent={activeContent} onFieldChange={updateActiveContent} />
       </section>
 
-      <ToastViewport
-        items={toastItems}
-        onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport items={toastItems} onClose={closeToast} />
     </main>
   );
 };

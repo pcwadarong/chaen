@@ -71,7 +71,7 @@ export const parseResumeEditorError = (
   if (error instanceof Error && error.message) {
     return {
       code: fallbackCode,
-      message: error.message,
+      message: resolveResumeEditorErrorMessage(fallbackCode),
     };
   }
 
