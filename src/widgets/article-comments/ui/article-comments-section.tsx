@@ -26,6 +26,7 @@ import type {
   ArticleCommentsSort,
   ArticleCommentThreadItem,
 } from '@/entities/article-comment/model/types';
+import type { ActionResult } from '@/shared/lib/action/action-result';
 import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
@@ -65,6 +66,68 @@ type CommentQueryState = {
   sort: ArticleCommentsSort;
 };
 
+type SubmitArticleCommentActionData = {
+  comment: ArticleComment;
+};
+
+type ArticleCommentsTranslator = (key: string, values?: Record<string, string>) => string;
+
+const createArticleCommentsText = (t: ArticleCommentsTranslator) => ({
+  actionDeleteLabel: t('delete'),
+  actionEditLabel: t('edit'),
+  actionMenuLabel: t('actionMenuLabel'),
+  actionMenuPanelLabel: t('actionMenuPanelLabel'),
+  actionReplyLabel: t('reply'),
+  closeLabel: t('close'),
+  composeAuthorBlogUrlInvalidMessage: t('composeAuthorBlogUrlInvalid'),
+  composeAuthorBlogUrlLabel: t('composeAuthorBlogUrlLabel'),
+  composeAuthorBlogUrlPlaceholder: t('composeAuthorBlogUrlPlaceholder'),
+  composeAuthorNameLabel: t('composeAuthorNameLabel'),
+  composeAuthorNamePlaceholder: t('composeAuthorNamePlaceholder'),
+  composeCharacterCountLabel: t('composeCharacterCountLabel'),
+  composeContentShortcutHint: t('composeContentShortcutHint'),
+  composePasswordLabel: t('composePasswordLabel'),
+  composePasswordPlaceholder: t('composePasswordPlaceholder'),
+  composePlaceholder: t('composePlaceholder'),
+  composeReplyContentLabel: t('composeReplyContentLabel'),
+  composeReplyPreviewLabel: t('composeReplyPreviewLabel'),
+  delete: t('delete'),
+  deleteConfirm: t('deleteConfirm'),
+  deleteModalHint: t('deleteModalHint'),
+  deleteModalTitle: t('deleteModalTitle'),
+  deletedPlaceholder: t('deletedPlaceholder'),
+  description: t('description'),
+  edit: t('edit'),
+  editConfirm: t('editConfirm'),
+  editContentUnchanged: t('editContentUnchanged'),
+  editModalTitle: t('editModalTitle'),
+  emptyItems: t('emptyItems'),
+  loading: t('loading'),
+  modalCloseAriaLabel: t('modalCloseAriaLabel'),
+  paginationLabel: t('paginationLabel'),
+  password: t('password'),
+  reply: t('reply'),
+  report: t('report'),
+  requiredField: t('requiredField'),
+  retry: t('retry'),
+  secretVerifyFailed: t('secretVerifyFailed'),
+  sortLabel: t('sortLabel'),
+  sortLatest: t('sortLatest'),
+  sortOldest: t('sortOldest'),
+  submit: t('submit'),
+  title: t('title'),
+  toastCreateError: t('toastCreateError'),
+  toastCreateSuccess: t('toastCreateSuccess'),
+  toastDeleteError: t('toastDeleteError'),
+  toastDeleteSuccess: t('toastDeleteSuccess'),
+  toastEditError: t('toastEditError'),
+  toastEditSuccess: t('toastEditSuccess'),
+  toastReplyError: t('toastReplyError'),
+  toastReplySuccess: t('toastReplySuccess'),
+});
+
+type ArticleCommentsText = ReturnType<typeof createArticleCommentsText>;
+
 const LOAD_LAST_PAGE = 9999;
 const TOAST_DURATION_MS = 2600;
 
@@ -79,6 +142,338 @@ const formatCommentDate = (timestamp: string, locale: string) =>
     month: 'short',
     year: 'numeric',
   }).format(new Date(timestamp));
+
+type CommentsLoadingSkeletonProps = {
+  loadingText: string;
+};
+
+/**
+ * 댓글 정렬/페이지 전환 중 목록 자리에 표시하는 스켈레톤입니다.
+ */
+const CommentsLoadingSkeletonBase = ({ loadingText }: CommentsLoadingSkeletonProps) => (
+  <div aria-busy="true" aria-label={loadingText} className={commentsLoadingWrapClass} role="status">
+    {Array.from({ length: 3 }).map((_, index) => (
+      <div className={commentsLoadingCardClass} key={index}>
+        <div className={commentsLoadingHeaderClass}>
+          <div className={commentsLoadingAuthorClass} />
+          <div className={commentsLoadingDateClass} />
+        </div>
+        <div className={commentsLoadingBodyClass}>
+          <div className={commentsLoadingLineLongClass} />
+          <div className={commentsLoadingLineShortClass} />
+        </div>
+        <div className={commentsLoadingReplyClass} />
+      </div>
+    ))}
+  </div>
+);
+
+CommentsLoadingSkeletonBase.displayName = 'CommentsLoadingSkeleton';
+
+const CommentsLoadingSkeleton = React.memo(CommentsLoadingSkeletonBase);
+
+type CommentActionPopoverProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
+  isOpen: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  onOpenChange: (nextOpen: boolean) => void;
+  reportLabel: string;
+};
+
+/**
+ * 댓글 버블 우측 kebab 버튼으로 여는 액션 팝오버입니다.
+ */
+const CommentActionPopoverBase = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
+  isOpen,
+  onDelete,
+  onEdit,
+  onOpenChange,
+  reportLabel,
+}: CommentActionPopoverProps) => (
+  <ActionPopover
+    isOpen={isOpen}
+    onOpenChange={onOpenChange}
+    panelLabel={actionMenuPanelLabel}
+    triggerLabel={actionMenuLabel}
+  >
+    {({ closePopover }) => (
+      <>
+        <ActionMenuButton
+          icon={<EditIcon aria-hidden size="sm" />}
+          label={actionEditLabel}
+          onClick={() => {
+            closePopover();
+            onEdit();
+          }}
+        />
+        <ActionMenuButton
+          icon={<TrashIcon aria-hidden size="sm" />}
+          label={actionDeleteLabel}
+          onClick={() => {
+            closePopover();
+            onDelete();
+          }}
+        />
+        <ActionMenuButton
+          ariaDisabled
+          icon={<ReportIcon aria-hidden size="sm" />}
+          label={reportLabel}
+        />
+      </>
+    )}
+  </ActionPopover>
+);
+
+CommentActionPopoverBase.displayName = 'CommentActionPopover';
+
+const CommentActionPopover = React.memo(CommentActionPopoverBase);
+
+type CommentEntryCardProps = {
+  actionDeleteLabel: string;
+  actionEditLabel: string;
+  actionMenuLabel: string;
+  actionMenuPanelLabel: string;
+  actionReplyLabel: string;
+  dateText: string;
+  deletedPlaceholder: string;
+  entry: ArticleComment;
+  isReply: boolean;
+  onDelete: (entry: ArticleComment) => void;
+  onEdit: (entry: ArticleComment) => void;
+  onReply: (entry: ArticleComment) => void;
+  reportLabel: string;
+};
+
+/**
+ * 원댓글/대댓글 공통 카드 본문을 렌더링합니다.
+ */
+const CommentEntryCardBase = ({
+  actionDeleteLabel,
+  actionEditLabel,
+  actionMenuLabel,
+  actionMenuPanelLabel,
+  actionReplyLabel,
+  dateText,
+  deletedPlaceholder,
+  entry,
+  isReply,
+  onDelete,
+  onEdit,
+  onReply,
+  reportLabel,
+}: CommentEntryCardProps) => {
+  const isDeleted = Boolean(entry.deleted_at);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const handleDelete = useCallback(() => {
+    onDelete(entry);
+  }, [entry, onDelete]);
+  const handleEdit = useCallback(() => {
+    onEdit(entry);
+  }, [entry, onEdit]);
+  const handleReply = useCallback(() => {
+    onReply(entry);
+  }, [entry, onReply]);
+
+  return (
+    <div className={cx(entryCardClass, isReply ? replyEntryCardClass : undefined)}>
+      <div className={entryHeaderClass}>
+        <div className={authorMetaClass}>
+          {entry.author_blog_url ? (
+            <a
+              className={authorLinkClass}
+              href={entry.author_blog_url}
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              <strong className={authorNameClass}>{entry.author_name}</strong>
+              <LinkExternalIcon aria-hidden color="primary" size="sm" />
+            </a>
+          ) : (
+            <strong className={authorNameClass}>{entry.author_name}</strong>
+          )}
+          <time className={timeClass} dateTime={entry.created_at}>
+            <span>{dateText}</span>
+          </time>
+        </div>
+        {!isDeleted ? (
+          <CommentActionPopover
+            actionDeleteLabel={actionDeleteLabel}
+            actionEditLabel={actionEditLabel}
+            actionMenuLabel={actionMenuLabel}
+            actionMenuPanelLabel={actionMenuPanelLabel}
+            isOpen={isActionMenuOpen}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            onOpenChange={setIsActionMenuOpen}
+            reportLabel={reportLabel}
+          />
+        ) : null}
+      </div>
+
+      <div className={entryBodyClass}>
+        {isDeleted ? (
+          <p className={placeholderTextClass}>{deletedPlaceholder}</p>
+        ) : (
+          <p className={contentTextClass}>
+            {entry.reply_to_author_name ? (
+              <span className={mentionTextClass}>@{entry.reply_to_author_name} </span>
+            ) : null}
+            {entry.content}
+          </p>
+        )}
+      </div>
+
+      {!isDeleted ? (
+        <div className={entryFooterClass}>
+          <button className={replyButtonClass} onClick={handleReply} type="button">
+            <span aria-hidden className={replyButtonIconMotionClass}>
+              <ArrowCurveLeftRightIcon aria-hidden size="sm" />
+            </span>
+            <span>{actionReplyLabel}</span>
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+CommentEntryCardBase.displayName = 'CommentEntryCard';
+
+const CommentEntryCard = React.memo(CommentEntryCardBase);
+
+type CommentThreadItemViewProps = {
+  articleId: string;
+  isReplySubmitting: boolean;
+  locale: string;
+  onDelete: (entry: ArticleComment) => void;
+  onEdit: (entry: ArticleComment) => void;
+  onReply: (thread: ArticleCommentThreadItem, entry: ArticleComment) => void;
+  replyPlaceholder: string | null;
+  replySubmitState: ActionResult<SubmitArticleCommentActionData>;
+  replyTarget: ReplyTarget | null;
+  submitReplyCommentAction: React.FormHTMLAttributes<HTMLFormElement>['action'];
+  text: ArticleCommentsText;
+  thread: ArticleCommentThreadItem;
+};
+
+/**
+ * 댓글 스레드 1개와 해당 답글 목록/답글 폼을 묶어 렌더링합니다.
+ */
+const CommentThreadItemViewBase = ({
+  articleId,
+  isReplySubmitting,
+  locale,
+  onDelete,
+  onEdit,
+  onReply,
+  replyPlaceholder,
+  replySubmitState,
+  replyTarget,
+  submitReplyCommentAction,
+  text,
+  thread,
+}: CommentThreadItemViewProps) => {
+  const handleReply = useCallback(
+    (entry: ArticleComment) => {
+      onReply(thread, entry);
+    },
+    [onReply, thread],
+  );
+  const isReplyComposeOpen = replyTarget?.parentId === thread.id;
+
+  return (
+    <article className={threadCardClass}>
+      <CommentEntryCard
+        actionDeleteLabel={text.actionDeleteLabel}
+        actionEditLabel={text.actionEditLabel}
+        actionMenuLabel={text.actionMenuLabel}
+        actionMenuPanelLabel={text.actionMenuPanelLabel}
+        actionReplyLabel={text.actionReplyLabel}
+        dateText={formatCommentDate(thread.created_at, locale)}
+        deletedPlaceholder={text.deletedPlaceholder}
+        entry={thread}
+        isReply={false}
+        onDelete={onDelete}
+        onEdit={onEdit}
+        onReply={handleReply}
+        reportLabel={text.report}
+      />
+
+      {thread.replies.length > 0 ? (
+        <ol className={replyListClass}>
+          {thread.replies.map(reply => (
+            <li key={reply.id}>
+              <CommentEntryCard
+                actionDeleteLabel={text.actionDeleteLabel}
+                actionEditLabel={text.actionEditLabel}
+                actionMenuLabel={text.actionMenuLabel}
+                actionMenuPanelLabel={text.actionMenuPanelLabel}
+                actionReplyLabel={text.actionReplyLabel}
+                dateText={formatCommentDate(reply.created_at, locale)}
+                deletedPlaceholder={text.deletedPlaceholder}
+                entry={reply}
+                isReply
+                onDelete={onDelete}
+                onEdit={onEdit}
+                onReply={handleReply}
+                reportLabel={text.report}
+              />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      {isReplyComposeOpen && replyTarget ? (
+        <div className={replyComposeWrapClass}>
+          <CommentComposeForm
+            allowSecretToggle={false}
+            authorBlogUrlLabel={text.composeAuthorBlogUrlLabel}
+            authorBlogUrlInvalidMessage={text.composeAuthorBlogUrlInvalidMessage}
+            authorBlogUrlPlaceholder={text.composeAuthorBlogUrlPlaceholder}
+            authorNameLabel={text.composeAuthorNameLabel}
+            authorNamePlaceholder={text.composeAuthorNamePlaceholder}
+            characterCountLabel={text.composeCharacterCountLabel}
+            contentLabel={text.composeReplyContentLabel}
+            contentShortcutHint={text.composeContentShortcutHint}
+            formAction={submitReplyCommentAction}
+            hiddenFields={{
+              articleId,
+              locale,
+              parentId: replyTarget.parentId,
+              replyToCommentId: replyTarget.commentId,
+            }}
+            isReplyMode
+            isSubmittingOverride={isReplySubmitting}
+            layout="embedded"
+            passwordLabel={text.composePasswordLabel}
+            passwordPlaceholder={text.composePasswordPlaceholder}
+            replyPreviewLabel={text.composeReplyPreviewLabel}
+            replyTargetContent={replyTarget.content}
+            secretLabel=""
+            showReplyPreview={false}
+            submitLabel={text.submit}
+            submissionResult={replySubmitState}
+            textareaAutoResize={false}
+            textareaRows={4}
+            textPlaceholder={replyPlaceholder ?? ''}
+          />
+        </div>
+      ) : null}
+    </article>
+  );
+};
+
+CommentThreadItemViewBase.displayName = 'CommentThreadItemView';
+
+const CommentThreadItemView = React.memo(CommentThreadItemViewBase);
 
 /**
  * 아티클 상세 하단 댓글 섹션 위젯입니다.
@@ -118,6 +513,7 @@ export const ArticleCommentsSection = ({
   const [modalError, setModalError] = useState<string | null>(null);
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const text = useMemo(() => createArticleCommentsText(t), [t]);
 
   useEffect(() => {
     if (toasts.length === 0) return;
@@ -193,28 +589,31 @@ export const ArticleCommentsSection = ({
     [articleId, locale, t],
   );
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModalState(null);
     setModalContent('');
     setModalPassword('');
     setModalError(null);
-  };
+  }, []);
 
-  const handleChangeSort = (sort: ArticleCommentsSort) => {
-    if (sort === queryState.sort) return;
-    void loadPage(1, sort);
-  };
+  const handleChangeSort = useCallback(
+    (sort: ArticleCommentsSort) => {
+      if (sort === queryState.sort) return;
+      void loadPage(1, sort);
+    },
+    [loadPage, queryState.sort],
+  );
 
-  const handleReply = (thread: ArticleCommentThreadItem, entry: ArticleComment) => {
+  const handleReply = useCallback((thread: ArticleCommentThreadItem, entry: ArticleComment) => {
     setReplyTarget({
       authorName: entry.author_name,
       commentId: entry.id,
       content: entry.content,
       parentId: thread.id,
     });
-  };
+  }, []);
 
-  const openEditModal = (entry: ArticleComment) => {
+  const openEditModal = useCallback((entry: ArticleComment) => {
     setModalState({
       entry,
       mode: 'edit',
@@ -222,9 +621,9 @@ export const ArticleCommentsSection = ({
     setModalContent(entry.content);
     setModalPassword('');
     setModalError(null);
-  };
+  }, []);
 
-  const openDeleteModal = (entry: ArticleComment) => {
+  const openDeleteModal = useCallback((entry: ArticleComment) => {
     setModalState({
       entry,
       mode: 'delete',
@@ -232,26 +631,26 @@ export const ArticleCommentsSection = ({
     setModalContent('');
     setModalPassword('');
     setModalError(null);
-  };
+  }, []);
 
-  const handleConfirmModal = async () => {
+  const handleConfirmModal = useCallback(async () => {
     if (!modalState || isModalSubmitting) return;
 
     const trimmedPassword = modalPassword.trim();
     const trimmedContent = modalContent.trim();
 
     if (!trimmedPassword) {
-      setModalError(t('requiredField'));
+      setModalError(text.requiredField);
       return;
     }
 
     if (modalState.mode === 'edit') {
       if (!trimmedContent) {
-        setModalError(t('requiredField'));
+        setModalError(text.requiredField);
         return;
       }
       if (trimmedContent === modalState.entry.content.trim()) {
-        setModalError(t('editContentUnchanged'));
+        setModalError(text.editContentUnchanged);
         return;
       }
     }
@@ -270,14 +669,14 @@ export const ArticleCommentsSection = ({
         });
         if (!result.ok || !result.data) {
           if (result.errorCode === ARTICLE_COMMENT_ERROR_CODE.invalidPassword) {
-            setModalError(t('secretVerifyFailed'));
+            setModalError(text.secretVerifyFailed);
             return;
           }
 
-          pushToast(t('toastEditError'), 'error');
+          pushToast(text.toastEditError, 'error');
           return;
         }
-        pushToast(t('toastEditSuccess'), 'success');
+        pushToast(text.toastEditSuccess, 'success');
       }
 
       if (modalState.mode === 'delete') {
@@ -289,14 +688,14 @@ export const ArticleCommentsSection = ({
         });
         if (!result.ok || !result.data) {
           if (result.errorCode === ARTICLE_COMMENT_ERROR_CODE.invalidPassword) {
-            setModalError(t('secretVerifyFailed'));
+            setModalError(text.secretVerifyFailed);
             return;
           }
 
-          pushToast(t('toastDeleteError'), 'error');
+          pushToast(text.toastDeleteError, 'error');
           return;
         }
-        pushToast(t('toastDeleteSuccess'), 'success');
+        pushToast(text.toastDeleteSuccess, 'success');
       }
 
       closeModal();
@@ -304,17 +703,36 @@ export const ArticleCommentsSection = ({
         fresh: true,
       });
     } catch (_error) {
-      pushToast(modalState.mode === 'edit' ? t('toastEditError') : t('toastDeleteError'), 'error');
+      pushToast(modalState.mode === 'edit' ? text.toastEditError : text.toastDeleteError, 'error');
     } finally {
       setIsModalSubmitting(false);
     }
-  };
+  }, [
+    articleId,
+    closeModal,
+    isModalSubmitting,
+    loadPage,
+    locale,
+    modalContent,
+    modalPassword,
+    modalState,
+    pageData.page,
+    pageData.sort,
+    pushToast,
+    text.editContentUnchanged,
+    text.requiredField,
+    text.secretVerifyFailed,
+    text.toastDeleteError,
+    text.toastDeleteSuccess,
+    text.toastEditError,
+    text.toastEditSuccess,
+  ]);
 
   const modalTitle = useMemo(() => {
     if (!modalState) return '';
 
-    return modalState.mode === 'edit' ? t('editModalTitle') : t('deleteModalTitle');
-  }, [modalState, t]);
+    return modalState.mode === 'edit' ? text.editModalTitle : text.deleteModalTitle;
+  }, [modalState, text.deleteModalTitle, text.editModalTitle]);
 
   useEffect(() => {
     if (lastHandledRootSubmitStateRef.current === rootSubmitState) return;
@@ -322,7 +740,7 @@ export const ArticleCommentsSection = ({
 
     if (!rootSubmitState.ok) {
       if (rootSubmitState.errorMessage) {
-        pushToast(t('toastCreateError'), 'error');
+        pushToast(text.toastCreateError, 'error');
       }
       return;
     }
@@ -330,8 +748,15 @@ export const ArticleCommentsSection = ({
     void loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
       fresh: true,
     });
-    pushToast(t('toastCreateSuccess'), 'success');
-  }, [loadPage, pageData.sort, pushToast, rootSubmitState, t]);
+    pushToast(text.toastCreateSuccess, 'success');
+  }, [
+    loadPage,
+    pageData.sort,
+    pushToast,
+    rootSubmitState,
+    text.toastCreateError,
+    text.toastCreateSuccess,
+  ]);
 
   useEffect(() => {
     if (lastHandledReplySubmitStateRef.current === replySubmitState) return;
@@ -339,7 +764,7 @@ export const ArticleCommentsSection = ({
 
     if (!replySubmitState.ok) {
       if (replySubmitState.errorMessage) {
-        pushToast(t('toastReplyError'), 'error');
+        pushToast(text.toastReplyError, 'error');
       }
       return;
     }
@@ -348,50 +773,86 @@ export const ArticleCommentsSection = ({
     void loadPage(pageData.page, pageData.sort, {
       fresh: true,
     });
-    pushToast(t('toastReplySuccess'), 'success');
-  }, [loadPage, pageData.page, pageData.sort, pushToast, replySubmitState, t]);
+    pushToast(text.toastReplySuccess, 'success');
+  }, [
+    loadPage,
+    pageData.page,
+    pageData.sort,
+    pushToast,
+    replySubmitState,
+    text.toastReplyError,
+    text.toastReplySuccess,
+  ]);
+
+  const handleRetryLoad = useCallback(() => {
+    void loadPage(pageData.page, pageData.sort);
+  }, [loadPage, pageData.page, pageData.sort]);
+  const handleReplyTargetReset = useCallback(() => {
+    setReplyTarget(null);
+  }, []);
+  const handlePaginationChange = useCallback(
+    (page: number) => {
+      void loadPage(page, queryState.sort);
+    },
+    [loadPage, queryState.sort],
+  );
+  const handleModalContentChange = useCallback((value: string) => {
+    setModalContent(value);
+    setModalError(previous => (previous ? null : previous));
+  }, []);
+  const handleModalPasswordChange = useCallback((value: string) => {
+    setModalPassword(value);
+    setModalError(previous => (previous ? null : previous));
+  }, []);
+  const handleModalConfirm = useCallback(() => {
+    void handleConfirmModal();
+  }, [handleConfirmModal]);
+  const handleToastClose = useCallback((id: string) => {
+    setToasts(previous => previous.filter(item => item.id !== id));
+  }, []);
 
   return (
     <section aria-labelledby={titleId} className={sectionClass}>
       <div className={headerClass}>
         <div className={headerTextClass}>
           <h2 className={titleClass} id={titleId}>
-            {t('title')}
+            {text.title}
           </h2>
-          <p className={descriptionClass}>{t('description')}</p>
+          <p className={descriptionClass}>{text.description}</p>
         </div>
       </div>
 
       <CommentComposeForm
         allowSecretToggle={false}
-        authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
-        authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
-        authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
-        authorNameLabel={t('composeAuthorNameLabel')}
-        authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
-        characterCountLabel={t('composeCharacterCountLabel')}
+        authorBlogUrlLabel={text.composeAuthorBlogUrlLabel}
+        authorBlogUrlInvalidMessage={text.composeAuthorBlogUrlInvalidMessage}
+        authorBlogUrlPlaceholder={text.composeAuthorBlogUrlPlaceholder}
+        authorNameLabel={text.composeAuthorNameLabel}
+        authorNamePlaceholder={text.composeAuthorNamePlaceholder}
+        characterCountLabel={text.composeCharacterCountLabel}
         contentLabel={t('composeContentLabel')}
-        contentShortcutHint={t('composeContentShortcutHint')}
+        contentShortcutHint={text.composeContentShortcutHint}
         formAction={submitRootCommentAction}
         hiddenFields={{ articleId, locale }}
         isReplyMode={false}
         isSubmittingOverride={isRootSubmitting}
         layout="embedded"
-        passwordLabel={t('composePasswordLabel')}
-        passwordPlaceholder={t('composePasswordPlaceholder')}
-        replyPreviewLabel={t('composeReplyPreviewLabel')}
+        onReplyTargetReset={handleReplyTargetReset}
+        passwordLabel={text.composePasswordLabel}
+        passwordPlaceholder={text.composePasswordPlaceholder}
+        replyPreviewLabel={text.composeReplyPreviewLabel}
         replyTargetContent={null}
         secretLabel=""
         showReplyPreview={false}
-        submitLabel={t('submit')}
+        submitLabel={text.submit}
         submissionResult={rootSubmitState}
         textareaAutoResize={false}
         textareaRows={4}
-        textPlaceholder={t('composePlaceholder')}
+        textPlaceholder={text.composePlaceholder}
       />
 
       <div className={listToolbarClass}>
-        <div aria-label={t('sortLabel')} className={sortGroupClass} role="tablist">
+        <div aria-label={text.sortLabel} className={sortGroupClass} role="tablist">
           <Button
             aria-selected={pageData.sort === 'latest'}
             className={cx(
@@ -405,7 +866,7 @@ export const ArticleCommentsSection = ({
             type="button"
             variant={queryState.sort === 'latest' ? 'solid' : 'ghost'}
           >
-            {t('sortLatest')}
+            {text.sortLatest}
           </Button>
           <Button
             aria-selected={queryState.sort === 'oldest'}
@@ -420,7 +881,7 @@ export const ArticleCommentsSection = ({
             type="button"
             variant={queryState.sort === 'oldest' ? 'solid' : 'ghost'}
           >
-            {t('sortOldest')}
+            {text.sortOldest}
           </Button>
         </div>
       </div>
@@ -428,29 +889,25 @@ export const ArticleCommentsSection = ({
       {errorMessage && pageData.items.length === 0 ? (
         <div className={stateCardClass} role="alert">
           <p className={stateTextClass}>{errorMessage}</p>
-          <Button
-            onClick={() => void loadPage(pageData.page, pageData.sort)}
-            tone="white"
-            type="button"
-          >
-            {t('retry')}
+          <Button onClick={handleRetryLoad} tone="white" type="button">
+            {text.retry}
           </Button>
         </div>
       ) : null}
 
       {!errorMessage && isLoading && pageData.items.length === 0 ? (
         <div className={stateCardClass}>
-          <p className={stateTextClass}>{t('loading')}</p>
+          <p className={stateTextClass}>{text.loading}</p>
         </div>
       ) : null}
 
       {isLoading && pageData.items.length > 0 ? (
-        <CommentsLoadingSkeleton loadingText={t('loading')} />
+        <CommentsLoadingSkeleton loadingText={text.loading} />
       ) : null}
 
       {!isLoading && !errorMessage && pageData.items.length === 0 ? (
         <div className={stateCardClass}>
-          <p className={stateTextClass}>{t('emptyItems')}</p>
+          <p className={stateTextClass}>{text.emptyItems}</p>
         </div>
       ) : null}
 
@@ -458,86 +915,26 @@ export const ArticleCommentsSection = ({
         <ol className={threadListClass}>
           {pageData.items.map(thread => (
             <li key={thread.id}>
-              <article className={threadCardClass}>
-                <CommentEntryCard
-                  actionDeleteLabel={t('delete')}
-                  actionEditLabel={t('edit')}
-                  actionMenuLabel={t('actionMenuLabel')}
-                  actionMenuPanelLabel={t('actionMenuPanelLabel')}
-                  actionReplyLabel={t('reply')}
-                  dateText={formatCommentDate(thread.created_at, locale)}
-                  deletedPlaceholder={t('deletedPlaceholder')}
-                  entry={thread}
-                  isReply={false}
-                  onDelete={openDeleteModal}
-                  onEdit={openEditModal}
-                  onReply={entry => handleReply(thread, entry)}
-                  reportLabel={t('report')}
-                />
-
-                {thread.replies.length > 0 ? (
-                  <ol className={replyListClass}>
-                    {thread.replies.map(reply => (
-                      <li key={reply.id}>
-                        <CommentEntryCard
-                          actionDeleteLabel={t('delete')}
-                          actionEditLabel={t('edit')}
-                          actionMenuLabel={t('actionMenuLabel')}
-                          actionMenuPanelLabel={t('actionMenuPanelLabel')}
-                          actionReplyLabel={t('reply')}
-                          dateText={formatCommentDate(reply.created_at, locale)}
-                          deletedPlaceholder={t('deletedPlaceholder')}
-                          entry={reply}
-                          isReply
-                          onDelete={openDeleteModal}
-                          onEdit={openEditModal}
-                          onReply={entry => handleReply(thread, entry)}
-                          reportLabel={t('report')}
-                        />
-                      </li>
-                    ))}
-                  </ol>
-                ) : null}
-
-                {replyTarget?.parentId === thread.id ? (
-                  <div className={replyComposeWrapClass}>
-                    <CommentComposeForm
-                      allowSecretToggle={false}
-                      authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
-                      authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
-                      authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
-                      authorNameLabel={t('composeAuthorNameLabel')}
-                      authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
-                      characterCountLabel={t('composeCharacterCountLabel')}
-                      contentLabel={t('composeReplyContentLabel')}
-                      contentShortcutHint={t('composeContentShortcutHint')}
-                      formAction={submitReplyCommentAction}
-                      hiddenFields={{
-                        articleId,
-                        locale,
-                        parentId: replyTarget.parentId,
-                        replyToCommentId: replyTarget.commentId,
-                      }}
-                      isReplyMode
-                      isSubmittingOverride={isReplySubmitting}
-                      layout="embedded"
-                      passwordLabel={t('composePasswordLabel')}
-                      passwordPlaceholder={t('composePasswordPlaceholder')}
-                      replyPreviewLabel={t('composeReplyPreviewLabel')}
-                      replyTargetContent={replyTarget.content}
-                      secretLabel=""
-                      showReplyPreview={false}
-                      submitLabel={t('submit')}
-                      submissionResult={replySubmitState}
-                      textareaAutoResize={false}
-                      textareaRows={4}
-                      textPlaceholder={t('composeReplyPlaceholder', {
+              <CommentThreadItemView
+                articleId={articleId}
+                isReplySubmitting={isReplySubmitting}
+                locale={locale}
+                onDelete={openDeleteModal}
+                onEdit={openEditModal}
+                onReply={handleReply}
+                replyPlaceholder={
+                  replyTarget?.parentId === thread.id
+                    ? t('composeReplyPlaceholder', {
                         authorName: replyTarget.authorName,
-                      })}
-                    />
-                  </div>
-                ) : null}
-              </article>
+                      })
+                    : null
+                }
+                replySubmitState={replySubmitState}
+                replyTarget={replyTarget}
+                submitReplyCommentAction={submitReplyCommentAction}
+                text={text}
+                thread={thread}
+              />
             </li>
           ))}
         </ol>
@@ -546,11 +943,9 @@ export const ArticleCommentsSection = ({
       {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
         <div className={footerPaginationWrapClass}>
           <Pagination
-            ariaLabel={t('paginationLabel')}
+            ariaLabel={text.paginationLabel}
             currentPage={queryState.page}
-            onPageChange={page => {
-              void loadPage(page, queryState.sort);
-            }}
+            onPageChange={handlePaginationChange}
             totalPages={pageData.totalPages}
           />
         </div>
@@ -559,7 +954,7 @@ export const ArticleCommentsSection = ({
       <Modal
         ariaDescribedBy={modalState?.mode === 'delete' ? modalDescriptionId : undefined}
         ariaLabelledBy={modalTitleId}
-        closeAriaLabel={t('modalCloseAriaLabel')}
+        closeAriaLabel={text.modalCloseAriaLabel}
         initialFocusRef={modalState?.mode === 'edit' ? modalTextareaRef : modalPasswordInputRef}
         isOpen={Boolean(modalState)}
         onClose={closeModal}
@@ -570,28 +965,22 @@ export const ArticleCommentsSection = ({
           </h3>
           {modalState?.mode === 'edit' ? (
             <Textarea
-              aria-label={t('editModalTitle')}
+              aria-label={text.editModalTitle}
               maxLength={3000}
-              onChange={event => {
-                setModalContent(event.target.value);
-                if (modalError) setModalError(null);
-              }}
+              onChange={event => handleModalContentChange(event.target.value)}
               ref={modalTextareaRef}
               rows={4}
               value={modalContent}
             />
           ) : (
             <p className={modalDescriptionClass} id={modalDescriptionId}>
-              {t('deleteModalHint')}
+              {text.deleteModalHint}
             </p>
           )}
           <Input
-            aria-label={t('password')}
-            onChange={event => {
-              setModalPassword(event.target.value);
-              if (modalError) setModalError(null);
-            }}
-            placeholder={t('password')}
+            aria-label={text.password}
+            onChange={event => handleModalPasswordChange(event.target.value)}
+            placeholder={text.password}
             ref={modalPasswordInputRef}
             required
             type="password"
@@ -605,209 +994,20 @@ export const ArticleCommentsSection = ({
           <div className={modalActionsClass}>
             <Button
               disabled={isModalSubmitting}
-              onClick={() => void handleConfirmModal()}
+              onClick={handleModalConfirm}
               tone="primary"
               type="button"
             >
-              {modalState?.mode === 'edit' ? t('editConfirm') : t('deleteConfirm')}
+              {modalState?.mode === 'edit' ? text.editConfirm : text.deleteConfirm}
             </Button>
           </div>
         </div>
       </Modal>
 
-      <ToastViewport
-        closeLabel={t('close')}
-        items={toasts}
-        onClose={id => setToasts(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport closeLabel={text.closeLabel} items={toasts} onClose={handleToastClose} />
     </section>
   );
 };
-
-type CommentsLoadingSkeletonProps = {
-  loadingText: string;
-};
-
-/**
- * 댓글 정렬/페이지 전환 중 목록 자리에 표시하는 스켈레톤입니다.
- */
-const CommentsLoadingSkeleton = ({ loadingText }: CommentsLoadingSkeletonProps) => (
-  <div aria-busy="true" aria-label={loadingText} className={commentsLoadingWrapClass} role="status">
-    {Array.from({ length: 3 }).map((_, index) => (
-      <div className={commentsLoadingCardClass} key={index}>
-        <div className={commentsLoadingHeaderClass}>
-          <div className={commentsLoadingAuthorClass} />
-          <div className={commentsLoadingDateClass} />
-        </div>
-        <div className={commentsLoadingBodyClass}>
-          <div className={commentsLoadingLineLongClass} />
-          <div className={commentsLoadingLineShortClass} />
-        </div>
-        <div className={commentsLoadingReplyClass} />
-      </div>
-    ))}
-  </div>
-);
-
-type CommentEntryCardProps = {
-  actionDeleteLabel: string;
-  actionEditLabel: string;
-  actionMenuLabel: string;
-  actionMenuPanelLabel: string;
-  actionReplyLabel: string;
-  dateText: string;
-  deletedPlaceholder: string;
-  entry: ArticleComment;
-  isReply: boolean;
-  onDelete: (entry: ArticleComment) => void;
-  onEdit: (entry: ArticleComment) => void;
-  onReply: (entry: ArticleComment) => void;
-  reportLabel: string;
-};
-
-/**
- * 원댓글/대댓글 공통 카드 본문을 렌더링합니다.
- */
-const CommentEntryCard = ({
-  actionDeleteLabel,
-  actionEditLabel,
-  actionMenuLabel,
-  actionMenuPanelLabel,
-  actionReplyLabel,
-  dateText,
-  deletedPlaceholder,
-  entry,
-  isReply,
-  onDelete,
-  onEdit,
-  onReply,
-  reportLabel,
-}: CommentEntryCardProps) => {
-  const isDeleted = Boolean(entry.deleted_at);
-  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
-
-  return (
-    <div className={cx(entryCardClass, isReply ? replyEntryCardClass : undefined)}>
-      <div className={entryHeaderClass}>
-        <div className={authorMetaClass}>
-          {entry.author_blog_url ? (
-            <a
-              className={authorLinkClass}
-              href={entry.author_blog_url}
-              rel="noreferrer noopener"
-              target="_blank"
-            >
-              <strong className={authorNameClass}>{entry.author_name}</strong>
-              <LinkExternalIcon aria-hidden color="primary" size="sm" />
-            </a>
-          ) : (
-            <strong className={authorNameClass}>{entry.author_name}</strong>
-          )}
-          <time className={timeClass} dateTime={entry.created_at}>
-            <span>{dateText}</span>
-          </time>
-        </div>
-        {!isDeleted ? (
-          <CommentActionPopover
-            actionDeleteLabel={actionDeleteLabel}
-            actionEditLabel={actionEditLabel}
-            actionMenuLabel={actionMenuLabel}
-            actionMenuPanelLabel={actionMenuPanelLabel}
-            isOpen={isActionMenuOpen}
-            onDelete={() => onDelete(entry)}
-            onEdit={() => onEdit(entry)}
-            onOpenChange={setIsActionMenuOpen}
-            reportLabel={reportLabel}
-          />
-        ) : null}
-      </div>
-
-      <div className={entryBodyClass}>
-        {isDeleted ? (
-          <p className={placeholderTextClass}>{deletedPlaceholder}</p>
-        ) : (
-          <p className={contentTextClass}>
-            {entry.reply_to_author_name ? (
-              <span className={mentionTextClass}>@{entry.reply_to_author_name} </span>
-            ) : null}
-            {entry.content}
-          </p>
-        )}
-      </div>
-
-      {!isDeleted ? (
-        <div className={entryFooterClass}>
-          <button className={replyButtonClass} onClick={() => onReply(entry)} type="button">
-            <span aria-hidden className={replyButtonIconMotionClass}>
-              <ArrowCurveLeftRightIcon aria-hidden size="sm" />
-            </span>
-            <span>{actionReplyLabel}</span>
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-};
-
-type CommentActionPopoverProps = {
-  actionDeleteLabel: string;
-  actionEditLabel: string;
-  actionMenuLabel: string;
-  actionMenuPanelLabel: string;
-  isOpen: boolean;
-  onDelete: () => void;
-  onEdit: () => void;
-  onOpenChange: (nextOpen: boolean) => void;
-  reportLabel: string;
-};
-
-/**
- * 댓글 버블 우측 kebab 버튼으로 여는 액션 팝오버입니다.
- */
-const CommentActionPopover = ({
-  actionDeleteLabel,
-  actionEditLabel,
-  actionMenuLabel,
-  actionMenuPanelLabel,
-  isOpen,
-  onDelete,
-  onEdit,
-  onOpenChange,
-  reportLabel,
-}: CommentActionPopoverProps) => (
-  <ActionPopover
-    isOpen={isOpen}
-    onOpenChange={onOpenChange}
-    panelLabel={actionMenuPanelLabel}
-    triggerLabel={actionMenuLabel}
-  >
-    {({ closePopover }) => (
-      <>
-        <ActionMenuButton
-          icon={<EditIcon aria-hidden size="sm" />}
-          label={actionEditLabel}
-          onClick={() => {
-            closePopover();
-            onEdit();
-          }}
-        />
-        <ActionMenuButton
-          icon={<TrashIcon aria-hidden size="sm" />}
-          label={actionDeleteLabel}
-          onClick={() => {
-            closePopover();
-            onDelete();
-          }}
-        />
-        <ActionMenuButton
-          ariaDisabled
-          icon={<ReportIcon aria-hidden size="sm" />}
-          label={reportLabel}
-        />
-      </>
-    )}
-  </ActionPopover>
-);
 
 const sectionClass = css({
   display: 'grid',
