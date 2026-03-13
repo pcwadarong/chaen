@@ -10,6 +10,7 @@ import {
   parseEditorError,
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
+import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
@@ -464,9 +465,10 @@ export const PublishPanel = ({
 
       if (!file) return;
 
+      const optimizedFile = await optimizeThumbnailImageFile(file);
       const formData = new FormData();
       formData.set('contentType', contentType);
-      formData.set('file', file);
+      formData.set('file', optimizedFile);
 
       setIsUploading(true);
       setErrors(previous => ({ ...previous, thumbnail: undefined }));

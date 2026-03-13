@@ -2,11 +2,16 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
 import type { PublishSettings } from '@/widgets/editor/model/editor-core.types';
 import { createDefaultPublishSettings } from '@/widgets/editor/model/publish-panel.utils';
 import { PublishPanel } from '@/widgets/editor/ui/publish-panel';
 
 import '@testing-library/jest-dom/vitest';
+
+vi.mock('@/shared/lib/image/optimize-thumbnail-image-file', () => ({
+  optimizeThumbnailImageFile: vi.fn(async (file: File) => file),
+}));
 
 const baseEditorState = {
   dirty: true,
@@ -52,6 +57,7 @@ const renderPublishPanel = (
 describe('PublishPanel', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(optimizeThumbnailImageFile).mockImplementation(async (file: File) => file);
   });
 
   it('공개 설정은 공개와 비공개만 노출한다', async () => {
@@ -218,10 +224,12 @@ describe('PublishPanel', () => {
   });
 
   it('파일 업로드 성공 시 thumbnailUrl과 미리보기를 갱신한다', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
+    const optimizedFile = new File(['compressed'], 'thumb.webp', { type: 'image/webp' });
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
       json: async () => ({ url: 'https://example.com/uploaded-thumb.png' }),
       ok: true,
     } as Response);
+    vi.mocked(optimizeThumbnailImageFile).mockResolvedValue(optimizedFile);
 
     renderPublishPanel();
 
@@ -239,6 +247,11 @@ describe('PublishPanel', () => {
         'https://example.com/uploaded-thumb.png',
       );
     });
+
+    expect(optimizeThumbnailImageFile).toHaveBeenCalledWith(file);
+
+    const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
+    expect(formData.get('file')).toBe(optimizedFile);
   });
 
   it('제출 중에는 버튼을 비활성화하고 완료 후 닫는다', async () => {
