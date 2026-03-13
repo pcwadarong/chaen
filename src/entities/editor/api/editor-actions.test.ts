@@ -216,6 +216,10 @@ describe('editor-actions', () => {
     });
 
     expect(redirect).toHaveBeenCalledWith('/ko/articles/published-article');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/published-article');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/articles/published-article');
   });
 
   it('article 예약 발행 후에는 목록 경로로 이동한다', async () => {
@@ -296,6 +300,9 @@ describe('editor-actions', () => {
     });
 
     expect(redirect).toHaveBeenCalledWith('/ko/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/scheduled-article');
   });
 
   it('project 예약 발행 후에는 프로젝트 목록 경로로 이동한다', async () => {
@@ -376,6 +383,11 @@ describe('editor-actions', () => {
     });
 
     expect(redirect).toHaveBeenCalledWith('/ko/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/project/scheduled-project');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko');
+    expect(revalidatePath).toHaveBeenCalledWith('/en');
   });
 
   it('resume draft를 전용 resume_drafts 테이블에서 삭제한다', async () => {

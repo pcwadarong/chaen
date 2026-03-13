@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
@@ -283,6 +284,7 @@ export const publishEditorContentAction = async ({
     contentId: targetContentId,
     contentType,
     locale,
+    slug: normalizedSlug,
   });
 
   redirect(
@@ -533,10 +535,12 @@ const revalidateEditorContent = ({
   contentId,
   contentType,
   locale,
+  slug,
 }: {
   contentId: string;
   contentType: 'article' | 'project';
   locale?: string | null;
+  slug: string;
 }) => {
   const resolvedLocale = resolveActionLocale(locale);
   const adminEditPath = buildLocalizedPathname({
@@ -553,6 +557,10 @@ const revalidateEditorContent = ({
 
   revalidatePath(adminEditPath);
   revalidatePath(adminDraftsPath);
+  revalidatePublicContentPaths({
+    contentType,
+    slug,
+  });
 
   if (contentType === 'article') {
     revalidateTag(ARTICLES_CACHE_TAG);
@@ -562,4 +570,52 @@ const revalidateEditorContent = ({
 
   revalidateTag(PROJECTS_CACHE_TAG);
   revalidateTag(createProjectCacheTag(contentId));
+};
+
+/**
+ * article/project 공개 목록과 상세 경로를 전 locale 기준으로 다시 검증하게 만듭니다.
+ */
+const revalidatePublicContentPaths = ({
+  contentType,
+  slug,
+}: {
+  contentType: 'article' | 'project';
+  slug: string;
+}) => {
+  locales.forEach(locale => {
+    if (contentType === 'article') {
+      revalidatePath(
+        buildLocalizedPathname({
+          locale,
+          pathname: '/articles',
+        }),
+      );
+      revalidatePath(
+        buildLocalizedPathname({
+          locale,
+          pathname: `/articles/${slug}`,
+        }),
+      );
+      return;
+    }
+
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/project',
+      }),
+    );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: `/project/${slug}`,
+      }),
+    );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/',
+      }),
+    );
+  });
 };
