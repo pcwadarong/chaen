@@ -185,6 +185,7 @@ const EditorLocalePanelBase = ({
             제목
           </label>
           <Textarea
+            className={textareaInfoClass}
             aria-describedby={
               activeLocaleHasTitleError ? `editor-title-error-${locale}` : undefined
             }
@@ -206,6 +207,7 @@ const EditorLocalePanelBase = ({
             설명
           </label>
           <Textarea
+            className={textareaInfoClass}
             id={`editor-description-${locale}`}
             onChange={event => onDescriptionChange(locale, event.target.value)}
             placeholder={`${localeLabel} 설명`}
@@ -779,6 +781,10 @@ const buttonGroupClass = css({
   gap: '2',
 });
 
+const textareaInfoClass = css({
+  minHeight: '[2.5rem]',
+});
+
 const localeTabListClass = css({
   display: 'flex',
   alignItems: 'center',
@@ -951,7 +957,6 @@ const previewPaneClass = css({
   borderWidth: '1px',
   borderStyle: 'solid',
   borderColor: 'border',
-  background: 'surfaceMuted',
 });
 
 const editorTextareaClass = css({

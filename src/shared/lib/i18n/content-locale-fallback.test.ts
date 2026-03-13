@@ -1,6 +1,6 @@
 import {
   buildContentLocaleFallbackChain,
-  resolveFirstAvailableLocaleValue,
+  pickPreferredLocaleValue,
 } from './content-locale-fallback';
 
 describe('buildContentLocaleFallbackChain', () => {
@@ -11,24 +11,17 @@ describe('buildContentLocaleFallbackChain', () => {
   });
 });
 
-describe('resolveFirstAvailableLocaleValue', () => {
-  it('locale 순서대로 조회해 첫 번째 유효 결과를 반환한다', async () => {
-    const fetchByLocale = vi.fn(async (locale: string) =>
-      locale === 'en' ? { items: ['value'], nextCursor: null } : { items: [], nextCursor: null },
-    );
-
-    const result = await resolveFirstAvailableLocaleValue({
-      fetchByLocale,
-      hasValue: value => value.items.length > 0,
-      locales: ['fr', 'ko', 'en'],
+describe('pickPreferredLocaleValue', () => {
+  it('요청 locale이 없으면 fallback locale 순서로 첫 번째 번역을 고른다', () => {
+    const result = pickPreferredLocaleValue({
+      locales: ['ja', 'ko', 'en', 'fr'],
+      resolveLocale: row => row.locale,
+      rows: [
+        { locale: 'en', value: 'english' },
+        { locale: 'ko', value: 'korean' },
+      ],
     });
 
-    expect(result).toEqual({
-      items: ['value'],
-      nextCursor: null,
-    });
-    expect(fetchByLocale).toHaveBeenNthCalledWith(1, 'fr');
-    expect(fetchByLocale).toHaveBeenNthCalledWith(2, 'ko');
-    expect(fetchByLocale).toHaveBeenNthCalledWith(3, 'en');
+    expect(result).toEqual({ locale: 'ko', value: 'korean' });
   });
 });
