@@ -6,7 +6,7 @@ import type { EditorContentType } from '@/widgets/editor/model/editor-core.types
 const contentTypes: EditorContentType[] = ['article', 'project', 'resume'];
 
 /**
- * 관리자 발행 패널의 이미지 업로드 요청을 처리합니다.
+ * 관리자 편집 화면의 이미지 업로드 요청을 처리합니다.
  */
 export const POST = async (request: Request) =>
   runJsonRoute({
@@ -25,7 +25,7 @@ export const POST = async (request: Request) =>
         !contentTypes.includes(contentType as EditorContentType) ||
         !file.type.startsWith('image/')
       ) {
-        return createApiErrorResponse('Invalid upload payload', 400);
+        return createApiErrorResponse('Invalid image upload payload', 400);
       }
 
       return {

@@ -12,7 +12,7 @@ vi.mock('@/features/upload-image-file/api/upload-image-file', () => ({
   uploadImageFile: vi.fn(),
 }));
 
-describe('api/upload route', () => {
+describe('api/images route', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });

@@ -223,7 +223,7 @@ export const PublishPanel = ({
     setErrors(previous => ({ ...previous, thumbnail: undefined }));
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/images', {
         body: formData,
         method: 'POST',
       });
