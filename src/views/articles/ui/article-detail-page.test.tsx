@@ -120,6 +120,7 @@ describe('ArticleDetailPage', () => {
     expect(textContent).toContain('Article 2');
     expect(html).toContain('/admin/articles/article-1/edit');
     expect(textContent).toContain('수정하기');
+    expect(textContent).toContain('삭제하기');
   }, 30000);
 
   it('태그 스키마가 없어도 원본 태그명으로 상세 페이지를 렌더링한다', async () => {

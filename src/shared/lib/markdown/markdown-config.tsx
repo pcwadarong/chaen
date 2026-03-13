@@ -135,6 +135,13 @@ const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
     (typeof props?.['data-theme'] === 'string' && props['data-theme'].length > 0),
   );
 
+const markdownInlineCodeStyle = {
+  backgroundColor: 'rgba(59, 130, 246, 0.16)',
+  border: '1px solid rgba(59, 130, 246, 0.22)',
+  borderRadius: '0.25rem',
+  padding: '0.125rem 0.375rem',
+} satisfies React.CSSProperties;
+
 /**
  * markdown 본문 이미지를 반응형으로 렌더링합니다.
  */
@@ -267,7 +274,7 @@ const createMarkdownComponents = (): Components => ({
     }
 
     return (
-      <code className={markdownInlineCodeClass} {...props}>
+      <code className={markdownInlineCodeClass} style={markdownInlineCodeStyle} {...props}>
         {children}
       </code>
     );

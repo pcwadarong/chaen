@@ -71,5 +71,6 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('work period January 2026 - February 2026');
     expect(html).toContain('/admin/projects/project-1/edit');
     expect(html).toContain('수정하기');
+    expect(html).toContain('삭제하기');
   }, 30000);
 });

@@ -2,16 +2,18 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import { getProjectDetailArchivePageAction } from '@/entities/project/api/project-actions';
+import {
+  deleteProjectAction,
+  getProjectDetailArchivePageAction,
+} from '@/entities/project/api/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
-import { Button } from '@/shared/ui/button/button';
+import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
@@ -99,9 +101,14 @@ export const ProjectDetailPage = async ({
             shareText={detailUi('share')}
             actionSlot={
               isAdmin ? (
-                <Button asChild className={shareButtonClass} size="sm" tone="white" variant="ghost">
-                  <Link href={`/admin/projects/${item.id}/edit`}>수정하기</Link>
-                </Button>
+                <AdminDetailActions
+                  deleteAction={deleteProjectAction.bind(null, {
+                    locale,
+                    projectId: item.id,
+                    projectSlug: projectPathSegment,
+                  })}
+                  editHref={`/admin/projects/${item.id}/edit`}
+                />
               ) : null
             }
           />
@@ -170,10 +177,4 @@ const tagButtonClass = css({
   fontSize: '[inherit]',
   lineHeight: 'tight',
   color: 'muted',
-});
-
-const shareButtonClass = css({
-  '@media (min-width: 961px)': {
-    fontSize: 'md',
-  },
 });

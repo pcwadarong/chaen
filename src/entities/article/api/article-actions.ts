@@ -1,10 +1,12 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
 import type { ArticleArchivePage, ArticleListPage } from '@/entities/article/model/types';
+import { locales } from '@/i18n/routing';
 import {
   type ActionResult,
   createActionFailure,
@@ -12,6 +14,9 @@ import {
 } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
+import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import { getArticleDetailList } from './get-article-detail-list';
 import { getArticles } from './get-articles';
@@ -47,12 +52,19 @@ const incrementArticleViewCountSchema = z.object({
   articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
 });
 
+const deleteArticleSchema = z.object({
+  articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
+  articleSlug: z.string().trim().min(1, '대상 글 경로를 확인할 수 없습니다.'),
+  locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
+});
+
 type ArticleViewCountActionData = {
   viewCount: number;
 };
 
 const ARTICLE_ACTION_ERROR_MESSAGE = {
   archiveFetchFailed: 'article.archiveFetchFailed',
+  deleteFailed: 'article.deleteFailed',
   listFetchFailed: 'article.listFetchFailed',
   viewCountUpdateFailed: 'article.viewCountUpdateFailed',
 } as const;
@@ -148,4 +160,84 @@ export const incrementArticleViewCountAction = async (input: {
       ARTICLE_ACTION_ERROR_MESSAGE.viewCountUpdateFailed,
     );
   }
+};
+
+/**
+ * 관리자만 공개 아티클을 삭제하고 목록으로 이동합니다.
+ */
+export const deleteArticleAction = async (input: {
+  articleId: string;
+  articleSlug: string;
+  locale: string;
+}) => {
+  const validation = validateActionInput(deleteArticleSchema, input);
+
+  if (!validation.ok) {
+    throw new Error(validation.errorMessage);
+  }
+
+  await requireAdmin({ locale: validation.data.locale, onUnauthorized: 'throw' });
+
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+  }
+
+  const { articleId, articleSlug, locale } = validation.data;
+
+  const { error: commentsError } = await supabase
+    .from('article_comments')
+    .delete()
+    .eq('article_id', articleId);
+  if (commentsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+
+  const { error: tagsError } = await supabase
+    .from('article_tags')
+    .delete()
+    .eq('article_id', articleId);
+  if (tagsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+
+  const { error: translationsError } = await supabase
+    .from('article_translations')
+    .delete()
+    .eq('article_id', articleId);
+  if (translationsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+
+  const { error: draftsError } = await supabase
+    .from('drafts')
+    .delete()
+    .eq('content_type', 'article')
+    .eq('content_id', articleId);
+  if (draftsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+
+  const { error: articleError } = await supabase.from('articles').delete().eq('id', articleId);
+  if (articleError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+
+  revalidateArticlePublicPaths(articleSlug);
+  revalidateTag(ARTICLES_CACHE_TAG);
+  revalidateTag(createArticleCacheTag(articleId));
+
+  redirect(
+    buildLocalizedPathname({
+      locale: locale as (typeof locales)[number],
+      pathname: '/articles',
+    }),
+  );
+};
+
+const revalidateArticlePublicPaths = (articleSlug: string) => {
+  locales.forEach(locale => {
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/articles',
+      }),
+    );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: `/articles/${articleSlug}`,
+      }),
+    );
+  });
 };
