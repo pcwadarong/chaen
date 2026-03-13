@@ -1,13 +1,12 @@
 'use client';
 
-import { type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { type ReactNode, Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
-import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { HamburgerIcon } from '@/shared/ui/icons/app-icons';
+import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { XButton } from '@/shared/ui/x-button/x-button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
@@ -39,88 +38,58 @@ export const GlobalNavMobileMenu = ({
   onToggle,
   openMenuLabel,
   pathname,
-}: GlobalNavMobileMenuProps) => {
-  const drawerRef = useRef<HTMLElement | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useDialogFocusManagement({
-    containerRef: drawerRef,
-    isEnabled: isOpen,
-    onEscape: onClose,
-  });
-
-  return (
-    <>
-      <div className={mobileControlsClass}>
-        {leadingAction}
-        <Suspense fallback={<span className={switcherFallbackClass} />}>
-          <LocaleSwitcher />
-        </Suspense>
-        <ThemeSwitcher />
-        <Button
-          aria-controls={MOBILE_NAV_DRAWER_ID}
-          aria-expanded={isOpen}
-          aria-haspopup="dialog"
-          aria-label={isOpen ? closeMenuLabel : openMenuLabel}
-          className={hamburgerButtonClass}
-          onClick={onToggle}
-          size="sm"
-          tone="white"
-          type="button"
-          variant="ghost"
-        >
-          <HamburgerIcon aria-hidden size={18} />
-        </Button>
-      </div>
-      {isOpen && isMounted
-        ? createPortal(
-            <div className={mobileOverlayClass} onClick={onClose}>
-              <aside
-                aria-label={ariaLabel}
-                aria-modal="true"
-                className={mobileDrawerClass}
-                id={MOBILE_NAV_DRAWER_ID}
-                onClick={event => event.stopPropagation()}
-                ref={drawerRef}
-                role="dialog"
-                tabIndex={-1}
-              >
-                <XButton
-                  ariaLabel={closeMenuLabel}
-                  className={drawerCloseClass}
+}: GlobalNavMobileMenuProps) => (
+  <>
+    <div className={mobileControlsClass}>
+      {leadingAction}
+      <Suspense fallback={<span className={switcherFallbackClass} />}>
+        <LocaleSwitcher />
+      </Suspense>
+      <ThemeSwitcher />
+      <Button
+        aria-controls={MOBILE_NAV_DRAWER_ID}
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        aria-label={isOpen ? closeMenuLabel : openMenuLabel}
+        className={hamburgerButtonClass}
+        onClick={onToggle}
+        size="sm"
+        tone="white"
+        type="button"
+        variant="ghost"
+      >
+        <HamburgerIcon aria-hidden size={18} />
+      </Button>
+    </div>
+    <SlideOver
+      ariaLabel={ariaLabel}
+      className={mobileDrawerClass}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <div className={mobileDrawerInnerClass} id={MOBILE_NAV_DRAWER_ID}>
+        <XButton ariaLabel={closeMenuLabel} className={drawerCloseClass} onClick={onClose} />
+        <nav aria-label={ariaLabel}>
+          <ul className={mobileListClass}>
+            {navigationItems.map(item => (
+              <li key={item.href}>
+                <Link
+                  aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                  className={mobileNavLinkClass}
+                  href={item.href}
                   onClick={onClose}
-                />
-                <nav aria-label={ariaLabel}>
-                  <ul className={mobileListClass}>
-                    {navigationItems.map(item => (
-                      <li key={item.href}>
-                        <Link
-                          aria-current={
-                            isActiveNavigationItem(pathname, item.href) ? 'page' : undefined
-                          }
-                          className={mobileNavLinkClass}
-                          href={item.href}
-                          onClick={onClose}
-                          prefetch
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-              </aside>
-            </div>,
-            document.body,
-          )
-        : null}
-    </>
-  );
-};
+                  prefetch
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </SlideOver>
+  </>
+);
 
 const mobileControlsClass = css({
   display: 'none',
@@ -152,22 +121,9 @@ const hamburgerButtonClass = css({
   },
 });
 
-const mobileOverlayClass = css({
-  position: 'fixed',
-  inset: '0',
-  zIndex: '40',
-  display: 'flex',
-  justifyContent: 'flex-end',
-  backgroundColor: '[rgb(15 23 42 / 0.2)]',
-  backdropFilter: '[blur(18px) saturate(135%)]',
-});
-
 const mobileDrawerClass = css({
   width: '[min(26rem, 82vw)]',
   height: 'full',
-  display: 'grid',
-  alignContent: 'start',
-  gap: '6',
   px: '5',
   py: '6',
   borderLeft: '[1px solid var(--colors-primary)]',
@@ -177,6 +133,12 @@ const mobileDrawerClass = css({
   _dark: {
     backgroundColor: '[rgb(31 41 55 / 0.88)]',
   },
+});
+
+const mobileDrawerInnerClass = css({
+  display: 'grid',
+  alignContent: 'start',
+  gap: '6',
 });
 
 const drawerCloseClass = css({
