@@ -2,6 +2,8 @@ import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/
 
 import 'server-only';
 
+import type { TagOption } from './tag.types';
+
 type TagSchemaResult<T> = {
   data: T;
   schemaMissing: boolean;
@@ -253,6 +255,22 @@ export const getTagLabelMapBySlugs = async ({
     ),
     schemaMissing: false,
   };
+};
+
+/**
+ * locale 라벨이 반영된 태그 선택 옵션 목록을 반환합니다.
+ */
+export const getTagOptionsByLocale = async (locale: string): Promise<TagOption[]> => {
+  const allTags = await getAllTags();
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: allTags.data.map(tag => tag.slug),
+  });
+
+  return allTags.data.map(tag => ({
+    ...tag,
+    label: tagLabelMap.data.get(tag.slug) ?? tag.slug,
+  }));
 };
 
 /**

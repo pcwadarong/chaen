@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
+import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { DashboardPage } from '@/views/dashboard';
+import { EditorDraftsPage } from '@/views/editor-drafts';
 
 export const metadata: Metadata = {
   robots: {
@@ -12,9 +13,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * 관리자 보호 페이지 엔트리입니다.
+ * 관리자 draft 목록 페이지입니다.
  */
-const AdminRoute = async ({
+const AdminDraftsRoute = async ({
   params,
 }: {
   params: Promise<{
@@ -22,9 +23,12 @@ const AdminRoute = async ({
   }>;
 }) => {
   const { locale } = await params;
+
   await requireAdmin({ locale });
 
-  return <DashboardPage locale={locale} />;
+  const items = await getEditorDraftSummaries();
+
+  return <EditorDraftsPage items={items} />;
 };
 
-export default AdminRoute;
+export default AdminDraftsRoute;
