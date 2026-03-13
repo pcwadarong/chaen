@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import {
@@ -279,6 +279,16 @@ const createInitialFormState = ({
 };
 
 /**
+ * 발행 설정이 필드 단위로 같은지 비교합니다.
+ */
+const isSamePublishSettings = (left: PublishSettings, right: PublishSettings) =>
+  left.allowComments === right.allowComments &&
+  left.publishAt === right.publishAt &&
+  left.slug === right.slug &&
+  left.thumbnailUrl === right.thumbnailUrl &&
+  left.visibility === right.visibility;
+
+/**
  * 발행 설정을 우측 슬라이드 패널로 편집합니다.
  */
 export const PublishPanel = ({
@@ -303,9 +313,17 @@ export const PublishPanel = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
+  const hasInitializedWhileOpenRef = useRef(false);
+  const pendingInitialSettingsRef = useRef<PublishSettings | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      hasInitializedWhileOpenRef.current = false;
+      pendingInitialSettingsRef.current = null;
+      return;
+    }
+
+    if (hasInitializedWhileOpenRef.current) return;
 
     const nextFormState = createInitialFormState({
       editorSlug: editorState.slug,
@@ -314,6 +332,10 @@ export const PublishPanel = ({
         slug: editorState.slug,
       }),
     });
+    const nextSettings = buildPublishSettings(nextFormState);
+
+    hasInitializedWhileOpenRef.current = true;
+    pendingInitialSettingsRef.current = nextSettings;
 
     setSlug(nextFormState.slug);
     setVisibility(nextFormState.visibility);
@@ -347,6 +369,14 @@ export const PublishPanel = ({
 
   useEffect(() => {
     if (!isOpen || !onSettingsChange) return;
+
+    if (pendingInitialSettingsRef.current) {
+      if (!isSamePublishSettings(currentSettings, pendingInitialSettingsRef.current)) {
+        return;
+      }
+
+      pendingInitialSettingsRef.current = null;
+    }
 
     onSettingsChange(currentSettings);
   }, [currentSettings, isOpen, onSettingsChange]);

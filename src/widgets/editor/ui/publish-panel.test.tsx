@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import type { PublishSettings } from '@/widgets/editor/model/editor-core.types';
+import { createDefaultPublishSettings } from '@/widgets/editor/model/publish-panel.utils';
 import { PublishPanel } from '@/widgets/editor/ui/publish-panel';
 
 import '@testing-library/jest-dom/vitest';
@@ -87,6 +89,99 @@ describe('PublishPanel', () => {
     });
 
     expect(await screen.findByText('UTC: 2026-03-20T01:00:00.000Z')).toBeTruthy();
+  });
+
+  it('draft slug가 있는 상태에서 패널이 열리면 부모 동기화로 빈 값으로 되돌아가지 않는다', async () => {
+    const PublishPanelHarness = () => {
+      const [settings, setSettings] = React.useState<PublishSettings>(() =>
+        createDefaultPublishSettings({
+          initialSettings: {
+            allowComments: true,
+            publishAt: null,
+            slug: 'draft-slug',
+            thumbnailUrl: '',
+            visibility: 'public',
+          },
+          slug: '',
+        }),
+      );
+
+      return (
+        <>
+          <PublishPanel
+            contentType="article"
+            editorState={{
+              ...baseEditorState,
+              slug: '',
+            }}
+            initialSettings={settings}
+            isOpen
+            onClose={vi.fn()}
+            onSettingsChange={setSettings}
+            onSubmit={vi.fn().mockResolvedValue(undefined)}
+          />
+          <output data-testid="settings-slug">{settings.slug}</output>
+        </>
+      );
+    };
+
+    render(<PublishPanelHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('draft-slug');
+    });
+
+    expect(screen.getByTestId('settings-slug')).toHaveTextContent('draft-slug');
+  });
+
+  it('썸네일 URL을 바꿔도 부모 동기화 때문에 입력값이 다시 초기화되지 않는다', async () => {
+    const PublishPanelHarness = () => {
+      const [settings, setSettings] = React.useState<PublishSettings>(() =>
+        createDefaultPublishSettings({
+          initialSettings: {
+            allowComments: true,
+            publishAt: null,
+            slug: 'draft-slug',
+            thumbnailUrl: 'https://example.com/original.png',
+            visibility: 'public',
+          },
+          slug: '',
+        }),
+      );
+
+      return (
+        <>
+          <PublishPanel
+            contentType="article"
+            editorState={{
+              ...baseEditorState,
+              slug: '',
+            }}
+            initialSettings={settings}
+            isOpen
+            onClose={vi.fn()}
+            onSettingsChange={setSettings}
+            onSubmit={vi.fn().mockResolvedValue(undefined)}
+          />
+          <output data-testid="settings-thumbnail">{settings.thumbnailUrl}</output>
+        </>
+      );
+    };
+
+    render(<PublishPanelHarness />);
+
+    const thumbnailInput = await screen.findByLabelText('썸네일');
+
+    fireEvent.change(thumbnailInput, {
+      target: { value: 'https://example.com/next-thumb.png' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('썸네일')).toHaveValue('https://example.com/next-thumb.png');
+      expect(screen.getByTestId('settings-thumbnail')).toHaveTextContent(
+        'https://example.com/next-thumb.png',
+      );
+    });
   });
 
   it('validation 오류가 있으면 인라인 에러를 표시하고 제출하지 않는다', async () => {
