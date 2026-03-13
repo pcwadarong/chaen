@@ -11,6 +11,7 @@ import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 import { ResumeEditorCore, ResumePublishPanel } from '@/widgets/resume-editor';
 
 type ResumeEditorClientProps = {
+  hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
   initialContents: ResumeEditorState['contents'];
   initialPublishSettings: ResumePublishSettings;
@@ -34,6 +35,7 @@ const MemoizedResumePublishPanel = React.memo(ResumePublishPanel);
  * resume 전용 관리자 화면에서 편집 셸과 게시 패널을 연결합니다.
  */
 export const ResumeEditorClient = ({
+  hideAppFrameFooter = false,
   initialDraftId = null,
   initialContents,
   initialPublishSettings,
@@ -115,6 +117,7 @@ export const ResumeEditorClient = ({
   return (
     <>
       <MemoizedResumeEditorCore
+        hideAppFrameFooter={hideAppFrameFooter}
         initialContents={initialContents}
         initialSavedAt={initialSavedAt}
         onDraftSave={handleDraftSave}

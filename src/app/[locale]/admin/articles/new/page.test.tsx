@@ -75,6 +75,7 @@ describe('AdminArticleNewRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.props.availableTags).toEqual([{ id: 'tag-1', label: '접근성', slug: 'a11y' }]);
     expect(element.props.contentType).toBe('article');
+    expect(element.props.hideAppFrameFooter).toBe(true);
   });
 
   it('draftId가 있으면 draft seed를 우선 사용한다', async () => {

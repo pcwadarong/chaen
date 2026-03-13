@@ -94,6 +94,7 @@ const ResumeLocaleFields = React.memo(ResumeLocaleFieldsBase);
  * resume 전용 편집 셸에서 locale별 소개 텍스트와 저장 상태를 관리합니다.
  */
 export const ResumeEditorCore = ({
+  hideAppFrameFooter = false,
   initialContents,
   initialSavedAt = null,
   onDraftSave,
@@ -212,7 +213,10 @@ export const ResumeEditorCore = ({
   }, [dirty]);
 
   return (
-    <main className={pageClass}>
+    <main
+      className={pageClass}
+      data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
+    >
       <section className={panelClass}>
         <header className={headerClass}>
           <div className={headerCopyClass}>

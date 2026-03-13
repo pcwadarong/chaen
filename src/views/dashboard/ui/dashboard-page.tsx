@@ -14,7 +14,7 @@ type DashboardPageProps = {
  * 현재 관리자 세션 상태를 확인하고 로그아웃할 수 있는 최소 관리자 페이지입니다.
  */
 export const DashboardPage = ({ locale }: DashboardPageProps) => (
-  <PageShell width="compact">
+  <PageShell width="compact" hideAppFrameFooter>
     <PageSection>
       <div className={actionGridClass}>
         <Button asChild fullWidth tone="primary" variant="solid">

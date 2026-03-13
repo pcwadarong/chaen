@@ -18,6 +18,7 @@ type EditorPageProps = {
   }[];
   contentId?: string;
   contentType: EditorContentType;
+  hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
   initialPublished?: boolean;
   initialSavedAt?: string | null;
@@ -44,6 +45,7 @@ export const EditorPage = ({
   availableTags,
   contentId,
   contentType,
+  hideAppFrameFooter = false,
   initialDraftId,
   initialPublished,
   initialSavedAt,
@@ -58,6 +60,7 @@ export const EditorPage = ({
     availableTags={availableTags}
     contentId={contentId}
     contentType={contentType}
+    hideAppFrameFooter={hideAppFrameFooter}
     initialDraftId={initialDraftId}
     initialPublished={initialPublished}
     initialSavedAt={initialSavedAt}

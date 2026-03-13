@@ -89,6 +89,7 @@ describe('AdminResumeEditRoute', () => {
     expect(typeof element.props.onDraftSave).toBe('function');
     expect(typeof element.props.onPublishSubmit).toBe('function');
     expect(element.props.initialDraftId).toBeUndefined();
+    expect(element.props.hideAppFrameFooter).toBe(true);
   });
 
   it('draftId가 있으면 해당 resume draft seed를 우선 사용한다', async () => {

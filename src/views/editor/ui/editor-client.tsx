@@ -22,6 +22,7 @@ type EditorClientProps = {
   }[];
   contentId?: string;
   contentType: EditorContentType;
+  hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
   initialPublished?: boolean;
   initialSavedAt?: string | null;
@@ -52,6 +53,7 @@ export const EditorClient = ({
   availableTags,
   contentId,
   contentType,
+  hideAppFrameFooter = false,
   initialDraftId = null,
   initialPublished = false,
   initialSavedAt = null,
@@ -139,6 +141,7 @@ export const EditorClient = ({
         availableTags={availableTags}
         contentId={contentId}
         contentType={contentType}
+        hideAppFrameFooter={hideAppFrameFooter}
         initialPublished={initialPublished}
         initialSavedAt={initialSavedAt}
         initialSlug={initialSlug}

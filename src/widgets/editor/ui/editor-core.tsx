@@ -309,6 +309,7 @@ export const EditorCore = ({
   initialSlug = '',
   initialTags,
   initialTranslations,
+  hideAppFrameFooter = false,
   onDraftSave,
   onOpenPublishPanel,
 }: EditorCoreProps) => {
@@ -651,7 +652,10 @@ export const EditorCore = ({
   }, [dirty, onOpenPublishPanel, selectedTags, slug, translations]);
 
   return (
-    <section className={rootClass}>
+    <section
+      className={rootClass}
+      data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
+    >
       <div className={metaStackClass}>
         <div className={actionRowClass}>
           <p aria-live="polite" className={saveStatusClass} role="status">

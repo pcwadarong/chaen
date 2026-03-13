@@ -8,11 +8,13 @@ describe('EditorPage', () => {
     const element = EditorPage({
       availableTags: [{ id: 'tag-1', label: '리액트', slug: 'react' }],
       contentType: 'article',
+      hideAppFrameFooter: true,
       initialTranslations: createEmptyTranslations(),
     });
 
     expect(isValidElement(element)).toBe(true);
     expect(element.props.availableTags).toEqual([{ id: 'tag-1', label: '리액트', slug: 'react' }]);
     expect(element.props.contentType).toBe('article');
+    expect(element.props.hideAppFrameFooter).toBe(true);
   });
 });

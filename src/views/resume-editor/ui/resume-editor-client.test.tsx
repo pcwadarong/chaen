@@ -51,16 +51,18 @@ vi.mock('@/widgets/resume-editor', async () => {
 
   return {
     ...actual,
-    ResumeEditorCore: ({ onOpenPublishPanel }: ResumeEditorCoreProps) => {
+    ResumeEditorCore: ({ hideAppFrameFooter, onOpenPublishPanel }: ResumeEditorCoreProps) => {
       resumeEditorClientMockState.editorCoreRenderCount += 1;
 
       return (
-        <button
-          onClick={() => onOpenPublishPanel(resumeEditorClientMockState.editorState)}
-          type="button"
-        >
-          게시하기
-        </button>
+        <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
+          <button
+            onClick={() => onOpenPublishPanel(resumeEditorClientMockState.editorState)}
+            type="button"
+          >
+            게시하기
+          </button>
+        </div>
       );
     },
     ResumePublishPanel: ({ isOpen, onClose }: ResumePublishPanelProps) =>
@@ -126,5 +128,17 @@ describe('ResumeEditorClient', () => {
     });
 
     expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
+  });
+
+  it('hideAppFrameFooter를 resume editor core까지 전달한다', () => {
+    const { container } = render(
+      <ResumeEditorClient
+        hideAppFrameFooter
+        initialContents={resumeEditorClientMockState.editorState.contents}
+        initialPublishSettings={basePublishSettings}
+      />,
+    );
+
+    expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
   });
 });

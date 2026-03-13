@@ -42,11 +42,11 @@ vi.mock('@/widgets/editor', async () => {
 
   return {
     ...actual,
-    EditorCore: ({ onDraftSave, onOpenPublishPanel }: EditorCoreProps) => {
+    EditorCore: ({ hideAppFrameFooter, onDraftSave, onOpenPublishPanel }: EditorCoreProps) => {
       editorClientMockState.editorCoreRenderCount += 1;
 
       return (
-        <div>
+        <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
           <button
             onClick={() => onOpenPublishPanel(editorClientMockState.editorState)}
             type="button"
@@ -173,5 +173,18 @@ describe('EditorClient', () => {
     });
 
     expect(editorClientMockState.editorCoreRenderCount).toBe(1);
+  });
+
+  it('hideAppFrameFooter를 editor core까지 전달한다', () => {
+    const { container } = render(
+      <EditorClient
+        availableTags={[]}
+        contentType="article"
+        hideAppFrameFooter
+        initialTranslations={editorClientMockState.editorState.translations}
+      />,
+    );
+
+    expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
   });
 });

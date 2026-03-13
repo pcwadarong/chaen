@@ -27,6 +27,7 @@ export interface EditorCoreProps {
   availableTags: { id: string; label: string; slug: string }[];
   contentId?: string;
   contentType: EditorContentType;
+  hideAppFrameFooter?: boolean;
   initialPublished?: boolean;
   initialSavedAt?: string | null;
   initialSlug?: string;
