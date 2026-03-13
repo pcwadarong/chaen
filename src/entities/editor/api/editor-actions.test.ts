@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import { deleteEditorDraftAction, saveEditorDraftAction } from './editor-actions';
 
@@ -19,8 +19,8 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/shared/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 describe('editor-actions', () => {
@@ -56,7 +56,7 @@ describe('editor-actions', () => {
       }),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi
         .fn()
         .mockImplementation((table: string) => (table === 'tags' ? tagsQuery : draftsInsertQuery)),
@@ -114,7 +114,7 @@ describe('editor-actions', () => {
         ),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValue(draftsDeleteQuery),
     } as never);
 
@@ -142,7 +142,7 @@ describe('editor-actions', () => {
       eq: vi.fn().mockResolvedValue({ error: null }),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValue(resumeDraftsDeleteQuery),
     } as never);
 
@@ -174,7 +174,7 @@ describe('editor-actions', () => {
         ),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValue(draftsDeleteQuery),
     } as never);
 

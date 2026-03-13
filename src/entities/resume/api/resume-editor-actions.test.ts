@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import { publishResumeContentAction, saveResumeDraftAction } from './resume-editor-actions';
 
@@ -19,8 +19,8 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/shared/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 vi.mock('@/entities/pdf-file/api/get-pdf-file-availability', () => ({
@@ -61,7 +61,7 @@ describe('resume-editor-actions', () => {
       }),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValueOnce(latestDraftQuery).mockReturnValueOnce(insertDraftQuery),
     } as never);
 
@@ -142,7 +142,7 @@ describe('resume-editor-actions', () => {
       error: null,
     });
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi
         .fn()
         .mockImplementation((table: string) =>

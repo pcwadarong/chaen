@@ -9,7 +9,7 @@ import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import {
   type DraftSaveResult,
   EDITOR_LOCALES,
@@ -89,7 +89,10 @@ export const saveResumeDraftAction = async ({
     );
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
     contents: buildResumeDraftContentRecord(parsedState.data.contents),
@@ -186,7 +189,10 @@ export const publishResumeContentAction = async ({
     );
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const { tableName } = getPdfFileContentConfig('resume');
   const nowIso = new Date().toISOString();
   const contentRows = buildResumeContentRows({
@@ -238,7 +244,10 @@ const buildResumeContentRows = ({
  * 기존 resume draft id가 있으면 그 draft를, 없으면 resume draft 전체를 정리합니다.
  */
 const deleteResumeDrafts = async (draftId?: string | null) => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   let query = supabase.from('resume_drafts').delete();
 
   if (draftId) {
@@ -256,7 +265,10 @@ const deleteResumeDrafts = async (draftId?: string | null) => {
  * 가장 최근 resume draft id를 반환합니다.
  */
 const resolveLatestResumeDraftId = async () => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const { data, error } = await supabase
     .from('resume_drafts')
     .select('id')

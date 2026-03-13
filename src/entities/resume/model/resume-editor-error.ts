@@ -4,6 +4,8 @@ export const RESUME_EDITOR_ERROR_MESSAGE = {
   draftDeleteFailed: '이력서 임시저장을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
   draftSaveFailed: '이력서 임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
   draftSaveInvalidState: '이력서 임시 저장 요청을 확인해주세요.',
+  serviceRoleUnavailable:
+    '이력서 관리자 저장 권한이 연결되지 않았습니다. 환경 변수를 확인해주세요.',
   missingKoBody: '한국어 본문을 입력해주세요',
   missingKoTitle: '한국어 제목을 입력해주세요',
   missingPdf: '이력서 PDF를 업로드해주세요',
@@ -24,6 +26,7 @@ const RESUME_EDITOR_INLINE_ERROR_FIELD_BY_CODE: Record<
   draftDeleteFailed: null,
   draftSaveFailed: null,
   draftSaveInvalidState: null,
+  serviceRoleUnavailable: null,
   missingKoBody: 'koBody',
   missingKoTitle: 'koTitle',
   missingPdf: 'pdf',

@@ -5,7 +5,7 @@ import {
   getPdfFileContentConfig,
 } from '@/entities/pdf-file';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import type { Locale } from '@/widgets/editor/model/editor-core.types';
 
 import 'server-only';
@@ -108,7 +108,10 @@ export const getResumeEditorSeed = async ({
  * resume 편집 화면이 다루는 locale 레코드를 Supabase에서 조회합니다.
  */
 const getResumeEditorRows = async (): Promise<PdfFileContent[]> => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw new Error('[resume-editor] service role env is not configured');
+  }
   const { tableName } = getPdfFileContentConfig('resume');
   const { data, error } = await supabase.from(tableName).select('*');
 
@@ -127,7 +130,10 @@ const getResumeDraftSeed = async ({
 }: {
   draftId?: string;
 }): Promise<ResumeDraftSeed | null> => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw new Error('[resume-editor] service role env is not configured');
+  }
   let query = supabase
     .from('resume_drafts')
     .select('id,contents,pdf_file_path,updated_at')

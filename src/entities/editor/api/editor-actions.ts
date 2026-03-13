@@ -11,7 +11,7 @@ import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import type { DraftSaveResult, EditorState, PublishSettings } from '@/widgets/editor';
 import { validateEditorState } from '@/widgets/editor/model/editor-core.utils';
 
@@ -105,7 +105,8 @@ export const saveEditorDraftAction = async ({
       parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidSettings,
     );
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
@@ -225,7 +226,8 @@ export const publishEditorContentAction = async ({
 
   if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const targetContentId = contentId ?? crypto.randomUUID();
   const config = getEditorContentTableConfig(contentType);
   const nowIso = new Date().toISOString();
@@ -305,7 +307,8 @@ export const deleteEditorDraftAction = async ({
 }: DeleteEditorDraftActionInput) => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
 
   if (contentType === 'resume') {
     const { error } = await supabase.from('resume_drafts').delete().eq('id', draftId);
@@ -352,7 +355,8 @@ const resolveEditorDraftId = async ({
 }) => {
   if (!contentId) return null;
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const { data, error } = await supabase
     .from('drafts')
     .select('id')
@@ -380,7 +384,8 @@ const getTagIdsBySlugs = async (tagSlugs: string[]) => {
 
   if (normalizedTagSlugs.length === 0) return [];
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const { data, error } = await supabase
     .from('tags')
     .select('id,slug')
@@ -408,7 +413,7 @@ const syncEditorContentTranslations = async ({
 }: {
   config: EditorContentTableConfig;
   contentId: string;
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
   translations: EditorState['translations'];
 }) => {
   const { error: deleteError } = await supabase
@@ -443,7 +448,7 @@ const syncEditorContentTags = async ({
 }: {
   config: EditorContentTableConfig;
   contentId: string;
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
   tagSlugs: string[];
 }) => {
   const { error: deleteError } = await supabase
@@ -476,7 +481,8 @@ const deleteEditorDrafts = async ({
   contentType: 'article' | 'project';
   draftId?: string | null;
 }) => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw new Error('[editor] service role env is not configured');
   let query = supabase.from('drafts').delete().eq('content_type', contentType);
 
   if (draftId) query = query.eq('id', draftId);
