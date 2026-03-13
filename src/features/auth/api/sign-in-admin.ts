@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { AUTH_ACTION_ERROR_CODE } from '@/features/auth/model/auth-action-error';
 import { type ActionResult, createActionFailure } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
@@ -48,14 +49,23 @@ export const signInAdmin = async (
 
   if (error) {
     if (error.message.toLowerCase().includes('invalid login credentials')) {
-      return createActionFailure('이메일 또는 비밀번호를 다시 확인해주세요.');
+      return createActionFailure(
+        '이메일 또는 비밀번호를 다시 확인해주세요.',
+        AUTH_ACTION_ERROR_CODE.invalidCredentials,
+      );
     }
 
-    return createActionFailure('로그인 처리 중 문제가 발생했습니다.');
+    return createActionFailure(
+      '로그인 처리 중 문제가 발생했습니다.',
+      AUTH_ACTION_ERROR_CODE.signInFailed,
+    );
   }
 
   if (!session) {
-    return createActionFailure('로그인 처리 중 문제가 발생했습니다.');
+    return createActionFailure(
+      '로그인 처리 중 문제가 발생했습니다.',
+      AUTH_ACTION_ERROR_CODE.sessionMissing,
+    );
   }
 
   redirect(redirectPath);
