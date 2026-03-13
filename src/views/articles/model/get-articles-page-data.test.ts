@@ -71,6 +71,7 @@ describe('getArticlesPageData', () => {
       feedLocale: 'ko',
       initialCursor: '12',
       initialItems: expect.any(Array),
+      locale: 'ko',
       pagination: {
         currentPage: 1,
         nextHref: '/ko/articles?q=react&page=2',
@@ -222,6 +223,7 @@ describe('getArticlesPageData', () => {
       tag: '',
     });
     expect(data.feedLocale).toBe('ko');
+    expect(data.locale).toBe('fr');
     expect(data.pagination).toEqual({
       currentPage: 2,
       nextHref: '/fr/articles?page=3',

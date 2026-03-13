@@ -135,6 +135,7 @@ export const getArticlesPageData = async ({
     feedLocale: resolvedArticlesPage.resolvedLocale,
     initialCursor: articlesPage.nextCursor,
     initialItems: articlesPage.items,
+    locale,
     pagination: {
       currentPage,
       nextHref: articlesPage.nextCursor

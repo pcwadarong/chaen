@@ -1,4 +1,4 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -13,6 +13,7 @@ export type ArticlesPageProps = {
   feedLocale: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
+  locale: string;
   pagination: {
     currentPage: number;
     nextHref: string | null;
@@ -23,15 +24,16 @@ export type ArticlesPageProps = {
 };
 
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
-export const ArticlesPage = ({
+export const ArticlesPage = async ({
   activeTag,
   feedLocale,
   initialCursor,
   initialItems,
+  locale,
   popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
-  const t = useTranslations('Articles');
+  const t = await getTranslations({ locale, namespace: 'Articles' });
 
   return (
     <PageShell hideAppFrameFooter>
@@ -58,6 +60,7 @@ export const ArticlesPage = ({
               <div className={desktopSearchFormClass}>
                 <ArticleSearchForm
                   clearText={t('searchClear')}
+                  key={`article-search:${locale}:${searchQuery}`}
                   pendingText={t('loading')}
                   placeholder={t('searchPlaceholder')}
                   searchQuery={searchQuery}

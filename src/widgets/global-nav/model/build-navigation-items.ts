@@ -1,7 +1,7 @@
 import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
 
 type NavigationLabels = {
-  admin: string;
+  admin?: string;
   articles: string;
   guest: string;
   home: string;
@@ -26,5 +26,5 @@ export const buildGlobalNavigationItems = ({
   { href: '/project', label: labels.project },
   { href: '/articles', label: labels.articles },
   { href: '/guest', label: labels.guest },
-  ...(isAdmin ? [{ href: '/admin' as const, label: labels.admin }] : []),
+  ...(isAdmin ? [{ href: '/admin' as const, label: labels.admin ?? '관리자' }] : []),
 ];

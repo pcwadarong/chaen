@@ -98,7 +98,6 @@ export const GlobalNav = () => {
       buildGlobalNavigationItems({
         isAdmin,
         labels: {
-          admin: '관리자',
           articles: articlesLabel,
           guest: guestLabel,
           home: homeLabel,
