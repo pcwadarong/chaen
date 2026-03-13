@@ -35,6 +35,7 @@ vi.mock('./check-slug-duplicate', () => ({
 describe('editor-actions', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('draft 저장 시 publish settings를 drafts payload에 함께 저장한다', async () => {
@@ -139,6 +140,9 @@ describe('editor-actions', () => {
   });
 
   it('article 지금 발행 후에는 공개 slug 경로로 이동한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T06:15:00.000Z'));
+
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -215,6 +219,11 @@ describe('editor-actions', () => {
       },
     });
 
+    expect(articlesUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publish_at: '2026-03-14T06:15:00.000Z',
+      }),
+    );
     expect(redirect).toHaveBeenCalledWith('/ko/articles/published-article');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles');

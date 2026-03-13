@@ -232,9 +232,10 @@ export const publishEditorContentAction = async ({
   const targetContentId = contentId ?? crypto.randomUUID();
   const config = getEditorContentTableConfig(contentType);
   const nowIso = new Date().toISOString();
+  const effectivePublishAt = parsedSettings.data.publishAt ?? nowIso;
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
-    publish_at: parsedSettings.data.publishAt,
+    publish_at: effectivePublishAt,
     slug: normalizedSlug,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     updated_at: nowIso,
