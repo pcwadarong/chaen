@@ -1,10 +1,10 @@
 'use client';
 
+import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
 import type {
   ResumeEditorState,
   ResumePublishSettings,
 } from '@/entities/resume/model/resume-editor.types';
-import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 
 export type ResumeEditorCoreProps = {
   hideAppFrameFooter?: boolean;

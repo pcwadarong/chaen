@@ -1,12 +1,12 @@
 import React from 'react';
 
+import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
 import type {
   ResumeEditorContentMap,
   ResumeEditorState,
   ResumePublishSettings,
 } from '@/entities/resume/model/resume-editor.types';
 import { ResumeEditorClient } from '@/views/resume-editor/ui/resume-editor-client';
-import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 
 type ResumeEditorPageProps = {
   hideAppFrameFooter?: boolean;

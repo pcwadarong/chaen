@@ -6,7 +6,7 @@ import {
   normalizeEditorVisibility,
   resolveEditorPublicationState,
 } from '@/entities/editor/api/editor.utils';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 
 describe('editor.utils', () => {
   it('draft json 필드를 locale 레코드로 만든다', () => {

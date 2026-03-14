@@ -19,6 +19,27 @@ export {
   resolveEditorPublishInlineErrorField,
 } from './model/editor-error';
 export {
+  createEmptyTranslations,
+  formatSavedAtLabel,
+  isEditorStateEqual,
+  normalizeEditorState,
+  normalizeTagSlugs,
+  validateEditorState,
+} from './model/editor-state-utils';
+export {
+  type DraftSaveResult,
+  EDITOR_LOCALES,
+  type EditorContentType,
+  type EditorLocaleValidation,
+  type EditorPublicationState,
+  type EditorState,
+  type EditorValidationResult,
+  type Locale,
+  type PublishSettings,
+  type PublishVisibility,
+  type TranslationField,
+} from './model/editor-types';
+export {
   buildEditorLinkInsertion,
   createMarkdownLink,
   createMarkdownLinkByMode,

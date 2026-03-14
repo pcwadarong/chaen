@@ -6,6 +6,12 @@ import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { validateEditorState } from '@/entities/editor/model/editor-state-utils';
+import type {
+  DraftSaveResult,
+  EditorState,
+  PublishSettings,
+} from '@/entities/editor/model/editor-types';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -13,8 +19,6 @@ import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug'
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { DraftSaveResult, EditorState, PublishSettings } from '@/widgets/editor';
-import { validateEditorState } from '@/widgets/editor/model/editor-core.utils';
 
 import { checkSlugDuplicate } from './check-slug-duplicate';
 import type { EditorContentTableConfig } from './editor.utils';

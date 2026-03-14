@@ -1,7 +1,7 @@
+import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import { createUniqueStorageFileName } from '@/shared/lib/storage/create-unique-storage-file-name';
 import { createStoragePath, STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { EditorContentType } from '@/widgets/editor/model/editor-core.types';
 
 import 'server-only';
 

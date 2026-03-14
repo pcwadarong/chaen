@@ -4,7 +4,7 @@ import type {
   Locale,
   PublishSettings,
   TranslationField,
-} from '@/widgets/editor/model/editor-core.types';
+} from '@/entities/editor/model/editor-types';
 
 export type EditorSeed = {
   contentId?: string;

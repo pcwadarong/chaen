@@ -4,17 +4,17 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import {
+  type DraftSaveResult,
+  EDITOR_LOCALES,
+  type Locale,
+} from '@/entities/editor/model/editor-types';
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import {
-  type DraftSaveResult,
-  EDITOR_LOCALES,
-  type Locale,
-} from '@/widgets/editor/model/editor-core.types';
 
 import type {
   ResumeEditorContentMap,

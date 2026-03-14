@@ -1,7 +1,7 @@
 import { createEditorError } from '@/entities/editor/model/editor-error';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
+import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { EditorContentType, Locale } from '@/widgets/editor/model/editor-core.types';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
 
 import 'server-only';
 

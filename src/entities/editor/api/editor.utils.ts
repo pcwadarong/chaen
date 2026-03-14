@@ -1,10 +1,10 @@
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 import type {
   EditorPublicationState,
   Locale,
   PublishSettings,
   TranslationField,
-} from '@/widgets/editor/model/editor-core.types';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
+} from '@/entities/editor/model/editor-types';
 
 import type { EditorSeed } from './editor.types';
 

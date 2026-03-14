@@ -1,6 +1,6 @@
+import { EDITOR_LOCALES, type Locale } from '@/entities/editor/model/editor-types';
 import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
-import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/model/editor-core.types';
 
 import type {
   ResumeDraftSeed,
