@@ -6,6 +6,12 @@ import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { validateEditorState } from '@/entities/editor/model/editor-state-utils';
+import type {
+  DraftSaveResult,
+  EditorState,
+  PublishSettings,
+} from '@/entities/editor/model/editor-types';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -13,8 +19,6 @@ import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug'
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { DraftSaveResult, EditorState, PublishSettings } from '@/widgets/editor';
-import { validateEditorState } from '@/widgets/editor/model/editor-core.utils';
 
 import { checkSlugDuplicate } from './check-slug-duplicate';
 import type { EditorContentTableConfig } from './editor.utils';
@@ -22,6 +26,7 @@ import {
   buildDraftFieldRecord,
   buildEditorTranslationRows,
   getEditorContentTableConfig,
+  resolveEditorPublicationState,
 } from './editor.utils';
 
 const translationFieldSchema = z.object({
@@ -53,6 +58,11 @@ const publishSettingsSchema = z.object({
 type EditorDraftRow = {
   id: string;
   updated_at: string;
+};
+
+type EditorContentPublishRow = {
+  publish_at: string | null;
+  visibility: string | null;
 };
 
 type SaveEditorDraftActionInput = {
@@ -108,6 +118,18 @@ export const saveEditorDraftAction = async ({
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
+  const config = getEditorContentTableConfig(contentType);
+  const existingContentPublication = contentId
+    ? await getExistingContentPublication({
+        config,
+        contentId,
+        supabase,
+      })
+    : null;
+  const existingPublicationState = resolveEditorPublicationState(
+    existingContentPublication?.publish_at ?? null,
+    existingContentPublication?.visibility,
+  );
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
@@ -116,7 +138,10 @@ export const saveEditorDraftAction = async ({
     content_id: contentId ?? null,
     content_type: contentType,
     description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
-    publish_at: parsedSettings.data.publishAt,
+    publish_at:
+      existingPublicationState === 'published'
+        ? (existingContentPublication?.publish_at ?? null)
+        : parsedSettings.data.publishAt,
     slug: normalizeSlugInput(parsedSettings.data.slug) || null,
     tags: normalizedTagIds,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
@@ -212,8 +237,30 @@ export const publishEditorContentAction = async ({
 
   if (!isValidSlugFormat(normalizedSlug)) throw createEditorError('slugFormatInvalid');
 
-  if (parsedSettings.data.publishAt) {
-    const scheduledDate = new Date(parsedSettings.data.publishAt);
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
+  const targetContentId = contentId ?? crypto.randomUUID();
+  const config = getEditorContentTableConfig(contentType);
+  const existingContentPublication = contentId
+    ? await getExistingContentPublication({
+        config,
+        contentId: targetContentId,
+        supabase,
+      })
+    : null;
+  const existingPublicationState = resolveEditorPublicationState(
+    existingContentPublication?.publish_at ?? null,
+    existingContentPublication?.visibility,
+  );
+  const nextPublishAtToValidate =
+    existingPublicationState === 'published' ? null : parsedSettings.data.publishAt;
+
+  if (existingPublicationState === 'published' && parsedSettings.data.publishAt !== null) {
+    throw createEditorError('publishedContentCannotBeRescheduled');
+  }
+
+  if (nextPublishAtToValidate) {
+    const scheduledDate = new Date(nextPublishAtToValidate);
 
     if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= new Date().getTime()) {
       throw createEditorError('scheduledPublishMustBeFuture');
@@ -227,18 +274,23 @@ export const publishEditorContentAction = async ({
 
   if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw createEditorError('serviceRoleUnavailable');
-  const targetContentId = contentId ?? crypto.randomUUID();
-  const config = getEditorContentTableConfig(contentType);
   const nowIso = new Date().toISOString();
-  const effectivePublishAt = parsedSettings.data.publishAt ?? nowIso;
+  const effectivePublishAt =
+    existingPublicationState === 'published'
+      ? (existingContentPublication?.publish_at ?? null)
+      : (parsedSettings.data.publishAt ?? nowIso);
+  const redirectPath = getPublishRedirectPath({
+    contentId: targetContentId,
+    contentType,
+    publishAt: effectivePublishAt,
+    visibility: parsedSettings.data.visibility,
+    slug: normalizedSlug,
+  });
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
     publish_at: effectivePublishAt,
     slug: normalizedSlug,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
-    updated_at: nowIso,
     visibility: parsedSettings.data.visibility,
   };
 
@@ -291,11 +343,7 @@ export const publishEditorContentAction = async ({
   redirect(
     buildLocalizedPathname({
       locale: resolveActionLocale(locale),
-      pathname: getPublishRedirectPath({
-        contentType,
-        publishAt: parsedSettings.data.publishAt,
-        slug: normalizedSlug,
-      }),
+      pathname: redirectPath,
     }),
   );
 };
@@ -304,19 +352,61 @@ export const publishEditorContentAction = async ({
  * 발행 시점과 콘텐츠 타입에 따라 최종 redirect 경로를 계산합니다.
  */
 const getPublishRedirectPath = ({
+  contentId,
   contentType,
   publishAt,
+  visibility,
   slug,
 }: {
+  contentId: string;
   contentType: 'article' | 'project';
   publishAt: string | null;
+  visibility: PublishSettings['visibility'];
   slug: string;
 }) => {
-  if (publishAt) {
+  if (visibility !== 'public') {
+    return getEditorEditPath({
+      contentId,
+      contentType,
+    });
+  }
+
+  const publishDate = publishAt ? new Date(publishAt) : null;
+  const isScheduled =
+    publishDate !== null &&
+    !Number.isNaN(publishDate.getTime()) &&
+    publishDate.getTime() > new Date().getTime();
+
+  if (isScheduled) {
     return contentType === 'article' ? '/articles' : '/project';
   }
 
   return contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`;
+};
+
+/**
+ * 기존 콘텐츠의 등록/공개 메타데이터를 읽어 수정 발행 규칙 판단에 사용합니다.
+ */
+const getExistingContentPublication = async ({
+  config,
+  contentId,
+  supabase,
+}: {
+  config: EditorContentTableConfig;
+  contentId: string;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
+}) => {
+  const { data, error } = await supabase
+    .from(config.table)
+    .select('publish_at,visibility')
+    .eq('id', contentId)
+    .maybeSingle<EditorContentPublishRow>();
+
+  if (error) {
+    throw createEditorError('publishFailed');
+  }
+
+  return data ?? null;
 };
 
 /**

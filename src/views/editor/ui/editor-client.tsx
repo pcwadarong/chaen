@@ -6,6 +6,7 @@ import {
   type DraftSaveResult,
   type EditorContentType,
   EditorCore,
+  type EditorPublicationState,
   type EditorState,
   type Locale,
   PublishPanel,
@@ -24,6 +25,7 @@ type EditorClientProps = {
   contentType: EditorContentType;
   hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
+  initialPublicationState?: EditorPublicationState;
   initialPublished?: boolean;
   initialSavedAt?: string | null;
   initialSettings?: PublishSettings;
@@ -55,6 +57,7 @@ export const EditorClient = ({
   contentType,
   hideAppFrameFooter = false,
   initialDraftId = null,
+  initialPublicationState = 'draft',
   initialPublished = false,
   initialSavedAt = null,
   initialSettings,
@@ -157,6 +160,7 @@ export const EditorClient = ({
         initialSettings={publishSettings}
         isOpen={isPublishPanelOpen}
         isPublished={initialPublished}
+        publicationState={initialPublicationState}
         onClose={handleClosePublishPanel}
         onSettingsChange={handleSettingsChange}
         onSubmit={handlePublishSubmit}

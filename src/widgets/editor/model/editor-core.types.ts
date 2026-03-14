@@ -1,27 +1,24 @@
-export const EDITOR_LOCALES = ['ko', 'en', 'ja', 'fr'] as const;
+import type {
+  DraftSaveResult,
+  EditorContentType,
+  EditorPublicationState,
+  EditorState,
+  Locale,
+  PublishSettings,
+  TranslationField,
+} from '@/entities/editor/model/editor-types';
 
-export type Locale = (typeof EDITOR_LOCALES)[number];
-
-export interface TranslationField {
-  content: string;
-  description: string;
-  title: string;
-}
-
-export interface EditorState {
-  dirty: boolean;
-  slug: string;
-  tags: string[];
-  translations: Record<Locale, TranslationField>;
-}
-
-export type DraftSaveResult = {
-  draftId?: string;
-  savedAt?: string | null;
-};
-
-export type EditorContentType = 'article' | 'project' | 'resume';
-export type PublishVisibility = 'public' | 'private';
+export {
+  type DraftSaveResult,
+  EDITOR_LOCALES,
+  type EditorContentType,
+  type EditorPublicationState,
+  type EditorState,
+  type Locale,
+  type PublishSettings,
+  type PublishVisibility,
+  type TranslationField,
+} from '@/entities/editor/model/editor-types';
 
 export interface EditorCoreProps {
   availableTags: { id: string; label: string; slug: string }[];
@@ -39,25 +36,6 @@ export interface EditorCoreProps {
 
 export type MobileEditorPane = 'edit' | 'preview';
 
-export type EditorLocaleValidation = {
-  hasContentWithoutTitle: boolean;
-  hasCompleteTranslation: boolean;
-};
-
-export type EditorValidationResult = {
-  canSave: boolean;
-  hasAnyCompleteTranslation: boolean;
-  localeValidation: Record<Locale, EditorLocaleValidation>;
-};
-
-export interface PublishSettings {
-  allowComments: boolean;
-  publishAt: string | null;
-  slug: string;
-  thumbnailUrl: string;
-  visibility: PublishVisibility;
-}
-
 export interface PublishPanelProps {
   contentId?: string;
   contentType: EditorContentType;
@@ -65,6 +43,7 @@ export interface PublishPanelProps {
   initialSettings?: PublishSettings;
   isOpen: boolean;
   isPublished?: boolean;
+  publicationState?: EditorPublicationState;
   onClose: () => void;
   onSettingsChange?: (settings: PublishSettings) => void;
   onSubmit: (settings: PublishSettings) => Promise<void>;

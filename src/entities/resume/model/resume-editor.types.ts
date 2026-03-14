@@ -1,7 +1,7 @@
 'use client';
 
+import type { Locale } from '@/entities/editor/model/editor-types';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
-import type { Locale } from '@/widgets/editor';
 
 export type ResumeEditorContent = Pick<
   PdfFileContent,

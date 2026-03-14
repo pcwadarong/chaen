@@ -1,9 +1,10 @@
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 import type {
+  EditorPublicationState,
   Locale,
   PublishSettings,
   TranslationField,
-} from '@/widgets/editor/model/editor-core.types';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
+} from '@/entities/editor/model/editor-types';
 
 import type { EditorSeed } from './editor.types';
 
@@ -127,6 +128,7 @@ export const mergeEditorSeedWithDraft = (
   ...seed,
   contentId: draftSeed.contentId ?? seed.contentId,
   initialDraftId: draftSeed.draftId,
+  initialPublicationState: seed.initialPublicationState ?? 'draft',
   initialPublished: seed.initialPublished,
   initialSavedAt: draftSeed.updatedAt,
   initialSettings: {
@@ -152,6 +154,31 @@ export const normalizeEditorVisibility = (
   }
 
   return 'public';
+};
+
+/**
+ * 기존 콘텐츠의 `publish_at`을 기준으로 현재 발행 상태를 정규화합니다.
+ */
+export const resolveEditorPublicationState = (
+  publishAt: string | null,
+  visibility: string | null | undefined,
+  now: Date = new Date(),
+): EditorPublicationState => {
+  if (!publishAt) {
+    return 'draft';
+  }
+
+  const publishDate = new Date(publishAt);
+
+  if (Number.isNaN(publishDate.getTime())) {
+    return 'draft';
+  }
+
+  if (publishDate.getTime() > now.getTime()) {
+    return 'scheduled';
+  }
+
+  return visibility === 'public' ? 'published' : 'draft';
 };
 
 /**

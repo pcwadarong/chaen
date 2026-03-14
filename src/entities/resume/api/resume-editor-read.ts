@@ -1,3 +1,4 @@
+import type { Locale } from '@/entities/editor/model/editor-types';
 import type { PdfFileContent } from '@/entities/pdf-file';
 import {
   buildPdfFileDownloadPath,
@@ -6,7 +7,6 @@ import {
 } from '@/entities/pdf-file';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { Locale } from '@/widgets/editor/model/editor-core.types';
 
 import 'server-only';
 

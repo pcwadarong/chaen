@@ -43,6 +43,7 @@ const renderPublishPanel = (
       initialSettings={options?.initialSettings}
       isOpen={options?.isOpen ?? true}
       isPublished={options?.isPublished}
+      publicationState={options?.publicationState}
       onClose={onClose}
       onSubmit={onSubmit}
     />,
@@ -114,11 +115,62 @@ describe('PublishPanel', () => {
         visibility: 'public',
       },
       isPublished: true,
+      publicationState: 'published',
     });
 
     expect(screen.getByLabelText('지금 발행')).toBeChecked();
     expect(screen.getByLabelText('예약 발행')).not.toBeChecked();
     expect(screen.queryByLabelText('날짜')).toBeNull();
+  });
+
+  it('이미 발행된 글은 예약 발행을 다시 선택할 수 없다', async () => {
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: '2026-03-10T09:00:00.000Z',
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+      publicationState: 'published',
+    });
+
+    const scheduledRadio = screen.getByLabelText('예약 발행');
+
+    expect(scheduledRadio).toBeDisabled();
+    expect(
+      screen.getByText('이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.'),
+    ).toBeTruthy();
+
+    fireEvent.click(scheduledRadio);
+
+    expect(screen.getByLabelText('지금 발행')).toBeChecked();
+    expect(screen.queryByLabelText('날짜')).toBeNull();
+  });
+
+  it('아직 공개 전인 예약 article/project는 예약 발행을 수정할 수 있다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
+
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: '2026-03-20T01:00:00.000Z',
+        slug: 'scheduled-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+      publicationState: 'scheduled',
+    });
+
+    expect(screen.getByLabelText('예약 발행')).not.toBeDisabled();
+    expect(screen.getByLabelText('예약 발행')).toBeChecked();
+    expect(screen.getByLabelText('날짜')).toBeTruthy();
+    expect(
+      screen.queryByText('이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.'),
+    ).toBeNull();
   });
 
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {

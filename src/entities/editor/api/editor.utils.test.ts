@@ -4,8 +4,9 @@ import {
   buildEditorTranslationRows,
   mergeEditorSeedWithDraft,
   normalizeEditorVisibility,
+  resolveEditorPublicationState,
 } from '@/entities/editor/api/editor.utils';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 
 describe('editor.utils', () => {
   it('draft json 필드를 locale 레코드로 만든다', () => {
@@ -91,6 +92,7 @@ describe('editor.utils', () => {
     const seed = {
       contentId: 'article-1',
       contentType: 'article' as const,
+      initialPublicationState: 'published' as const,
       initialPublished: true,
       initialSavedAt: '2026-03-13T00:00:00.000Z',
       initialSettings: {
@@ -125,6 +127,7 @@ describe('editor.utils', () => {
       contentId: 'article-1',
       contentType: 'article',
       initialDraftId: 'draft-1',
+      initialPublicationState: 'published',
       initialPublished: true,
       initialSavedAt: '2026-03-14T09:00:00.000Z',
       initialSettings: {
@@ -150,5 +153,18 @@ describe('editor.utils', () => {
     expect(normalizeEditorVisibility('private')).toBe('private');
     expect(normalizeEditorVisibility('draft')).toBe('public');
     expect(normalizeEditorVisibility(null)).toBe('public');
+  });
+
+  it('publish_at 기준으로 scheduled/published 상태를 구분한다', () => {
+    const now = new Date('2026-03-14T09:00:00.000Z');
+
+    expect(resolveEditorPublicationState('2026-03-20T01:00:00.000Z', 'public', now)).toBe(
+      'scheduled',
+    );
+    expect(resolveEditorPublicationState('2026-03-10T09:00:00.000Z', 'public', now)).toBe(
+      'published',
+    );
+    expect(resolveEditorPublicationState('2026-03-10T09:00:00.000Z', 'private', now)).toBe('draft');
+    expect(resolveEditorPublicationState(null, 'public', now)).toBe('draft');
   });
 });

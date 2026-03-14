@@ -2,12 +2,12 @@
 
 import React, { useCallback, useState } from 'react';
 
+import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
 import { uploadPdfFileByKind } from '@/entities/pdf-file/api/upload-pdf-file-by-kind';
 import type {
   ResumeEditorState,
   ResumePublishSettings,
 } from '@/entities/resume/model/resume-editor.types';
-import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 import { ResumeEditorCore, ResumePublishPanel } from '@/widgets/resume-editor';
 
 type ResumeEditorClientProps = {

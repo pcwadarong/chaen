@@ -1,7 +1,7 @@
 import { createEditorError } from '@/entities/editor/model/editor-error';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
+import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-import type { EditorContentType, Locale } from '@/widgets/editor/model/editor-core.types';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
 
 import 'server-only';
 
@@ -11,6 +11,7 @@ import {
   getEditorContentTableConfig,
   mergeEditorSeedWithDraft,
   normalizeEditorVisibility,
+  resolveEditorPublicationState,
 } from './editor.utils';
 
 type ContentRow = {
@@ -68,6 +69,7 @@ type ResumeDraftRow = {
 export const createEditorSeed = (contentType: EditorContentType): EditorSeed => ({
   contentType,
   initialDraftId: null,
+  initialPublicationState: 'draft',
   initialPublished: false,
   initialSavedAt: null,
   initialSettings: undefined,
@@ -159,6 +161,10 @@ export const getEditorSeed = async ({
     contentId: contentRow.id,
     contentType,
     initialDraftId: null,
+    initialPublicationState: resolveEditorPublicationState(
+      contentRow.publish_at,
+      contentRow.visibility,
+    ),
     initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {

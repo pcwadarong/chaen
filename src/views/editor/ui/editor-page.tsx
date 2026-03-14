@@ -4,6 +4,7 @@ import { EditorClient } from '@/views/editor/ui/editor-client';
 import type {
   DraftSaveResult,
   EditorContentType,
+  EditorPublicationState,
   EditorState,
   Locale,
   PublishSettings,
@@ -20,6 +21,7 @@ type EditorPageProps = {
   contentType: EditorContentType;
   hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
+  initialPublicationState?: EditorPublicationState;
   initialPublished?: boolean;
   initialSavedAt?: string | null;
   initialSettings?: PublishSettings;
@@ -47,6 +49,7 @@ export const EditorPage = ({
   contentType,
   hideAppFrameFooter = false,
   initialDraftId,
+  initialPublicationState,
   initialPublished,
   initialSavedAt,
   initialSettings,
@@ -62,6 +65,7 @@ export const EditorPage = ({
     contentType={contentType}
     hideAppFrameFooter={hideAppFrameFooter}
     initialDraftId={initialDraftId}
+    initialPublicationState={initialPublicationState}
     initialPublished={initialPublished}
     initialSavedAt={initialSavedAt}
     initialSettings={initialSettings}

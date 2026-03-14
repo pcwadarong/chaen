@@ -1,14 +1,16 @@
 import type {
   EditorContentType,
+  EditorPublicationState,
   Locale,
   PublishSettings,
   TranslationField,
-} from '@/widgets/editor/model/editor-core.types';
+} from '@/entities/editor/model/editor-types';
 
 export type EditorSeed = {
   contentId?: string;
   contentType: EditorContentType;
   initialDraftId?: string | null;
+  initialPublicationState?: EditorPublicationState;
   initialPublished: boolean;
   initialSavedAt: string | null;
   initialSettings?: PublishSettings;
