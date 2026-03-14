@@ -120,6 +120,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-10T09:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),
@@ -187,6 +188,9 @@ describe('editor-actions', () => {
   });
 
   it('아직 공개 전인 예약 article draft 저장은 변경한 publish_at을 유지한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
+
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -199,6 +203,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-20T01:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),
@@ -315,6 +320,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-10T09:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),
@@ -402,7 +408,108 @@ describe('editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles/published-article');
   });
 
+  it('비공개 article 즉시 발행 수정 후에는 관리자 편집 경로로 이동한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T06:15:00.000Z'));
+
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(checkSlugDuplicate).mockResolvedValue({
+      data: { duplicate: false, source: null },
+      schemaMissing: false,
+    });
+
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-10T09:00:00.000Z',
+          visibility: 'public',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articlesUpdateQuery = {
+      eq: vi.fn().mockResolvedValue({ error: null }),
+      update: vi.fn().mockReturnThis(),
+    };
+    const translationsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const translationsInsertQuery = {
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const articleTagsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const draftsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi
+        .fn()
+        .mockImplementation((column: string) =>
+          column === 'id' ? Promise.resolve({ error: null }) : draftsDeleteQuery,
+        ),
+    };
+    const articleTranslationsFromCalls: string[] = [];
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table === 'articles') {
+          return articleReadQuery.select.mock.calls.length === 0
+            ? articleReadQuery
+            : articlesUpdateQuery;
+        }
+        if (table === 'article_translations') {
+          articleTranslationsFromCalls.push(table);
+          return articleTranslationsFromCalls.length === 1
+            ? translationsDeleteQuery
+            : translationsInsertQuery;
+        }
+        if (table === 'article_tags') return articleTagsDeleteQuery;
+        if (table === 'drafts') return draftsDeleteQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    } as never);
+
+    await publishEditorContentAction({
+      contentId: 'article-1',
+      contentType: 'article',
+      draftId: 'draft-4',
+      editorState: {
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '설명', title: '제목' },
+        },
+      },
+      locale: 'ko',
+      settings: {
+        allowComments: true,
+        publishAt: null,
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'private',
+      },
+    });
+
+    expect(redirect).toHaveBeenCalledWith('/ko/admin/articles/article-1/edit');
+  });
+
   it('아직 공개 전인 예약 article은 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
+
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -419,6 +526,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-20T01:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),
@@ -517,6 +625,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-10T09:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),
@@ -561,6 +670,9 @@ describe('editor-actions', () => {
   });
 
   it('아직 공개 전인 예약 project는 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
+
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -577,6 +689,7 @@ describe('editor-actions', () => {
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
           publish_at: '2026-03-20T01:00:00.000Z',
+          visibility: 'public',
         },
         error: null,
       }),

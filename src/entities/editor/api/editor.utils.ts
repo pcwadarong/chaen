@@ -161,6 +161,7 @@ export const normalizeEditorVisibility = (
  */
 export const resolveEditorPublicationState = (
   publishAt: string | null,
+  visibility: string | null | undefined,
   now: Date = new Date(),
 ): EditorPublicationState => {
   if (!publishAt) {
@@ -173,7 +174,11 @@ export const resolveEditorPublicationState = (
     return 'draft';
   }
 
-  return publishDate.getTime() > now.getTime() ? 'scheduled' : 'published';
+  if (publishDate.getTime() > now.getTime()) {
+    return 'scheduled';
+  }
+
+  return visibility === 'public' ? 'published' : 'draft';
 };
 
 /**

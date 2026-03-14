@@ -58,6 +58,7 @@ type EditorDraftRow = {
 
 type EditorContentPublishRow = {
   publish_at: string | null;
+  visibility: string | null;
 };
 
 type SaveEditorDraftActionInput = {
@@ -114,14 +115,17 @@ export const saveEditorDraftAction = async ({
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const config = getEditorContentTableConfig(contentType);
-  const existingPublishAt = contentId
-    ? await getExistingContentPublishAt({
+  const existingContentPublication = contentId
+    ? await getExistingContentPublication({
         config,
         contentId,
         supabase,
       })
     : null;
-  const existingPublicationState = resolveEditorPublicationState(existingPublishAt);
+  const existingPublicationState = resolveEditorPublicationState(
+    existingContentPublication?.publish_at ?? null,
+    existingContentPublication?.visibility,
+  );
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
@@ -131,7 +135,9 @@ export const saveEditorDraftAction = async ({
     content_type: contentType,
     description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
     publish_at:
-      existingPublicationState === 'published' ? existingPublishAt : parsedSettings.data.publishAt,
+      existingPublicationState === 'published'
+        ? (existingContentPublication?.publish_at ?? null)
+        : parsedSettings.data.publishAt,
     slug: normalizeSlugInput(parsedSettings.data.slug) || null,
     tags: normalizedTagIds,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
@@ -231,14 +237,17 @@ export const publishEditorContentAction = async ({
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const targetContentId = contentId ?? crypto.randomUUID();
   const config = getEditorContentTableConfig(contentType);
-  const existingPublishAt = contentId
-    ? await getExistingContentPublishAt({
+  const existingContentPublication = contentId
+    ? await getExistingContentPublication({
         config,
         contentId: targetContentId,
         supabase,
       })
     : null;
-  const existingPublicationState = resolveEditorPublicationState(existingPublishAt);
+  const existingPublicationState = resolveEditorPublicationState(
+    existingContentPublication?.publish_at ?? null,
+    existingContentPublication?.visibility,
+  );
   const nextPublishAtToValidate =
     existingPublicationState === 'published' ? null : parsedSettings.data.publishAt;
 
@@ -264,8 +273,15 @@ export const publishEditorContentAction = async ({
   const nowIso = new Date().toISOString();
   const effectivePublishAt =
     existingPublicationState === 'published'
-      ? existingPublishAt
+      ? (existingContentPublication?.publish_at ?? null)
       : (parsedSettings.data.publishAt ?? nowIso);
+  const redirectPath = getPublishRedirectPath({
+    contentId: targetContentId,
+    contentType,
+    publishAt: effectivePublishAt,
+    visibility: parsedSettings.data.visibility,
+    slug: normalizedSlug,
+  });
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
     publish_at: effectivePublishAt,
@@ -323,11 +339,7 @@ export const publishEditorContentAction = async ({
   redirect(
     buildLocalizedPathname({
       locale: resolveActionLocale(locale),
-      pathname: getPublishRedirectPath({
-        contentType,
-        publishAt: effectivePublishAt,
-        slug: normalizedSlug,
-      }),
+      pathname: redirectPath,
     }),
   );
 };
@@ -336,14 +348,25 @@ export const publishEditorContentAction = async ({
  * 발행 시점과 콘텐츠 타입에 따라 최종 redirect 경로를 계산합니다.
  */
 const getPublishRedirectPath = ({
+  contentId,
   contentType,
   publishAt,
+  visibility,
   slug,
 }: {
+  contentId: string;
   contentType: 'article' | 'project';
   publishAt: string | null;
+  visibility: PublishSettings['visibility'];
   slug: string;
 }) => {
+  if (visibility !== 'public') {
+    return getEditorEditPath({
+      contentId,
+      contentType,
+    });
+  }
+
   const publishDate = publishAt ? new Date(publishAt) : null;
   const isScheduled =
     publishDate !== null &&
@@ -358,9 +381,9 @@ const getPublishRedirectPath = ({
 };
 
 /**
- * 기존 콘텐츠의 등록 시각을 읽어 수정 시 `publish_at`을 보존합니다.
+ * 기존 콘텐츠의 등록/공개 메타데이터를 읽어 수정 발행 규칙 판단에 사용합니다.
  */
-const getExistingContentPublishAt = async ({
+const getExistingContentPublication = async ({
   config,
   contentId,
   supabase,
@@ -371,7 +394,7 @@ const getExistingContentPublishAt = async ({
 }) => {
   const { data, error } = await supabase
     .from(config.table)
-    .select('publish_at')
+    .select('publish_at,visibility')
     .eq('id', contentId)
     .maybeSingle<EditorContentPublishRow>();
 
@@ -379,7 +402,7 @@ const getExistingContentPublishAt = async ({
     throw createEditorError('publishFailed');
   }
 
-  return data?.publish_at ?? null;
+  return data ?? null;
 };
 
 /**

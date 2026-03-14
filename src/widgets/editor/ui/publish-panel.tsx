@@ -196,7 +196,9 @@ const PublishScheduleSectionBase = ({
       </label>
     </div>
     {isScheduleLocked ? (
-      <p className={helperTextClass}>이미 공개된 글은 예약 발행으로 다시 전환할 수 없습니다.</p>
+      <p aria-live="polite" className={helperTextClass} role="status">
+        이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.
+      </p>
     ) : null}
     {publishMode === 'scheduled' && !isScheduleLocked ? (
       <div className={scheduleFieldGridClass}>

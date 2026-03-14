@@ -140,7 +140,7 @@ describe('PublishPanel', () => {
 
     expect(scheduledRadio).toBeDisabled();
     expect(
-      screen.getByText('이미 공개된 글은 예약 발행으로 다시 전환할 수 없습니다.'),
+      screen.getByText('이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.'),
     ).toBeTruthy();
 
     fireEvent.click(scheduledRadio);
@@ -150,6 +150,9 @@ describe('PublishPanel', () => {
   });
 
   it('아직 공개 전인 예약 article/project는 예약 발행을 수정할 수 있다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
+
     renderPublishPanel({
       initialSettings: {
         allowComments: true,
@@ -166,7 +169,7 @@ describe('PublishPanel', () => {
     expect(screen.getByLabelText('예약 발행')).toBeChecked();
     expect(screen.getByLabelText('날짜')).toBeTruthy();
     expect(
-      screen.queryByText('이미 공개된 글은 예약 발행으로 다시 전환할 수 없습니다.'),
+      screen.queryByText('이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.'),
     ).toBeNull();
   });
 

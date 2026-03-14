@@ -161,7 +161,10 @@ export const getEditorSeed = async ({
     contentId: contentRow.id,
     contentType,
     initialDraftId: null,
-    initialPublicationState: resolveEditorPublicationState(contentRow.publish_at),
+    initialPublicationState: resolveEditorPublicationState(
+      contentRow.publish_at,
+      contentRow.visibility,
+    ),
     initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {

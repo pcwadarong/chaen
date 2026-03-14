@@ -158,8 +158,13 @@ describe('editor.utils', () => {
   it('publish_at 기준으로 scheduled/published 상태를 구분한다', () => {
     const now = new Date('2026-03-14T09:00:00.000Z');
 
-    expect(resolveEditorPublicationState('2026-03-20T01:00:00.000Z', now)).toBe('scheduled');
-    expect(resolveEditorPublicationState('2026-03-10T09:00:00.000Z', now)).toBe('published');
-    expect(resolveEditorPublicationState(null, now)).toBe('draft');
+    expect(resolveEditorPublicationState('2026-03-20T01:00:00.000Z', 'public', now)).toBe(
+      'scheduled',
+    );
+    expect(resolveEditorPublicationState('2026-03-10T09:00:00.000Z', 'public', now)).toBe(
+      'published',
+    );
+    expect(resolveEditorPublicationState('2026-03-10T09:00:00.000Z', 'private', now)).toBe('draft');
+    expect(resolveEditorPublicationState(null, 'public', now)).toBe('draft');
   });
 });
