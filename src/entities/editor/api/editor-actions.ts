@@ -22,6 +22,7 @@ import {
   buildDraftFieldRecord,
   buildEditorTranslationRows,
   getEditorContentTableConfig,
+  resolveEditorPublicationState,
 } from './editor.utils';
 
 const translationFieldSchema = z.object({
@@ -112,6 +113,15 @@ export const saveEditorDraftAction = async ({
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
+  const config = getEditorContentTableConfig(contentType);
+  const existingPublishAt = contentId
+    ? await getExistingContentPublishAt({
+        config,
+        contentId,
+        supabase,
+      })
+    : null;
+  const existingPublicationState = resolveEditorPublicationState(existingPublishAt);
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
@@ -120,7 +130,8 @@ export const saveEditorDraftAction = async ({
     content_id: contentId ?? null,
     content_type: contentType,
     description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
-    publish_at: parsedSettings.data.publishAt,
+    publish_at:
+      existingPublicationState === 'published' ? existingPublishAt : parsedSettings.data.publishAt,
     slug: normalizeSlugInput(parsedSettings.data.slug) || null,
     tags: normalizedTagIds,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
@@ -227,7 +238,13 @@ export const publishEditorContentAction = async ({
         supabase,
       })
     : null;
-  const nextPublishAtToValidate = existingPublishAt === null ? parsedSettings.data.publishAt : null;
+  const existingPublicationState = resolveEditorPublicationState(existingPublishAt);
+  const nextPublishAtToValidate =
+    existingPublicationState === 'published' ? null : parsedSettings.data.publishAt;
+
+  if (existingPublicationState === 'published' && parsedSettings.data.publishAt !== null) {
+    throw createEditorError('publishedContentCannotBeRescheduled');
+  }
 
   if (nextPublishAtToValidate) {
     const scheduledDate = new Date(nextPublishAtToValidate);
@@ -245,7 +262,10 @@ export const publishEditorContentAction = async ({
   if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
   const nowIso = new Date().toISOString();
-  const effectivePublishAt = existingPublishAt ?? parsedSettings.data.publishAt ?? nowIso;
+  const effectivePublishAt =
+    existingPublicationState === 'published'
+      ? existingPublishAt
+      : (parsedSettings.data.publishAt ?? nowIso);
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
     publish_at: effectivePublishAt,

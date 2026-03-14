@@ -1,5 +1,6 @@
 import type {
   EditorContentType,
+  EditorPublicationState,
   Locale,
   PublishSettings,
   TranslationField,
@@ -9,6 +10,7 @@ export type EditorSeed = {
   contentId?: string;
   contentType: EditorContentType;
   initialDraftId?: string | null;
+  initialPublicationState?: EditorPublicationState;
   initialPublished: boolean;
   initialSavedAt: string | null;
   initialSettings?: PublishSettings;

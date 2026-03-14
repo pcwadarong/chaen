@@ -107,6 +107,162 @@ describe('editor-actions', () => {
     );
   });
 
+  it('이미 등록된 article draft 저장 시 publish_at은 기존 등록 시각을 유지한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-10T09:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const draftsUpdateQuery = {
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'draft-1',
+          updated_at: '2026-03-14T10:00:00.000Z',
+        },
+        error: null,
+      }),
+      update: vi.fn().mockReturnThis(),
+    };
+    const tagsQuery = {
+      in: vi.fn().mockResolvedValue({
+        data: [{ id: 'tag-id-1', slug: 'react' }],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articleReadQuery;
+        if (table === 'tags') return tagsQuery;
+        if (table === 'drafts') return draftsUpdateQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    } as never);
+
+    await saveEditorDraftAction({
+      contentId: 'article-1',
+      contentType: 'article',
+      draftId: 'draft-1',
+      locale: 'ko',
+      settings: {
+        allowComments: true,
+        publishAt: '2026-03-20T01:00:00.000Z',
+        slug: 'draft-slug',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      state: {
+        dirty: true,
+        slug: '',
+        tags: ['react'],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '설명', title: '제목' },
+        },
+      },
+    });
+
+    expect(draftsUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publish_at: '2026-03-10T09:00:00.000Z',
+      }),
+    );
+  });
+
+  it('아직 공개 전인 예약 article draft 저장은 변경한 publish_at을 유지한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-20T01:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const draftsUpdateQuery = {
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'draft-2',
+          updated_at: '2026-03-14T10:00:00.000Z',
+        },
+        error: null,
+      }),
+      update: vi.fn().mockReturnThis(),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articleReadQuery;
+        if (table === 'tags') {
+          return {
+            in: vi.fn().mockResolvedValue({ data: [], error: null }),
+            select: vi.fn().mockReturnThis(),
+          };
+        }
+        if (table === 'drafts') return draftsUpdateQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    } as never);
+
+    await saveEditorDraftAction({
+      contentId: 'article-2',
+      contentType: 'article',
+      draftId: 'draft-2',
+      locale: 'ko',
+      settings: {
+        allowComments: true,
+        publishAt: '2026-03-22T01:00:00.000Z',
+        slug: 'draft-slug',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      state: {
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '설명', title: '제목' },
+        },
+      },
+    });
+
+    expect(draftsUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publish_at: '2026-03-22T01:00:00.000Z',
+      }),
+    );
+  });
+
   it('article draft를 공용 drafts 테이블에서 삭제한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
@@ -246,7 +402,7 @@ describe('editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles/published-article');
   });
 
-  it('article 예약 발행 후에는 목록 경로로 이동한다', async () => {
+  it('아직 공개 전인 예약 article은 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -330,20 +486,81 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
-        publishAt: '2026-03-20T01:00:00.000Z',
+        publishAt: '2026-03-22T01:00:00.000Z',
         slug: 'scheduled-article',
         thumbnailUrl: '',
         visibility: 'public',
       },
     });
 
+    expect(articlesUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publish_at: '2026-03-22T01:00:00.000Z',
+      }),
+    );
     expect(redirect).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/scheduled-article');
   });
 
-  it('project 예약 발행 후에는 프로젝트 목록 경로로 이동한다', async () => {
+  it('이미 등록된 article은 server action에서도 예약 발행 재설정을 거부한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-10T09:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articleReadQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    } as never);
+
+    await expect(
+      publishEditorContentAction({
+        contentId: 'article-1',
+        contentType: 'article',
+        draftId: 'draft-1',
+        editorState: {
+          dirty: true,
+          slug: '',
+          tags: [],
+          translations: {
+            en: { content: '', description: '', title: '' },
+            fr: { content: '', description: '', title: '' },
+            ja: { content: '', description: '', title: '' },
+            ko: { content: '본문', description: '설명', title: '제목' },
+          },
+        },
+        locale: 'ko',
+        settings: {
+          allowComments: true,
+          publishAt: '2026-03-20T01:00:00.000Z',
+          slug: 'published-article',
+          thumbnailUrl: '',
+          visibility: 'public',
+        },
+      }),
+    ).rejects.toThrow(
+      `__EDITOR_ERROR__:publishedContentCannotBeRescheduled:이미 공개된 글은 예약 발행으로 다시 전환할 수 없습니다.`,
+    );
+  });
+
+  it('아직 공개 전인 예약 project는 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -427,13 +644,18 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
-        publishAt: '2026-03-20T01:00:00.000Z',
+        publishAt: '2026-03-22T01:00:00.000Z',
         slug: 'scheduled-project',
         thumbnailUrl: '',
         visibility: 'public',
       },
     });
 
+    expect(projectsUpdateQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publish_at: '2026-03-22T01:00:00.000Z',
+      }),
+    );
     expect(redirect).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');

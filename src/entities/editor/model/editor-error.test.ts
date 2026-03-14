@@ -10,6 +10,9 @@ describe('editor-error', () => {
     expect(resolveEditorPublishInlineErrorField('missingKoTitle')).toBe('koTitle');
     expect(resolveEditorPublishInlineErrorField('missingSlug')).toBe('slug');
     expect(resolveEditorPublishInlineErrorField('scheduledPublishMustBeFuture')).toBe('publishAt');
+    expect(resolveEditorPublishInlineErrorField('publishedContentCannotBeRescheduled')).toBe(
+      'publishAt',
+    );
     expect(resolveEditorPublishInlineErrorField('duplicateSlug')).toBe('slug');
   });
 

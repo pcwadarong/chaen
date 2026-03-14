@@ -21,6 +21,7 @@ export type DraftSaveResult = {
 };
 
 export type EditorContentType = 'article' | 'project' | 'resume';
+export type EditorPublicationState = 'draft' | 'published' | 'scheduled';
 export type PublishVisibility = 'public' | 'private';
 
 export interface EditorCoreProps {
@@ -65,6 +66,7 @@ export interface PublishPanelProps {
   initialSettings?: PublishSettings;
   isOpen: boolean;
   isPublished?: boolean;
+  publicationState?: EditorPublicationState;
   onClose: () => void;
   onSettingsChange?: (settings: PublishSettings) => void;
   onSubmit: (settings: PublishSettings) => Promise<void>;

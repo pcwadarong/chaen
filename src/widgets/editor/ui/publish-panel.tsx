@@ -54,7 +54,7 @@ type PublishThumbnailSectionProps = {
 type PublishScheduleSectionProps = {
   dateInput: string;
   error?: string;
-  isPublished: boolean;
+  isScheduleLocked: boolean;
   minDateInput: string;
   minTimeInput?: string;
   onDateChange: (value: string) => void;
@@ -156,7 +156,7 @@ const PublishThumbnailSection = React.memo(PublishThumbnailSectionBase);
 const PublishScheduleSectionBase = ({
   dateInput,
   error,
-  isPublished,
+  isScheduleLocked,
   minDateInput,
   minTimeInput,
   onDateChange,
@@ -180,11 +180,13 @@ const PublishScheduleSectionBase = ({
         />
         <span className={optionTitleClass}>지금 발행</span>
       </label>
-      <label className={cx(optionLabelClass, isPublished ? disabledOptionLabelClass : undefined)}>
+      <label
+        className={cx(optionLabelClass, isScheduleLocked ? disabledOptionLabelClass : undefined)}
+      >
         <input
           checked={publishMode === 'scheduled'}
           className={radioClass}
-          disabled={isPublished}
+          disabled={isScheduleLocked}
           name="publish-time"
           onChange={() => onPublishModeChange('scheduled')}
           type="radio"
@@ -193,10 +195,10 @@ const PublishScheduleSectionBase = ({
         <span className={optionTitleClass}>예약 발행</span>
       </label>
     </div>
-    {isPublished ? (
-      <p className={helperTextClass}>이미 등록된 글은 예약 발행으로 다시 전환할 수 없습니다.</p>
+    {isScheduleLocked ? (
+      <p className={helperTextClass}>이미 공개된 글은 예약 발행으로 다시 전환할 수 없습니다.</p>
     ) : null}
-    {publishMode === 'scheduled' && !isPublished ? (
+    {publishMode === 'scheduled' && !isScheduleLocked ? (
       <div className={scheduleFieldGridClass}>
         <label className={scheduleFieldClass}>
           <span className={scheduleLabelClass}>날짜</span>
@@ -335,6 +337,7 @@ export const PublishPanel = ({
   initialSettings,
   isOpen,
   isPublished = false,
+  publicationState = 'draft',
   onClose,
   onSettingsChange,
   onSubmit,
@@ -353,6 +356,7 @@ export const PublishPanel = ({
   const hasInitializedWhileOpenRef = useRef(false);
   const pendingInitialSettingsRef = useRef<PublishSettings | null>(null);
   const openedAtRef = useRef<Date | null>(null);
+  const isScheduleLocked = publicationState === 'published';
 
   useEffect(() => {
     if (!isOpen) {
@@ -389,12 +393,12 @@ export const PublishPanel = ({
   }, [editorState.slug, initialSettings, isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !isPublished || publishMode === 'immediate') return;
+    if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
 
     setPublishMode('immediate');
     setDateInput('');
     setTimeInput('');
-  }, [isOpen, isPublished, publishMode]);
+  }, [isOpen, isScheduleLocked, publishMode]);
 
   const scheduledUtcIso = useMemo(
     () => toScheduledPublishUtcIso(dateInput, timeInput),
@@ -654,7 +658,7 @@ export const PublishPanel = ({
           <PublishScheduleSection
             dateInput={dateInput}
             error={errors.publishAt}
-            isPublished={isPublished}
+            isScheduleLocked={isScheduleLocked}
             minDateInput={minDateInput}
             minTimeInput={effectiveMinTimeInput}
             onDateChange={handleDateInputChange}

@@ -11,6 +11,7 @@ import {
   getEditorContentTableConfig,
   mergeEditorSeedWithDraft,
   normalizeEditorVisibility,
+  resolveEditorPublicationState,
 } from './editor.utils';
 
 type ContentRow = {
@@ -68,6 +69,7 @@ type ResumeDraftRow = {
 export const createEditorSeed = (contentType: EditorContentType): EditorSeed => ({
   contentType,
   initialDraftId: null,
+  initialPublicationState: 'draft',
   initialPublished: false,
   initialSavedAt: null,
   initialSettings: undefined,
@@ -159,6 +161,7 @@ export const getEditorSeed = async ({
     contentId: contentRow.id,
     contentType,
     initialDraftId: null,
+    initialPublicationState: resolveEditorPublicationState(contentRow.publish_at),
     initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {

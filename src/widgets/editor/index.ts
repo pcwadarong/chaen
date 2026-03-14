@@ -2,6 +2,7 @@ export type {
   DraftSaveResult,
   EditorContentType,
   EditorCoreProps,
+  EditorPublicationState,
   EditorState,
   Locale,
   PublishPanelProps,
