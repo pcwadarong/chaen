@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { css } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import {
   createEditorError,
@@ -54,6 +54,7 @@ type PublishThumbnailSectionProps = {
 type PublishScheduleSectionProps = {
   dateInput: string;
   error?: string;
+  isPublished: boolean;
   minDateInput: string;
   minTimeInput?: string;
   onDateChange: (value: string) => void;
@@ -155,6 +156,7 @@ const PublishThumbnailSection = React.memo(PublishThumbnailSectionBase);
 const PublishScheduleSectionBase = ({
   dateInput,
   error,
+  isPublished,
   minDateInput,
   minTimeInput,
   onDateChange,
@@ -178,10 +180,11 @@ const PublishScheduleSectionBase = ({
         />
         <span className={optionTitleClass}>지금 발행</span>
       </label>
-      <label className={optionLabelClass}>
+      <label className={cx(optionLabelClass, isPublished ? disabledOptionLabelClass : undefined)}>
         <input
           checked={publishMode === 'scheduled'}
           className={radioClass}
+          disabled={isPublished}
           name="publish-time"
           onChange={() => onPublishModeChange('scheduled')}
           type="radio"
@@ -190,7 +193,10 @@ const PublishScheduleSectionBase = ({
         <span className={optionTitleClass}>예약 발행</span>
       </label>
     </div>
-    {publishMode === 'scheduled' ? (
+    {isPublished ? (
+      <p className={helperTextClass}>이미 등록된 글은 예약 발행으로 다시 전환할 수 없습니다.</p>
+    ) : null}
+    {publishMode === 'scheduled' && !isPublished ? (
       <div className={scheduleFieldGridClass}>
         <label className={scheduleFieldClass}>
           <span className={scheduleLabelClass}>날짜</span>
@@ -381,6 +387,14 @@ export const PublishPanel = ({
     setTimeInput(nextFormState.timeInput);
     setErrors({});
   }, [editorState.slug, initialSettings, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isPublished || publishMode === 'immediate') return;
+
+    setPublishMode('immediate');
+    setDateInput('');
+    setTimeInput('');
+  }, [isOpen, isPublished, publishMode]);
 
   const scheduledUtcIso = useMemo(
     () => toScheduledPublishUtcIso(dateInput, timeInput),
@@ -640,6 +654,7 @@ export const PublishPanel = ({
           <PublishScheduleSection
             dateInput={dateInput}
             error={errors.publishAt}
+            isPublished={isPublished}
             minDateInput={minDateInput}
             minTimeInput={effectiveMinTimeInput}
             onDateChange={handleDateInputChange}
@@ -743,6 +758,11 @@ const optionLabelClass = css({
   cursor: 'pointer',
 });
 
+const disabledOptionLabelClass = css({
+  cursor: 'not-allowed',
+  opacity: '0.5',
+});
+
 const optionTitleClass = css({
   fontSize: 'sm',
   fontWeight: '[600]',
@@ -751,6 +771,12 @@ const optionTitleClass = css({
 
 const radioClass = css({
   flex: 'none',
+});
+
+const helperTextClass = css({
+  fontSize: 'sm',
+  color: 'muted',
+  lineHeight: 'relaxed',
 });
 
 const thumbnailRowClass = css({

@@ -121,6 +121,31 @@ describe('PublishPanel', () => {
     expect(screen.queryByLabelText('날짜')).toBeNull();
   });
 
+  it('이미 발행된 글은 예약 발행을 다시 선택할 수 없다', async () => {
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: '2026-03-10T09:00:00.000Z',
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+    });
+
+    const scheduledRadio = screen.getByLabelText('예약 발행');
+
+    expect(scheduledRadio).toBeDisabled();
+    expect(
+      screen.getByText('이미 등록된 글은 예약 발행으로 다시 전환할 수 없습니다.'),
+    ).toBeTruthy();
+
+    fireEvent.click(scheduledRadio);
+
+    expect(screen.getByLabelText('지금 발행')).toBeChecked();
+    expect(screen.queryByLabelText('날짜')).toBeNull();
+  });
+
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {
     vi.useFakeTimers();
     const now = new Date('2026-03-14T09:27:45.000Z');
