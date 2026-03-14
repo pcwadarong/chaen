@@ -129,6 +129,8 @@ export const ResumePublishPanel = ({
   onUploadPdf = defaultUploadResumePdfFile,
 }: ResumePublishPanelProps) => {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const latestInitialSettingsRef = useRef(initialSettings);
+  const previousIsOpenRef = useRef(isOpen);
   const [settings, setSettings] = useState(initialSettings);
   const [errors, setErrors] = useState<ResumePublishErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,13 +138,20 @@ export const ResumePublishPanel = ({
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
 
   useEffect(() => {
-    if (!isOpen) {
+    latestInitialSettingsRef.current = initialSettings;
+  }, [initialSettings]);
+
+  useEffect(() => {
+    const wasOpen = previousIsOpenRef.current;
+    previousIsOpenRef.current = isOpen;
+
+    if (!isOpen || wasOpen) {
       return;
     }
 
-    setSettings(initialSettings);
+    setSettings(latestInitialSettingsRef.current);
     setErrors({});
-  }, [initialSettings, isOpen]);
+  }, [isOpen]);
 
   /**
    * 오류 토스트를 추가합니다.

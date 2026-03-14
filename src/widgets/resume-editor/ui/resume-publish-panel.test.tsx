@@ -146,6 +146,96 @@ describe('ResumePublishPanel', () => {
     });
   });
 
+  it('열린 상태에서 initialSettings가 바뀌어도 현재 로컬 설정을 덮어쓰지 않고 재오픈 시 최신 초기값을 읽는다', async () => {
+    const uploadedSettings = {
+      ...baseSettings,
+      downloadFileName: 'Uploaded-Resume.pdf',
+      isPdfReady: true,
+    };
+    const reopenedSettings = {
+      ...baseSettings,
+      downloadFileName: 'Reopened-Resume.pdf',
+      isPdfReady: false,
+    };
+    const onUploadPdf = vi.fn().mockResolvedValue(uploadedSettings);
+    const { rerender } = render(
+      <ResumePublishPanel
+        editorState={baseEditorState}
+        initialSettings={baseSettings}
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        onUploadPdf={onUploadPdf}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('dialog', { hidden: true, name: '이력서 게시 설정' }),
+      ).toHaveAttribute('aria-hidden', 'false');
+    });
+
+    const fileInput = screen.getByLabelText('PDF 업로드', {
+      selector: 'input',
+    });
+
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error('file input not found');
+    }
+
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Uploaded-Resume.pdf')).toBeTruthy();
+      expect(screen.getByText('업로드됨')).toBeTruthy();
+    });
+
+    rerender(
+      <ResumePublishPanel
+        editorState={baseEditorState}
+        initialSettings={reopenedSettings}
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        onUploadPdf={onUploadPdf}
+      />,
+    );
+
+    expect(screen.getByText('Uploaded-Resume.pdf')).toBeTruthy();
+    expect(screen.getByText('업로드됨')).toBeTruthy();
+
+    rerender(
+      <ResumePublishPanel
+        editorState={baseEditorState}
+        initialSettings={reopenedSettings}
+        isOpen={false}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        onUploadPdf={onUploadPdf}
+      />,
+    );
+
+    rerender(
+      <ResumePublishPanel
+        editorState={baseEditorState}
+        initialSettings={reopenedSettings}
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        onUploadPdf={onUploadPdf}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Reopened-Resume.pdf')).toBeTruthy();
+      expect(screen.getByText('PDF 업로드 필요')).toBeTruthy();
+    });
+  });
+
   it('PDF 업로드 실패 토스트를 닫을 수 있다', async () => {
     const onUploadPdf = vi.fn().mockRejectedValue(createResumeEditorError('pdfUploadFailed'));
 
