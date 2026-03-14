@@ -90,35 +90,10 @@ describe('project-actions', () => {
   });
 
   it('관리자 삭제 action은 project 연관 데이터와 홈 노출 경로까지 함께 정리한다', async () => {
-    const projectTagsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const translationsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const draftsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi
-        .fn()
-        .mockImplementation((column: string) =>
-          column === 'content_id' ? Promise.resolve({ error: null }) : draftsDeleteQuery,
-        ),
-    };
-    const projectsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
+    const rpc = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
-      from: vi.fn((table: string) => {
-        if (table === 'project_tags') return projectTagsDeleteQuery;
-        if (table === 'project_translations') return translationsDeleteQuery;
-        if (table === 'drafts') return draftsDeleteQuery;
-        if (table === 'projects') return projectsDeleteQuery;
-        throw new Error(`unexpected table: ${table}`);
-      }),
+      rpc,
     } as never);
 
     await deleteProjectAction({
@@ -127,8 +102,9 @@ describe('project-actions', () => {
       projectSlug: 'project-1-slug',
     });
 
-    expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(1, 'content_type', 'project');
-    expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(2, 'content_id', 'project-1');
+    expect(rpc).toHaveBeenCalledWith('delete_project_with_dependents', {
+      target_project_id: 'project-1',
+    });
     expect(revalidateTag).toHaveBeenCalledWith('projects');
     expect(revalidateTag).toHaveBeenCalledWith('project:project-1');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');

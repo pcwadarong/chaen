@@ -139,40 +139,10 @@ describe('article-actions', () => {
   });
 
   it('관리자 삭제 action은 article 연관 데이터와 공개 경로를 함께 정리하고 목록으로 이동한다', async () => {
-    const articleCommentsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const articleTagsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const translationsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const draftsDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi
-        .fn()
-        .mockImplementation((column: string) =>
-          column === 'content_id' ? Promise.resolve({ error: null }) : draftsDeleteQuery,
-        ),
-    };
-    const articlesDeleteQuery = {
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
+    const rpc = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
-      from: vi.fn((table: string) => {
-        if (table === 'article_comments') return articleCommentsDeleteQuery;
-        if (table === 'article_tags') return articleTagsDeleteQuery;
-        if (table === 'article_translations') return translationsDeleteQuery;
-        if (table === 'drafts') return draftsDeleteQuery;
-        if (table === 'articles') return articlesDeleteQuery;
-        throw new Error(`unexpected table: ${table}`);
-      }),
+      rpc,
     } as never);
 
     await deleteArticleAction({
@@ -181,9 +151,9 @@ describe('article-actions', () => {
       locale: 'ko',
     });
 
-    expect(articleCommentsDeleteQuery.eq).toHaveBeenCalledWith('article_id', 'article-1');
-    expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(1, 'content_type', 'article');
-    expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(2, 'content_id', 'article-1');
+    expect(rpc).toHaveBeenCalledWith('delete_article_cascade', {
+      target_article_id: 'article-1',
+    });
     expect(revalidateTag).toHaveBeenCalledWith('articles');
     expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');

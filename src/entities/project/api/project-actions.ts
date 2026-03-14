@@ -133,27 +133,10 @@ export const deleteProjectAction = async (input: {
 
   const { locale, projectId, projectSlug } = validation.data;
 
-  const { error: tagsError } = await supabase
-    .from('project_tags')
-    .delete()
-    .eq('project_id', projectId);
-  if (tagsError) throw new Error(PROJECT_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: translationsError } = await supabase
-    .from('project_translations')
-    .delete()
-    .eq('project_id', projectId);
-  if (translationsError) throw new Error(PROJECT_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: draftsError } = await supabase
-    .from('drafts')
-    .delete()
-    .eq('content_type', 'project')
-    .eq('content_id', projectId);
-  if (draftsError) throw new Error(PROJECT_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: projectError } = await supabase.from('projects').delete().eq('id', projectId);
-  if (projectError) throw new Error(PROJECT_ACTION_ERROR_MESSAGE.deleteFailed);
+  const { error: deleteError } = await supabase.rpc('delete_project_with_dependents', {
+    target_project_id: projectId,
+  });
+  if (deleteError) throw new Error(PROJECT_ACTION_ERROR_MESSAGE.deleteFailed);
 
   revalidateProjectPublicPaths(projectSlug);
   revalidateTag(PROJECTS_CACHE_TAG);

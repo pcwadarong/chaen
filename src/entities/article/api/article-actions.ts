@@ -182,33 +182,10 @@ export const deleteArticleAction = async (input: {
 
   const { articleId, articleSlug, locale } = validation.data;
 
-  const { error: commentsError } = await supabase
-    .from('article_comments')
-    .delete()
-    .eq('article_id', articleId);
-  if (commentsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: tagsError } = await supabase
-    .from('article_tags')
-    .delete()
-    .eq('article_id', articleId);
-  if (tagsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: translationsError } = await supabase
-    .from('article_translations')
-    .delete()
-    .eq('article_id', articleId);
-  if (translationsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: draftsError } = await supabase
-    .from('drafts')
-    .delete()
-    .eq('content_type', 'article')
-    .eq('content_id', articleId);
-  if (draftsError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
-
-  const { error: articleError } = await supabase.from('articles').delete().eq('id', articleId);
-  if (articleError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
+  const { error: deleteError } = await supabase.rpc('delete_article_cascade', {
+    target_article_id: articleId,
+  });
+  if (deleteError) throw new Error(ARTICLE_ACTION_ERROR_MESSAGE.deleteFailed);
 
   revalidateArticlePublicPaths(articleSlug);
   revalidateTag(ARTICLES_CACHE_TAG);
