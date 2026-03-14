@@ -55,6 +55,10 @@ type EditorDraftRow = {
   updated_at: string;
 };
 
+type EditorContentPublishRow = {
+  publish_at: string | null;
+};
+
 type SaveEditorDraftActionInput = {
   contentId?: string;
   contentType: 'article' | 'project';
@@ -212,8 +216,21 @@ export const publishEditorContentAction = async ({
 
   if (!isValidSlugFormat(normalizedSlug)) throw createEditorError('slugFormatInvalid');
 
-  if (parsedSettings.data.publishAt) {
-    const scheduledDate = new Date(parsedSettings.data.publishAt);
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
+  const targetContentId = contentId ?? crypto.randomUUID();
+  const config = getEditorContentTableConfig(contentType);
+  const existingPublishAt = contentId
+    ? await getExistingContentPublishAt({
+        config,
+        contentId: targetContentId,
+        supabase,
+      })
+    : null;
+  const nextPublishAtToValidate = existingPublishAt === null ? parsedSettings.data.publishAt : null;
+
+  if (nextPublishAtToValidate) {
+    const scheduledDate = new Date(nextPublishAtToValidate);
 
     if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= new Date().getTime()) {
       throw createEditorError('scheduledPublishMustBeFuture');
@@ -227,18 +244,13 @@ export const publishEditorContentAction = async ({
 
   if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw createEditorError('serviceRoleUnavailable');
-  const targetContentId = contentId ?? crypto.randomUUID();
-  const config = getEditorContentTableConfig(contentType);
   const nowIso = new Date().toISOString();
-  const effectivePublishAt = parsedSettings.data.publishAt ?? nowIso;
+  const effectivePublishAt = existingPublishAt ?? parsedSettings.data.publishAt ?? nowIso;
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
     publish_at: effectivePublishAt,
     slug: normalizedSlug,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
-    updated_at: nowIso,
     visibility: parsedSettings.data.visibility,
   };
 
@@ -293,7 +305,7 @@ export const publishEditorContentAction = async ({
       locale: resolveActionLocale(locale),
       pathname: getPublishRedirectPath({
         contentType,
-        publishAt: parsedSettings.data.publishAt,
+        publishAt: effectivePublishAt,
         slug: normalizedSlug,
       }),
     }),
@@ -312,11 +324,42 @@ const getPublishRedirectPath = ({
   publishAt: string | null;
   slug: string;
 }) => {
-  if (publishAt) {
+  const publishDate = publishAt ? new Date(publishAt) : null;
+  const isScheduled =
+    publishDate !== null &&
+    !Number.isNaN(publishDate.getTime()) &&
+    publishDate.getTime() > new Date().getTime();
+
+  if (isScheduled) {
     return contentType === 'article' ? '/articles' : '/project';
   }
 
   return contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`;
+};
+
+/**
+ * 기존 콘텐츠의 등록 시각을 읽어 수정 시 `publish_at`을 보존합니다.
+ */
+const getExistingContentPublishAt = async ({
+  config,
+  contentId,
+  supabase,
+}: {
+  config: EditorContentTableConfig;
+  contentId: string;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
+}) => {
+  const { data, error } = await supabase
+    .from(config.table)
+    .select('publish_at')
+    .eq('id', contentId)
+    .maybeSingle<EditorContentPublishRow>();
+
+  if (error) {
+    throw createEditorError('publishFailed');
+  }
+
+  return data?.publish_at ?? null;
 };
 
 /**

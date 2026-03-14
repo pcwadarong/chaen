@@ -154,6 +154,16 @@ describe('editor-actions', () => {
       schemaMissing: false,
     });
 
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-10T09:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const articlesUpdateQuery = {
       eq: vi.fn().mockResolvedValue({ error: null }),
       update: vi.fn().mockReturnThis(),
@@ -181,7 +191,11 @@ describe('editor-actions', () => {
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn((table: string) => {
-        if (table === 'articles') return articlesUpdateQuery;
+        if (table === 'articles') {
+          return articleReadQuery.select.mock.calls.length === 0
+            ? articleReadQuery
+            : articlesUpdateQuery;
+        }
         if (table === 'article_translations') {
           articleTranslationsFromCalls.push(table);
           return articleTranslationsFromCalls.length === 1
@@ -221,9 +235,10 @@ describe('editor-actions', () => {
 
     expect(articlesUpdateQuery.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        publish_at: '2026-03-14T06:15:00.000Z',
+        publish_at: '2026-03-10T09:00:00.000Z',
       }),
     );
+    expect(articlesUpdateQuery.update.mock.calls[0]?.[0]).not.toHaveProperty('updated_at');
     expect(redirect).toHaveBeenCalledWith('/ko/articles/published-article');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles');
@@ -243,6 +258,16 @@ describe('editor-actions', () => {
       schemaMissing: false,
     });
 
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-20T01:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const articlesUpdateQuery = {
       eq: vi.fn().mockResolvedValue({ error: null }),
       update: vi.fn().mockReturnThis(),
@@ -270,7 +295,11 @@ describe('editor-actions', () => {
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn((table: string) => {
-        if (table === 'articles') return articlesUpdateQuery;
+        if (table === 'articles') {
+          return articleReadQuery.select.mock.calls.length === 0
+            ? articleReadQuery
+            : articlesUpdateQuery;
+        }
         if (table === 'article_translations') {
           articleTranslationsFromCalls.push(table);
           return articleTranslationsFromCalls.length === 1
@@ -326,6 +355,16 @@ describe('editor-actions', () => {
       schemaMissing: false,
     });
 
+    const projectReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-20T01:00:00.000Z',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const projectsUpdateQuery = {
       eq: vi.fn().mockResolvedValue({ error: null }),
       update: vi.fn().mockReturnThis(),
@@ -353,7 +392,11 @@ describe('editor-actions', () => {
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn((table: string) => {
-        if (table === 'projects') return projectsUpdateQuery;
+        if (table === 'projects') {
+          return projectReadQuery.select.mock.calls.length === 0
+            ? projectReadQuery
+            : projectsUpdateQuery;
+        }
         if (table === 'project_translations') {
           projectTranslationsFromCalls.push(table);
           return projectTranslationsFromCalls.length === 1
