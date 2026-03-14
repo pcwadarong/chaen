@@ -139,6 +139,60 @@ export const useGuestbookActionModal = ({
     [isAdmin],
   );
 
+  /**
+   * 수정 optimistic update를 이전 내용으로 되돌립니다.
+   */
+  const rollbackEditedEntry = useCallback(
+    (
+      target: GuestbookEntry | GuestbookThreadItem,
+      parentThreadId: string | null,
+      previousContent: string,
+    ) => {
+      if (parentThreadId) {
+        updateThreadById(parentThreadId, item => ({
+          ...item,
+          replies: item.replies.map(reply =>
+            reply.id === target.id ? { ...reply, content: previousContent } : reply,
+          ),
+        }));
+        return;
+      }
+
+      updateThreadById(target.id, item => ({
+        ...item,
+        content: previousContent,
+      }));
+    },
+    [updateThreadById],
+  );
+
+  /**
+   * 삭제 optimistic update를 이전 reply 상태로 되돌립니다.
+   */
+  const rollbackDeletedReply = useCallback(
+    (parentThreadId: string, deletedReply: GuestbookEntry, replyIndex: number) => {
+      updateThreadById(parentThreadId, item => ({
+        ...item,
+        replies: [
+          ...item.replies.slice(0, replyIndex),
+          deletedReply,
+          ...item.replies.slice(replyIndex),
+        ],
+      }));
+    },
+    [updateThreadById],
+  );
+
+  /**
+   * 삭제 optimistic update를 이전 thread 상태로 되돌립니다.
+   */
+  const rollbackDeletedThread = useCallback(
+    (deletedThread: GuestbookThreadItem) => {
+      applyServerThread(deletedThread);
+    },
+    [applyServerThread],
+  );
+
   const handleConfirmModal = useCallback(async () => {
     if (!modalState || isModalSubmitting) return;
 
@@ -194,6 +248,7 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok || !result.data) {
+            rollbackEditedEntry(target, modalState.parentThreadId, previousContent);
             if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
               setModalError(text.secretVerifyFailed);
             } else {
@@ -208,19 +263,7 @@ export const useGuestbookActionModal = ({
           pushToast(text.toastEditSuccess, 'success');
           closeModal();
         } catch (_error) {
-          if (modalState.parentThreadId) {
-            updateThreadById(modalState.parentThreadId, item => ({
-              ...item,
-              replies: item.replies.map(reply =>
-                reply.id === target.id ? { ...reply, content: previousContent } : reply,
-              ),
-            }));
-          } else {
-            updateThreadById(target.id, item => ({
-              ...item,
-              content: previousContent,
-            }));
-          }
+          rollbackEditedEntry(target, modalState.parentThreadId, previousContent);
           pushToast(text.toastEditError, 'error');
         }
       }
@@ -252,6 +295,7 @@ export const useGuestbookActionModal = ({
               password: shouldSkipPassword ? '' : trimmedPassword,
             });
             if (!result.ok) {
+              rollbackDeletedReply(modalState.parentThreadId, deletedReply, replyIndex);
               if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
                 setModalError(text.secretVerifyFailed);
               } else {
@@ -263,14 +307,7 @@ export const useGuestbookActionModal = ({
             pushToast(text.toastDeleteSuccess, 'success');
             closeModal();
           } catch (_error) {
-            updateThreadById(modalState.parentThreadId, item => ({
-              ...item,
-              replies: [
-                ...item.replies.slice(0, replyIndex),
-                deletedReply,
-                ...item.replies.slice(replyIndex),
-              ],
-            }));
+            rollbackDeletedReply(modalState.parentThreadId, deletedReply, replyIndex);
             pushToast(text.toastDeleteError, 'error');
           }
 
@@ -303,6 +340,7 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok) {
+            rollbackDeletedThread(deletedThread);
             if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
               setModalError(text.secretVerifyFailed);
             } else {
@@ -314,7 +352,7 @@ export const useGuestbookActionModal = ({
           pushToast(text.toastDeleteSuccess, 'success');
           closeModal();
         } catch (_error) {
-          applyServerThread(deletedThread);
+          rollbackDeletedThread(deletedThread);
           pushToast(text.toastDeleteError, 'error');
         }
       }
@@ -322,7 +360,6 @@ export const useGuestbookActionModal = ({
       setIsModalSubmitting(false);
     }
   }, [
-    applyServerThread,
     applyServerThreadEntry,
     closeModal,
     isAdmin,
@@ -334,6 +371,9 @@ export const useGuestbookActionModal = ({
     modalState,
     pushToast,
     removeThreadById,
+    rollbackDeletedReply,
+    rollbackDeletedThread,
+    rollbackEditedEntry,
     text.editContentUnchanged,
     text.requiredField,
     text.secretVerifyFailed,
