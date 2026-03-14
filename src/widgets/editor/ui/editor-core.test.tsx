@@ -188,6 +188,7 @@ describe('EditorCore', () => {
     expect(screen.getByRole('tab', { name: '편집' })).toBeTruthy();
     expect(screen.getByRole('tab', { name: '미리보기' })).toBeTruthy();
     expect(screen.getByRole('textbox', { name: '본문 입력' })).toBeTruthy();
+    expect(screen.queryByRole('region', { name: '본문 미리보기' })).toBeNull();
 
     fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
 

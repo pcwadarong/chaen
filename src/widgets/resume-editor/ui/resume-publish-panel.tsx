@@ -84,9 +84,21 @@ const ResumePublishStatusSectionBase = ({
         </span>
       </div>
     </div>
-    {errors.pdf ? <p className={errorClass}>{errors.pdf}</p> : null}
-    {errors.koTitle ? <p className={errorClass}>{errors.koTitle}</p> : null}
-    {errors.koBody ? <p className={errorClass}>{errors.koBody}</p> : null}
+    {errors.pdf ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.pdf}
+      </p>
+    ) : null}
+    {errors.koTitle ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.koTitle}
+      </p>
+    ) : null}
+    {errors.koBody ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.koBody}
+      </p>
+    ) : null}
   </div>
 );
 

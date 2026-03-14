@@ -306,7 +306,9 @@ describe('ResumePublishPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
 
-    expect(await screen.findByText('이력서 PDF를 업로드해주세요')).toBeTruthy();
+    const inlineError = await screen.findByRole('alert');
+
+    expect(inlineError).toHaveTextContent('이력서 PDF를 업로드해주세요');
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -334,6 +336,8 @@ describe('ResumePublishPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
 
-    expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
+    const inlineError = await screen.findByRole('alert');
+
+    expect(inlineError).toHaveTextContent('한국어 제목을 입력해주세요');
   });
 });

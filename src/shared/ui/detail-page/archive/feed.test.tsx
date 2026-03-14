@@ -76,7 +76,7 @@ describe('DetailArchiveFeed', () => {
       isLoadingMore: false,
       items: [
         {
-          created_at: '2026-03-08T00:00:00.000Z',
+          created_at: '2025-12-31T00:00:00.000Z',
           description: '요약',
           id: 'article-1',
           publish_at: '2026-03-08T00:00:00.000Z',
@@ -106,6 +106,7 @@ describe('DetailArchiveFeed', () => {
       'href',
       '/articles/article-1-slug',
     );
+    expect(screen.getByText('2026년')).toBeInTheDocument();
     expect(observerOptions?.root).toBe(container.querySelector('[data-scroll-region="true"]'));
 
     observerCallback?.(

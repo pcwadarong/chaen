@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
@@ -53,9 +53,15 @@ type SaveSource = 'autosave' | 'manual';
  * `window.matchMedia` 기반으로 모바일 전용 editor mode 적용 여부를 추적합니다.
  */
 const useIsMobileEditorLayout = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false;
+    }
 
-  useEffect(() => {
+    return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  });
+
+  useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
     const mediaQueryList = window.matchMedia(MOBILE_MEDIA_QUERY);
