@@ -51,6 +51,23 @@ const TagSelectorBase = ({
     },
     [onChange, selectedTagSlugs],
   );
+
+  /**
+   * 버튼에 저장된 slug를 읽어 공통 태그 토글 handler로 위임합니다.
+   */
+  const handleTagClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const tagSlug = event.currentTarget.dataset.tagSlug;
+
+      if (!tagSlug) {
+        return;
+      }
+
+      handleTagToggle(tagSlug);
+    },
+    [handleTagToggle],
+  );
+
   const handleExpandedToggle = useCallback(() => {
     setIsExpanded(previous => !previous);
   }, []);
@@ -88,8 +105,9 @@ const TagSelectorBase = ({
                   aria-label={`${tag.label} ${isSelected ? '태그 해제' : '태그 선택'}`}
                   aria-pressed={isSelected}
                   className={chipRecipe({ selected: isSelected })}
+                  data-tag-slug={tag.slug}
                   key={tag.id}
-                  onClick={() => handleTagToggle(tag.slug)}
+                  onClick={handleTagClick}
                   type="button"
                 >
                   <span className={chipLabelClass}>{tag.label}</span>

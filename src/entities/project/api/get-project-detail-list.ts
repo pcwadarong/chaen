@@ -200,14 +200,13 @@ const fetchProjectDetailListByLocaleFallback = async (
       page.items.map(({ publishedAt: _publishedAt, ...row }) => row),
       locale,
     ),
-    nextCursor:
-      page.nextCursor && page.items.at(-1)
-        ? serializeLocaleAwarePublishedAtIdCursor({
-            id: page.items.at(-1)?.id ?? '',
-            locale,
-            publishedAt: page.items.at(-1)?.publishedAt ?? '',
-          })
-        : null,
+    nextCursor: page.nextCursor
+      ? serializeLocaleAwarePublishedAtIdCursor({
+          id: page.items.at(-1)!.id,
+          locale,
+          publishedAt: page.items.at(-1)!.publishedAt,
+        })
+      : null,
   };
 };
 

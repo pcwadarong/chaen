@@ -41,5 +41,6 @@ export const DashboardPage = ({ locale }: DashboardPageProps) => (
 
 const actionGridClass = css({
   display: 'flex',
+  flexWrap: 'wrap',
   gap: '3',
 });

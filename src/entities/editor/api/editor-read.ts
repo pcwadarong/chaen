@@ -1,3 +1,4 @@
+import { createEditorError } from '@/entities/editor/model/editor-error';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import type { EditorContentType, Locale } from '@/widgets/editor/model/editor-core.types';
 import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
@@ -76,6 +77,19 @@ export const createEditorSeed = (contentType: EditorContentType): EditorSeed => 
 });
 
 /**
+ * editor 관리자 조회에 필요한 service role Supabase 클라이언트를 안전하게 반환합니다.
+ */
+const getServiceRoleSupabaseOrThrow = () => {
+  const supabase = createOptionalServiceRoleSupabaseClient();
+
+  if (!supabase) {
+    throw createEditorError('serviceRoleUnavailable');
+  }
+
+  return supabase;
+};
+
+/**
  * article/project 편집 화면에서 사용할 초기 editor seed를 읽습니다.
  */
 export const getEditorSeed = async ({
@@ -85,10 +99,7 @@ export const getEditorSeed = async ({
   contentId: string;
   contentType: 'article' | 'project';
 }): Promise<EditorSeed | null> => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) {
-    throw new Error('[editor] service role env is not configured');
-  }
+  const supabase = getServiceRoleSupabaseOrThrow();
   const config = getEditorContentTableConfig(contentType);
 
   const { data: contentRow, error: contentError } = await supabase
@@ -198,10 +209,7 @@ export const getEditorDraftSeed = async ({
  * draft 목록 페이지와 route에서 사용하는 관리자용 요약 목록을 반환합니다.
  */
 export const getEditorDraftSummaries = async (): Promise<EditorDraftSummary[]> => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) {
-    throw new Error('[editor] service role env is not configured');
-  }
+  const supabase = getServiceRoleSupabaseOrThrow();
   const { data, error } = await supabase
     .from('drafts')
     .select('id,content_type,content_id,title,updated_at')
@@ -275,10 +283,7 @@ const getDraftSeed = async ({
   contentType: 'article' | 'project';
   draftId?: string;
 }) => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) {
-    throw new Error('[editor] service role env is not configured');
-  }
+  const supabase = getServiceRoleSupabaseOrThrow();
   let query = supabase
     .from('drafts')
     .select(
@@ -338,10 +343,7 @@ const getEditorTagSlugMap = async (tagIds: string[]) => {
     return new Map<string, string>();
   }
 
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) {
-    throw new Error('[editor] service role env is not configured');
-  }
+  const supabase = getServiceRoleSupabaseOrThrow();
   const { data: tagRows, error: tagError } = await supabase
     .from('tags')
     .select('id,slug')

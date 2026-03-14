@@ -23,6 +23,15 @@ type ArticleDetailPageData = {
   relatedArticles: ArticleListItem[];
 };
 
+const DEFAULT_COMMENTS_PAGE: ArticleCommentPage = {
+  items: [],
+  page: 1,
+  pageSize: 10,
+  sort: 'latest',
+  totalCount: 0,
+  totalPages: 0,
+};
+
 /**
  * 상세 아티클을 public archive 요약 shape로 좁힙니다.
  */
@@ -67,22 +76,8 @@ export const getArticleDetailPageData = async ({
           articleId,
           page: 1,
           sort: 'latest',
-        }).catch(() => ({
-          items: [],
-          page: 1,
-          pageSize: 10,
-          sort: 'latest' as const,
-          totalCount: 0,
-          totalPages: 0,
-        }))
-      : Promise.resolve({
-          items: [],
-          page: 1,
-          pageSize: 10,
-          sort: 'latest' as const,
-          totalCount: 0,
-          totalPages: 0,
-        }),
+        }).catch(() => DEFAULT_COMMENTS_PAGE)
+      : Promise.resolve(DEFAULT_COMMENTS_PAGE),
     articleId
       ? getRelatedArticles({
           articleId,

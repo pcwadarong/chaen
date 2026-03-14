@@ -406,10 +406,6 @@ const readCachedArticles = async (input: {
 
   cacheTag(ARTICLES_CACHE_TAG);
 
-  const parsedCursor = input.normalizedQuery
-    ? parseArticleSearchCursor(input.cursor)
-    : parsePublishedAtIdCursor(input.cursor);
-
   if (input.normalizedQuery) {
     return fetchSearchArticles(
       input.normalizedQuery,
@@ -426,12 +422,6 @@ const readCachedArticles = async (input: {
       input.cursor,
       input.pageSize,
     );
-  }
-
-  const isFirstPage = !parsedCursor;
-
-  if (!isFirstPage) {
-    return fetchArticlesByLocaleFallback(input.normalizedLocale, input.cursor, input.pageSize);
   }
 
   return fetchArticlesByLocaleFallback(input.normalizedLocale, input.cursor, input.pageSize);

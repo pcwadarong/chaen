@@ -519,7 +519,7 @@ const deleteEditorDrafts = async ({
   draftId?: string | null;
 }) => {
   const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw new Error('[editor] service role env is not configured');
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   let query = supabase.from('drafts').delete().eq('content_type', contentType);
 
   if (draftId) query = query.eq('id', draftId);

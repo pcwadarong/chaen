@@ -70,6 +70,10 @@ type PublishResumeContentActionInput = {
   state: ResumeEditorState;
 };
 
+type ResumeServiceRoleSupabase = NonNullable<
+  ReturnType<typeof createOptionalServiceRoleSupabaseClient>
+>;
+
 /**
  * resume 전용 draft를 upsert하고 마지막 저장 시각을 반환합니다.
  */
@@ -207,7 +211,7 @@ export const publishResumeContentAction = async ({
     throw createResumeEditorError('publishFailed');
   }
 
-  await deleteResumeDrafts(draftId);
+  await deleteResumeDrafts(supabase, draftId);
 
   revalidateResumeEditorPaths(resolveActionLocale(locale));
   revalidateResumePublicPaths();
@@ -243,11 +247,7 @@ const buildResumeContentRows = ({
 /**
  * 기존 resume draft id가 있으면 그 draft를, 없으면 resume draft 전체를 정리합니다.
  */
-const deleteResumeDrafts = async (draftId?: string | null) => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) {
-    throw createResumeEditorError('serviceRoleUnavailable');
-  }
+const deleteResumeDrafts = async (supabase: ResumeServiceRoleSupabase, draftId?: string | null) => {
   let query = supabase.from('resume_drafts').delete();
 
   if (draftId) {
