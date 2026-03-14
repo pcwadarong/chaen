@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -23,6 +23,7 @@ type ArticleListItemProps = {
  * 카드형 UI 대신 텍스트 흐름을 먼저 읽고, 썸네일을 보조 정보처럼 우측에 배치합니다.
  */
 export const ArticleListItem = ({ article }: ArticleListItemProps) => {
+  const locale = useLocale();
   const t = useTranslations('Articles');
   const thumbnailSrc = normalizeImageUrl(article.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
@@ -40,8 +41,14 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
       <article className={articleClass}>
         <div className={contentClass}>
           <div className={bodyClass}>
-            <h2 className={titleClass}>{article.title}</h2>
-            {article.description ? <p className={descriptionClass}>{article.description}</p> : null}
+            <h2 className={titleClass} lang={locale}>
+              {article.title}
+            </h2>
+            {article.description ? (
+              <p className={descriptionClass} lang={locale}>
+                {article.description}
+              </p>
+            ) : null}
           </div>
           <time className={dateClass} dateTime={publishedAt}>
             {publishedDate}
@@ -107,6 +114,10 @@ const titleClass = css({
   lineHeight: 'tight',
   letterSpacing: '[-0.05em]',
   fontWeight: 'bold',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const descriptionClass = css({
@@ -118,6 +129,10 @@ const descriptionClass = css({
   fontSize: 'md',
   lineHeight: 'normal',
   letterSpacing: '[-0.03em]',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const dateClass = css({

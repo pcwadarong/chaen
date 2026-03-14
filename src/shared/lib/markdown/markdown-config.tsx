@@ -372,6 +372,10 @@ export const markdownBodyClass = css({
   color: 'text',
   fontSize: 'md',
   lineHeight: 'loose',
+  '&:lang(ja) :is(p, li, blockquote, h1, h2, h3, h4, td, th)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
   '& > * + *': {
     mt: '5',
   },

@@ -27,6 +27,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
       ariaLabel={`${article.title} 상세 보기`}
       description={article.description}
       href={`/articles/${resolvePublicContentPathSegment(article)}`}
+      locale={locale}
       metaItems={[createdYearText]}
       thumbnailAlt={`${article.title} thumbnail`}
       thumbnailSrc={previewThumbnailSrc}

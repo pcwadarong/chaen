@@ -96,6 +96,7 @@ export const ProjectDetailPage = async ({
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
         hideAppFrameFooter
+        locale={locale}
         metaBar={
           <DetailMetaBar
             copyFailedText={detailUi('copyFailed')}

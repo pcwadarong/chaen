@@ -87,6 +87,18 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
+    const element = await MarkdownRenderer({
+      locale: 'ja',
+      markdown: '일본어 본문',
+    });
+    const stream = await renderToReadableStream(element);
+    const html = await new Response(stream).text();
+    const document = new DOMParser().parseFromString(html, 'text/html');
+
+    expect(document.querySelector('div[lang="ja"]')).toBeTruthy();
+  });
+
   it('테이블 안 이미지도 셀 너비 안에서 줄어들도록 동일한 이미지 스타일을 적용한다', async () => {
     const document = await renderServerDocument(
       [

@@ -10,19 +10,20 @@ import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
 
 type MarkdownRendererProps = {
   emptyText?: string;
+  locale?: string;
   markdown: string | null;
 };
 
 /**
  * Markdown 문자열을 SSR 친화적인 React 노드로 렌더링합니다.
  */
-export const MarkdownRenderer = async ({ emptyText, markdown }: MarkdownRendererProps) => {
+export const MarkdownRenderer = async ({ emptyText, locale, markdown }: MarkdownRendererProps) => {
   if (!markdown) return emptyText ? <p className={markdownEmptyTextClass}>{emptyText}</p> : null;
 
   const markdownOptions = getMarkdownOptions();
 
   return (
-    <div className={markdownBodyClass}>
+    <div className={markdownBodyClass} lang={locale}>
       {renderRichMarkdown({
         markdown,
         renderMarkdownFragment: (fragmentMarkdown, key) => (

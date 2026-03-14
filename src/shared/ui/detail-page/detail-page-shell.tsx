@@ -19,6 +19,7 @@ type DetailPageShellProps = {
   guestbookCtaText: string;
   heroDescription: string;
   hideAppFrameFooter?: boolean;
+  locale?: string;
   metaBar: ReactNode;
   sidebarContent?: ReactNode;
   sidebarItems?: DetailArchiveLinkItem[];
@@ -36,6 +37,7 @@ type DetailPageSidebarProps = {
 
 type DetailPageHeroProps = {
   description: string;
+  locale?: string;
   tagContent?: ReactNode;
   title: string;
 };
@@ -66,11 +68,15 @@ const DetailPageSidebar = ({ content, emptyArchiveText, items, label }: DetailPa
 /**
  * 디테일 페이지 hero 영역을 렌더링합니다.
  */
-const DetailPageHero = ({ description, tagContent, title }: DetailPageHeroProps) => (
+const DetailPageHero = ({ description, locale, tagContent, title }: DetailPageHeroProps) => (
   <header className={detailPageHeroClass}>
     <div className={detailPageHeroTextClass}>
-      <h1 className={detailPageTitleClass}>{title}</h1>
-      <p className={detailPageDescriptionClass}>{description}</p>
+      <h1 className={detailPageTitleClass} lang={locale}>
+        {title}
+      </h1>
+      <p className={detailPageDescriptionClass} lang={locale}>
+        {description}
+      </p>
     </div>
     {tagContent ? <div className={detailPageTagWrapClass}>{tagContent}</div> : null}
   </header>
@@ -119,6 +125,7 @@ export const DetailPageShell = ({
   guestbookCtaText,
   heroDescription,
   hideAppFrameFooter = false,
+  locale,
   metaBar,
   sidebarContent,
   sidebarItems = [],
@@ -128,7 +135,7 @@ export const DetailPageShell = ({
 }: DetailPageShellProps) => {
   const contentNode =
     typeof content !== 'undefined' ? (
-      <MarkdownRenderer emptyText={emptyContentText} markdown={content} />
+      <MarkdownRenderer emptyText={emptyContentText} locale={locale} markdown={content} />
     ) : (
       children
     );
@@ -150,7 +157,12 @@ export const DetailPageShell = ({
         data-primary-scroll-region="true"
         data-scroll-region="true"
       >
-        <DetailPageHero description={heroDescription} tagContent={tagContent} title={title} />
+        <DetailPageHero
+          description={heroDescription}
+          locale={locale}
+          tagContent={tagContent}
+          title={title}
+        />
         <div className={detailPageMetaBarSectionClass}>{metaBar}</div>
         <DetailPageBody
           bottomContent={bottomContent}
@@ -230,6 +242,10 @@ const detailPageTitleClass = css({
   lineHeight: 'tight',
   letterSpacing: '[-0.04em]',
   wordBreak: 'keep-all',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const detailPageDescriptionClass = css({
@@ -237,6 +253,10 @@ const detailPageDescriptionClass = css({
   fontSize: 'md',
   lineHeight: 'relaxed',
   wordBreak: 'keep-all',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const detailPageTagWrapClass = css({

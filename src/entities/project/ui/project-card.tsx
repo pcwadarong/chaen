@@ -27,6 +27,7 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
       ariaLabel={`${item.title} 상세 보기`}
       description={item.description}
       href={`/project/${resolvePublicContentPathSegment(item)}`}
+      locale={locale}
       metaItems={[createdYearText]}
       thumbnailAlt={`${item.title} thumbnail`}
       thumbnailSrc={previewThumbnailSrc}
