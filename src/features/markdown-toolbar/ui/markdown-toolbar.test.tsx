@@ -133,6 +133,37 @@ describe('MarkdownToolbar', () => {
     });
   });
 
+  it('링크와 이미지 라벨은 선택한 공백을 그대로 유지한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '  OpenAI  ' } });
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    fireEvent.click(screen.getByRole('button', { name: '링크 임베드' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '링크 URL' }), {
+      target: { value: 'https://openai.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '하이퍼링크' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('[  OpenAI  ](https://openai.com/)');
+    });
+
+    fireEvent.change(textarea, { target: { value: '  alt text  ' } });
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    fireEvent.click(screen.getByRole('button', { name: '이미지' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '이미지 URL' }), {
+      target: { value: 'https://example.com/image.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('![  alt text  ](https://example.com/image.png)');
+    });
+  });
+
   it('코드 블록 버튼은 placeholder를 삽입하고 코드 영역을 선택한다', async () => {
     render(<ToolbarHarness />);
 

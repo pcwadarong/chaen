@@ -54,11 +54,15 @@ export const useMarkdownToolbar = ({
 }: MarkdownToolbarProps & {
   popoverTriggerClassName: string;
 }) => {
+  /**
+   * 현재 textarea selection 범위를 그대로 읽어 선택 문자열을 반환합니다.
+   * 공백을 포함한 원본 부분 문자열을 유지해 링크/이미지 라벨 삽입 시 사용자가 선택한 텍스트가 변형되지 않게 합니다.
+   */
   const getSelectedText = React.useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return '';
 
-    return textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+    return textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
   }, [textareaRef]);
 
   const applyTextTransform = React.useCallback(

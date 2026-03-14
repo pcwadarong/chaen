@@ -17,6 +17,21 @@ describe('markdown-link utils', () => {
     });
   });
 
+  it('선택된 텍스트의 앞뒤 공백이 있으면 그대로 유지한다', () => {
+    expect(
+      buildEditorLinkInsertion({
+        clipboardText: 'https://openai.com',
+        selectedText: '  OpenAI  ',
+      }),
+    ).toEqual({
+      text: '[  OpenAI  ](https://openai.com/)',
+      type: 'link',
+    });
+    expect(createMarkdownLink('  OpenAI  ', 'https://openai.com')).toBe(
+      '[  OpenAI  ](https://openai.com/)',
+    );
+  });
+
   it('URL만 붙여넣으면 URL 텍스트를 가진 markdown 링크를 만든다', () => {
     expect(
       buildEditorLinkInsertion({

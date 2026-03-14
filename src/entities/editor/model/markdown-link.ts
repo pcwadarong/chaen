@@ -26,10 +26,10 @@ export const createMarkdownLink = (label: string, url: string, title?: string) =
   const normalizedLabel = label.trim();
 
   if (!normalizedUrl) {
-    return normalizedLabel || url.trim();
+    return normalizedLabel ? label : url.trim();
   }
 
-  const resolvedLabel = normalizedLabel || normalizedUrl;
+  const resolvedLabel = normalizedLabel ? label : normalizedUrl;
   const serializedTitle = title ? ` "${title}"` : '';
 
   return `[${resolvedLabel}](${normalizedUrl}${serializedTitle})`;
@@ -77,11 +77,11 @@ export const buildEditorLinkInsertion = ({
   selectedText,
 }: BuildEditorLinkInsertionInput): EditorLinkInsertion | null => {
   const normalizedUrl = normalizeHttpUrl(clipboardText);
-  const normalizedSelectedText = selectedText.trim();
+  const hasSelectedText = selectedText.trim().length > 0;
 
-  if (normalizedUrl && normalizedSelectedText) {
+  if (normalizedUrl && hasSelectedText) {
     return {
-      text: createMarkdownLink(normalizedSelectedText, normalizedUrl),
+      text: createMarkdownLink(selectedText, normalizedUrl),
       type: 'link',
     };
   }
