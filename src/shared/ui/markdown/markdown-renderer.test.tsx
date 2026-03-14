@@ -87,6 +87,22 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('테이블 안 이미지도 셀 너비 안에서 줄어들도록 동일한 이미지 스타일을 적용한다', async () => {
+    const document = await renderServerDocument(
+      [
+        '| 이미지 | 설명 |',
+        '| --- | --- |',
+        '| ![표 이미지](https://example.com/table-image.png) | 셀 안 이미지 |',
+      ].join('\n'),
+    );
+    const tableImage = document.querySelector('table img');
+    const markdownTable = document.querySelector('div[aria-label="Markdown table"]');
+
+    expect(markdownTable).toBeTruthy();
+    expect(tableImage).toBeTruthy();
+    expect(tableImage?.className).toBeTruthy();
+  });
+
   it('단일 줄바꿈을 br 요소로 렌더링한다', async () => {
     const document = await renderServerDocument(['첫 번째 줄', '두 번째 줄'].join('\n'));
     const paragraph = document.querySelector('p');
@@ -148,6 +164,16 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('iframe')).toBeNull();
   });
 
+  it('언어 class가 없는 fenced code block도 block code로 유지한다', async () => {
+    const document = await renderServerDocument(['```', 'plain block', '```'].join('\n'));
+    const blockCode = document.querySelector('pre code');
+
+    expect(blockCode).toBeTruthy();
+    expect(blockCode?.textContent).toContain('plain block');
+    expect(blockCode?.closest('pre')).toBeTruthy();
+    expect(blockCode?.getAttribute('style') ?? '').not.toContain('background-color');
+  });
+
   it('inline code 안의 custom syntax와 html alias는 변환하지 않는다', async () => {
     const markdown = [
       '`||스포일러||`',
@@ -167,8 +193,7 @@ describe('MarkdownRenderer', () => {
       '<br />',
       '<hr />',
     ]);
-    expect(inlineCodes[0]?.getAttribute('style')).toContain('background-color');
-    expect(inlineCodes[0]?.getAttribute('style')).toContain('rgba(59, 130, 246, 0.16)');
+    expect(inlineCodes.every(node => node.closest('pre') === null)).toBe(true);
     expect(document.querySelector('button[aria-expanded]')).toBeNull();
     expect(document.querySelector('hr')).toBeNull();
   });

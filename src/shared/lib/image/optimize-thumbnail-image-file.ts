@@ -96,9 +96,8 @@ export const optimizeThumbnailImageFile = async (file: File) => {
   context.drawImage(image, 0, 0, width, height);
 
   const optimizedBlob = await convertCanvasToBlob(canvas);
-  const isSameSize = width === image.naturalWidth && height === image.naturalHeight;
 
-  if (isSameSize && optimizedBlob.size >= file.size) {
+  if (optimizedBlob.size >= file.size) {
     return file;
   }
 

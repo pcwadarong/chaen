@@ -62,7 +62,8 @@ export const AdminDetailActions = ({
       <Button asChild className={actionButtonClass} size="sm" tone="white" variant="ghost">
         <Link href={editHref}>{editLabel}</Link>
       </Button>
-      <form action={deleteAction} onSubmit={handleDeleteSubmit}>
+      <span aria-hidden className={dividerClass} />
+      <form action={deleteAction} className={deleteFormClass} onSubmit={handleDeleteSubmit}>
         <DeleteSubmitButton deleteLabel={deleteLabel} />
       </form>
     </div>
@@ -72,10 +73,24 @@ export const AdminDetailActions = ({
 const actionsGroupClass = css({
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '2',
+  flexShrink: '0',
+});
+
+const deleteFormClass = css({
+  display: 'inline-flex',
+});
+
+const dividerClass = css({
+  width: '[1px]',
+  height: '[1.5rem]',
+  background: 'surfaceStrong',
 });
 
 const actionButtonClass = css({
+  minHeight: '[unset]',
+  px: '3',
+  py: '0',
+  fontSize: 'sm',
   '@media (min-width: 961px)': {
     fontSize: 'md',
   },

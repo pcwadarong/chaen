@@ -282,15 +282,24 @@ export const DetailMetaBar = React.memo(DetailMetaBarBase);
 
 const metaBarWrapClass = css({
   display: 'flex',
+  width: 'full',
   justifyContent: 'center',
+  overflowX: 'auto',
+  scrollbarWidth: '[none]',
+  '&::-webkit-scrollbar': {
+    display: 'none',
+  },
 });
 
 const metaBarClass = css({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '4',
+  flexShrink: '0',
+  gap: '0',
   minHeight: '[3rem]',
+  minWidth: '[max-content]',
+  maxWidth: 'full',
   px: '6',
   py: '0',
   borderRadius: 'full',
@@ -301,7 +310,8 @@ const metaBarClass = css({
 const metaItemClass = css({
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '2',
+  gap: '1',
+  px: '3',
   color: 'text',
   fontSize: 'sm',
   '@media (min-width: 961px)': {
@@ -316,6 +326,10 @@ const dividerClass = css({
 });
 
 const shareButtonClass = css({
+  minHeight: '[unset]',
+  px: '3',
+  py: '0',
+  fontSize: 'sm',
   '@media (min-width: 961px)': {
     fontSize: 'md',
   },

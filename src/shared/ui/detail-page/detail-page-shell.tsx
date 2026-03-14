@@ -188,6 +188,8 @@ const detailPageSidebarClass = css({
 const detailPageContentClass = css({
   display: 'flex',
   flexDirection: 'column',
+  minWidth: '0',
+  overflowX: 'hidden',
   pt: '10',
   pb: '24',
   '@media (min-width: 961px)': {
@@ -214,6 +216,7 @@ const detailPageHeroClass = css({
 const detailPageHeroTextClass = css({
   display: 'flex',
   flexDirection: 'column',
+  minWidth: '0',
   gap: '4',
   alignItems: 'center',
   textAlign: 'center',
@@ -254,6 +257,7 @@ const detailPageMetaBarSectionClass = css({
 const detailPageBodyClass = css({
   width: 'full',
   maxWidth: '[48rem]',
+  minWidth: '0',
   mx: 'auto',
   px: '4',
   pb: '24',
@@ -261,6 +265,7 @@ const detailPageBodyClass = css({
 
 const detailPageContentSectionClass = css({
   display: 'grid',
+  minWidth: '0',
   gap: '4',
   '@media (min-width: 961px)': {
     gap: '5',
