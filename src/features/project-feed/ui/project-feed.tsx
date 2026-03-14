@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
@@ -19,6 +19,48 @@ type ProjectFeedProps = {
   locale: string;
   retryText: string;
 };
+
+type ProjectFeedContentProps = {
+  emptyText: string;
+  items: ProjectListItem[];
+};
+
+type ProjectFeedErrorPanelProps = {
+  loadErrorText: string;
+  onRetry: () => void;
+  retryText: string;
+};
+
+/**
+ * 프로젝트 쇼케이스와 빈 상태만 담당하는 본문 블록입니다.
+ */
+const ProjectFeedContentBase = ({ emptyText, items }: ProjectFeedContentProps) => (
+  <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
+);
+
+ProjectFeedContentBase.displayName = 'ProjectFeedContent';
+
+const ProjectFeedContent = React.memo(ProjectFeedContentBase);
+
+/**
+ * 초기 프로젝트 로드 실패 시 노출하는 재시도 패널입니다.
+ */
+const ProjectFeedErrorPanelBase = ({
+  loadErrorText,
+  onRetry,
+  retryText,
+}: ProjectFeedErrorPanelProps) => (
+  <div className={errorPanelClass}>
+    <p className={errorTextClass}>{loadErrorText}</p>
+    <Button onClick={onRetry} tone="white" variant="ghost">
+      {retryText}
+    </Button>
+  </div>
+);
+
+ProjectFeedErrorPanelBase.displayName = 'ProjectFeedErrorPanel';
+
+const ProjectFeedErrorPanel = React.memo(ProjectFeedErrorPanelBase);
 
 /**
  * 프로젝트 목록의 무한 스크롤 피드를 렌더링합니다.
@@ -39,6 +81,9 @@ export const ProjectFeed = ({
     locale,
   });
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const handleLoadMore = useCallback(() => {
+    void loadMore();
+  }, [loadMore]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -47,7 +92,7 @@ export const ProjectFeed = ({
       entries => {
         const target = entries[0];
         if (!target?.isIntersecting) return;
-        void loadMore();
+        handleLoadMore();
       },
       {
         root: null,
@@ -58,19 +103,18 @@ export const ProjectFeed = ({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [handleLoadMore]);
 
   return (
     <section className={sectionClass}>
       {errorMessage && items.length === 0 ? (
-        <div className={errorPanelClass}>
-          <p className={errorTextClass}>{loadErrorText}</p>
-          <Button onClick={() => void loadMore()} tone="white" variant="ghost">
-            {retryText}
-          </Button>
-        </div>
+        <ProjectFeedErrorPanel
+          loadErrorText={loadErrorText}
+          onRetry={handleLoadMore}
+          retryText={retryText}
+        />
       ) : (
-        <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
+        <ProjectFeedContent emptyText={emptyText} items={items} />
       )}
 
       <div aria-hidden className={sentinelClass} ref={sentinelRef} />

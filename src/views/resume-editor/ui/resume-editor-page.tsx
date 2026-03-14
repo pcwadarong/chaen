@@ -9,6 +9,7 @@ import { ResumeEditorClient } from '@/views/resume-editor/ui/resume-editor-clien
 import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 
 type ResumeEditorPageProps = {
+  hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
   initialContents: ResumeEditorContentMap;
   initialPublishSettings: ResumePublishSettings;
@@ -29,6 +30,7 @@ type ResumeEditorPageProps = {
  * resume 전용 관리자 편집 페이지입니다.
  */
 export const ResumeEditorPage = ({
+  hideAppFrameFooter = false,
   initialDraftId,
   initialContents,
   initialPublishSettings,
@@ -38,6 +40,7 @@ export const ResumeEditorPage = ({
   onUploadPdf,
 }: ResumeEditorPageProps) => (
   <ResumeEditorClient
+    hideAppFrameFooter={hideAppFrameFooter}
     initialDraftId={initialDraftId}
     initialContents={initialContents}
     initialPublishSettings={initialPublishSettings}

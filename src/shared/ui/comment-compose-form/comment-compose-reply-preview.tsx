@@ -12,7 +12,7 @@ type CommentComposeReplyPreviewProps = {
 };
 
 /** 답신 대상 콘텐츠 미리보기와 선택 해제 버튼을 렌더링합니다. */
-export const CommentComposeReplyPreview = ({
+const CommentComposeReplyPreviewBase = ({
   onReset,
   replyPreviewLabel,
   replyTargetContent,
@@ -34,6 +34,10 @@ export const CommentComposeReplyPreview = ({
     ) : null}
   </aside>
 );
+
+CommentComposeReplyPreviewBase.displayName = 'CommentComposeReplyPreview';
+
+export const CommentComposeReplyPreview = React.memo(CommentComposeReplyPreviewBase);
 
 const replyPreviewClass = css({
   display: 'grid',

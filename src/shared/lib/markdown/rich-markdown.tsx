@@ -44,6 +44,8 @@ const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
 const subtextPrefix = '-# ';
 const htmlLineBreakPattern = /<br\s*\/?>/gi;
 const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
+const markdownLineBreakPlaceholder = '__MD_LINE_BREAK__';
+const markdownHorizontalRulePlaceholder = '__MD_HORIZONTAL_RULE__';
 const inlineStyledSpanPattern = /<span style="([^"]+)">([\s\S]*?)<\/span>/g;
 const inlineUnderlinePattern = /<u>([\s\S]*?)<\/u>/g;
 const inlineSpoilerPattern = /\|\|([^|]+?)\|\|/g;
@@ -88,7 +90,6 @@ const getFenceBoundary = (line: string, activeFence: FenceState) => {
 const transformMarkdownOutsideCode = (markdown: string, transform: (value: string) => string) => {
   const lines = markdown.split('\n');
   let activeFence: FenceState = null;
-
   return lines
     .map(line => {
       const fenceBoundary = getFenceBoundary(line, activeFence);
@@ -217,8 +218,17 @@ export const preprocessMarkdownInlineSyntax = (markdown: string) =>
  */
 const normalizeMarkdownHtmlAliases = (markdown: string) =>
   transformMarkdownOutsideCode(markdown, value =>
-    value.replace(htmlHorizontalRulePattern, '\n---\n').replace(htmlLineBreakPattern, '\n'),
-  );
+    value
+      .replace(htmlHorizontalRulePattern, markdownHorizontalRulePlaceholder)
+      .replace(htmlLineBreakPattern, markdownLineBreakPlaceholder),
+  )
+    .replace(new RegExp(`${markdownLineBreakPlaceholder}\n`, 'g'), '\n')
+    .replace(new RegExp(markdownLineBreakPlaceholder, 'g'), '\n')
+    .replace(
+      new RegExp(`(^|\n)${markdownHorizontalRulePlaceholder}(?=\n|$)`, 'g'),
+      (_, prefix: string) => `${prefix}---`,
+    )
+    .replace(new RegExp(markdownHorizontalRulePlaceholder, 'g'), '\n---\n');
 
 /**
  * toggle summary 문자열 앞의 heading prefix를 읽어 summary 스타일 레벨과 본문 제목을 분리합니다.

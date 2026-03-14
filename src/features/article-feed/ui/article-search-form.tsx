@@ -23,17 +23,81 @@ type ArticleSearchFormProps = {
   submitText: string;
 };
 
+type ArticleSearchActionsProps = {
+  clearText: string;
+  hasValue: boolean;
+  isPending: boolean;
+  onClear: () => void;
+  submitText: string;
+};
+
+type ArticleSearchPendingStatusProps = {
+  isPending: boolean;
+  pendingText: string;
+};
+
+/**
+ * 검색 입력 우측의 clear/submit 액션만 렌더링합니다.
+ */
+const ArticleSearchActionsBase = ({
+  clearText,
+  hasValue,
+  isPending,
+  onClear,
+  submitText,
+}: ArticleSearchActionsProps) => (
+  <>
+    {hasValue ? (
+      <XButton
+        ariaLabel={clearText}
+        className={clearButtonClass}
+        glyphClassName={clearGlyphClass}
+        onClick={onClear}
+      />
+    ) : null}
+    <Button
+      aria-label={submitText}
+      className={submitButtonClass}
+      disabled={isPending}
+      size="sm"
+      tone="white"
+      type="submit"
+      variant="ghost"
+    >
+      <SearchIcon aria-hidden color="text" size="md" />
+      <span className={srOnlyClass}>{submitText}</span>
+    </Button>
+  </>
+);
+
+ArticleSearchActionsBase.displayName = 'ArticleSearchActions';
+
+const ArticleSearchActions = React.memo(ArticleSearchActionsBase);
+
+/**
+ * pending 상태를 보조기기에만 알리는 상태 텍스트입니다.
+ */
+const ArticleSearchPendingStatusBase = ({
+  isPending,
+  pendingText,
+}: ArticleSearchPendingStatusProps) =>
+  isPending ? (
+    <p aria-live="polite" className={srOnlyClass} role="status">
+      {pendingText}
+    </p>
+  ) : null;
+
+ArticleSearchPendingStatusBase.displayName = 'ArticleSearchPendingStatus';
+
+const ArticleSearchPendingStatus = React.memo(ArticleSearchPendingStatusBase);
+
 /**
  * 검색 입력값을 현재 URL 기준 아티클 검색 href로 직렬화합니다.
  *
  * locale 세그먼트는 pathname이 이미 포함하고 있으므로 query string만 갱신합니다.
  */
-const createSearchHref = (
-  pathname: string,
-  searchParams: URLSearchParams | null,
-  query: string,
-) => {
-  const nextSearchParams = new URLSearchParams(searchParams?.toString() ?? '');
+const createSearchHref = (pathname: string, searchParamsSnapshot: string, query: string) => {
+  const nextSearchParams = new URLSearchParams(searchParamsSnapshot);
   const normalizedQuery = query.trim();
 
   if (normalizedQuery) nextSearchParams.set('q', normalizedQuery);
@@ -68,20 +132,22 @@ export const ArticleSearchForm = ({
   const [inputValue, setInputValue] = React.useState(searchQuery);
   const debounceTimerRef = React.useRef<number | null>(null);
   const skipDebounceRef = React.useRef(false);
+  const searchParamsSnapshot = searchParams?.toString() ?? '';
   const currentQuery = searchParams?.get('q')?.trim() ?? searchQuery;
+  const hasInputValue = inputValue.length > 0;
 
   /**
    * 현재 pathname을 유지한 채 q 파라미터만 교체합니다.
    */
   const replaceQuery = React.useCallback(
     (nextQuery: string) => {
-      const href = createSearchHref(pathname, searchParams, nextQuery);
+      const href = createSearchHref(pathname, searchParamsSnapshot, nextQuery);
 
       startTransition(() => {
         router.replace(href);
       });
     },
-    [pathname, router, searchParams, startTransition],
+    [pathname, router, searchParamsSnapshot, startTransition],
   );
 
   React.useEffect(() => {
@@ -126,29 +192,16 @@ export const ArticleSearchForm = ({
   }, [currentQuery, inputValue, replaceQuery, searchMode]);
 
   /**
-   * Enter 제출 시 debounce를 기다리지 않고 즉시 검색을 반영합니다.
+   * 입력값 변경을 로컬 상태에 반영합니다.
    */
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (debounceTimerRef.current) {
-      window.clearTimeout(debounceTimerRef.current);
-    }
-
-    if (inputValue.trim() === currentQuery) {
-      onSubmitComplete?.();
-      return;
-    }
-
-    skipDebounceRef.current = true;
-    setIsAwaitingSubmitCompletion(true);
-    replaceQuery(inputValue);
-  };
+  const handleInputChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  }, []);
 
   /**
    * 검색어를 즉시 비우고 URL의 q 파라미터를 제거합니다.
    */
-  const handleClear = () => {
+  const handleClear = React.useCallback(() => {
     if (debounceTimerRef.current) {
       window.clearTimeout(debounceTimerRef.current);
     }
@@ -160,7 +213,30 @@ export const ArticleSearchForm = ({
 
     skipDebounceRef.current = true;
     replaceQuery('');
-  };
+  }, [currentQuery, replaceQuery, searchMode]);
+
+  /**
+   * Enter 제출 시 debounce를 기다리지 않고 즉시 검색을 반영합니다.
+   */
+  const handleSubmit = React.useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+
+      if (inputValue.trim() === currentQuery) {
+        onSubmitComplete?.();
+        return;
+      }
+
+      skipDebounceRef.current = true;
+      setIsAwaitingSubmitCompletion(true);
+      replaceQuery(inputValue);
+    },
+    [currentQuery, inputValue, onSubmitComplete, replaceQuery],
+  );
 
   return (
     <form
@@ -177,38 +253,21 @@ export const ArticleSearchForm = ({
           className={cx(inputPaddingClass, isPending ? pendingInputClass : undefined)}
           enterKeyHint="search"
           name="q"
-          onChange={event => setInputValue(event.target.value)}
+          onChange={handleInputChange}
           placeholder={placeholder}
           role="searchbox"
           type="text"
           value={inputValue}
         />
-        {inputValue ? (
-          <XButton
-            ariaLabel={clearText}
-            className={clearButtonClass}
-            glyphClassName={clearGlyphClass}
-            onClick={handleClear}
-          />
-        ) : null}
-        <Button
-          aria-label={submitText}
-          className={submitButtonClass}
-          disabled={isPending}
-          size="sm"
-          tone="white"
-          type="submit"
-          variant="ghost"
-        >
-          <SearchIcon aria-hidden color="text" size="md" />
-          <span className={srOnlyClass}>{submitText}</span>
-        </Button>
+        <ArticleSearchActions
+          clearText={clearText}
+          hasValue={hasInputValue}
+          isPending={isPending}
+          onClear={handleClear}
+          submitText={submitText}
+        />
       </div>
-      {isPending ? (
-        <p aria-live="polite" className={srOnlyClass} role="status">
-          {pendingText}
-        </p>
-      ) : null}
+      <ArticleSearchPendingStatus isPending={isPending} pendingText={pendingText} />
     </form>
   );
 };

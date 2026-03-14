@@ -9,7 +9,7 @@ import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import {
   type DraftSaveResult,
   EDITOR_LOCALES,
@@ -70,6 +70,10 @@ type PublishResumeContentActionInput = {
   state: ResumeEditorState;
 };
 
+type ResumeServiceRoleSupabase = NonNullable<
+  ReturnType<typeof createOptionalServiceRoleSupabaseClient>
+>;
+
 /**
  * resume 전용 draft를 upsert하고 마지막 저장 시각을 반환합니다.
  */
@@ -89,7 +93,10 @@ export const saveResumeDraftAction = async ({
     );
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
     contents: buildResumeDraftContentRecord(parsedState.data.contents),
@@ -186,7 +193,10 @@ export const publishResumeContentAction = async ({
     );
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const { tableName } = getPdfFileContentConfig('resume');
   const nowIso = new Date().toISOString();
   const contentRows = buildResumeContentRows({
@@ -201,7 +211,7 @@ export const publishResumeContentAction = async ({
     throw createResumeEditorError('publishFailed');
   }
 
-  await deleteResumeDrafts(draftId);
+  await deleteResumeDrafts(supabase, draftId);
 
   revalidateResumeEditorPaths(resolveActionLocale(locale));
   revalidateResumePublicPaths();
@@ -237,8 +247,7 @@ const buildResumeContentRows = ({
 /**
  * 기존 resume draft id가 있으면 그 draft를, 없으면 resume draft 전체를 정리합니다.
  */
-const deleteResumeDrafts = async (draftId?: string | null) => {
-  const supabase = await createServerSupabaseClient();
+const deleteResumeDrafts = async (supabase: ResumeServiceRoleSupabase, draftId?: string | null) => {
   let query = supabase.from('resume_drafts').delete();
 
   if (draftId) {
@@ -256,7 +265,10 @@ const deleteResumeDrafts = async (draftId?: string | null) => {
  * 가장 최근 resume draft id를 반환합니다.
  */
 const resolveLatestResumeDraftId = async () => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) {
+    throw createResumeEditorError('serviceRoleUnavailable');
+  }
   const { data, error } = await supabase
     .from('resume_drafts')
     .select('id')

@@ -67,3 +67,4 @@ public/**/*.map
 .vercel/
 
 styled-system/
+docs/

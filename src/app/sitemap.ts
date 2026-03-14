@@ -10,9 +10,13 @@ type ArticleSitemapRow = {
   locale: string;
   articles:
     | {
+        publish_at: string | null;
+        slug: string | null;
         updated_at: string | null;
       }
     | {
+        publish_at: string | null;
+        slug: string | null;
         updated_at: string | null;
       }[]
     | null;
@@ -23,10 +27,14 @@ type ProjectSitemapRow = {
   project_id: string;
   projects:
     | {
-        created_at: string;
+        publish_at: string | null;
+        slug: string | null;
+        updated_at: string | null;
       }
     | {
-        created_at: string;
+        publish_at: string | null;
+        slug: string | null;
+        updated_at: string | null;
       }[]
     | null;
 };
@@ -98,23 +106,36 @@ const buildArchiveEntries = (): MetadataRoute.Sitemap =>
 const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
+  const nowIsoString = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('article_translations')
-    .select('article_id,locale,articles!inner(updated_at)')
-    .in('locale', [...locales]);
+    .select('article_id,locale,articles!inner(updated_at,publish_at,slug)')
+    .in('locale', [...locales])
+    .eq('articles.visibility', 'public')
+    .lte('articles.publish_at', nowIsoString)
+    .not('articles.publish_at', 'is', null)
+    .not('articles.slug', 'is', null);
 
   if (error) return [];
 
-  return ((data ?? []) as ArticleSitemapRow[]).map(row => {
+  return ((data ?? []) as ArticleSitemapRow[]).flatMap(row => {
     const article = getEmbeddedSitemapRelation(row.articles);
+    const articleSlug = article?.slug?.trim();
+    if (!articleSlug) return [];
 
-    return {
-      changeFrequency: 'weekly',
-      lastModified: article?.updated_at ? new Date(article.updated_at) : new Date(),
-      priority: 0.8,
-      url: buildAbsoluteSiteUrl(`/${row.locale}/articles/${row.article_id}`),
-    };
+    return [
+      {
+        changeFrequency: 'weekly' as const,
+        lastModified: article?.updated_at
+          ? new Date(article.updated_at)
+          : article?.publish_at
+            ? new Date(article.publish_at)
+            : undefined,
+        priority: 0.8,
+        url: buildAbsoluteSiteUrl(`/${row.locale}/articles/${articleSlug}`),
+      },
+    ];
   });
 };
 
@@ -124,23 +145,36 @@ const fetchArticleEntries = async (): Promise<MetadataRoute.Sitemap> => {
 const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
+  const nowIsoString = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('project_translations')
-    .select('project_id,locale,projects!inner(created_at)')
-    .in('locale', [...locales]);
+    .select('project_id,locale,projects!inner(updated_at,publish_at,slug)')
+    .in('locale', [...locales])
+    .eq('projects.visibility', 'public')
+    .lte('projects.publish_at', nowIsoString)
+    .not('projects.publish_at', 'is', null)
+    .not('projects.slug', 'is', null);
 
   if (error) return [];
 
-  return ((data ?? []) as ProjectSitemapRow[]).map(row => {
+  return ((data ?? []) as ProjectSitemapRow[]).flatMap(row => {
     const project = getEmbeddedSitemapRelation(row.projects);
+    const projectSlug = project?.slug?.trim();
+    if (!projectSlug) return [];
 
-    return {
-      changeFrequency: 'monthly',
-      lastModified: new Date(project?.created_at ?? new Date().toISOString()),
-      priority: 0.8,
-      url: buildAbsoluteSiteUrl(`/${row.locale}/project/${row.project_id}`),
-    };
+    return [
+      {
+        changeFrequency: 'monthly' as const,
+        lastModified: project?.updated_at
+          ? new Date(project.updated_at)
+          : project?.publish_at
+            ? new Date(project.publish_at)
+            : undefined,
+        priority: 0.8,
+        url: buildAbsoluteSiteUrl(`/${row.locale}/project/${projectSlug}`),
+      },
+    ];
   });
 };
 

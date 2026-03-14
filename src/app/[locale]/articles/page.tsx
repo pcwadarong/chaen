@@ -111,7 +111,7 @@ const ArticlesRoute = async ({ params, searchParams }: ArticlesRouteProps) => {
     notFound();
   }
 
-  return <ArticlesPage {...pageData} />;
+  return <ArticlesPage {...pageData} locale={locale} />;
 };
 
 export default ArticlesRoute;

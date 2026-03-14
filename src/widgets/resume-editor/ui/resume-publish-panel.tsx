@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ResumePublishSettings } from '@/entities/resume/model/resume-editor.types';
@@ -18,9 +18,116 @@ import { XButton } from '@/shared/ui/x-button/x-button';
 
 import type { ResumePublishPanelProps } from '../model/resume-editor.types';
 
+type ResumePublishErrors = {
+  koBody?: string;
+  koTitle?: string;
+  pdf?: string;
+};
+
+type ResumePublishStatusSectionProps = {
+  errors: ResumePublishErrors;
+  isUploading: boolean;
+  onFileChange: React.ChangeEventHandler<HTMLInputElement>;
+  settings: ResumePublishSettings;
+};
+
+type ResumePublishFooterProps = {
+  isSubmitting: boolean;
+  isUploading: boolean;
+  onCancel: () => void;
+  onSubmit: () => void;
+};
+
 const defaultUploadResumePdfFile = async (_file: File): Promise<ResumePublishSettings> => {
   throw createResumeEditorError('pdfUploadNotConfigured');
 };
+
+/**
+ * 현재 게시 대상 PDF 정보와 업로드 상태를 보여주는 섹션입니다.
+ */
+const ResumePublishStatusSectionBase = ({
+  errors,
+  isUploading,
+  onFileChange,
+  settings,
+}: ResumePublishStatusSectionProps) => (
+  <div className={sectionClass}>
+    <div className={rowClass}>
+      <div className={copyGroupClass}>
+        <p className={sectionLabelClass}>파일명</p>
+        <p className={fileNameClass}>{settings.downloadFileName}</p>
+      </div>
+      <label className={uploadButtonClass}>
+        <input
+          accept="application/pdf"
+          className={fileInputClass}
+          disabled={isUploading}
+          onChange={onFileChange}
+          type="file"
+        />
+        {isUploading ? '업로드 중...' : 'PDF 업로드'}
+      </label>
+    </div>
+    <div className={metaGridClass}>
+      <div className={metaItemClass}>
+        <span className={metaLabelClass}>다운로드 경로</span>
+        <span className={metaValueClass}>{settings.downloadPath}</span>
+      </div>
+      <div className={metaItemClass}>
+        <span className={metaLabelClass}>Storage 경로</span>
+        <span className={metaValueClass}>{settings.filePath}</span>
+      </div>
+      <div className={metaItemClass}>
+        <span className={metaLabelClass}>상태</span>
+        <span className={metaValueClass}>
+          {settings.isPdfReady ? '업로드됨' : 'PDF 업로드 필요'}
+        </span>
+      </div>
+    </div>
+    {errors.pdf ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.pdf}
+      </p>
+    ) : null}
+    {errors.koTitle ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.koTitle}
+      </p>
+    ) : null}
+    {errors.koBody ? (
+      <p aria-live="assertive" className={errorClass} role="alert">
+        {errors.koBody}
+      </p>
+    ) : null}
+  </div>
+);
+
+ResumePublishStatusSectionBase.displayName = 'ResumePublishStatusSection';
+
+const ResumePublishStatusSection = React.memo(ResumePublishStatusSectionBase);
+
+/**
+ * 취소와 게시 액션만 담당하는 footer입니다.
+ */
+const ResumePublishFooterBase = ({
+  isSubmitting,
+  isUploading,
+  onCancel,
+  onSubmit,
+}: ResumePublishFooterProps) => (
+  <footer className={footerClass}>
+    <Button onClick={onCancel} size="sm" variant="ghost">
+      취소
+    </Button>
+    <Button disabled={isSubmitting || isUploading} onClick={onSubmit} size="sm" tone="primary">
+      {isSubmitting ? '게시 중...' : '게시하기'}
+    </Button>
+  </footer>
+);
+
+ResumePublishFooterBase.displayName = 'ResumePublishFooter';
+
+const ResumePublishFooter = React.memo(ResumePublishFooterBase);
 
 /**
  * resume 게시 전 PDF 업로드 상태를 확인하고 최종 제출을 담당합니다.
@@ -34,29 +141,34 @@ export const ResumePublishPanel = ({
   onUploadPdf = defaultUploadResumePdfFile,
 }: ResumePublishPanelProps) => {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const latestInitialSettingsRef = useRef(initialSettings);
+  const previousIsOpenRef = useRef(isOpen);
   const [settings, setSettings] = useState(initialSettings);
-  const [errors, setErrors] = useState<{
-    koBody?: string;
-    koTitle?: string;
-    pdf?: string;
-  }>({});
+  const [errors, setErrors] = useState<ResumePublishErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
 
   useEffect(() => {
-    if (!isOpen) {
+    latestInitialSettingsRef.current = initialSettings;
+  }, [initialSettings]);
+
+  useEffect(() => {
+    const wasOpen = previousIsOpenRef.current;
+    previousIsOpenRef.current = isOpen;
+
+    if (!isOpen || wasOpen) {
       return;
     }
 
-    setSettings(initialSettings);
+    setSettings(latestInitialSettingsRef.current);
     setErrors({});
-  }, [initialSettings, isOpen]);
+  }, [isOpen]);
 
   /**
    * 오류 토스트를 추가합니다.
    */
-  const pushToast = (message: string) => {
+  const pushToast = useCallback((message: string) => {
     setToastItems(previous => [
       ...previous,
       {
@@ -65,49 +177,67 @@ export const ResumePublishPanel = ({
         tone: 'error',
       },
     ]);
-  };
+  }, []);
+
+  /**
+   * 토스트를 닫습니다.
+   */
+  const handleToastClose = useCallback((id: string) => {
+    setToastItems(previous => previous.filter(item => item.id !== id));
+  }, []);
+
+  /**
+   * 슬라이드오버를 닫습니다.
+   */
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   /**
    * PDF 업로드 후 게시 설정의 준비 상태를 갱신합니다.
    */
-  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async event => {
-    const file = event.target.files?.[0];
+  const handleFileChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    async event => {
+      const input = event.target;
+      const file = input.files?.[0];
 
-    if (!file) {
-      return;
-    }
+      if (!file) {
+        return;
+      }
 
-    setIsUploading(true);
-    setErrors(previous => ({
-      ...previous,
-      pdf: undefined,
-    }));
-
-    try {
-      const nextSettings = await onUploadPdf(file);
-
-      setSettings(nextSettings);
-    } catch (error) {
-      const parsedError = parseResumeEditorError(error, 'pdfUploadFailed');
-
-      pushToast(parsedError.message);
+      setIsUploading(true);
       setErrors(previous => ({
         ...previous,
-        pdf:
-          resolveResumePublishInlineErrorField(parsedError.code) === 'pdf'
-            ? parsedError.message
-            : RESUME_EDITOR_ERROR_MESSAGE.pdfUploadFailed,
+        pdf: undefined,
       }));
-    } finally {
-      setIsUploading(false);
-      event.target.value = '';
-    }
-  };
+
+      try {
+        const nextSettings = await onUploadPdf(file);
+
+        setSettings(nextSettings);
+      } catch (error) {
+        const parsedError = parseResumeEditorError(error, 'pdfUploadFailed');
+
+        pushToast(parsedError.message);
+        setErrors(previous => ({
+          ...previous,
+          pdf:
+            resolveResumePublishInlineErrorField(parsedError.code) === 'pdf'
+              ? parsedError.message
+              : RESUME_EDITOR_ERROR_MESSAGE.pdfUploadFailed,
+        }));
+      } finally {
+        setIsUploading(false);
+        input.value = '';
+      }
+    },
+    [onUploadPdf, pushToast],
+  );
 
   /**
    * 현재 게시 상태를 검증한 뒤 제출 callback을 실행합니다.
    */
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const nextErrors = validateResumePublishState({
       contents: editorState.contents,
       settings,
@@ -123,7 +253,7 @@ export const ResumePublishPanel = ({
 
     try {
       await onSubmit(settings);
-      onClose();
+      handleClose();
     } catch (error) {
       const parsedError = parseResumeEditorError(error, 'publishFailed');
       const inlineField = resolveResumePublishInlineErrorField(parsedError.code);
@@ -140,7 +270,14 @@ export const ResumePublishPanel = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [editorState.contents, handleClose, onSubmit, pushToast, settings]);
+
+  /**
+   * 버튼 클릭에서 async submit을 위임합니다.
+   */
+  const handleSubmitClick = useCallback(() => {
+    void handleSubmit();
+  }, [handleSubmit]);
 
   return (
     <>
@@ -148,7 +285,7 @@ export const ResumePublishPanel = ({
         ariaLabel="이력서 게시 설정"
         initialFocusRef={closeButtonRef}
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
       >
         <section className={panelClass}>
           <header className={headerClass}>
@@ -156,66 +293,25 @@ export const ResumePublishPanel = ({
               <h2 className={titleClass}>이력서 게시 설정</h2>
               <p className={descriptionClass}>현재 다운로드 파일과 PDF 준비 상태를 확인합니다.</p>
             </div>
-            <XButton ariaLabel="닫기" onClick={onClose} ref={closeButtonRef} />
+            <XButton ariaLabel="닫기" onClick={handleClose} ref={closeButtonRef} />
           </header>
 
-          <div className={sectionClass}>
-            <div className={rowClass}>
-              <div className={copyGroupClass}>
-                <p className={sectionLabelClass}>파일명</p>
-                <p className={fileNameClass}>{settings.downloadFileName}</p>
-              </div>
-              <label className={uploadButtonClass}>
-                <input
-                  accept="application/pdf"
-                  className={fileInputClass}
-                  onChange={handleFileChange}
-                  type="file"
-                />
-                {isUploading ? '업로드 중...' : 'PDF 업로드'}
-              </label>
-            </div>
-            <div className={metaGridClass}>
-              <div className={metaItemClass}>
-                <span className={metaLabelClass}>다운로드 경로</span>
-                <span className={metaValueClass}>{settings.downloadPath}</span>
-              </div>
-              <div className={metaItemClass}>
-                <span className={metaLabelClass}>Storage 경로</span>
-                <span className={metaValueClass}>{settings.filePath}</span>
-              </div>
-              <div className={metaItemClass}>
-                <span className={metaLabelClass}>상태</span>
-                <span className={metaValueClass}>
-                  {settings.isPdfReady ? '업로드됨' : 'PDF 업로드 필요'}
-                </span>
-              </div>
-            </div>
-            {errors.pdf ? <p className={errorClass}>{errors.pdf}</p> : null}
-            {errors.koTitle ? <p className={errorClass}>{errors.koTitle}</p> : null}
-            {errors.koBody ? <p className={errorClass}>{errors.koBody}</p> : null}
-          </div>
-
-          <footer className={footerClass}>
-            <Button onClick={onClose} size="sm" variant="ghost">
-              취소
-            </Button>
-            <Button
-              disabled={isSubmitting || isUploading}
-              onClick={() => void handleSubmit()}
-              size="sm"
-              tone="primary"
-            >
-              {isSubmitting ? '게시 중...' : '게시하기'}
-            </Button>
-          </footer>
+          <ResumePublishStatusSection
+            errors={errors}
+            isUploading={isUploading}
+            onFileChange={handleFileChange}
+            settings={settings}
+          />
+          <ResumePublishFooter
+            isSubmitting={isSubmitting}
+            isUploading={isUploading}
+            onCancel={handleClose}
+            onSubmit={handleSubmitClick}
+          />
         </section>
       </SlideOver>
 
-      <ToastViewport
-        items={toastItems}
-        onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport items={toastItems} onClose={handleToastClose} />
     </>
   );
 };

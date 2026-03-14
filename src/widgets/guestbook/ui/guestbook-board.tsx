@@ -29,6 +29,94 @@ type GuestbookBoardProps = {
   initialItems?: GuestbookThreadItem[];
 };
 
+type GuestbookTranslator = (key: string) => string;
+
+const createGuestbookComposeText = (t: GuestbookTranslator) => ({
+  authorBlogUrlInvalidMessage: t('composeAuthorBlogUrlInvalid'),
+  authorBlogUrlLabel: t('composeAuthorBlogUrlLabel'),
+  authorBlogUrlPlaceholder: t('composeAuthorBlogUrlPlaceholder'),
+  authorNameLabel: t('composeAuthorNameLabel'),
+  authorNamePlaceholder: t('composeAuthorNamePlaceholder'),
+  characterCountLabel: t('composeCharacterCountLabel'),
+  composeContentLabel: t('composeContentLabel'),
+  composeContentShortcutHint: t('composeContentShortcutHint'),
+  composePasswordLabel: t('composePasswordLabel'),
+  composePasswordPlaceholder: t('composePasswordPlaceholder'),
+  composePlaceholder: t('composePlaceholder'),
+  composeReplyPreviewLabel: t('composeReplyPreviewLabel'),
+  replyTargetResetLabel: t('replyTargetResetLabel'),
+  secretLabel: t('secretLabel'),
+  submitLabel: t('submit'),
+});
+
+type GuestbookComposeText = ReturnType<typeof createGuestbookComposeText>;
+
+type GuestbookComposeSectionProps = {
+  allowSecretToggle: boolean;
+  authorMode: 'manual' | 'preset';
+  composeAction: React.FormHTMLAttributes<HTMLFormElement>['action'];
+  hiddenFields: {
+    locale: string;
+    parentId: string | null;
+  };
+  isComposePending: boolean;
+  isReplyMode: boolean;
+  onReplyTargetReset: () => void;
+  presetAuthorName?: string;
+  replyTargetContent: string | null;
+  submissionResult: ActionResult<{ entry: unknown }>;
+  text: GuestbookComposeText;
+};
+
+/**
+ * 방명록 하단 작성 폼만 분리해 modal/toast 상태 변화와 렌더 경계를 분리합니다.
+ */
+const GuestbookComposeSectionBase = ({
+  allowSecretToggle,
+  authorMode,
+  composeAction,
+  hiddenFields,
+  isComposePending,
+  isReplyMode,
+  onReplyTargetReset,
+  presetAuthorName,
+  replyTargetContent,
+  submissionResult,
+  text,
+}: GuestbookComposeSectionProps) => (
+  <CommentComposeForm
+    allowSecretToggle={allowSecretToggle}
+    authorBlogUrlInvalidMessage={text.authorBlogUrlInvalidMessage}
+    authorBlogUrlLabel={text.authorBlogUrlLabel}
+    authorBlogUrlPlaceholder={text.authorBlogUrlPlaceholder}
+    authorMode={authorMode}
+    authorNameLabel={text.authorNameLabel}
+    authorNamePlaceholder={text.authorNamePlaceholder}
+    characterCountLabel={text.characterCountLabel}
+    contentLabel={text.composeContentLabel}
+    contentShortcutHint={text.composeContentShortcutHint}
+    formAction={composeAction}
+    hiddenFields={hiddenFields}
+    isReplyMode={isReplyMode}
+    isSubmittingOverride={isComposePending}
+    onReplyTargetReset={onReplyTargetReset}
+    passwordLabel={text.composePasswordLabel}
+    passwordPlaceholder={text.composePasswordPlaceholder}
+    presetAuthorName={presetAuthorName}
+    replyPreviewLabel={text.composeReplyPreviewLabel}
+    replyTargetContent={replyTargetContent}
+    replyTargetResetLabel={text.replyTargetResetLabel}
+    secretLabel={text.secretLabel}
+    submissionResult={submissionResult}
+    submitLabel={text.submitLabel}
+    textPlaceholder={text.composePlaceholder}
+  />
+);
+
+GuestbookComposeSectionBase.displayName = 'GuestbookComposeSection';
+
+const GuestbookComposeSection = React.memo(GuestbookComposeSectionBase);
+
 /**
  * 방명록 목록과 하단 고정 작성폼을 조합하는 위젯입니다.
  */
@@ -70,6 +158,15 @@ export const GuestbookBoard = ({
   const pushToast = useCallback((message: string, tone: ToastItem['tone']) => {
     const id = createOptimisticId();
     setToasts(previous => [...previous, { id, message, tone }]);
+  }, []);
+  const handleReply = useCallback((entry: GuestbookThreadItem) => {
+    setReplyTarget(entry);
+  }, []);
+  const handleReplyTargetReset = useCallback(() => {
+    setReplyTarget(null);
+  }, []);
+  const handleToastClose = useCallback((id: string) => {
+    setToasts(previous => previous.filter(item => item.id !== id));
   }, []);
 
   useEffect(() => {
@@ -134,6 +231,14 @@ export const GuestbookBoard = ({
     }),
     [t],
   );
+  const composeText = useMemo(() => createGuestbookComposeText(t), [t]);
+  const composeHiddenFields = useMemo(
+    () => ({
+      locale,
+      parentId: isAdmin && replyTarget ? replyTarget.id : null,
+    }),
+    [isAdmin, locale, replyTarget],
+  );
 
   const {
     closeModal,
@@ -188,40 +293,23 @@ export const GuestbookBoard = ({
           onEdit={openEditModal}
           onLoadMore={loadMore}
           onRevealSecretSuccess={applyServerThreadEntry}
-          onReply={entry => setReplyTarget(entry)}
+          onReply={handleReply}
           onRetry={retryInitialLoad}
         />
       </section>
 
-      <CommentComposeForm
-        formAction={composeAction}
+      <GuestbookComposeSection
         allowSecretToggle={!isAdmin}
-        authorBlogUrlLabel={t('composeAuthorBlogUrlLabel')}
-        authorBlogUrlInvalidMessage={t('composeAuthorBlogUrlInvalid')}
-        authorBlogUrlPlaceholder={t('composeAuthorBlogUrlPlaceholder')}
         authorMode={isAdmin ? 'preset' : 'manual'}
-        authorNamePlaceholder={t('composeAuthorNamePlaceholder')}
-        authorNameLabel={t('composeAuthorNameLabel')}
-        characterCountLabel={t('composeCharacterCountLabel')}
-        contentLabel={t('composeContentLabel')}
-        contentShortcutHint={t('composeContentShortcutHint')}
-        hiddenFields={{
-          locale,
-          parentId: isAdmin && replyTarget ? replyTarget.id : null,
-        }}
-        isSubmittingOverride={isComposePending}
+        composeAction={composeAction}
+        hiddenFields={composeHiddenFields}
+        isComposePending={isComposePending}
         isReplyMode={Boolean(replyTarget && isAdmin)}
-        onReplyTargetReset={() => setReplyTarget(null)}
-        passwordPlaceholder={t('composePasswordPlaceholder')}
-        passwordLabel={t('composePasswordLabel')}
+        onReplyTargetReset={handleReplyTargetReset}
         presetAuthorName="admin"
-        replyPreviewLabel={t('composeReplyPreviewLabel')}
         replyTargetContent={isAdmin ? (replyTarget?.content ?? null) : null}
-        replyTargetResetLabel={t('replyTargetResetLabel')}
-        secretLabel={t('secretLabel')}
         submissionResult={composeState}
-        submitLabel={t('submit')}
-        textPlaceholder={t('composePlaceholder')}
+        text={composeText}
       />
 
       <Modal
@@ -297,11 +385,7 @@ export const GuestbookBoard = ({
         </div>
       </Modal>
 
-      <ToastViewport
-        closeLabel={t('close')}
-        items={toasts}
-        onClose={id => setToasts(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport closeLabel={t('close')} items={toasts} onClose={handleToastClose} />
     </div>
   );
 };

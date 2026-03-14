@@ -2,10 +2,15 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { getRelatedEntityIdsByTagId, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
+import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
-  buildCreatedAtIdPage,
-  parseCreatedAtIdCursor,
+  buildContentLocaleFallbackChain,
+  pickPreferredLocaleValue,
+} from '@/shared/lib/i18n/content-locale-fallback';
+import {
+  buildPublishedAtIdPage,
   parseKeysetLimit,
+  parsePublishedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -15,8 +20,6 @@ import 'server-only';
 
 import { ARTICLES_CACHE_TAG } from '../model/cache-tags';
 import type { ArticleListItem, ArticleListPage } from '../model/types';
-
-import { type ArticleTranslationRow, mapArticleListItems } from './map-article-translation';
 
 const isMissingArticlesShadowSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
@@ -44,14 +47,21 @@ export type ResolvedArticleListPage = {
 };
 
 type ArticleSearchCursor = {
-  createdAt: string;
   id: string;
+  publishedAt: string;
   rank: number;
 };
 
 type ArticleSearchRow = ArticleListItem & {
   search_rank: number;
   total_count: number;
+};
+
+type ArticlePublicBaseRow = Pick<ArticleListItem, 'id' | 'publish_at' | 'slug' | 'thumbnail_url'>;
+
+type ArticleListTranslationSummaryRow = Pick<ArticleListItem, 'description' | 'title'> & {
+  article_id: string;
+  locale: string;
 };
 
 /**
@@ -67,13 +77,13 @@ const normalizeSearchQuery = (query?: string | null) => query?.trim() ?? '';
 const normalizeArticleTag = (tag?: string | null) => (tag?.trim() ? tag.trim().toLowerCase() : '');
 
 /**
- * 검색 결과용 rank + created_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
+ * 검색 결과용 rank + publish_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
  */
-const serializeArticleSearchCursor = ({ createdAt, id, rank }: ArticleSearchCursor): string =>
-  Buffer.from(JSON.stringify({ createdAt, id, rank }), 'utf-8').toString('base64url');
+const serializeArticleSearchCursor = ({ id, publishedAt, rank }: ArticleSearchCursor): string =>
+  Buffer.from(JSON.stringify({ id, publishedAt, rank }), 'utf-8').toString('base64url');
 
 /**
- * 검색 결과용 keyset cursor를 rank + created_at + id 조합으로 복원합니다.
+ * 검색 결과용 keyset cursor를 rank + publish_at + id 조합으로 복원합니다.
  */
 const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor | null => {
   if (!cursor) return null;
@@ -83,16 +93,16 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
     const parsed = JSON.parse(decoded) as Partial<ArticleSearchCursor>;
 
     if (
-      typeof parsed.createdAt !== 'string' ||
       typeof parsed.id !== 'string' ||
+      typeof parsed.publishedAt !== 'string' ||
       typeof parsed.rank !== 'number'
     ) {
       return null;
     }
 
     return {
-      createdAt: parsed.createdAt,
       id: parsed.id,
+      publishedAt: parsed.publishedAt,
       rank: parsed.rank,
     };
   } catch {
@@ -101,90 +111,202 @@ const parseArticleSearchCursor = (cursor?: string | null): ArticleSearchCursor |
 };
 
 /**
- * created_at + id keyset 페이지 결과를 아티클 목록 응답 shape로 변환합니다.
+ * 공개 아티클 base row를 `publish_at + id` 기준으로 조회합니다.
  */
-const toArticlesPage = (rows: ArticleListItem[], pageSize: number): ArticleListPage => {
-  const page = buildCreatedAtIdPage({
-    limit: pageSize,
-    rows: rows.map(row => ({
-      ...row,
-      createdAt: row.created_at,
-    })),
-  });
-
-  return {
-    items: dedupeById(
-      page.items.map(({ createdAt: _createdAt, ...item }) => item as ArticleListItem),
-    ),
-    nextCursor: page.nextCursor,
-    totalCount: null,
-  };
-};
-
-/**
- * content schema(`articles` + `article_translations`)에서 locale별 기본 목록을 조회합니다.
- */
-const fetchArticlesByLocaleFromShadow = async (
-  locale: string,
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<{ data: ArticleListPage; schemaMissing: boolean }> => {
+const fetchPublicArticleBaseRows = async ({
+  articleIds,
+  cursor,
+  pageSize,
+}: {
+  articleIds?: string[];
+  cursor: string | null | undefined;
+  pageSize: number;
+}): Promise<{ data: ArticlePublicBaseRow[]; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
-      data: { items: [], nextCursor: null, totalCount: null },
+      data: [],
       schemaMissing: false,
     };
   }
 
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  const parsedCursor = parsePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
-  const translationsQuery = supabase
-    .from('article_translations')
-    .select(
-      'article_id,title,description,articles!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
-    )
-    .eq('locale', locale)
-    .eq('articles.visibility', 'public')
-    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
-      referencedTable: 'articles',
+  const baseQuery = supabase
+    .from('articles')
+    .select('id,thumbnail_url,slug,visibility,publish_at')
+    .not('publish_at', 'is', null)
+    .not('slug', 'is', null)
+    .eq('visibility', 'public')
+    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }))
+    .order('publish_at', {
+      ascending: false,
+      nullsFirst: false,
     })
-    .order('created_at', { ascending: false, referencedTable: 'articles' })
-    .order('article_id', { ascending: false });
+    .order('id', { ascending: false });
 
-  const { data: translationRows, error: translationsError } = await translationsQuery.limit(
-    pageSize + 1,
-  );
+  const targetQuery = articleIds?.length ? baseQuery.in('id', articleIds) : baseQuery;
+  const { data: baseRows, error: baseRowsError } = await targetQuery.limit(pageSize + 1);
 
-  if (translationsError) {
-    if (isMissingArticlesShadowSchemaError(translationsError.message)) {
+  if (baseRowsError) {
+    if (isMissingArticlesShadowSchemaError(baseRowsError.message)) {
       return {
-        data: { items: [], nextCursor: null, totalCount: null },
+        data: [],
         schemaMissing: true,
       };
     }
 
-    throw new Error(`[articles] 번역 목록 조회 실패: ${translationsError.message}`);
+    throw new Error(`[articles] 공개 아티클 base row 조회 실패: ${baseRowsError.message}`);
   }
 
   return {
-    data: toArticlesPage(
-      mapArticleListItems((translationRows ?? []) as ArticleTranslationRow[]),
-      pageSize,
-    ),
+    data: (baseRows ?? []) as ArticlePublicBaseRow[],
     schemaMissing: false,
   };
 };
 
-const fetchArticlesByLocale = async (
+/**
+ * 공개 아티클 id 집합에 대해 locale fallback 후보 번역을 한 번에 조회합니다.
+ */
+const fetchArticleTranslationsByIds = async (
+  articleIds: string[],
+  localeFallbackChain: string[],
+): Promise<{ data: ArticleListTranslationSummaryRow[]; schemaMissing: boolean }> => {
+  if (articleIds.length === 0) {
+    return {
+      data: [],
+      schemaMissing: false,
+    };
+  }
+
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: [],
+      schemaMissing: false,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('article_translations')
+    .select('article_id,locale,title,description')
+    .in('article_id', articleIds)
+    .in('locale', localeFallbackChain);
+
+  if (error) {
+    if (isMissingArticlesShadowSchemaError(error.message)) {
+      return {
+        data: [],
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] 번역 목록 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: (data ?? []) as ArticleListTranslationSummaryRow[],
+    schemaMissing: false,
+  };
+};
+
+/**
+ * base row 순서를 유지하면서 각 아티클에 가장 적합한 locale 번역을 결합합니다.
+ */
+const resolveArticleItemsWithLocaleFallback = async (
+  baseRows: ArticlePublicBaseRow[],
+  locale: string,
+): Promise<ArticleListItem[]> => {
+  if (baseRows.length === 0) return [];
+
+  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
+  const translationsResult = await fetchArticleTranslationsByIds(
+    baseRows.map(row => row.id),
+    localeFallbackChain,
+  );
+  if (translationsResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+
+  const translationsByArticleId = new Map<string, ArticleListTranslationSummaryRow[]>();
+  translationsResult.data.forEach(row => {
+    const rows = translationsByArticleId.get(row.article_id) ?? [];
+    rows.push(row);
+    translationsByArticleId.set(row.article_id, rows);
+  });
+
+  return baseRows.map(baseRow => {
+    const translationRows = translationsByArticleId.get(baseRow.id) ?? [];
+    const preferredTranslation = pickPreferredLocaleValue({
+      locales: localeFallbackChain,
+      resolveLocale: row => row.locale,
+      rows: translationRows,
+    });
+
+    if (!preferredTranslation) {
+      throw new Error(
+        `[articles] 조회 가능한 번역이 없습니다. articleId=${baseRow.id} locales=${localeFallbackChain.join('>')}`,
+      );
+    }
+
+    return {
+      description: preferredTranslation.description,
+      id: baseRow.id,
+      publish_at: baseRow.publish_at,
+      slug: baseRow.slug,
+      thumbnail_url: baseRow.thumbnail_url,
+      title: preferredTranslation.title,
+    };
+  });
+};
+
+/**
+ * 공개 base row를 keyset 페이지 계산용 shape로 정규화합니다.
+ *
+ * 공개 목록은 `publish_at IS NOT NULL` 조건으로 조회하므로 여기서는 string으로 고정합니다.
+ */
+const toPublishedArticlePageRows = (
+  rows: ArticlePublicBaseRow[],
+): Array<ArticlePublicBaseRow & { publishedAt: string }> =>
+  rows.map(row => ({
+    ...row,
+    publishedAt: row.publish_at ?? '',
+  }));
+
+/**
+ * 공개 아티클 기본 목록을 base row + locale fallback 번역으로 조회합니다.
+ */
+const fetchArticlesByLocaleFallback = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
+  articleIds?: string[],
 ): Promise<ArticleListPage> => {
-  const localizedArticles = await fetchArticlesByLocaleFromShadow(locale, cursor, pageSize);
-  if (localizedArticles.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+  const baseRowsResult = await fetchPublicArticleBaseRows({
+    articleIds,
+    cursor,
+    pageSize,
+  });
+  if (baseRowsResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
 
-  return localizedArticles.data;
+  const page = buildPublishedAtIdPage({
+    limit: pageSize,
+    rows: toPublishedArticlePageRows(baseRowsResult.data),
+  });
+
+  return {
+    items: dedupeById(
+      await resolveArticleItemsWithLocaleFallback(
+        page.items.map(({ id, publish_at, slug, thumbnail_url }) => ({
+          id,
+          publish_at,
+          slug,
+          thumbnail_url,
+        })),
+        locale,
+      ),
+    ),
+    nextCursor: page.nextCursor,
+    totalCount: null,
+  };
 };
 
 /**
@@ -215,41 +337,11 @@ const fetchArticlesByTagAndLocale = async (
 
   if (articleIdsByTag.data.length === 0) return { items: [], nextCursor: null, totalCount: null };
 
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
-  const nowIsoString = new Date().toISOString();
-  const translationsQuery = supabase
-    .from('article_translations')
-    .select(
-      'article_id,title,description,articles!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
-    )
-    .eq('locale', locale)
-    .in('article_id', articleIdsByTag.data)
-    .eq('articles.visibility', 'public')
-    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
-      referencedTable: 'articles',
-    })
-    .order('created_at', { ascending: false, referencedTable: 'articles' })
-    .order('article_id', { ascending: false });
-
-  const { data: translationRows, error: translationsError } = await translationsQuery.limit(
-    pageSize + 1,
-  );
-
-  if (translationsError) {
-    if (isMissingArticlesShadowSchemaError(translationsError.message))
-      throw new Error('[articles] content schema가 없습니다.');
-
-    throw new Error(`[articles] 태그 목록 조회 실패: ${translationsError.message}`);
-  }
-
-  return toArticlesPage(
-    mapArticleListItems((translationRows ?? []) as ArticleTranslationRow[]),
-    pageSize,
-  );
+  return fetchArticlesByLocaleFallback(locale, cursor, pageSize, articleIdsByTag.data);
 };
 
 /**
- * RPC 검색 결과를 rank + created_at + id keyset 페이지 형태로 변환합니다.
+ * RPC 검색 결과를 rank + publish_at + id keyset 페이지 형태로 변환합니다.
  *
  * RPC는 각 행마다 동일한 `total_count`를 포함하므로 첫 행의 메타데이터를 사용합니다.
  */
@@ -264,8 +356,8 @@ const toSearchArticlesPage = (rows: ArticleSearchRow[], pageSize: number): Artic
     nextCursor:
       hasMore && lastItem
         ? serializeArticleSearchCursor({
-            createdAt: lastItem.created_at,
             id: lastItem.id,
+            publishedAt: resolvePublicContentPublishedAt(lastItem),
             rank: lastItem.search_rank,
           })
         : null,
@@ -287,8 +379,8 @@ const fetchSearchArticles = async (
 
   const parsedCursor = parseArticleSearchCursor(cursor);
   const { data, error } = await supabase.rpc('search_article_translations', {
-    cursor_created_at: parsedCursor?.createdAt ?? null,
     cursor_id: parsedCursor?.id ?? null,
+    cursor_publish_at: parsedCursor?.publishedAt ?? null,
     cursor_rank: parsedCursor?.rank ?? null,
     page_limit: pageSize,
     search_query: query,
@@ -314,10 +406,6 @@ const readCachedArticles = async (input: {
 
   cacheTag(ARTICLES_CACHE_TAG);
 
-  const parsedCursor = input.normalizedQuery
-    ? parseArticleSearchCursor(input.cursor)
-    : parseCreatedAtIdCursor(input.cursor);
-
   if (input.normalizedQuery) {
     return fetchSearchArticles(
       input.normalizedQuery,
@@ -336,29 +424,13 @@ const readCachedArticles = async (input: {
     );
   }
 
-  const isFirstPage = !parsedCursor;
-
-  if (!isFirstPage) {
-    return fetchArticlesByLocale(input.normalizedLocale, input.cursor, input.pageSize);
-  }
-
-  const localizedArticles = await fetchArticlesByLocale(
-    input.normalizedLocale,
-    input.cursor,
-    input.pageSize,
-  );
-  if (localizedArticles.items.length > 0 || input.normalizedLocale === 'ko') {
-    return localizedArticles;
-  }
-
-  return fetchArticlesByLocale('ko', input.cursor, input.pageSize);
+  return fetchArticlesByLocaleFallback(input.normalizedLocale, input.cursor, input.pageSize);
 };
 
 /**
  * 첫 페이지의 실제 렌더링 locale을 포함해 아티클 목록을 조회합니다.
  *
- * 검색/태그 목록은 요청 locale 그대로 사용하고,
- * 기본 목록 첫 페이지에서만 `ko` fallback 여부를 함께 반환합니다.
+ * 검색/태그 목록을 포함해 현재 요청 locale을 그대로 유지합니다.
  */
 const readCachedResolvedArticlesFirstPage = async (input: {
   normalizedLocale: string;
@@ -394,21 +466,9 @@ const readCachedResolvedArticlesFirstPage = async (input: {
     };
   }
 
-  const localizedArticles = await fetchArticlesByLocale(
-    input.normalizedLocale,
-    null,
-    input.pageSize,
-  );
-  if (localizedArticles.items.length > 0 || input.normalizedLocale === 'ko') {
-    return {
-      page: localizedArticles,
-      resolvedLocale: input.normalizedLocale,
-    };
-  }
-
   return {
-    page: await fetchArticlesByLocale('ko', null, input.pageSize),
-    resolvedLocale: 'ko',
+    page: await fetchArticlesByLocaleFallback(input.normalizedLocale, null, input.pageSize),
+    resolvedLocale: input.normalizedLocale,
   };
 };
 
@@ -444,9 +504,9 @@ export const getResolvedArticlesFirstPage = async ({
 /**
  * 아티클 목록을 keyset cursor 기반 페이지 단위로 조회합니다.
  *
- * - 비검색 목록은 `created_at + id` 기준 keyset pagination을 사용합니다.
- * - 검색 목록은 `rank + created_at + id` 기준 keyset pagination을 사용합니다.
- * - locale 우선 조회 후, 비검색 첫 페이지에서만 번역 fallback으로 `ko`를 한 번 더 조회합니다.
+ * - 비검색 목록은 `publish_at + id` 기준 keyset pagination을 사용합니다.
+ * - 검색 목록은 `rank + publish_at + id` 기준 keyset pagination을 사용합니다.
+ * - 비검색 목록은 각 row마다 요청 locale -> `ko` -> `en` -> `ja` -> `fr` 순으로 번역을 채웁니다.
  * - 반환 shape는 검색 여부와 상관없이 `items/nextCursor/totalCount`로 고정합니다.
  */
 export const getArticles = async ({

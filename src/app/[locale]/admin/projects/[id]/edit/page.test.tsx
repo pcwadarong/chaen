@@ -75,6 +75,7 @@ describe('AdminProjectEditRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.props.contentType).toBe('project');
     expect(element.props.contentId).toBe('project-1');
+    expect(element.props.hideAppFrameFooter).toBe(true);
     expect(typeof element.props.onDraftSave).toBe('function');
     expect(typeof element.props.onPublishSubmit).toBe('function');
   });

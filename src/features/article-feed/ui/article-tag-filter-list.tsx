@@ -9,8 +9,16 @@ import { Link } from '@/i18n/navigation';
 type ArticleTagFilterListProps = {
   activeTag: string;
   emptyText: string;
-  items: LocalizedArticleTagStat[];
+  items: readonly LocalizedArticleTagStat[];
   title: string;
+};
+
+type ArticleTagLinkItem = {
+  articleCount: number;
+  href: string;
+  isActive: boolean;
+  label: string;
+  tag: string;
 };
 
 const createTagHref = (tag: string, activeTag: string) => {
@@ -20,43 +28,62 @@ const createTagHref = (tag: string, activeTag: string) => {
 };
 
 /**
+ * 태그 필터 렌더링에 필요한 파생 링크 모델만 미리 계산합니다.
+ */
+const buildTagLinkItems = (
+  items: readonly LocalizedArticleTagStat[],
+  activeTag: string,
+): ArticleTagLinkItem[] =>
+  items.map(item => ({
+    articleCount: item.article_count,
+    href: createTagHref(item.tag, activeTag),
+    isActive: item.tag === activeTag,
+    label: item.label,
+    tag: item.tag,
+  }));
+
+/**
  * 아티클 목록 우측 패널에서 사용하는 인기 태그 필터 목록입니다.
  *
  * 태그는 URL 기반 필터이므로 버튼이 아니라 링크로 렌더링합니다.
  */
-export const ArticleTagFilterList = ({
+const ArticleTagFilterListBase = ({
   activeTag,
   emptyText,
   items,
   title,
-}: ArticleTagFilterListProps) => (
-  <section aria-labelledby="article-tag-filter-title" className={sectionClass}>
-    <h2 className={titleClass} id="article-tag-filter-title">
-      {title}
-    </h2>
-    {items.length > 0 ? (
-      <div className={listClass}>
-        {items.map(item => {
-          const isActive = item.tag === activeTag;
+}: ArticleTagFilterListProps) => {
+  const linkItems = React.useMemo(() => buildTagLinkItems(items, activeTag), [activeTag, items]);
 
-          return (
+  return (
+    <section aria-labelledby="article-tag-filter-title" className={sectionClass}>
+      <h2 className={titleClass} id="article-tag-filter-title">
+        {title}
+      </h2>
+      {linkItems.length > 0 ? (
+        <div className={listClass}>
+          {linkItems.map(item => (
             <Link
-              aria-current={isActive ? 'page' : undefined}
-              className={cx(tagLinkClass, isActive ? activeTagLinkClass : undefined)}
-              href={createTagHref(item.tag, activeTag)}
+              aria-current={item.isActive ? 'page' : undefined}
+              className={cx(tagLinkClass, item.isActive ? activeTagLinkClass : undefined)}
+              href={item.href}
               key={item.tag}
             >
               <span>{item.label}</span>
-              <span className={countClass}>({item.article_count})</span>
+              <span className={countClass}>({item.articleCount})</span>
             </Link>
-          );
-        })}
-      </div>
-    ) : (
-      <p className={emptyClass}>{emptyText}</p>
-    )}
-  </section>
-);
+          ))}
+        </div>
+      ) : (
+        <p className={emptyClass}>{emptyText}</p>
+      )}
+    </section>
+  );
+};
+
+ArticleTagFilterListBase.displayName = 'ArticleTagFilterList';
+
+export const ArticleTagFilterList = React.memo(ArticleTagFilterListBase);
 
 const sectionClass = css({
   display: 'grid',

@@ -108,4 +108,54 @@ describe('EditorDraftsPage', () => {
       await screen.findByText('임시저장을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'),
     ).toBeTruthy();
   });
+
+  it('삭제 중 상태는 선택한 draft row에만 반영한다', async () => {
+    let resolveDelete: ((value: void | PromiseLike<void>) => void) | undefined;
+    const onDeleteDraft = vi.fn(
+      () =>
+        new Promise<void>(resolve => {
+          resolveDelete = resolve;
+        }),
+    );
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(
+      <EditorDraftsPage
+        items={[
+          {
+            contentId: null,
+            contentType: 'article',
+            id: 'draft-1',
+            title: '글 초안 1',
+            updatedAt: '2026-03-13T09:00:00.000Z',
+          },
+          {
+            contentId: null,
+            contentType: 'project',
+            id: 'draft-2',
+            title: '글 초안 2',
+            updatedAt: '2026-03-13T09:30:00.000Z',
+          },
+        ]}
+        onDeleteDraft={onDeleteDraft}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByRole('button', { name: '삭제' });
+    fireEvent.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '삭제 중...' })).toBeTruthy();
+    });
+    expect(screen.getAllByRole('button', { name: '삭제' })).toHaveLength(1);
+
+    if (resolveDelete) {
+      resolveDelete(undefined);
+    }
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: '삭제 중...' })).toBeNull();
+    });
+  });
 });

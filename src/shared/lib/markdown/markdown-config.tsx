@@ -126,14 +126,40 @@ const getCodeBlockAriaLabel = (children: ReactNode) =>
   `Code block: ${getCodeBlockLanguage(children)}`;
 
 /**
- * 현재 code 노드가 블록 코드 내부인지 판별합니다.
+ * 현재 code 노드가 fenced code block인지 판별합니다.
+ * rehype-pretty-code는 inline code에도 data attribute를 주입할 수 있어 className 기준으로만 구분합니다.
  */
-const isBlockCode = (className?: string, props?: Record<string, unknown>) =>
-  Boolean(
-    className ||
-    (typeof props?.['data-language'] === 'string' && props['data-language'].length > 0) ||
-    (typeof props?.['data-theme'] === 'string' && props['data-theme'].length > 0),
+const isBlockCode = ({
+  className,
+  node,
+  props,
+}: {
+  className?: string;
+  node?: { meta?: string | null; properties?: Record<string, unknown> } | null;
+  props?: Record<string, unknown>;
+}) => {
+  if (className && className.length > 0) return true;
+
+  const dataLanguage =
+    props?.['data-language'] ??
+    props?.['dataLanguage'] ??
+    node?.properties?.['data-language'] ??
+    node?.properties?.dataLanguage;
+  const dataMeta = props?.['data-meta'] ?? props?.['dataMeta'] ?? node?.properties?.['data-meta'];
+
+  return Boolean(
+    (typeof dataLanguage === 'string' && dataLanguage.length > 0) ||
+    (typeof dataMeta === 'string' && dataMeta.length > 0) ||
+    (typeof node?.meta === 'string' && node.meta.length > 0),
   );
+};
+
+const markdownInlineCodeStyle = {
+  backgroundColor: 'rgba(59, 130, 246, 0.16)',
+  border: '1px solid rgba(59, 130, 246, 0.22)',
+  borderRadius: '0.25rem',
+  padding: '0.125rem 0.375rem',
+} satisfies React.CSSProperties;
 
 /**
  * markdown 본문 이미지를 반응형으로 렌더링합니다.
@@ -257,8 +283,8 @@ const createMarkdownComponents = (): Components => ({
   blockquote: ({ children }) => (
     <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
   ),
-  code: ({ children, className, ...props }) => {
-    if (isBlockCode(className, props as Record<string, unknown>)) {
+  code: ({ children, className, node, ...props }) => {
+    if (isBlockCode({ className, node, props })) {
       return (
         <code className={className} {...props}>
           {children}
@@ -267,7 +293,7 @@ const createMarkdownComponents = (): Components => ({
     }
 
     return (
-      <code className={markdownInlineCodeClass} {...props}>
+      <code className={markdownInlineCodeClass} style={markdownInlineCodeStyle} {...props}>
         {children}
       </code>
     );
@@ -341,9 +367,15 @@ export const getMarkdownOptions = (): MarkdownOptions => ({
  * 블록 간 거리, 형제/부모-자식 관계, 다음 요소와의 관계
  */
 export const markdownBodyClass = css({
+  minWidth: '0',
+  overflowX: 'hidden',
   color: 'text',
   fontSize: 'md',
   lineHeight: 'loose',
+  '&:lang(ja) :is(p, li, blockquote, h1, h2, h3, h4, td, th)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
   '& > * + *': {
     mt: '5',
   },
@@ -448,7 +480,7 @@ const markdownInlineCodeClass = css({
   px: '[0.375rem]',
   py: '[0.125rem]',
   borderRadius: 'xs',
-  background: 'surfaceMuted',
+  background: '[rgba(59, 130, 246, 0.16)]',
   fontFamily: 'mono',
   fontSize: '[0.95em]',
 });
@@ -573,7 +605,12 @@ const markdownCodeBlockPreClass = css({
 });
 
 const markdownTableScrollClass = css({
+  width: 'full',
+  maxWidth: 'full',
+  minWidth: '0',
   overflowX: 'auto',
+  overflowY: 'hidden',
+  WebkitOverflowScrolling: 'touch',
   _focusVisible: {
     outline: '[2px solid var(--colors-primary)]',
     outlineOffset: '[2px]',
@@ -593,6 +630,11 @@ const markdownTableClass = css({
     py: '[0.85rem]',
     borderBottom: '[1px solid var(--colors-border)]',
     textAlign: 'left',
+    verticalAlign: 'top',
+  },
+  '& td img, & th img': {
+    maxWidth: '[min(100%, 18rem)]',
+    height: 'auto',
   },
   '& th': {
     background: 'surfaceMuted',

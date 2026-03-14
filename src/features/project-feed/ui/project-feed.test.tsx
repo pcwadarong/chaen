@@ -7,14 +7,19 @@ import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 import '@testing-library/jest-dom/vitest';
 
+const projectFeedMockState = vi.hoisted(() => ({
+  showcaseRenderCount: 0,
+}));
+
 vi.mock('@/features/project-feed/model/use-project-feed', () => ({
   useProjectFeed: vi.fn(),
 }));
 
 vi.mock('@/widgets/project-showcase/ui/project-showcase', () => ({
-  ProjectShowcase: ({ items }: { items: Array<{ title: string }> }) => (
-    <div>{items.map(item => item.title).join(', ')}</div>
-  ),
+  ProjectShowcase: ({ items }: { items: Array<{ title: string }> }) => {
+    projectFeedMockState.showcaseRenderCount += 1;
+    return <div>{items.map(item => item.title).join(', ')}</div>;
+  },
 }));
 
 /**
@@ -28,6 +33,7 @@ const getUseProjectFeedMock = async () => {
 
 describe('ProjectFeed', () => {
   beforeEach(() => {
+    projectFeedMockState.showcaseRenderCount = 0;
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
       value: class {
@@ -46,9 +52,10 @@ describe('ProjectFeed', () => {
       isLoadingMore: false,
       items: [
         {
-          created_at: '2026-03-08T00:00:00.000Z',
           description: '설명',
           id: 'project-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'project-1',
           thumbnail_url: null,
           title: '테스트 프로젝트',
         },
@@ -73,5 +80,65 @@ describe('ProjectFeed', () => {
 
     expect(endMessage).toHaveAttribute('aria-live', 'polite');
     expect(endMessage).toHaveClass(srOnlyClass);
+  });
+
+  it('loading 상태만 바뀌면 기존 프로젝트 쇼케이스를 다시 그리지 않는다', async () => {
+    const useProjectFeed = await getUseProjectFeedMock();
+    const items = [
+      {
+        description: '설명',
+        id: 'project-1',
+        publish_at: '2026-03-08T00:00:00.000Z',
+        slug: 'project-1',
+        thumbnail_url: null,
+        title: '테스트 프로젝트',
+      },
+    ];
+
+    useProjectFeed.mockReturnValue({
+      errorMessage: null,
+      hasMore: true,
+      isLoadingMore: false,
+      items,
+      loadMore: vi.fn(),
+    });
+
+    const { rerender } = render(
+      <ProjectFeed
+        emptyText="비어 있음"
+        initialCursor={null}
+        initialItems={[]}
+        loadErrorText="불러오기 실패"
+        loadMoreEndText="모든 프로젝트를 확인했습니다."
+        loadingText="불러오는 중"
+        locale="ko"
+        retryText="다시 시도"
+      />,
+    );
+
+    expect(projectFeedMockState.showcaseRenderCount).toBe(1);
+
+    useProjectFeed.mockReturnValue({
+      errorMessage: null,
+      hasMore: true,
+      isLoadingMore: true,
+      items,
+      loadMore: vi.fn(),
+    });
+
+    rerender(
+      <ProjectFeed
+        emptyText="비어 있음"
+        initialCursor={null}
+        initialItems={[]}
+        loadErrorText="불러오기 실패"
+        loadMoreEndText="모든 프로젝트를 확인했습니다."
+        loadingText="불러오는 중"
+        locale="ko"
+        retryText="다시 시도"
+      />,
+    );
+
+    expect(projectFeedMockState.showcaseRenderCount).toBe(1);
   });
 });

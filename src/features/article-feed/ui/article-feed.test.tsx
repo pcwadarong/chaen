@@ -7,14 +7,19 @@ import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 import '@testing-library/jest-dom/vitest';
 
+const articleFeedMockState = vi.hoisted(() => ({
+  listItemRenderCount: 0,
+}));
+
 vi.mock('@/features/article-feed/model/use-article-feed', () => ({
   useArticleFeed: vi.fn(),
 }));
 
 vi.mock('@/entities/article/ui/article-list-item', () => ({
-  ArticleListItem: ({ article }: { article: { title: string } }) => (
-    <article>{article.title}</article>
-  ),
+  ArticleListItem: ({ article }: { article: { title: string } }) => {
+    articleFeedMockState.listItemRenderCount += 1;
+    return <article>{article.title}</article>;
+  },
 }));
 
 /**
@@ -28,6 +33,7 @@ const getUseArticleFeedMock = async () => {
 
 describe('ArticleFeed', () => {
   beforeEach(() => {
+    articleFeedMockState.listItemRenderCount = 0;
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
       value: class {
@@ -46,9 +52,10 @@ describe('ArticleFeed', () => {
       isLoadingMore: false,
       items: [
         {
-          created_at: '2026-03-08T00:00:00.000Z',
           description: '설명',
           id: 'article-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'article-1',
           thumbnail_url: null,
           title: '테스트 아티클',
         },
@@ -75,5 +82,69 @@ describe('ArticleFeed', () => {
 
     expect(endMessage).toHaveAttribute('aria-live', 'polite');
     expect(endMessage).toHaveClass(srOnlyClass);
+  });
+
+  it('loading 상태만 바뀌면 기존 리스트 아이템을 다시 그리지 않는다', async () => {
+    const useArticleFeed = await getUseArticleFeedMock();
+    const items = [
+      {
+        description: '설명',
+        id: 'article-1',
+        publish_at: '2026-03-08T00:00:00.000Z',
+        slug: 'article-1',
+        thumbnail_url: null,
+        title: '테스트 아티클',
+      },
+    ];
+
+    useArticleFeed.mockReturnValue({
+      errorMessage: null,
+      hasMore: true,
+      isLoadingMore: false,
+      items,
+      loadMore: vi.fn(),
+    });
+
+    const { rerender } = render(
+      <ArticleFeed
+        activeTag=""
+        emptyText="비어 있음"
+        initialCursor={null}
+        initialItems={[]}
+        loadErrorText="불러오기 실패"
+        loadMoreEndText="마지막 아티클까지 확인했습니다."
+        loadingText="불러오는 중"
+        locale="ko"
+        query=""
+        retryText="다시 시도"
+      />,
+    );
+
+    expect(articleFeedMockState.listItemRenderCount).toBe(1);
+
+    useArticleFeed.mockReturnValue({
+      errorMessage: null,
+      hasMore: true,
+      isLoadingMore: true,
+      items,
+      loadMore: vi.fn(),
+    });
+
+    rerender(
+      <ArticleFeed
+        activeTag=""
+        emptyText="비어 있음"
+        initialCursor={null}
+        initialItems={[]}
+        loadErrorText="불러오기 실패"
+        loadMoreEndText="마지막 아티클까지 확인했습니다."
+        loadingText="불러오는 중"
+        locale="ko"
+        query=""
+        retryText="다시 시도"
+      />,
+    );
+
+    expect(articleFeedMockState.listItemRenderCount).toBe(1);
   });
 });

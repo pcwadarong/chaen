@@ -21,6 +21,10 @@ type ResolvedArticle = {
   resolvedLocale: string | null;
 };
 
+type ArticleLookup = {
+  id: string;
+};
+
 type ArticleContentSchemaError = {
   code?: string | null;
   message: string;
@@ -37,6 +41,50 @@ const isMissingArticleContentSchemaError = ({ code, message }: ArticleContentSch
     normalizedMessage.includes('article_translations');
 
   return hasMissingObjectText && hasTargetName;
+};
+
+/**
+ * 공개 상세 경로로 들어온 slug를 내부 article id로 해석합니다.
+ *
+ * @param articleSlug - 주소창에 들어온 공개 slug
+ * @returns 내부 article id와 slug 정보
+ */
+const resolveArticleLookup = async (
+  articleSlug: string,
+): Promise<{ data: ArticleLookup | null; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: null,
+      schemaMissing: false,
+    };
+  }
+
+  const articleSlugQuery = supabase
+    .from('articles')
+    .select('id')
+    .eq('slug', articleSlug)
+    .eq('visibility', 'public')
+    .lte('publish_at', new Date().toISOString())
+    .not('publish_at', 'is', null)
+    .maybeSingle<ArticleLookup>();
+  const { data: articleBySlug, error: articleBySlugError } = await articleSlugQuery;
+
+  if (articleBySlugError) {
+    if (isMissingArticleContentSchemaError(articleBySlugError)) {
+      return {
+        data: null,
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] slug 조회 실패: ${articleBySlugError.message}`);
+  }
+
+  return {
+    data: articleBySlug ?? null,
+    schemaMissing: false,
+  };
 };
 
 /**
@@ -107,32 +155,48 @@ const fetchArticleFromContentSchema = async (
 };
 
 const fetchArticleByLocaleFallbackChain = async (
-  articleId: string,
+  articleSlug: string,
   localeFallbackChain: string[],
 ): Promise<ResolvedArticle> => {
-  const articleResult = await fetchArticleFromContentSchema(articleId, localeFallbackChain);
-  if (articleResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+  const articleLookup = await resolveArticleLookup(articleSlug);
+  if (articleLookup.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+  if (!articleLookup.data) {
+    return {
+      item: null,
+      resolvedLocale: null,
+    };
+  }
 
-  return articleResult.data;
+  const resolvedArticleResult = await fetchArticleFromContentSchema(
+    articleLookup.data.id,
+    localeFallbackChain,
+  );
+  if (resolvedArticleResult.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+
+  return resolvedArticleResult.data;
 };
 
 /**
  * 단일 아티클 조회 결과를 `use cache`로 캐시합니다.
  */
 const readCachedArticle = async (
-  articleId: string,
+  articleSlug: string,
   normalizedLocale: string,
 ): Promise<ResolvedArticle> => {
   'use cache';
 
-  cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(articleId));
-
   const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
-  const article = await fetchArticleByLocaleFallbackChain(articleId, localeFallbackChain);
+  const article = await fetchArticleByLocaleFallbackChain(articleSlug, localeFallbackChain);
+  if (article.item) {
+    cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(article.item.id));
+  } else {
+    cacheTag(ARTICLES_CACHE_TAG);
+  }
+
   if (article.item) return article;
 
   throw new Error(
-    `[articles] 조회 가능한 번역이 없습니다. articleId=${articleId} locales=${localeFallbackChain.join('>')}`,
+    `[articles] 조회 가능한 번역이 없습니다. articleSlug=${articleSlug} locales=${localeFallbackChain.join('>')}`,
   );
 };
 
@@ -140,7 +204,7 @@ const readCachedArticle = async (
  * 아티클과 실제 선택된 locale을 함께 반환합니다.
  */
 export const getResolvedArticle = async (
-  articleId: string,
+  articleSlug: string,
   targetLocale: string,
 ): Promise<ResolvedArticle> => {
   if (!hasSupabaseEnv()) {
@@ -152,7 +216,7 @@ export const getResolvedArticle = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
 
-  return readCachedArticle(articleId, normalizedLocale);
+  return readCachedArticle(articleSlug, normalizedLocale);
 };
 
 /**
@@ -160,9 +224,9 @@ export const getResolvedArticle = async (
  * `revalidateTag('articles')` 또는 `revalidateTag('article:{id}')`로 즉시 갱신할 수 있습니다.
  */
 export const getArticle = async (
-  articleId: string,
+  articleSlug: string,
   targetLocale: string,
 ): Promise<Article | null> => {
-  const result = await getResolvedArticle(articleId, targetLocale);
+  const result = await getResolvedArticle(articleSlug, targetLocale);
   return result.item;
 };

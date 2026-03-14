@@ -9,12 +9,27 @@ import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-curre
 
 type GetProjectDetailPageDataInput = {
   locale: string;
-  projectId: string;
+  projectSlug: string;
 };
 
 type ProjectDetailPageData = {
   archivePage: ProjectArchivePage;
   item: Project | null;
+};
+
+/**
+ * 상세 프로젝트를 public archive 요약 shape로 좁힙니다.
+ */
+const toCurrentProjectArchiveItem = (item: Project | null): ProjectDetailListItem | null => {
+  if (!item?.publish_at || !item.slug) return null;
+
+  return {
+    description: item.description,
+    id: item.id,
+    publish_at: item.publish_at,
+    slug: item.slug,
+    title: item.title,
+  };
 };
 
 /**
@@ -24,17 +39,20 @@ const ensureCurrentProjectInArchive = (
   item: Project | null,
   archivePage: ProjectArchivePage,
 ): ProjectArchivePage =>
-  prependCurrentArchiveItem<ProjectDetailListItem, Project>(item, archivePage);
+  prependCurrentArchiveItem<ProjectDetailListItem, ProjectDetailListItem>(
+    toCurrentProjectArchiveItem(item),
+    archivePage,
+  );
 
 /**
  * 프로젝트 상세 페이지에 필요한 데이터 묶음을 조회합니다.
  */
 export const getProjectDetailPageData = async ({
   locale,
-  projectId,
+  projectSlug,
 }: GetProjectDetailPageDataInput): Promise<ProjectDetailPageData> => {
   const [item, archivePage] = await Promise.all([
-    getProject(projectId, locale),
+    getProject(projectSlug, locale),
     getProjectDetailList({ locale }),
   ]);
 

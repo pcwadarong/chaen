@@ -87,6 +87,34 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
+    const element = await MarkdownRenderer({
+      locale: 'ja',
+      markdown: '일본어 본문',
+    });
+    const stream = await renderToReadableStream(element);
+    const html = await new Response(stream).text();
+    const document = new DOMParser().parseFromString(html, 'text/html');
+
+    expect(document.querySelector('div[lang="ja"]')).toBeTruthy();
+  });
+
+  it('테이블 안 이미지도 셀 너비 안에서 줄어들도록 동일한 이미지 스타일을 적용한다', async () => {
+    const document = await renderServerDocument(
+      [
+        '| 이미지 | 설명 |',
+        '| --- | --- |',
+        '| ![표 이미지](https://example.com/table-image.png) | 셀 안 이미지 |',
+      ].join('\n'),
+    );
+    const tableImage = document.querySelector('table img');
+    const markdownTable = document.querySelector('div[aria-label="Markdown table"]');
+
+    expect(markdownTable).toBeTruthy();
+    expect(tableImage).toBeTruthy();
+    expect(tableImage?.className).toBeTruthy();
+  });
+
   it('단일 줄바꿈을 br 요소로 렌더링한다', async () => {
     const document = await renderServerDocument(['첫 번째 줄', '두 번째 줄'].join('\n'));
     const paragraph = document.querySelector('p');
@@ -103,6 +131,15 @@ describe('MarkdownRenderer', () => {
 
     expect(lineBreak).toBeTruthy();
     expect(document.querySelector('p')?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+  });
+
+  it('줄 끝의 literal <br/>도 빈 문단 없이 markdown 줄바꿈으로 정규화한다', async () => {
+    const document = await renderServerDocument(['첫 번째 줄<br/>', '두 번째 줄'].join('\n'));
+    const paragraphs = Array.from(document.querySelectorAll('p'));
+
+    expect(paragraphs).toHaveLength(1);
+    expect(document.querySelector('p br')).toBeTruthy();
+    expect(paragraphs[0]?.textContent).toBe('첫 번째 줄\n두 번째 줄');
   });
 
   it('literal hr 태그는 구분선으로 정규화해 렌더링한다', async () => {
@@ -139,6 +176,16 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('iframe')).toBeNull();
   });
 
+  it('언어 class가 없는 fenced code block도 block code로 유지한다', async () => {
+    const document = await renderServerDocument(['```', 'plain block', '```'].join('\n'));
+    const blockCode = document.querySelector('pre code');
+
+    expect(blockCode).toBeTruthy();
+    expect(blockCode?.textContent).toContain('plain block');
+    expect(blockCode?.closest('pre')).toBeTruthy();
+    expect(blockCode?.getAttribute('style') ?? '').not.toContain('background-color');
+  });
+
   it('inline code 안의 custom syntax와 html alias는 변환하지 않는다', async () => {
     const markdown = [
       '`||스포일러||`',
@@ -158,6 +205,7 @@ describe('MarkdownRenderer', () => {
       '<br />',
       '<hr />',
     ]);
+    expect(inlineCodes.every(node => node.closest('pre') === null)).toBe(true);
     expect(document.querySelector('button[aria-expanded]')).toBeNull();
     expect(document.querySelector('hr')).toBeNull();
   });

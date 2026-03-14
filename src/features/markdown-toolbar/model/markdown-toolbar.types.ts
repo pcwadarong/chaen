@@ -3,7 +3,6 @@ import type React from 'react';
 export type MarkdownToolbarProps = {
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-  value: string;
 };
 
 export type LinkMode = 'card' | 'link' | 'preview';

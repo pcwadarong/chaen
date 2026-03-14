@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 import { getProject } from '@/entities/project/api/get-project';
 import { getProjectDetailList } from '@/entities/project/api/get-project-detail-list';
-import { serializeLocaleAwareCreatedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
+import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 
 import { getProjectDetailPageData } from './get-project-detail-page-data';
 
@@ -20,10 +20,10 @@ describe('getProjectDetailPageData', () => {
   });
 
   it('현재 프로젝트가 목록에 없으면 맨 앞에 보정한다', async () => {
-    const nextCursor = serializeLocaleAwareCreatedAtIdCursor({
-      createdAt: '2026-03-01T00:00:00.000Z',
+    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
       id: 'archive-1',
       locale: 'ko',
+      publishedAt: '2026-03-01T00:00:00.000Z',
     });
 
     vi.mocked(getProject).mockResolvedValue({
@@ -34,6 +34,8 @@ describe('getProjectDetailPageData', () => {
       thumbnail_url: null,
       tags: [],
       created_at: '2026-03-02T00:00:00.000Z',
+      publish_at: '2026-03-02T00:00:00.000Z',
+      slug: 'funda',
     });
     vi.mocked(getProjectDetailList).mockResolvedValue({
       items: [
@@ -41,7 +43,8 @@ describe('getProjectDetailPageData', () => {
           id: 'archive-1',
           title: 'Archive',
           description: null,
-          created_at: '2026-03-01T00:00:00.000Z',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'archive-1',
         },
       ],
       nextCursor,
@@ -49,15 +52,15 @@ describe('getProjectDetailPageData', () => {
 
     const result = await getProjectDetailPageData({
       locale: 'ko',
-      projectId: 'funda',
+      projectSlug: 'funda',
     });
 
     expect(result.archivePage.items[0]?.id).toBe('funda');
     expect(result.archivePage.nextCursor).toBe(
-      serializeLocaleAwareCreatedAtIdCursor({
-        createdAt: '2026-03-02T00:00:00.000Z',
+      serializeLocaleAwarePublishedAtIdCursor({
         id: 'funda',
         locale: 'ko',
+        publishedAt: '2026-03-02T00:00:00.000Z',
       }),
     );
     expect(result.item?.id).toBe('funda');
@@ -70,16 +73,16 @@ describe('getProjectDetailPageData', () => {
     await expect(
       getProjectDetailPageData({
         locale: 'ko',
-        projectId: 'funda',
+        projectSlug: 'funda',
       }),
     ).rejects.toThrow('archive failed');
   });
 
   it('현재 프로젝트가 이미 목록에 있으면 cursor를 그대로 둔다', async () => {
-    const nextCursor = serializeLocaleAwareCreatedAtIdCursor({
-      createdAt: '2026-03-01T00:00:00.000Z',
+    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
       id: 'archive-1',
       locale: 'ko',
+      publishedAt: '2026-03-01T00:00:00.000Z',
     });
 
     vi.mocked(getProject).mockResolvedValue({
@@ -90,6 +93,8 @@ describe('getProjectDetailPageData', () => {
       thumbnail_url: null,
       tags: [],
       created_at: '2026-03-01T00:00:00.000Z',
+      publish_at: '2026-03-01T00:00:00.000Z',
+      slug: 'archive-1',
     });
     vi.mocked(getProjectDetailList).mockResolvedValue({
       items: [
@@ -97,7 +102,8 @@ describe('getProjectDetailPageData', () => {
           id: 'archive-1',
           title: 'Archive',
           description: null,
-          created_at: '2026-03-01T00:00:00.000Z',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'archive-1',
         },
       ],
       nextCursor,
@@ -105,7 +111,7 @@ describe('getProjectDetailPageData', () => {
 
     const result = await getProjectDetailPageData({
       locale: 'ko',
-      projectId: 'archive-1',
+      projectSlug: 'archive-1',
     });
 
     expect(result.archivePage.nextCursor).toBe(nextCursor);

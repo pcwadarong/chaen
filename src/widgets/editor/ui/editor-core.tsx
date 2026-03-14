@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
@@ -38,6 +38,8 @@ import {
 
 const AUTOSAVE_DELAY_MS = 180_000;
 const MOBILE_MEDIA_QUERY = '(max-width: 760px)';
+const EDITOR_PANE_MAX_HEIGHT = '[min(70vh,44rem)]';
+const MOBILE_EDITOR_PANE_MAX_HEIGHT = '[60vh]';
 const LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',
   fr: 'FR',
@@ -51,9 +53,15 @@ type SaveSource = 'autosave' | 'manual';
  * `window.matchMedia` 기반으로 모바일 전용 editor mode 적용 여부를 추적합니다.
  */
 const useIsMobileEditorLayout = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false;
+    }
 
-  useEffect(() => {
+    return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  });
+
+  useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
     const mediaQueryList = window.matchMedia(MOBILE_MEDIA_QUERY);
@@ -118,6 +126,16 @@ const createTimestamp = () => new Date().toISOString();
 const resolveSavedAt = (result: DraftSaveResult | void) => result?.savedAt ?? createTimestamp();
 
 /**
+ * 숨겨진 panel에서 먼저 마운트된 textarea 높이를 현재 내용 기준으로 다시 계산합니다.
+ */
+const resizeTextareaToContent = (element: HTMLTextAreaElement | null) => {
+  if (!element) return;
+
+  element.style.height = '0px';
+  element.style.height = `${element.scrollHeight}px`;
+};
+
+/**
  * 현재 locale textarea scrollTop을 기억합니다.
  */
 const rememberTextareaScroll = (
@@ -128,6 +146,165 @@ const rememberTextareaScroll = (
   scrollTopByLocaleRef.current[locale] = textareaRefs[locale].current?.scrollTop ?? 0;
 };
 
+type EditorLocalePanelProps = {
+  activeLocaleHasTitleError: boolean;
+  isActive: boolean;
+  isMobileLayout: boolean;
+  locale: Locale;
+  mobileEditorPane: MobileEditorPane;
+  markdownOptions: ReturnType<typeof getMarkdownOptions>;
+  onContentChange: (locale: Locale, value: string) => void;
+  onDescriptionChange: (locale: Locale, value: string) => void;
+  onTextareaKeyDown: (locale: Locale, event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onTextareaPaste: (
+    locale: Locale,
+    currentValue: string,
+    event: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => void;
+  onTextareaScroll: (locale: Locale, scrollTop: number) => void;
+  onTitleChange: (locale: Locale, value: string) => void;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  translation: EditorState['translations'][Locale];
+};
+
+/**
+ * locale별 제목/설명/본문 편집 패널과 미리보기 패널을 렌더링합니다.
+ * memo 처리로 현재 수정 중인 locale이 아닌 패널은 가능한 한 재렌더를 피합니다.
+ */
+const EditorLocalePanelBase = ({
+  activeLocaleHasTitleError,
+  isActive,
+  isMobileLayout,
+  locale,
+  mobileEditorPane,
+  markdownOptions,
+  onContentChange,
+  onDescriptionChange,
+  onTextareaKeyDown,
+  onTextareaPaste,
+  onTextareaScroll,
+  onTitleChange,
+  textareaRef,
+  translation,
+}: EditorLocalePanelProps) => {
+  const localeLabel = LOCALE_LABELS[locale];
+  const titleTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    resizeTextareaToContent(titleTextareaRef.current);
+    resizeTextareaToContent(descriptionTextareaRef.current);
+  }, [isActive, translation.description, translation.title]);
+
+  return (
+    <section
+      aria-labelledby={`editor-tab-${locale}`}
+      className={localePanelClass}
+      hidden={!isActive}
+      id={`editor-panel-${locale}`}
+      role="tabpanel"
+    >
+      <div className={summaryGridClass}>
+        <div className={summaryFieldClass}>
+          <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
+            제목
+          </label>
+          <Textarea
+            className={textareaInfoClass}
+            aria-describedby={
+              activeLocaleHasTitleError ? `editor-title-error-${locale}` : undefined
+            }
+            aria-invalid={activeLocaleHasTitleError ? true : undefined}
+            id={`editor-title-${locale}`}
+            onChange={event => onTitleChange(locale, event.target.value)}
+            placeholder={`${localeLabel} 제목`}
+            ref={titleTextareaRef}
+            value={translation.title}
+          />
+          {activeLocaleHasTitleError ? (
+            <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
+              제목을 입력해주세요
+            </p>
+          ) : null}
+        </div>
+
+        <div className={summaryFieldClass}>
+          <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
+            설명
+          </label>
+          <Textarea
+            className={textareaInfoClass}
+            id={`editor-description-${locale}`}
+            onChange={event => onDescriptionChange(locale, event.target.value)}
+            placeholder={`${localeLabel} 설명`}
+            ref={descriptionTextareaRef}
+            value={translation.description}
+          />
+        </div>
+      </div>
+
+      <div className={editorGridClass}>
+        <section
+          aria-label="본문 편집"
+          className={editorPaneClass}
+          hidden={isMobileLayout && mobileEditorPane !== 'edit'}
+          id={isMobileLayout ? `editor-pane-edit-${locale}` : undefined}
+        >
+          <div className={editorToolbarWrapClass}>
+            <MarkdownToolbar
+              onChange={nextValue => onContentChange(locale, nextValue)}
+              textareaRef={textareaRef}
+            />
+          </div>
+          <div className={editorTextareaWrapClass}>
+            <Textarea
+              aria-label="본문 입력"
+              autoResize={false}
+              className={editorTextareaClass}
+              onChange={event => onContentChange(locale, event.target.value)}
+              onKeyDown={event => onTextareaKeyDown(locale, event)}
+              onPaste={event => onTextareaPaste(locale, translation.content, event)}
+              onScroll={event => onTextareaScroll(locale, event.currentTarget.scrollTop)}
+              placeholder="마크다운 본문을 입력하세요"
+              ref={textareaRef}
+              rows={18}
+              value={translation.content}
+            />
+          </div>
+        </section>
+
+        <section
+          aria-label="본문 미리보기"
+          className={previewPaneClass}
+          hidden={isMobileLayout && mobileEditorPane !== 'preview'}
+          id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
+        >
+          {translation.content.trim().length > 0 ? (
+            <div className={markdownBodyClass}>
+              {renderRichMarkdown({
+                markdown: translation.content,
+                renderMarkdownFragment: (fragmentMarkdown, key) => (
+                  <MarkdownHooks key={key} {...markdownOptions}>
+                    {fragmentMarkdown}
+                  </MarkdownHooks>
+                ),
+              })}
+            </div>
+          ) : (
+            <p className={emptyPreviewClass}>미리보기 내용이 없습니다.</p>
+          )}
+        </section>
+      </div>
+    </section>
+  );
+};
+
+EditorLocalePanelBase.displayName = 'EditorLocalePanel';
+
+const EditorLocalePanel = React.memo(EditorLocalePanelBase);
+
 /**
  * locale별 textarea 편집 상호작용을 구성합니다.
  */
@@ -137,6 +314,7 @@ export const EditorCore = ({
   initialSlug = '',
   initialTags,
   initialTranslations,
+  hideAppFrameFooter = false,
   onDraftSave,
   onOpenPublishPanel,
 }: EditorCoreProps) => {
@@ -262,6 +440,29 @@ export const EditorCore = ({
   const pushToast = useCallback((item: ToastItem) => {
     setToastItems(previous => [...previous, item]);
   }, []);
+  const closeToast = useCallback((id: string) => {
+    setToastItems(previous => previous.filter(item => item.id !== id));
+  }, []);
+
+  /**
+   * locale별 번역 필드를 변경하되 값이 같으면 기존 객체를 재사용합니다.
+   */
+  const updateTranslationField = useCallback(
+    (locale: Locale, field: keyof EditorState['translations'][Locale], value: string) => {
+      setTranslations(previous => {
+        if (previous[locale][field] === value) return previous;
+
+        return {
+          ...previous,
+          [locale]: {
+            ...previous[locale],
+            [field]: value,
+          },
+        };
+      });
+    },
+    [],
+  );
 
   /**
    * 현재 편집 상태가 저장 가능한지 확인하고, 실패 시 필요한 피드백을 적용합니다.
@@ -338,57 +539,49 @@ export const EditorCore = ({
   /**
    * locale 전환 전 현재 textarea scrollTop을 저장합니다.
    */
-  const handleLocaleChange = (nextLocale: Locale) => {
-    rememberTextareaScroll(activeLocale, scrollTopByLocaleRef, textareaRefs);
-    setActiveLocale(nextLocale);
-  };
+  const handleLocaleChange = useCallback(
+    (nextLocale: Locale) => {
+      rememberTextareaScroll(activeLocale, scrollTopByLocaleRef, textareaRefs);
+      setActiveLocale(nextLocale);
+    },
+    [activeLocale, textareaRefs],
+  );
 
   /**
    * 제목 입력을 locale별로 갱신합니다.
    */
-  const handleTitleChange = (locale: Locale, value: string) => {
-    setTranslations(previous => ({
-      ...previous,
-      [locale]: {
-        ...previous[locale],
-        title: value,
-      },
-    }));
-  };
+  const handleTitleChange = useCallback(
+    (locale: Locale, value: string) => {
+      updateTranslationField(locale, 'title', value);
+    },
+    [updateTranslationField],
+  );
 
   /**
    * 설명 입력을 locale별로 갱신합니다.
    */
-  const handleDescriptionChange = (locale: Locale, value: string) => {
-    setTranslations(previous => ({
-      ...previous,
-      [locale]: {
-        ...previous[locale],
-        description: value,
-      },
-    }));
-  };
+  const handleDescriptionChange = useCallback(
+    (locale: Locale, value: string) => {
+      updateTranslationField(locale, 'description', value);
+    },
+    [updateTranslationField],
+  );
 
   /**
    * 본문 입력을 locale별로 갱신합니다.
    */
-  const handleContentChange = (locale: Locale, value: string) => {
-    setTranslations(previous => ({
-      ...previous,
-      [locale]: {
-        ...previous[locale],
-        content: value,
-      },
-    }));
-  };
+  const handleContentChange = useCallback(
+    (locale: Locale, value: string) => {
+      updateTranslationField(locale, 'content', value);
+    },
+    [updateTranslationField],
+  );
 
   /**
    * URL 붙여넣기와 텍스트+URL 붙여넣기를 markdown 링크 문법으로 변환합니다.
    */
-  const handleTextareaPaste =
-    (locale: Locale): React.ClipboardEventHandler<HTMLTextAreaElement> =>
-    event => {
-      const currentValue = translations[locale].content;
+  const handleTextareaPaste = useCallback(
+    (locale: Locale, currentValue: string, event: React.ClipboardEvent<HTMLTextAreaElement>) => {
       const selectedText = currentValue.slice(
         event.currentTarget.selectionStart,
         event.currentTarget.selectionEnd,
@@ -406,14 +599,15 @@ export const EditorCore = ({
         nextValue => handleContentChange(locale, nextValue),
         textarea => insertTemplate(textarea, insertion.text, insertion.text.length),
       );
-    };
+    },
+    [handleContentChange],
+  );
 
   /**
    * markdown 목록 계열의 Enter/Tab 편집 보조 규칙을 유지합니다.
    */
-  const handleTextareaKeyDown =
-    (locale: Locale): React.KeyboardEventHandler<HTMLTextAreaElement> =>
-    event => {
+  const handleTextareaKeyDown = useCallback(
+    (locale: Locale, event: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (event.key === 'Enter') {
         const nextValue = continueMarkdownList(event.currentTarget);
 
@@ -442,10 +636,31 @@ export const EditorCore = ({
         nextValueText => handleContentChange(locale, nextValueText),
         () => nextValue,
       );
-    };
+    },
+    [handleContentChange],
+  );
+  const handleTextareaScroll = useCallback((locale: Locale, scrollTop: number) => {
+    scrollTopByLocaleRef.current[locale] = scrollTop;
+  }, []);
+  const handleManualSave = useCallback(() => {
+    void runDraftSave('manual');
+  }, [runDraftSave]);
+  const handleOpenPublishPanel = useCallback(() => {
+    onOpenPublishPanel(
+      buildEditorStateSnapshot({
+        dirty,
+        slug,
+        tags: selectedTags,
+        translations,
+      }),
+    );
+  }, [dirty, onOpenPublishPanel, selectedTags, slug, translations]);
 
   return (
-    <section className={rootClass}>
+    <section
+      className={rootClass}
+      data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}
+    >
       <div className={metaStackClass}>
         <div className={actionRowClass}>
           <p aria-live="polite" className={saveStatusClass} role="status">
@@ -453,26 +668,12 @@ export const EditorCore = ({
           </p>
           <div className={buttonGroupClass}>
             {onDraftSave ? (
-              <Button
-                disabled={isSaving}
-                onClick={() => void runDraftSave('manual')}
-                size="sm"
-                tone="white"
-              >
+              <Button disabled={isSaving} onClick={handleManualSave} size="sm" tone="white">
                 임시저장
               </Button>
             ) : null}
             <Button
-              onClick={() =>
-                onOpenPublishPanel(
-                  buildEditorStateSnapshot({
-                    dirty,
-                    slug,
-                    tags: selectedTags,
-                    translations,
-                  }),
-                )
-              }
+              onClick={handleOpenPublishPanel}
               size="sm"
               tone="primary"
               trailingVisual={<ChevronRightIcon aria-hidden color="current" size="md" />}
@@ -539,117 +740,30 @@ export const EditorCore = ({
 
       {EDITOR_LOCALES.map(locale => {
         const isActive = locale === activeLocale;
-        const translation = translations[locale];
 
         return (
-          <section
-            aria-labelledby={`editor-tab-${locale}`}
-            className={localePanelClass}
-            hidden={!isActive}
-            id={`editor-panel-${locale}`}
+          <EditorLocalePanel
+            activeLocaleHasTitleError={isActive && activeLocaleHasTitleError}
+            isActive={isActive}
+            isMobileLayout={isMobileLayout}
             key={locale}
-            role="tabpanel"
-          >
-            <div className={summaryGridClass}>
-              <div className={summaryFieldClass}>
-                <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
-                  제목
-                </label>
-                <Textarea
-                  aria-describedby={
-                    activeLocaleHasTitleError && isActive
-                      ? `editor-title-error-${locale}`
-                      : undefined
-                  }
-                  aria-invalid={isActive && activeLocaleHasTitleError ? true : undefined}
-                  id={`editor-title-${locale}`}
-                  onChange={event => handleTitleChange(locale, event.target.value)}
-                  placeholder={`${LOCALE_LABELS[locale]} 제목`}
-                  value={translation.title}
-                />
-                {isActive && activeLocaleHasTitleError ? (
-                  <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
-                    제목을 입력해주세요
-                  </p>
-                ) : null}
-              </div>
-
-              <div className={summaryFieldClass}>
-                <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
-                  설명
-                </label>
-                <Textarea
-                  id={`editor-description-${locale}`}
-                  onChange={event => handleDescriptionChange(locale, event.target.value)}
-                  placeholder={`${LOCALE_LABELS[locale]} 설명`}
-                  value={translation.description}
-                />
-              </div>
-            </div>
-
-            <div className={editorGridClass}>
-              <section
-                className={editorPaneClass}
-                hidden={isMobileLayout && mobileEditorPane !== 'edit'}
-                id={isMobileLayout ? `editor-pane-edit-${locale}` : undefined}
-              >
-                <div className={editorToolbarWrapClass}>
-                  <MarkdownToolbar
-                    onChange={nextValue => handleContentChange(locale, nextValue)}
-                    textareaRef={textareaRefs[locale]}
-                    value={translation.content}
-                  />
-                </div>
-                <div className={editorTextareaWrapClass}>
-                  <Textarea
-                    aria-label="본문 입력"
-                    autoResize={false}
-                    className={editorTextareaClass}
-                    onChange={event => handleContentChange(locale, event.target.value)}
-                    onKeyDown={handleTextareaKeyDown(locale)}
-                    onPaste={handleTextareaPaste(locale)}
-                    onScroll={event => {
-                      scrollTopByLocaleRef.current[locale] = event.currentTarget.scrollTop;
-                    }}
-                    placeholder="마크다운 본문을 입력하세요"
-                    ref={textareaRefs[locale]}
-                    rows={18}
-                    value={translation.content}
-                  />
-                </div>
-              </section>
-
-              <section
-                className={previewPaneClass}
-                hidden={isMobileLayout && mobileEditorPane !== 'preview'}
-                id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
-              >
-                {translation.content.trim().length > 0 ? (
-                  <div className={markdownBodyClass}>
-                    {renderRichMarkdown({
-                      markdown: translation.content,
-                      renderMarkdownFragment: (fragmentMarkdown, key) => (
-                        <MarkdownHooks key={key} {...markdownOptions}>
-                          {fragmentMarkdown}
-                        </MarkdownHooks>
-                      ),
-                    })}
-                  </div>
-                ) : (
-                  <p className={emptyPreviewClass}>미리보기 내용이 없습니다.</p>
-                )}
-              </section>
-            </div>
-          </section>
+            locale={locale}
+            markdownOptions={markdownOptions}
+            mobileEditorPane={mobileEditorPane}
+            onContentChange={handleContentChange}
+            onDescriptionChange={handleDescriptionChange}
+            onTextareaKeyDown={handleTextareaKeyDown}
+            onTextareaPaste={handleTextareaPaste}
+            onTextareaScroll={handleTextareaScroll}
+            onTitleChange={handleTitleChange}
+            textareaRef={textareaRefs[locale]}
+            translation={translations[locale]}
+          />
         );
       })}
 
       {toastItems.length > 0 ? (
-        <ToastViewport
-          closeLabel="닫기"
-          items={toastItems}
-          onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
-        />
+        <ToastViewport closeLabel="닫기" items={toastItems} onClose={closeToast} />
       ) : null}
     </section>
   );
@@ -658,6 +772,7 @@ export const EditorCore = ({
 const rootClass = css({
   width: 'full',
   maxWidth: '[88rem]',
+  minWidth: '0',
   mx: 'auto',
   display: 'grid',
   gap: '5',
@@ -701,10 +816,15 @@ const buttonGroupClass = css({
   gap: '2',
 });
 
+const textareaInfoClass = css({
+  minHeight: '[2.7rem]',
+});
+
 const localeTabListClass = css({
   display: 'flex',
   alignItems: 'center',
   gap: '4',
+  minWidth: '0',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
@@ -713,12 +833,16 @@ const localeTabListClass = css({
 const localeTabRecipe = cva({
   base: {
     position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     minHeight: '[2.875rem]',
     px: '2',
     pb: '3',
     fontSize: 'sm',
     fontWeight: 'semibold',
     lineHeight: 'tight',
+    textAlign: 'center',
     transition: 'colors',
     _focusVisible: {
       outline: '[2px solid var(--colors-focus-ring)]',
@@ -747,9 +871,9 @@ const localeTabRecipe = cva({
 });
 
 const mobilePaneTabListClass = css({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  minWidth: '0',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
@@ -805,6 +929,7 @@ const tabIconClass = css({
 const localePanelClass = css({
   display: 'grid',
   gap: '4',
+  minWidth: '0',
 });
 
 const summaryGridClass = css({
@@ -836,6 +961,7 @@ const titleErrorClass = css({
 const editorGridClass = css({
   display: 'grid',
   gap: '4',
+  minWidth: '0',
   alignItems: 'stretch',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   '@media (max-width: 760px)': {
@@ -846,42 +972,68 @@ const editorGridClass = css({
 const editorPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
+  minWidth: '0',
   minHeight: '[36rem]',
+  maxHeight: EDITOR_PANE_MAX_HEIGHT,
+  overflow: 'hidden',
   p: '4',
   borderRadius: '2xl',
   borderWidth: '1px',
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surface',
+  '@media (max-width: 760px)': {
+    minHeight: '[28rem]',
+    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
+  },
 });
 
 const editorToolbarWrapClass = css({
   flex: 'none',
+  minWidth: '0',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  scrollbarWidth: '[thin]',
 });
 
 const editorTextareaWrapClass = css({
   display: 'flex',
   flex: '1',
   minHeight: '0',
+  minWidth: '0',
+  overflow: 'hidden',
 });
 
 const previewPaneClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: '0',
   minHeight: '[36rem]',
+  maxHeight: EDITOR_PANE_MAX_HEIGHT,
   overflowY: 'auto',
+  overscrollBehaviorY: 'contain',
   p: '4',
   borderRadius: '2xl',
   borderWidth: '1px',
   borderStyle: 'solid',
   borderColor: 'border',
-  background: 'surfaceMuted',
+  background: 'surface',
+  '@media (max-width: 760px)': {
+    minHeight: '[28rem]',
+    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
+  },
 });
 
 const editorTextareaClass = css({
-  minHeight: '[30rem]',
+  width: 'full',
+  minWidth: '0',
+  minHeight: '0',
   height: 'full',
+  maxHeight: 'full',
   flex: '1',
   resize: 'none',
   overflowY: 'auto',
+  overscrollBehaviorY: 'contain',
   fontFamily: 'mono',
 });
 

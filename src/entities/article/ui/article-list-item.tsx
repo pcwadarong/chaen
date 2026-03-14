@@ -1,10 +1,14 @@
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ArticleListItem as ArticleListItemModel } from '@/entities/article/model/types';
 import { Link } from '@/i18n/navigation';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
@@ -19,25 +23,34 @@ type ArticleListItemProps = {
  * 카드형 UI 대신 텍스트 흐름을 먼저 읽고, 썸네일을 보조 정보처럼 우측에 배치합니다.
  */
 export const ArticleListItem = ({ article }: ArticleListItemProps) => {
+  const locale = useLocale();
   const t = useTranslations('Articles');
   const thumbnailSrc = normalizeImageUrl(article.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
-  const publishedDate = formatYearMonthDay(article.created_at) ?? '-';
+  const publishedAt = resolvePublicContentPublishedAt(article);
+  const publishedDate = formatYearMonthDay(publishedAt) ?? '-';
+  const articlePathSegment = resolvePublicContentPathSegment(article);
 
   return (
     <Link
       aria-label={t('viewArticle', { title: article.title })}
       className={linkClass}
       data-article-list-item="true"
-      href={`/articles/${article.id}`}
+      href={`/articles/${articlePathSegment}`}
     >
       <article className={articleClass}>
         <div className={contentClass}>
           <div className={bodyClass}>
-            <h2 className={titleClass}>{article.title}</h2>
-            {article.description ? <p className={descriptionClass}>{article.description}</p> : null}
+            <h2 className={titleClass} lang={locale}>
+              {article.title}
+            </h2>
+            {article.description ? (
+              <p className={descriptionClass} lang={locale}>
+                {article.description}
+              </p>
+            ) : null}
           </div>
-          <time className={dateClass} dateTime={article.created_at}>
+          <time className={dateClass} dateTime={publishedAt}>
             {publishedDate}
           </time>
         </div>
@@ -101,6 +114,10 @@ const titleClass = css({
   lineHeight: 'tight',
   letterSpacing: '[-0.05em]',
   fontWeight: 'bold',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const descriptionClass = css({
@@ -112,11 +129,16 @@ const descriptionClass = css({
   fontSize: 'md',
   lineHeight: 'normal',
   letterSpacing: '[-0.03em]',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const dateClass = css({
   color: 'muted',
   fontSize: 'sm',
+  marginTop: '[0.5rem]',
 });
 
 const mediaClass = css({

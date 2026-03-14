@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
@@ -15,7 +15,7 @@ type GlobalNavDesktopContentProps = {
 };
 
 /** 데스크톱 뷰에서 사용하는 전역 내비게이션 링크/스위처 영역입니다. */
-export const GlobalNavDesktopContent = ({
+const GlobalNavDesktopContentBase = ({
   ariaLabel,
   navigationItems,
   pathname,
@@ -54,6 +54,10 @@ export const GlobalNavDesktopContent = ({
     </div>
   </div>
 );
+
+GlobalNavDesktopContentBase.displayName = 'GlobalNavDesktopContent';
+
+export const GlobalNavDesktopContent = React.memo(GlobalNavDesktopContentBase);
 
 const contentClass = css({
   display: 'flex',

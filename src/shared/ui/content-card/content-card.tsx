@@ -7,6 +7,7 @@ type ContentCardProps = {
   ariaLabel: string;
   description?: string | null;
   href: string;
+  locale?: string;
   metaItems: string[];
   tags?: string[];
   thumbnailAlt: string;
@@ -79,11 +80,19 @@ const titleClass = css({
   fontSize: 'xl',
   lineHeight: 'tight',
   letterSpacing: '[-0.03em]',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 const descriptionClass = css({
   lineClamp: '2',
   color: 'muted',
+  '&:lang(ja)': {
+    wordBreak: 'break-all',
+    overflowWrap: 'anywhere',
+  },
 });
 
 /**
@@ -94,6 +103,7 @@ export const ContentCard = ({
   ariaLabel,
   description,
   href,
+  locale,
   metaItems,
   tags,
   thumbnailAlt,
@@ -134,8 +144,14 @@ export const ContentCard = ({
           </div>
         ) : null}
         <div className={bodyClass}>
-          <h3 className={titleClass}>{title}</h3>
-          {description ? <p className={descriptionClass}>{description}</p> : null}
+          <h3 className={titleClass} lang={locale}>
+            {title}
+          </h3>
+          {description ? (
+            <p className={descriptionClass} lang={locale}>
+              {description}
+            </p>
+          ) : null}
         </div>
       </div>
     </article>

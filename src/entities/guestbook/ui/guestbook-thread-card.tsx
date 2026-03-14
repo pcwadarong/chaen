@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import React, { useActionState, useEffect, useRef, useState } from 'react';
+import React, { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -38,7 +38,7 @@ type GuestbookThreadCardProps = {
  * 방명록 스레드의 상태와 reply 목록을 조합하는 컨테이너입니다.
  * 메인 흰 버블과 관리자 답글 버블은 각각 별도 프레젠테이션 컴포넌트로 분리합니다.
  */
-export const GuestbookThreadCard = ({
+const GuestbookThreadCardBase = ({
   actionDeleteLabel,
   actionEditLabel,
   actionMenuLabel,
@@ -81,6 +81,22 @@ export const GuestbookThreadCard = ({
     setIsSecretPanelOpen(false);
   }, [onRevealSecretSuccess, verifyState]);
 
+  const handleToggleSecretPanel = useCallback(() => {
+    setIsSecretPanelOpen(previous => !previous);
+  }, []);
+  const handleDeleteReply = useCallback(
+    (replyEntry: GuestbookEntry) => {
+      onDeleteReply(replyEntry, entry);
+    },
+    [entry, onDeleteReply],
+  );
+  const handleEditReply = useCallback(
+    (replyEntry: GuestbookEntry) => {
+      onEditReply(replyEntry, entry);
+    },
+    [entry, onEditReply],
+  );
+
   return (
     <article className={threadClass}>
       <GuestbookThreadBubble
@@ -101,7 +117,7 @@ export const GuestbookThreadCard = ({
         onEdit={onEdit}
         onReply={onReply}
         onRevealSecret={verifyAction}
-        onToggleSecretPanel={() => setIsSecretPanelOpen(previous => !previous)}
+        onToggleSecretPanel={handleToggleSecretPanel}
         passwordInput={passwordInput}
         revealLabel={revealLabel}
         revealSecretPasswordLabel={revealSecretPasswordLabel}
@@ -125,8 +141,8 @@ export const GuestbookThreadCard = ({
               dateText={dateText(reply.created_at)}
               entry={reply}
               key={reply.id}
-              onDelete={replyEntry => onDeleteReply(replyEntry, entry)}
-              onEdit={replyEntry => onEditReply(replyEntry, entry)}
+              onDelete={handleDeleteReply}
+              onEdit={handleEditReply}
               reportLabel={reportLabel}
             />
           ))}
@@ -135,6 +151,10 @@ export const GuestbookThreadCard = ({
     </article>
   );
 };
+
+GuestbookThreadCardBase.displayName = 'GuestbookThreadCard';
+
+export const GuestbookThreadCard = React.memo(GuestbookThreadCardBase);
 
 const threadClass = css({
   width: 'full',

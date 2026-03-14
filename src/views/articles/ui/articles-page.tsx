@@ -1,4 +1,5 @@
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
@@ -6,13 +7,13 @@ import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
 import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
 import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
 import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
-import { PaginationLinks } from '@/shared/ui/pagination/pagination-links';
 
 export type ArticlesPageProps = {
   activeTag: string;
   feedLocale: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
+  locale: string;
   pagination: {
     currentPage: number;
     nextHref: string | null;
@@ -23,16 +24,16 @@ export type ArticlesPageProps = {
 };
 
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
-export const ArticlesPage = ({
+export const ArticlesPage = async ({
   activeTag,
   feedLocale,
   initialCursor,
   initialItems,
-  pagination,
+  locale,
   popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
-  const t = useTranslations('Articles');
+  const t = await getTranslations({ locale, namespace: 'Articles' });
 
   return (
     <PageShell hideAppFrameFooter>
@@ -53,19 +54,13 @@ export const ArticlesPage = ({
               query={searchQuery}
               retryText={t('retry')}
             />
-            <PaginationLinks
-              ariaLabel={t('paginationLabel')}
-              nextHref={pagination.nextHref}
-              nextText={t('paginationNext')}
-              previousHref={pagination.previousHref}
-              previousText={t('paginationPrevious')}
-            />
           </div>
           <aside className={sidebarClass}>
             <div className={sidebarPanelClass}>
               <div className={desktopSearchFormClass}>
                 <ArticleSearchForm
                   clearText={t('searchClear')}
+                  key={`article-search:${locale}:${searchQuery}`}
                   pendingText={t('loading')}
                   placeholder={t('searchPlaceholder')}
                   searchQuery={searchQuery}

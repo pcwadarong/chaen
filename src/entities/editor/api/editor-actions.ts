@@ -7,11 +7,12 @@ import { z } from 'zod';
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 import type { DraftSaveResult, EditorState, PublishSettings } from '@/widgets/editor';
 import { validateEditorState } from '@/widgets/editor/model/editor-core.utils';
 
@@ -105,7 +106,8 @@ export const saveEditorDraftAction = async ({
       parsedSettings.error.issues[0]?.message ?? EDITOR_ERROR_MESSAGE.draftSaveInvalidSettings,
     );
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
@@ -225,13 +227,15 @@ export const publishEditorContentAction = async ({
 
   if (duplicateResult.data.duplicate) throw createEditorError('duplicateSlug');
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const targetContentId = contentId ?? crypto.randomUUID();
   const config = getEditorContentTableConfig(contentType);
   const nowIso = new Date().toISOString();
+  const effectivePublishAt = parsedSettings.data.publishAt ?? nowIso;
   const contentPayload = {
     allow_comments: parsedSettings.data.allowComments,
-    publish_at: parsedSettings.data.publishAt,
+    publish_at: effectivePublishAt,
     slug: normalizedSlug,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     updated_at: nowIso,
@@ -281,18 +285,53 @@ export const publishEditorContentAction = async ({
     contentId: targetContentId,
     contentType,
     locale,
+    slug: normalizedSlug,
   });
 
   redirect(
     buildLocalizedPathname({
       locale: resolveActionLocale(locale),
-      pathname: getEditorEditPath({
-        contentId: targetContentId,
+      pathname: getPublishRedirectPath({
         contentType,
+        publishAt: parsedSettings.data.publishAt,
+        slug: normalizedSlug,
       }),
     }),
   );
 };
+
+/**
+ * 발행 시점과 콘텐츠 타입에 따라 최종 redirect 경로를 계산합니다.
+ */
+const getPublishRedirectPath = ({
+  contentType,
+  publishAt,
+  slug,
+}: {
+  contentType: 'article' | 'project';
+  publishAt: string | null;
+  slug: string;
+}) => {
+  if (publishAt) {
+    return contentType === 'article' ? '/articles' : '/project';
+  }
+
+  return contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`;
+};
+
+/**
+ * 콘텐츠 타입별 관리자 편집 화면 경로를 계산합니다.
+ */
+const getEditorEditPath = ({
+  contentId,
+  contentType,
+}: {
+  contentId: string;
+  contentType: 'article' | 'project';
+}) =>
+  contentType === 'article'
+    ? `/admin/articles/${contentId}/edit`
+    : `/admin/projects/${contentId}/edit`;
 
 /**
  * draft 목록 화면에서 선택한 임시저장을 삭제합니다.
@@ -305,7 +344,8 @@ export const deleteEditorDraftAction = async ({
 }: DeleteEditorDraftActionInput) => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
 
   if (contentType === 'resume') {
     const { error } = await supabase.from('resume_drafts').delete().eq('id', draftId);
@@ -352,7 +392,8 @@ const resolveEditorDraftId = async ({
 }) => {
   if (!contentId) return null;
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const { data, error } = await supabase
     .from('drafts')
     .select('id')
@@ -380,7 +421,8 @@ const getTagIdsBySlugs = async (tagSlugs: string[]) => {
 
   if (normalizedTagSlugs.length === 0) return [];
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const { data, error } = await supabase
     .from('tags')
     .select('id,slug')
@@ -408,7 +450,7 @@ const syncEditorContentTranslations = async ({
 }: {
   config: EditorContentTableConfig;
   contentId: string;
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
   translations: EditorState['translations'];
 }) => {
   const { error: deleteError } = await supabase
@@ -443,7 +485,7 @@ const syncEditorContentTags = async ({
 }: {
   config: EditorContentTableConfig;
   contentId: string;
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+  supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
   tagSlugs: string[];
 }) => {
   const { error: deleteError } = await supabase
@@ -476,7 +518,8 @@ const deleteEditorDrafts = async ({
   contentType: 'article' | 'project';
   draftId?: string | null;
 }) => {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   let query = supabase.from('drafts').delete().eq('content_type', contentType);
 
   if (draftId) query = query.eq('id', draftId);
@@ -493,10 +536,12 @@ const revalidateEditorContent = ({
   contentId,
   contentType,
   locale,
+  slug,
 }: {
   contentId: string;
   contentType: 'article' | 'project';
   locale?: string | null;
+  slug: string;
 }) => {
   const resolvedLocale = resolveActionLocale(locale);
   const adminEditPath = buildLocalizedPathname({
@@ -513,6 +558,10 @@ const revalidateEditorContent = ({
 
   revalidatePath(adminEditPath);
   revalidatePath(adminDraftsPath);
+  revalidatePublicContentPaths({
+    contentType,
+    slug,
+  });
 
   if (contentType === 'article') {
     revalidateTag(ARTICLES_CACHE_TAG);
@@ -525,15 +574,49 @@ const revalidateEditorContent = ({
 };
 
 /**
- * 콘텐츠 타입별 관리자 편집 화면 경로를 계산합니다.
+ * article/project 공개 목록과 상세 경로를 전 locale 기준으로 다시 검증하게 만듭니다.
  */
-const getEditorEditPath = ({
-  contentId,
+const revalidatePublicContentPaths = ({
   contentType,
+  slug,
 }: {
-  contentId: string;
   contentType: 'article' | 'project';
-}) =>
-  contentType === 'article'
-    ? `/admin/articles/${contentId}/edit`
-    : `/admin/projects/${contentId}/edit`;
+  slug: string;
+}) => {
+  locales.forEach(locale => {
+    if (contentType === 'article') {
+      revalidatePath(
+        buildLocalizedPathname({
+          locale,
+          pathname: '/articles',
+        }),
+      );
+      revalidatePath(
+        buildLocalizedPathname({
+          locale,
+          pathname: `/articles/${slug}`,
+        }),
+      );
+      return;
+    }
+
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/project',
+      }),
+    );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: `/project/${slug}`,
+      }),
+    );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/',
+      }),
+    );
+  });
+};

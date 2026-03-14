@@ -69,12 +69,14 @@ describe('ProjectDetailRoute', () => {
       },
       item: {
         id: 'supabase-editorial',
+        slug: 'supabase-editorial-slug',
         title: 'Supabase Editorial',
         description: 'detail',
         content: '# heading',
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
     });
 
@@ -91,7 +93,7 @@ describe('ProjectDetailRoute', () => {
     expect(element.props.isAdmin).toBe(false);
     expect(getProjectDetailPageData).toHaveBeenCalledWith({
       locale: 'ko',
-      projectId: 'supabase-editorial',
+      projectSlug: 'supabase-editorial',
     });
   });
 
@@ -103,12 +105,14 @@ describe('ProjectDetailRoute', () => {
       },
       item: {
         id: 'supabase-editorial',
+        slug: 'supabase-editorial-slug',
         title: 'Supabase Editorial',
         description: 'detail',
         content: '# heading',
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
     });
     vi.mocked(getServerAuthState).mockResolvedValueOnce({
@@ -132,12 +136,14 @@ describe('ProjectDetailRoute', () => {
     vi.mocked(getResolvedProject).mockResolvedValueOnce({
       item: {
         id: 'supabase-editorial',
+        slug: 'supabase-editorial-slug',
         title: 'Supabase Editorial',
         description: 'detail',
         content: '# heading',
         thumbnail_url: null,
         tags: ['supabase'],
         created_at: '2026-03-01T00:00:00.000Z',
+        publish_at: '2026-03-01T00:00:00.000Z',
       },
       resolvedLocale: 'ko',
     });
@@ -151,10 +157,10 @@ describe('ProjectDetailRoute', () => {
       }),
     ).resolves.toMatchObject({
       openGraph: {
-        images: ['https://chaen.dev/api/og/project/supabase-editorial'],
+        images: ['https://chaen.dev/api/og/project/supabase-editorial-slug'],
       },
       twitter: {
-        images: ['https://chaen.dev/api/og/project/supabase-editorial'],
+        images: ['https://chaen.dev/api/og/project/supabase-editorial-slug'],
       },
     });
   });
@@ -179,7 +185,7 @@ describe('ProjectDetailRoute', () => {
 
     expect(getProjectDetailPageData).toHaveBeenCalledWith({
       locale: 'ko',
-      projectId: 'missing-project',
+      projectSlug: 'missing-project',
     });
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });

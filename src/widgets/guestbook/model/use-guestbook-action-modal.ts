@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { GUESTBOOK_ERROR_CODE } from '@/entities/guestbook/model/guestbook-error';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
@@ -74,60 +74,126 @@ export const useGuestbookActionModal = ({
   const modalTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const modalPasswordInputRef = useRef<HTMLInputElement | null>(null);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModalState(null);
     setModalPassword('');
     setModalContent('');
     setModalError(null);
-  };
+  }, []);
 
-  const openEditModal = (entry: GuestbookThreadItem) => {
-    if (entry.is_admin_author && !isAdmin) return;
+  const openEditModal = useCallback(
+    (entry: GuestbookThreadItem) => {
+      if (entry.is_admin_author && !isAdmin) return;
 
-    if (entry.is_secret && entry.is_content_masked) {
-      pushToast(text.toastSecretUnlockRequired, 'error');
-      return;
-    }
+      if (entry.is_secret && entry.is_content_masked) {
+        pushToast(text.toastSecretUnlockRequired, 'error');
+        return;
+      }
 
-    setModalState({ mode: 'edit', entry, parentThreadId: null });
-    setModalPassword('');
-    setModalContent(entry.content);
-    setModalError(null);
-  };
+      setModalState({ mode: 'edit', entry, parentThreadId: null });
+      setModalPassword('');
+      setModalContent(entry.content);
+      setModalError(null);
+    },
+    [isAdmin, pushToast, text.toastSecretUnlockRequired],
+  );
 
-  const openDeleteModal = (entry: GuestbookThreadItem) => {
-    if (entry.is_admin_author && !isAdmin) return;
+  const openDeleteModal = useCallback(
+    (entry: GuestbookThreadItem) => {
+      if (entry.is_admin_author && !isAdmin) return;
 
-    setModalState({ mode: 'delete', entry, parentThreadId: null });
-    setModalPassword('');
-    setModalContent('');
-    setModalError(null);
-  };
+      setModalState({ mode: 'delete', entry, parentThreadId: null });
+      setModalPassword('');
+      setModalContent('');
+      setModalError(null);
+    },
+    [isAdmin],
+  );
 
-  const openEditReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
-    if (!isAdmin) return;
+  const openEditReplyModal = useCallback(
+    (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+      if (!isAdmin) return;
 
-    if (entry.is_secret && entry.is_content_masked) {
-      pushToast(text.toastSecretUnlockRequired, 'error');
-      return;
-    }
+      if (entry.is_secret && entry.is_content_masked) {
+        pushToast(text.toastSecretUnlockRequired, 'error');
+        return;
+      }
 
-    setModalState({ mode: 'edit', entry, parentThreadId: parentEntry.id });
-    setModalPassword('');
-    setModalContent(entry.content);
-    setModalError(null);
-  };
+      setModalState({ mode: 'edit', entry, parentThreadId: parentEntry.id });
+      setModalPassword('');
+      setModalContent(entry.content);
+      setModalError(null);
+    },
+    [isAdmin, pushToast, text.toastSecretUnlockRequired],
+  );
 
-  const openDeleteReplyModal = (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
-    if (!isAdmin) return;
+  const openDeleteReplyModal = useCallback(
+    (entry: GuestbookEntry, parentEntry: GuestbookThreadItem) => {
+      if (!isAdmin) return;
 
-    setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
-    setModalPassword('');
-    setModalContent('');
-    setModalError(null);
-  };
+      setModalState({ mode: 'delete', entry, parentThreadId: parentEntry.id });
+      setModalPassword('');
+      setModalContent('');
+      setModalError(null);
+    },
+    [isAdmin],
+  );
 
-  const handleConfirmModal = async () => {
+  /**
+   * 수정 optimistic update를 이전 내용으로 되돌립니다.
+   */
+  const rollbackEditedEntry = useCallback(
+    (
+      target: GuestbookEntry | GuestbookThreadItem,
+      parentThreadId: string | null,
+      previousContent: string,
+    ) => {
+      if (parentThreadId) {
+        updateThreadById(parentThreadId, item => ({
+          ...item,
+          replies: item.replies.map(reply =>
+            reply.id === target.id ? { ...reply, content: previousContent } : reply,
+          ),
+        }));
+        return;
+      }
+
+      updateThreadById(target.id, item => ({
+        ...item,
+        content: previousContent,
+      }));
+    },
+    [updateThreadById],
+  );
+
+  /**
+   * 삭제 optimistic update를 이전 reply 상태로 되돌립니다.
+   */
+  const rollbackDeletedReply = useCallback(
+    (parentThreadId: string, deletedReply: GuestbookEntry, replyIndex: number) => {
+      updateThreadById(parentThreadId, item => ({
+        ...item,
+        replies: [
+          ...item.replies.slice(0, replyIndex),
+          deletedReply,
+          ...item.replies.slice(replyIndex),
+        ],
+      }));
+    },
+    [updateThreadById],
+  );
+
+  /**
+   * 삭제 optimistic update를 이전 thread 상태로 되돌립니다.
+   */
+  const rollbackDeletedThread = useCallback(
+    (deletedThread: GuestbookThreadItem) => {
+      applyServerThread(deletedThread);
+    },
+    [applyServerThread],
+  );
+
+  const handleConfirmModal = useCallback(async () => {
     if (!modalState || isModalSubmitting) return;
 
     const target = modalState.entry;
@@ -182,6 +248,7 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok || !result.data) {
+            rollbackEditedEntry(target, modalState.parentThreadId, previousContent);
             if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
               setModalError(text.secretVerifyFailed);
             } else {
@@ -196,19 +263,7 @@ export const useGuestbookActionModal = ({
           pushToast(text.toastEditSuccess, 'success');
           closeModal();
         } catch (_error) {
-          if (modalState.parentThreadId) {
-            updateThreadById(modalState.parentThreadId, item => ({
-              ...item,
-              replies: item.replies.map(reply =>
-                reply.id === target.id ? { ...reply, content: previousContent } : reply,
-              ),
-            }));
-          } else {
-            updateThreadById(target.id, item => ({
-              ...item,
-              content: previousContent,
-            }));
-          }
+          rollbackEditedEntry(target, modalState.parentThreadId, previousContent);
           pushToast(text.toastEditError, 'error');
         }
       }
@@ -240,6 +295,7 @@ export const useGuestbookActionModal = ({
               password: shouldSkipPassword ? '' : trimmedPassword,
             });
             if (!result.ok) {
+              rollbackDeletedReply(modalState.parentThreadId, deletedReply, replyIndex);
               if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
                 setModalError(text.secretVerifyFailed);
               } else {
@@ -251,14 +307,7 @@ export const useGuestbookActionModal = ({
             pushToast(text.toastDeleteSuccess, 'success');
             closeModal();
           } catch (_error) {
-            updateThreadById(modalState.parentThreadId, item => ({
-              ...item,
-              replies: [
-                ...item.replies.slice(0, replyIndex),
-                deletedReply,
-                ...item.replies.slice(replyIndex),
-              ],
-            }));
+            rollbackDeletedReply(modalState.parentThreadId, deletedReply, replyIndex);
             pushToast(text.toastDeleteError, 'error');
           }
 
@@ -291,6 +340,7 @@ export const useGuestbookActionModal = ({
             password: shouldSkipPassword ? '' : trimmedPassword,
           });
           if (!result.ok) {
+            rollbackDeletedThread(deletedThread);
             if (result.errorCode === GUESTBOOK_ERROR_CODE.invalidPassword) {
               setModalError(text.secretVerifyFailed);
             } else {
@@ -302,14 +352,37 @@ export const useGuestbookActionModal = ({
           pushToast(text.toastDeleteSuccess, 'success');
           closeModal();
         } catch (_error) {
-          applyServerThread(deletedThread);
+          rollbackDeletedThread(deletedThread);
           pushToast(text.toastDeleteError, 'error');
         }
       }
     } finally {
       setIsModalSubmitting(false);
     }
-  };
+  }, [
+    applyServerThreadEntry,
+    closeModal,
+    isAdmin,
+    isModalSubmitting,
+    items,
+    locale,
+    modalContent,
+    modalPassword,
+    modalState,
+    pushToast,
+    removeThreadById,
+    rollbackDeletedReply,
+    rollbackDeletedThread,
+    rollbackEditedEntry,
+    text.editContentUnchanged,
+    text.requiredField,
+    text.secretVerifyFailed,
+    text.toastDeleteError,
+    text.toastDeleteSuccess,
+    text.toastEditError,
+    text.toastEditSuccess,
+    updateThreadById,
+  ]);
 
   const modalTitle = useMemo(() => {
     if (!modalState) return '';

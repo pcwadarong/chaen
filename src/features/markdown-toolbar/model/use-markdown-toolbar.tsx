@@ -28,6 +28,7 @@ import {
   SubtextIcon,
   TableIcon,
 } from '@/shared/ui/icons/app-icons';
+import type { ClosePopover } from '@/shared/ui/popover/popover';
 
 import type {
   LinkMode,
@@ -49,11 +50,21 @@ const tableTemplate = [
 export const useMarkdownToolbar = ({
   onChange,
   textareaRef,
-  value,
   popoverTriggerClassName,
 }: MarkdownToolbarProps & {
   popoverTriggerClassName: string;
 }) => {
+  /**
+   * 현재 textarea selection 범위를 그대로 읽어 선택 문자열을 반환합니다.
+   * 공백을 포함한 원본 부분 문자열을 유지해 링크/이미지 라벨 삽입 시 사용자가 선택한 텍스트가 변형되지 않게 합니다.
+   */
+  const getSelectedText = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return '';
+
+    return textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
+  }, [textareaRef]);
+
   const applyTextTransform = React.useCallback(
     (transform: (textarea: HTMLTextAreaElement) => string) => {
       const textarea = textareaRef.current;
@@ -100,19 +111,16 @@ export const useMarkdownToolbar = ({
   );
 
   const handleAlignApply = React.useCallback(
-    (align: 'center' | 'left' | 'right', closePopover?: () => void) => {
+    (align: 'center' | 'left' | 'right', closePopover?: ClosePopover) => {
       applyAlign(align);
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyAlign],
   );
 
   const handleLinkApply = React.useCallback(
-    (url: string, mode: LinkMode, closePopover?: () => void) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+    (url: string, mode: LinkMode, closePopover?: ClosePopover) => {
+      const selectedText = getSelectedText();
       const nextValue = createMarkdownLinkByMode({
         label: selectedText || url,
         mode,
@@ -122,58 +130,54 @@ export const useMarkdownToolbar = ({
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
-    [applyTextTransform, textareaRef, value],
+    [applyTextTransform, getSelectedText],
   );
 
   const handleImageApply = React.useCallback(
-    (url: string, closePopover?: () => void) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+    (url: string, closePopover?: ClosePopover) => {
+      const selectedText = getSelectedText();
       const altText = selectedText || '이미지 설명';
       const nextValue = `![${altText}](${url})`;
 
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
-    [applyTextTransform, textareaRef, value],
+    [applyTextTransform, getSelectedText],
   );
 
   const handleTextColorApply = React.useCallback(
-    (colorHex: string, closePopover?: () => void) => {
+    (colorHex: string, closePopover?: ClosePopover) => {
       applyWrap(`<span style="color:${colorHex}">`, '</span>', '텍스트');
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyWrap],
   );
 
   const handleBackgroundColorApply = React.useCallback(
-    (colorHex: string, closePopover?: () => void) => {
+    (colorHex: string, closePopover?: ClosePopover) => {
       applyWrap(`<span style="background-color:${colorHex}">`, '</span>', '강조');
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyWrap],
   );
 
   const handleYoutubeApply = React.useCallback(
-    (videoId: string, closePopover?: () => void) => {
+    (videoId: string, closePopover?: ClosePopover) => {
       applyTemplate(`<YouTube id="${videoId}" />`);
-      closePopover?.();
+      closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
   );
 
   const handleToggleApply = React.useCallback(
     (level: 1 | 2 | 3 | 4) => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
+      if (!textareaRef.current) return;
 
-      const selectedText = value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+      const selectedText = getSelectedText();
       const headingPrefix = '#'.repeat(level);
 
       if (!selectedText) {
@@ -183,7 +187,7 @@ export const useMarkdownToolbar = ({
 
       applyWrap(`:::toggle ${headingPrefix} `, '\n내용\n:::', '제목');
     },
-    [applyTemplate, applyWrap, textareaRef, value],
+    [applyTemplate, applyWrap, getSelectedText, textareaRef],
   );
 
   const headingActions = React.useMemo<ToolbarActionItem[]>(

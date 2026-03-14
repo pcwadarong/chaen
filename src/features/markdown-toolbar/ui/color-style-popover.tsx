@@ -5,11 +5,11 @@ import { css } from 'styled-system/css';
 
 import { markdownColorPresets } from '@/shared/lib/markdown/markdown-color-presets';
 import { Button } from '@/shared/ui/button/button';
-import { Popover } from '@/shared/ui/popover/popover';
+import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type ColorStylePopoverProps = {
   previewMode: 'background' | 'text';
-  onApply: (colorHex: string, closePopover?: () => void) => void;
+  onApply: (colorHex: string, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   panelLabel: string;
   triggerAriaLabel: string;

@@ -4,6 +4,7 @@ import React, {
   type FormHTMLAttributes,
   type KeyboardEvent,
   type SyntheticEvent,
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -143,7 +144,7 @@ export const CommentComposeForm = ({
   const isServerActionMode = Boolean(formAction);
   const resolvedIsSubmitting = isSubmittingOverride ?? isSubmitting;
 
-  const submit = async () => {
+  const submit = useCallback(async () => {
     if (!onSubmit) return;
     if (!content.trim()) return;
     if (
@@ -168,7 +169,16 @@ export const CommentComposeForm = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [
+    authorBlogUrl,
+    authorName,
+    content,
+    isPresetAuthorMode,
+    isSecret,
+    onSubmit,
+    password,
+    presetAuthorName,
+  ]);
 
   const handleSubmit = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     if (!isValidCommentComposeAuthorBlogUrl(authorBlogUrl)) {
@@ -189,24 +199,27 @@ export const CommentComposeForm = ({
   };
 
   // Ctrl+Enter 또는 Cmd+Enter로 폼 제출
-  const handleTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleTextareaKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== 'Enter' || (!event.ctrlKey && !event.metaKey)) return;
     event.preventDefault();
     event.currentTarget.form?.requestSubmit();
-  };
+  }, []);
 
-  const handlePasswordChange = (value: string) => {
+  const handlePasswordChange = useCallback((value: string) => {
     setPassword(normalizeCommentComposePassword(value));
-  };
+  }, []);
 
-  const handleAuthorBlogUrlChange = (value: string) => {
-    setAuthorBlogUrl(value);
+  const handleAuthorBlogUrlChange = useCallback(
+    (value: string) => {
+      setAuthorBlogUrl(value);
 
-    if (!authorBlogUrlError) return;
-    if (isValidCommentComposeAuthorBlogUrl(value)) {
-      setAuthorBlogUrlError(null);
-    }
-  };
+      if (!authorBlogUrlError) return;
+      if (isValidCommentComposeAuthorBlogUrl(value)) {
+        setAuthorBlogUrlError(null);
+      }
+    },
+    [authorBlogUrlError],
+  );
 
   useEffect(() => {
     if (!submissionResult?.ok) return;

@@ -3,12 +3,12 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
   buildContentLocaleFallbackChain,
-  resolveFirstAvailableLocaleValue,
+  pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
 import {
-  buildCreatedAtIdPage,
-  parseCreatedAtIdCursor,
+  buildPublishedAtIdPage,
   parseKeysetLimit,
+  parsePublishedAtIdCursor,
 } from '@/shared/lib/pagination/keyset-pagination';
 import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
@@ -19,13 +19,14 @@ import 'server-only';
 import { PROJECTS_CACHE_TAG } from '../model/cache-tags';
 import type { ProjectListItem, ProjectListPage } from '../model/types';
 
-import { mapProjectListItems, type ProjectTranslationRow } from './map-project-translation';
-
 const isMissingProjectsContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
+  const hasMissingRelationText =
+    normalizedMessage.includes('relation') && normalizedMessage.includes('does not exist');
 
   return (
-    normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations')
+    hasMissingRelationText &&
+    (normalizedMessage.includes('projects') || normalizedMessage.includes('project_translations'))
   );
 };
 
@@ -35,92 +36,198 @@ type GetProjectsOptions = {
   locale: string;
 };
 
-/**
- * keyset 페이지 결과를 프로젝트 목록 응답 shape로 변환합니다.
- */
-const toProjectsPage = (rows: ProjectListItem[], pageSize: number): ProjectListPage => {
-  const page = buildCreatedAtIdPage({
-    limit: pageSize,
-    rows: rows.map(row => ({
-      ...row,
-      createdAt: row.created_at,
-    })),
-  });
+type ProjectPublicBaseRow = Pick<ProjectListItem, 'id' | 'publish_at' | 'slug' | 'thumbnail_url'>;
 
-  return {
-    items: dedupeById(
-      page.items.map(({ createdAt: _createdAt, ...item }) => item as ProjectListItem),
-    ),
-    nextCursor: page.nextCursor,
-  };
+type ProjectListTranslationSummaryRow = Pick<ProjectListItem, 'description' | 'title'> & {
+  locale: string;
+  project_id: string;
 };
 
 /**
- * content schema(`projects` + `project_translations`)에서 locale별 목록을 조회합니다.
+ * 공개 프로젝트 base row를 `publish_at + id` 기준으로 조회합니다.
  */
-const fetchProjectsByLocaleFromContentSchema = async (
-  locale: string,
+const fetchPublicProjectBaseRows = async (
   cursor: string | null | undefined,
   pageSize: number,
-): Promise<{ data: ProjectListPage; schemaMissing: boolean }> => {
+): Promise<{ data: ProjectPublicBaseRow[]; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
-      data: { items: [], nextCursor: null },
+      data: [],
       schemaMissing: false,
     };
   }
 
-  const parsedCursor = parseCreatedAtIdCursor(cursor);
+  const parsedCursor = parsePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
-  const translationsQuery = supabase
-    .from('project_translations')
-    .select(
-      'project_id,title,description,projects!inner(created_at,thumbnail_url,slug,visibility,allow_comments,publish_at)',
-    )
-    .eq('locale', locale)
-    .eq('projects.visibility', 'public')
-    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }), {
-      referencedTable: 'projects',
+  const baseQuery = supabase
+    .from('projects')
+    .select('id,thumbnail_url,slug,visibility,publish_at')
+    .not('publish_at', 'is', null)
+    .not('slug', 'is', null)
+    .eq('visibility', 'public')
+    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }))
+    .order('publish_at', {
+      ascending: false,
+      nullsFirst: false,
     })
-    .order('created_at', { ascending: false, referencedTable: 'projects' })
-    .order('project_id', { ascending: false });
+    .order('id', { ascending: false });
 
-  const { data: translationRows, error: translationError } = await translationsQuery.limit(
-    pageSize + 1,
-  );
+  const { data: baseRows, error: baseRowsError } = await baseQuery.limit(pageSize + 1);
 
-  if (translationError) {
-    if (isMissingProjectsContentSchemaError(translationError.message)) {
+  if (baseRowsError) {
+    if (isMissingProjectsContentSchemaError(baseRowsError.message)) {
       return {
-        data: { items: [], nextCursor: null },
+        data: [],
         schemaMissing: true,
       };
     }
 
-    throw new Error(`[projects] 번역 목록 조회 실패: ${translationError.message}`);
+    throw new Error(`[projects] 공개 프로젝트 base row 조회 실패: ${baseRowsError.message}`);
   }
 
   return {
-    data: toProjectsPage(
-      mapProjectListItems((translationRows ?? []) as ProjectTranslationRow[]),
-      pageSize,
-    ),
+    data: (baseRows ?? []) as ProjectPublicBaseRow[],
     schemaMissing: false,
   };
 };
 
-const fetchProjectsByLocale = async (
+/**
+ * 공개 프로젝트 id 집합에 대해 locale fallback 후보 번역을 한 번에 조회합니다.
+ */
+const fetchProjectTranslationsByIds = async (
+  projectIds: string[],
+  localeFallbackChain: string[],
+): Promise<{ data: ProjectListTranslationSummaryRow[]; schemaMissing: boolean }> => {
+  if (projectIds.length === 0) {
+    return {
+      data: [],
+      schemaMissing: false,
+    };
+  }
+
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: [],
+      schemaMissing: false,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('project_translations')
+    .select('project_id,locale,title,description')
+    .in('project_id', projectIds)
+    .in('locale', localeFallbackChain);
+
+  if (error) {
+    if (isMissingProjectsContentSchemaError(error.message)) {
+      return {
+        data: [],
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[projects] 번역 목록 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: (data ?? []) as ProjectListTranslationSummaryRow[],
+    schemaMissing: false,
+  };
+};
+
+/**
+ * base row 순서를 유지하면서 각 프로젝트에 가장 적합한 locale 번역을 결합합니다.
+ */
+const resolveProjectItemsWithLocaleFallback = async (
+  baseRows: ProjectPublicBaseRow[],
+  locale: string,
+): Promise<ProjectListItem[]> => {
+  if (baseRows.length === 0) return [];
+
+  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
+  const translationsResult = await fetchProjectTranslationsByIds(
+    baseRows.map(row => row.id),
+    localeFallbackChain,
+  );
+  if (translationsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
+
+  const translationsByProjectId = new Map<string, ProjectListTranslationSummaryRow[]>();
+  translationsResult.data.forEach(row => {
+    const rows = translationsByProjectId.get(row.project_id) ?? [];
+    rows.push(row);
+    translationsByProjectId.set(row.project_id, rows);
+  });
+
+  return baseRows.map(baseRow => {
+    const translationRows = translationsByProjectId.get(baseRow.id) ?? [];
+    const preferredTranslation = pickPreferredLocaleValue({
+      locales: localeFallbackChain,
+      resolveLocale: row => row.locale,
+      rows: translationRows,
+    });
+
+    if (!preferredTranslation) {
+      throw new Error(
+        `[projects] 조회 가능한 번역이 없습니다. projectId=${baseRow.id} locales=${localeFallbackChain.join('>')}`,
+      );
+    }
+
+    return {
+      description: preferredTranslation.description,
+      id: baseRow.id,
+      publish_at: baseRow.publish_at,
+      slug: baseRow.slug,
+      thumbnail_url: baseRow.thumbnail_url,
+      title: preferredTranslation.title,
+    };
+  });
+};
+
+/**
+ * 공개 base row를 keyset 페이지 계산용 shape로 정규화합니다.
+ *
+ * 공개 목록은 `publish_at IS NOT NULL` 조건으로 조회하므로 여기서는 string으로 고정합니다.
+ */
+const toPublishedProjectPageRows = (
+  rows: ProjectPublicBaseRow[],
+): Array<ProjectPublicBaseRow & { publishedAt: string }> =>
+  rows.map(row => ({
+    ...row,
+    publishedAt: row.publish_at ?? '',
+  }));
+
+/**
+ * 공개 프로젝트 기본 목록을 base row + locale fallback 번역으로 조회합니다.
+ */
+const fetchProjectsByLocaleFallback = async (
   locale: string,
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectListPage> => {
-  const localizedProjects = await fetchProjectsByLocaleFromContentSchema(locale, cursor, pageSize);
-  if (localizedProjects.schemaMissing) {
-    throw new Error('[projects] content schema가 없습니다.');
-  }
+  const baseRowsResult = await fetchPublicProjectBaseRows(cursor, pageSize);
+  if (baseRowsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
-  return localizedProjects.data;
+  const page = buildPublishedAtIdPage({
+    limit: pageSize,
+    rows: toPublishedProjectPageRows(baseRowsResult.data),
+  });
+
+  return {
+    items: dedupeById(
+      await resolveProjectItemsWithLocaleFallback(
+        page.items.map(({ id, publish_at, slug, thumbnail_url }) => ({
+          id,
+          publish_at,
+          slug,
+          thumbnail_url,
+        })),
+        locale,
+      ),
+    ),
+    nextCursor: page.nextCursor,
+  };
 };
 
 /**
@@ -135,27 +242,13 @@ const readCachedProjects = async (input: {
 
   cacheTag(PROJECTS_CACHE_TAG);
 
-  const parsedCursor = parseCreatedAtIdCursor(input.cursor);
-  const isFirstPage = !parsedCursor;
-
-  if (!isFirstPage) {
-    return fetchProjectsByLocale(input.normalizedLocale, input.cursor, input.pageSize);
-  }
-
-  const page = await resolveFirstAvailableLocaleValue({
-    fetchByLocale: candidateLocale =>
-      fetchProjectsByLocale(candidateLocale, input.cursor, input.pageSize),
-    hasValue: value => value.items.length > 0,
-    locales: buildContentLocaleFallbackChain(input.normalizedLocale),
-  });
-
-  return page ?? { items: [], nextCursor: null };
+  return fetchProjectsByLocaleFallback(input.normalizedLocale, input.cursor, input.pageSize);
 };
 
 /**
- * 프로젝트 목록을 created_at + id keyset cursor 기반 페이지 단위로 조회합니다.
+ * 프로젝트 목록을 publish_at + id keyset cursor 기반 페이지 단위로 조회합니다.
  *
- * - locale 우선 조회 후, 첫 페이지에서만 `ko` fallback을 시도합니다.
+ * - 각 row마다 요청 locale -> `ko` -> `en` -> `ja` -> `fr` 순으로 번역을 채웁니다.
  */
 export const getProjects = async ({
   cursor,

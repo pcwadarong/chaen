@@ -7,6 +7,7 @@ import type {
 import type { DraftSaveResult } from '@/widgets/editor/model/editor-core.types';
 
 export type ResumeEditorCoreProps = {
+  hideAppFrameFooter?: boolean;
   initialContents: ResumeEditorState['contents'];
   initialSavedAt?: string | null;
   onDraftSave?: (state: ResumeEditorState) => Promise<DraftSaveResult | void>;

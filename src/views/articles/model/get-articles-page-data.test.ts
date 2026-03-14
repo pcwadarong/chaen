@@ -39,7 +39,8 @@ describe('getArticlesPageData', () => {
             title: 'a1',
             description: 'd1',
             thumbnail_url: null,
-            created_at: '2026-03-01T00:00:00.000Z',
+            publish_at: '2026-03-01T00:00:00.000Z',
+            slug: 'article-1',
           },
         ],
         nextCursor: '12',
@@ -70,6 +71,7 @@ describe('getArticlesPageData', () => {
       feedLocale: 'ko',
       initialCursor: '12',
       initialItems: expect.any(Array),
+      locale: 'ko',
       pagination: {
         currentPage: 1,
         nextHref: '/ko/articles?q=react&page=2',
@@ -178,7 +180,8 @@ describe('getArticlesPageData', () => {
             title: 'a1',
             description: 'd1',
             thumbnail_url: null,
-            created_at: '2026-03-01T00:00:00.000Z',
+            publish_at: '2026-03-01T00:00:00.000Z',
+            slug: 'article-1',
           },
         ],
         nextCursor: 'cursor-1',
@@ -193,7 +196,8 @@ describe('getArticlesPageData', () => {
           title: 'a2',
           description: 'd2',
           thumbnail_url: null,
-          created_at: '2026-02-28T00:00:00.000Z',
+          publish_at: '2026-02-28T00:00:00.000Z',
+          slug: 'article-2',
         },
       ],
       nextCursor: 'cursor-2',
@@ -219,6 +223,7 @@ describe('getArticlesPageData', () => {
       tag: '',
     });
     expect(data.feedLocale).toBe('ko');
+    expect(data.locale).toBe('fr');
     expect(data.pagination).toEqual({
       currentPage: 2,
       nextHref: '/fr/articles?page=3',

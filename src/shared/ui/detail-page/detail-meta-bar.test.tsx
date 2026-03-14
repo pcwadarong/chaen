@@ -11,6 +11,7 @@ describe('DetailMetaBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    window.sessionStorage.clear();
     Object.assign(globalThis.navigator, {
       clipboard: {
         writeText: clipboardWriteTextMock,
@@ -41,6 +42,7 @@ describe('DetailMetaBar', () => {
         primaryMetaText="2026년 1월 - 2026년 2월"
         shareText="공유하기"
         trackViewAction={trackViewActionMock}
+        trackViewStorageKey="article:test"
         viewCount={0}
         viewCountLabel="조회수"
       />,
@@ -71,6 +73,7 @@ describe('DetailMetaBar', () => {
         primaryMetaText="2026년 1월 - 2026년 2월"
         shareText="공유하기"
         trackViewAction={trackViewActionMock}
+        trackViewStorageKey="article:test"
         viewCount={0}
         viewCountLabel="조회수"
       />,
@@ -98,5 +101,62 @@ describe('DetailMetaBar', () => {
 
     expect(screen.getByText('2026-03-08')).toBeTruthy();
     expect(screen.getByText('등록일 2026-03-08')).toBeTruthy();
+  });
+
+  it('같은 상세 추적 키로 다시 마운트돼도 조회수 요청은 한 번만 보낸다', async () => {
+    trackViewActionMock.mockResolvedValue({
+      data: {
+        viewCount: 10,
+      },
+      errorMessage: null,
+      ok: true,
+    });
+
+    const props = {
+      copyFailedText: '복사 실패',
+      copiedText: '복사됨',
+      locale: 'ko',
+      primaryMetaText: '2026년 1월 - 2026년 2월',
+      shareText: '공유하기',
+      trackViewAction: trackViewActionMock,
+      trackViewStorageKey: 'article:stable-id',
+      viewCount: 0,
+      viewCountLabel: '조회수',
+    } as const;
+
+    const firstRender = render(<DetailMetaBar {...props} />);
+
+    await waitFor(() => {
+      expect(trackViewActionMock).toHaveBeenCalledTimes(1);
+    });
+
+    firstRender.unmount();
+    render(<DetailMetaBar {...props} />);
+
+    await waitFor(() => {
+      expect(trackViewActionMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('같은 상세가 pending 상태로 다시 마운트돼도 조회수 요청을 다시 보내지 않는다', async () => {
+    window.sessionStorage.setItem('detail-view-tracked:article:pending-id', 'pending');
+
+    render(
+      <DetailMetaBar
+        copyFailedText="복사 실패"
+        copiedText="복사됨"
+        locale="ko"
+        primaryMetaText="2026년 1월 - 2026년 2월"
+        shareText="공유하기"
+        trackViewAction={trackViewActionMock}
+        trackViewStorageKey="article:pending-id"
+        viewCount={0}
+        viewCountLabel="조회수"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(trackViewActionMock).not.toHaveBeenCalled();
+    });
   });
 });

@@ -88,6 +88,7 @@ const AdminProjectNewRoute = async ({
   return (
     <EditorPage
       availableTags={availableTags}
+      hideAppFrameFooter
       onDraftSave={handleDraftSave}
       onPublishSubmit={handlePublishSubmit}
       {...seed}

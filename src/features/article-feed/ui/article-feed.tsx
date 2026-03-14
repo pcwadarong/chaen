@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
@@ -21,6 +21,57 @@ type ArticleFeedProps = {
   query: string;
   retryText: string;
 };
+
+type ArticleFeedContentProps = {
+  emptyText: string;
+  items: ArticleListItem[];
+};
+
+type ArticleFeedErrorPanelProps = {
+  loadErrorText: string;
+  onRetry: () => void;
+  retryText: string;
+};
+
+/**
+ * 아티클 리스트 또는 빈 상태만 렌더링하는 본문 블록입니다.
+ */
+const ArticleFeedContentBase = ({ emptyText, items }: ArticleFeedContentProps) =>
+  items.length > 0 ? (
+    <ol className={listClass}>
+      {items.map(article => (
+        <li className={itemClass} key={article.id}>
+          <ArticleWideListItem article={article} />
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p className={emptyClass}>{emptyText}</p>
+  );
+
+ArticleFeedContentBase.displayName = 'ArticleFeedContent';
+
+const ArticleFeedContent = React.memo(ArticleFeedContentBase);
+
+/**
+ * 초기 로드 실패 시 재시도 액션을 포함한 에러 패널입니다.
+ */
+const ArticleFeedErrorPanelBase = ({
+  loadErrorText,
+  onRetry,
+  retryText,
+}: ArticleFeedErrorPanelProps) => (
+  <div className={errorPanelClass}>
+    <p className={errorTextClass}>{loadErrorText}</p>
+    <Button onClick={onRetry} tone="white" variant="ghost">
+      {retryText}
+    </Button>
+  </div>
+);
+
+ArticleFeedErrorPanelBase.displayName = 'ArticleFeedErrorPanel';
+
+const ArticleFeedErrorPanel = React.memo(ArticleFeedErrorPanelBase);
 
 /**
  * 아티클 목록의 무한 스크롤 피드를 렌더링합니다.
@@ -45,6 +96,9 @@ export const ArticleFeed = ({
     query,
   });
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const handleLoadMore = useCallback(() => {
+    void loadMore();
+  }, [loadMore]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -53,7 +107,7 @@ export const ArticleFeed = ({
       entries => {
         const target = entries[0];
         if (!target?.isIntersecting) return;
-        void loadMore();
+        handleLoadMore();
       },
       {
         root: null,
@@ -64,27 +118,18 @@ export const ArticleFeed = ({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [handleLoadMore]);
 
   return (
     <section className={sectionClass}>
       {errorMessage && items.length === 0 ? (
-        <div className={errorPanelClass}>
-          <p className={errorTextClass}>{loadErrorText}</p>
-          <Button onClick={() => void loadMore()} tone="white" variant="ghost">
-            {retryText}
-          </Button>
-        </div>
-      ) : items.length > 0 ? (
-        <ol className={listClass}>
-          {items.map(article => (
-            <li className={itemClass} key={`${article.id}-${article.created_at}`}>
-              <ArticleWideListItem article={article} />
-            </li>
-          ))}
-        </ol>
+        <ArticleFeedErrorPanel
+          loadErrorText={loadErrorText}
+          onRetry={handleLoadMore}
+          retryText={retryText}
+        />
       ) : (
-        <p className={emptyClass}>{emptyText}</p>
+        <ArticleFeedContent emptyText={emptyText} items={items} />
       )}
 
       <div aria-hidden className={sentinelClass} ref={sentinelRef} />
@@ -128,10 +173,6 @@ const itemClass = css({
 });
 
 const emptyClass = css({
-  borderRadius: 'md',
-  border: '[1px solid var(--colors-border)]',
-  px: '5',
-  py: '4',
   color: 'muted',
 });
 

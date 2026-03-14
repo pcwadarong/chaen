@@ -87,6 +87,7 @@ describe('AdminArticleEditRoute', () => {
       contentType: 'article',
     });
     expect(element.props.contentId).toBe('article-1');
+    expect(element.props.hideAppFrameFooter).toBe(true);
     expect(typeof element.props.onDraftSave).toBe('function');
     expect(typeof element.props.onPublishSubmit).toBe('function');
   });

@@ -70,6 +70,7 @@ describe('AdminProjectNewRoute', () => {
     expect(typeof element.props.onDraftSave).toBe('function');
     expect(typeof element.props.onPublishSubmit).toBe('function');
     expect(element.props.contentType).toBe('project');
+    expect(element.props.hideAppFrameFooter).toBe(true);
   });
 
   it('project 신규 작성도 draftId 이어쓰기를 지원한다', async () => {

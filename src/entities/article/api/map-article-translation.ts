@@ -55,11 +55,13 @@ export const getEmbeddedArticleBaseRow = (
 export const mapArticleListItem = (row: ArticleTranslationRow): ArticleListItem | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
+  if (!articleBase.publish_at || !articleBase.slug) return null;
 
   return {
-    created_at: articleBase.created_at,
     description: row.description,
     id: row.article_id,
+    publish_at: articleBase.publish_at,
+    slug: articleBase.slug,
     thumbnail_url: articleBase.thumbnail_url,
     title: row.title,
   };
@@ -88,11 +90,13 @@ export const mapArticleDetailListItem = (
 ): ArticleDetailListItem | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
+  if (!articleBase.publish_at || !articleBase.slug) return null;
 
   return {
-    created_at: articleBase.created_at,
     description: row.description,
     id: row.article_id,
+    publish_at: articleBase.publish_at,
+    slug: articleBase.slug,
     title: row.title,
   };
 };
@@ -119,6 +123,7 @@ export const mapArticleDetailListItems = (rows: ArticleTranslationRow[]): Articl
 export const mapArticle = (row: ArticleTranslationRow, tags: string[]): Article | null => {
   const articleBase = getEmbeddedArticleBaseRow(row.articles);
   if (!articleBase) return null;
+  if (!articleBase.publish_at || !articleBase.slug) return null;
 
   return {
     allow_comments: articleBase.allow_comments,

@@ -21,7 +21,8 @@ describe('HomeHeroWebUi', () => {
             title: 'Motion Library',
             description: 'description',
             thumbnail_url: null,
-            created_at: '2026-01-01T00:00:00.000Z',
+            publish_at: '2026-01-01T00:00:00.000Z',
+            slug: 'motion-library',
           },
         ]}
         title="Selected Projects"

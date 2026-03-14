@@ -74,6 +74,7 @@ const AdminResumeEditRoute = async ({
 
   return (
     <ResumeEditorPage
+      hideAppFrameFooter
       initialDraftId={initialDraftId}
       initialContents={initialContents}
       initialPublishSettings={initialPublishSettings}

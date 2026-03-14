@@ -30,14 +30,17 @@ vi.mock('next-intl', () => ({
     )[key] ?? key,
 }));
 
+const guestbookThreadCardSpy = vi.fn(({ entry }: { entry: { content: string } }) => (
+  <article>{entry.content}</article>
+));
+
 vi.mock('@/entities/guestbook/ui/guestbook-thread-card', () => ({
-  GuestbookThreadCard: ({ entry }: { entry: { content: string } }) => (
-    <article>{entry.content}</article>
-  ),
+  GuestbookThreadCard: (props: { entry: { content: string } }) => guestbookThreadCardSpy(props),
 }));
 
 describe('GuestbookFeed', () => {
   beforeEach(() => {
+    guestbookThreadCardSpy.mockClear();
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
       value: class {
@@ -87,5 +90,46 @@ describe('GuestbookFeed', () => {
 
     expect(endMessage).toHaveAttribute('aria-live', 'polite');
     expect(endMessage).toHaveClass(srOnlyClass);
+  });
+
+  it('같은 props로 rerender되면 스레드 카드를 다시 그리지 않는다', () => {
+    const props = {
+      canReply: false,
+      errorMessage: null,
+      hasMore: false,
+      isInitialLoading: false,
+      isLoadingMore: false,
+      items: [
+        {
+          author_blog_url: null,
+          author_name: 'chaen',
+          content: '방명록 본문',
+          created_at: '2026-03-08T00:00:00.000Z',
+          deleted_at: null,
+          id: 'entry-1',
+          is_admin_author: false,
+          is_content_masked: false,
+          is_secret: false,
+          parent_id: null,
+          replies: [],
+          updated_at: '2026-03-08T00:00:00.000Z',
+        },
+      ],
+      onDeleteReply: vi.fn(),
+      onDelete: vi.fn(),
+      onEditReply: vi.fn(),
+      onEdit: vi.fn(),
+      onLoadMore: vi.fn(async () => {}),
+      onRevealSecretSuccess: vi.fn(),
+      onReply: vi.fn(),
+      onRetry: vi.fn(async () => {}),
+    };
+    const { rerender } = render(<GuestbookFeed {...props} />);
+
+    expect(guestbookThreadCardSpy).toHaveBeenCalledTimes(1);
+
+    rerender(<GuestbookFeed {...props} />);
+
+    expect(guestbookThreadCardSpy).toHaveBeenCalledTimes(1);
   });
 });

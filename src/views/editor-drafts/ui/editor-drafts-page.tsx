@@ -17,6 +17,57 @@ type EditorDraftsPageProps = {
   ) => Promise<void>;
 };
 
+type DraftTableRowProps = {
+  isPending: boolean;
+  item: EditorDraftSummary;
+  onDeleteDraft?: (item: EditorDraftSummary) => Promise<void> | void;
+};
+
+/**
+ * draft 목록 row를 렌더링합니다.
+ * pending 여부가 바뀐 row만 다시 그릴 수 있도록 분리합니다.
+ */
+const DraftTableRowBase = ({ isPending, item, onDeleteDraft }: DraftTableRowProps) => {
+  const continueHref = React.useMemo(() => buildDraftContinueHref(item), [item]);
+  const updatedAtLabel = React.useMemo(
+    () => formatDraftUpdatedAt(item.updatedAt),
+    [item.updatedAt],
+  );
+  const handleDeleteClick = React.useCallback(() => {
+    onDeleteDraft?.(item);
+  }, [item, onDeleteDraft]);
+
+  return (
+    <tr>
+      <td>{item.contentType}</td>
+      <td>{item.title}</td>
+      <td>{updatedAtLabel}</td>
+      <td>
+        <div className={rowActionsClass}>
+          <Button asChild size="sm" tone="primary" variant="ghost">
+            <Link href={continueHref}>이어쓰기</Link>
+          </Button>
+          {onDeleteDraft ? (
+            <Button
+              disabled={isPending}
+              onClick={handleDeleteClick}
+              size="sm"
+              tone="black"
+              variant="ghost"
+            >
+              {isPending ? '삭제 중...' : '삭제'}
+            </Button>
+          ) : null}
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+DraftTableRowBase.displayName = 'DraftTableRow';
+
+const DraftTableRow = React.memo(DraftTableRowBase);
+
 /**
  * 관리자 임시저장 목록을 표 형태로 렌더링합니다.
  */
@@ -42,34 +93,42 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
       },
     ]);
   }, []);
+  const handleToastClose = React.useCallback((id: string) => {
+    setToastItems(previous => previous.filter(item => item.id !== id));
+  }, []);
 
   /**
    * 사용자 확인 후 선택한 draft를 삭제하고, 성공하면 현재 목록에서도 제거합니다.
    */
-  const handleDeleteDraft = async (item: EditorDraftSummary) => {
-    if (!onDeleteDraft) {
-      return;
-    }
+  const handleDeleteDraft = React.useCallback(
+    async (item: EditorDraftSummary) => {
+      if (!onDeleteDraft) {
+        return;
+      }
 
-    const confirmed = window.confirm(`"${item.title}" 임시저장을 삭제할까요?`);
+      const confirmed = window.confirm(`"${item.title}" 임시저장을 삭제할까요?`);
 
-    if (!confirmed) {
-      return;
-    }
+      if (!confirmed) {
+        return;
+      }
 
-    setPendingDraftId(item.id);
+      setPendingDraftId(item.id);
 
-    try {
-      await onDeleteDraft(item.id, item.contentType);
-      setDraftItems(currentItems => currentItems.filter(currentItem => currentItem.id !== item.id));
-      pushToast('임시저장을 삭제했습니다.', 'success');
-    } catch (error) {
-      const parsedError = parseEditorError(error, 'draftDeleteFailed');
-      pushToast(parsedError.message, 'error');
-    } finally {
-      setPendingDraftId(currentDraftId => (currentDraftId === item.id ? null : currentDraftId));
-    }
-  };
+      try {
+        await onDeleteDraft(item.id, item.contentType);
+        setDraftItems(currentItems =>
+          currentItems.filter(currentItem => currentItem.id !== item.id),
+        );
+        pushToast('임시저장을 삭제했습니다.', 'success');
+      } catch (error) {
+        const parsedError = parseEditorError(error, 'draftDeleteFailed');
+        pushToast(parsedError.message, 'error');
+      } finally {
+        setPendingDraftId(currentDraftId => (currentDraftId === item.id ? null : currentDraftId));
+      }
+    },
+    [onDeleteDraft, pushToast],
+  );
 
   return (
     <main className={pageClass}>
@@ -91,31 +150,12 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
               </thead>
               <tbody>
                 {draftItems.map(item => (
-                  <tr key={item.id}>
-                    <td>{item.contentType}</td>
-                    <td>{item.title}</td>
-                    <td>{formatDraftUpdatedAt(item.updatedAt)}</td>
-                    <td>
-                      <div className={rowActionsClass}>
-                        <Button asChild size="sm" tone="primary" variant="ghost">
-                          <Link href={buildDraftContinueHref(item)}>이어쓰기</Link>
-                        </Button>
-                        {onDeleteDraft ? (
-                          <Button
-                            disabled={pendingDraftId === item.id}
-                            onClick={() => {
-                              void handleDeleteDraft(item);
-                            }}
-                            size="sm"
-                            tone="black"
-                            variant="ghost"
-                          >
-                            {pendingDraftId === item.id ? '삭제 중...' : '삭제'}
-                          </Button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
+                  <DraftTableRow
+                    isPending={pendingDraftId === item.id}
+                    item={item}
+                    key={item.id}
+                    onDeleteDraft={onDeleteDraft ? handleDeleteDraft : undefined}
+                  />
                 ))}
               </tbody>
             </table>
@@ -125,10 +165,7 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
         )}
       </section>
 
-      <ToastViewport
-        items={toastItems}
-        onClose={id => setToastItems(previous => previous.filter(item => item.id !== id))}
-      />
+      <ToastViewport items={toastItems} onClose={handleToastClose} />
     </main>
   );
 };

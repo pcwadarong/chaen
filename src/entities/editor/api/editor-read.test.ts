@@ -1,9 +1,9 @@
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import { getEditorDraftSummaries } from './editor-read';
 
-vi.mock('@/shared/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 describe('editor-read', () => {
@@ -47,7 +47,7 @@ describe('editor-read', () => {
       select: vi.fn().mockReturnThis(),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi
         .fn()
         .mockImplementation((table: string) =>
@@ -104,7 +104,7 @@ describe('editor-read', () => {
       select: vi.fn().mockReturnThis(),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi
         .fn()
         .mockImplementation((table: string) =>

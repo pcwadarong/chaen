@@ -6,6 +6,7 @@ export const EDITOR_ERROR_MESSAGE = {
   draftSaveFailed: '임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
   draftSaveInvalidState: '임시 저장 요청을 확인해주세요.',
   draftSaveInvalidSettings: '임시 저장 설정을 확인해주세요.',
+  serviceRoleUnavailable: '관리자 저장 권한이 연결되지 않았습니다. 환경 변수를 확인해주세요.',
   missingCompleteTranslation: '제목과 본문이 모두 있는 언어 버전이 최소 하나는 필요합니다.',
   missingKoTitle: '한국어 제목을 입력해주세요',
   missingSlug: '슬러그를 입력해주세요',
@@ -31,6 +32,7 @@ const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
   draftSaveFailed: null,
   draftSaveInvalidSettings: null,
   draftSaveInvalidState: null,
+  serviceRoleUnavailable: null,
   missingCompleteTranslation: null,
   missingKoTitle: 'koTitle',
   missingSlug: 'slug',
@@ -80,7 +82,7 @@ export const parseEditorError = (
   if (error instanceof Error && error.message) {
     return {
       code: fallbackCode,
-      message: error.message,
+      message: resolveEditorErrorMessage(fallbackCode),
     };
   }
 

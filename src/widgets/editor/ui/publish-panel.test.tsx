@@ -2,9 +2,16 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
+import type { PublishSettings } from '@/widgets/editor/model/editor-core.types';
+import { createDefaultPublishSettings } from '@/widgets/editor/model/publish-panel.utils';
 import { PublishPanel } from '@/widgets/editor/ui/publish-panel';
 
 import '@testing-library/jest-dom/vitest';
+
+vi.mock('@/shared/lib/image/optimize-thumbnail-image-file', () => ({
+  optimizeThumbnailImageFile: vi.fn(async (file: File) => file),
+}));
 
 const baseEditorState = {
   dirty: true,
@@ -50,6 +57,11 @@ const renderPublishPanel = (
 describe('PublishPanel', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.mocked(optimizeThumbnailImageFile).mockImplementation(async (file: File) => file);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('공개 설정은 공개와 비공개만 노출한다', async () => {
@@ -89,6 +101,140 @@ describe('PublishPanel', () => {
     expect(await screen.findByText('UTC: 2026-03-20T01:00:00.000Z')).toBeTruthy();
   });
 
+  it('이미 발행된 글을 수정할 때는 publishAt이 있어도 기본 모드를 지금 발행으로 둔다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T09:00:00.000Z'));
+
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: '2026-03-10T09:00:00.000Z',
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+    });
+
+    expect(screen.getByLabelText('지금 발행')).toBeChecked();
+    expect(screen.getByLabelText('예약 발행')).not.toBeChecked();
+    expect(screen.queryByLabelText('날짜')).toBeNull();
+  });
+
+  it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {
+    vi.useFakeTimers();
+    const now = new Date('2026-03-14T09:27:45.000Z');
+    const expectedDate = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}-${`${now.getDate()}`.padStart(2, '0')}`;
+    const expectedTime = `${`${now.getHours()}`.padStart(2, '0')}:${`${now.getMinutes()}`.padStart(2, '0')}`;
+    vi.setSystemTime(now);
+
+    renderPublishPanel();
+
+    fireEvent.click(screen.getByLabelText('예약 발행'));
+
+    expect(screen.getByLabelText('날짜')).toHaveAttribute('min', expectedDate);
+    expect(screen.getByLabelText('시간')).toHaveAttribute('min', expectedTime);
+
+    fireEvent.change(screen.getByLabelText('날짜'), {
+      target: { value: '2026-03-15' },
+    });
+
+    expect(screen.getByLabelText('시간')).not.toHaveAttribute('min');
+  });
+
+  it('draft slug가 있는 상태에서 패널이 열리면 부모 동기화로 빈 값으로 되돌아가지 않는다', async () => {
+    const PublishPanelHarness = () => {
+      const [settings, setSettings] = React.useState<PublishSettings>(() =>
+        createDefaultPublishSettings({
+          initialSettings: {
+            allowComments: true,
+            publishAt: null,
+            slug: 'draft-slug',
+            thumbnailUrl: '',
+            visibility: 'public',
+          },
+          slug: '',
+        }),
+      );
+
+      return (
+        <>
+          <PublishPanel
+            contentType="article"
+            editorState={{
+              ...baseEditorState,
+              slug: '',
+            }}
+            initialSettings={settings}
+            isOpen
+            onClose={vi.fn()}
+            onSettingsChange={setSettings}
+            onSubmit={vi.fn().mockResolvedValue(undefined)}
+          />
+          <output data-testid="settings-slug">{settings.slug}</output>
+        </>
+      );
+    };
+
+    render(<PublishPanelHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('draft-slug');
+    });
+
+    expect(screen.getByTestId('settings-slug')).toHaveTextContent('draft-slug');
+  });
+
+  it('썸네일 URL을 바꿔도 부모 동기화 때문에 입력값이 다시 초기화되지 않는다', async () => {
+    const PublishPanelHarness = () => {
+      const [settings, setSettings] = React.useState<PublishSettings>(() =>
+        createDefaultPublishSettings({
+          initialSettings: {
+            allowComments: true,
+            publishAt: null,
+            slug: 'draft-slug',
+            thumbnailUrl: 'https://example.com/original.png',
+            visibility: 'public',
+          },
+          slug: '',
+        }),
+      );
+
+      return (
+        <>
+          <PublishPanel
+            contentType="article"
+            editorState={{
+              ...baseEditorState,
+              slug: '',
+            }}
+            initialSettings={settings}
+            isOpen
+            onClose={vi.fn()}
+            onSettingsChange={setSettings}
+            onSubmit={vi.fn().mockResolvedValue(undefined)}
+          />
+          <output data-testid="settings-thumbnail">{settings.thumbnailUrl}</output>
+        </>
+      );
+    };
+
+    render(<PublishPanelHarness />);
+
+    const thumbnailInput = await screen.findByLabelText('썸네일');
+
+    fireEvent.change(thumbnailInput, {
+      target: { value: 'https://example.com/next-thumb.png' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('썸네일')).toHaveValue('https://example.com/next-thumb.png');
+      expect(screen.getByTestId('settings-thumbnail')).toHaveTextContent(
+        'https://example.com/next-thumb.png',
+      );
+    });
+  });
+
   it('validation 오류가 있으면 인라인 에러를 표시하고 제출하지 않는다', async () => {
     const { onSubmit } = renderPublishPanel({
       editorState: {
@@ -123,10 +269,12 @@ describe('PublishPanel', () => {
   });
 
   it('파일 업로드 성공 시 thumbnailUrl과 미리보기를 갱신한다', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
+    const optimizedFile = new File(['compressed'], 'thumb.webp', { type: 'image/webp' });
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
       json: async () => ({ url: 'https://example.com/uploaded-thumb.png' }),
       ok: true,
     } as Response);
+    vi.mocked(optimizeThumbnailImageFile).mockResolvedValue(optimizedFile);
 
     renderPublishPanel();
 
@@ -144,6 +292,11 @@ describe('PublishPanel', () => {
         'https://example.com/uploaded-thumb.png',
       );
     });
+
+    expect(optimizeThumbnailImageFile).toHaveBeenCalledWith(file);
+
+    const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
+    expect(formData.get('file')).toBe(optimizedFile);
   });
 
   it('제출 중에는 버튼을 비활성화하고 완료 후 닫는다', async () => {

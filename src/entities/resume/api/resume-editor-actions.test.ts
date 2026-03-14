@@ -2,8 +2,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
+import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import { publishResumeContentAction, saveResumeDraftAction } from './resume-editor-actions';
 
@@ -19,8 +20,8 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/shared/lib/supabase/server', () => ({
-  createServerSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 vi.mock('@/entities/pdf-file/api/get-pdf-file-availability', () => ({
@@ -61,7 +62,7 @@ describe('resume-editor-actions', () => {
       }),
     };
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValueOnce(latestDraftQuery).mockReturnValueOnce(insertDraftQuery),
     } as never);
 
@@ -142,7 +143,7 @@ describe('resume-editor-actions', () => {
       error: null,
     });
 
-    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
       from: vi
         .fn()
         .mockImplementation((table: string) =>
@@ -212,5 +213,111 @@ describe('resume-editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/ja/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/resume');
     expect(redirect).toHaveBeenCalledWith('/ko/admin/resume/edit');
+  });
+
+  it('service role이 없으면 resume draft 저장을 중단한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+
+    await expect(
+      saveResumeDraftAction({
+        locale: 'ko',
+        state: {
+          contents: {
+            en: {
+              body: '',
+              description: '',
+              download_button_label: 'Download',
+              download_unavailable_label: 'Preparing',
+              title: 'Resume',
+            },
+            fr: {
+              body: '',
+              description: '',
+              download_button_label: 'Telecharger',
+              download_unavailable_label: 'Preparation',
+              title: 'CV',
+            },
+            ja: {
+              body: '',
+              description: '',
+              download_button_label: 'ダウンロード',
+              download_unavailable_label: '準備中',
+              title: '履歴書',
+            },
+            ko: {
+              body: '한국어 본문',
+              description: '한국어 설명',
+              download_button_label: '다운로드',
+              download_unavailable_label: '준비 중',
+              title: '이력서',
+            },
+          },
+          dirty: true,
+        },
+      }),
+    ).rejects.toThrow(RESUME_EDITOR_ERROR_MESSAGE.serviceRoleUnavailable);
+  });
+
+  it('service role이 없으면 resume publish를 중단한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(getPdfFileAvailability).mockResolvedValue(true);
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+
+    await expect(
+      publishResumeContentAction({
+        draftId: 'resume-draft-1',
+        locale: 'ko',
+        settings: {
+          downloadFileName: 'ParkChaewon-Resume.pdf',
+          downloadPath: '/api/pdf/resume',
+          filePath: 'ParkChaewon-Resume.pdf',
+          isPdfReady: true,
+        },
+        state: {
+          contents: {
+            en: {
+              body: '',
+              description: '',
+              download_button_label: 'Download',
+              download_unavailable_label: 'Preparing',
+              title: 'Resume',
+            },
+            fr: {
+              body: '',
+              description: '',
+              download_button_label: 'Telecharger',
+              download_unavailable_label: 'Preparation',
+              title: 'CV',
+            },
+            ja: {
+              body: '',
+              description: '',
+              download_button_label: 'ダウンロード',
+              download_unavailable_label: '準備中',
+              title: '履歴書',
+            },
+            ko: {
+              body: '한국어 본문',
+              description: '한국어 설명',
+              download_button_label: '다운로드',
+              download_unavailable_label: '준비 중',
+              title: '이력서',
+            },
+          },
+          dirty: true,
+        },
+      }),
+    ).rejects.toThrow(RESUME_EDITOR_ERROR_MESSAGE.serviceRoleUnavailable);
   });
 });

@@ -53,6 +53,7 @@ vi.mock('@/views/articles', () => ({
     feedLocale: 'ko',
     initialCursor: null,
     initialItems: [],
+    locale: 'ko',
     pagination: {
       currentPage: 1,
       nextHref: '/ko/articles?page=2',
@@ -95,6 +96,7 @@ describe('ArticlesRoute', () => {
       feedLocale: 'ko',
       initialCursor: null,
       initialItems: [],
+      locale: 'ko',
       pagination: {
         currentPage: 2,
         nextHref: '/ko/articles?page=3',
@@ -126,6 +128,7 @@ describe('ArticlesRoute', () => {
     expect(element.props.initialItems).toEqual([]);
     expect(element.props.initialCursor).toBeNull();
     expect(element.props.feedLocale).toBe('ko');
+    expect(element.props.locale).toBe('ko');
   });
 
   it('아티클 목록 메타데이터에 pagination prev/next를 포함한다', async () => {
@@ -134,6 +137,7 @@ describe('ArticlesRoute', () => {
       feedLocale: 'ko',
       initialCursor: 'cursor-2',
       initialItems: [],
+      locale: 'ko',
       pagination: {
         currentPage: 2,
         nextHref: '/ko/articles?page=3',
@@ -185,6 +189,7 @@ describe('ArticlesRoute', () => {
       feedLocale: 'ko',
       initialCursor: null,
       initialItems: [],
+      locale: 'ko',
       pagination: {
         currentPage: 1,
         nextHref: null,

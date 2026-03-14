@@ -59,6 +59,8 @@ describe('getRelatedArticles', () => {
           articles: {
             created_at: '2026-03-02T00:00:00.000Z',
             id: 'article-2',
+            publish_at: '2026-03-02T00:00:00.000Z',
+            slug: 'article-2-slug',
             thumbnail_url: null,
           },
         },
@@ -70,6 +72,8 @@ describe('getRelatedArticles', () => {
           articles: {
             created_at: '2026-03-01T00:00:00.000Z',
             id: 'article-3',
+            publish_at: '2026-03-01T00:00:00.000Z',
+            slug: 'article-3-slug',
             thumbnail_url: null,
           },
         },
@@ -77,12 +81,16 @@ describe('getRelatedArticles', () => {
       error: null,
     };
     const translationsQuery = {
-      in: vi
-        .fn()
-        .mockImplementationOnce(() => translationsQuery)
-        .mockImplementationOnce(() => Promise.resolve(translationResult)),
+      in: vi.fn(),
+      not: vi.fn(),
       select: vi.fn().mockReturnThis(),
     };
+    translationsQuery.in
+      .mockImplementationOnce(() => translationsQuery)
+      .mockImplementationOnce(() => translationsQuery);
+    translationsQuery.not
+      .mockImplementationOnce(() => translationsQuery)
+      .mockImplementationOnce(() => Promise.resolve(translationResult));
     const supabaseClient = {
       from: vi.fn().mockReturnValueOnce(articleTagsQuery).mockReturnValueOnce(translationsQuery),
     };
@@ -103,17 +111,19 @@ describe('getRelatedArticles', () => {
     ).resolves.toEqual([
       {
         id: 'article-2',
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'article-2-slug',
         title: 'Shared Two',
         description: 'two tags',
         thumbnail_url: null,
-        created_at: '2026-03-02T00:00:00.000Z',
       },
       {
         id: 'article-3',
+        publish_at: '2026-03-01T00:00:00.000Z',
+        slug: 'article-3-slug',
         title: 'Shared Three',
         description: 'fallback locale',
         thumbnail_url: null,
-        created_at: '2026-03-01T00:00:00.000Z',
       },
     ]);
 
@@ -145,6 +155,8 @@ describe('getRelatedArticles', () => {
             articles: {
               created_at: '2026-03-03T00:00:00.000Z',
               id: 'article-9',
+              publish_at: '2026-03-03T00:00:00.000Z',
+              slug: 'article-9-slug',
               thumbnail_url: null,
             },
           },
@@ -152,6 +164,7 @@ describe('getRelatedArticles', () => {
         error: null,
       }),
       neq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };
@@ -177,10 +190,11 @@ describe('getRelatedArticles', () => {
     ).resolves.toEqual([
       {
         id: 'article-9',
+        publish_at: '2026-03-03T00:00:00.000Z',
+        slug: 'article-9-slug',
         title: 'Recent Article',
         description: 'latest fallback',
         thumbnail_url: null,
-        created_at: '2026-03-03T00:00:00.000Z',
       },
     ]);
   });
@@ -193,6 +207,7 @@ describe('getRelatedArticles', () => {
         error: null,
       }),
       neq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
     };

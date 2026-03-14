@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useCallback, useId, useState } from 'react';
 import { css, cva, cx } from 'styled-system/css';
 
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
@@ -28,7 +28,7 @@ const hasSelectedTag = (selectedTagSlugs: string[], tagSlug: string) =>
  * 에디터 전반에서 재사용하는 태그 선택 UI입니다.
  * 태그 풀 안에서만 선택 상태를 토글하고, 선택값은 slug 배열로 유지합니다.
  */
-export const TagSelector = ({
+const TagSelectorBase = ({
   availableTags,
   className,
   onChange,
@@ -40,14 +40,37 @@ export const TagSelector = ({
   /**
    * 태그 선택 상태를 토글한 다음 상위 컨트롤러에 최신 slug 목록을 전달합니다.
    */
-  const handleTagToggle = (tagSlug: string) => {
-    if (hasSelectedTag(selectedTagSlugs, tagSlug)) {
-      onChange(selectedTagSlugs.filter(slug => slug !== tagSlug));
-      return;
-    }
+  const handleTagToggle = useCallback(
+    (tagSlug: string) => {
+      if (hasSelectedTag(selectedTagSlugs, tagSlug)) {
+        onChange(selectedTagSlugs.filter(slug => slug !== tagSlug));
+        return;
+      }
 
-    onChange([...selectedTagSlugs, tagSlug]);
-  };
+      onChange([...selectedTagSlugs, tagSlug]);
+    },
+    [onChange, selectedTagSlugs],
+  );
+
+  /**
+   * 버튼에 저장된 slug를 읽어 공통 태그 토글 handler로 위임합니다.
+   */
+  const handleTagClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const tagSlug = event.currentTarget.dataset.tagSlug;
+
+      if (!tagSlug) {
+        return;
+      }
+
+      handleTagToggle(tagSlug);
+    },
+    [handleTagToggle],
+  );
+
+  const handleExpandedToggle = useCallback(() => {
+    setIsExpanded(previous => !previous);
+  }, []);
 
   return (
     <section aria-label="태그 선택기" className={cx(rootClass, className)}>
@@ -58,7 +81,7 @@ export const TagSelector = ({
           aria-expanded={isExpanded}
           aria-label={isExpanded ? '태그 풀 접기' : '태그 풀 열기'}
           className={toggleButtonClass}
-          onClick={() => setIsExpanded(previous => !previous)}
+          onClick={handleExpandedToggle}
           type="button"
         >
           <span>{isExpanded ? '접기' : '열기'}</span>
@@ -82,8 +105,9 @@ export const TagSelector = ({
                   aria-label={`${tag.label} ${isSelected ? '태그 해제' : '태그 선택'}`}
                   aria-pressed={isSelected}
                   className={chipRecipe({ selected: isSelected })}
+                  data-tag-slug={tag.slug}
                   key={tag.id}
-                  onClick={() => handleTagToggle(tag.slug)}
+                  onClick={handleTagClick}
                   type="button"
                 >
                   <span className={chipLabelClass}>{tag.label}</span>
@@ -101,6 +125,10 @@ export const TagSelector = ({
     </section>
   );
 };
+
+TagSelectorBase.displayName = 'TagSelector';
+
+export const TagSelector = React.memo(TagSelectorBase);
 
 const rootClass = css({
   display: 'grid',

@@ -1,8 +1,12 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import {
+  deleteArticleAction,
   getArticleDetailArchivePageAction,
   getArticlesPageAction,
   incrementArticleViewCountAction,
@@ -12,11 +16,24 @@ import { getArticles } from './get-articles';
 import { incrementArticleViewCount } from './increment-article-view-count';
 
 vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/auth/require-admin', () => ({
+  requireAdmin: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
   getServerAuthState: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 vi.mock('./get-articles', () => ({
@@ -34,6 +51,12 @@ vi.mock('./increment-article-view-count', () => ({
 describe('article-actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: false,
       isAuthenticated: false,
@@ -96,7 +119,7 @@ describe('article-actions', () => {
     expect(result.data?.nextCursor).toBe('cursor-2');
   });
 
-  it('조회수 증가 action은 쓰기 후 관련 캐시 태그를 갱신한다', async () => {
+  it('조회수 증가 action은 최신 조회수만 반환하고 현재 route 캐시는 다시 검증하지 않는다', async () => {
     vi.mocked(incrementArticleViewCount).mockResolvedValue(34);
 
     const result = await incrementArticleViewCountAction({
@@ -105,8 +128,7 @@ describe('article-actions', () => {
 
     expect(getServerAuthState).toHaveBeenCalledTimes(1);
     expect(incrementArticleViewCount).toHaveBeenCalledWith('article-1');
-    expect(revalidateTag).toHaveBeenCalledWith('articles');
-    expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
+    expect(revalidateTag).not.toHaveBeenCalled();
     expect(result).toEqual({
       data: {
         viewCount: 34,
@@ -114,5 +136,28 @@ describe('article-actions', () => {
       errorMessage: null,
       ok: true,
     });
+  });
+
+  it('관리자 삭제 action은 article 연관 데이터와 공개 경로를 함께 정리하고 목록으로 이동한다', async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      rpc,
+    } as never);
+
+    await deleteArticleAction({
+      articleId: 'article-1',
+      articleSlug: 'article-1-slug',
+      locale: 'ko',
+    });
+
+    expect(rpc).toHaveBeenCalledWith('delete_article_cascade', {
+      target_article_id: 'article-1',
+    });
+    expect(revalidateTag).toHaveBeenCalledWith('articles');
+    expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/articles/article-1-slug');
+    expect(redirect).toHaveBeenCalledWith('/ko/articles');
   });
 });

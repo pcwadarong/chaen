@@ -87,6 +87,7 @@ describe('ArticleDetailRoute', () => {
       relatedArticles: [],
       item: {
         id: 'frontend-performance',
+        slug: 'frontend-performance-slug',
         title: 'Frontend Performance',
         description: 'detail',
         content: '# heading',
@@ -110,7 +111,7 @@ describe('ArticleDetailRoute', () => {
     expect(element.props.isAdmin).toBe(false);
     expect(element.props.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleDetailPageData).toHaveBeenCalledWith({
-      articleId: 'frontend-performance',
+      articleSlug: 'frontend-performance',
       locale: 'ko',
     });
   });
@@ -132,6 +133,7 @@ describe('ArticleDetailRoute', () => {
       relatedArticles: [],
       item: {
         id: 'frontend-performance',
+        slug: 'frontend-performance-slug',
         title: 'Frontend Performance',
         description: 'detail',
         content: '# heading',
@@ -162,6 +164,7 @@ describe('ArticleDetailRoute', () => {
     vi.mocked(getResolvedArticle).mockResolvedValueOnce({
       item: {
         id: 'frontend-performance',
+        slug: 'frontend-performance-slug',
         title: 'Frontend Performance',
         description: 'detail',
         content: '# heading',
@@ -182,10 +185,10 @@ describe('ArticleDetailRoute', () => {
       }),
     ).resolves.toMatchObject({
       openGraph: {
-        images: ['https://chaen.dev/api/og/article/frontend-performance'],
+        images: ['https://chaen.dev/api/og/article/frontend-performance-slug'],
       },
       twitter: {
-        images: ['https://chaen.dev/api/og/article/frontend-performance'],
+        images: ['https://chaen.dev/api/og/article/frontend-performance-slug'],
       },
     });
   });
@@ -218,7 +221,7 @@ describe('ArticleDetailRoute', () => {
     ).rejects.toThrow('NOT_FOUND');
 
     expect(getArticleDetailPageData).toHaveBeenCalledWith({
-      articleId: 'missing-article',
+      articleSlug: 'missing-article',
       locale: 'ko',
     });
     expect(notFoundMock).toHaveBeenCalledTimes(1);

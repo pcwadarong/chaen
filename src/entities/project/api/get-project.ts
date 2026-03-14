@@ -18,6 +18,10 @@ type ResolvedProject = {
   resolvedLocale: string | null;
 };
 
+type ProjectLookup = {
+  id: string;
+};
+
 type ProjectContentSchemaError = {
   code?: string | null;
   message: string;
@@ -40,6 +44,42 @@ const isMissingProjectContentSchemaError = ({ code, message }: ProjectContentSch
 };
 
 /**
+ * 공개 상세 경로로 들어온 slug를 내부 project id로 해석합니다.
+ *
+ * @param projectSlug - 주소창에서 받은 공개 slug
+ * @returns 내부 project id와 slug 정보
+ */
+const resolveProjectLookup = async (
+  projectSlug: string,
+): Promise<{ data: ProjectLookup | null; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: null, schemaMissing: false };
+
+  const projectSlugQuery = supabase
+    .from('projects')
+    .select('id')
+    .eq('slug', projectSlug)
+    .eq('visibility', 'public')
+    .lte('publish_at', new Date().toISOString())
+    .not('publish_at', 'is', null)
+    .maybeSingle<ProjectLookup>();
+  const { data: projectBySlug, error: projectBySlugError } = await projectSlugQuery;
+
+  if (projectBySlugError) {
+    if (isMissingProjectContentSchemaError(projectBySlugError)) {
+      return { data: null, schemaMissing: true };
+    }
+
+    throw new Error(`[projects] slug 조회 실패: ${projectBySlugError.message}`);
+  }
+
+  return {
+    data: projectBySlug ?? null,
+    schemaMissing: false,
+  };
+};
+
+/**
  * content schema(`projects` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
  */
 const fetchProjectFromContentSchema = async (
@@ -56,6 +96,9 @@ const fetchProjectFromContentSchema = async (
     )
     .eq('project_id', projectId)
     .eq('locale', locale)
+    .eq('projects.visibility', 'public')
+    .lte('projects.publish_at', new Date().toISOString())
+    .not('projects.publish_at', 'is', null)
     .maybeSingle<ProjectTranslationRow>();
 
   if (translationError) {
@@ -91,18 +134,30 @@ const fetchProjectByLocale = async (projectId: string, locale: string): Promise<
  * 단일 프로젝트 조회 결과를 `use cache`로 캐시합니다.
  */
 const readCachedProject = async (
-  projectId: string,
+  projectSlug: string,
   normalizedLocale: string,
 ): Promise<ResolvedProject> => {
   'use cache';
 
-  cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(projectId));
+  const projectLookup = await resolveProjectLookup(projectSlug);
+  if (projectLookup.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
+  if (!projectLookup.data) {
+    cacheTag(PROJECTS_CACHE_TAG);
 
+    return {
+      item: null,
+      resolvedLocale: null,
+    };
+  }
+
+  const resolvedProjectId = projectLookup.data.id;
   const resolvedProject = await resolveFirstAvailableLocaleEntry({
-    fetchByLocale: locale => fetchProjectByLocale(projectId, locale),
+    fetchByLocale: locale => fetchProjectByLocale(resolvedProjectId, locale),
     hasValue: value => Boolean(value),
     locales: buildContentLocaleFallbackChain(normalizedLocale),
   });
+
+  cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(resolvedProjectId));
 
   return {
     item: resolvedProject?.value ?? null,
@@ -114,7 +169,7 @@ const readCachedProject = async (
  * 프로젝트와 실제 선택된 locale을 함께 반환합니다.
  */
 export const getResolvedProject = async (
-  projectId: string,
+  projectSlug: string,
   targetLocale: string,
 ): Promise<ResolvedProject> => {
   if (!hasSupabaseEnv()) {
@@ -126,7 +181,7 @@ export const getResolvedProject = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
 
-  return readCachedProject(projectId, normalizedLocale);
+  return readCachedProject(projectSlug, normalizedLocale);
 };
 
 /**
@@ -134,9 +189,9 @@ export const getResolvedProject = async (
  * `revalidateTag('projects')` 또는 `revalidateTag('project:{id}')`로 즉시 갱신할 수 있습니다.
  */
 export const getProject = async (
-  projectId: string,
+  projectSlug: string,
   targetLocale: string,
 ): Promise<Project | null> => {
-  const result = await getResolvedProject(projectId, targetLocale);
+  const result = await getResolvedProject(projectSlug, targetLocale);
   return result.item;
 };

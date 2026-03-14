@@ -17,6 +17,17 @@ vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
+const createArticleSlugLookupQuery = (id = 'frontend-performance') => ({
+  eq: vi.fn().mockReturnThis(),
+  lte: vi.fn().mockReturnThis(),
+  not: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({
+    data: { id },
+    error: null,
+  }),
+  select: vi.fn().mockReturnThis(),
+});
+
 describe('getArticle', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -32,6 +43,7 @@ describe('getArticle', () => {
   });
 
   it('fallback RPC를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -43,6 +55,8 @@ describe('getArticle', () => {
             description: 'rendering memo',
             content: '...',
             id: 'frontend-performance',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: '2026-03-03T09:07:50.797695+00:00',
@@ -71,6 +85,7 @@ describe('getArticle', () => {
     };
     supabaseClient.from = vi
       .fn()
+      .mockReturnValueOnce(articleSlugQuery)
       .mockReturnValueOnce(articleTagsV2Query)
       .mockReturnValueOnce(tagsQuery);
 
@@ -88,12 +103,14 @@ describe('getArticle', () => {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
       target_article_id: 'frontend-performance',
     });
+    expect(articleSlugQuery.lte).toHaveBeenCalledTimes(1);
     expect(unstable_cacheTag).toHaveBeenCalledWith('articles', 'article:frontend-performance');
   });
 
   it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
-      from: vi.fn(),
+      from: vi.fn().mockReturnValueOnce(articleSlugQuery),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -113,8 +130,9 @@ describe('getArticle', () => {
   });
 
   it('PostgREST missing function 코드는 content schema missing으로 본다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
-      from: vi.fn(),
+      from: vi.fn().mockReturnValueOnce(articleSlugQuery),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -133,8 +151,9 @@ describe('getArticle', () => {
   });
 
   it('권한 오류는 content schema missing으로 오인하지 않고 번역 조회 실패로 surface한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
-      from: vi.fn(),
+      from: vi.fn().mockReturnValueOnce(articleSlugQuery),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -153,6 +172,7 @@ describe('getArticle', () => {
   });
 
   it('fallback 우선순위는 단일 RPC 호출에 전달한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -164,6 +184,8 @@ describe('getArticle', () => {
             description: '설명',
             content: '본문',
             id: 'frontend-performance',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: null,
@@ -180,7 +202,10 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(articleSlugQuery)
+      .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -195,6 +220,7 @@ describe('getArticle', () => {
   });
 
   it('ko도 없으면 en, ja 순서가 포함된 fallback 체인을 RPC에 전달한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -206,6 +232,8 @@ describe('getArticle', () => {
             description: 'summary',
             content: 'body',
             id: 'frontend-performance',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: null,
@@ -222,7 +250,10 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(articleSlugQuery)
+      .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -237,8 +268,18 @@ describe('getArticle', () => {
   });
 
   it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
+    const articleSlugQuery = {
+      eq: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const supabaseClient = {
-      from: vi.fn(),
+      from: vi.fn().mockReturnValueOnce(articleSlugQuery),
       rpc: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -249,11 +290,56 @@ describe('getArticle', () => {
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'fr')).rejects.toThrow(
-      '[articles] 조회 가능한 번역이 없습니다. articleId=frontend-performance locales=fr>ko>en>ja',
+      '[articles] 조회 가능한 번역이 없습니다. articleSlug=frontend-performance locales=fr>ko>en>ja',
     );
   });
 
+  it('slug로 들어온 상세 경로는 내부 article id를 다시 찾아 조회한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery('article-uuid-1');
+    const articleTagsV2Query = {
+      eq: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(articleSlugQuery).mockReturnValueOnce(articleTagsV2Query),
+      rpc: vi.fn().mockResolvedValue({
+        data: [
+          {
+            article_id: 'article-uuid-1',
+            locale: 'ko',
+            title: 'Slug Article',
+            description: 'summary',
+            content: 'body',
+            id: 'article-uuid-1',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
+            thumbnail_url: null,
+            created_at: '2026-03-02T09:07:50.797695+00:00',
+            updated_at: null,
+            view_count: 3,
+          },
+        ],
+        error: null,
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticle('frontend-performance', 'ko');
+
+    expect(result?.id).toBe('article-uuid-1');
+    expect(supabaseClient.rpc).toHaveBeenCalledWith('get_article_translation_with_fallback', {
+      fallback_locales: ['ko', 'en', 'ja', 'fr'],
+      target_article_id: 'article-uuid-1',
+    });
+  });
+
   it('en 요청도 공통 locale fallback 체인을 RPC에 전달한다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -265,6 +351,8 @@ describe('getArticle', () => {
             description: '설명',
             content: '본문',
             id: 'frontend-performance',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: null,
@@ -281,7 +369,10 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(articleSlugQuery)
+      .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -296,6 +387,7 @@ describe('getArticle', () => {
   });
 
   it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
+    const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
       rpc: vi.fn().mockResolvedValue({
@@ -307,6 +399,8 @@ describe('getArticle', () => {
             description: 'rendering memo',
             content: '...',
             id: 'frontend-performance',
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'frontend-performance',
             thumbnail_url: null,
             created_at: '2026-03-02T09:07:50.797695+00:00',
             updated_at: '2026-03-03T09:07:50.797695+00:00',
@@ -325,7 +419,10 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi.fn().mockReturnValueOnce(articleTagsV2Query);
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(articleSlugQuery)
+      .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);

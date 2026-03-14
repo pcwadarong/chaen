@@ -3,6 +3,7 @@ import React from 'react';
 import { css } from 'styled-system/css';
 
 import {
+  deleteArticleAction,
   getArticleDetailArchivePageAction,
   incrementArticleViewCountAction,
 } from '@/entities/article/api/article-actions';
@@ -14,11 +15,14 @@ import type {
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
 import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
+import {
+  resolvePublicContentPathSegment,
+  resolvePublicContentPublishedAt,
+} from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
-import { Button } from '@/shared/ui/button/button';
+import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
@@ -91,10 +95,15 @@ export const ArticleDetailPage = async ({
   const detailUi = await getTranslations('DetailUi');
   const navigationT = await getTranslations('Navigation');
   const tagLabels = await getArticleTagLabels(item, locale);
-  const publishedDate = item.created_at.slice(0, 10);
+  if (!item.publish_at) {
+    throw new Error(`[articles] 공개 아티클 publish_at이 없습니다. id=${item.id}`);
+  }
+  const articlePathSegment = resolvePublicContentPathSegment(item);
+  const publishedAt = resolvePublicContentPublishedAt(item);
+  const publishedDate = publishedAt.slice(0, 10);
   const articlePath = buildLocalizedPathname({
     locale,
-    pathname: `/articles/${item.id}`,
+    pathname: `/articles/${articlePathSegment}`,
   });
   const structuredData = [
     buildBreadcrumbJsonLd([
@@ -143,6 +152,7 @@ export const ArticleDetailPage = async ({
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
         hideAppFrameFooter
+        locale={locale}
         metaBar={
           <DetailMetaBar
             copyFailedText={detailUi('copyFailed')}
@@ -153,14 +163,20 @@ export const ArticleDetailPage = async ({
             shareText={detailUi('share')}
             actionSlot={
               isAdmin ? (
-                <Button asChild className={shareButtonClass} size="sm" tone="white" variant="ghost">
-                  <Link href={`/admin/articles/${item.id}/edit`}>수정하기</Link>
-                </Button>
+                <AdminDetailActions
+                  deleteAction={deleteArticleAction.bind(null, {
+                    articleId: item.id,
+                    articleSlug: articlePathSegment,
+                    locale,
+                  })}
+                  editHref={`/admin/articles/${item.id}/edit`}
+                />
               ) : null
             }
             trackViewAction={incrementArticleViewCountAction.bind(null, {
               articleId: item.id,
             })}
+            trackViewStorageKey={`article:${item.id}`}
             viewCount={Number(item.view_count ?? 0)}
             viewCountLabel={detailUi('viewCount')}
           />
@@ -176,7 +192,7 @@ export const ArticleDetailPage = async ({
             loadingText={articlesT('loading')}
             locale={locale}
             retryText={articlesT('retry')}
-            selectedId={item.id}
+            selectedPathSegment={articlePathSegment}
           />
         }
         sidebarLabel={t('archiveLabel')}
@@ -250,11 +266,5 @@ const relatedArticlesItemClass = css({
   borderTop: '[1px solid var(--colors-border)]',
   _first: {
     borderTop: 'none',
-  },
-});
-
-const shareButtonClass = css({
-  '@media (min-width: 961px)': {
-    fontSize: 'md',
   },
 });

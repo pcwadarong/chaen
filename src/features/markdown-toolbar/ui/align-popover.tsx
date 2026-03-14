@@ -5,10 +5,10 @@ import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
 import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon } from '@/shared/ui/icons/app-icons';
-import { Popover } from '@/shared/ui/popover/popover';
+import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type AlignPopoverProps = {
-  onApply: (align: 'center' | 'left' | 'right', closePopover?: () => void) => void;
+  onApply: (align: 'center' | 'left' | 'right', closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };

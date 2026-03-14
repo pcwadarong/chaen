@@ -32,7 +32,7 @@ export const detailArchiveSidebarViewportClass = css({
 /**
  * 상세 페이지 좌측 아카이브 링크 목록을 공통 마크업으로 렌더링합니다.
  */
-export const DetailArchiveList = ({ emptyText, items }: DetailArchiveListProps) => {
+const DetailArchiveListBase = ({ emptyText, items }: DetailArchiveListProps) => {
   if (items.length === 0) {
     return <p className={emptyArchiveClass}>{emptyText}</p>;
   }
@@ -59,6 +59,10 @@ export const DetailArchiveList = ({ emptyText, items }: DetailArchiveListProps) 
     </ul>
   );
 };
+
+DetailArchiveListBase.displayName = 'DetailArchiveList';
+
+export const DetailArchiveList = React.memo(DetailArchiveListBase);
 
 const sidebarListClass = css({
   display: 'grid',

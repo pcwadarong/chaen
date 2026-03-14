@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { GuestbookBoard } from './guestbook-board';
@@ -59,8 +59,17 @@ vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
 vi.mock('@/shared/ui/comment-compose-form', () => ({
   CommentComposeForm: (props: unknown) => {
     commentComposeFormProps(props);
+    const [value, setValue] = React.useState('');
 
-    return <div data-testid="comment-compose-form" />;
+    return (
+      <div data-testid="comment-compose-form">
+        <input
+          aria-label="guestbook-compose-input"
+          onChange={event => setValue(event.target.value)}
+          value={value}
+        />
+      </div>
+    );
   },
 }));
 
@@ -152,5 +161,21 @@ describe('GuestbookBoard', () => {
         presetAuthorName: 'admin',
       }),
     );
+  });
+
+  it('작성 폼 입력 중에는 feed를 다시 그리지 않는다', async () => {
+    render(<GuestbookBoard />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('guestbook-compose-input')).toBeTruthy();
+    });
+
+    expect(guestbookFeedProps).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByLabelText('guestbook-compose-input'), {
+      target: { value: 'hello guestbook' },
+    });
+
+    expect(guestbookFeedProps).toHaveBeenCalledTimes(1);
   });
 });

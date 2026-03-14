@@ -15,12 +15,11 @@ import { ToolbarActionButton } from '@/features/markdown-toolbar/ui/toolbar-acti
  * textarea 기반 markdown 포맷 툴바입니다.
  * 실제 편집 규칙은 model hook에서 관리하고, 이 컴포넌트는 레이아웃과 렌더링만 담당합니다.
  */
-export const MarkdownToolbar = ({ onChange, textareaRef, value }: MarkdownToolbarProps) => {
+export const MarkdownToolbar = ({ onChange, textareaRef }: MarkdownToolbarProps) => {
   const { toolbarSections } = useMarkdownToolbar({
     onChange,
     popoverTriggerClassName: popoverTriggerResetClass,
     textareaRef,
-    value,
   });
 
   return (

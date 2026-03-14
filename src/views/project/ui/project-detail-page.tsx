@@ -2,15 +2,18 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import { getProjectDetailArchivePageAction } from '@/entities/project/api/project-actions';
+import {
+  deleteProjectAction,
+  getProjectDetailArchivePageAction,
+} from '@/entities/project/api/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
+import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
-import { Button } from '@/shared/ui/button/button';
+import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
@@ -36,6 +39,11 @@ export const ProjectDetailPage = async ({
   const projectT = await getTranslations('Project');
   const detailUi = await getTranslations('DetailUi');
   const navigationT = await getTranslations('Navigation');
+
+  if (!item.publish_at) {
+    throw new Error(`[projects] 공개 프로젝트 publish_at이 없습니다. id=${item.id}`);
+  }
+
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
   const tagLabelMap = await getTagLabelMapBySlugs({
     locale,
@@ -47,9 +55,10 @@ export const ProjectDetailPage = async ({
   }
 
   const tagLabels = (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
+  const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({
     locale,
-    pathname: `/project/${item.id}`,
+    pathname: `/project/${projectPathSegment}`,
   });
   const structuredData = [
     buildBreadcrumbJsonLd([
@@ -87,6 +96,7 @@ export const ProjectDetailPage = async ({
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
         hideAppFrameFooter
+        locale={locale}
         metaBar={
           <DetailMetaBar
             copyFailedText={detailUi('copyFailed')}
@@ -97,9 +107,14 @@ export const ProjectDetailPage = async ({
             shareText={detailUi('share')}
             actionSlot={
               isAdmin ? (
-                <Button asChild className={shareButtonClass} size="sm" tone="white" variant="ghost">
-                  <Link href={`/admin/projects/${item.id}/edit`}>수정하기</Link>
-                </Button>
+                <AdminDetailActions
+                  deleteAction={deleteProjectAction.bind(null, {
+                    locale,
+                    projectId: item.id,
+                    projectSlug: projectPathSegment,
+                  })}
+                  editHref={`/admin/projects/${item.id}/edit`}
+                />
               ) : null
             }
           />
@@ -115,7 +130,7 @@ export const ProjectDetailPage = async ({
             loadingText={projectT('loading')}
             locale={locale}
             retryText={projectT('retry')}
-            selectedId={item.id}
+            selectedPathSegment={projectPathSegment}
           />
         }
         sidebarLabel={t('archiveLabel')}
@@ -168,10 +183,4 @@ const tagButtonClass = css({
   fontSize: '[inherit]',
   lineHeight: 'tight',
   color: 'muted',
-});
-
-const shareButtonClass = css({
-  '@media (min-width: 961px)': {
-    fontSize: 'md',
-  },
 });

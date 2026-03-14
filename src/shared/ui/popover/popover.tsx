@@ -17,8 +17,10 @@ import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { Tooltip } from '@/shared/ui/tooltip/tooltip';
 
+export type ClosePopover = (options?: { restoreFocus?: boolean }) => void;
+
 type PopoverRenderArgs = {
-  closePopover: () => void;
+  closePopover: ClosePopover;
 };
 
 type PopoverProps = {
@@ -64,6 +66,7 @@ export const Popover = ({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const restoreFocusRef = useRef(true);
   const [portalStyle, setPortalStyle] = useState<React.CSSProperties>();
   const panelId = useId();
   const panelLabelId = useId();
@@ -155,12 +158,14 @@ export const Popover = ({
     onEscape: () => {
       setOpen(false);
     },
+    restoreFocusRef,
   });
 
   /**
    * 패널을 닫습니다.
    */
-  const closePopover = () => {
+  const closePopover: ClosePopover = options => {
+    restoreFocusRef.current = options?.restoreFocus ?? true;
     setOpen(false);
   };
 
