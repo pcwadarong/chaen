@@ -71,8 +71,11 @@ vi.mock('./mutate-article-comment', () => ({
 }));
 
 describe('article-comment-actions', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: false,
       isAuthenticated: false,
@@ -92,6 +95,10 @@ describe('article-comment-actions', () => {
         }),
       }),
     });
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it('댓글 작성 action은 formData를 검증하고 생성 결과를 반환한다', async () => {
@@ -227,5 +234,89 @@ describe('article-comment-actions', () => {
       errorMessage: null,
       ok: true,
     });
+  });
+
+  it('slug 조회가 실패해도 댓글 작성 성공 결과는 유지한다', async () => {
+    vi.mocked(createArticleComment).mockResolvedValue({
+      article_id: 'article-1',
+      author_blog_url: null,
+      author_name: 'guest',
+      content: 'new comment',
+      created_at: '2026-03-08T00:20:00.000Z',
+      deleted_at: null,
+      id: 'comment-2',
+      parent_id: null,
+      reply_to_author_name: null,
+      reply_to_comment_id: null,
+      updated_at: '2026-03-08T00:20:00.000Z',
+    });
+    createOptionalPublicServerSupabaseClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        not: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: null,
+          error: {
+            message: 'db timeout',
+          },
+        }),
+      }),
+    });
+
+    const formData = new FormData();
+    formData.set('locale', 'ko');
+    formData.set('articleId', 'article-1');
+    formData.set('authorName', 'guest');
+    formData.set('authorBlogUrl', '');
+    formData.set('content', 'new comment');
+    formData.set('password', '1234');
+
+    const result = await submitArticleComment(initialSubmitArticleCommentState, formData);
+
+    expect(result.ok).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[article-comments] revalidate 실패',
+      expect.objectContaining({
+        articleId: 'article-1',
+        commentId: 'comment-2',
+        phase: 'slug',
+      }),
+    );
+  });
+
+  it('path revalidate가 실패해도 댓글 삭제 성공 결과는 유지한다', async () => {
+    vi.mocked(deleteArticleComment).mockResolvedValue({
+      articleId: 'article-1',
+      id: 'comment-1',
+      parentId: null,
+    });
+    vi.mocked(revalidatePath).mockImplementation(() => {
+      throw new Error('revalidate failed');
+    });
+
+    const result = await deleteArticleCommentAction({
+      articleId: 'article-1',
+      commentId: 'comment-1',
+      locale: 'ko',
+      password: '1234',
+    });
+
+    expect(result).toEqual({
+      data: {
+        deletedId: 'comment-1',
+      },
+      errorMessage: null,
+      ok: true,
+    });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[article-comments] revalidate 실패',
+      expect.objectContaining({
+        articleId: 'article-1',
+        articleSlug: 'article-1-slug',
+        commentId: 'comment-1',
+        phase: 'path',
+      }),
+    );
   });
 });

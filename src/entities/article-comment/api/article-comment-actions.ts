@@ -164,6 +164,29 @@ type ArticleCommentDeleteActionData = {
 };
 
 /**
+ * 댓글 캐시 무효화 중 발생한 오류를 서버 로그로 남깁니다.
+ */
+const logArticleCommentRevalidationError = (
+  phase: 'path' | 'slug' | 'tag',
+  metadata: {
+    articleId: string;
+    articleSlug?: string | null;
+    commentId?: string;
+    locale?: string;
+  },
+  error: unknown,
+) => {
+  console.error('[article-comments] revalidate 실패', {
+    articleId: metadata.articleId,
+    articleSlug: metadata.articleSlug ?? null,
+    commentId: metadata.commentId ?? null,
+    error,
+    locale: metadata.locale ?? null,
+    phase,
+  });
+};
+
+/**
  * 댓글 캐시 무효화에 필요한 공개 article slug를 조회합니다.
  */
 const getArticleSlugById = async (articleId: string): Promise<string | null> => {
@@ -188,18 +211,47 @@ const getArticleSlugById = async (articleId: string): Promise<string | null> => 
  * 댓글 태그와 locale별 상세 페이지 HTML 캐시를 함께 갱신합니다.
  */
 const revalidateArticleCommentCaches = async (articleId: string, commentId?: string) => {
-  revalidateTag(ARTICLE_COMMENTS_CACHE_TAG);
-  revalidateTag(createArticleCommentsCacheTag(articleId));
-
-  if (commentId) {
-    revalidateTag(createArticleCommentCacheTag(commentId));
+  try {
+    revalidateTag(ARTICLE_COMMENTS_CACHE_TAG);
+  } catch (error) {
+    logArticleCommentRevalidationError('tag', { articleId, commentId }, error);
   }
 
-  const articleSlug = await getArticleSlugById(articleId);
+  try {
+    revalidateTag(createArticleCommentsCacheTag(articleId));
+  } catch (error) {
+    logArticleCommentRevalidationError('tag', { articleId, commentId }, error);
+  }
+
+  if (commentId) {
+    try {
+      revalidateTag(createArticleCommentCacheTag(commentId));
+    } catch (error) {
+      logArticleCommentRevalidationError('tag', { articleId, commentId }, error);
+    }
+  }
+
+  let articleSlug: string | null = null;
+
+  try {
+    articleSlug = await getArticleSlugById(articleId);
+  } catch (error) {
+    logArticleCommentRevalidationError('slug', { articleId, commentId }, error);
+    return;
+  }
+
   if (!articleSlug) return;
 
   locales.forEach(locale => {
-    revalidatePath(`/${locale}/articles/${articleSlug}`);
+    try {
+      revalidatePath(`/${locale}/articles/${articleSlug}`);
+    } catch (error) {
+      logArticleCommentRevalidationError(
+        'path',
+        { articleId, articleSlug, commentId, locale },
+        error,
+      );
+    }
   });
 };
 
