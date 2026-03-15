@@ -67,7 +67,7 @@ describe('DetailArchiveFeed', () => {
     vi.clearAllMocks();
   });
 
-  it('sidebar viewport를 observer root로 연결하고 sentinel 감지 시 추가 로드를 호출한다', async () => {
+  it('sidebar viewport를 observer root로 연결하고 스크롤 이후 sentinel 감지 시 추가 로드를 호출한다', async () => {
     const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
     const loadMore = vi.fn();
     useOffsetPaginationFeed.mockReturnValue({
@@ -108,6 +108,14 @@ describe('DetailArchiveFeed', () => {
     );
     expect(screen.getByText('2026년')).toBeInTheDocument();
     expect(observerOptions?.root).toBe(container.querySelector('[data-scroll-region="true"]'));
+
+    observerCallback?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    expect(loadMore).not.toHaveBeenCalled();
+
+    fireEvent.scroll(window);
 
     observerCallback?.(
       [{ isIntersecting: true } as IntersectionObserverEntry],
