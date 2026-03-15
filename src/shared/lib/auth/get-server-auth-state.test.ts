@@ -42,6 +42,28 @@ describe('getServerAuthState', () => {
     });
   });
 
+  it('refresh token이 없으면 익명 사용자 상태를 반환한다', async () => {
+    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: null,
+          },
+          error: {
+            message: 'Invalid Refresh Token: Refresh Token Not Found',
+          },
+        }),
+      },
+    } as never);
+
+    await expect(getServerAuthState()).resolves.toEqual({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
+  });
+
   it('관리자 user id면 관리자 상태를 반환한다', async () => {
     vi.mocked(createServerSupabaseClient).mockResolvedValue({
       auth: {

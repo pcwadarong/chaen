@@ -19,8 +19,15 @@ const EMPTY_AUTH_STATE: AuthState = {
   userId: null,
 };
 
-const isMissingSessionError = (message: string | null | undefined) =>
-  message?.toLowerCase().includes('auth session missing') ?? false;
+const isMissingSessionError = (message: string | null | undefined) => {
+  const normalizedMessage = message?.toLowerCase() ?? '';
+
+  return (
+    normalizedMessage.includes('auth session missing') ||
+    normalizedMessage.includes('invalid refresh token') ||
+    normalizedMessage.includes('refresh token not found')
+  );
+};
 
 /**
  * 현재 요청의 Supabase 세션을 읽어 관리자 여부를 포함한 인증 상태를 반환합니다.

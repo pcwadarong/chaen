@@ -6,7 +6,13 @@ import '@testing-library/jest-dom/vitest';
 
 import { ArticleListItem } from './article-list-item';
 
+type MockNextImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
+  fill?: boolean;
+  unoptimized?: boolean;
+};
+
 vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
   useTranslations: () => (key: string, values?: Record<string, string>) =>
     key === 'viewArticle' ? `${values?.title} article detail` : key,
 }));
@@ -18,7 +24,7 @@ vi.mock('@/i18n/navigation', () => ({
 
 vi.mock('next/image', () => ({
   __esModule: true,
-  default: ({ alt, src, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) =>
+  default: ({ alt, fill: _fill, src, unoptimized: _unoptimized, ...props }: MockNextImageProps) =>
     createElement('img', { alt, src, ...props }),
 }));
 
