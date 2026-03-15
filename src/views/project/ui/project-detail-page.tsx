@@ -13,7 +13,7 @@ import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-con
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
-import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
+import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
@@ -21,7 +21,6 @@ import { JsonLd } from '@/shared/ui/seo/JsonLd';
 
 type ProjectDetailPageProps = {
   archivePage: ProjectArchivePage;
-  isAdmin?: boolean;
   item: Project;
   locale: AppLocale;
 };
@@ -29,12 +28,7 @@ type ProjectDetailPageProps = {
 /**
  * 프로젝트 상세 페이지 컨테이너입니다.
  */
-export const ProjectDetailPage = async ({
-  archivePage,
-  isAdmin = false,
-  item,
-  locale,
-}: ProjectDetailPageProps) => {
+export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDetailPageProps) => {
   const t = await getTranslations('ProjectDetail');
   const projectT = await getTranslations('Project');
   const detailUi = await getTranslations('DetailUi');
@@ -106,16 +100,14 @@ export const ProjectDetailPage = async ({
             primaryMetaText={periodText}
             shareText={detailUi('share')}
             actionSlot={
-              isAdmin ? (
-                <AdminDetailActions
-                  deleteAction={deleteProjectAction.bind(null, {
-                    locale,
-                    projectId: item.id,
-                    projectSlug: projectPathSegment,
-                  })}
-                  editHref={`/admin/projects/${item.id}/edit`}
-                />
-              ) : null
+              <AdminDetailActionsGate
+                deleteAction={deleteProjectAction.bind(null, {
+                  locale,
+                  projectId: item.id,
+                  projectSlug: projectPathSegment,
+                })}
+                editHref={`/admin/projects/${item.id}/edit`}
+              />
             }
           />
         }

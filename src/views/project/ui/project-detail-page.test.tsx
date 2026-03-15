@@ -19,6 +19,15 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
+vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
+    <div data-testid="admin-detail-actions-gate">
+      <a href={editHref}>수정</a>
+      <span>삭제</span>
+    </div>
+  ),
+}));
+
 /**
  * 서버 컴포넌트를 HTML 문자열로 변환합니다.
  */
@@ -29,7 +38,6 @@ const renderServerHtml = async () => {
       items: [],
       nextCursor: null,
     },
-    isAdmin: true,
     item: {
       id: 'project-1',
       slug: 'project-1-slug',

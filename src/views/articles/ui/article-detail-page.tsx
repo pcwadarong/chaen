@@ -22,7 +22,7 @@ import {
 } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
-import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
+import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
@@ -32,7 +32,6 @@ import { ArticleCommentsSection } from '@/widgets/article-comments';
 type ArticleDetailPageProps = {
   archivePage: ArticleArchivePage;
   initialCommentsPage: ArticleCommentPage;
-  isAdmin?: boolean;
   item: Article;
   locale: AppLocale;
   relatedArticles: ArticleListItemModel[];
@@ -85,7 +84,6 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
 export const ArticleDetailPage = async ({
   archivePage,
   initialCommentsPage,
-  isAdmin = false,
   item,
   locale,
   relatedArticles,
@@ -162,16 +160,14 @@ export const ArticleDetailPage = async ({
             primaryMetaText={publishedDate}
             shareText={detailUi('share')}
             actionSlot={
-              isAdmin ? (
-                <AdminDetailActions
-                  deleteAction={deleteArticleAction.bind(null, {
-                    articleId: item.id,
-                    articleSlug: articlePathSegment,
-                    locale,
-                  })}
-                  editHref={`/admin/articles/${item.id}/edit`}
-                />
-              ) : null
+              <AdminDetailActionsGate
+                deleteAction={deleteArticleAction.bind(null, {
+                  articleId: item.id,
+                  articleSlug: articlePathSegment,
+                  locale,
+                })}
+                editHref={`/admin/articles/${item.id}/edit`}
+              />
             }
             trackViewAction={incrementArticleViewCountAction.bind(null, {
               articleId: item.id,

@@ -32,6 +32,15 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
+vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
+    <div data-testid="admin-detail-actions-gate">
+      <a href={editHref}>수정</a>
+      <span>삭제</span>
+    </div>
+  ),
+}));
+
 const getTagLabelMapBySlugs = vi.fn();
 
 vi.mock('@/entities/tag/api/query-tags', () => ({
@@ -58,7 +67,6 @@ const renderServerHtml = async () => {
       nextCursor: null,
     },
     initialCommentsPage,
-    isAdmin: true,
     item: {
       id: 'article-1',
       slug: 'article-1-slug',

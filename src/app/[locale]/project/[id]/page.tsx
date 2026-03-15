@@ -5,7 +5,6 @@ import React from 'react';
 
 import { getResolvedProject } from '@/entities/project/api/get-project';
 import type { AppLocale } from '@/i18n/routing';
-import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
@@ -82,23 +81,13 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
  */
 const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const { id, locale } = await params;
-  const [{ archivePage, item }, authState] = await Promise.all([
-    getProjectDetailPageData({
-      locale,
-      projectSlug: id,
-    }),
-    getServerAuthState(),
-  ]);
+  const { archivePage, item } = await getProjectDetailPageData({
+    locale,
+    projectSlug: id,
+  });
   if (!item) notFound();
 
-  return (
-    <ProjectDetailPage
-      archivePage={archivePage}
-      isAdmin={authState.isAdmin}
-      item={item}
-      locale={locale as AppLocale}
-    />
-  );
+  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale as AppLocale} />;
 };
 
 export default ProjectDetailRoute;
