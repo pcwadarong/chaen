@@ -26,6 +26,15 @@ const baseEditorState = {
 };
 
 /**
+ * slug 사용 가능 확인 API 응답을 테스트에서 공통으로 모킹합니다.
+ */
+const mockSlugCheckResponse = (duplicate = false) =>
+  vi.spyOn(global, 'fetch').mockResolvedValue({
+    json: async () => ({ duplicate }),
+    ok: true,
+  } as Response);
+
+/**
  * 패널 테스트용 기본 렌더러입니다.
  */
 const renderPublishPanel = (
@@ -320,6 +329,44 @@ describe('PublishPanel', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('사용 가능 확인을 하지 않은 slug는 발행할 수 없다', async () => {
+    const { onSubmit } = renderPublishPanel();
+
+    fireEvent.change(screen.getByLabelText('슬러그'), {
+      target: { value: 'Hello World!!' },
+    });
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    expect(await screen.findByText(EDITOR_ERROR_MESSAGE.slugVerificationRequired)).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('사용 가능 확인 후에는 정규화된 slug로 발행한다', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    mockSlugCheckResponse(false);
+    renderPublishPanel({ onSubmit });
+
+    fireEvent.change(screen.getByLabelText('슬러그'), {
+      target: { value: 'Hello World!!' },
+    });
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('슬러그')).toHaveValue('hello-world');
+    });
+
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slug: 'hello-world',
+        }),
+      );
+    });
+  });
+
   it('파일 업로드 성공 시 thumbnailUrl과 미리보기를 갱신한다', async () => {
     const optimizedFile = new File(['compressed'], 'thumb.webp', { type: 'image/webp' });
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -359,12 +406,16 @@ describe('PublishPanel', () => {
           resolveSubmit = resolve;
         }),
     );
+
+    mockSlugCheckResponse(false);
     const { onClose } = renderPublishPanel({ onSubmit });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '발행하기' })).toBeTruthy();
     });
 
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
     fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
 
     await waitFor(() => {
@@ -385,8 +436,11 @@ describe('PublishPanel', () => {
   it('publish 중 slug 중복 에러가 오면 인라인 에러로 표시한다', async () => {
     const onSubmit = vi.fn().mockRejectedValue(createEditorError('duplicateSlug'));
 
+    mockSlugCheckResponse(false);
     renderPublishPanel({ onSubmit });
 
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
     fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
 
     expect(await screen.findByText(EDITOR_ERROR_MESSAGE.duplicateSlug)).toBeTruthy();
@@ -396,8 +450,11 @@ describe('PublishPanel', () => {
   it('publish 중 일반 서버 오류가 오면 toast로 표시한다', async () => {
     const onSubmit = vi.fn().mockRejectedValue(createEditorError('publishFailed'));
 
+    mockSlugCheckResponse(false);
     renderPublishPanel({ onSubmit });
 
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
     fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
 
     expect(await screen.findByText(EDITOR_ERROR_MESSAGE.publishFailed)).toBeTruthy();

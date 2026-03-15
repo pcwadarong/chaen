@@ -14,6 +14,7 @@ describe('editor-error', () => {
       'publishAt',
     );
     expect(resolveEditorPublishInlineErrorField('duplicateSlug')).toBe('slug');
+    expect(resolveEditorPublishInlineErrorField('slugVerificationRequired')).toBe('slug');
   });
 
   it('toast 전용 에러는 인라인 필드로 매핑하지 않는다', () => {

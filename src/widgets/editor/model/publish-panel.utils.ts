@@ -1,4 +1,5 @@
 import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import { normalizeSlugInput } from '@/shared/lib/editor/slug';
 import type {
   EditorState,
   PublishSettings,
@@ -71,22 +72,27 @@ export const buildPublishSettings = (formValues: PublishPanelFormValues): Publis
 export const validatePublishSettings = ({
   editorState,
   now = new Date(),
+  verifiedSlug = null,
   settings,
 }: {
   editorState: EditorState;
   now?: Date;
+  verifiedSlug?: string | null;
   settings: PublishSettings;
 }): PublishPanelValidationErrors => {
   const errors: PublishPanelValidationErrors = {};
+  const normalizedSlug = normalizeSlugInput(settings.slug);
 
   if (!editorState.translations.ko.title.trim()) {
     errors.koTitle = EDITOR_ERROR_MESSAGE.missingKoTitle;
   }
 
-  if (!settings.slug) {
+  if (!settings.slug.trim()) {
     errors.slug = EDITOR_ERROR_MESSAGE.missingSlug;
-  } else if (!/^[a-z0-9-]+$/.test(settings.slug)) {
+  } else if (!normalizedSlug) {
     errors.slug = EDITOR_ERROR_MESSAGE.slugFormatInvalid;
+  } else if (verifiedSlug !== normalizedSlug) {
+    errors.slug = EDITOR_ERROR_MESSAGE.slugVerificationRequired;
   }
 
   if (settings.publishAt) {

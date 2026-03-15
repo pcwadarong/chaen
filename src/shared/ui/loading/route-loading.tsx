@@ -405,7 +405,7 @@ const detailMetaWrapClass = css({
 
 const detailMetaClass = css({
   width: '[min(33rem, calc(100% - 3rem))]',
-  height: '[4.5rem]',
+  height: '[3rem]',
   borderRadius: 'full',
 });
 

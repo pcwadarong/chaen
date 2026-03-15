@@ -40,8 +40,9 @@ export const SlugInput = ({
   >('idle');
   const duplicateCheckRequestIdRef = useRef(0);
   const latestValueRef = useRef(value);
+  const normalizedValue = normalizeSlugInput(value);
   const isEmpty = value.trim().length === 0;
-  const hasFormatError = value.length > 0 && !isValidSlugFormat(value);
+  const hasFormatError = value.trim().length > 0 && !isValidSlugFormat(normalizedValue);
   const shouldShowEmptyError = (showEmptyError || hasCheckAttempt) && isEmpty;
   const shouldShowFormatError = hasCheckAttempt && hasFormatError;
   const errorMessage = shouldShowEmptyError
@@ -63,7 +64,7 @@ export const SlugInput = ({
   }, [value]);
 
   /**
-   * 별도 버튼으로 slug 중복 여부를 확인합니다.
+   * 입력한 문자열을 slug 형식으로 정규화한 뒤 사용 가능 여부를 확인합니다.
    */
   const handleDuplicateCheck = async () => {
     setHasCheckAttempt(true);
@@ -71,7 +72,7 @@ export const SlugInput = ({
     if (isEmpty || hasFormatError || !onCheckDuplicate) return;
 
     const requestId = ++duplicateCheckRequestIdRef.current;
-    const requestSlug = value;
+    const requestSlug = normalizedValue;
     setDuplicateCheckStatus('checking');
 
     try {
@@ -79,16 +80,17 @@ export const SlugInput = ({
 
       if (
         duplicateCheckRequestIdRef.current !== requestId ||
-        latestValueRef.current !== requestSlug
+        normalizeSlugInput(latestValueRef.current) !== requestSlug
       ) {
         return;
       }
 
+      onChange(requestSlug);
       setDuplicateCheckStatus(isDuplicate ? 'duplicate' : 'available');
     } catch {
       if (
         duplicateCheckRequestIdRef.current !== requestId ||
-        latestValueRef.current !== requestSlug
+        normalizeSlugInput(latestValueRef.current) !== requestSlug
       ) {
         return;
       }
@@ -116,7 +118,7 @@ export const SlugInput = ({
             aria-label="슬러그"
             className={cx(inputClass, isPublished ? lockedInputClass : undefined)}
             id={inputId}
-            onChange={event => onChange(normalizeSlugInput(event.target.value))}
+            onChange={event => onChange(event.target.value)}
             placeholder="example-slug"
             readOnly={isPublished}
             type="text"
@@ -137,14 +139,14 @@ export const SlugInput = ({
             type="button"
             variant="solid"
           >
-            {duplicateCheckStatus === 'checking' ? '확인 중...' : '중복 확인'}
+            {duplicateCheckStatus === 'checking' ? '확인 중...' : '사용 가능 확인'}
           </Button>
         ) : null}
       </div>
       <p className={helpTextClass} id={helpId}>
         {isPublished
           ? '발행 후에는 슬러그를 변경할 수 없습니다.'
-          : '영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.'}
+          : '원하는 문구를 입력한 뒤 사용 가능 확인을 해주세요.'}
       </p>
       {errorMessage ? (
         <p className={errorTextClass} id={errorId} role="alert">

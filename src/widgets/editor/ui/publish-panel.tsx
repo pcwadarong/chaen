@@ -10,6 +10,7 @@ import {
   parseEditorError,
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
+import { normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
@@ -356,6 +357,7 @@ export const PublishPanel = ({
   const [isUploading, setIsUploading] = useState(false);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const hasInitializedWhileOpenRef = useRef(false);
+  const verifiedSlugRef = useRef<string | null>(null);
   const pendingInitialSettingsRef = useRef<PublishSettings | null>(null);
   const openedAtRef = useRef<Date | null>(null);
   const isScheduleLocked = publicationState === 'published';
@@ -363,6 +365,7 @@ export const PublishPanel = ({
   useEffect(() => {
     if (!isOpen) {
       hasInitializedWhileOpenRef.current = false;
+      verifiedSlugRef.current = null;
       pendingInitialSettingsRef.current = null;
       openedAtRef.current = null;
       return;
@@ -385,6 +388,7 @@ export const PublishPanel = ({
     pendingInitialSettingsRef.current = nextSettings;
 
     setSlug(nextFormState.slug);
+    verifiedSlugRef.current = isPublished ? normalizeSlugInput(nextFormState.slug) : null;
     setVisibility(nextFormState.visibility);
     setThumbnailUrl(nextFormState.thumbnailUrl);
     setAllowComments(nextFormState.allowComments);
@@ -392,7 +396,7 @@ export const PublishPanel = ({
     setDateInput(nextFormState.dateInput);
     setTimeInput(nextFormState.timeInput);
     setErrors({});
-  }, [editorState.slug, initialSettings, isOpen]);
+  }, [editorState.slug, initialSettings, isOpen, isPublished]);
 
   useEffect(() => {
     if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
@@ -464,6 +468,9 @@ export const PublishPanel = ({
   }, [onClose]);
   const handleSlugChange = useCallback((value: string) => {
     setSlug(previous => (previous === value ? previous : value));
+    verifiedSlugRef.current =
+      verifiedSlugRef.current === normalizeSlugInput(value) ? verifiedSlugRef.current : null;
+    setErrors(previous => (previous.slug ? { ...previous, slug: undefined } : previous));
   }, []);
   const handleThumbnailUrlChange = useCallback((value: string) => {
     setThumbnailUrl(previous => (previous === value ? previous : value));
@@ -510,6 +517,11 @@ export const PublishPanel = ({
           'slugCheckFailed',
           body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
         );
+      }
+
+      if (!body.duplicate) {
+        verifiedSlugRef.current = nextSlug;
+        setErrors(previous => (previous.slug ? { ...previous, slug: undefined } : previous));
       }
 
       return body.duplicate;
@@ -571,6 +583,7 @@ export const PublishPanel = ({
     const nextSettings = currentSettings;
     const nextErrors = validatePublishSettings({
       editorState,
+      verifiedSlug: isPublished ? normalizeSlugInput(slug) : verifiedSlugRef.current,
       settings: nextSettings,
     });
 
@@ -598,7 +611,7 @@ export const PublishPanel = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [currentSettings, editorState, onClose, onSubmit, pushToast]);
+  }, [currentSettings, editorState, isPublished, onClose, onSubmit, pushToast, slug]);
   const handleSubmitClick = useCallback(() => {
     void handleSubmit();
   }, [handleSubmit]);

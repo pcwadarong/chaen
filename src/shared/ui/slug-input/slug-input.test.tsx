@@ -4,7 +4,7 @@ import React from 'react';
 import { SlugInput } from '@/shared/ui/slug-input/slug-input';
 
 describe('SlugInput', () => {
-  it('slug 입력 시 허용되지 않는 문자를 제거한 값을 전달한다', () => {
+  it('slug 입력 시 원본 문자열을 그대로 전달한다', () => {
     const onChange = vi.fn();
 
     render(<SlugInput onChange={onChange} value="" />);
@@ -13,7 +13,7 @@ describe('SlugInput', () => {
       target: { value: 'Optimize Web Accessibility!' },
     });
 
-    expect(onChange).toHaveBeenCalledWith('optimize-web-accessibility');
+    expect(onChange).toHaveBeenCalledWith('Optimize Web Accessibility!');
   });
 
   it('기본 상태에서는 빈 값이어도 인라인 에러를 바로 노출하지 않는다', () => {
@@ -42,7 +42,7 @@ describe('SlugInput', () => {
     expect(firstInput.getAttribute('id')).not.toBe(secondInput.getAttribute('id'));
   });
 
-  it('하이픈 입력 자체는 허용한다', () => {
+  it('하이픈 입력 자체는 원본 그대로 유지한다', () => {
     const onChange = vi.fn();
 
     render(<SlugInput onChange={onChange} value="" />);
@@ -54,12 +54,39 @@ describe('SlugInput', () => {
     expect(onChange).toHaveBeenCalledWith('-');
   });
 
+  it('사용 가능 확인 시 정규화된 slug로 검사하고 입력값도 정규화한다', async () => {
+    const onCheckDuplicate = vi.fn().mockResolvedValue(false);
+
+    const SlugInputHarness = () => {
+      const [value, setValue] = React.useState('');
+
+      return <SlugInput onChange={setValue} onCheckDuplicate={onCheckDuplicate} value={value} />;
+    };
+
+    render(<SlugInputHarness />);
+
+    const input = screen.getByRole('textbox', { name: '슬러그' });
+
+    fireEvent.change(input, {
+      target: { value: 'Hello World!!' },
+    });
+
+    expect((input as HTMLInputElement).value).toBe('Hello World!!');
+
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
+
+    await waitFor(() => {
+      expect((input as HTMLInputElement).value).toBe('hello-world');
+    });
+    expect(onCheckDuplicate).toHaveBeenCalledWith('hello-world');
+  });
+
   it('중복 확인 전에는 빈 값 경고를 바로 띄우지 않고, 확인 버튼을 누르면 빈 값 에러를 노출한다', async () => {
     const onCheckDuplicate = vi.fn();
 
     render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="" />);
 
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     expect(screen.getByText('슬러그를 입력해주세요.')).toBeTruthy();
     expect(onCheckDuplicate).not.toHaveBeenCalled();
@@ -70,7 +97,7 @@ describe('SlugInput', () => {
 
     render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="-" />);
 
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     expect(
       screen.getByText('슬러그는 하이픈 앞뒤에 영문 소문자 또는 숫자가 있어야 합니다.'),
@@ -85,7 +112,7 @@ describe('SlugInput', () => {
       <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="existing-slug" />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     await screen.findByText('이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요.');
 
@@ -97,7 +124,7 @@ describe('SlugInput', () => {
 
     render(<SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="new-slug" />);
 
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     await screen.findByText('사용 가능한 슬러그입니다.');
   });
@@ -120,12 +147,12 @@ describe('SlugInput', () => {
       <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="first-slug" />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     rerender(
       <SlugInput onChange={vi.fn()} onCheckDuplicate={onCheckDuplicate} value="second-slug" />,
     );
-    fireEvent.click(screen.getByRole('button', { name: '중복 확인' }));
+    fireEvent.click(screen.getByRole('button', { name: '사용 가능 확인' }));
 
     expect(resolveSecond).toBeTypeOf('function');
     resolveSecond!(false);
