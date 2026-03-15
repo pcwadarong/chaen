@@ -42,7 +42,7 @@ describe('uploadImageFile', () => {
       file,
     });
 
-    expect(from).toHaveBeenCalledWith('projects');
+    expect(from).toHaveBeenCalledWith('project');
   });
 
   it('아티클 이미지는 article 버킷에 업로드한다', async () => {

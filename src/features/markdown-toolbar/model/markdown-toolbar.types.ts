@@ -1,6 +1,9 @@
 import type React from 'react';
 
+import type { EditorContentType } from '@/entities/editor/model/editor-types';
+
 export type MarkdownToolbarProps = {
+  contentType: EditorContentType;
   onChange: (value: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 };

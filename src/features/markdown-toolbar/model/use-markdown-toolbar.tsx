@@ -48,6 +48,7 @@ const tableTemplate = [
  * UI 컴포넌트는 레이아웃과 렌더링만 담당하고, 실제 편집 규칙은 이 hook에서 관리합니다.
  */
 export const useMarkdownToolbar = ({
+  contentType,
   onChange,
   textareaRef,
   popoverTriggerClassName,
@@ -388,6 +389,7 @@ export const useMarkdownToolbar = ({
             key: 'image-embed',
             node: (
               <ImageEmbedPopover
+                contentType={contentType}
                 onApply={handleImageApply}
                 onTriggerMouseDown={event => event.preventDefault()}
                 triggerClassName={popoverTriggerClassName}
@@ -425,6 +427,7 @@ export const useMarkdownToolbar = ({
       blockSyntaxActions,
       handleAlignApply,
       handleBackgroundColorApply,
+      contentType,
       handleImageApply,
       handleLinkApply,
       handleTextColorApply,

@@ -5,6 +5,7 @@ import { MarkdownHooks } from 'react-markdown';
 import { css, cva } from 'styled-system/css';
 
 import { EDITOR_ERROR_MESSAGE, parseEditorError } from '@/entities/editor/model/editor-error';
+import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import { buildEditorLinkInsertion } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
@@ -148,6 +149,7 @@ const rememberTextareaScroll = (
 
 type EditorLocalePanelProps = {
   activeLocaleHasTitleError: boolean;
+  contentType: EditorContentType;
   isActive: boolean;
   isMobileLayout: boolean;
   locale: Locale;
@@ -173,6 +175,7 @@ type EditorLocalePanelProps = {
  */
 const EditorLocalePanelBase = ({
   activeLocaleHasTitleError,
+  contentType,
   isActive,
   isMobileLayout,
   locale,
@@ -254,6 +257,7 @@ const EditorLocalePanelBase = ({
         >
           <div className={editorToolbarWrapClass}>
             <MarkdownToolbar
+              contentType={contentType}
               onChange={nextValue => onContentChange(locale, nextValue)}
               textareaRef={textareaRef}
             />
@@ -310,6 +314,7 @@ const EditorLocalePanel = React.memo(EditorLocalePanelBase);
  */
 export const EditorCore = ({
   availableTags,
+  contentType,
   initialSavedAt = null,
   initialSlug = '',
   initialTags,
@@ -744,6 +749,7 @@ export const EditorCore = ({
         return (
           <EditorLocalePanel
             activeLocaleHasTitleError={isActive && activeLocaleHasTitleError}
+            contentType={contentType}
             isActive={isActive}
             isMobileLayout={isMobileLayout}
             key={locale}
