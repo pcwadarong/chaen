@@ -1,4 +1,6 @@
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import type { EditorImageUploadKind } from '@/shared/lib/image/image-upload-kind';
+import { optimizeContentImageFile } from '@/shared/lib/image/optimize-content-image-file';
 import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
 
 /**
@@ -7,15 +9,21 @@ import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnai
 export const uploadEditorImage = async ({
   contentType,
   file,
+  imageKind,
 }: {
   contentType: EditorContentType;
   file: File;
+  imageKind: EditorImageUploadKind;
 }): Promise<string> => {
-  const optimizedFile = await optimizeThumbnailImageFile(file);
+  const optimizedFile =
+    imageKind === 'thumbnail'
+      ? await optimizeThumbnailImageFile(file)
+      : await optimizeContentImageFile(file);
   const formData = new FormData();
 
   formData.set('contentType', contentType);
   formData.set('file', optimizedFile);
+  formData.set('imageKind', imageKind);
 
   const response = await fetch('/api/images', {
     body: formData,

@@ -23,6 +23,7 @@ describe('api/images route', () => {
     const formData = new FormData();
     formData.set('contentType', 'article');
     formData.set('file', new File(['x'], 'thumb.png', { type: 'image/png' }));
+    formData.set('imageKind', 'thumbnail');
 
     const response = await POST({
       formData: async () => formData,
@@ -63,6 +64,7 @@ describe('api/images route', () => {
     const formData = new FormData();
     formData.set('contentType', 'project');
     formData.set('file', new File(['x'], 'thumb.png', { type: 'image/png' }));
+    formData.set('imageKind', 'content');
 
     const response = await POST({
       formData: async () => formData,
@@ -75,6 +77,7 @@ describe('api/images route', () => {
     expect(uploadImageFile).toHaveBeenCalledWith({
       contentType: 'project',
       file: expect.any(File),
+      imageKind: 'content',
     });
   });
 });

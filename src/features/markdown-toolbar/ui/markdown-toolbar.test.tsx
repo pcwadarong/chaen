@@ -2,11 +2,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { MarkdownToolbar } from '@/features/markdown-toolbar/ui/markdown-toolbar';
-import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
+import { optimizeContentImageFile } from '@/shared/lib/image/optimize-content-image-file';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
-vi.mock('@/shared/lib/image/optimize-thumbnail-image-file', () => ({
-  optimizeThumbnailImageFile: vi.fn(async (file: File) => file),
+vi.mock('@/shared/lib/image/optimize-content-image-file', () => ({
+  optimizeContentImageFile: vi.fn(async (file: File) => file),
 }));
 
 /**
@@ -33,7 +33,7 @@ const ToolbarHarness = () => {
 describe('MarkdownToolbar', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.mocked(optimizeThumbnailImageFile).mockImplementation(async (file: File) => file);
+    vi.mocked(optimizeContentImageFile).mockImplementation(async (file: File) => file);
   });
 
   it('선택한 텍스트를 굵게 감싼다', async () => {
@@ -149,7 +149,7 @@ describe('MarkdownToolbar', () => {
       json: async () => ({ url: 'https://example.com/uploaded-inline.webp' }),
       ok: true,
     } as Response);
-    vi.mocked(optimizeThumbnailImageFile).mockResolvedValue(optimizedFile);
+    vi.mocked(optimizeContentImageFile).mockResolvedValue(optimizedFile);
 
     render(<ToolbarHarness />);
 
@@ -176,10 +176,11 @@ describe('MarkdownToolbar', () => {
 
     const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
 
-    expect(optimizeThumbnailImageFile).toHaveBeenCalledWith(
+    expect(optimizeContentImageFile).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'inline.png' }),
     );
     expect(formData.get('contentType')).toBe('article');
+    expect(formData.get('imageKind')).toBe('content');
     expect(formData.get('file')).toBe(optimizedFile);
   });
 

@@ -395,6 +395,7 @@ describe('PublishPanel', () => {
     expect(optimizeThumbnailImageFile).toHaveBeenCalledWith(file);
 
     const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
+    expect(formData.get('imageKind')).toBe('thumbnail');
     expect(formData.get('file')).toBe(optimizedFile);
   });
 

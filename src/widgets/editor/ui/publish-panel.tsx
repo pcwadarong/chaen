@@ -514,6 +514,7 @@ export const PublishPanel = ({
           await uploadEditorImage({
             contentType,
             file,
+            imageKind: 'thumbnail',
           }),
         );
       } catch {

@@ -57,6 +57,7 @@ export const ImageEmbedPopover = ({
         await uploadEditorImage({
           contentType,
           file,
+          imageKind: 'content',
         }),
       );
     } catch {
