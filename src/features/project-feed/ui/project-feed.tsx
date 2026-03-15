@@ -5,6 +5,7 @@ import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { useProjectFeed } from '@/features/project-feed/model/use-project-feed';
+import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
@@ -80,6 +81,7 @@ export const ProjectFeed = ({
     initialItems,
     locale,
   });
+  const isAutoLoadEnabled = useAutoLoadAfterScroll();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const handleLoadMore = useCallback(() => {
     void loadMore();
@@ -91,7 +93,7 @@ export const ProjectFeed = ({
     const observer = new IntersectionObserver(
       entries => {
         const target = entries[0];
-        if (!target?.isIntersecting) return;
+        if (!target?.isIntersecting || !isAutoLoadEnabled) return;
         handleLoadMore();
       },
       {
@@ -103,7 +105,7 @@ export const ProjectFeed = ({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [handleLoadMore]);
+  }, [handleLoadMore, isAutoLoadEnabled]);
 
   return (
     <section className={sectionClass}>
