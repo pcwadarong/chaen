@@ -9,6 +9,7 @@ import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import {
   buildArticlesPageHref,
   getArticlesPageData,
+  isSupportedArticlesPageRequest,
   normalizeCursorHistoryParams,
   normalizeCursorParams,
   normalizePageParams,
@@ -235,64 +236,9 @@ describe('getArticlesPageData', () => {
     expect(data.initialItems[0]?.id).toBe('article-2');
   });
 
-  it('cursor가 없으면 요청한 페이지까지 순차 조회하고 fallback locale을 다음 페이지 요청에 재사용한다', async () => {
-    vi.mocked(getResolvedArticlesFirstPage).mockResolvedValue({
-      page: {
-        items: [
-          {
-            id: 'article-1',
-            title: 'a1',
-            description: 'd1',
-            thumbnail_url: null,
-            publish_at: '2026-03-01T00:00:00.000Z',
-            slug: 'article-1',
-          },
-        ],
-        nextCursor: 'cursor-1',
-        totalCount: null,
-      },
-      resolvedLocale: 'ko',
-    });
-    vi.mocked(getArticles).mockResolvedValue({
-      items: [
-        {
-          id: 'article-2',
-          title: 'a2',
-          description: 'd2',
-          thumbnail_url: null,
-          publish_at: '2026-02-28T00:00:00.000Z',
-          slug: 'article-2',
-        },
-      ],
-      nextCursor: 'cursor-2',
-      totalCount: null,
-    });
-    vi.mocked(getPopularArticleTags).mockResolvedValue([]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: false,
-    });
-
-    const data = await getArticlesPageData({
-      locale: 'fr',
-      page: 2,
-      query: undefined,
-      tag: undefined,
-    });
-
-    expect(getArticles).toHaveBeenCalledWith({
-      cursor: 'cursor-1',
-      locale: 'ko',
-      query: '',
-      tag: '',
-    });
-    expect(data.feedLocale).toBe('ko');
-    expect(data.locale).toBe('fr');
-    expect(data.pagination).toEqual({
-      currentPage: 2,
-      nextHref: '/fr/articles?page=3&cursor=cursor-2&cursorHistory=cursor-1',
-      previousHref: '/fr/articles',
-    });
-    expect(data.initialItems[0]?.id).toBe('article-2');
+  it('2페이지 이상은 cursor가 있을 때만 지원한다', () => {
+    expect(isSupportedArticlesPageRequest({ cursor: undefined, page: 1 })).toBe(true);
+    expect(isSupportedArticlesPageRequest({ cursor: 'cursor-1', page: 2 })).toBe(true);
+    expect(isSupportedArticlesPageRequest({ cursor: undefined, page: 2 })).toBe(false);
   });
 });

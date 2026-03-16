@@ -63,6 +63,11 @@ type BuildArticlesPageHrefInput = {
   tag?: string;
 };
 
+type IsSupportedArticlesPageRequestInput = {
+  cursor?: string | string[];
+  page: number;
+};
+
 /**
  * App Router searchParams의 cursor 값을 첫 번째 문자열로 정규화합니다.
  */
@@ -88,6 +93,21 @@ export const normalizeCursorHistoryParams = (
     .split(',')
     .map(cursor => cursor.trim())
     .filter(Boolean);
+};
+
+/**
+ * 2페이지 이상 진입은 cursor가 있을 때만 지원합니다.
+ *
+ * keyset pagination은 page 번호만으로 목표 위치를 복원할 수 없으므로,
+ * 수동 deep-link(`?page=N`)는 허용하지 않고 내부 cursor 링크만 정상 경로로 간주합니다.
+ */
+export const isSupportedArticlesPageRequest = ({
+  cursor,
+  page,
+}: IsSupportedArticlesPageRequestInput): boolean => {
+  if (page <= 1) return true;
+
+  return normalizeCursorParams(cursor) !== null;
 };
 
 /**
@@ -154,7 +174,7 @@ export const getArticlesPageData = async ({
   const shouldUseDirectCursor = page > 1 && normalizedCursor;
   const popularTagsPromise = getPopularArticleTags({ locale });
   let currentCursor: string | null = null;
-  let currentCursorHistory = normalizedCursorHistory;
+  const currentCursorHistory = normalizedCursorHistory;
   let currentPage = 1;
   let feedLocale = locale.toLowerCase();
   let articlesPage;
@@ -176,23 +196,6 @@ export const getArticlesPageData = async ({
     });
     feedLocale = resolvedArticlesPage.resolvedLocale;
     articlesPage = resolvedArticlesPage.page;
-
-    while (currentPage < page && articlesPage.nextCursor) {
-      const nextCursor = articlesPage.nextCursor;
-
-      if (currentCursor) {
-        currentCursorHistory = [...currentCursorHistory, currentCursor];
-      }
-
-      articlesPage = await getArticles({
-        cursor: nextCursor,
-        locale: feedLocale,
-        query: normalizedQuery,
-        tag: normalizedTag,
-      });
-      currentCursor = nextCursor;
-      currentPage += 1;
-    }
   }
 
   const popularTags = await popularTagsPromise;

@@ -78,6 +78,47 @@ vi.mock('@/views/articles', () => ({
 
     return Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : null;
   },
+  normalizeCursorParams: (cursor: string | string[] | undefined) => {
+    const value = Array.isArray(cursor) ? cursor[0] : cursor;
+    const normalizedValue = value?.trim();
+
+    return normalizedValue ? normalizedValue : null;
+  },
+  normalizeCursorHistoryParams: (cursorHistory: string | string[] | undefined) => {
+    const value = Array.isArray(cursorHistory) ? cursorHistory[0] : cursorHistory;
+    const normalizedValue = value?.trim();
+
+    if (!normalizedValue) return [];
+
+    return normalizedValue
+      .split(',')
+      .map(cursor => cursor.trim())
+      .filter(Boolean);
+  },
+  normalizeSearchParams: (query: string | string[] | undefined) => {
+    const value = Array.isArray(query) ? query[0] : query;
+
+    return value?.trim() ?? '';
+  },
+  normalizeTagParams: (tag: string | string[] | undefined) => {
+    const value = Array.isArray(tag) ? tag[0] : tag;
+
+    return value?.trim().toLowerCase() ?? '';
+  },
+  isSupportedArticlesPageRequest: ({
+    cursor,
+    page,
+  }: {
+    cursor?: string | string[];
+    page: number;
+  }) => {
+    if (page <= 1) return true;
+
+    const value = Array.isArray(cursor) ? cursor[0] : cursor;
+    const normalizedValue = value?.trim();
+
+    return Boolean(normalizedValue);
+  },
   ArticlesPage: function ArticlesPage() {
     return null;
   },
@@ -169,7 +210,11 @@ describe('ArticlesRoute', () => {
       }),
     ).resolves.toMatchObject({
       alternates: {
-        canonical: 'https://chaen.dev/ko/articles?page=2',
+        canonical: 'https://chaen.dev/ko/articles?page=2&cursor=cursor-1&cursorHistory=cursor-root',
+      },
+      robots: {
+        follow: true,
+        index: false,
       },
       pagination: {
         next: 'https://chaen.dev/ko/articles?page=3',
@@ -194,22 +239,7 @@ describe('ArticlesRoute', () => {
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });
 
-  it('요청한 페이지에 도달하지 못하면 notFound를 호출한다', async () => {
-    vi.mocked(getArticlesPageData).mockResolvedValueOnce({
-      activeTag: '',
-      feedLocale: 'ko',
-      initialCursor: null,
-      initialItems: [],
-      locale: 'ko',
-      pagination: {
-        currentPage: 1,
-        nextHref: null,
-        previousHref: null,
-      },
-      popularTags: [],
-      searchQuery: '',
-    });
-
+  it('cursor 없는 page-only deep-link는 notFound를 호출한다', async () => {
     await expect(
       ArticlesRoute({
         params: Promise.resolve({
@@ -222,5 +252,6 @@ describe('ArticlesRoute', () => {
     ).rejects.toThrow('NOT_FOUND');
 
     expect(notFoundMock).toHaveBeenCalledTimes(1);
+    expect(getArticlesPageData).not.toHaveBeenCalled();
   });
 });
