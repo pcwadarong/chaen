@@ -26,11 +26,15 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/views/articles', () => ({
   buildArticlesPageHref: ({
+    cursor,
+    cursorHistory,
     locale,
     page = 1,
     query,
     tag,
   }: {
+    cursor?: string | null;
+    cursorHistory?: string[];
     locale: string;
     page?: number;
     query?: string;
@@ -41,6 +45,8 @@ vi.mock('@/views/articles', () => ({
     if (query?.trim()) searchParams.set('q', query.trim());
     if (!query?.trim() && tag?.trim()) searchParams.set('tag', tag.trim().toLowerCase());
     if (page > 1) searchParams.set('page', String(page));
+    if (cursor) searchParams.set('cursor', cursor);
+    if (cursorHistory?.length) searchParams.set('cursorHistory', cursorHistory.join(','));
 
     const serializedSearchParams = searchParams.toString();
     const pathname = `/${locale}/articles`;
@@ -110,6 +116,8 @@ describe('ArticlesRoute', () => {
         locale: 'ko',
       }),
       searchParams: Promise.resolve({
+        cursor: [' cursor-1 '],
+        cursorHistory: [' cursor-root '],
         page: [' 2 '],
         q: [' react ', 'vue'],
         tag: [' nextjs ', 'react'],
@@ -119,6 +127,8 @@ describe('ArticlesRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
     expect(getArticlesPageData).toHaveBeenCalledWith({
+      cursor: [' cursor-1 '],
+      cursorHistory: [' cursor-root '],
       locale: 'ko',
       page: 2,
       query: [' react ', 'vue'],
@@ -152,6 +162,8 @@ describe('ArticlesRoute', () => {
           locale: 'ko',
         }),
         searchParams: Promise.resolve({
+          cursor: 'cursor-1',
+          cursorHistory: 'cursor-root',
           page: '2',
         }),
       }),

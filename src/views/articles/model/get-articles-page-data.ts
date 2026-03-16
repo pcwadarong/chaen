@@ -9,6 +9,8 @@ import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import type { ArticlesPageProps } from '@/views/articles/ui/articles-page';
 
 type GetArticlesPageDataInput = {
+  cursor?: string | string[];
+  cursorHistory?: string | string[];
   locale: string;
   page: number;
   query?: string | string[];
@@ -53,6 +55,8 @@ export const normalizePageParams = (page: string | string[] | undefined): number
 };
 
 type BuildArticlesPageHrefInput = {
+  cursor?: string | null;
+  cursorHistory?: string[];
   locale: string;
   page?: number;
   query?: string;
@@ -60,9 +64,38 @@ type BuildArticlesPageHrefInput = {
 };
 
 /**
+ * App Router searchParams의 cursor 값을 첫 번째 문자열로 정규화합니다.
+ */
+export const normalizeCursorParams = (cursor: string | string[] | undefined): string | null => {
+  const value = Array.isArray(cursor) ? cursor[0] : cursor;
+  const normalizedValue = value?.trim();
+
+  return normalizedValue ? normalizedValue : null;
+};
+
+/**
+ * App Router searchParams의 cursorHistory 값을 cursor 배열로 정규화합니다.
+ */
+export const normalizeCursorHistoryParams = (
+  cursorHistory: string | string[] | undefined,
+): string[] => {
+  const value = Array.isArray(cursorHistory) ? cursorHistory[0] : cursorHistory;
+  const normalizedValue = value?.trim();
+
+  if (!normalizedValue) return [];
+
+  return normalizedValue
+    .split(',')
+    .map(cursor => cursor.trim())
+    .filter(Boolean);
+};
+
+/**
  * 아티클 목록 페이지 href를 locale/search/tag/page 조합으로 생성합니다.
  */
 export const buildArticlesPageHref = ({
+  cursor,
+  cursorHistory = [],
   locale,
   page = 1,
   query = '',
@@ -88,6 +121,14 @@ export const buildArticlesPageHref = ({
     searchParams.set('page', String(page));
   }
 
+  if (cursor) {
+    searchParams.set('cursor', cursor);
+  }
+
+  if (cursorHistory.length > 0) {
+    searchParams.set('cursorHistory', cursorHistory.join(','));
+  }
+
   const serializedSearchParams = searchParams.toString();
 
   return serializedSearchParams ? `${pathname}?${serializedSearchParams}` : pathname;
@@ -99,29 +140,62 @@ export const buildArticlesPageHref = ({
  * 서버에서 정규화한 query를 내려줘야 클라이언트 피드가 동일한 키로 초기화됩니다.
  */
 export const getArticlesPageData = async ({
+  cursor,
+  cursorHistory,
   locale,
   page,
   query,
   tag,
 }: GetArticlesPageDataInput): Promise<ArticlesPageProps> => {
+  const normalizedCursor = normalizeCursorParams(cursor);
+  const normalizedCursorHistory = normalizeCursorHistoryParams(cursorHistory);
   const normalizedQuery = normalizeSearchParams(query);
   const normalizedTag = normalizedQuery ? '' : normalizeTagParams(tag);
-  const [resolvedArticlesPage, popularTags] = await Promise.all([
-    getResolvedArticlesFirstPage({ locale, query: normalizedQuery, tag: normalizedTag }),
-    getPopularArticleTags({ locale }),
-  ]);
+  const shouldUseDirectCursor = page > 1 && normalizedCursor;
+  const popularTagsPromise = getPopularArticleTags({ locale });
+  let currentCursor: string | null = null;
+  let currentCursorHistory = normalizedCursorHistory;
   let currentPage = 1;
-  let articlesPage = resolvedArticlesPage.page;
+  let feedLocale = locale.toLowerCase();
+  let articlesPage;
 
-  while (currentPage < page && articlesPage.nextCursor) {
+  if (shouldUseDirectCursor) {
     articlesPage = await getArticles({
-      cursor: articlesPage.nextCursor,
-      locale: resolvedArticlesPage.resolvedLocale,
+      cursor: normalizedCursor,
+      locale: feedLocale,
       query: normalizedQuery,
       tag: normalizedTag,
     });
-    currentPage += 1;
+    currentCursor = normalizedCursor;
+    currentPage = articlesPage.items.length === 0 ? page - 1 : page;
+  } else {
+    const resolvedArticlesPage = await getResolvedArticlesFirstPage({
+      locale,
+      query: normalizedQuery,
+      tag: normalizedTag,
+    });
+    feedLocale = resolvedArticlesPage.resolvedLocale;
+    articlesPage = resolvedArticlesPage.page;
+
+    while (currentPage < page && articlesPage.nextCursor) {
+      const nextCursor = articlesPage.nextCursor;
+
+      if (currentCursor) {
+        currentCursorHistory = [...currentCursorHistory, currentCursor];
+      }
+
+      articlesPage = await getArticles({
+        cursor: nextCursor,
+        locale: feedLocale,
+        query: normalizedQuery,
+        tag: normalizedTag,
+      });
+      currentCursor = nextCursor;
+      currentPage += 1;
+    }
   }
+
+  const popularTags = await popularTagsPromise;
 
   const localizedTagLabels = await getTagLabelMapBySlugs({
     locale,
@@ -134,7 +208,7 @@ export const getArticlesPageData = async ({
 
   return {
     activeTag: normalizedTag,
-    feedLocale: resolvedArticlesPage.resolvedLocale,
+    feedLocale,
     initialCursor: articlesPage.nextCursor,
     initialItems: articlesPage.items,
     locale,
@@ -142,6 +216,8 @@ export const getArticlesPageData = async ({
       currentPage,
       nextHref: articlesPage.nextCursor
         ? buildArticlesPageHref({
+            cursor: articlesPage.nextCursor,
+            cursorHistory: currentCursor ? [...currentCursorHistory, currentCursor] : [],
             locale,
             page: currentPage + 1,
             query: normalizedQuery,
@@ -151,6 +227,8 @@ export const getArticlesPageData = async ({
       previousHref:
         currentPage > 1
           ? buildArticlesPageHref({
+              cursor: currentCursorHistory.at(-1) ?? null,
+              cursorHistory: currentCursorHistory.slice(0, -1),
               locale,
               page: currentPage - 1,
               query: normalizedQuery,

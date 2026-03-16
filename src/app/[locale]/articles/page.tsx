@@ -16,6 +16,8 @@ import {
 export const revalidate = 3600;
 
 type ArticlesRouteSearchParams = {
+  cursor?: string | string[];
+  cursorHistory?: string | string[];
   page?: string | string[];
   q?: string | string[];
   tag?: string | string[];
@@ -36,13 +38,15 @@ export const generateMetadata = async ({
   searchParams,
 }: ArticlesRouteProps): Promise<Metadata> => {
   const { locale } = await params;
-  const { page, q, tag } = await searchParams;
+  const { cursor, cursorHistory, page, q, tag } = await searchParams;
   const normalizedPage = normalizePageParams(page);
 
   if (!normalizedPage) notFound();
 
   const [pageData, t] = await Promise.all([
     getArticlesPageData({
+      cursor,
+      cursorHistory,
       locale,
       page: normalizedPage,
       query: q,
@@ -95,12 +99,14 @@ export const generateMetadata = async ({
 /** 아티클 페이지 엔트리입니다. */
 const ArticlesRoute = async ({ params, searchParams }: ArticlesRouteProps) => {
   const { locale } = await params;
-  const { page, q, tag } = await searchParams;
+  const { cursor, cursorHistory, page, q, tag } = await searchParams;
   const normalizedPage = normalizePageParams(page);
 
   if (!normalizedPage) notFound();
 
   const pageData = await getArticlesPageData({
+    cursor,
+    cursorHistory,
     locale,
     page: normalizedPage,
     query: q,
