@@ -3,12 +3,16 @@
 import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
+import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import { uploadEditorImage } from '@/shared/lib/image/upload-editor-image';
 import { Button } from '@/shared/ui/button/button';
 import { ImageIcon } from '@/shared/ui/icons/app-icons';
-import { Input } from '@/shared/ui/input/input';
+import { ImageSourceField } from '@/shared/ui/image-source-field';
 import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type ImageEmbedPopoverProps = {
+  contentType: EditorContentType;
   onApply: (url: string, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
@@ -18,19 +22,50 @@ type ImageEmbedPopoverProps = {
  * toolbar 내부에서 이미지 URL을 받아 markdown 이미지 문법을 삽입하는 팝오버입니다.
  */
 export const ImageEmbedPopover = ({
+  contentType,
   onApply,
   onTriggerMouseDown,
   triggerClassName,
 }: ImageEmbedPopoverProps) => {
   const [imageInput, setImageInput] = useState('');
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleApply = (closePopover?: ClosePopover) => {
     const normalizedInput = imageInput.trim();
 
     if (!normalizedInput) return;
 
+    setImageError(null);
     onApply(normalizedInput, closePopover);
     setImageInput('');
+  };
+
+  /**
+   * 툴바 팝오버에서 이미지를 업로드하고, 삽입 전 검토할 수 있도록 URL 입력값에 채웁니다.
+   */
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setIsUploading(true);
+    setImageError(null);
+
+    try {
+      setImageInput(
+        await uploadEditorImage({
+          contentType,
+          file,
+          imageKind: 'content',
+        }),
+      );
+    } catch {
+      setImageError(EDITOR_ERROR_MESSAGE.imageUploadFailedWithRetry);
+    } finally {
+      setIsUploading(false);
+      event.target.value = '';
+    }
   };
 
   return (
@@ -46,15 +81,21 @@ export const ImageEmbedPopover = ({
     >
       {({ closePopover }) => (
         <div className={popoverContentClass}>
-          <Input
-            aria-label="이미지 URL"
-            onChange={event => setImageInput(event.target.value)}
-            onMouseDown={event => event.stopPropagation()}
-            placeholder="https://example.com/image.png"
-            type="url"
+          <ImageSourceField
+            error={imageError ?? undefined}
+            fileInputAriaLabel="이미지 파일 업로드"
+            inputId="markdown-toolbar-image-url"
+            isUploading={isUploading}
+            label="이미지"
+            onFileChange={handleFileChange}
+            onValueChange={value => setImageInput(value)}
+            previewAlt="삽입할 이미지 미리보기"
+            previewUrl={imageInput.trim()}
             value={imageInput}
           />
-          <Button onClick={() => handleApply(closePopover)}>삽입</Button>
+          <Button disabled={!imageInput.trim()} onClick={() => handleApply(closePopover)}>
+            삽입
+          </Button>
         </div>
       )}
     </Popover>

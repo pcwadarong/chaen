@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
@@ -11,8 +10,9 @@ import {
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
 import { normalizeSlugInput } from '@/shared/lib/editor/slug';
-import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
+import { uploadEditorImage } from '@/shared/lib/image/upload-editor-image';
 import { Button } from '@/shared/ui/button/button';
+import { ImageSourceField } from '@/shared/ui/image-source-field';
 import { Input } from '@/shared/ui/input/input';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { SlugInput } from '@/shared/ui/slug-input/slug-input';
@@ -104,50 +104,18 @@ const PublishThumbnailSectionBase = ({
   thumbnailPreviewUrl,
   thumbnailUrl,
 }: PublishThumbnailSectionProps) => (
-  <section className={sectionClass}>
-    <label className={fieldLabelClass} htmlFor="publish-panel-thumbnail-url">
-      썸네일
-    </label>
-    <div className={thumbnailRowClass}>
-      <Input
-        className={thumbnailInputClass}
-        id="publish-panel-thumbnail-url"
-        onChange={event => onThumbnailUrlChange(event.target.value)}
-        placeholder="https://example.com/thumbnail.png"
-        value={thumbnailUrl}
-      />
-      <label className={uploadButtonWrapClass}>
-        <span className={uploadButtonLabelClass}>
-          {isUploading ? '업로드 중...' : '파일 업로드'}
-        </span>
-        <input
-          accept="image/*"
-          aria-label="파일 업로드"
-          className={fileInputClass}
-          disabled={isUploading}
-          onChange={onFileChange}
-          type="file"
-        />
-      </label>
-    </div>
-    {error ? (
-      <p className={errorTextClass} role="alert">
-        {error}
-      </p>
-    ) : null}
-    {thumbnailPreviewUrl ? (
-      <div className={thumbnailPreviewFrameClass}>
-        <Image
-          alt="썸네일 미리보기"
-          className={thumbnailPreviewImageClass}
-          fill
-          sizes="(max-width: 480px) 100vw, 480px"
-          src={thumbnailPreviewUrl}
-          unoptimized
-        />
-      </div>
-    ) : null}
-  </section>
+  <ImageSourceField
+    error={error}
+    fileInputAriaLabel="파일 업로드"
+    inputId="publish-panel-thumbnail-url"
+    isUploading={isUploading}
+    label="썸네일"
+    onFileChange={onFileChange}
+    onValueChange={onThumbnailUrlChange}
+    previewAlt="썸네일 미리보기"
+    previewUrl={thumbnailPreviewUrl}
+    value={thumbnailUrl}
+  />
 );
 
 PublishThumbnailSectionBase.displayName = 'PublishThumbnailSection';
@@ -538,30 +506,17 @@ export const PublishPanel = ({
 
       if (!file) return;
 
-      const optimizedFile = await optimizeThumbnailImageFile(file);
-      const formData = new FormData();
-      formData.set('contentType', contentType);
-      formData.set('file', optimizedFile);
-
       setIsUploading(true);
       setErrors(previous => ({ ...previous, thumbnail: undefined }));
 
       try {
-        const response = await fetch('/api/images', {
-          body: formData,
-          method: 'POST',
-        });
-
-        const body = (await response.json()) as { error?: string; message?: string; url?: string };
-
-        if (!response.ok || !body.url) {
-          throw createEditorError(
-            'thumbnailUploadFailed',
-            body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.thumbnailUploadFailed,
-          );
-        }
-
-        setThumbnailUrl(body.url);
+        setThumbnailUrl(
+          await uploadEditorImage({
+            contentType,
+            file,
+            imageKind: 'thumbnail',
+          }),
+        );
       } catch {
         setErrors(previous => ({
           ...previous,
@@ -796,70 +751,6 @@ const helperTextClass = css({
   fontSize: 'sm',
   color: 'muted',
   lineHeight: 'relaxed',
-});
-
-const thumbnailRowClass = css({
-  display: 'flex',
-  alignItems: 'stretch',
-  gap: '3',
-  '@media (max-width: 480px)': {
-    flexDirection: 'column',
-  },
-});
-
-const thumbnailInputClass = css({
-  flex: '1',
-});
-
-const uploadButtonWrapClass = css({
-  position: 'relative',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '[fit-content]',
-  minHeight: '[2.375rem]',
-  px: '3',
-  borderRadius: 'full',
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  borderColor: 'border',
-  bg: 'surface',
-  color: 'text',
-  cursor: 'pointer',
-  flex: 'none',
-});
-
-const uploadButtonLabelClass = css({
-  fontSize: 'sm',
-  fontWeight: '[600]',
-});
-
-const fileInputClass = css({
-  position: 'absolute',
-  inset: '0',
-  opacity: '0',
-  cursor: 'pointer',
-});
-
-const thumbnailPreviewFrameClass = css({
-  position: 'relative',
-  overflow: 'hidden',
-  borderRadius: 'xl',
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  borderColor: 'border',
-  bg: {
-    base: 'gray.50',
-    _dark: 'gray.900',
-  },
-  minHeight: '[12rem]',
-});
-
-const thumbnailPreviewImageClass = css({
-  display: 'block',
-  width: 'full',
-  height: '[12rem]',
-  objectFit: 'cover',
 });
 
 const checkboxLabelClass = css({

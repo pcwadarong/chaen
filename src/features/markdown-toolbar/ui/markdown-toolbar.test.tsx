@@ -2,7 +2,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { MarkdownToolbar } from '@/features/markdown-toolbar/ui/markdown-toolbar';
+import { optimizeContentImageFile } from '@/shared/lib/image/optimize-content-image-file';
 import { Textarea } from '@/shared/ui/textarea/textarea';
+
+vi.mock('@/shared/lib/image/optimize-content-image-file', () => ({
+  optimizeContentImageFile: vi.fn(async (file: File) => file),
+}));
 
 /**
  * 툴바와 textarea를 함께 묶어 실제 편집 상호작용을 검증합니다.
@@ -13,7 +18,7 @@ const ToolbarHarness = () => {
 
   return (
     <>
-      <MarkdownToolbar onChange={setValue} textareaRef={textareaRef} />
+      <MarkdownToolbar contentType="article" onChange={setValue} textareaRef={textareaRef} />
       <Textarea
         aria-label="본문 입력"
         autoResize={false}
@@ -26,6 +31,11 @@ const ToolbarHarness = () => {
 };
 
 describe('MarkdownToolbar', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.mocked(optimizeContentImageFile).mockImplementation(async (file: File) => file);
+  });
+
   it('선택한 텍스트를 굵게 감싼다', async () => {
     render(<ToolbarHarness />);
 
@@ -123,7 +133,7 @@ describe('MarkdownToolbar', () => {
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
 
     fireEvent.click(screen.getByRole('button', { name: '이미지' }));
-    fireEvent.change(screen.getByRole('textbox', { name: '이미지 URL' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: '이미지' }), {
       target: { value: 'https://example.com/image.png' },
     });
     fireEvent.click(screen.getByRole('button', { name: '삽입' }));
@@ -131,6 +141,47 @@ describe('MarkdownToolbar', () => {
     await waitFor(() => {
       expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
     });
+  });
+
+  it('이미지 팝오버에서 파일 업로드 후 markdown 이미지 문법을 삽입한다', async () => {
+    const optimizedFile = new File(['compressed'], 'inline.webp', { type: 'image/webp' });
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      json: async () => ({ url: 'https://example.com/uploaded-inline.webp' }),
+      ok: true,
+    } as Response);
+    vi.mocked(optimizeContentImageFile).mockResolvedValue(optimizedFile);
+
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '이미지' }));
+    fireEvent.change(screen.getByLabelText('이미지 파일 업로드'), {
+      target: {
+        files: [new File(['binary'], 'inline.png', { type: 'image/png' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect((screen.getByRole('textbox', { name: '이미지' }) as HTMLInputElement).value).toBe(
+        'https://example.com/uploaded-inline.webp',
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('![이미지 설명](https://example.com/uploaded-inline.webp)');
+    });
+
+    const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
+
+    expect(optimizeContentImageFile).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'inline.png' }),
+    );
+    expect(formData.get('contentType')).toBe('article');
+    expect(formData.get('imageKind')).toBe('content');
+    expect(formData.get('file')).toBe(optimizedFile);
   });
 
   it('링크와 이미지 라벨은 선택한 공백을 그대로 유지한다', async () => {
@@ -154,7 +205,7 @@ describe('MarkdownToolbar', () => {
     textarea.setSelectionRange(0, textarea.value.length);
 
     fireEvent.click(screen.getByRole('button', { name: '이미지' }));
-    fireEvent.change(screen.getByRole('textbox', { name: '이미지 URL' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: '이미지' }), {
       target: { value: 'https://example.com/image.png' },
     });
     fireEvent.click(screen.getByRole('button', { name: '삽입' }));

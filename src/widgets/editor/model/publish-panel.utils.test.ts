@@ -51,7 +51,7 @@ describe('publish-panel utils', () => {
       settings: {
         allowComments: true,
         publishAt: '2026-03-12T23:59:59.000Z',
-        slug: 'Bad Slug',
+        slug: '!!!',
         thumbnailUrl: '',
         visibility: 'public',
       },

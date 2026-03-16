@@ -40,19 +40,31 @@ describe('uploadImageFile', () => {
     await uploadImageFile({
       contentType: 'project',
       file,
+      imageKind: 'thumbnail',
     });
 
-    expect(from).toHaveBeenCalledWith('projects');
+    expect(from).toHaveBeenCalledWith('project');
+    expect(upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^thumbnails\//),
+      file,
+      expect.any(Object),
+    );
   });
 
-  it('아티클 이미지는 article 버킷에 업로드한다', async () => {
+  it('본문 이미지는 images 경로에 업로드한다', async () => {
     const file = new File(['binary'], 'thumb.png', { type: 'image/png' });
 
     await uploadImageFile({
       contentType: 'article',
       file,
+      imageKind: 'content',
     });
 
     expect(from).toHaveBeenCalledWith('article');
+    expect(upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^images\//),
+      file,
+      expect.any(Object),
+    );
   });
 });
