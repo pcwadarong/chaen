@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -24,7 +24,7 @@ export type ArticlesPageProps = {
 };
 
 /** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
-export const ArticlesPage = async ({
+export const ArticlesPage = ({
   activeTag,
   feedLocale,
   initialCursor,
@@ -33,7 +33,7 @@ export const ArticlesPage = async ({
   popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
-  const t = await getTranslations({ locale, namespace: 'Articles' });
+  const t = useTranslations('Articles');
 
   return (
     <PageShell hideAppFrameFooter>

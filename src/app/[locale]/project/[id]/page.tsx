@@ -87,13 +87,20 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
  */
 const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archivePage, item } = await getProjectDetailPageData({
+  const { archivePage, item, tagLabels } = await getProjectDetailPageData({
     locale,
     projectSlug: id,
   });
   if (!item) notFound();
 
-  return <ProjectDetailPage archivePage={archivePage} item={item} locale={locale as AppLocale} />;
+  return (
+    <ProjectDetailPage
+      archivePage={archivePage}
+      item={item}
+      locale={locale as AppLocale}
+      tagLabels={tagLabels}
+    />
+  );
 };
 
 export default ProjectDetailRoute;

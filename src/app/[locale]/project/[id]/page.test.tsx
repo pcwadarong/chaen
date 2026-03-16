@@ -41,6 +41,7 @@ vi.mock('@/views/project', () => ({
       nextCursor: null,
     },
     item: null,
+    tagLabels: [],
   })),
   ProjectDetailPage: function ProjectDetailPage() {
     return null;
@@ -81,6 +82,7 @@ describe('ProjectDetailRoute', () => {
         created_at: '2026-03-01T00:00:00.000Z',
         publish_at: '2026-03-01T00:00:00.000Z',
       },
+      tagLabels: ['Supabase'],
     });
 
     const element = await ProjectDetailRoute({
@@ -139,6 +141,7 @@ describe('ProjectDetailRoute', () => {
         nextCursor: null,
       },
       item: null,
+      tagLabels: [],
     });
 
     await expect(

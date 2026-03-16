@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -13,7 +13,6 @@ import type {
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import {
   resolvePublicContentPathSegment,
@@ -33,25 +32,12 @@ type ArticleDetailPageProps = {
   item: Article;
   locale: AppLocale;
   relatedArticles: ArticleListItemModel[];
+  tagLabels: string[];
 };
 
 type RelatedArticlesSectionProps = {
   items: ArticleListItemModel[];
   title: string;
-};
-
-/**
- * 아티클에 연결된 태그 목록을 locale에 맞는 라벨로 변환합니다.
- */
-const getArticleTagLabels = async (item: Article, locale: string) => {
-  const tagLabelMap = await getTagLabelMapBySlugs({
-    locale,
-    slugs: item.tags ?? [],
-  });
-
-  if (tagLabelMap.schemaMissing) return item.tags ?? [];
-
-  return (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
 };
 
 /**
@@ -76,20 +62,17 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
   );
 };
 
-/**
- * 아티클 상세 페이지 컨테이너입니다.
- */
-export const ArticleDetailPage = async ({
+export const ArticleDetailPage = ({
   archivePage,
   item,
   locale,
   relatedArticles,
+  tagLabels,
 }: ArticleDetailPageProps) => {
-  const t = await getTranslations('ArticleDetail');
-  const articlesT = await getTranslations('Articles');
-  const detailUi = await getTranslations('DetailUi');
-  const navigationT = await getTranslations('Navigation');
-  const tagLabels = await getArticleTagLabels(item, locale);
+  const t = useTranslations('ArticleDetail');
+  const articlesT = useTranslations('Articles');
+  const detailUi = useTranslations('DetailUi');
+  const navigationT = useTranslations('Navigation');
   if (!item.publish_at) {
     throw new Error(`[articles] 공개 아티클 publish_at이 없습니다. id=${item.id}`);
   }

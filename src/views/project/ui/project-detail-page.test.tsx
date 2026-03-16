@@ -2,13 +2,13 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn(async () => (key: string) => {
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
     if (key === 'periodLabel') return 'work period';
     if (key === 'ongoing') return 'Ongoing';
 
     return key;
-  }),
+  },
 }));
 
 vi.mock('@/i18n/navigation', () => ({
@@ -33,7 +33,7 @@ vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
  */
 const renderServerHtml = async () => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
-  const element = await ProjectDetailPage({
+  const element = ProjectDetailPage({
     archivePage: {
       items: [],
       nextCursor: null,
@@ -52,6 +52,7 @@ const renderServerHtml = async () => {
       thumbnail_url: null,
     },
     locale: 'en',
+    tagLabels: ['React'],
   });
   const stream = await renderToReadableStream(element);
 

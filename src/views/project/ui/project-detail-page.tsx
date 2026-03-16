@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -7,7 +7,6 @@ import {
   getProjectDetailArchivePageAction,
 } from '@/entities/project/api/mutations/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
@@ -23,32 +22,28 @@ type ProjectDetailPageProps = {
   archivePage: ProjectArchivePage;
   item: Project;
   locale: AppLocale;
+  tagLabels: string[];
 };
 
 /**
  * 프로젝트 상세 페이지 컨테이너입니다.
  */
-export const ProjectDetailPage = async ({ archivePage, item, locale }: ProjectDetailPageProps) => {
-  const t = await getTranslations('ProjectDetail');
-  const projectT = await getTranslations('Project');
-  const detailUi = await getTranslations('DetailUi');
-  const navigationT = await getTranslations('Navigation');
+export const ProjectDetailPage = ({
+  archivePage,
+  item,
+  locale,
+  tagLabels,
+}: ProjectDetailPageProps) => {
+  const t = useTranslations('ProjectDetail');
+  const projectT = useTranslations('Project');
+  const detailUi = useTranslations('DetailUi');
+  const navigationT = useTranslations('Navigation');
 
   if (!item.publish_at) {
     throw new Error(`[projects] 공개 프로젝트 publish_at이 없습니다. id=${item.id}`);
   }
 
   const periodText = formatProjectPeriod(item, locale, t('ongoing'));
-  const tagLabelMap = await getTagLabelMapBySlugs({
-    locale,
-    slugs: item.tags ?? [],
-  });
-
-  if (tagLabelMap.schemaMissing) {
-    throw new Error('[projects] 태그 label schema가 없습니다.');
-  }
-
-  const tagLabels = (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
   const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({
     locale,

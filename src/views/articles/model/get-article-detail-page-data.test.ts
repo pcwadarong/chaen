@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
 import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { getArticleDetailPageData } from '@/views/articles/model/get-article-detail-page-data';
 
@@ -16,6 +17,10 @@ vi.mock('@/entities/article/api/detail/get-related-articles', () => ({
 
 vi.mock('@/entities/article/api/detail/get-article-detail-list', () => ({
   getArticleDetailList: vi.fn(),
+}));
+
+vi.mock('@/entities/tag/api/query-tags', () => ({
+  getTagLabelMapBySlugs: vi.fn(),
 }));
 
 describe('getArticleDetailPageData', () => {
@@ -47,6 +52,10 @@ describe('getArticleDetailPageData', () => {
       resolvedLocale: 'en',
     });
     vi.mocked(getRelatedArticles).mockResolvedValue([]);
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map<string, string>([['react', 'React']]),
+      schemaMissing: false,
+    });
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [
         {
@@ -75,6 +84,7 @@ describe('getArticleDetailPageData', () => {
     );
     expect(result.item?.id).toBe('frontend');
     expect(result.relatedArticles).toEqual([]);
+    expect(result.tagLabels).toEqual([]);
     expect(getRelatedArticles).toHaveBeenCalledWith({
       articleId: 'frontend',
       locale: 'en',
@@ -85,6 +95,10 @@ describe('getArticleDetailPageData', () => {
     vi.mocked(getResolvedArticle).mockResolvedValue({
       item: null,
       resolvedLocale: null,
+    });
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map(),
+      schemaMissing: false,
     });
     vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
 
@@ -110,7 +124,7 @@ describe('getArticleDetailPageData', () => {
         description: 'cs',
         content: 'detail',
         thumbnail_url: null,
-        tags: [],
+        tags: ['react'],
         created_at: '2026-03-01T00:00:00.000Z',
         publish_at: '2026-03-01T00:00:00.000Z',
         slug: 'archive-1',
@@ -129,6 +143,10 @@ describe('getArticleDetailPageData', () => {
         slug: 'archive-2',
       },
     ]);
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map<string, string>([['react', 'React']]),
+      schemaMissing: false,
+    });
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [
         {
@@ -150,6 +168,7 @@ describe('getArticleDetailPageData', () => {
     expect(result.archivePage.nextCursor).toBe(nextCursor);
     expect(result.archivePage.items).toHaveLength(1);
     expect(result.relatedArticles[0]?.id).toBe('archive-2');
+    expect(result.tagLabels).toEqual(['React']);
   });
 
   it('관련 글 조회 실패는 빈 목록으로 대체한다', async () => {
@@ -160,7 +179,7 @@ describe('getArticleDetailPageData', () => {
         description: 'cs',
         content: 'detail',
         thumbnail_url: null,
-        tags: [],
+        tags: ['react'],
         created_at: '2026-03-02T00:00:00.000Z',
         publish_at: '2026-03-02T00:00:00.000Z',
         slug: 'frontend',
@@ -170,6 +189,10 @@ describe('getArticleDetailPageData', () => {
       resolvedLocale: 'ko',
     });
     vi.mocked(getRelatedArticles).mockRejectedValue(new Error('rpc failed'));
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map(),
+      schemaMissing: true,
+    });
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [],
       nextCursor: null,
@@ -181,5 +204,6 @@ describe('getArticleDetailPageData', () => {
     });
 
     expect(result.relatedArticles).toEqual([]);
+    expect(result.tagLabels).toEqual(['react']);
   });
 });

@@ -7,6 +7,7 @@ import type {
   ArticleDetailListItem,
   ArticleListItem,
 } from '@/entities/article/model/types';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetArticleDetailPageDataInput = {
@@ -18,6 +19,7 @@ type ArticleDetailPageData = {
   archivePage: ArticleArchivePage;
   item: Article | null;
   relatedArticles: ArticleListItem[];
+  tagLabels: string[];
 };
 
 /**
@@ -48,6 +50,24 @@ const ensureCurrentArticleInArchive = (
   );
 
 /**
+ * 상세 아티클 태그를 locale 기준 표시 라벨로 변환합니다.
+ */
+const getArticleTagLabels = async (item: Article | null, locale: string): Promise<string[]> => {
+  const tags = item?.tags ?? [];
+
+  if (tags.length === 0) return [];
+
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: tags,
+  });
+
+  if (tagLabelMap.schemaMissing) return tags;
+
+  return tags.map(tag => tagLabelMap.data.get(tag) ?? tag);
+};
+
+/**
  * 아티클 상세 페이지에 필요한 데이터 묶음을 조회합니다.
  */
 export const getArticleDetailPageData = async ({
@@ -66,10 +86,12 @@ export const getArticleDetailPageData = async ({
         }).catch(() => [])
       : Promise.resolve([]),
   ]);
+  const tagLabels = await getArticleTagLabels(item, locale);
 
   return {
     archivePage: ensureCurrentArticleInArchive(item, archivePage),
     item,
     relatedArticles,
+    tagLabels,
   };
 };

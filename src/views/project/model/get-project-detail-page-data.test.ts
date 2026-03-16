@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 
 import { getProject } from '@/entities/project/api/detail/get-project';
 import { getProjectDetailList } from '@/entities/project/api/detail/get-project-detail-list';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { getProjectDetailPageData } from '@/views/project/model/get-project-detail-page-data';
 
@@ -11,6 +12,10 @@ vi.mock('@/entities/project/api/detail/get-project', () => ({
 
 vi.mock('@/entities/project/api/detail/get-project-detail-list', () => ({
   getProjectDetailList: vi.fn(),
+}));
+
+vi.mock('@/entities/tag/api/query-tags', () => ({
+  getTagLabelMapBySlugs: vi.fn(),
 }));
 
 describe('getProjectDetailPageData', () => {
@@ -35,6 +40,10 @@ describe('getProjectDetailPageData', () => {
       created_at: '2026-03-02T00:00:00.000Z',
       publish_at: '2026-03-02T00:00:00.000Z',
       slug: 'funda',
+    });
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map(),
+      schemaMissing: false,
     });
     vi.mocked(getProjectDetailList).mockResolvedValue({
       items: [
@@ -63,10 +72,15 @@ describe('getProjectDetailPageData', () => {
       }),
     );
     expect(result.item?.id).toBe('funda');
+    expect(result.tagLabels).toEqual([]);
   });
 
   it('아카이브 목록 조회 실패는 그대로 surface한다', async () => {
     vi.mocked(getProject).mockResolvedValue(null);
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map(),
+      schemaMissing: false,
+    });
     vi.mocked(getProjectDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
@@ -90,10 +104,14 @@ describe('getProjectDetailPageData', () => {
       description: 'cs',
       content: 'detail',
       thumbnail_url: null,
-      tags: [],
+      tags: ['react'],
       created_at: '2026-03-01T00:00:00.000Z',
       publish_at: '2026-03-01T00:00:00.000Z',
       slug: 'archive-1',
+    });
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map<string, string>([['react', 'React']]),
+      schemaMissing: false,
     });
     vi.mocked(getProjectDetailList).mockResolvedValue({
       items: [
@@ -115,5 +133,6 @@ describe('getProjectDetailPageData', () => {
 
     expect(result.archivePage.nextCursor).toBe(nextCursor);
     expect(result.archivePage.items).toHaveLength(1);
+    expect(result.tagLabels).toEqual(['React']);
   });
 });

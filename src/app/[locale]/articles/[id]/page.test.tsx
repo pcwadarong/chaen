@@ -42,6 +42,7 @@ vi.mock('@/views/articles', () => ({
     },
     item: null,
     relatedArticles: [],
+    tagLabels: [],
   })),
   ArticleDetailPage: function ArticleDetailPage() {
     return null;
@@ -72,6 +73,7 @@ describe('ArticleDetailRoute', () => {
         nextCursor: null,
       },
       relatedArticles: [],
+      tagLabels: ['React'],
       item: {
         id: 'frontend-performance',
         slug: 'frontend-performance-slug',
@@ -141,6 +143,7 @@ describe('ArticleDetailRoute', () => {
         nextCursor: null,
       },
       relatedArticles: [],
+      tagLabels: [],
       item: null,
     });
 
