@@ -2,9 +2,10 @@ import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
 import { getResolvedArticle } from '@/entities/article/api/get-article';
+import { getArticleStaticParams } from '@/entities/article/api/get-article-static-params';
 import { getArticleDetailPageData } from '@/views/articles';
 
-import ArticleDetailRoute, { generateMetadata } from './page';
+import ArticleDetailRoute, { generateMetadata, generateStaticParams } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -25,6 +26,10 @@ vi.mock('@/entities/article/api/get-article', () => ({
     item: null,
     resolvedLocale: null,
   })),
+}));
+
+vi.mock('@/entities/article/api/get-article-static-params', () => ({
+  getArticleStaticParams: vi.fn(async () => []),
 }));
 
 vi.mock('@/views/articles', () => ({
@@ -58,6 +63,12 @@ describe('ArticleDetailRoute', () => {
 
   afterEach(() => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
+  it('공개 아티클 slug를 정적 params로 반환한다', async () => {
+    vi.mocked(getArticleStaticParams).mockResolvedValueOnce([{ id: 'article-1' }]);
+
+    await expect(generateStaticParams()).resolves.toEqual([{ id: 'article-1' }]);
   });
 
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {

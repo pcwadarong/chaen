@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import { getResolvedProject } from '@/entities/project/api/get-project';
+import { getProjectStaticParams } from '@/entities/project/api/get-project-static-params';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
@@ -13,6 +14,11 @@ import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { getProjectDetailPageData, ProjectDetailPage } from '@/views/project';
 
 export const revalidate = 3600;
+
+/**
+ * 공개 프로젝트 상세 slug를 정적으로 생성합니다.
+ */
+export const generateStaticParams = async () => getProjectStaticParams();
 
 type ProjectDetailRouteProps = {
   params: Promise<{

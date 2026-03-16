@@ -2,9 +2,10 @@ import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
 import { getResolvedProject } from '@/entities/project/api/get-project';
+import { getProjectStaticParams } from '@/entities/project/api/get-project-static-params';
 import { getProjectDetailPageData } from '@/views/project';
 
-import ProjectDetailRoute, { generateMetadata } from './page';
+import ProjectDetailRoute, { generateMetadata, generateStaticParams } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -25,6 +26,10 @@ vi.mock('@/entities/project/api/get-project', () => ({
     item: null,
     resolvedLocale: null,
   })),
+}));
+
+vi.mock('@/entities/project/api/get-project-static-params', () => ({
+  getProjectStaticParams: vi.fn(async () => []),
 }));
 
 vi.mock('@/views/project', () => ({
@@ -49,6 +54,12 @@ describe('ProjectDetailRoute', () => {
 
   afterEach(() => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+  });
+
+  it('공개 프로젝트 slug를 정적 params로 반환한다', async () => {
+    vi.mocked(getProjectStaticParams).mockResolvedValueOnce([{ id: 'project-1' }]);
+
+    await expect(generateStaticParams()).resolves.toEqual([{ id: 'project-1' }]);
   });
 
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
