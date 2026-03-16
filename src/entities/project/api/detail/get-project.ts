@@ -2,13 +2,13 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   mapProject,
-  type ProjectTranslationRow,
+  mapProjectFallbackRpcRow,
+  type ProjectTranslationFallbackRpcRow,
 } from '@/entities/project/api/shared/map-project-translation';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { Project } from '@/entities/project/model/types';
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
-import { resolveFirstAvailableLocaleEntry } from '@/shared/lib/i18n/resolved-locale';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -29,16 +29,18 @@ type ProjectContentSchemaError = {
 };
 
 const isMissingProjectContentSchemaError = ({ code, message }: ProjectContentSchemaError) => {
-  if (code) return code === '42P01';
+  if (code) return code === '42883' || code === '42P01' || code === 'PGRST202';
 
   const normalizedMessage = message.toLowerCase();
-  // 프로젝트 content schema는 `projects` 테이블과 `project_translations` 테이블로 구성되어 있어서 둘 중 하나라도 없으면 조회가 불가능합니다.
+  const hasMissingObjectText = normalizedMessage.includes('does not exist');
   const missingProjectTranslationsRelationPattern =
     /relation\s+["']?(?:public\.)?project_translations["']?\s+does not exist/i;
   const missingProjectsRelationPattern =
     /relation\s+["']?(?:public\.)?projects["']?\s+does not exist/i;
+  const missingProjectFallbackFunctionPattern = /get_project_translation_with_fallback/i;
 
   return (
+    (hasMissingObjectText && missingProjectFallbackFunctionPattern.test(normalizedMessage)) ||
     missingProjectTranslationsRelationPattern.test(normalizedMessage) ||
     missingProjectsRelationPattern.test(normalizedMessage)
   );
@@ -81,35 +83,55 @@ const resolveProjectLookup = async (
 };
 
 /**
- * content schema(`projects` + `project_translations`)에서 locale별 단일 프로젝트를 조회합니다.
+ * content schema RPC에서 fallback 우선순위가 반영된 단일 프로젝트 번역을 조회합니다.
  */
 const fetchProjectFromContentSchema = async (
   projectId: string,
-  locale: string,
-): Promise<{ data: Project | null; schemaMissing: boolean }> => {
+  localeFallbackChain: string[],
+): Promise<{ data: ResolvedProject; schemaMissing: boolean }> => {
   const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: null, schemaMissing: false };
+  if (!supabase) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
 
-  const { data: translation, error: translationError } = await supabase
-    .from('project_translations')
-    .select(
-      'project_id,title,description,content,projects!inner(id,thumbnail_url,created_at,period_start,period_end,slug,visibility,allow_comments,publish_at)',
-    )
-    .eq('project_id', projectId)
-    .eq('locale', locale)
-    .eq('projects.visibility', 'public')
-    .lte('projects.publish_at', new Date().toISOString())
-    .not('projects.publish_at', 'is', null)
-    .maybeSingle<ProjectTranslationRow>();
+  const { data: translationRows, error: translationError } = await supabase.rpc(
+    'get_project_translation_with_fallback',
+    {
+      fallback_locales: localeFallbackChain,
+      target_project_id: projectId,
+    },
+  );
 
   if (translationError) {
-    if (isMissingProjectContentSchemaError(translationError))
-      return { data: null, schemaMissing: true };
+    if (isMissingProjectContentSchemaError(translationError)) {
+      return {
+        data: {
+          item: null,
+          resolvedLocale: null,
+        },
+        schemaMissing: true,
+      };
+    }
 
     throw new Error(`[projects] 번역 조회 실패: ${translationError.message}`);
   }
 
-  if (!translation) return { data: null, schemaMissing: false };
+  const translation = (translationRows ?? [])[0] as ProjectTranslationFallbackRpcRow | undefined;
+  if (!translation) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
 
   const relatedTags = await getRelatedTagSlugs({
     entityColumn: 'project_id',
@@ -119,16 +141,27 @@ const fetchProjectFromContentSchema = async (
   if (relatedTags.schemaMissing) throw new Error('[projects] 태그 relation schema가 없습니다.');
 
   return {
-    data: mapProject(translation, relatedTags.data),
+    data: {
+      item: mapProject(mapProjectFallbackRpcRow(translation), relatedTags.data),
+      resolvedLocale: translation.locale.toLowerCase(),
+    },
     schemaMissing: false,
   };
 };
 
-const fetchProjectByLocale = async (projectId: string, locale: string): Promise<Project | null> => {
-  const projectResult = await fetchProjectFromContentSchema(projectId, locale);
-  if (projectResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
+/**
+ * locale fallback 체인으로 단일 프로젝트를 조회합니다.
+ */
+const fetchProjectByLocaleFallbackChain = async (
+  projectId: string,
+  localeFallbackChain: string[],
+): Promise<ResolvedProject> => {
+  const resolvedProjectResult = await fetchProjectFromContentSchema(projectId, localeFallbackChain);
+  if (resolvedProjectResult.schemaMissing) {
+    throw new Error('[projects] content schema가 없습니다.');
+  }
 
-  return projectResult.data;
+  return resolvedProjectResult.data;
 };
 
 /**
@@ -152,17 +185,16 @@ const readCachedProject = async (
   }
 
   const resolvedProjectId = projectLookup.data.id;
-  const resolvedProject = await resolveFirstAvailableLocaleEntry({
-    fetchByLocale: locale => fetchProjectByLocale(resolvedProjectId, locale),
-    hasValue: value => Boolean(value),
-    locales: buildContentLocaleFallbackChain(normalizedLocale),
-  });
+  const resolvedProject = await fetchProjectByLocaleFallbackChain(
+    resolvedProjectId,
+    buildContentLocaleFallbackChain(normalizedLocale),
+  );
 
   cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(resolvedProjectId));
 
   return {
-    item: resolvedProject?.value ?? null,
-    resolvedLocale: resolvedProject?.locale ?? null,
+    item: resolvedProject.item,
+    resolvedLocale: resolvedProject.resolvedLocale,
   };
 };
 

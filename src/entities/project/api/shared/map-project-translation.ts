@@ -20,12 +20,18 @@ type ProjectBaseFields = Pick<
 type EmbeddedProjectBaseRow = ProjectBaseFields | ProjectBaseFields[] | null;
 
 type ProjectTranslationFields = Pick<Project, 'content' | 'description' | 'title'> & {
+  locale: string;
   project_id: string;
 };
 
 export type ProjectTranslationRow = ProjectTranslationFields & {
   projects: EmbeddedProjectBaseRow;
 };
+
+export type ProjectTranslationFallbackRpcRow = ProjectTranslationFields &
+  ProjectBaseFields & {
+    locale: string;
+  };
 
 /**
  * PostgREST의 to-one embed 결과를 단일 프로젝트 base row로 정규화합니다.
@@ -138,3 +144,30 @@ export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project 
     visibility: projectBase.visibility,
   };
 };
+
+/**
+ * fallback RPC의 평탄한 응답을 기존 mapper 입력 shape로 변환합니다.
+ *
+ * @param row - `get_project_translation_with_fallback` RPC 반환 행
+ * @returns 기존 mapper와 호환되는 translation row
+ */
+export const mapProjectFallbackRpcRow = (
+  row: ProjectTranslationFallbackRpcRow,
+): ProjectTranslationRow => ({
+  content: row.content,
+  description: row.description,
+  locale: row.locale,
+  project_id: row.project_id,
+  projects: {
+    allow_comments: row.allow_comments,
+    created_at: row.created_at,
+    id: row.id,
+    period_end: row.period_end,
+    period_start: row.period_start,
+    publish_at: row.publish_at,
+    slug: row.slug,
+    thumbnail_url: row.thumbnail_url,
+    visibility: row.visibility,
+  },
+  title: row.title,
+});
