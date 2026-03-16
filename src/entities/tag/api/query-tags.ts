@@ -1,8 +1,7 @@
+import type { TagOption } from '@/entities/tag/api/tag.types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
-
-import type { TagOption } from './tag.types';
 
 type TagSchemaResult<T> = {
   data: T;

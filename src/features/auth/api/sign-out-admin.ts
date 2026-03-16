@@ -3,13 +3,12 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { isSafeRedirectPath } from '@/features/auth/api/is-safe-redirect-path';
 import { AUTH_ACTION_ERROR_CODE } from '@/features/auth/model/auth-action-error';
 import { type ActionResult, createActionFailure } from '@/shared/lib/action/action-result';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
-
-import { isSafeRedirectPath } from './is-safe-redirect-path';
 
 const signOutAdminSchema = z.object({
   redirectPath: z

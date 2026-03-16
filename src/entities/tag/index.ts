@@ -1,2 +1,6 @@
-export { getTagLabelMapBySlugs, getTagOptionsByLocale, getTagSlugMap } from './api/query-tags';
-export type { TagOption } from './api/tag.types';
+export {
+  getTagLabelMapBySlugs,
+  getTagOptionsByLocale,
+  getTagSlugMap,
+} from '@/entities/tag/api/query-tags';
+export type { TagOption } from '@/entities/tag/api/tag.types';

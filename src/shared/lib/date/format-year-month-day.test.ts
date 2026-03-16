@@ -1,4 +1,4 @@
-import { formatYearMonthDay } from './format-year-month-day';
+import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 
 describe('formatYearMonthDay', () => {
   it('날짜를 YYYY-MM-DD 형식으로 변환한다', () => {

@@ -3,7 +3,7 @@ export type {
   ResumeEditorSeed,
   ResumeEditorState,
   ResumePublishSettings,
-} from './model/resume-editor.types';
+} from '@/entities/resume/model/resume-editor.types';
 export {
   createDefaultResumeEditorContentMap,
   getResumeEditorSavedAt,
@@ -11,11 +11,11 @@ export {
   normalizeResumeEditorContentMap,
   toResumeEditorContent,
   validateResumePublishState,
-} from './model/resume-editor.utils';
+} from '@/entities/resume/model/resume-editor.utils';
 export {
   createResumeEditorError,
   parseResumeEditorError,
   resolveResumeEditorErrorMessage,
   resolveResumePublishInlineErrorField,
   RESUME_EDITOR_ERROR_MESSAGE,
-} from './model/resume-editor-error';
+} from '@/entities/resume/model/resume-editor-error';

@@ -1,6 +1,5 @@
-import { getProjects } from '@/entities/project/api/get-projects';
-
-import type { HomePageProps } from '../ui/home-page';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import type { HomePageProps } from '@/views/home/ui/home-page';
 
 type GetHomePageDataInput = {
   locale: string;

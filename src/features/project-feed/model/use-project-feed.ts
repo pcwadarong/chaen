@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 
-import { getProjectsPageAction } from '@/entities/project/api/project-actions';
+import { getProjectsPageAction } from '@/entities/project/api/mutations/project-actions';
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';

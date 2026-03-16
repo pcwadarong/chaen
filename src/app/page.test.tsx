@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import RootPage from './page';
+import RootPage from '@/app/page';
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),

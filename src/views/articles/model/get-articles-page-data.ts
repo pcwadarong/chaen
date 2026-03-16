@@ -1,10 +1,12 @@
-import { getArticles, getResolvedArticlesFirstPage } from '@/entities/article/api/get-articles';
-import { getPopularArticleTags } from '@/entities/article/api/get-popular-article-tags';
+import {
+  getArticles,
+  getResolvedArticlesFirstPage,
+} from '@/entities/article/api/list/get-articles';
+import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-
-import type { ArticlesPageProps } from '../ui/articles-page';
+import type { ArticlesPageProps } from '@/views/articles/ui/articles-page';
 
 type GetArticlesPageDataInput = {
   locale: string;

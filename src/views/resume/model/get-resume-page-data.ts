@@ -5,8 +5,7 @@ import {
   getPdfFileStorageConfig,
 } from '@/entities/pdf-file/model/config';
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file/model/download-path';
-
-import type { ResumePageProps } from '../ui/resume-page';
+import type { ResumePageProps } from '@/views/resume/ui/resume-page';
 
 type GetResumePageDataInput = {
   locale: string;

@@ -1,11 +1,13 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getResolvedArticle } from '@/entities/article/api/get-article';
-import { getArticleStaticParams } from '@/entities/article/api/get-article-static-params';
+import ArticleDetailRoute, {
+  generateMetadata,
+  generateStaticParams,
+} from '@/app/[locale]/articles/[id]/page';
+import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
+import { getArticleStaticParams } from '@/entities/article/api/detail/get-article-static-params';
 import { getArticleDetailPageData } from '@/views/articles';
-
-import ArticleDetailRoute, { generateMetadata, generateStaticParams } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -21,14 +23,14 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
-vi.mock('@/entities/article/api/get-article', () => ({
+vi.mock('@/entities/article/api/detail/get-article', () => ({
   getResolvedArticle: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
   })),
 }));
 
-vi.mock('@/entities/article/api/get-article-static-params', () => ({
+vi.mock('@/entities/article/api/detail/get-article-static-params', () => ({
   getArticleStaticParams: vi.fn(async () => []),
 }));
 

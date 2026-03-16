@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 
+import AdminResumeEditRoute, { metadata } from '@/app/[locale]/admin/resume/edit/page';
 import { getResumeEditorSeed } from '@/entities/resume/api/resume-editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import AdminResumeEditRoute, { metadata } from './page';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),

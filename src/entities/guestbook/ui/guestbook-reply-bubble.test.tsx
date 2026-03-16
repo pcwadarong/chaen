@@ -2,8 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { GuestbookEntry } from '@/entities/guestbook/model/types';
-
-import { GuestbookReplyBubble } from './guestbook-reply-bubble';
+import { GuestbookReplyBubble } from '@/entities/guestbook/ui/guestbook-reply-bubble';
 
 const authState = {
   isAdmin: false,

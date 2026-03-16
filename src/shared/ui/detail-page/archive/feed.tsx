@@ -12,13 +12,12 @@ import { formatYear } from '@/shared/lib/date/format-year';
 import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
-
 import {
   type DetailArchiveLinkItem,
   DetailArchiveList,
   detailArchiveSidebarViewportClass,
-} from './list';
+} from '@/shared/ui/detail-page/archive/list';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type DetailArchiveRecord = {
   description: string | null;

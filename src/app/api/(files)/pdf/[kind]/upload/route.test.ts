@@ -1,9 +1,8 @@
 import { vi } from 'vitest';
 
+import { POST } from '@/app/api/(files)/pdf/[kind]/upload/route';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import { POST } from './route';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   AdminAuthorizationError: class AdminAuthorizationError extends Error {},

@@ -1,14 +1,14 @@
-import { getResolvedArticle } from '@/entities/article/api/get-article';
-import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
-import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
+import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
+import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
+import { getArticleComments } from '@/entities/article/comment';
+import type { ArticleCommentPage } from '@/entities/article/comment/model';
 import type {
   Article,
   ArticleArchivePage,
   ArticleDetailListItem,
   ArticleListItem,
 } from '@/entities/article/model/types';
-import { getArticleComments } from '@/entities/article-comment';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetArticleDetailPageDataInput = {

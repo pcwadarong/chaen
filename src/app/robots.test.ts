@@ -1,4 +1,4 @@
-import robots from './robots';
+import robots from '@/app/robots';
 
 describe('robots', () => {
   const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;

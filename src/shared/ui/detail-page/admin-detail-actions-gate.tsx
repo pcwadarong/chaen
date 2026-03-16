@@ -1,8 +1,7 @@
 'use client';
 
 import { useAuth } from '@/shared/providers';
-
-import { AdminDetailActions } from './admin-detail-actions';
+import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
 
 type AdminDetailActionsGateProps = {
   deleteAction: () => Promise<void>;

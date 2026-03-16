@@ -1,10 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { getArticleCommentsPageAction } from '@/entities/article-comment/api/article-comment-actions';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-
-import { ArticleCommentsSection } from './article-comments-section';
+import { getArticleCommentsPageAction } from '@/entities/article/comment/api/article-comment-actions';
+import type { ArticleCommentPage } from '@/entities/article/comment/model';
+import { ArticleCommentsSection } from '@/widgets/article-comments/ui/article-comments-section';
 
 const composeFormSpy = vi.fn();
 const actionPopoverRenderCount = vi.hoisted(() => ({
@@ -21,7 +20,7 @@ vi.mock('next-intl', () => ({
   },
 }));
 
-vi.mock('@/entities/article-comment/api/article-comment-actions', () => ({
+vi.mock('@/entities/article/comment/api/article-comment-actions', () => ({
   deleteArticleCommentAction: vi.fn(),
   getArticleCommentsPageAction: vi.fn(),
   initialSubmitArticleCommentState: {

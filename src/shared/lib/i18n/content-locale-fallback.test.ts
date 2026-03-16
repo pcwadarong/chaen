@@ -1,7 +1,7 @@
 import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
-} from './content-locale-fallback';
+} from '@/shared/lib/i18n/content-locale-fallback';
 
 describe('buildContentLocaleFallbackChain', () => {
   it('요청 locale을 첫 후보로 두고 중복 없이 fallback 순서를 만든다', () => {

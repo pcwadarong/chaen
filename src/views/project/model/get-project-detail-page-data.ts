@@ -1,5 +1,5 @@
-import { getProject } from '@/entities/project/api/get-project';
-import { getProjectDetailList } from '@/entities/project/api/get-project-detail-list';
+import { getProject } from '@/entities/project/api/detail/get-project';
+import { getProjectDetailList } from '@/entities/project/api/detail/get-project-detail-list';
 import type {
   Project,
   ProjectArchivePage,

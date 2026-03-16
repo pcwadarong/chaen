@@ -2,7 +2,7 @@ import {
   createActionFailure,
   createActionSuccess,
   createInitialActionResult,
-} from './action-result';
+} from '@/shared/lib/action/action-result';
 
 describe('action-result', () => {
   it('초기 결과를 공통 계약 형태로 생성한다', () => {

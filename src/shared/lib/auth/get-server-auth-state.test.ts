@@ -1,8 +1,7 @@
 import { vi } from 'vitest';
 
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
-
-import { getServerAuthState } from './get-server-auth-state';
 
 vi.mock('@/shared/lib/supabase/config', () => ({
   getSupabaseAdminEnvOptional: vi.fn(() => ({

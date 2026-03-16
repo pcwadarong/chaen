@@ -1,1 +1,1 @@
-export { ArticleCommentsSection } from './ui/article-comments-section';
+export { ArticleCommentsSection } from '@/widgets/article-comments/ui/article-comments-section';

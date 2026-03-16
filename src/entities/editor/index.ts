@@ -1,23 +1,23 @@
-export { checkSlugDuplicate } from './api/check-slug-duplicate';
-export type { EditorDraftSummary, EditorSeed } from './api/editor.types';
+export { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
+export type { EditorDraftSummary, EditorSeed } from '@/entities/editor/api/editor.types';
 export {
   deleteEditorDraftAction,
   publishEditorContentAction,
   saveEditorDraftAction,
-} from './api/editor-actions';
+} from '@/entities/editor/api/editor-actions';
 export {
   createEditorSeed,
   getEditorDraftSeed,
   getEditorDraftSummaries,
   getEditorSeed,
-} from './api/editor-read';
+} from '@/entities/editor/api/editor-read';
 export {
   createEditorError,
   EDITOR_ERROR_MESSAGE,
   parseEditorError,
   resolveEditorErrorMessage,
   resolveEditorPublishInlineErrorField,
-} from './model/editor-error';
+} from '@/entities/editor/model/editor-error';
 export {
   createEmptyTranslations,
   formatSavedAtLabel,
@@ -25,7 +25,7 @@ export {
   normalizeEditorState,
   normalizeTagSlugs,
   validateEditorState,
-} from './model/editor-state-utils';
+} from '@/entities/editor/model/editor-state-utils';
 export {
   type DraftSaveResult,
   EDITOR_LOCALES,
@@ -38,12 +38,12 @@ export {
   type PublishSettings,
   type PublishVisibility,
   type TranslationField,
-} from './model/editor-types';
+} from '@/entities/editor/model/editor-types';
 export {
   buildEditorLinkInsertion,
   createMarkdownLink,
   createMarkdownLinkByMode,
-} from './model/markdown-link';
+} from '@/entities/editor/model/markdown-link';
 export {
   applyTextareaTransform,
   continueMarkdownList,
@@ -56,4 +56,4 @@ export {
   restoreCursor,
   toggleHeadingLine,
   wrapSelection,
-} from './model/selection-utils';
+} from '@/entities/editor/model/selection-utils';

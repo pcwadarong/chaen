@@ -1,4 +1,4 @@
-import { buildGlobalNavigationItems } from './build-navigation-items';
+import { buildGlobalNavigationItems } from '@/widgets/global-nav/model/build-navigation-items';
 
 const labels = {
   admin: '관리자',

@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 
-import { useOffsetPaginationFeed } from './use-offset-pagination-feed';
+import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 
 describe('useOffsetPaginationFeed', () => {
   afterEach(() => {

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
-import { getServerAuthState } from './get-server-auth-state';
-import { AdminAuthorizationError, requireAdmin } from './require-admin';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
+import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn((destination: string) => {

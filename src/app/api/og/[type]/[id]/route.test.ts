@@ -1,4 +1,4 @@
-import { GET } from './route';
+import { GET } from '@/app/api/og/[type]/[id]/route';
 
 describe('api/og route', () => {
   it('지원하는 타입이면 placeholder 이미지로 리다이렉트한다', async () => {

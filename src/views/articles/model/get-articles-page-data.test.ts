@@ -1,23 +1,25 @@
 import { vi } from 'vitest';
 
-import { getArticles, getResolvedArticlesFirstPage } from '@/entities/article/api/get-articles';
-import { getPopularArticleTags } from '@/entities/article/api/get-popular-article-tags';
+import {
+  getArticles,
+  getResolvedArticlesFirstPage,
+} from '@/entities/article/api/list/get-articles';
+import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-
 import {
   buildArticlesPageHref,
   getArticlesPageData,
   normalizePageParams,
   normalizeSearchParams,
   normalizeTagParams,
-} from './get-articles-page-data';
+} from '@/views/articles/model/get-articles-page-data';
 
-vi.mock('@/entities/article/api/get-articles', () => ({
+vi.mock('@/entities/article/api/list/get-articles', () => ({
   getArticles: vi.fn(),
   getResolvedArticlesFirstPage: vi.fn(),
 }));
 
-vi.mock('@/entities/article/api/get-popular-article-tags', () => ({
+vi.mock('@/entities/article/api/list/get-popular-article-tags', () => ({
   getPopularArticleTags: vi.fn(),
 }));
 

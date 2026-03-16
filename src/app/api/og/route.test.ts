@@ -1,6 +1,6 @@
 import ogs from 'open-graph-scraper';
 
-import { GET } from './route';
+import { GET } from '@/app/api/og/route';
 
 vi.mock('open-graph-scraper', () => ({
   default: vi.fn(),

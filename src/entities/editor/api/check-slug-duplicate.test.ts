@@ -1,6 +1,5 @@
+import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-
-import { checkSlugDuplicate } from './check-slug-duplicate';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),

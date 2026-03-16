@@ -1,11 +1,13 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getResolvedProject } from '@/entities/project/api/get-project';
-import { getProjectStaticParams } from '@/entities/project/api/get-project-static-params';
+import ProjectDetailRoute, {
+  generateMetadata,
+  generateStaticParams,
+} from '@/app/[locale]/project/[id]/page';
+import { getResolvedProject } from '@/entities/project/api/detail/get-project';
+import { getProjectStaticParams } from '@/entities/project/api/detail/get-project-static-params';
 import { getProjectDetailPageData } from '@/views/project';
-
-import ProjectDetailRoute, { generateMetadata, generateStaticParams } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -21,14 +23,14 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
-vi.mock('@/entities/project/api/get-project', () => ({
+vi.mock('@/entities/project/api/detail/get-project', () => ({
   getResolvedProject: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
   })),
 }));
 
-vi.mock('@/entities/project/api/get-project-static-params', () => ({
+vi.mock('@/entities/project/api/detail/get-project-static-params', () => ({
   getProjectStaticParams: vi.fn(async () => []),
 }));
 

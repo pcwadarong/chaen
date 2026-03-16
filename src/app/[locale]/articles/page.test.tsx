@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import ArticlesRoute, { generateMetadata } from '@/app/[locale]/articles/page';
 import { getArticlesPageData } from '@/views/articles';
-
-import ArticlesRoute, { generateMetadata } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {

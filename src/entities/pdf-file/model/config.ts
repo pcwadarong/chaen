@@ -1,6 +1,5 @@
+import type { PdfFileContent, PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createStoragePath, STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
-
-import type { PdfFileContent, PdfFileKind } from './types';
 
 type PdfFileStorageConfig = {
   bucket: string;

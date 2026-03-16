@@ -2,11 +2,13 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
+import {
+  publishResumeContentAction,
+  saveResumeDraftAction,
+} from '@/entities/resume/api/resume-editor-actions';
 import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { publishResumeContentAction, saveResumeDraftAction } from './resume-editor-actions';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),

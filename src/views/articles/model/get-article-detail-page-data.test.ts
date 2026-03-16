@@ -1,26 +1,25 @@
 import { vi } from 'vitest';
 
-import { getResolvedArticle } from '@/entities/article/api/get-article';
-import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
-import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
-import { getArticleComments } from '@/entities/article-comment';
+import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
+import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
+import { getArticleComments } from '@/entities/article/comment';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
+import { getArticleDetailPageData } from '@/views/articles/model/get-article-detail-page-data';
 
-import { getArticleDetailPageData } from './get-article-detail-page-data';
-
-vi.mock('@/entities/article/api/get-article', () => ({
+vi.mock('@/entities/article/api/detail/get-article', () => ({
   getResolvedArticle: vi.fn(),
 }));
 
-vi.mock('@/entities/article/api/get-related-articles', () => ({
+vi.mock('@/entities/article/api/detail/get-related-articles', () => ({
   getRelatedArticles: vi.fn(),
 }));
 
-vi.mock('@/entities/article/api/get-article-detail-list', () => ({
+vi.mock('@/entities/article/api/detail/get-article-detail-list', () => ({
   getArticleDetailList: vi.fn(),
 }));
 
-vi.mock('@/entities/article-comment', () => ({
+vi.mock('@/entities/article/comment', () => ({
   getArticleComments: vi.fn(),
 }));
 

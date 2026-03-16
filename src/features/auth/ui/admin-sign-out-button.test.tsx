@@ -3,8 +3,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import { signOutAdmin } from '@/features/auth/api/sign-out-admin';
-
-import { AdminSignOutButton } from './admin-sign-out-button';
+import { AdminSignOutButton } from '@/features/auth/ui/admin-sign-out-button';
 
 vi.mock('@/features/auth/api/sign-out-admin', () => ({
   signOutAdmin: vi.fn(),

@@ -6,14 +6,14 @@ import {
   deleteArticleAction,
   getArticleDetailArchivePageAction,
   incrementArticleViewCountAction,
-} from '@/entities/article/api/article-actions';
+} from '@/entities/article/api/mutations/article-actions';
+import type { ArticleCommentPage } from '@/entities/article/comment/model';
 import type {
   Article,
   ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import {

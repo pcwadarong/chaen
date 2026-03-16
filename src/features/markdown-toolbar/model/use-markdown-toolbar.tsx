@@ -10,6 +10,12 @@ import {
   toggleHeadingLine,
   wrapSelection,
 } from '@/entities/editor/model/selection-utils';
+import type {
+  LinkMode,
+  MarkdownToolbarProps,
+  ToolbarActionItem,
+  ToolbarSection,
+} from '@/features/markdown-toolbar/model/markdown-toolbar.types';
 import { AlignPopover } from '@/features/markdown-toolbar/ui/align-popover';
 import { ImageEmbedPopover } from '@/features/markdown-toolbar/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/markdown-toolbar/ui/link-embed-popover';
@@ -29,13 +35,6 @@ import {
   TableIcon,
 } from '@/shared/ui/icons/app-icons';
 import type { ClosePopover } from '@/shared/ui/popover/popover';
-
-import type {
-  LinkMode,
-  MarkdownToolbarProps,
-  ToolbarActionItem,
-  ToolbarSection,
-} from './markdown-toolbar.types';
 
 const tableTemplate = [
   '| 제목1 | 제목2 | 제목3 |',

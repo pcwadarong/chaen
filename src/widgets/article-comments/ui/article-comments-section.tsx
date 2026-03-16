@@ -12,20 +12,20 @@ import React, {
 } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { initialSubmitArticleCommentState } from '@/entities/article-comment/api/article-comment-action-state';
+import { initialSubmitArticleCommentState } from '@/entities/article/comment/api/article-comment-action-state';
 import {
   deleteArticleCommentAction,
   getArticleCommentsPageAction,
   submitArticleComment,
   updateArticleCommentAction,
-} from '@/entities/article-comment/api/article-comment-actions';
-import { ARTICLE_COMMENT_ERROR_CODE } from '@/entities/article-comment/model/article-comment-error';
+} from '@/entities/article/comment/api/article-comment-actions';
+import { ARTICLE_COMMENT_ERROR_CODE } from '@/entities/article/comment/error';
 import type {
   ArticleComment,
   ArticleCommentPage,
   ArticleCommentsSort,
   ArticleCommentThreadItem,
-} from '@/entities/article-comment/model/types';
+} from '@/entities/article/comment/model';
 import type { ActionResult } from '@/shared/lib/action/action-result';
 import { ActionMenuButton, ActionPopover } from '@/shared/ui/action-popover/action-popover';
 import { Button } from '@/shared/ui/button/button';

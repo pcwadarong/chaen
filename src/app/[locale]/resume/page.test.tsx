@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import ResumeRoute, { generateMetadata } from '@/app/[locale]/resume/page';
 import { getResumePageData } from '@/views/resume';
-
-import ResumeRoute, { generateMetadata } from './page';
 
 vi.mock('@/views/resume', () => ({
   getResumePageData: vi.fn(async () => ({

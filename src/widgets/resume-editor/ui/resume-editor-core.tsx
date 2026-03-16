@@ -12,8 +12,7 @@ import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/model/editor-core.types';
 import { formatSavedAtLabel } from '@/widgets/editor/model/editor-core.utils';
-
-import type { ResumeEditorCoreProps } from '../model/resume-editor.types';
+import type { ResumeEditorCoreProps } from '@/widgets/resume-editor/model/resume-editor.types';
 
 const RESUME_LOCALE_LABELS: Record<Locale, string> = {
   en: 'EN',

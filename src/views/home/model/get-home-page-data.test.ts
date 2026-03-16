@@ -1,10 +1,9 @@
 import { vi } from 'vitest';
 
-import { getProjects } from '@/entities/project/api/get-projects';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import { getHomePageData } from '@/views/home/model/get-home-page-data';
 
-import { getHomePageData } from './get-home-page-data';
-
-vi.mock('@/entities/project/api/get-projects', () => ({
+vi.mock('@/entities/project/api/detail/get-projects', () => ({
   getProjects: vi.fn(),
 }));
 

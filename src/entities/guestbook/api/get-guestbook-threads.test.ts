@@ -1,9 +1,8 @@
 import { unstable_cacheTag } from 'next/cache';
 
+import { getGuestbookThreads } from '@/entities/guestbook/api/get-guestbook-threads';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-
-import { getGuestbookThreads } from './get-guestbook-threads';
 
 vi.mock('next/cache', () => ({
   unstable_cacheTag: vi.fn(),

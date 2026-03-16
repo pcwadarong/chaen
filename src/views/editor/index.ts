@@ -1,2 +1,2 @@
-export { EditorClient } from './ui/editor-client';
-export { EditorPage } from './ui/editor-page';
+export { EditorClient } from '@/views/editor/ui/editor-client';
+export { EditorPage } from '@/views/editor/ui/editor-page';

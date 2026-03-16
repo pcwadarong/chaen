@@ -5,7 +5,7 @@ import { css } from 'styled-system/css';
 import {
   deleteProjectAction,
   getProjectDetailArchivePageAction,
-} from '@/entities/project/api/project-actions';
+} from '@/entities/project/api/mutations/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';

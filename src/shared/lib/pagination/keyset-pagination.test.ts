@@ -5,7 +5,7 @@ import {
   parseLocaleAwareCreatedAtIdCursor,
   serializeCreatedAtIdCursor,
   serializeLocaleAwareCreatedAtIdCursor,
-} from './keyset-pagination';
+} from '@/shared/lib/pagination/keyset-pagination';
 
 describe('keyset pagination', () => {
   it('created_at + id cursor를 직렬화하고 복원한다', () => {

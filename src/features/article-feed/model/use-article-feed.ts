@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 
-import { getArticlesPageAction } from '@/entities/article/api/article-actions';
+import { getArticlesPageAction } from '@/entities/article/api/mutations/article-actions';
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';

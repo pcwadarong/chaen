@@ -1,15 +1,14 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { checkSlugDuplicate } from './check-slug-duplicate';
+import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import {
   deleteEditorDraftAction,
   publishEditorContentAction,
   saveEditorDraftAction,
-} from './editor-actions';
+} from '@/entities/editor/api/editor-actions';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),

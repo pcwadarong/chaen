@@ -11,21 +11,23 @@ import {
 } from '@/entities/editor/model/editor-types';
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
-import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
-import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
 import type {
   ResumeEditorContentMap,
   ResumeEditorState,
   ResumePublishSettings,
-} from '../model/resume-editor.types';
+} from '@/entities/resume/model/resume-editor.types';
 import {
   buildResumeDraftContentRecord,
   validateResumePublishState,
-} from '../model/resume-editor.utils';
-import { createResumeEditorError, RESUME_EDITOR_ERROR_MESSAGE } from '../model/resume-editor-error';
+} from '@/entities/resume/model/resume-editor.utils';
+import {
+  createResumeEditorError,
+  RESUME_EDITOR_ERROR_MESSAGE,
+} from '@/entities/resume/model/resume-editor-error';
+import { requireAdmin } from '@/shared/lib/auth/require-admin';
+import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
+import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 const resumeContentSchema = z.object({
   body: z.string(),

@@ -2,8 +2,7 @@ import { vi } from 'vitest';
 
 import { getGuestbookThreads } from '@/entities/guestbook';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-
-import { getGuestPageData } from './get-guest-page-data';
+import { getGuestPageData } from '@/views/guest/model/get-guest-page-data';
 
 vi.mock('@/entities/guestbook', () => ({
   getGuestbookThreads: vi.fn(),

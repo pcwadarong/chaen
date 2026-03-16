@@ -1,18 +1,17 @@
-import { createEditorError } from '@/entities/editor/model/editor-error';
-import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
-import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import 'server-only';
-
-import type { EditorDraftSummary, EditorSeed } from './editor.types';
+import type { EditorDraftSummary, EditorSeed } from '@/entities/editor/api/editor.types';
 import {
   buildDraftTranslations,
   getEditorContentTableConfig,
   mergeEditorSeedWithDraft,
   normalizeEditorVisibility,
   resolveEditorPublicationState,
-} from './editor.utils';
+} from '@/entities/editor/api/editor.utils';
+import { createEditorError } from '@/entities/editor/model/editor-error';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
+import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+
+import 'server-only';
 
 type ContentRow = {
   allow_comments: boolean;

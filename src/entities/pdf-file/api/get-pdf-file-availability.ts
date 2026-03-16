@@ -1,10 +1,9 @@
+import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
+import type { PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
-
-import { getPdfFileStorageConfig } from '../model/config';
-import type { PdfFileKind } from '../model/types';
 
 /**
  * PDF 파일 존재 여부 조회 옵션입니다.

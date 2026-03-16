@@ -1,3 +1,4 @@
+import type { EditorSeed } from '@/entities/editor/api/editor.types';
 import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 import type {
   EditorPublicationState,
@@ -5,8 +6,6 @@ import type {
   PublishSettings,
   TranslationField,
 } from '@/entities/editor/model/editor-types';
-
-import type { EditorSeed } from './editor.types';
 
 export type EditorContentTableConfig = {
   relationForeignKey: 'article_id' | 'project_id';

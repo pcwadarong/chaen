@@ -3,7 +3,7 @@ import {
   EDITOR_ERROR_MESSAGE,
   parseEditorError,
   resolveEditorPublishInlineErrorField,
-} from './editor-error';
+} from '@/entities/editor/model/editor-error';
 
 describe('editor-error', () => {
   it('publish panel 인라인 에러 필드를 코드 기준으로 매핑한다', () => {

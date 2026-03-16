@@ -1,6 +1,5 @@
+import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-
-import { getPdfFileContent } from './get-pdf-file-content';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),

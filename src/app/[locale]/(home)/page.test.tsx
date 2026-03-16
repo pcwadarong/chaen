@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import HomeRoute, { generateMetadata } from '@/app/[locale]/(home)/page';
 import { getHomePageData } from '@/views/home';
-
-import HomeRoute, { generateMetadata } from './page';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => {

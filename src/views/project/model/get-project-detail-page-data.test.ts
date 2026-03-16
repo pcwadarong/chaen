@@ -1,16 +1,15 @@
 import { vi } from 'vitest';
 
-import { getProject } from '@/entities/project/api/get-project';
-import { getProjectDetailList } from '@/entities/project/api/get-project-detail-list';
+import { getProject } from '@/entities/project/api/detail/get-project';
+import { getProjectDetailList } from '@/entities/project/api/detail/get-project-detail-list';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
+import { getProjectDetailPageData } from '@/views/project/model/get-project-detail-page-data';
 
-import { getProjectDetailPageData } from './get-project-detail-page-data';
-
-vi.mock('@/entities/project/api/get-project', () => ({
+vi.mock('@/entities/project/api/detail/get-project', () => ({
   getProject: vi.fn(),
 }));
 
-vi.mock('@/entities/project/api/get-project-detail-list', () => ({
+vi.mock('@/entities/project/api/detail/get-project-detail-list', () => ({
   getProjectDetailList: vi.fn(),
 }));
 

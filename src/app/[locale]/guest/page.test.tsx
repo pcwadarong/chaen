@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import GuestRoute, { metadata } from '@/app/[locale]/guest/page';
 import { getGuestPageData } from '@/views/guest';
-
-import GuestRoute, { metadata } from './page';
 
 vi.mock('@/views/guest', () => ({
   getGuestPageData: vi.fn(),

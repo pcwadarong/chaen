@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { getResolvedProject } from '@/entities/project/api/get-project';
-import { getProjectStaticParams } from '@/entities/project/api/get-project-static-params';
+import { getResolvedProject } from '@/entities/project/api/detail/get-project';
+import { getProjectStaticParams } from '@/entities/project/api/detail/get-project-static-params';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';

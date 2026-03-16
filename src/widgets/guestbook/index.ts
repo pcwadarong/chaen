@@ -1,1 +1,1 @@
-export { GuestbookBoard } from './ui/guestbook-board';
+export { GuestbookBoard } from '@/widgets/guestbook/ui/guestbook-board';

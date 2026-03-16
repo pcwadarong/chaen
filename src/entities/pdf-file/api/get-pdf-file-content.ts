@@ -1,10 +1,9 @@
+import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
+import type { PdfFileContent, PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { resolveLocaleAwareData } from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
-
-import { getPdfFileContentConfig } from '../model/config';
-import type { PdfFileContent, PdfFileKind } from '../model/types';
 
 /**
  * PDF 소개 콘텐츠 조회 옵션입니다.

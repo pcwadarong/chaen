@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import React from 'react';
 
-import '@testing-library/jest-dom/vitest';
+import { ArticleListItem } from '@/entities/article/ui/article-list-item';
 
-import { ArticleListItem } from './article-list-item';
+import '@testing-library/jest-dom/vitest';
 
 type MockNextImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   fill?: boolean;

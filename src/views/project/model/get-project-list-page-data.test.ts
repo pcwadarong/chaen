@@ -3,15 +3,14 @@ import { vi } from 'vitest';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getProjects } from '@/entities/project/api/get-projects';
-
-import { getProjectListPageData } from './get-project-list-page-data';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import { getProjectListPageData } from '@/views/project/model/get-project-list-page-data';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
 }));
 
-vi.mock('@/entities/project/api/get-projects', () => ({
+vi.mock('@/entities/project/api/detail/get-projects', () => ({
   getProjects: vi.fn(),
 }));
 

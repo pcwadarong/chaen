@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
+import type { ArticleCommentPage } from '@/entities/article/comment/model';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => {

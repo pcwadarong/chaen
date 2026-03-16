@@ -1,1 +1,1 @@
-export { GlobalNav } from './ui/global-nav';
+export { GlobalNav } from '@/widgets/global-nav/ui/global-nav';

@@ -1,11 +1,10 @@
 import { notFound } from 'next/navigation';
 import { isValidElement } from 'react';
 
+import AdminArticleEditRoute from '@/app/[locale]/admin/articles/[id]/edit/page';
 import { getEditorSeed } from '@/entities/editor/api/editor-read';
 import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import AdminArticleEditRoute from './page';
 
 vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {

@@ -1,7 +1,6 @@
+import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { getPdfFileUrl } from './get-pdf-file-url';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),

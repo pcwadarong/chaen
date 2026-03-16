@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { validateActionInput } from './validate-action-input';
+import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 
 describe('validateActionInput', () => {
   it('유효한 입력값이면 파싱된 데이터를 반환한다', () => {

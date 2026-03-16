@@ -4,6 +4,6 @@ export type {
   ArticleDetailListItem,
   ArticleListItem,
   ArticleListPage,
-} from './model/types';
-export { ArticleCard } from './ui/article-card';
-export { ArticleListItem as ArticleListItemCard } from './ui/article-list-item';
+} from '@/entities/article/model/types';
+export { ArticleCard } from '@/entities/article/ui/article-card';
+export { ArticleListItem as ArticleListItemCard } from '@/entities/article/ui/article-list-item';

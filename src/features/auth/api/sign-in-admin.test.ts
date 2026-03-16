@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation';
 
+import { signInAdmin } from '@/features/auth/api/sign-in-admin';
+import { initialSignInAdminState } from '@/features/auth/api/sign-in-admin.state';
 import { AUTH_ACTION_ERROR_CODE } from '@/features/auth/model/auth-action-error';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
-
-import { signInAdmin } from './sign-in-admin';
-import { initialSignInAdminState } from './sign-in-admin.state';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {

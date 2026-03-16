@@ -1,6 +1,5 @@
+import { getAllTags, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-
-import { getAllTags, getTagIdBySlug } from './query-tags';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),

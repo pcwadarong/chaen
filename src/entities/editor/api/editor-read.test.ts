@@ -1,6 +1,5 @@
+import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { getEditorDraftSummaries } from './editor-read';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),

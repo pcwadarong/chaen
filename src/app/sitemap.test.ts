@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import sitemap from './sitemap';
+import sitemap from '@/app/sitemap';
 
 const { eqMock, fromMock, inMock, lteMock, notMock, selectMock, supabaseClientMock } = vi.hoisted(
   () => ({

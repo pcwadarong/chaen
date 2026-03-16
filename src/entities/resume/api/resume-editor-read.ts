@@ -6,21 +6,20 @@ import {
   getPdfFileContentConfig,
 } from '@/entities/pdf-file';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import 'server-only';
-
 import type {
   ResumeDraftSeed,
   ResumeEditorContentMap,
   ResumeEditorSeed,
-} from '../model/resume-editor.types';
+} from '@/entities/resume/model/resume-editor.types';
 import {
   createDefaultResumeEditorContentMap,
   getResumeEditorSavedAt,
   mergeResumeEditorSeedWithDraft,
   toResumeEditorContent,
-} from '../model/resume-editor.utils';
+} from '@/entities/resume/model/resume-editor.utils';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+
+import 'server-only';
 
 type ResumeDraftRow = {
   contents: Record<string, unknown> | null;

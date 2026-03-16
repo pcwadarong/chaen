@@ -1,8 +1,7 @@
 import { vi } from 'vitest';
 
+import { incrementTableViewCount } from '@/shared/lib/supabase/increment-table-view-count';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { incrementTableViewCount } from './increment-table-view-count';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),

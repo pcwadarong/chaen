@@ -1,9 +1,8 @@
 import { vi } from 'vitest';
 
+import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { getPdfFileAvailability } from './get-pdf-file-availability';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),

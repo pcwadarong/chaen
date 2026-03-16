@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { DashboardPage } from './dashboard-page';
+import { DashboardPage } from '@/views/dashboard/ui/dashboard-page';
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, href }: { children: React.ReactNode; href: string }) => (

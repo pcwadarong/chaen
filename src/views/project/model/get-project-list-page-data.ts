@@ -4,9 +4,8 @@ import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-ava
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file/model/download-path';
-import { getProjects } from '@/entities/project/api/get-projects';
-
-import type { ProjectListPageProps } from '../ui/project-list-page';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import type { ProjectListPageProps } from '@/views/project/ui/project-list-page';
 
 type GetProjectListPageDataInput = {
   locale: string;

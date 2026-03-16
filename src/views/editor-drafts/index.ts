@@ -1,1 +1,1 @@
-export { EditorDraftsPage } from './ui/editor-drafts-page';
+export { EditorDraftsPage } from '@/views/editor-drafts/ui/editor-drafts-page';

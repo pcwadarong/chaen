@@ -2,8 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { getGuestbookThreadsPage } from '@/features/guestbook-feed/api/guestbook-actions';
-
-import { useGuestbookFeed } from './use-guestbook-feed';
+import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
 
 vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
   getGuestbookThreadsPage: vi.fn(),
