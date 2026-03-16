@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { Input } from '@/shared/ui/input/input';
 
 type ImageSourceFieldProps = {
@@ -37,52 +38,58 @@ export const ImageSourceField = ({
   previewUrl,
   uploadButtonLabel = '파일 업로드',
   value,
-}: ImageSourceFieldProps) => (
-  <section className={cx(rootClass, className)}>
-    <label className={labelClass} htmlFor={inputId}>
-      {label}
-    </label>
-    <div className={rowClass}>
-      <Input
-        className={inputClass}
-        id={inputId}
-        onChange={event => onValueChange(event.target.value)}
-        placeholder="https://example.com/image.png"
-        value={value}
-      />
-      <label className={uploadButtonWrapClass}>
-        <span className={uploadButtonLabelClass}>
-          {isUploading ? '업로드 중...' : uploadButtonLabel}
-        </span>
-        <input
-          accept="image/*"
-          aria-label={fileInputAriaLabel}
-          className={fileInputClass}
-          disabled={isUploading}
-          onChange={onFileChange}
-          type="file"
-        />
+}: ImageSourceFieldProps) => {
+  const normalizedPreviewUrl = previewUrl.trim().startsWith('/')
+    ? previewUrl.trim()
+    : normalizeImageUrl(previewUrl);
+
+  return (
+    <section className={cx(rootClass, className)}>
+      <label className={labelClass} htmlFor={inputId}>
+        {label}
       </label>
-    </div>
-    {error ? (
-      <p className={errorTextClass} role="alert">
-        {error}
-      </p>
-    ) : null}
-    {previewUrl ? (
-      <div className={previewFrameClass}>
-        <Image
-          alt={previewAlt}
-          className={previewImageClass}
-          fill
-          sizes="(max-width: 480px) 100vw, 480px"
-          src={previewUrl}
-          unoptimized
+      <div className={rowClass}>
+        <Input
+          className={inputClass}
+          id={inputId}
+          onChange={event => onValueChange(event.target.value)}
+          placeholder="https://example.com/image.png"
+          value={value}
         />
+        <label className={uploadButtonWrapClass}>
+          <span className={uploadButtonLabelClass}>
+            {isUploading ? '업로드 중...' : uploadButtonLabel}
+          </span>
+          <input
+            accept="image/*"
+            aria-label={fileInputAriaLabel}
+            className={fileInputClass}
+            disabled={isUploading}
+            onChange={onFileChange}
+            type="file"
+          />
+        </label>
       </div>
-    ) : null}
-  </section>
-);
+      {error ? (
+        <p className={errorTextClass} role="alert">
+          {error}
+        </p>
+      ) : null}
+      {normalizedPreviewUrl ? (
+        <div className={previewFrameClass}>
+          <Image
+            alt={previewAlt}
+            className={previewImageClass}
+            fill
+            sizes="(max-width: 480px) 100vw, 480px"
+            src={normalizedPreviewUrl}
+            unoptimized
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+};
 
 const rootClass = css({
   display: 'grid',
