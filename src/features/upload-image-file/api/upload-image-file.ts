@@ -18,6 +18,12 @@ const resolveImageBucket = (contentType: EditorContentType) => {
   return STORAGE_BUCKET.article;
 };
 
+/**
+ * 업로드 용도에 따라 Storage 디렉터리 이름을 결정합니다.
+ *
+ * @param imageKind 업로드할 이미지의 용도입니다. `thumbnail`이면 썸네일, 그 외는 본문 이미지로 취급합니다.
+ * @returns `thumbnail`은 `thumbnails`, 나머지는 `images` 디렉터리 이름을 반환합니다.
+ */
 const resolveImageDirectory = (imageKind: EditorImageUploadKind) =>
   imageKind === 'thumbnail' ? 'thumbnails' : 'images';
 

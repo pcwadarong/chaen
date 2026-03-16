@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import React from 'react';
 import { css, cx } from 'styled-system/css';
 
@@ -17,9 +17,32 @@ type ImageSourceFieldProps = {
   onFileChange: React.ChangeEventHandler<HTMLInputElement>;
   onValueChange: (value: string) => void;
   previewAlt: string;
-  previewUrl: string;
+  previewUrl: StaticImageData | string;
   uploadButtonLabel?: string;
   value: string;
+};
+
+/**
+ * 미리보기 이미지에 안전하게 전달할 수 있는 src만 추립니다.
+ * 사용자 입력 문자열은 `https://` 절대 URL 또는 루트 상대 경로만 허용합니다.
+ */
+const resolvePreviewImageSrc = (previewUrl: ImageSourceFieldProps['previewUrl']) => {
+  if (typeof previewUrl !== 'string') {
+    return previewUrl;
+  }
+
+  const trimmedPreviewUrl = previewUrl.trim();
+
+  if (!trimmedPreviewUrl) return null;
+  if (trimmedPreviewUrl.startsWith('/')) return trimmedPreviewUrl;
+
+  const normalizedPreviewUrl = normalizeImageUrl(trimmedPreviewUrl);
+
+  if (!normalizedPreviewUrl?.startsWith('https://')) {
+    return null;
+  }
+
+  return normalizedPreviewUrl;
 };
 
 /**
@@ -39,9 +62,7 @@ export const ImageSourceField = ({
   uploadButtonLabel = '파일 업로드',
   value,
 }: ImageSourceFieldProps) => {
-  const normalizedPreviewUrl = previewUrl.trim().startsWith('/')
-    ? previewUrl.trim()
-    : normalizeImageUrl(previewUrl);
+  const normalizedPreviewUrl = resolvePreviewImageSrc(previewUrl);
 
   return (
     <section className={cx(rootClass, className)}>
@@ -57,7 +78,7 @@ export const ImageSourceField = ({
           value={value}
         />
         <label className={uploadButtonWrapClass}>
-          <span className={uploadButtonLabelClass}>
+          <span aria-live="polite" className={uploadButtonLabelClass} role="status">
             {isUploading ? '업로드 중...' : uploadButtonLabel}
           </span>
           <input

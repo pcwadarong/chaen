@@ -64,6 +64,28 @@ describe('getServerAuthState', () => {
     });
   });
 
+  it('refresh token 에러의 대소문자가 달라도 익명 사용자 상태를 반환한다', async () => {
+    vi.mocked(createServerSupabaseClient).mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: null,
+          },
+          error: {
+            message: 'INVALID REFRESH TOKEN: REFRESH TOKEN NOT FOUND',
+          },
+        }),
+      },
+    } as never);
+
+    await expect(getServerAuthState()).resolves.toEqual({
+      isAdmin: false,
+      isAuthenticated: false,
+      userEmail: null,
+      userId: null,
+    });
+  });
+
   it('관리자 user id면 관리자 상태를 반환한다', async () => {
     vi.mocked(createServerSupabaseClient).mockResolvedValue({
       auth: {

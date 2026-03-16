@@ -19,6 +19,7 @@ describe('editor-error', () => {
 
   it('toast 전용 에러는 인라인 필드로 매핑하지 않는다', () => {
     expect(resolveEditorPublishInlineErrorField('publishFailed')).toBeNull();
+    expect(resolveEditorPublishInlineErrorField('imageUploadFailedWithRetry')).toBeNull();
     expect(resolveEditorPublishInlineErrorField('thumbnailUploadFailedWithRetry')).toBeNull();
   });
 
