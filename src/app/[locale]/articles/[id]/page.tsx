@@ -87,17 +87,15 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archivePage, initialCommentsPage, item, relatedArticles } =
-    await getArticleDetailPageData({
-      articleSlug: id,
-      locale,
-    });
+  const { archivePage, item, relatedArticles } = await getArticleDetailPageData({
+    articleSlug: id,
+    locale,
+  });
   if (!item) notFound();
 
   return (
     <ArticleDetailPage
       archivePage={archivePage}
-      initialCommentsPage={initialCommentsPage}
       item={item}
       locale={locale as AppLocale}
       relatedArticles={relatedArticles}

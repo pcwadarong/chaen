@@ -3,7 +3,6 @@ import { vi } from 'vitest';
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
 import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
-import { getArticleComments } from '@/entities/article/comment';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { getArticleDetailPageData } from '@/views/articles/model/get-article-detail-page-data';
 
@@ -17,10 +16,6 @@ vi.mock('@/entities/article/api/detail/get-related-articles', () => ({
 
 vi.mock('@/entities/article/api/detail/get-article-detail-list', () => ({
   getArticleDetailList: vi.fn(),
-}));
-
-vi.mock('@/entities/article/comment', () => ({
-  getArticleComments: vi.fn(),
 }));
 
 describe('getArticleDetailPageData', () => {
@@ -64,14 +59,6 @@ describe('getArticleDetailPageData', () => {
       ],
       nextCursor,
     });
-    vi.mocked(getArticleComments).mockResolvedValue({
-      items: [],
-      page: 1,
-      pageSize: 10,
-      sort: 'latest',
-      totalCount: 0,
-      totalPages: 0,
-    });
 
     const result = await getArticleDetailPageData({
       articleSlug: 'frontend',
@@ -88,12 +75,6 @@ describe('getArticleDetailPageData', () => {
     );
     expect(result.item?.id).toBe('frontend');
     expect(result.relatedArticles).toEqual([]);
-    expect(result.initialCommentsPage.pageSize).toBe(10);
-    expect(getArticleComments).toHaveBeenCalledWith({
-      articleId: 'frontend',
-      page: 1,
-      sort: 'latest',
-    });
     expect(getRelatedArticles).toHaveBeenCalledWith({
       articleId: 'frontend',
       locale: 'en',
@@ -106,14 +87,6 @@ describe('getArticleDetailPageData', () => {
       resolvedLocale: null,
     });
     vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
-    vi.mocked(getArticleComments).mockResolvedValue({
-      items: [],
-      page: 1,
-      pageSize: 10,
-      sort: 'latest',
-      totalCount: 0,
-      totalPages: 0,
-    });
 
     await expect(
       getArticleDetailPageData({
@@ -168,14 +141,6 @@ describe('getArticleDetailPageData', () => {
       ],
       nextCursor,
     });
-    vi.mocked(getArticleComments).mockResolvedValue({
-      items: [],
-      page: 1,
-      pageSize: 10,
-      sort: 'latest',
-      totalCount: 0,
-      totalPages: 0,
-    });
 
     const result = await getArticleDetailPageData({
       articleSlug: 'archive-1',
@@ -208,14 +173,6 @@ describe('getArticleDetailPageData', () => {
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [],
       nextCursor: null,
-    });
-    vi.mocked(getArticleComments).mockResolvedValue({
-      items: [],
-      page: 1,
-      pageSize: 10,
-      sort: 'latest',
-      totalCount: 0,
-      totalPages: 0,
     });
 
     const result = await getArticleDetailPageData({

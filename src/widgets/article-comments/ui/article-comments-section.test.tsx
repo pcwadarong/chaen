@@ -180,6 +180,26 @@ describe('ArticleCommentsSection', () => {
     );
   });
 
+  it('초기 페이지가 없으면 마운트 후 첫 댓글 페이지를 조회한다', async () => {
+    vi.mocked(getArticleCommentsPageAction).mockResolvedValueOnce({
+      data: initialPage,
+      errorMessage: null,
+      ok: true,
+    });
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageAction).toHaveBeenCalledWith({
+        articleId: 'article-1',
+        fresh: undefined,
+        locale: 'ko',
+        page: 1,
+        sort: 'latest',
+      });
+    });
+  });
+
   it('정렬과 페이지 이동 시 댓글 목록을 다시 조회한다', async () => {
     vi.mocked(getArticleCommentsPageAction)
       .mockResolvedValueOnce({

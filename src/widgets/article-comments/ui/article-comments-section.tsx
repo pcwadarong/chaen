@@ -45,7 +45,7 @@ import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 
 type ArticleCommentsSectionProps = {
   articleId: string;
-  initialPage: ArticleCommentPage;
+  initialPage?: ArticleCommentPage;
   locale: string;
 };
 
@@ -130,6 +130,14 @@ type ArticleCommentsText = ReturnType<typeof createArticleCommentsText>;
 
 const LOAD_LAST_PAGE = 9999;
 const TOAST_DURATION_MS = 2600;
+const DEFAULT_INITIAL_PAGE: ArticleCommentPage = {
+  items: [],
+  page: 1,
+  pageSize: 10,
+  sort: 'latest',
+  totalCount: 0,
+  totalPages: 0,
+};
 
 /**
  * 댓글 시각 문자열을 locale 기준으로 포맷합니다.
@@ -499,12 +507,13 @@ export const ArticleCommentsSection = ({
   );
   const lastHandledRootSubmitStateRef = useRef(rootSubmitState);
   const lastHandledReplySubmitStateRef = useRef(replySubmitState);
-  const [pageData, setPageData] = useState(initialPage);
+  const resolvedInitialPage = initialPage ?? DEFAULT_INITIAL_PAGE;
+  const [pageData, setPageData] = useState(resolvedInitialPage);
   const [queryState, setQueryState] = useState<CommentQueryState>({
-    page: initialPage.page,
-    sort: initialPage.sort,
+    page: resolvedInitialPage.page,
+    sort: resolvedInitialPage.sort,
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(!initialPage);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [modalState, setModalState] = useState<ModalState>(null);
@@ -595,6 +604,12 @@ export const ArticleCommentsSection = ({
     setModalPassword('');
     setModalError(null);
   }, []);
+
+  useEffect(() => {
+    if (initialPage) return;
+
+    void loadPage(DEFAULT_INITIAL_PAGE.page, DEFAULT_INITIAL_PAGE.sort);
+  }, [initialPage, loadPage]);
 
   const handleChangeSort = useCallback(
     (sort: ArticleCommentsSort) => {

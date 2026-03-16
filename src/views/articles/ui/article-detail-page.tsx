@@ -7,7 +7,6 @@ import {
   getArticleDetailArchivePageAction,
   incrementArticleViewCountAction,
 } from '@/entities/article/api/mutations/article-actions';
-import type { ArticleCommentPage } from '@/entities/article/comment/model';
 import type {
   Article,
   ArticleArchivePage,
@@ -31,7 +30,6 @@ import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
   archivePage: ArticleArchivePage;
-  initialCommentsPage: ArticleCommentPage;
   item: Article;
   locale: AppLocale;
   relatedArticles: ArticleListItemModel[];
@@ -83,7 +81,6 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
  */
 export const ArticleDetailPage = async ({
   archivePage,
-  initialCommentsPage,
   item,
   locale,
   relatedArticles,
@@ -136,11 +133,7 @@ export const ArticleDetailPage = async ({
       <DetailPageShell
         bottomContent={
           <>
-            <ArticleCommentsSection
-              articleId={item.id}
-              initialPage={initialCommentsPage}
-              locale={locale}
-            />
+            <ArticleCommentsSection articleId={item.id} locale={locale} />
             <RelatedArticlesSection items={relatedArticles} title={t('relatedArticlesTitle')} />
           </>
         }

@@ -2,8 +2,6 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-import type { ArticleCommentPage } from '@/entities/article/comment/model';
-
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
@@ -47,15 +45,6 @@ vi.mock('@/entities/tag/api/query-tags', () => ({
   getTagLabelMapBySlugs,
 }));
 
-const initialCommentsPage: ArticleCommentPage = {
-  items: [],
-  page: 1,
-  pageSize: 10,
-  sort: 'latest',
-  totalCount: 0,
-  totalPages: 0,
-};
-
 /**
  * 서버 컴포넌트를 HTML 문자열로 변환합니다.
  */
@@ -66,7 +55,6 @@ const renderServerHtml = async () => {
       items: [],
       nextCursor: null,
     },
-    initialCommentsPage,
     item: {
       id: 'article-1',
       slug: 'article-1-slug',

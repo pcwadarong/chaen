@@ -40,14 +40,6 @@ vi.mock('@/views/articles', () => ({
       items: [],
       nextCursor: null,
     },
-    initialCommentsPage: {
-      items: [],
-      page: 1,
-      pageSize: 10,
-      sort: 'latest',
-      totalCount: 0,
-      totalPages: 0,
-    },
     item: null,
     relatedArticles: [],
   })),
@@ -79,14 +71,6 @@ describe('ArticleDetailRoute', () => {
         items: [],
         nextCursor: null,
       },
-      initialCommentsPage: {
-        items: [],
-        page: 1,
-        pageSize: 10,
-        sort: 'latest',
-        totalCount: 0,
-        totalPages: 0,
-      },
       relatedArticles: [],
       item: {
         id: 'frontend-performance',
@@ -111,7 +95,6 @@ describe('ArticleDetailRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticleDetailPage');
     expect(element.props.locale).toBe('ko');
-    expect(element.props.initialCommentsPage.pageSize).toBe(10);
     expect(getArticleDetailPageData).toHaveBeenCalledWith({
       articleSlug: 'frontend-performance',
       locale: 'ko',
@@ -156,14 +139,6 @@ describe('ArticleDetailRoute', () => {
       archivePage: {
         items: [],
         nextCursor: null,
-      },
-      initialCommentsPage: {
-        items: [],
-        page: 1,
-        pageSize: 10,
-        sort: 'latest',
-        totalCount: 0,
-        totalPages: 0,
       },
       relatedArticles: [],
       item: null,

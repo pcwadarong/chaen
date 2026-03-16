@@ -1,8 +1,6 @@
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
 import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
-import { getArticleComments } from '@/entities/article/comment';
-import type { ArticleCommentPage } from '@/entities/article/comment/model';
 import type {
   Article,
   ArticleArchivePage,
@@ -18,18 +16,8 @@ type GetArticleDetailPageDataInput = {
 
 type ArticleDetailPageData = {
   archivePage: ArticleArchivePage;
-  initialCommentsPage: ArticleCommentPage;
   item: Article | null;
   relatedArticles: ArticleListItem[];
-};
-
-const DEFAULT_COMMENTS_PAGE: ArticleCommentPage = {
-  items: [],
-  page: 1,
-  pageSize: 10,
-  sort: 'latest',
-  totalCount: 0,
-  totalPages: 0,
 };
 
 /**
@@ -69,15 +57,8 @@ export const getArticleDetailPageData = async ({
   const resolvedArticle = await getResolvedArticle(articleSlug, locale);
   const item = resolvedArticle.item;
   const articleId = item?.id;
-  const [archivePage, initialCommentsPage, relatedArticles] = await Promise.all([
+  const [archivePage, relatedArticles] = await Promise.all([
     getArticleDetailList({ locale }),
-    articleId
-      ? getArticleComments({
-          articleId,
-          page: 1,
-          sort: 'latest',
-        }).catch(() => DEFAULT_COMMENTS_PAGE)
-      : Promise.resolve(DEFAULT_COMMENTS_PAGE),
     articleId
       ? getRelatedArticles({
           articleId,
@@ -88,7 +69,6 @@ export const getArticleDetailPageData = async ({
 
   return {
     archivePage: ensureCurrentArticleInArchive(item, archivePage),
-    initialCommentsPage,
     item,
     relatedArticles,
   };
