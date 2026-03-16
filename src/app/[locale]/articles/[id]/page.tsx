@@ -4,7 +4,6 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
-import { getArticleStaticParams } from '@/entities/article/api/detail/get-article-static-params';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
@@ -16,9 +15,9 @@ import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
 export const revalidate = 3600;
 
 /**
- * 공개 아티클 상세 slug를 정적으로 생성합니다.
+ * 상세 slug는 첫 요청 시 정적으로 생성하고 이후 ISR로 재사용합니다.
  */
-export const generateStaticParams = async () => getArticleStaticParams();
+export const generateStaticParams = async () => [];
 
 type ArticleDetailRouteProps = {
   params: Promise<{

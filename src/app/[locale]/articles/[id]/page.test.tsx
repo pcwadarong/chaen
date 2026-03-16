@@ -6,7 +6,6 @@ import ArticleDetailRoute, {
   generateStaticParams,
 } from '@/app/[locale]/articles/[id]/page';
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
-import { getArticleStaticParams } from '@/entities/article/api/detail/get-article-static-params';
 import { getArticleDetailPageData } from '@/views/articles';
 
 const { notFoundMock } = vi.hoisted(() => ({
@@ -28,10 +27,6 @@ vi.mock('@/entities/article/api/detail/get-article', () => ({
     item: null,
     resolvedLocale: null,
   })),
-}));
-
-vi.mock('@/entities/article/api/detail/get-article-static-params', () => ({
-  getArticleStaticParams: vi.fn(async () => []),
 }));
 
 vi.mock('@/views/articles', () => ({
@@ -60,10 +55,8 @@ describe('ArticleDetailRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('공개 아티클 slug를 정적 params로 반환한다', async () => {
-    vi.mocked(getArticleStaticParams).mockResolvedValueOnce([{ id: 'article-1' }]);
-
-    await expect(generateStaticParams()).resolves.toEqual([{ id: 'article-1' }]);
+  it('상세 slug는 build 시 선생성하지 않는다', async () => {
+    await expect(generateStaticParams()).resolves.toEqual([]);
   });
 
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {

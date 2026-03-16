@@ -4,7 +4,6 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import { getResolvedProject } from '@/entities/project/api/detail/get-project';
-import { getProjectStaticParams } from '@/entities/project/api/detail/get-project-static-params';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
@@ -16,9 +15,9 @@ import { getProjectDetailPageData, ProjectDetailPage } from '@/views/project';
 export const revalidate = 3600;
 
 /**
- * 공개 프로젝트 상세 slug를 정적으로 생성합니다.
+ * 상세 slug는 첫 요청 시 정적으로 생성하고 이후 ISR로 재사용합니다.
  */
-export const generateStaticParams = async () => getProjectStaticParams();
+export const generateStaticParams = async () => [];
 
 type ProjectDetailRouteProps = {
   params: Promise<{

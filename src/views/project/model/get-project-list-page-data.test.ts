@@ -10,7 +10,7 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
 }));
 
-vi.mock('@/entities/project/api/detail/get-projects', () => ({
+vi.mock('@/entities/project/api/list/get-projects', () => ({
   getProjects: vi.fn(),
 }));
 

@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import { getProjects } from '@/entities/project/api/list/get-projects';
 import { getHomePageData } from '@/views/home/model/get-home-page-data';
 
-vi.mock('@/entities/project/api/detail/get-projects', () => ({
+vi.mock('@/entities/project/api/list/get-projects', () => ({
   getProjects: vi.fn(),
 }));
 
