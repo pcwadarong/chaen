@@ -1,3 +1,9 @@
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+
+import {
+  createPdfFileAvailabilityCacheTag,
+  PDF_FILES_CACHE_TAG,
+} from '@/entities/pdf-file/model/cache-tags';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import type { PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -33,11 +39,13 @@ const splitStorageFilePath = (filePath: string) => {
 };
 
 /**
- * Supabase Storage에 PDF 파일이 실제로 존재하는지 확인합니다.
+ * Supabase Storage에 PDF 파일이 실제로 존재하는지 확인하는 cached read입니다.
  */
-export const getPdfFileAvailability = async ({
-  kind = 'resume',
-}: GetPdfFileAvailabilityOptions = {}): Promise<boolean> => {
+const readCachedPdfFileAvailability = async (kind: PdfFileKind): Promise<boolean> => {
+  'use cache';
+
+  cacheTag(PDF_FILES_CACHE_TAG, createPdfFileAvailabilityCacheTag(kind));
+
   const storageConfig = getPdfFileStorageConfig(kind);
   const supabase = resolvePdfStorageClient();
   if (!supabase) return false;
@@ -53,3 +61,10 @@ export const getPdfFileAvailability = async ({
 
   return (data ?? []).some(item => item.name === fileName);
 };
+
+/**
+ * Supabase Storage에 PDF 파일이 실제로 존재하는지 확인합니다.
+ */
+export const getPdfFileAvailability = async ({
+  kind = 'resume',
+}: GetPdfFileAvailabilityOptions = {}): Promise<boolean> => readCachedPdfFileAvailability(kind);

@@ -1,4 +1,11 @@
+import { revalidatePath, revalidateTag } from 'next/cache';
+
+import { EDITOR_LOCALES } from '@/entities/editor/model/editor-types';
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file';
+import {
+  createPdfFileAvailabilityCacheTag,
+  PDF_FILES_CACHE_TAG,
+} from '@/entities/pdf-file/model/cache-tags';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { isPdfFileKind } from '@/entities/pdf-file/model/types';
@@ -6,6 +13,7 @@ import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
+import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 
 type PdfUploadRouteContext = {
   params: Promise<{
@@ -41,6 +49,10 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
         upsert: true,
       });
 
+      revalidateTag(PDF_FILES_CACHE_TAG);
+      revalidateTag(createPdfFileAvailabilityCacheTag(kind));
+      revalidatePdfDependentPaths(kind);
+
       return {
         downloadFileName: storageConfig.downloadFileName,
         downloadPath: buildPdfFileDownloadPath(kind),
@@ -50,3 +62,17 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
     },
     errorMessage: API_INTERNAL_ERROR_MESSAGE.pdfUploadFailed,
   });
+
+/**
+ * PDF 업로드 결과에 의존하는 공개 경로를 다시 검증하게 만듭니다.
+ */
+const revalidatePdfDependentPaths = (kind: 'resume' | 'portfolio') => {
+  EDITOR_LOCALES.forEach(locale => {
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: kind === 'resume' ? '/resume' : '/project',
+      }),
+    );
+  });
+};

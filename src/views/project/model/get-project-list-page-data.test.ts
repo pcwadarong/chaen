@@ -52,6 +52,7 @@ describe('getProjectListPageData', () => {
     expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
     expect(getPdfFileAvailability).toHaveBeenCalledWith({ kind: 'portfolio' });
+    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
     expect(data.portfolioDownloadHref).toBe('/api/pdf/portfolio');
@@ -76,5 +77,6 @@ describe('getProjectListPageData', () => {
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
     expect(data.portfolioDownloadHref).toBeNull();
+    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
   });
 });

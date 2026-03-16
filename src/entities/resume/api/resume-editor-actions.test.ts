@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
@@ -12,6 +12,7 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -210,10 +211,20 @@ describe('resume-editor-actions', () => {
     );
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-files');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:resume');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:portfolio');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content:resume');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content:portfolio');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/en/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
     expect(redirect).toHaveBeenCalledWith('/ko/admin/resume/edit');
   });
 

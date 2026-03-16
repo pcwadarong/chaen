@@ -19,17 +19,18 @@ export const getResumePageData = async ({
   locale,
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
   const resumeConfig = getPdfFileStorageConfig('resume');
-  const isResumeReady = await getPdfFileAvailability({
-    kind: 'resume',
-  }).catch(() => false);
-  const content =
-    (await getPdfFileContent({
+  const [isResumeReady, content] = await Promise.all([
+    getPdfFileAvailability({
+      kind: 'resume',
+    }).catch(() => false),
+    getPdfFileContent({
       locale,
       kind: 'resume',
-    })) ?? createDefaultPdfFileContent(locale);
+    }),
+  ]);
 
   return {
-    content,
+    content: content ?? createDefaultPdfFileContent(locale),
     downloadFileName: resumeConfig.downloadFileName,
     resumeDownloadHref: isResumeReady ? buildPdfFileDownloadPath('resume') : null,
   };

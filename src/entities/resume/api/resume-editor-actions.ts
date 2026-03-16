@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -10,6 +10,12 @@ import {
   type Locale,
 } from '@/entities/editor/model/editor-types';
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
+import {
+  createPdfFileAvailabilityCacheTag,
+  createPdfFileContentCacheTag,
+  PDF_FILE_CONTENT_CACHE_TAG,
+  PDF_FILES_CACHE_TAG,
+} from '@/entities/pdf-file/model/cache-tags';
 import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import type {
   ResumeEditorContentMap,
@@ -216,6 +222,7 @@ export const publishResumeContentAction = async ({
   await deleteResumeDrafts(supabase, draftId);
 
   revalidateResumeEditorPaths(resolveActionLocale(locale));
+  revalidatePdfReadCaches();
   revalidateResumePublicPaths();
 
   redirect(
@@ -304,6 +311,9 @@ const revalidateResumeEditorPaths = (locale: Locale) => {
 
 /**
  * locale별 public resume 페이지를 모두 다시 검증하게 만듭니다.
+ *
+ * 현재 resume/portfolio 소개 문구는 같은 콘텐츠 테이블을 공유하므로
+ * resume publish 뒤에는 project 목록도 함께 다시 검증해야 합니다.
  */
 const revalidateResumePublicPaths = () => {
   EDITOR_LOCALES.forEach(locale => {
@@ -313,5 +323,23 @@ const revalidateResumePublicPaths = () => {
         pathname: '/resume',
       }),
     );
+    revalidatePath(
+      buildLocalizedPathname({
+        locale,
+        pathname: '/project',
+      }),
+    );
   });
+};
+
+/**
+ * PDF 소개문/가용성 cached read를 다시 검증하게 만듭니다.
+ */
+const revalidatePdfReadCaches = () => {
+  revalidateTag(PDF_FILES_CACHE_TAG);
+  revalidateTag(PDF_FILE_CONTENT_CACHE_TAG);
+  revalidateTag(createPdfFileAvailabilityCacheTag('resume'));
+  revalidateTag(createPdfFileAvailabilityCacheTag('portfolio'));
+  revalidateTag(createPdfFileContentCacheTag('resume'));
+  revalidateTag(createPdfFileContentCacheTag('portfolio'));
 };

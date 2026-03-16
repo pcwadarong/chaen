@@ -18,16 +18,21 @@ type GetProjectListPageDataInput = {
 export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
-  const t = await getTranslations({ locale, namespace: 'Project' });
-  const projectsPage = await getProjects({ locale }).catch(() => ({
-    items: [],
-    nextCursor: null,
-  }));
   const portfolioConfig = getPdfFileStorageConfig('portfolio');
-  const isPortfolioReady = await getPdfFileAvailability({
-    kind: 'portfolio',
-  }).catch(() => false);
-  const sharedPdfContent = await getPdfFileContent({ locale });
+  const [t, projectsPage, isPortfolioReady, sharedPdfContent] = await Promise.all([
+    getTranslations({ locale, namespace: 'Project' }),
+    getProjects({ locale }).catch(() => ({
+      items: [],
+      nextCursor: null,
+    })),
+    getPdfFileAvailability({
+      kind: 'portfolio',
+    }).catch(() => false),
+    getPdfFileContent({
+      kind: 'portfolio',
+      locale,
+    }),
+  ]);
 
   return {
     initialCursor: projectsPage.nextCursor,
