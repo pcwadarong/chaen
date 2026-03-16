@@ -1,9 +1,10 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import React from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { Input } from '@/shared/ui/input/input';
 
 type ImageSourceFieldProps = {
@@ -16,9 +17,32 @@ type ImageSourceFieldProps = {
   onFileChange: React.ChangeEventHandler<HTMLInputElement>;
   onValueChange: (value: string) => void;
   previewAlt: string;
-  previewUrl: string;
+  previewUrl: StaticImageData | string;
   uploadButtonLabel?: string;
   value: string;
+};
+
+/**
+ * 미리보기 이미지에 안전하게 전달할 수 있는 src만 추립니다.
+ * 사용자 입력 문자열은 `https://` 절대 URL 또는 루트 상대 경로만 허용합니다.
+ */
+const resolvePreviewImageSrc = (previewUrl: ImageSourceFieldProps['previewUrl']) => {
+  if (typeof previewUrl !== 'string') {
+    return previewUrl;
+  }
+
+  const trimmedPreviewUrl = previewUrl.trim();
+
+  if (!trimmedPreviewUrl) return null;
+  if (trimmedPreviewUrl.startsWith('/')) return trimmedPreviewUrl;
+
+  const normalizedPreviewUrl = normalizeImageUrl(trimmedPreviewUrl);
+
+  if (!normalizedPreviewUrl?.startsWith('https://')) {
+    return null;
+  }
+
+  return normalizedPreviewUrl;
 };
 
 /**
@@ -37,52 +61,56 @@ export const ImageSourceField = ({
   previewUrl,
   uploadButtonLabel = '파일 업로드',
   value,
-}: ImageSourceFieldProps) => (
-  <section className={cx(rootClass, className)}>
-    <label className={labelClass} htmlFor={inputId}>
-      {label}
-    </label>
-    <div className={rowClass}>
-      <Input
-        className={inputClass}
-        id={inputId}
-        onChange={event => onValueChange(event.target.value)}
-        placeholder="https://example.com/image.png"
-        value={value}
-      />
-      <label className={uploadButtonWrapClass}>
-        <span className={uploadButtonLabelClass}>
-          {isUploading ? '업로드 중...' : uploadButtonLabel}
-        </span>
-        <input
-          accept="image/*"
-          aria-label={fileInputAriaLabel}
-          className={fileInputClass}
-          disabled={isUploading}
-          onChange={onFileChange}
-          type="file"
-        />
+}: ImageSourceFieldProps) => {
+  const normalizedPreviewUrl = resolvePreviewImageSrc(previewUrl);
+
+  return (
+    <section className={cx(rootClass, className)}>
+      <label className={labelClass} htmlFor={inputId}>
+        {label}
       </label>
-    </div>
-    {error ? (
-      <p className={errorTextClass} role="alert">
-        {error}
-      </p>
-    ) : null}
-    {previewUrl ? (
-      <div className={previewFrameClass}>
-        <Image
-          alt={previewAlt}
-          className={previewImageClass}
-          fill
-          sizes="(max-width: 480px) 100vw, 480px"
-          src={previewUrl}
-          unoptimized
+      <div className={rowClass}>
+        <Input
+          className={inputClass}
+          id={inputId}
+          onChange={event => onValueChange(event.target.value)}
+          placeholder="https://example.com/image.png"
+          value={value}
         />
+        <label className={uploadButtonWrapClass}>
+          <span aria-live="polite" className={uploadButtonLabelClass} role="status">
+            {isUploading ? '업로드 중...' : uploadButtonLabel}
+          </span>
+          <input
+            accept="image/*"
+            aria-label={fileInputAriaLabel}
+            className={fileInputClass}
+            disabled={isUploading}
+            onChange={onFileChange}
+            type="file"
+          />
+        </label>
       </div>
-    ) : null}
-  </section>
-);
+      {error ? (
+        <p className={errorTextClass} role="alert">
+          {error}
+        </p>
+      ) : null}
+      {normalizedPreviewUrl ? (
+        <div className={previewFrameClass}>
+          <Image
+            alt={previewAlt}
+            className={previewImageClass}
+            fill
+            sizes="(max-width: 480px) 100vw, 480px"
+            src={normalizedPreviewUrl}
+            unoptimized
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+};
 
 const rootClass = css({
   display: 'grid',

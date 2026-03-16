@@ -18,6 +18,12 @@ const EMPTY_AUTH_STATE: AuthState = {
   userId: null,
 };
 
+/**
+ * 에러 메시지가 세션 누락 또는 무효한 refresh token 상황인지 판별합니다.
+ *
+ * @param message 검사할 인증 에러 메시지입니다. 내부에서 소문자로 정규화한 뒤 세션 누락/리프레시 토큰 관련 문구 포함 여부를 확인합니다.
+ * @returns 메시지가 `auth session missing`, `invalid refresh token`, `refresh token not found` 조건 중 하나에 맞으면 `true`를 반환합니다.
+ */
 const isMissingSessionError = (message: string | null | undefined) => {
   const normalizedMessage = message?.toLowerCase() ?? '';
 

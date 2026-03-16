@@ -51,6 +51,38 @@ describe('api/images route', () => {
     expect(response.status).toBe(400);
   });
 
+  it.each([
+    {
+      imageKind: null,
+      label: 'imageKind가 없으면',
+    },
+    {
+      imageKind: 'invalid',
+      label: 'imageKind가 잘못되면',
+    },
+  ])('$label 400을 반환한다', async ({ imageKind }) => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const formData = new FormData();
+    formData.set('contentType', 'article');
+    formData.set('file', new File(['x'], 'thumb.png', { type: 'image/png' }));
+
+    if (imageKind) {
+      formData.set('imageKind', imageKind);
+    }
+
+    const response = await POST({
+      formData: async () => formData,
+    } as Request);
+
+    expect(response.status).toBe(400);
+  });
+
   it('업로드 성공 시 public URL을 반환한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,

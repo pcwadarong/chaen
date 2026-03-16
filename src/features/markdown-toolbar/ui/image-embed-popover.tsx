@@ -61,7 +61,7 @@ export const ImageEmbedPopover = ({
         }),
       );
     } catch {
-      setImageError(EDITOR_ERROR_MESSAGE.thumbnailUploadFailedWithRetry);
+      setImageError(EDITOR_ERROR_MESSAGE.imageUploadFailedWithRetry);
     } finally {
       setIsUploading(false);
       event.target.value = '';
