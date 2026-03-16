@@ -5,7 +5,12 @@ import { getArticleDetailList } from '@/entities/article/api/detail/get-article-
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
-import { getArticleDetailPageData } from '@/views/articles/model/get-article-detail-page-data';
+import {
+  getArticleDetailArchivePageData,
+  getArticleDetailRelatedArticlesData,
+  getArticleDetailShellData,
+  getArticleTagLabels,
+} from '@/views/articles/model/get-article-detail-page-data';
 
 vi.mock('@/entities/article/api/detail/get-article', () => ({
   getResolvedArticle: vi.fn(),
@@ -23,18 +28,12 @@ vi.mock('@/entities/tag/api/query-tags', () => ({
   getTagLabelMapBySlugs: vi.fn(),
 }));
 
-describe('getArticleDetailPageData', () => {
+describe('article detail page data helpers', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('현재 아티클이 목록에 없으면 맨 앞에 보정한다', async () => {
-    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
-      id: 'archive-1',
-      locale: 'ko',
-      publishedAt: '2026-03-01T00:00:00.000Z',
-    });
-
+  it('shell helper는 상세 본문 최소 데이터만 조회한다', async () => {
     vi.mocked(getResolvedArticle).mockResolvedValue({
       item: {
         id: 'frontend',
@@ -51,102 +50,27 @@ describe('getArticleDetailPageData', () => {
       },
       resolvedLocale: 'en',
     });
-    vi.mocked(getRelatedArticles).mockResolvedValue([]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map<string, string>([['react', 'React']]),
-      schemaMissing: false,
-    });
-    vi.mocked(getArticleDetailList).mockResolvedValue({
-      items: [
-        {
-          id: 'archive-1',
-          title: 'Archive',
-          description: null,
-          publish_at: '2026-03-01T00:00:00.000Z',
-          slug: 'archive-1',
-        },
-      ],
-      nextCursor,
-    });
-
-    const result = await getArticleDetailPageData({
-      articleSlug: 'frontend',
-      locale: 'ko',
-    });
-
-    expect(result.archivePage.items[0]?.id).toBe('frontend');
-    expect(result.archivePage.nextCursor).toBe(
-      serializeLocaleAwarePublishedAtIdCursor({
-        id: 'frontend',
-        locale: 'ko',
-        publishedAt: '2026-03-02T00:00:00.000Z',
-      }),
-    );
-    expect(result.item?.id).toBe('frontend');
-    expect(result.relatedArticles).toEqual([]);
-    expect(result.tagLabels).toEqual([]);
-    expect(getRelatedArticles).toHaveBeenCalledWith({
-      articleId: 'frontend',
-      locale: 'en',
-    });
-  });
-
-  it('아카이브 목록 조회 실패는 그대로 surface한다', async () => {
-    vi.mocked(getResolvedArticle).mockResolvedValue({
-      item: null,
-      resolvedLocale: null,
-    });
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: false,
-    });
-    vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
-      getArticleDetailPageData({
+      getArticleDetailShellData({
         articleSlug: 'frontend',
         locale: 'ko',
       }),
-    ).rejects.toThrow('archive failed');
+    ).resolves.toMatchObject({
+      item: {
+        id: 'frontend',
+      },
+      resolvedLocale: 'en',
+    });
   });
 
-  it('현재 아티클이 이미 목록에 있으면 cursor를 그대로 둔다', async () => {
+  it('현재 아티클이 목록에 없으면 아카이브 맨 앞에 보정한다', async () => {
     const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
       id: 'archive-1',
       locale: 'ko',
       publishedAt: '2026-03-01T00:00:00.000Z',
     });
 
-    vi.mocked(getResolvedArticle).mockResolvedValue({
-      item: {
-        id: 'archive-1',
-        title: 'Archive',
-        description: 'cs',
-        content: 'detail',
-        thumbnail_url: null,
-        tags: ['react'],
-        created_at: '2026-03-01T00:00:00.000Z',
-        publish_at: '2026-03-01T00:00:00.000Z',
-        slug: 'archive-1',
-        updated_at: null,
-        view_count: 0,
-      },
-      resolvedLocale: 'ko',
-    });
-    vi.mocked(getRelatedArticles).mockResolvedValue([
-      {
-        id: 'archive-2',
-        title: 'Related',
-        description: 'related item',
-        thumbnail_url: null,
-        publish_at: '2026-02-25T00:00:00.000Z',
-        slug: 'archive-2',
-      },
-    ]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map<string, string>([['react', 'React']]),
-      schemaMissing: false,
-    });
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [
         {
@@ -160,50 +84,78 @@ describe('getArticleDetailPageData', () => {
       nextCursor,
     });
 
-    const result = await getArticleDetailPageData({
-      articleSlug: 'archive-1',
-      locale: 'ko',
-    });
-
-    expect(result.archivePage.nextCursor).toBe(nextCursor);
-    expect(result.archivePage.items).toHaveLength(1);
-    expect(result.relatedArticles[0]?.id).toBe('archive-2');
-    expect(result.tagLabels).toEqual(['React']);
-  });
-
-  it('관련 글 조회 실패는 빈 목록으로 대체한다', async () => {
-    vi.mocked(getResolvedArticle).mockResolvedValue({
+    const result = await getArticleDetailArchivePageData({
       item: {
         id: 'frontend',
         title: 'Frontend',
         description: 'cs',
         content: 'detail',
         thumbnail_url: null,
-        tags: ['react'],
+        tags: [],
         created_at: '2026-03-02T00:00:00.000Z',
         publish_at: '2026-03-02T00:00:00.000Z',
         slug: 'frontend',
         updated_at: null,
         view_count: 0,
       },
-      resolvedLocale: 'ko',
+      locale: 'ko',
     });
+
+    expect(result.items[0]?.id).toBe('frontend');
+    expect(result.nextCursor).toBe(
+      serializeLocaleAwarePublishedAtIdCursor({
+        id: 'frontend',
+        locale: 'ko',
+        publishedAt: '2026-03-02T00:00:00.000Z',
+      }),
+    );
+  });
+
+  it('아카이브 helper는 조회 실패를 그대로 surface한다', async () => {
+    vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
+
+    await expect(
+      getArticleDetailArchivePageData({
+        item: null,
+        locale: 'ko',
+      }),
+    ).rejects.toThrow('archive failed');
+  });
+
+  it('관련 글 helper는 조회 실패를 빈 목록으로 대체한다', async () => {
     vi.mocked(getRelatedArticles).mockRejectedValue(new Error('rpc failed'));
+
+    await expect(
+      getArticleDetailRelatedArticlesData({
+        articleId: 'frontend',
+        locale: 'ko',
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it('태그 label helper는 schema가 없으면 slug를 그대로 사용한다', async () => {
     vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
       data: new Map(),
       schemaMissing: true,
     });
-    vi.mocked(getArticleDetailList).mockResolvedValue({
-      items: [],
-      nextCursor: null,
-    });
 
-    const result = await getArticleDetailPageData({
-      articleSlug: 'frontend',
-      locale: 'ko',
-    });
-
-    expect(result.relatedArticles).toEqual([]);
-    expect(result.tagLabels).toEqual(['react']);
+    await expect(
+      getArticleTagLabels({
+        item: {
+          id: 'frontend',
+          title: 'Frontend',
+          description: 'cs',
+          content: 'detail',
+          thumbnail_url: null,
+          tags: ['react'],
+          created_at: '2026-03-02T00:00:00.000Z',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'frontend',
+          updated_at: null,
+          view_count: 0,
+        },
+        locale: 'ko',
+      }),
+    ).resolves.toEqual(['react']);
   });
 });

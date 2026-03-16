@@ -1,4 +1,9 @@
-export { getArticleDetailPageData } from '@/views/articles/model/get-article-detail-page-data';
+export {
+  getArticleDetailArchivePageData,
+  getArticleDetailRelatedArticlesData,
+  getArticleDetailShellData,
+  getArticleTagLabels,
+} from '@/views/articles/model/get-article-detail-page-data';
 export {
   buildArticlesPageHref,
   getArticlesPageData,

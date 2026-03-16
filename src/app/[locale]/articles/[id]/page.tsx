@@ -3,14 +3,19 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
-import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
+import {
+  ArticleDetailPage,
+  getArticleDetailArchivePageData,
+  getArticleDetailRelatedArticlesData,
+  getArticleDetailShellData,
+  getArticleTagLabels,
+} from '@/views/articles';
 
 export const revalidate = 3600;
 
@@ -32,7 +37,10 @@ type ArticleDetailRouteProps = {
 export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Promise<Metadata> => {
   const { id, locale } = await params;
   const [resolvedArticle, t] = await Promise.all([
-    getResolvedArticle(id, locale),
+    getArticleDetailShellData({
+      articleSlug: id,
+      locale,
+    }),
     getTranslations({ locale, namespace: 'ArticleDetail' }),
   ]);
   const { item, resolvedLocale } = resolvedArticle;
@@ -86,19 +94,32 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const { archivePage, item, relatedArticles, tagLabels } = await getArticleDetailPageData({
+  const { item, resolvedLocale } = await getArticleDetailShellData({
     articleSlug: id,
     locale,
   });
   if (!item) notFound();
 
+  const archivePagePromise = getArticleDetailArchivePageData({
+    item,
+    locale,
+  });
+  const relatedArticlesPromise = getArticleDetailRelatedArticlesData({
+    articleId: item.id,
+    locale: resolvedLocale ?? locale,
+  });
+  const tagLabelsPromise = getArticleTagLabels({
+    item,
+    locale,
+  });
+
   return (
     <ArticleDetailPage
-      archivePage={archivePage}
+      archivePagePromise={archivePagePromise}
       item={item}
       locale={locale as AppLocale}
-      relatedArticles={relatedArticles}
-      tagLabels={tagLabels}
+      relatedArticlesPromise={relatedArticlesPromise}
+      tagLabelsPromise={tagLabelsPromise}
     />
   );
 };

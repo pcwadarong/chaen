@@ -15,12 +15,22 @@ type GetArticleDetailPageDataInput = {
   locale: string;
 };
 
-type ArticleDetailPageData = {
-  archivePage: ArticleArchivePage;
+type GetArticleDetailArchivePageDataInput = {
   item: Article | null;
-  relatedArticles: ArticleListItem[];
-  tagLabels: string[];
+  locale: string;
 };
+
+type GetArticleDetailRelatedArticlesDataInput = {
+  articleId: string | null | undefined;
+  locale: string;
+};
+
+type GetArticleTagLabelsInput = {
+  item: Article | null;
+  locale: string;
+};
+
+export type ArticleDetailShellData = Awaited<ReturnType<typeof getResolvedArticle>>;
 
 /**
  * 상세 아티클을 public archive 요약 shape로 좁힙니다.
@@ -52,7 +62,10 @@ const ensureCurrentArticleInArchive = (
 /**
  * 상세 아티클 태그를 locale 기준 표시 라벨로 변환합니다.
  */
-const getArticleTagLabels = async (item: Article | null, locale: string): Promise<string[]> => {
+export const getArticleTagLabels = async ({
+  item,
+  locale,
+}: GetArticleTagLabelsInput): Promise<string[]> => {
   const tags = item?.tags ?? [];
 
   if (tags.length === 0) return [];
@@ -68,30 +81,37 @@ const getArticleTagLabels = async (item: Article | null, locale: string): Promis
 };
 
 /**
- * 아티클 상세 페이지에 필요한 데이터 묶음을 조회합니다.
+ * 아티클 상세 본문 shell에 필요한 최소 데이터를 조회합니다.
  */
-export const getArticleDetailPageData = async ({
+export const getArticleDetailShellData = ({
   articleSlug,
   locale,
-}: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
-  const resolvedArticle = await getResolvedArticle(articleSlug, locale);
-  const item = resolvedArticle.item;
-  const articleId = item?.id;
-  const [archivePage, relatedArticles] = await Promise.all([
-    getArticleDetailList({ locale }),
-    articleId
-      ? getRelatedArticles({
-          articleId,
-          locale: resolvedArticle.resolvedLocale ?? locale,
-        }).catch(() => [])
-      : Promise.resolve([]),
-  ]);
-  const tagLabels = await getArticleTagLabels(item, locale);
+}: GetArticleDetailPageDataInput): Promise<ArticleDetailShellData> =>
+  getResolvedArticle(articleSlug, locale);
 
-  return {
-    archivePage: ensureCurrentArticleInArchive(item, archivePage),
-    item,
-    relatedArticles,
-    tagLabels,
-  };
+/**
+ * 아티클 상세 좌측 아카이브를 조회하고 현재 항목을 목록에 보정합니다.
+ */
+export const getArticleDetailArchivePageData = async ({
+  item,
+  locale,
+}: GetArticleDetailArchivePageDataInput): Promise<ArticleArchivePage> => {
+  const archivePage = await getArticleDetailList({ locale });
+
+  return ensureCurrentArticleInArchive(item, archivePage);
+};
+
+/**
+ * 아티클 상세 하단의 관련 글 목록을 조회합니다.
+ */
+export const getArticleDetailRelatedArticlesData = async ({
+  articleId,
+  locale,
+}: GetArticleDetailRelatedArticlesDataInput): Promise<ArticleListItem[]> => {
+  if (!articleId) return [];
+
+  return getRelatedArticles({
+    articleId,
+    locale,
+  }).catch(() => []);
 };

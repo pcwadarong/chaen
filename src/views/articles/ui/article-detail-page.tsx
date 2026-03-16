@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import {
@@ -23,20 +23,46 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/stru
 import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import {
+  DetailArchiveSidebarSkeleton,
+  DetailRelatedArticlesSkeleton,
+  DetailTagListSkeleton,
+} from '@/shared/ui/detail-page/detail-page-section-skeletons';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
-  archivePage: ArticleArchivePage;
+  archivePagePromise: Promise<ArticleArchivePage>;
   item: Article;
   locale: AppLocale;
-  relatedArticles: ArticleListItemModel[];
-  tagLabels: string[];
+  relatedArticlesPromise: Promise<ArticleListItemModel[]>;
+  tagLabelsPromise: Promise<string[]>;
 };
 
 type RelatedArticlesSectionProps = {
   items: ArticleListItemModel[];
+  title: string;
+};
+
+type ArticleArchiveSidebarProps = {
+  archivePagePromise: Promise<ArticleArchivePage>;
+  emptyText: string;
+  loadErrorText: string;
+  loadMoreEndText: string;
+  loadingText: string;
+  locale: AppLocale;
+  retryText: string;
+  selectedPathSegment: string;
+};
+
+type ArticleTagListProps = {
+  ariaLabel: string;
+  tagLabelsPromise: Promise<string[]>;
+};
+
+type DeferredRelatedArticlesSectionProps = {
+  relatedArticlesPromise: Promise<ArticleListItemModel[]>;
   title: string;
 };
 
@@ -62,12 +88,74 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
   );
 };
 
+/**
+ * 아티클 상세 좌측 아카이브를 비동기 경계 안에서 렌더링합니다.
+ */
+const ArticleArchiveSidebar = async ({
+  archivePagePromise,
+  emptyText,
+  loadErrorText,
+  loadMoreEndText,
+  loadingText,
+  locale,
+  retryText,
+  selectedPathSegment,
+}: ArticleArchiveSidebarProps) => {
+  const archivePage = await archivePagePromise;
+
+  return (
+    <DetailArchiveFeed
+      emptyText={emptyText}
+      hrefBasePath="/articles"
+      initialPage={archivePage}
+      loadErrorText={loadErrorText}
+      loadPageAction={getArticleDetailArchivePageAction}
+      loadMoreEndText={loadMoreEndText}
+      loadingText={loadingText}
+      locale={locale}
+      retryText={retryText}
+      selectedPathSegment={selectedPathSegment}
+    />
+  );
+};
+
+/**
+ * 아티클 상세 태그 목록을 비동기 경계 안에서 렌더링합니다.
+ */
+const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListProps) => {
+  const tagLabels = await tagLabelsPromise;
+
+  if (tagLabels.length === 0) return null;
+
+  return (
+    <ul aria-label={ariaLabel} className={tagListClass}>
+      {tagLabels.map(tagLabel => (
+        <li className={tagItemClass} key={tagLabel}>
+          <span className={tagButtonClass}>#{tagLabel}</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+/**
+ * 아티클 상세 하단 관련 글 섹션을 비동기 경계 안에서 렌더링합니다.
+ */
+const DeferredRelatedArticlesSection = async ({
+  relatedArticlesPromise,
+  title,
+}: DeferredRelatedArticlesSectionProps) => {
+  const relatedArticles = await relatedArticlesPromise;
+
+  return <RelatedArticlesSection items={relatedArticles} title={title} />;
+};
+
 export const ArticleDetailPage = ({
-  archivePage,
+  archivePagePromise,
   item,
   locale,
-  relatedArticles,
-  tagLabels,
+  relatedArticlesPromise,
+  tagLabelsPromise,
 }: ArticleDetailPageProps) => {
   const t = useTranslations('ArticleDetail');
   const articlesT = useTranslations('Articles');
@@ -103,7 +191,7 @@ export const ArticleDetailPage = ({
       description: item.description ?? t('emptySummary'),
       locale,
       path: articlePath,
-      tags: tagLabels,
+      tags: item.tags ?? [],
       thumbnailUrl: item.thumbnail_url,
       title: item.title,
       updatedAt: item.updated_at,
@@ -114,12 +202,6 @@ export const ArticleDetailPage = ({
     <>
       <JsonLd data={structuredData} />
       <DetailPageShell
-        bottomContent={
-          <>
-            <ArticleCommentsSection articleId={item.id} locale={locale} />
-            <RelatedArticlesSection items={relatedArticles} title={t('relatedArticlesTitle')} />
-          </>
-        }
         content={item.content}
         emptyArchiveText={detailUi('emptyArchive')}
         emptyContentText={t('emptyContent')}
@@ -154,32 +236,39 @@ export const ArticleDetailPage = ({
           />
         }
         sidebarContent={
-          <DetailArchiveFeed
-            emptyText={detailUi('emptyArchive')}
-            hrefBasePath="/articles"
-            initialPage={archivePage}
-            loadErrorText={articlesT('loadError')}
-            loadPageAction={getArticleDetailArchivePageAction}
-            loadMoreEndText={articlesT('loadMoreEnd')}
-            loadingText={articlesT('loading')}
-            locale={locale}
-            retryText={articlesT('retry')}
-            selectedPathSegment={articlePathSegment}
-          />
+          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
+            <ArticleArchiveSidebar
+              archivePagePromise={archivePagePromise}
+              emptyText={detailUi('emptyArchive')}
+              loadErrorText={articlesT('loadError')}
+              loadMoreEndText={articlesT('loadMoreEnd')}
+              loadingText={articlesT('loading')}
+              locale={locale}
+              retryText={articlesT('retry')}
+              selectedPathSegment={articlePathSegment}
+            />
+          </Suspense>
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={
-          tagLabels.length > 0 ? (
-            <ul aria-label={t('tagSection')} className={tagListClass}>
-              {tagLabels.map(tagLabel => (
-                <li className={tagItemClass} key={tagLabel}>
-                  <span className={tagButtonClass}>#{tagLabel}</span>
-                </li>
-              ))}
-            </ul>
+          (item.tags?.length ?? 0) > 0 ? (
+            <Suspense fallback={<DetailTagListSkeleton />}>
+              <ArticleTagList ariaLabel={t('tagSection')} tagLabelsPromise={tagLabelsPromise} />
+            </Suspense>
           ) : undefined
         }
         title={item.title}
+        bottomContent={
+          <>
+            <ArticleCommentsSection articleId={item.id} locale={locale} />
+            <Suspense fallback={<DetailRelatedArticlesSkeleton />}>
+              <DeferredRelatedArticlesSection
+                relatedArticlesPromise={relatedArticlesPromise}
+                title={t('relatedArticlesTitle')}
+              />
+            </Suspense>
+          </>
+        }
       />
     </>
   );

@@ -34,10 +34,10 @@ vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
 const renderServerHtml = async () => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
   const element = ProjectDetailPage({
-    archivePage: {
+    archivePagePromise: Promise.resolve({
       items: [],
       nextCursor: null,
-    },
+    }),
     item: {
       id: 'project-1',
       slug: 'project-1-slug',
@@ -52,7 +52,7 @@ const renderServerHtml = async () => {
       thumbnail_url: null,
     },
     locale: 'en',
-    tagLabels: ['React'],
+    tagLabelsPromise: Promise.resolve(['React']),
   });
   const stream = await renderToReadableStream(element);
 

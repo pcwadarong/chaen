@@ -45,10 +45,10 @@ vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
 const renderServerHtml = async () => {
   const { ArticleDetailPage } = await import('@/views/articles/ui/article-detail-page');
   const element = ArticleDetailPage({
-    archivePage: {
+    archivePagePromise: Promise.resolve({
       items: [],
       nextCursor: null,
-    },
+    }),
     item: {
       id: 'article-1',
       slug: 'article-1-slug',
@@ -63,7 +63,7 @@ const renderServerHtml = async () => {
       view_count: 12,
     },
     locale: 'ko',
-    relatedArticles: [
+    relatedArticlesPromise: Promise.resolve([
       {
         id: 'article-2',
         slug: 'article-2-slug',
@@ -72,8 +72,8 @@ const renderServerHtml = async () => {
         thumbnail_url: null,
         publish_at: '2026-03-07T00:00:00.000Z',
       },
-    ],
-    tagLabels: ['React'],
+    ]),
+    tagLabelsPromise: Promise.resolve(['React']),
   });
   const stream = await renderToReadableStream(element);
 

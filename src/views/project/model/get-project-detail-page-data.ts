@@ -1,4 +1,4 @@
-import { getProject } from '@/entities/project/api/detail/get-project';
+import { getResolvedProject } from '@/entities/project/api/detail/get-project';
 import { getProjectDetailList } from '@/entities/project/api/detail/get-project-detail-list';
 import type {
   Project,
@@ -13,11 +13,17 @@ type GetProjectDetailPageDataInput = {
   projectSlug: string;
 };
 
-type ProjectDetailPageData = {
-  archivePage: ProjectArchivePage;
+type GetProjectDetailArchivePageDataInput = {
   item: Project | null;
-  tagLabels: string[];
+  locale: string;
 };
+
+type GetProjectTagLabelsInput = {
+  item: Project | null;
+  locale: string;
+};
+
+export type ProjectDetailShellData = Awaited<ReturnType<typeof getResolvedProject>>;
 
 /**
  * 상세 프로젝트를 public archive 요약 shape로 좁힙니다.
@@ -49,7 +55,10 @@ const ensureCurrentProjectInArchive = (
 /**
  * 상세 프로젝트 태그를 locale 기준 표시 라벨로 변환합니다.
  */
-const getProjectTagLabels = async (item: Project | null, locale: string): Promise<string[]> => {
+export const getProjectTagLabels = async ({
+  item,
+  locale,
+}: GetProjectTagLabelsInput): Promise<string[]> => {
   const tags = item?.tags ?? [];
 
   if (tags.length === 0) return [];
@@ -67,21 +76,22 @@ const getProjectTagLabels = async (item: Project | null, locale: string): Promis
 };
 
 /**
- * 프로젝트 상세 페이지에 필요한 데이터 묶음을 조회합니다.
+ * 프로젝트 상세 본문 shell에 필요한 최소 데이터를 조회합니다.
  */
-export const getProjectDetailPageData = async ({
+export const getProjectDetailShellData = ({
   locale,
   projectSlug,
-}: GetProjectDetailPageDataInput): Promise<ProjectDetailPageData> => {
-  const [item, archivePage] = await Promise.all([
-    getProject(projectSlug, locale),
-    getProjectDetailList({ locale }),
-  ]);
-  const tagLabels = await getProjectTagLabels(item, locale);
+}: GetProjectDetailPageDataInput): Promise<ProjectDetailShellData> =>
+  getResolvedProject(projectSlug, locale);
 
-  return {
-    archivePage: ensureCurrentProjectInArchive(item, archivePage),
-    item,
-    tagLabels,
-  };
+/**
+ * 프로젝트 상세 좌측 아카이브를 조회하고 현재 항목을 목록에 보정합니다.
+ */
+export const getProjectDetailArchivePageData = async ({
+  item,
+  locale,
+}: GetProjectDetailArchivePageDataInput): Promise<ProjectArchivePage> => {
+  const archivePage = await getProjectDetailList({ locale });
+
+  return ensureCurrentProjectInArchive(item, archivePage);
 };
