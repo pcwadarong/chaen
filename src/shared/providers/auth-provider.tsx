@@ -1,24 +1,95 @@
 'use client';
 
-import { createContext, type ReactNode, useContext } from 'react';
+import React, {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import type { AuthState } from '@/shared/lib/auth/get-server-auth-state';
+import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
+import { createBrowserSupabaseClient } from '@/shared/lib/supabase/client';
 
 type AuthContextValue = AuthState;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const EMPTY_AUTH_STATE: AuthContextValue = {
+  isAdmin: false,
+  isAuthenticated: false,
+  userEmail: null,
+  userId: null,
+};
+
 type AuthProviderProps = {
+  adminUserId?: string | null;
   children: ReactNode;
-  value: AuthContextValue;
+  value?: AuthContextValue;
 };
 
 /**
- * 서버에서 계산한 인증 상태를 클라이언트 트리에 주입하는 프로바이더입니다.
+ * 브라우저 세션을 구독해 전역 인증 상태를 제공하는 프로바이더입니다.
  */
-export const AuthProvider = ({ children, value }: AuthProviderProps) => (
-  <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-);
+export const AuthProvider = ({ adminUserId = null, children, value }: AuthProviderProps) => {
+  const [authState, setAuthState] = useState<AuthContextValue>(value ?? EMPTY_AUTH_STATE);
+  const adminIdentity = useMemo(
+    () => ({
+      adminUserId,
+    }),
+    [adminUserId],
+  );
+
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+    let isMounted = true;
+
+    const syncAuthState = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!isMounted || error) {
+        if (isMounted) {
+          setAuthState(EMPTY_AUTH_STATE);
+        }
+        return;
+      }
+
+      setAuthState({
+        isAdmin: isAdminSupabaseUser(user, adminIdentity),
+        isAuthenticated: Boolean(user),
+        userEmail: user?.email ?? null,
+        userId: user?.id ?? null,
+      });
+    };
+
+    void syncAuthState();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+
+      setAuthState({
+        isAdmin: isAdminSupabaseUser(user, adminIdentity),
+        isAuthenticated: Boolean(user),
+        userEmail: user?.email ?? null,
+        userId: user?.id ?? null,
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [adminIdentity]);
+
+  return <AuthContext.Provider value={authState}>{children}</AuthContext.Provider>;
+};
 
 /**
  * 전역 인증 상태를 읽는 훅입니다.
