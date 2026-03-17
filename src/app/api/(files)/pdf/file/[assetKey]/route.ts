@@ -39,24 +39,35 @@ export const GET = async (request: Request, { params }: PdfFileAssetRouteContext
   const source = readPdfDownloadSource(request);
 
   if (source && doesPdfDownloadSourceMatchKind(source, storageConfig.kind)) {
-    try {
-      const metadata = extractPdfDownloadRequestMetadata({ request });
+    const metadata = extractPdfDownloadRequestMetadata({ request });
 
-      await createPdfDownloadLog({
-        assetKey,
-        countryCode: metadata.countryCode,
-        deviceType: metadata.deviceType,
-        fileLocale: storageConfig.locale,
-        ip: metadata.ip,
-        kind: storageConfig.kind,
-        referer: metadata.referer,
-        refererPath: metadata.refererPath,
-        source,
-        utmSource: metadata.utmSource,
+    void createPdfDownloadLog({
+      assetKey,
+      countryCode: metadata.countryCode,
+      deviceType: metadata.deviceType,
+      fileLocale: storageConfig.locale,
+      ip: metadata.ip,
+      kind: storageConfig.kind,
+      referer: metadata.referer,
+      refererPath: metadata.refererPath,
+      source,
+      utmSource: metadata.utmSource,
+    })
+      .then(didPersist => {
+        if (!didPersist) {
+          console.error('[api/pdf/file] createPdfDownloadLog skipped or failed', {
+            assetKey,
+            source,
+          });
+        }
+      })
+      .catch(error => {
+        console.error('[api/pdf/file] createPdfDownloadLog crashed', {
+          assetKey,
+          error,
+          source,
+        });
       });
-    } catch {
-      // 다운로드 실패보다 로그 누락의 영향이 작으므로 여기서는 에러를 삼킵니다.
-    }
   }
 
   return Response.redirect(signedUrl);

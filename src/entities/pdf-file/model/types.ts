@@ -76,9 +76,19 @@ export type CreatePdfDownloadLogInput = {
 /**
  * Supabase `pdf_download_logs` 테이블의 레코드 타입입니다.
  */
-export type PdfFileDownloadLog = CreatePdfDownloadLogInput & {
+export type PdfFileDownloadLog = {
+  asset_key: PdfFileAssetKey;
+  country_code: string | null;
   created_at: string;
+  device_type: PdfFileDownloadDeviceType;
+  file_locale: PdfFileAssetLocale;
   id: string;
+  ip: string | null;
+  kind: PdfFileKind;
+  referer: string | null;
+  referer_path: string | null;
+  source: PdfFileDownloadSource;
+  utm_source: string | null;
 };
 
 /**

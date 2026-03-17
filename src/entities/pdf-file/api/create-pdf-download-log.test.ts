@@ -8,8 +8,14 @@ vi.mock('@/shared/lib/supabase/service-role', () => ({
 }));
 
 describe('createPdfDownloadLog', () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it('service role client가 없으면 false를 반환한다', async () => {
@@ -23,8 +29,8 @@ describe('createPdfDownloadLog', () => {
         fileLocale: 'ko',
         ip: '203.0.113.10',
         kind: 'resume',
-        referer: 'https://chaen.dev/ko/resume?utm_source=linkedin',
-        refererPath: '/ko/resume?utm_source=linkedin',
+        referer: 'https://chaen.dev',
+        refererPath: '/ko/resume',
         source: 'resume-page',
         utmSource: 'linkedin',
       }),
@@ -44,8 +50,8 @@ describe('createPdfDownloadLog', () => {
         fileLocale: 'en',
         ip: '198.51.100.7',
         kind: 'portfolio',
-        referer: 'https://chaen.dev/ko/project?utm_source=github',
-        refererPath: '/ko/project?utm_source=github',
+        referer: 'https://chaen.dev',
+        refererPath: '/ko/project',
         source: 'project-page',
         utmSource: 'github',
       }),
@@ -59,14 +65,14 @@ describe('createPdfDownloadLog', () => {
       file_locale: 'en',
       ip: '198.51.100.7',
       kind: 'portfolio',
-      referer: 'https://chaen.dev/ko/project?utm_source=github',
-      referer_path: '/ko/project?utm_source=github',
+      referer: 'https://chaen.dev',
+      referer_path: '/ko/project',
       source: 'project-page',
       utm_source: 'github',
     });
   });
 
-  it('로그 저장 실패 시 예외를 던진다', async () => {
+  it('로그 저장 실패 시 false를 반환하고 에러를 기록한다', async () => {
     const insert = vi.fn().mockResolvedValue({
       error: {
         message: 'insert failed',
@@ -88,6 +94,9 @@ describe('createPdfDownloadLog', () => {
         source: 'resume-page',
         utmSource: null,
       }),
-    ).rejects.toThrow('[pdf-file:resume-en] download log 저장 실패: insert failed');
+    ).resolves.toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[pdf-file:resume-en] download log 저장 실패', {
+      error: 'insert failed',
+    });
   });
 });

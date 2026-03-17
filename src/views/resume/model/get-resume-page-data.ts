@@ -16,7 +16,14 @@ export const getResumePageData = async ({
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
   const safeDownloadOptions = getPdfFileDownloadOptions('resume', {
     source: 'resume-page',
-  }).catch(() => []);
+  }).catch(error => {
+    console.warn('[resume] getPdfFileDownloadOptions failed', {
+      error,
+      source: 'resume-page',
+    });
+
+    return [];
+  });
   const safeContent = getPdfFileContent({
     locale,
     kind: 'resume',

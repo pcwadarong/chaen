@@ -13,8 +13,14 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
 }));
 
 describe('api/pdf/file/[assetKey] route', () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it('지원하는 자산 키면 signed URL로 리다이렉트한다', async () => {
@@ -65,7 +71,8 @@ describe('api/pdf/file/[assetKey] route', () => {
   });
 
   it('공개 resume 다운로드 요청이면 로그를 저장한 뒤 리다이렉트한다', async () => {
-    vi.mocked(getPdfFileUrl).mockResolvedValue('https://example.com/resume-ko-signed.pdf');
+    const expectedUrl = 'https://example.com/resume-ko-signed.pdf';
+    vi.mocked(getPdfFileUrl).mockResolvedValue(expectedUrl);
     vi.mocked(createPdfDownloadLog).mockResolvedValue(true);
 
     const response = await GET(
@@ -92,12 +99,13 @@ describe('api/pdf/file/[assetKey] route', () => {
       fileLocale: 'ko',
       ip: '203.0.113.10',
       kind: 'resume',
-      referer: 'https://chaen.dev/ko/resume?utm_source=linkedin&utm_medium=social',
-      refererPath: '/ko/resume?utm_source=linkedin&utm_medium=social',
+      referer: 'https://chaen.dev',
+      refererPath: '/ko/resume',
       source: 'resume-page',
       utmSource: 'linkedin',
     });
     expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe(expectedUrl);
   });
 
   it('로그 저장이 실패해도 다운로드 리다이렉트는 유지한다', async () => {
@@ -120,6 +128,12 @@ describe('api/pdf/file/[assetKey] route', () => {
     expect(createPdfDownloadLog).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe('https://example.com/portfolio-en-signed.pdf');
+    await Promise.resolve();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[api/pdf/file] createPdfDownloadLog crashed', {
+      assetKey: 'portfolio-en',
+      error: expect.any(Error),
+      source: 'project-page',
+    });
   });
 
   it('source와 asset kind가 맞지 않으면 로그를 남기지 않는다', async () => {
@@ -136,5 +150,38 @@ describe('api/pdf/file/[assetKey] route', () => {
 
     expect(createPdfDownloadLog).not.toHaveBeenCalled();
     expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('https://example.com/resume-ko-signed.pdf');
+  });
+
+  it('로그 Promise가 끝나기 전에 redirect 응답을 반환한다', async () => {
+    let resolveLog: ((value: boolean) => void) | undefined;
+    vi.mocked(getPdfFileUrl).mockResolvedValue('https://example.com/resume-ko-signed.pdf');
+    vi.mocked(createPdfDownloadLog).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          resolveLog = resolve;
+        }),
+    );
+
+    const response = await GET(
+      new Request('https://chaen.dev/api/pdf/file/resume-ko?source=resume-page', {
+        headers: {
+          referer: 'https://chaen.dev/ko/resume?utm_source=linkedin',
+        },
+      }),
+      {
+        params: Promise.resolve({
+          assetKey: 'resume-ko',
+        }),
+      },
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('https://example.com/resume-ko-signed.pdf');
+    expect(resolveLog).toBeTypeOf('function');
+
+    if (resolveLog) {
+      resolveLog(true);
+    }
   });
 });

@@ -24,8 +24,8 @@ describe('pdf download log helpers', () => {
       countryCode: 'KR',
       deviceType: 'mobile',
       ip: '203.0.113.10',
-      referer: 'https://chaen.dev/ko/resume?utm_source=linkedin&utm_medium=social',
-      refererPath: '/ko/resume?utm_source=linkedin&utm_medium=social',
+      referer: 'https://chaen.dev',
+      refererPath: '/ko/resume',
       utmSource: 'linkedin',
     });
   });
@@ -39,7 +39,7 @@ describe('pdf download log helpers', () => {
       }),
     });
 
-    expect(metadata.referer).toBe('https://google.com/search?q=chaen&utm_source=google');
+    expect(metadata.referer).toBe('https://google.com');
     expect(metadata.refererPath).toBeNull();
     expect(metadata.utmSource).toBe('google');
   });

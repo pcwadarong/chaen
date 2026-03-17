@@ -26,7 +26,11 @@ export const createPdfDownloadLog = async (input: CreatePdfDownloadLogInput): Pr
   });
 
   if (error) {
-    throw new Error(`[pdf-file:${input.assetKey}] download log 저장 실패: ${error.message}`);
+    console.error(`[pdf-file:${input.assetKey}] download log 저장 실패`, {
+      error: error.message,
+    });
+
+    return false;
   }
 
   return true;

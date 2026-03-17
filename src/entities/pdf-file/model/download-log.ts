@@ -48,12 +48,11 @@ export const extractPdfDownloadRequestMetadata = ({
   request,
 }: ExtractPdfDownloadRequestMetadataInput): PdfDownloadRequestMetadata => {
   const requestUrl = new URL(request.url);
-  const referer = readHeader(request.headers, ['referer', 'referrer']);
-  const refererUrl = parseUrlSafely(referer);
+  const refererHeader = readHeader(request.headers, ['referer', 'referrer']);
+  const refererUrl = parseUrlSafely(refererHeader);
+  const referer = normalizeOptionalValue(refererUrl?.origin);
   const refererPath =
-    refererUrl && refererUrl.origin === requestUrl.origin
-      ? `${refererUrl.pathname}${refererUrl.search}`
-      : null;
+    refererUrl && refererUrl.origin === requestUrl.origin ? refererUrl.pathname : null;
 
   return {
     countryCode: resolveCountryCode(request.headers),
