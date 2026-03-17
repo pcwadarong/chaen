@@ -130,6 +130,7 @@ type ArticleCommentsText = ReturnType<typeof createArticleCommentsText>;
 
 const LOAD_LAST_PAGE = 9999;
 const TOAST_DURATION_MS = 2600;
+const articleCommentsPageCache = new Map<string, ArticleCommentPage>();
 const DEFAULT_INITIAL_PAGE: ArticleCommentPage = {
   items: [],
   page: 1,
@@ -137,6 +138,67 @@ const DEFAULT_INITIAL_PAGE: ArticleCommentPage = {
   sort: 'latest',
   totalCount: 0,
   totalPages: 0,
+};
+
+/**
+ * 댓글 페이지 캐시 키를 생성합니다.
+ */
+const createArticleCommentsPageCacheKey = ({
+  articleId,
+  page,
+  sort,
+}: {
+  articleId: string;
+  page: number;
+  sort: ArticleCommentsSort;
+}) => `${articleId}:${sort}:${page}`;
+
+/**
+ * 브라우저 세션 메모리에서 댓글 페이지 캐시를 조회합니다.
+ */
+const getCachedArticleCommentsPage = ({
+  articleId,
+  page,
+  sort,
+}: {
+  articleId: string;
+  page: number;
+  sort: ArticleCommentsSort;
+}) => {
+  if (typeof window === 'undefined') return null;
+
+  return (
+    articleCommentsPageCache.get(
+      createArticleCommentsPageCacheKey({
+        articleId,
+        page,
+        sort,
+      }),
+    ) ?? null
+  );
+};
+
+/**
+ * 브라우저 세션 메모리에 댓글 페이지를 저장합니다.
+ */
+const cacheArticleCommentsPage = (pageData: ArticleCommentPage, articleId: string) => {
+  if (typeof window === 'undefined') return;
+
+  articleCommentsPageCache.set(
+    createArticleCommentsPageCacheKey({
+      articleId,
+      page: pageData.page,
+      sort: pageData.sort,
+    }),
+    pageData,
+  );
+};
+
+/**
+ * 테스트에서 댓글 페이지 메모리 캐시를 초기화합니다.
+ */
+export const resetArticleCommentsPageCacheForTest = () => {
+  articleCommentsPageCache.clear();
 };
 
 /**
@@ -507,13 +569,20 @@ export const ArticleCommentsSection = ({
   );
   const lastHandledRootSubmitStateRef = useRef(rootSubmitState);
   const lastHandledReplySubmitStateRef = useRef(replySubmitState);
-  const resolvedInitialPage = initialPage ?? DEFAULT_INITIAL_PAGE;
+  const cachedInitialPage = initialPage
+    ? null
+    : getCachedArticleCommentsPage({
+        articleId,
+        page: DEFAULT_INITIAL_PAGE.page,
+        sort: DEFAULT_INITIAL_PAGE.sort,
+      });
+  const resolvedInitialPage = initialPage ?? cachedInitialPage ?? DEFAULT_INITIAL_PAGE;
   const [pageData, setPageData] = useState(resolvedInitialPage);
   const [queryState, setQueryState] = useState<CommentQueryState>({
     page: resolvedInitialPage.page,
     sort: resolvedInitialPage.sort,
   });
-  const [isLoading, setIsLoading] = useState(!initialPage);
+  const [isLoading, setIsLoading] = useState(!initialPage && !cachedInitialPage);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
   const [modalState, setModalState] = useState<ModalState>(null);
@@ -585,6 +654,7 @@ export const ArticleCommentsSection = ({
         }
 
         setPageData(result.data);
+        cacheArticleCommentsPage(result.data, articleId);
         setQueryState({
           page: result.data.page,
           sort: result.data.sort,
@@ -606,10 +676,14 @@ export const ArticleCommentsSection = ({
   }, []);
 
   useEffect(() => {
-    if (initialPage) return;
+    if (initialPage) {
+      cacheArticleCommentsPage(initialPage, articleId);
+      return;
+    }
+    if (cachedInitialPage) return;
 
     void loadPage(DEFAULT_INITIAL_PAGE.page, DEFAULT_INITIAL_PAGE.sort);
-  }, [initialPage, loadPage]);
+  }, [articleId, cachedInitialPage, initialPage, loadPage]);
 
   const handleChangeSort = useCallback(
     (sort: ArticleCommentsSort) => {

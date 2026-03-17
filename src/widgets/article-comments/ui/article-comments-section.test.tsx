@@ -3,7 +3,10 @@ import React from 'react';
 
 import { getArticleCommentsPageAction } from '@/entities/article/comment/api/article-comment-actions';
 import type { ArticleCommentPage } from '@/entities/article/comment/model';
-import { ArticleCommentsSection } from '@/widgets/article-comments/ui/article-comments-section';
+import {
+  ArticleCommentsSection,
+  resetArticleCommentsPageCacheForTest,
+} from '@/widgets/article-comments/ui/article-comments-section';
 
 const composeFormSpy = vi.fn();
 const actionPopoverRenderCount = vi.hoisted(() => ({
@@ -149,6 +152,7 @@ describe('ArticleCommentsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     actionPopoverRenderCount.value = 0;
+    resetArticleCommentsPageCacheForTest();
   });
 
   it('루트 작성 폼에 embedded textarea 설정을 전달한다', () => {
@@ -198,6 +202,28 @@ describe('ArticleCommentsSection', () => {
         sort: 'latest',
       });
     });
+  });
+
+  it('같은 글을 다시 열면 브라우저 메모리 캐시에서 첫 댓글 페이지를 재사용한다', async () => {
+    vi.mocked(getArticleCommentsPageAction).mockResolvedValueOnce({
+      data: initialPage,
+      errorMessage: null,
+      ok: true,
+    });
+
+    const { unmount } = render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageAction).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+    vi.clearAllMocks();
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    expect(screen.getByText('root content')).toBeTruthy();
+    expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
   });
 
   it('정렬과 페이지 이동 시 댓글 목록을 다시 조회한다', async () => {
