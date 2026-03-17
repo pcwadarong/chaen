@@ -40,6 +40,18 @@ describe('publish-panel utils', () => {
     expect(
       shouldDisablePublishCommentsSetting({
         contentType: 'project',
+        publicationState: 'draft',
+      }),
+    ).toBe(true);
+    expect(
+      shouldDisablePublishCommentsSetting({
+        contentType: 'project',
+        publicationState: 'scheduled',
+      }),
+    ).toBe(true);
+    expect(
+      shouldDisablePublishCommentsSetting({
+        contentType: 'project',
         publicationState: 'published',
       }),
     ).toBe(true);

@@ -112,6 +112,8 @@ describe('article detail page data helpers', () => {
   });
 
   it('아카이브 helper는 조회 실패 시 현재 항목만 유지한 빈 목록으로 폴백한다', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
@@ -143,6 +145,13 @@ describe('article detail page data helpers', () => {
       ],
       nextCursor: null,
     });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[articles] getArticleDetailList failed for locale',
+      expect.objectContaining({
+        error: expect.any(Error),
+        locale: 'ko',
+      }),
+    );
   });
 
   it('관련 글 helper는 조회 실패를 빈 목록으로 대체한다', async () => {

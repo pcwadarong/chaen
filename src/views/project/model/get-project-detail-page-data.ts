@@ -94,9 +94,14 @@ export const getProjectDetailArchivePageData = async ({
   item,
   locale,
 }: GetProjectDetailArchivePageDataInput): Promise<ProjectArchivePage> => {
-  const archivePage = await getProjectDetailList({ locale }).catch(
-    () => EMPTY_PROJECT_ARCHIVE_PAGE,
-  );
+  const archivePage = await getProjectDetailList({ locale }).catch(error => {
+    console.error('[projects] getProjectDetailList failed for locale', {
+      error,
+      locale,
+    });
+
+    return EMPTY_PROJECT_ARCHIVE_PAGE;
+  });
 
   return ensureCurrentProjectInArchive(item, archivePage);
 };

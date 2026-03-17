@@ -102,6 +102,8 @@ describe('project detail page data helpers', () => {
   });
 
   it('아카이브 helper는 조회 실패 시 현재 항목만 유지한 빈 목록으로 폴백한다', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     vi.mocked(getProjectDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
@@ -131,6 +133,13 @@ describe('project detail page data helpers', () => {
       ],
       nextCursor: null,
     });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[projects] getProjectDetailList failed for locale',
+      expect.objectContaining({
+        error: expect.any(Error),
+        locale: 'ko',
+      }),
+    );
   });
 
   it('태그 label helper는 locale label을 반환한다', async () => {

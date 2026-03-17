@@ -45,7 +45,7 @@ const renderPublishPanel = (
   const onClose = options?.onClose ?? vi.fn();
   const onSubmit = options?.onSubmit ?? vi.fn().mockResolvedValue(undefined);
 
-  render(
+  const renderResult = render(
     <PublishPanel
       contentType={options?.contentType ?? 'article'}
       editorState={options?.editorState ?? { ...baseEditorState }}
@@ -61,6 +61,7 @@ const renderPublishPanel = (
   return {
     onClose,
     onSubmit,
+    unmount: renderResult.unmount,
   };
 };
 
@@ -232,24 +233,28 @@ describe('PublishPanel', () => {
     expect(commentCheckbox).toBeChecked();
   });
 
-  it('project에서는 published 상태여도 댓글 허용이 비활성화된다', () => {
-    renderPublishPanel({
-      contentType: 'project',
-      initialSettings: {
-        allowComments: true,
-        publishAt: null,
-        slug: 'published-project',
-        thumbnailUrl: '',
-        visibility: 'public',
-      },
-      isPublished: true,
-      publicationState: 'published',
-    });
+  it('project에서는 publication state와 무관하게 댓글 허용이 비활성화된다', () => {
+    for (const publicationState of ['draft', 'scheduled', 'published'] as const) {
+      const { unmount } = renderPublishPanel({
+        contentType: 'project',
+        initialSettings: {
+          allowComments: true,
+          publishAt: null,
+          slug: `${publicationState}-project`,
+          thumbnailUrl: '',
+          visibility: 'public',
+        },
+        isPublished: publicationState !== 'draft',
+        publicationState,
+      });
 
-    const commentCheckbox = screen.getByLabelText('댓글 허용');
+      const commentCheckbox = screen.getByLabelText('댓글 허용');
 
-    expect(commentCheckbox).toBeDisabled();
-    expect(commentCheckbox).not.toBeChecked();
+      expect(commentCheckbox).toBeDisabled();
+      expect(commentCheckbox).not.toBeChecked();
+
+      unmount();
+    }
   });
 
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {

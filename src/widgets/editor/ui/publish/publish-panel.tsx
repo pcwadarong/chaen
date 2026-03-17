@@ -50,16 +50,18 @@ type PublishErrors = {
  * 패널이 열릴 때 editor 상태와 초기 발행 설정을 form 값으로 동기화합니다.
  */
 const createInitialFormState = ({
+  disableComments = false,
   editorSlug,
   initialSettings,
 }: {
+  disableComments?: boolean;
   editorSlug: string;
   initialSettings?: PublishSettings;
 }) => {
   const scheduleFields = getInitialScheduleFields(initialSettings?.publishAt ?? null);
 
   return {
-    allowComments: initialSettings?.allowComments ?? true,
+    allowComments: disableComments ? false : (initialSettings?.allowComments ?? true),
     dateInput: scheduleFields.dateInput,
     publishMode: scheduleFields.publishMode,
     slug: initialSettings?.slug ?? editorSlug,
@@ -129,6 +131,7 @@ export const PublishPanel = ({
     openedAtRef.current = new Date();
 
     const nextFormState = createInitialFormState({
+      disableComments: isCommentsSettingLocked,
       editorSlug: editorState.slug,
       initialSettings: createDefaultPublishSettings({
         disableComments: isCommentsSettingLocked,
@@ -151,12 +154,6 @@ export const PublishPanel = ({
     setTimeInput(nextFormState.timeInput);
     setErrors({});
   }, [editorState.slug, initialSettings, isCommentsSettingLocked, isOpen, isPublished]);
-
-  useEffect(() => {
-    if (!isCommentsSettingLocked || !allowComments) return;
-
-    setAllowComments(false);
-  }, [allowComments, isCommentsSettingLocked]);
 
   useEffect(() => {
     if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
@@ -417,7 +414,7 @@ export const PublishPanel = ({
           <section className={sectionClass}>
             <label className={checkboxLabelClass}>
               <input
-                checked={allowComments}
+                checked={isCommentsSettingLocked ? false : allowComments}
                 className={checkboxClass}
                 disabled={isCommentsSettingLocked}
                 onChange={event => handleAllowCommentsChange(event.target.checked)}
