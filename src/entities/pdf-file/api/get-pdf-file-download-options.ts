@@ -1,10 +1,18 @@
 import { listPdfFileAssetStorageConfigsByKind } from '@/entities/pdf-file/model/config';
 import { buildPdfFileAssetDownloadPath } from '@/entities/pdf-file/model/download-path';
-import type { PdfFileDownloadOption, PdfFileKind } from '@/entities/pdf-file/model/types';
+import type {
+  PdfFileDownloadOption,
+  PdfFileDownloadSource,
+  PdfFileKind,
+} from '@/entities/pdf-file/model/types';
 
 import 'server-only';
 
 import { getPdfFileAvailability } from './get-pdf-file-availability';
+
+type GetPdfFileDownloadOptionsOptions = {
+  source?: PdfFileDownloadSource;
+};
 
 /**
  * 공개 페이지에서 사용할 PDF 다운로드 옵션 목록을 반환합니다.
@@ -12,6 +20,7 @@ import { getPdfFileAvailability } from './get-pdf-file-availability';
  */
 export const getPdfFileDownloadOptions = async (
   kind: PdfFileKind,
+  options?: GetPdfFileDownloadOptionsOptions,
 ): Promise<PdfFileDownloadOption[]> => {
   const storageConfigs = listPdfFileAssetStorageConfigsByKind(kind);
 
@@ -24,7 +33,7 @@ export const getPdfFileDownloadOptions = async (
       return {
         assetKey: storageConfig.assetKey,
         fileName: storageConfig.downloadFileName,
-        href: isReady ? buildPdfFileAssetDownloadPath(storageConfig.assetKey) : null,
+        href: isReady ? buildPdfFileAssetDownloadPath(storageConfig.assetKey, options) : null,
         locale: storageConfig.locale,
       };
     }),

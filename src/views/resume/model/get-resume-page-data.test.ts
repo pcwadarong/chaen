@@ -22,7 +22,7 @@ describe('getResumePageData', () => {
       {
         assetKey: 'resume-ko',
         fileName: '박채원_이력서.pdf',
-        href: '/api/pdf/file/resume-ko',
+        href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
@@ -36,13 +36,15 @@ describe('getResumePageData', () => {
 
     const data = await getResumePageData({ locale: 'ko' });
 
-    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('resume');
+    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('resume', {
+      source: 'resume-page',
+    });
     expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko', kind: 'resume' });
     expect(data.downloadOptions).toEqual([
       {
         assetKey: 'resume-ko',
         fileName: '박채원_이력서.pdf',
-        href: '/api/pdf/file/resume-ko',
+        href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {

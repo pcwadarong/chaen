@@ -26,13 +26,13 @@ vi.mock('@/views/project', () => ({
       {
         assetKey: 'portfolio-ko',
         fileName: '박채원_포트폴리오.pdf',
-        href: '/api/pdf/file/portfolio-ko',
+        href: '/api/pdf/file/portfolio-ko?source=project-page',
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
         fileName: 'ParkChaewon-Portfolio.pdf',
-        href: '/api/pdf/file/portfolio-en',
+        href: '/api/pdf/file/portfolio-en?source=project-page',
         locale: 'en',
       },
     ],
@@ -69,7 +69,9 @@ describe('ProjectRoute', () => {
     expect(element.props.portfolioButtonLabel).toBe('Download portfolio');
     expect(element.props.portfolioButtonUnavailableLabel).toBe('Portfolio unavailable');
     expect(element.props.portfolioDownloadOptions).toHaveLength(2);
-    expect(element.props.portfolioDownloadOptions[0].href).toBe('/api/pdf/file/portfolio-ko');
+    expect(element.props.portfolioDownloadOptions[0].href).toBe(
+      '/api/pdf/file/portfolio-ko?source=project-page',
+    );
   });
 
   it('프로젝트 목록 메타데이터에 placeholder OG 이미지와 alternates를 포함한다', async () => {
