@@ -1,22 +1,21 @@
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 
-import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
-import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-
-import 'server-only';
-
 import {
   createGuestbookEntryCacheTag,
   createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
-} from '../model/cache-tags';
+} from '@/entities/guestbook/model/cache-tags';
 import type {
   GuestbookEntry,
   GuestbookEntryRow,
   GuestbookThreadItem,
   GuestbookThreadPage,
-} from '../model/types';
+} from '@/entities/guestbook/model/types';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
+import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+
+import 'server-only';
 
 const toDerivedAdminFlags = (entry: GuestbookEntryRow) => ({
   is_admin_author: Boolean(entry.is_admin_author),

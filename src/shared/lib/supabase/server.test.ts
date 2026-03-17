@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-import { createServerSupabaseClient } from './server';
+import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
 const cookieStore = {
   getAll: vi.fn(),

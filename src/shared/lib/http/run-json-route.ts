@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import { createApiErrorResponse } from './api-response';
+import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 
 type RunJsonRouteOptions<T> = {
   action: () => Promise<Response | T>;

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { GuestbookBoard } from './guestbook-board';
+import { GuestbookBoard } from '@/widgets/guestbook/ui/guestbook-board';
 
 const hookState = {
   applyServerThread: vi.fn(),

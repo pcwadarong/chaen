@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation';
 
+import { type AuthState, getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 
 import 'server-only';
-
-import { type AuthState, getServerAuthState } from './get-server-auth-state';
 
 type RequireAdminOptions = {
   locale?: string | null;

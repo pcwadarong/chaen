@@ -6,6 +6,7 @@ import { css } from 'styled-system/css';
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleListItem as ArticleWideListItem } from '@/entities/article/ui/article-list-item';
 import { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
+import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
@@ -95,6 +96,7 @@ export const ArticleFeed = ({
     locale,
     query,
   });
+  const isAutoLoadEnabled = useAutoLoadAfterScroll();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const handleLoadMore = useCallback(() => {
     void loadMore();
@@ -106,7 +108,7 @@ export const ArticleFeed = ({
     const observer = new IntersectionObserver(
       entries => {
         const target = entries[0];
-        if (!target?.isIntersecting) return;
+        if (!target?.isIntersecting || !isAutoLoadEnabled) return;
         handleLoadMore();
       },
       {
@@ -118,7 +120,7 @@ export const ArticleFeed = ({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [handleLoadMore]);
+  }, [handleLoadMore, isAutoLoadEnabled]);
 
   return (
     <section className={sectionClass}>

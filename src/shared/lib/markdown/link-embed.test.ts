@@ -1,4 +1,4 @@
-import { extractEmbedMetaFromHtml } from './link-embed';
+import { extractEmbedMetaFromHtml } from '@/shared/lib/markdown/link-embed';
 
 describe('link-embed utils', () => {
   it('meta와 link attribute 순서가 바뀌어도 HTML fallback 메타를 추출한다', () => {

@@ -2,9 +2,8 @@ import { redirect } from 'next/navigation';
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import AdminRoute, { metadata } from '@/app/[locale]/admin/page';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import AdminRoute, { metadata } from './page';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(),

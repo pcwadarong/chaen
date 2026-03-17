@@ -1,14 +1,13 @@
-import { getResolvedArticle } from '@/entities/article/api/get-article';
-import { getArticleDetailList } from '@/entities/article/api/get-article-detail-list';
-import { getRelatedArticles } from '@/entities/article/api/get-related-articles';
+import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
+import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
 import type {
   Article,
   ArticleArchivePage,
   ArticleDetailListItem,
   ArticleListItem,
 } from '@/entities/article/model/types';
-import { getArticleComments } from '@/entities/article-comment';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
+import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetArticleDetailPageDataInput = {
@@ -16,21 +15,22 @@ type GetArticleDetailPageDataInput = {
   locale: string;
 };
 
-type ArticleDetailPageData = {
-  archivePage: ArticleArchivePage;
-  initialCommentsPage: ArticleCommentPage;
+type GetArticleDetailArchivePageDataInput = {
   item: Article | null;
-  relatedArticles: ArticleListItem[];
+  locale: string;
 };
 
-const DEFAULT_COMMENTS_PAGE: ArticleCommentPage = {
-  items: [],
-  page: 1,
-  pageSize: 10,
-  sort: 'latest',
-  totalCount: 0,
-  totalPages: 0,
+type GetArticleDetailRelatedArticlesDataInput = {
+  articleId: string | null | undefined;
+  locale: string;
 };
+
+type GetArticleTagLabelsInput = {
+  item: Article | null;
+  locale: string;
+};
+
+export type ArticleDetailShellData = Awaited<ReturnType<typeof getResolvedArticle>>;
 
 /**
  * 상세 아티클을 public archive 요약 shape로 좁힙니다.
@@ -60,36 +60,58 @@ const ensureCurrentArticleInArchive = (
   );
 
 /**
- * 아티클 상세 페이지에 필요한 데이터 묶음을 조회합니다.
+ * 상세 아티클 태그를 locale 기준 표시 라벨로 변환합니다.
  */
-export const getArticleDetailPageData = async ({
+export const getArticleTagLabels = async ({
+  item,
+  locale,
+}: GetArticleTagLabelsInput): Promise<string[]> => {
+  const tags = item?.tags ?? [];
+
+  if (tags.length === 0) return [];
+
+  const tagLabelMap = await getTagLabelMapBySlugs({
+    locale,
+    slugs: tags,
+  });
+
+  if (tagLabelMap.schemaMissing) return tags;
+
+  return tags.map(tag => tagLabelMap.data.get(tag) ?? tag);
+};
+
+/**
+ * 아티클 상세 본문 shell에 필요한 최소 데이터를 조회합니다.
+ */
+export const getArticleDetailShellData = ({
   articleSlug,
   locale,
-}: GetArticleDetailPageDataInput): Promise<ArticleDetailPageData> => {
-  const resolvedArticle = await getResolvedArticle(articleSlug, locale);
-  const item = resolvedArticle.item;
-  const articleId = item?.id;
-  const [archivePage, initialCommentsPage, relatedArticles] = await Promise.all([
-    getArticleDetailList({ locale }),
-    articleId
-      ? getArticleComments({
-          articleId,
-          page: 1,
-          sort: 'latest',
-        }).catch(() => DEFAULT_COMMENTS_PAGE)
-      : Promise.resolve(DEFAULT_COMMENTS_PAGE),
-    articleId
-      ? getRelatedArticles({
-          articleId,
-          locale: resolvedArticle.resolvedLocale ?? locale,
-        }).catch(() => [])
-      : Promise.resolve([]),
-  ]);
+}: GetArticleDetailPageDataInput): Promise<ArticleDetailShellData> =>
+  getResolvedArticle(articleSlug, locale);
 
-  return {
-    archivePage: ensureCurrentArticleInArchive(item, archivePage),
-    initialCommentsPage,
-    item,
-    relatedArticles,
-  };
+/**
+ * 아티클 상세 좌측 아카이브를 조회하고 현재 항목을 목록에 보정합니다.
+ */
+export const getArticleDetailArchivePageData = async ({
+  item,
+  locale,
+}: GetArticleDetailArchivePageDataInput): Promise<ArticleArchivePage> => {
+  const archivePage = await getArticleDetailList({ locale });
+
+  return ensureCurrentArticleInArchive(item, archivePage);
+};
+
+/**
+ * 아티클 상세 하단의 관련 글 목록을 조회합니다.
+ */
+export const getArticleDetailRelatedArticlesData = async ({
+  articleId,
+  locale,
+}: GetArticleDetailRelatedArticlesDataInput): Promise<ArticleListItem[]> => {
+  if (!articleId) return [];
+
+  return getRelatedArticles({
+    articleId,
+    locale,
+  }).catch(() => []);
 };

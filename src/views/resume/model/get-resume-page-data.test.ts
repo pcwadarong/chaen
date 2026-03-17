@@ -2,8 +2,7 @@ import { vi } from 'vitest';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-
-import { getResumePageData } from './get-resume-page-data';
+import { getResumePageData } from '@/views/resume/model/get-resume-page-data';
 
 vi.mock('@/entities/pdf-file/api/get-pdf-file-availability', () => ({
   getPdfFileAvailability: vi.fn(),

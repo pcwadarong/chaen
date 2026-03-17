@@ -5,8 +5,7 @@ import {
   getPdfFileStorageConfig,
 } from '@/entities/pdf-file/model/config';
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file/model/download-path';
-
-import type { ResumePageProps } from '../ui/resume-page';
+import type { ResumePageProps } from '@/views/resume/ui/resume-page';
 
 type GetResumePageDataInput = {
   locale: string;
@@ -20,17 +19,18 @@ export const getResumePageData = async ({
   locale,
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
   const resumeConfig = getPdfFileStorageConfig('resume');
-  const isResumeReady = await getPdfFileAvailability({
-    kind: 'resume',
-  }).catch(() => false);
-  const content =
-    (await getPdfFileContent({
+  const [isResumeReady, content] = await Promise.all([
+    getPdfFileAvailability({
+      kind: 'resume',
+    }).catch(() => false),
+    getPdfFileContent({
       locale,
       kind: 'resume',
-    })) ?? createDefaultPdfFileContent(locale);
+    }),
+  ]);
 
   return {
-    content,
+    content: content ?? createDefaultPdfFileContent(locale),
     downloadFileName: resumeConfig.downloadFileName,
     resumeDownloadHref: isResumeReady ? buildPdfFileDownloadPath('resume') : null,
   };

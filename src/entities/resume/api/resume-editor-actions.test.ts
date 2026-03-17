@@ -1,15 +1,18 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
+import {
+  publishResumeContentAction,
+  saveResumeDraftAction,
+} from '@/entities/resume/api/resume-editor-actions';
 import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
-import { publishResumeContentAction, saveResumeDraftAction } from './resume-editor-actions';
-
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -208,10 +211,20 @@ describe('resume-editor-actions', () => {
     );
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-files');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:resume');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:portfolio');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content:resume');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content:portfolio');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/en/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
     expect(redirect).toHaveBeenCalledWith('/ko/admin/resume/edit');
   });
 

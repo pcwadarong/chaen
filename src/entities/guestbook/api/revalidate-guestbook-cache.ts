@@ -1,12 +1,11 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 
-import { locales } from '@/i18n/routing';
-
 import {
   createGuestbookEntryCacheTag,
   createGuestbookRepliesCacheTag,
   GUESTBOOK_CACHE_TAG,
-} from '../model/cache-tags';
+} from '@/entities/guestbook/model/cache-tags';
+import { locales } from '@/i18n/routing';
 
 type RevalidateGuestbookCacheOptions = {
   entryId?: string | null;

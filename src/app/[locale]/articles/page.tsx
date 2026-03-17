@@ -10,12 +10,19 @@ import {
   ArticlesPage,
   buildArticlesPageHref,
   getArticlesPageData,
+  isSupportedArticlesPageRequest,
+  normalizeCursorHistoryParams,
+  normalizeCursorParams,
   normalizePageParams,
+  normalizeSearchParams,
+  normalizeTagParams,
 } from '@/views/articles';
 
 export const revalidate = 3600;
 
 type ArticlesRouteSearchParams = {
+  cursor?: string | string[];
+  cursorHistory?: string | string[];
   page?: string | string[];
   q?: string | string[];
   tag?: string | string[];
@@ -36,13 +43,20 @@ export const generateMetadata = async ({
   searchParams,
 }: ArticlesRouteProps): Promise<Metadata> => {
   const { locale } = await params;
-  const { page, q, tag } = await searchParams;
+  const { cursor, cursorHistory, page, q, tag } = await searchParams;
   const normalizedPage = normalizePageParams(page);
+  const normalizedCursor = normalizeCursorParams(cursor);
+  const normalizedCursorHistory = normalizeCursorHistoryParams(cursorHistory);
+  const normalizedQuery = normalizeSearchParams(q);
+  const normalizedTag = normalizedQuery ? '' : normalizeTagParams(tag);
 
   if (!normalizedPage) notFound();
+  if (!isSupportedArticlesPageRequest({ cursor, page: normalizedPage })) notFound();
 
   const [pageData, t] = await Promise.all([
     getArticlesPageData({
+      cursor,
+      cursorHistory,
       locale,
       page: normalizedPage,
       query: q,
@@ -62,25 +76,45 @@ export const generateMetadata = async ({
           title: t('title'),
         })
       : t('title');
-  const pathnameByLocale = Object.fromEntries(
-    locales.map(candidateLocale => [
-      candidateLocale,
-      buildArticlesPageHref({
-        locale: candidateLocale,
-        page: normalizedPage,
-        query: Array.isArray(q) ? q[0] : q,
-        tag: Array.isArray(tag) ? tag[0] : tag,
-      }),
-    ]),
-  ) as Partial<Record<AppLocale, string>>;
+  const canonicalPathname = buildArticlesPageHref({
+    cursor: normalizedCursor,
+    cursorHistory: normalizedCursorHistory,
+    locale,
+    page: normalizedPage,
+    query: normalizedQuery,
+    tag: normalizedTag,
+  });
+  const alternates =
+    normalizedPage > 1
+      ? {
+          canonical: buildAbsoluteSiteUrl(canonicalPathname),
+        }
+      : buildLocaleAlternates({
+          canonicalLocale: locale as AppLocale,
+          pathnameByLocale: Object.fromEntries(
+            locales.map(candidateLocale => [
+              candidateLocale,
+              buildArticlesPageHref({
+                locale: candidateLocale,
+                page: normalizedPage,
+                query: normalizedQuery,
+                tag: normalizedTag,
+              }),
+            ]),
+          ) as Partial<Record<AppLocale, string>>,
+        });
 
   return {
     title,
     description: t('description'),
-    alternates: buildLocaleAlternates({
-      canonicalLocale: locale as AppLocale,
-      pathnameByLocale,
-    }),
+    alternates,
+    robots:
+      normalizedPage > 1
+        ? {
+            follow: true,
+            index: false,
+          }
+        : undefined,
     pagination: {
       next: pageData.pagination.nextHref
         ? buildAbsoluteSiteUrl(pageData.pagination.nextHref)
@@ -95,12 +129,15 @@ export const generateMetadata = async ({
 /** 아티클 페이지 엔트리입니다. */
 const ArticlesRoute = async ({ params, searchParams }: ArticlesRouteProps) => {
   const { locale } = await params;
-  const { page, q, tag } = await searchParams;
+  const { cursor, cursorHistory, page, q, tag } = await searchParams;
   const normalizedPage = normalizePageParams(page);
 
   if (!normalizedPage) notFound();
+  if (!isSupportedArticlesPageRequest({ cursor, page: normalizedPage })) notFound();
 
   const pageData = await getArticlesPageData({
+    cursor,
+    cursorHistory,
     locale,
     page: normalizedPage,
     query: q,

@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React, { type AnchorHTMLAttributes, type ReactNode } from 'react';
 
-import '@testing-library/jest-dom/vitest';
+import { EditorDraftsPage } from '@/views/editor-drafts/ui/editor-drafts-page';
 
-import { EditorDraftsPage } from './editor-drafts-page';
+import '@testing-library/jest-dom/vitest';
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({

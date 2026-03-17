@@ -1,4 +1,4 @@
-import { dedupeById } from './dedupe-by-id';
+import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 
 describe('dedupeById', () => {
   it('중복 id를 제거하고 첫 항목 순서를 유지한다', () => {

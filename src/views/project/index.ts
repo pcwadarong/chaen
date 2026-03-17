@@ -1,4 +1,8 @@
-export { getProjectDetailPageData } from './model/get-project-detail-page-data';
-export { getProjectListPageData } from './model/get-project-list-page-data';
-export { ProjectDetailPage } from './ui/project-detail-page';
-export { ProjectListPage } from './ui/project-list-page';
+export {
+  getProjectDetailArchivePageData,
+  getProjectDetailShellData,
+  getProjectTagLabels,
+} from '@/views/project/model/get-project-detail-page-data';
+export { getProjectListPageData } from '@/views/project/model/get-project-list-page-data';
+export { ProjectDetailPage } from '@/views/project/ui/project-detail-page';
+export { ProjectListPage } from '@/views/project/ui/project-list-page';

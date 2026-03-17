@@ -9,15 +9,15 @@ import {
   resolvePublicContentPublishedAt,
 } from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
+import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
-import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
-
 import {
   type DetailArchiveLinkItem,
   DetailArchiveList,
   detailArchiveSidebarViewportClass,
-} from './list';
+} from '@/shared/ui/detail-page/archive/list';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type DetailArchiveRecord = {
   description: string | null;
@@ -113,6 +113,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
       ];
     },
   });
+  const isAutoLoadEnabled = useAutoLoadAfterScroll();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
@@ -122,7 +123,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     const observer = new IntersectionObserver(
       entries => {
         const target = entries[0];
-        if (!target?.isIntersecting || errorMessage) return;
+        if (!target?.isIntersecting || errorMessage || !isAutoLoadEnabled) return;
         void loadMore();
       },
       {
@@ -134,7 +135,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [errorMessage, loadMore]);
+  }, [errorMessage, isAutoLoadEnabled, loadMore]);
 
   const linkItems = useMemo(
     () =>

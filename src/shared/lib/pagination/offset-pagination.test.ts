@@ -1,4 +1,8 @@
-import { buildOffsetPage, parseOffsetCursor, parseOffsetLimit } from './offset-pagination';
+import {
+  buildOffsetPage,
+  parseOffsetCursor,
+  parseOffsetLimit,
+} from '@/shared/lib/pagination/offset-pagination';
 
 describe('offset-pagination', () => {
   it('유효하지 않은 cursor는 0으로 정규화한다', () => {

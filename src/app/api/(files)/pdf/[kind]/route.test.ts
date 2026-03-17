@@ -1,8 +1,7 @@
 import { vi } from 'vitest';
 
+import { GET } from '@/app/api/(files)/pdf/[kind]/route';
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
-
-import { GET } from './route';
 
 vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
   getPdfFileUrl: vi.fn(),

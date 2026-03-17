@@ -1,4 +1,4 @@
-import { getErrorMessage } from './get-error-message';
+import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 
 describe('getErrorMessage', () => {
   it('Error 객체면 message를 반환한다', () => {

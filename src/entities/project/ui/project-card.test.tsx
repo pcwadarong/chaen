@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import React, { createElement } from 'react';
 
-import '@testing-library/jest-dom/vitest';
+import { ProjectCard } from '@/entities/project/ui/project-card';
 
-import { ProjectCard } from './project-card';
+import '@testing-library/jest-dom/vitest';
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ko',

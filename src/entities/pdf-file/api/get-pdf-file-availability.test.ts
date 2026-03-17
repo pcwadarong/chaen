@@ -1,9 +1,13 @@
+import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
+import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
-import { getPdfFileAvailability } from './get-pdf-file-availability';
+vi.mock('next/cache', () => ({
+  unstable_cacheTag: vi.fn(),
+}));
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
@@ -49,6 +53,7 @@ describe('getPdfFileAvailability', () => {
     );
 
     await expect(getPdfFileAvailability({ kind: 'resume' })).resolves.toBe(true);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('pdf-files', 'pdf-file-availability:resume');
   });
 
   it('storage에 파일이 없으면 false를 반환한다', async () => {
@@ -65,5 +70,6 @@ describe('getPdfFileAvailability', () => {
     );
 
     await expect(getPdfFileAvailability({ kind: 'portfolio' })).resolves.toBe(false);
+    expect(unstable_cacheTag).toHaveBeenCalledWith('pdf-files', 'pdf-file-availability:portfolio');
   });
 });

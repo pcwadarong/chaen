@@ -1,4 +1,4 @@
-import { isValidSlugFormat, normalizeSlugInput, slugifyText } from './slug';
+import { isValidSlugFormat, normalizeSlugInput, slugifyText } from '@/shared/lib/editor/slug';
 
 describe('slug utils', () => {
   it('제목 문자열을 URL 친화적인 slug로 변환한다', () => {

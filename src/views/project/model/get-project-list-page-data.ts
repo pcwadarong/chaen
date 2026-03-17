@@ -4,9 +4,8 @@ import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-ava
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import { buildPdfFileDownloadPath } from '@/entities/pdf-file/model/download-path';
-import { getProjects } from '@/entities/project/api/get-projects';
-
-import type { ProjectListPageProps } from '../ui/project-list-page';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import type { ProjectListPageProps } from '@/views/project/ui/project-list-page';
 
 type GetProjectListPageDataInput = {
   locale: string;
@@ -19,16 +18,21 @@ type GetProjectListPageDataInput = {
 export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
-  const t = await getTranslations({ locale, namespace: 'Project' });
-  const projectsPage = await getProjects({ locale }).catch(() => ({
-    items: [],
-    nextCursor: null,
-  }));
   const portfolioConfig = getPdfFileStorageConfig('portfolio');
-  const isPortfolioReady = await getPdfFileAvailability({
-    kind: 'portfolio',
-  }).catch(() => false);
-  const sharedPdfContent = await getPdfFileContent({ locale });
+  const [t, projectsPage, isPortfolioReady, sharedPdfContent] = await Promise.all([
+    getTranslations({ locale, namespace: 'Project' }),
+    getProjects({ locale }).catch(() => ({
+      items: [],
+      nextCursor: null,
+    })),
+    getPdfFileAvailability({
+      kind: 'portfolio',
+    }).catch(() => false),
+    getPdfFileContent({
+      kind: 'portfolio',
+      locale,
+    }),
+  ]);
 
   return {
     initialCursor: projectsPage.nextCursor,

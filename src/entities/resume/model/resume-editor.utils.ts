@@ -1,7 +1,6 @@
 import { EDITOR_LOCALES, type Locale } from '@/entities/editor/model/editor-types';
 import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
-
 import type {
   ResumeDraftSeed,
   ResumeEditorContent,
@@ -9,8 +8,8 @@ import type {
   ResumeEditorSeed,
   ResumePublishSettings,
   ResumePublishValidationErrors,
-} from './resume-editor.types';
-import { RESUME_EDITOR_ERROR_MESSAGE } from './resume-editor-error';
+} from '@/entities/resume/model/resume-editor.types';
+import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
 
 const EMPTY_RESUME_EDITOR_ERROR: ResumePublishValidationErrors = {};
 

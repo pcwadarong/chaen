@@ -1,3 +1,3 @@
-export { buildAdminPath } from './model/admin-path';
-export { AdminLoginForm } from './ui/admin-login-form';
-export { AdminSignOutButton } from './ui/admin-sign-out-button';
+export { buildAdminPath } from '@/features/auth/model/admin-path';
+export { AdminLoginForm } from '@/features/auth/ui/admin-login-form';
+export { AdminSignOutButton } from '@/features/auth/ui/admin-sign-out-button';

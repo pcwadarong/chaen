@@ -1,23 +1,28 @@
 import { vi } from 'vitest';
 
-import { getArticles, getResolvedArticlesFirstPage } from '@/entities/article/api/get-articles';
-import { getPopularArticleTags } from '@/entities/article/api/get-popular-article-tags';
+import {
+  getArticles,
+  getResolvedArticlesFirstPage,
+} from '@/entities/article/api/list/get-articles';
+import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-
 import {
   buildArticlesPageHref,
   getArticlesPageData,
+  isSupportedArticlesPageRequest,
+  normalizeCursorHistoryParams,
+  normalizeCursorParams,
   normalizePageParams,
   normalizeSearchParams,
   normalizeTagParams,
-} from './get-articles-page-data';
+} from '@/views/articles/model/get-articles-page-data';
 
-vi.mock('@/entities/article/api/get-articles', () => ({
+vi.mock('@/entities/article/api/list/get-articles', () => ({
   getArticles: vi.fn(),
   getResolvedArticlesFirstPage: vi.fn(),
 }));
 
-vi.mock('@/entities/article/api/get-popular-article-tags', () => ({
+vi.mock('@/entities/article/api/list/get-popular-article-tags', () => ({
   getPopularArticleTags: vi.fn(),
 }));
 
@@ -74,7 +79,7 @@ describe('getArticlesPageData', () => {
       locale: 'ko',
       pagination: {
         currentPage: 1,
-        nextHref: '/ko/articles?q=react&page=2',
+        nextHref: '/ko/articles?q=react&page=2&cursor=12',
         previousHref: null,
       },
       popularTags: [
@@ -112,6 +117,19 @@ describe('getArticlesPageData', () => {
   it('비어 있거나 없는 tag searchParams는 빈 문자열로 정규화한다', () => {
     expect(normalizeTagParams('   ')).toBe('');
     expect(normalizeTagParams(undefined)).toBe('');
+  });
+
+  it('cursor searchParams는 첫 번째 문자열만 trim하여 사용한다', () => {
+    expect(normalizeCursorParams([' cursor-1 ', 'cursor-2'])).toBe('cursor-1');
+    expect(normalizeCursorParams('   ')).toBeNull();
+  });
+
+  it('cursorHistory searchParams는 첫 번째 문자열을 cursor 배열로 정규화한다', () => {
+    expect(normalizeCursorHistoryParams([' cursor-1,cursor-2 ', 'cursor-3'])).toEqual([
+      'cursor-1',
+      'cursor-2',
+    ]);
+    expect(normalizeCursorHistoryParams(undefined)).toEqual([]);
   });
 
   it('태그 searchParams도 첫 번째 값만 trim하여 사용한다', async () => {
@@ -160,35 +178,20 @@ describe('getArticlesPageData', () => {
     expect(buildArticlesPageHref({ locale: 'ko', page: 1 })).toBe('/ko/articles');
     expect(
       buildArticlesPageHref({
+        cursor: 'cursor-1',
+        cursorHistory: ['cursor-root'],
         locale: 'ko',
         page: 2,
         query: 'react',
         tag: 'nextjs',
       }),
-    ).toBe('/ko/articles?q=react&page=2');
+    ).toBe('/ko/articles?q=react&page=2&cursor=cursor-1&cursorHistory=cursor-root');
     expect(buildArticlesPageHref({ locale: 'ko', page: 3, tag: ' NextJS ' })).toBe(
       '/ko/articles?tag=nextjs&page=3',
     );
   });
 
-  it('요청한 페이지까지 순차 조회하고 fallback locale을 다음 페이지 요청에 재사용한다', async () => {
-    vi.mocked(getResolvedArticlesFirstPage).mockResolvedValue({
-      page: {
-        items: [
-          {
-            id: 'article-1',
-            title: 'a1',
-            description: 'd1',
-            thumbnail_url: null,
-            publish_at: '2026-03-01T00:00:00.000Z',
-            slug: 'article-1',
-          },
-        ],
-        nextCursor: 'cursor-1',
-        totalCount: null,
-      },
-      resolvedLocale: 'ko',
-    });
+  it('cursor가 있으면 요청한 페이지를 한 번에 조회한다', async () => {
     vi.mocked(getArticles).mockResolvedValue({
       items: [
         {
@@ -210,25 +213,32 @@ describe('getArticlesPageData', () => {
     });
 
     const data = await getArticlesPageData({
+      cursor: 'cursor-1',
+      cursorHistory: undefined,
       locale: 'fr',
       page: 2,
       query: undefined,
       tag: undefined,
     });
 
+    expect(getResolvedArticlesFirstPage).not.toHaveBeenCalled();
     expect(getArticles).toHaveBeenCalledWith({
       cursor: 'cursor-1',
-      locale: 'ko',
+      locale: 'fr',
       query: '',
       tag: '',
     });
-    expect(data.feedLocale).toBe('ko');
-    expect(data.locale).toBe('fr');
     expect(data.pagination).toEqual({
       currentPage: 2,
-      nextHref: '/fr/articles?page=3',
+      nextHref: '/fr/articles?page=3&cursor=cursor-2&cursorHistory=cursor-1',
       previousHref: '/fr/articles',
     });
     expect(data.initialItems[0]?.id).toBe('article-2');
+  });
+
+  it('2페이지 이상은 cursor가 있을 때만 지원한다', () => {
+    expect(isSupportedArticlesPageRequest({ cursor: undefined, page: 1 })).toBe(true);
+    expect(isSupportedArticlesPageRequest({ cursor: 'cursor-1', page: 2 })).toBe(true);
+    expect(isSupportedArticlesPageRequest({ cursor: undefined, page: 2 })).toBe(false);
   });
 });

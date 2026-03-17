@@ -3,7 +3,7 @@ import {
   parseResumeEditorError,
   resolveResumePublishInlineErrorField,
   RESUME_EDITOR_ERROR_MESSAGE,
-} from './resume-editor-error';
+} from '@/entities/resume/model/resume-editor-error';
 
 describe('resume-editor-error', () => {
   it('resume publish panel 인라인 에러 필드를 코드 기준으로 매핑한다', () => {

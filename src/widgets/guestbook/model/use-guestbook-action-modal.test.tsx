@@ -5,8 +5,7 @@ import {
   deleteGuestbookEntryAction,
   updateGuestbookEntryAction,
 } from '@/features/guestbook-feed/api/guestbook-actions';
-
-import { useGuestbookActionModal } from './use-guestbook-action-modal';
+import { useGuestbookActionModal } from '@/widgets/guestbook/model/use-guestbook-action-modal';
 
 vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
   deleteGuestbookEntryAction: vi.fn(),

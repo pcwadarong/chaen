@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import ArticlesRoute, { generateMetadata } from '@/app/[locale]/articles/page';
 import { getArticlesPageData } from '@/views/articles';
-
-import ArticlesRoute, { generateMetadata } from './page';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -27,11 +26,15 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/views/articles', () => ({
   buildArticlesPageHref: ({
+    cursor,
+    cursorHistory,
     locale,
     page = 1,
     query,
     tag,
   }: {
+    cursor?: string | null;
+    cursorHistory?: string[];
     locale: string;
     page?: number;
     query?: string;
@@ -42,6 +45,8 @@ vi.mock('@/views/articles', () => ({
     if (query?.trim()) searchParams.set('q', query.trim());
     if (!query?.trim() && tag?.trim()) searchParams.set('tag', tag.trim().toLowerCase());
     if (page > 1) searchParams.set('page', String(page));
+    if (cursor) searchParams.set('cursor', cursor);
+    if (cursorHistory?.length) searchParams.set('cursorHistory', cursorHistory.join(','));
 
     const serializedSearchParams = searchParams.toString();
     const pathname = `/${locale}/articles`;
@@ -72,6 +77,47 @@ vi.mock('@/views/articles', () => ({
     const parsedPage = Number(normalizedValue);
 
     return Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : null;
+  },
+  normalizeCursorParams: (cursor: string | string[] | undefined) => {
+    const value = Array.isArray(cursor) ? cursor[0] : cursor;
+    const normalizedValue = value?.trim();
+
+    return normalizedValue ? normalizedValue : null;
+  },
+  normalizeCursorHistoryParams: (cursorHistory: string | string[] | undefined) => {
+    const value = Array.isArray(cursorHistory) ? cursorHistory[0] : cursorHistory;
+    const normalizedValue = value?.trim();
+
+    if (!normalizedValue) return [];
+
+    return normalizedValue
+      .split(',')
+      .map(cursor => cursor.trim())
+      .filter(Boolean);
+  },
+  normalizeSearchParams: (query: string | string[] | undefined) => {
+    const value = Array.isArray(query) ? query[0] : query;
+
+    return value?.trim() ?? '';
+  },
+  normalizeTagParams: (tag: string | string[] | undefined) => {
+    const value = Array.isArray(tag) ? tag[0] : tag;
+
+    return value?.trim().toLowerCase() ?? '';
+  },
+  isSupportedArticlesPageRequest: ({
+    cursor,
+    page,
+  }: {
+    cursor?: string | string[];
+    page: number;
+  }) => {
+    if (page <= 1) return true;
+
+    const value = Array.isArray(cursor) ? cursor[0] : cursor;
+    const normalizedValue = value?.trim();
+
+    return Boolean(normalizedValue);
   },
   ArticlesPage: function ArticlesPage() {
     return null;
@@ -111,6 +157,8 @@ describe('ArticlesRoute', () => {
         locale: 'ko',
       }),
       searchParams: Promise.resolve({
+        cursor: [' cursor-1 '],
+        cursorHistory: [' cursor-root '],
         page: [' 2 '],
         q: [' react ', 'vue'],
         tag: [' nextjs ', 'react'],
@@ -120,6 +168,8 @@ describe('ArticlesRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ArticlesPage');
     expect(getArticlesPageData).toHaveBeenCalledWith({
+      cursor: [' cursor-1 '],
+      cursorHistory: [' cursor-root '],
       locale: 'ko',
       page: 2,
       query: [' react ', 'vue'],
@@ -153,12 +203,18 @@ describe('ArticlesRoute', () => {
           locale: 'ko',
         }),
         searchParams: Promise.resolve({
+          cursor: 'cursor-1',
+          cursorHistory: 'cursor-root',
           page: '2',
         }),
       }),
     ).resolves.toMatchObject({
       alternates: {
-        canonical: 'https://chaen.dev/ko/articles?page=2',
+        canonical: 'https://chaen.dev/ko/articles?page=2&cursor=cursor-1&cursorHistory=cursor-root',
+      },
+      robots: {
+        follow: true,
+        index: false,
       },
       pagination: {
         next: 'https://chaen.dev/ko/articles?page=3',
@@ -183,22 +239,7 @@ describe('ArticlesRoute', () => {
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });
 
-  it('요청한 페이지에 도달하지 못하면 notFound를 호출한다', async () => {
-    vi.mocked(getArticlesPageData).mockResolvedValueOnce({
-      activeTag: '',
-      feedLocale: 'ko',
-      initialCursor: null,
-      initialItems: [],
-      locale: 'ko',
-      pagination: {
-        currentPage: 1,
-        nextHref: null,
-        previousHref: null,
-      },
-      popularTags: [],
-      searchQuery: '',
-    });
-
+  it('cursor 없는 page-only deep-link는 notFound를 호출한다', async () => {
     await expect(
       ArticlesRoute({
         params: Promise.resolve({
@@ -211,5 +252,6 @@ describe('ArticlesRoute', () => {
     ).rejects.toThrow('NOT_FOUND');
 
     expect(notFoundMock).toHaveBeenCalledTimes(1);
+    expect(getArticlesPageData).not.toHaveBeenCalled();
   });
 });

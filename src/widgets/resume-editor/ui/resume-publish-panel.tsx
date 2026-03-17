@@ -15,8 +15,7 @@ import { Button } from '@/shared/ui/button/button';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { XButton } from '@/shared/ui/x-button/x-button';
-
-import type { ResumePublishPanelProps } from '../model/resume-editor.types';
+import type { ResumePublishPanelProps } from '@/widgets/resume-editor/model/resume-editor.types';
 
 type ResumePublishErrors = {
   koBody?: string;

@@ -1,9 +1,14 @@
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
+import { POST } from '@/app/api/(files)/pdf/[kind]/upload/route';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
-import { POST } from './route';
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+}));
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   AdminAuthorizationError: class AdminAuthorizationError extends Error {},
@@ -76,5 +81,11 @@ describe('api/pdf/[kind]/upload route', () => {
       filePath: 'ParkChaewon-Resume.pdf',
       isPdfReady: true,
     });
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-files');
+    expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/ko/resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/ja/resume');
+    expect(revalidatePath).toHaveBeenCalledWith('/fr/resume');
   });
 });

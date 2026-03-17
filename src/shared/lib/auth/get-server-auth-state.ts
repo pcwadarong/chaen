@@ -1,9 +1,8 @@
+import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
 import { getSupabaseAdminEnvOptional, hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
 import 'server-only';
-
-import { isAdminSupabaseUser } from './is-admin-supabase-user';
 
 export type AuthState = {
   isAdmin: boolean;

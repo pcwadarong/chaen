@@ -2,14 +2,12 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-
-vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn(async () => (key: string) => {
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
 
     return key;
-  }),
+  },
 }));
 
 vi.mock('@/widgets/article-comments', () => ({
@@ -32,33 +30,25 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
-const getTagLabelMapBySlugs = vi.fn();
-
-vi.mock('@/entities/tag/api/query-tags', () => ({
-  getTagLabelMapBySlugs,
+vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
+    <div data-testid="admin-detail-actions-gate">
+      <a href={editHref}>수정</a>
+      <span>삭제</span>
+    </div>
+  ),
 }));
-
-const initialCommentsPage: ArticleCommentPage = {
-  items: [],
-  page: 1,
-  pageSize: 10,
-  sort: 'latest',
-  totalCount: 0,
-  totalPages: 0,
-};
 
 /**
  * 서버 컴포넌트를 HTML 문자열로 변환합니다.
  */
 const renderServerHtml = async () => {
   const { ArticleDetailPage } = await import('@/views/articles/ui/article-detail-page');
-  const element = await ArticleDetailPage({
-    archivePage: {
+  const element = ArticleDetailPage({
+    archivePagePromise: Promise.resolve({
       items: [],
       nextCursor: null,
-    },
-    initialCommentsPage,
-    isAdmin: true,
+    }),
     item: {
       id: 'article-1',
       slug: 'article-1-slug',
@@ -73,7 +63,7 @@ const renderServerHtml = async () => {
       view_count: 12,
     },
     locale: 'ko',
-    relatedArticles: [
+    relatedArticlesPromise: Promise.resolve([
       {
         id: 'article-2',
         slug: 'article-2-slug',
@@ -82,7 +72,8 @@ const renderServerHtml = async () => {
         thumbnail_url: null,
         publish_at: '2026-03-07T00:00:00.000Z',
       },
-    ],
+    ]),
+    tagLabelsPromise: Promise.resolve(['React']),
   });
   const stream = await renderToReadableStream(element);
 
@@ -94,10 +85,6 @@ describe('ArticleDetailPage', () => {
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app';
-    getTagLabelMapBySlugs.mockResolvedValue({
-      data: new Map([['react', 'React']]),
-      schemaMissing: false,
-    });
   });
 
   afterEach(() => {
@@ -123,15 +110,10 @@ describe('ArticleDetailPage', () => {
     expect(textContent).toContain('삭제');
   }, 30000);
 
-  it('태그 스키마가 없어도 원본 태그명으로 상세 페이지를 렌더링한다', async () => {
-    getTagLabelMapBySlugs.mockResolvedValue({
-      data: new Map(),
-      schemaMissing: true,
-    });
-
+  it('전달받은 태그 라벨로 상세 페이지를 렌더링한다', async () => {
     const html = await renderServerHtml();
     const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
-    expect(textContent).toContain('#react');
+    expect(textContent).toContain('#React');
   });
 });

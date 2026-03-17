@@ -2,13 +2,13 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn(async () => (key: string) => {
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
     if (key === 'periodLabel') return 'work period';
     if (key === 'ongoing') return 'Ongoing';
 
     return key;
-  }),
+  },
 }));
 
 vi.mock('@/i18n/navigation', () => ({
@@ -19,17 +19,25 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
+vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
+    <div data-testid="admin-detail-actions-gate">
+      <a href={editHref}>수정</a>
+      <span>삭제</span>
+    </div>
+  ),
+}));
+
 /**
  * 서버 컴포넌트를 HTML 문자열로 변환합니다.
  */
 const renderServerHtml = async () => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
-  const element = await ProjectDetailPage({
-    archivePage: {
+  const element = ProjectDetailPage({
+    archivePagePromise: Promise.resolve({
       items: [],
       nextCursor: null,
-    },
-    isAdmin: true,
+    }),
     item: {
       id: 'project-1',
       slug: 'project-1-slug',
@@ -44,6 +52,7 @@ const renderServerHtml = async () => {
       thumbnail_url: null,
     },
     locale: 'en',
+    tagLabelsPromise: Promise.resolve(['React']),
   });
   const stream = await renderToReadableStream(element);
 

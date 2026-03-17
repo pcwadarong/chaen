@@ -1,10 +1,9 @@
+import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
+import type { PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
-
-import { getPdfFileStorageConfig } from '../model/config';
-import type { PdfFileKind } from '../model/types';
 
 type PdfFileUrlAccessType = 'public' | 'signed';
 

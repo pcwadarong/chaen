@@ -3,15 +3,14 @@ import { vi } from 'vitest';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getProjects } from '@/entities/project/api/get-projects';
-
-import { getProjectListPageData } from './get-project-list-page-data';
+import { getProjects } from '@/entities/project/api/list/get-projects';
+import { getProjectListPageData } from '@/views/project/model/get-project-list-page-data';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
 }));
 
-vi.mock('@/entities/project/api/get-projects', () => ({
+vi.mock('@/entities/project/api/list/get-projects', () => ({
   getProjects: vi.fn(),
 }));
 
@@ -53,6 +52,7 @@ describe('getProjectListPageData', () => {
     expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
     expect(getPdfFileAvailability).toHaveBeenCalledWith({ kind: 'portfolio' });
+    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
     expect(data.portfolioDownloadHref).toBe('/api/pdf/portfolio');
@@ -77,5 +77,6 @@ describe('getProjectListPageData', () => {
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
     expect(data.portfolioDownloadHref).toBeNull();
+    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
   });
 });

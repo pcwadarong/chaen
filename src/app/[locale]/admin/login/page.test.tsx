@@ -2,9 +2,8 @@ import { redirect } from 'next/navigation';
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import AdminLoginRoute, { metadata } from '@/app/[locale]/admin/login/page';
 import { getLoginPageData } from '@/views/auth';
-
-import AdminLoginRoute, { metadata } from './page';
 
 const { adminLoginPageMock, redirectError } = vi.hoisted(() => ({
   adminLoginPageMock: vi.fn(() => null),

@@ -1,10 +1,16 @@
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+
+import {
+  createPdfFileContentCacheTag,
+  PDF_FILE_CONTENT_CACHE_TAG,
+  PDF_FILES_CACHE_TAG,
+} from '@/entities/pdf-file/model/cache-tags';
+import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
+import type { PdfFileContent, PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { resolveLocaleAwareData } from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
-
-import { getPdfFileContentConfig } from '../model/config';
-import type { PdfFileContent, PdfFileKind } from '../model/types';
 
 /**
  * PDF 소개 콘텐츠 조회 옵션입니다.
@@ -16,16 +22,18 @@ type GetPdfFileContentOptions = {
 };
 
 /**
- * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale별 소개 텍스트를 조회합니다.
+ * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale별 소개 텍스트를 cached read로 조회합니다.
  * locale 데이터가 없으면 fallback locale(`ko`)을 한 번 더 조회합니다.
  */
-export const getPdfFileContent = async ({
+const readCachedPdfFileContent = async ({
+  fallbackLocale,
+  kind,
   locale,
-  kind = 'resume',
-  fallbackLocale = 'ko',
-}: GetPdfFileContentOptions): Promise<PdfFileContent | null> => {
-  const normalizedLocale = locale.toLowerCase().split('-')[0] ?? 'en';
-  const normalizedFallbackLocale = fallbackLocale.toLowerCase().split('-')[0] ?? 'ko';
+}: Required<GetPdfFileContentOptions>): Promise<PdfFileContent | null> => {
+  'use cache';
+
+  cacheTag(PDF_FILES_CACHE_TAG, PDF_FILE_CONTENT_CACHE_TAG, createPdfFileContentCacheTag(kind));
+
   const { tableName } = getPdfFileContentConfig(kind);
   const supabase = createOptionalPublicServerSupabaseClient();
 
@@ -33,7 +41,7 @@ export const getPdfFileContent = async ({
 
   return resolveLocaleAwareData<PdfFileContent | null>({
     emptyData: null,
-    fallbackLocale: normalizedFallbackLocale,
+    fallbackLocale,
     fetchByLocale: async targetLocale => {
       const { data, error } = await supabase
         .from(tableName)
@@ -55,6 +63,25 @@ export const getPdfFileContent = async ({
     },
     fetchLegacy: async () => null,
     isEmptyData: item => item === null,
-    targetLocale: normalizedLocale,
+    targetLocale: locale,
+  });
+};
+
+/**
+ * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale별 소개 텍스트를 조회합니다.
+ * locale 데이터가 없으면 fallback locale(`ko`)을 한 번 더 조회합니다.
+ */
+export const getPdfFileContent = async ({
+  locale,
+  kind = 'resume',
+  fallbackLocale = 'ko',
+}: GetPdfFileContentOptions): Promise<PdfFileContent | null> => {
+  const normalizedLocale = locale.toLowerCase().split('-')[0] ?? 'en';
+  const normalizedFallbackLocale = fallbackLocale.toLowerCase().split('-')[0] ?? 'ko';
+
+  return readCachedPdfFileContent({
+    fallbackLocale: normalizedFallbackLocale,
+    kind,
+    locale: normalizedLocale,
   });
 };

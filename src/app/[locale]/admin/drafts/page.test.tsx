@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 
+import AdminDraftsRoute, { metadata } from '@/app/[locale]/admin/drafts/page';
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import AdminDraftsRoute, { metadata } from './page';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),

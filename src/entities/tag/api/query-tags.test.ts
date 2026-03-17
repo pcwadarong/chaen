@@ -1,6 +1,12 @@
+import { unstable_cacheTag } from 'next/cache';
+import { vi } from 'vitest';
+
+import { getAllTags, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
-import { getAllTags, getTagIdBySlug } from './query-tags';
+vi.mock('next/cache', () => ({
+  unstable_cacheTag: vi.fn(),
+}));
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
@@ -103,5 +109,50 @@ describe('query-tags', () => {
       data: [],
       schemaMissing: true,
     });
+  });
+
+  it('slug 목록을 locale별 label 맵으로 조회할 때 tags cacheTag를 사용한다', async () => {
+    const translationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({
+        data: [
+          {
+            label: '리액트',
+            tag_id: 'tag-1',
+          },
+        ],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const tagsQuery = {
+      in: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'tag-1',
+            slug: 'react',
+          },
+        ],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValueOnce(tagsQuery).mockReturnValueOnce(translationsQuery),
+    };
+
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const { getTagLabelMapBySlugs } = await import('@/entities/tag/api/query-tags');
+    const result = await getTagLabelMapBySlugs({
+      locale: 'ko',
+      slugs: ['react'],
+    });
+
+    expect(result).toEqual({
+      data: new Map([['react', '리액트']]),
+      schemaMissing: false,
+    });
+    expect(unstable_cacheTag).toHaveBeenCalledWith('tags');
   });
 });

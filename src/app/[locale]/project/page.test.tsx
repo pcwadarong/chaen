@@ -1,9 +1,8 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
+import ProjectRoute, { generateMetadata } from '@/app/[locale]/project/page';
 import { getProjectListPageData } from '@/views/project';
-
-import ProjectRoute, { generateMetadata } from './page';
 
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => {

@@ -8,6 +8,7 @@ type RouteLoadingSkeletonProps = {
 };
 
 type DetailPageLoadingSkeletonProps = RouteLoadingSkeletonProps;
+type DetailPageShellLoadingSkeletonProps = RouteLoadingSkeletonProps;
 
 /**
  * 페이지 로딩에서 재사용하는 기본 스켈레톤 블록입니다.
@@ -62,6 +63,14 @@ export const DetailPageLoadingSkeleton = ({ loadingText }: DetailPageLoadingSkel
     </section>
   </main>
 );
+
+/**
+ * 상세 shell이 준비되기 전까지 원래 상세 프레임과 같은 구조를 유지합니다.
+ * shell 이후의 아카이브/태그/관련 글은 페이지 내부 Suspense fallback이 이어받습니다.
+ */
+export const DetailPageShellLoadingSkeleton = ({
+  loadingText,
+}: DetailPageShellLoadingSkeletonProps) => <DetailPageLoadingSkeleton loadingText={loadingText} />;
 
 /**
  * 기록 목록 페이지 레이아웃을 닮은 로딩 스켈레톤입니다.

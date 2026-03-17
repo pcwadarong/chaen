@@ -1,8 +1,10 @@
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+
+import type { TagOption } from '@/entities/tag/api/tag.types';
+import { TAGS_CACHE_TAG } from '@/entities/tag/model/cache-tags';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
-
-import type { TagOption } from './tag.types';
 
 type TagSchemaResult<T> = {
   data: T;
@@ -181,26 +183,18 @@ export const getTagSlugMap = async (
 };
 
 /**
- * slug 목록을 locale별 표시 라벨 맵으로 변환합니다.
+ * slug 목록을 locale별 표시 라벨 맵으로 변환하는 cached read입니다.
  */
-export const getTagLabelMapBySlugs = async ({
+const readCachedTagLabelMapBySlugs = async ({
   locale,
-  slugs,
+  normalizedSlugs,
 }: {
   locale: string;
-  slugs: string[];
+  normalizedSlugs: string[];
 }): Promise<TagSchemaResult<Map<string, string>>> => {
-  const normalizedSlugs = Array.from(
-    new Set(
-      slugs
-        .map(slug => slug.trim().toLowerCase())
-        .filter((slug): slug is string => slug.length > 0),
-    ),
-  );
+  'use cache';
 
-  if (normalizedSlugs.length === 0) {
-    return { data: new Map(), schemaMissing: false };
-  }
+  cacheTag(TAGS_CACHE_TAG);
 
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: new Map(), schemaMissing: false };
@@ -255,6 +249,34 @@ export const getTagLabelMapBySlugs = async ({
     ),
     schemaMissing: false,
   };
+};
+
+/**
+ * slug 목록을 locale별 표시 라벨 맵으로 변환합니다.
+ */
+export const getTagLabelMapBySlugs = async ({
+  locale,
+  slugs,
+}: {
+  locale: string;
+  slugs: string[];
+}): Promise<TagSchemaResult<Map<string, string>>> => {
+  const normalizedSlugs = Array.from(
+    new Set(
+      slugs
+        .map(slug => slug.trim().toLowerCase())
+        .filter((slug): slug is string => slug.length > 0),
+    ),
+  );
+
+  if (normalizedSlugs.length === 0) {
+    return { data: new Map(), schemaMissing: false };
+  }
+
+  return readCachedTagLabelMapBySlugs({
+    locale,
+    normalizedSlugs,
+  });
 };
 
 /**

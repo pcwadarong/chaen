@@ -1,10 +1,13 @@
-export { getGuestbookThreads } from './api/get-guestbook-threads';
+export { getGuestbookThreads } from '@/entities/guestbook/api/get-guestbook-threads';
 export {
   createGuestbookEntry,
   deleteGuestbookEntry,
   updateGuestbookEntry,
   verifyGuestbookSecret,
-} from './api/mutate-guestbook-entry';
-export { revalidateGuestbookCache } from './api/revalidate-guestbook-cache';
-export { hashGuestbookPassword, verifyGuestbookPassword } from './model/password';
-export { useGuestbookBubbleActionMenu } from './model/use-guestbook-bubble-action-menu';
+} from '@/entities/guestbook/api/mutate-guestbook-entry';
+export { revalidateGuestbookCache } from '@/entities/guestbook/api/revalidate-guestbook-cache';
+export {
+  hashGuestbookPassword,
+  verifyGuestbookPassword,
+} from '@/entities/guestbook/model/password';
+export { useGuestbookBubbleActionMenu } from '@/entities/guestbook/model/use-guestbook-bubble-action-menu';

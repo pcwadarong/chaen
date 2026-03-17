@@ -1,6 +1,5 @@
+import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { uploadImageFile } from './upload-image-file';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createServiceRoleSupabaseClient: vi.fn(),

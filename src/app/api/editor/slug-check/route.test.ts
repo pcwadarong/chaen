@@ -1,7 +1,6 @@
+import { GET } from '@/app/api/editor/slug-check/route';
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import { GET } from './route';
 
 vi.mock('@/entities/editor/api/check-slug-duplicate', () => ({
   checkSlugDuplicate: vi.fn(),

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { LoginPage } from './login-page';
+import { LoginPage } from '@/views/auth/ui/login-page';
 
 vi.mock('@/features/auth/ui/admin-login-form', () => ({
   AdminLoginForm: ({ successRedirectPath }: { successRedirectPath: string }) => (

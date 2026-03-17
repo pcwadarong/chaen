@@ -1,4 +1,4 @@
-import { buildAdminPath } from './admin-path';
+import { buildAdminPath } from '@/features/auth/model/admin-path';
 
 describe('buildAdminPath', () => {
   it('관리자 루트 경로를 locale prefix와 함께 생성한다', () => {

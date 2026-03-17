@@ -1,4 +1,4 @@
-import { isActiveNavigationItem } from './is-active-navigation-item';
+import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
 
 describe('isActiveNavigationItem', () => {
   it('루트 경로는 정확히 "/"일 때만 활성화한다', () => {

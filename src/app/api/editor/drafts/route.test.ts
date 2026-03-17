@@ -1,7 +1,6 @@
+import { GET } from '@/app/api/editor/drafts/route';
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import { GET } from './route';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   AdminAuthorizationError: class AdminAuthorizationError extends Error {},

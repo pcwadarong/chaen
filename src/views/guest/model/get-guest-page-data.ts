@@ -1,7 +1,6 @@
 import { getGuestbookThreads } from '@/entities/guestbook';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-
-import type { GuestPageProps } from '../ui/guest-page';
+import type { GuestPageProps } from '@/views/guest/ui/guest-page';
 
 type GetGuestPageDataInput = {
   locale: string;

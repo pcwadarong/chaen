@@ -1,6 +1,12 @@
+import { unstable_cacheTag } from 'next/cache';
+import { vi } from 'vitest';
+
+import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
-import { getPdfFileContent } from './get-pdf-file-content';
+vi.mock('next/cache', () => ({
+  unstable_cacheTag: vi.fn(),
+}));
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
@@ -17,6 +23,11 @@ describe('getPdfFileContent', () => {
     const result = await getPdfFileContent({ locale: 'ko' });
 
     expect(result).toBeNull();
+    expect(unstable_cacheTag).toHaveBeenCalledWith(
+      'pdf-files',
+      'pdf-file-content',
+      'pdf-file-content:resume',
+    );
   });
 
   it('대상 locale에 데이터가 있으면 해당 데이터를 반환한다', async () => {
@@ -37,6 +48,11 @@ describe('getPdfFileContent', () => {
     const result = await getPdfFileContent({ locale: 'en' });
 
     expect(result).toEqual({ title: 'Resume' });
+    expect(unstable_cacheTag).toHaveBeenCalledWith(
+      'pdf-files',
+      'pdf-file-content',
+      'pdf-file-content:resume',
+    );
     expect(query.eq).toHaveBeenCalledWith('locale', 'en');
   });
 
@@ -69,6 +85,11 @@ describe('getPdfFileContent', () => {
     const result = await getPdfFileContent({ locale: 'fr' });
 
     expect(result).toEqual({ title: '이력서' });
+    expect(unstable_cacheTag).toHaveBeenCalledWith(
+      'pdf-files',
+      'pdf-file-content',
+      'pdf-file-content:resume',
+    );
     expect(targetLocaleQuery.eq).toHaveBeenCalledWith('locale', 'fr');
     expect(fallbackLocaleQuery.eq).toHaveBeenCalledWith('locale', 'ko');
   });

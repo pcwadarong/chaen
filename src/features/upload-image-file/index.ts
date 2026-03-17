@@ -1,1 +1,1 @@
-export { uploadImageFile } from './api/upload-image-file';
+export { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';

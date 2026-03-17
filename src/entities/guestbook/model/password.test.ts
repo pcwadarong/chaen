@@ -1,4 +1,7 @@
-import { hashGuestbookPassword, verifyGuestbookPassword } from './password';
+import {
+  hashGuestbookPassword,
+  verifyGuestbookPassword,
+} from '@/entities/guestbook/model/password';
 
 describe('password', () => {
   it('비밀번호를 해시하고 다시 검증할 수 있다', () => {

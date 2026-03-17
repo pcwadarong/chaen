@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation';
 
+import { signOutAdmin } from '@/features/auth/api/sign-out-admin';
+import { initialSignOutAdminState } from '@/features/auth/api/sign-out-admin.state';
 import { AUTH_ACTION_ERROR_CODE } from '@/features/auth/model/auth-action-error';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
-
-import { signOutAdmin } from './sign-out-admin';
-import { initialSignOutAdminState } from './sign-out-admin.state';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {

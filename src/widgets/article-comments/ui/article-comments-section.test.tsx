@@ -1,13 +1,18 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { getArticleCommentsPageAction } from '@/entities/article-comment/api/article-comment-actions';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-
-import { ArticleCommentsSection } from './article-comments-section';
+import { getArticleCommentsPageAction } from '@/entities/article/comment/api/article-comment-actions';
+import type { ArticleCommentPage } from '@/entities/article/comment/model';
+import {
+  ArticleCommentsSection,
+  resetArticleCommentsPageCacheForTest,
+} from '@/widgets/article-comments/ui/article-comments-section';
 
 const composeFormSpy = vi.fn();
 const actionPopoverRenderCount = vi.hoisted(() => ({
+  value: 0,
+}));
+const sortButtonRenderCount = vi.hoisted(() => ({
   value: 0,
 }));
 
@@ -21,7 +26,7 @@ vi.mock('next-intl', () => ({
   },
 }));
 
-vi.mock('@/entities/article-comment/api/article-comment-actions', () => ({
+vi.mock('@/entities/article/comment/api/article-comment-actions', () => ({
   deleteArticleCommentAction: vi.fn(),
   getArticleCommentsPageAction: vi.fn(),
   initialSubmitArticleCommentState: {
@@ -49,6 +54,24 @@ vi.mock('@/shared/ui/comment-compose-form', () => ({
           {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
         </button>
       </div>
+    );
+  },
+}));
+
+vi.mock('@/shared/ui/button/button', () => ({
+  Button: ({
+    children,
+    role,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => {
+    if (role === 'tab') {
+      sortButtonRenderCount.value += 1;
+    }
+
+    return (
+      <button role={role} type="button" {...props}>
+        {children}
+      </button>
     );
   },
 }));
@@ -150,6 +173,8 @@ describe('ArticleCommentsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     actionPopoverRenderCount.value = 0;
+    sortButtonRenderCount.value = 0;
+    resetArticleCommentsPageCacheForTest();
   });
 
   it('루트 작성 폼에 embedded textarea 설정을 전달한다', () => {
@@ -179,6 +204,77 @@ describe('ArticleCommentsSection', () => {
     expect(screen.getByRole('link', { name: 'chaen' }).getAttribute('href')).toBe(
       'https://example.com',
     );
+  });
+
+  it('초기 페이지가 없으면 마운트 후 첫 댓글 페이지를 조회한다', async () => {
+    vi.mocked(getArticleCommentsPageAction).mockResolvedValueOnce({
+      data: initialPage,
+      errorMessage: null,
+      ok: true,
+    });
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageAction).toHaveBeenCalledWith({
+        articleId: 'article-1',
+        fresh: undefined,
+        locale: 'ko',
+        page: 1,
+        sort: 'latest',
+      });
+    });
+  });
+
+  it('초기 페이지가 없고 첫 요청이 끝나지 않았으면 댓글 목록 skeleton을 먼저 노출한다', async () => {
+    let resolveRequest:
+      | ((value: Awaited<ReturnType<typeof getArticleCommentsPageAction>>) => void)
+      | null = null;
+
+    vi.mocked(getArticleCommentsPageAction).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          resolveRequest = resolve;
+        }),
+    );
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'loading' })).toBeTruthy();
+    });
+
+    expect(resolveRequest).toBeTruthy();
+
+    await act(async () => {
+      resolveRequest?.({
+        data: initialPage,
+        errorMessage: null,
+        ok: true,
+      });
+    });
+  });
+
+  it('같은 글을 다시 열면 브라우저 메모리 캐시에서 첫 댓글 페이지를 재사용한다', async () => {
+    vi.mocked(getArticleCommentsPageAction).mockResolvedValueOnce({
+      data: initialPage,
+      errorMessage: null,
+      ok: true,
+    });
+
+    const { unmount } = render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(getArticleCommentsPageAction).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+    vi.clearAllMocks();
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    expect(screen.getByText('root content')).toBeTruthy();
+    expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
   });
 
   it('정렬과 페이지 이동 시 댓글 목록을 다시 조회한다', async () => {
@@ -335,6 +431,19 @@ describe('ArticleCommentsSection', () => {
     });
 
     expect(actionPopoverRenderCount.value).toBe(2);
+    expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
+  });
+
+  it('루트 작성 폼 입력 중에는 정렬 탭을 다시 그리지 않는다', () => {
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    expect(sortButtonRenderCount.value).toBe(2);
+
+    fireEvent.change(screen.getByLabelText('root-compose-input'), {
+      target: { value: 'hello sort tabs' },
+    });
+
+    expect(sortButtonRenderCount.value).toBe(2);
     expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
   });
 });

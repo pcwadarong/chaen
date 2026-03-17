@@ -1,8 +1,7 @@
 import { vi } from 'vitest';
 
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-
-import { getLoginPageData } from './get-login-page-data';
+import { getLoginPageData } from '@/views/auth/model/get-login-page-data';
 
 vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
   getServerAuthState: vi.fn(),

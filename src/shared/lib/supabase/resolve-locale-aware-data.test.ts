@@ -1,4 +1,7 @@
-import { isLocaleColumnMissingError, resolveLocaleAwareData } from './resolve-locale-aware-data';
+import {
+  isLocaleColumnMissingError,
+  resolveLocaleAwareData,
+} from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 describe('isLocaleColumnMissingError', () => {
   it('locale 컬럼 미존재 메시지면 true를 반환한다', () => {

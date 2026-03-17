@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { d2Coding, pretendard, pretendardJp } from './fonts';
+import { d2Coding, pretendard, pretendardJp } from '@/app/fonts';
 
 import './globals.css';
 

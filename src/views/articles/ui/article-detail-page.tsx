@@ -1,20 +1,18 @@
-import { getTranslations } from 'next-intl/server';
-import React from 'react';
+import { useTranslations } from 'next-intl';
+import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import {
   deleteArticleAction,
   getArticleDetailArchivePageAction,
   incrementArticleViewCountAction,
-} from '@/entities/article/api/article-actions';
+} from '@/entities/article/api/mutations/article-actions';
 import type {
   Article,
   ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
-import type { ArticleCommentPage } from '@/entities/article-comment/model/types';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import {
   resolvePublicContentPathSegment,
@@ -22,20 +20,24 @@ import {
 } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
-import { AdminDetailActions } from '@/shared/ui/detail-page/admin-detail-actions';
+import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
 import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
 import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import {
+  DetailArchiveSidebarSkeleton,
+  DetailRelatedArticlesSkeleton,
+  DetailTagListSkeleton,
+} from '@/shared/ui/detail-page/detail-page-section-skeletons';
 import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 
 type ArticleDetailPageProps = {
-  archivePage: ArticleArchivePage;
-  initialCommentsPage: ArticleCommentPage;
-  isAdmin?: boolean;
+  archivePagePromise: Promise<ArticleArchivePage>;
   item: Article;
   locale: AppLocale;
-  relatedArticles: ArticleListItemModel[];
+  relatedArticlesPromise: Promise<ArticleListItemModel[]>;
+  tagLabelsPromise: Promise<string[]>;
 };
 
 type RelatedArticlesSectionProps = {
@@ -43,18 +45,25 @@ type RelatedArticlesSectionProps = {
   title: string;
 };
 
-/**
- * 아티클에 연결된 태그 목록을 locale에 맞는 라벨로 변환합니다.
- */
-const getArticleTagLabels = async (item: Article, locale: string) => {
-  const tagLabelMap = await getTagLabelMapBySlugs({
-    locale,
-    slugs: item.tags ?? [],
-  });
+type ArticleArchiveSidebarProps = {
+  archivePagePromise: Promise<ArticleArchivePage>;
+  emptyText: string;
+  loadErrorText: string;
+  loadMoreEndText: string;
+  loadingText: string;
+  locale: AppLocale;
+  retryText: string;
+  selectedPathSegment: string;
+};
 
-  if (tagLabelMap.schemaMissing) return item.tags ?? [];
+type ArticleTagListProps = {
+  ariaLabel: string;
+  tagLabelsPromise: Promise<string[]>;
+};
 
-  return (item.tags ?? []).map(tag => tagLabelMap.data.get(tag) ?? tag);
+type DeferredRelatedArticlesSectionProps = {
+  relatedArticlesPromise: Promise<ArticleListItemModel[]>;
+  title: string;
 };
 
 /**
@@ -80,21 +89,78 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
 };
 
 /**
- * 아티클 상세 페이지 컨테이너입니다.
+ * 아티클 상세 좌측 아카이브를 비동기 경계 안에서 렌더링합니다.
  */
-export const ArticleDetailPage = async ({
-  archivePage,
-  initialCommentsPage,
-  isAdmin = false,
+const ArticleArchiveSidebar = async ({
+  archivePagePromise,
+  emptyText,
+  loadErrorText,
+  loadMoreEndText,
+  loadingText,
+  locale,
+  retryText,
+  selectedPathSegment,
+}: ArticleArchiveSidebarProps) => {
+  const archivePage = await archivePagePromise;
+
+  return (
+    <DetailArchiveFeed
+      emptyText={emptyText}
+      hrefBasePath="/articles"
+      initialPage={archivePage}
+      loadErrorText={loadErrorText}
+      loadPageAction={getArticleDetailArchivePageAction}
+      loadMoreEndText={loadMoreEndText}
+      loadingText={loadingText}
+      locale={locale}
+      retryText={retryText}
+      selectedPathSegment={selectedPathSegment}
+    />
+  );
+};
+
+/**
+ * 아티클 상세 태그 목록을 비동기 경계 안에서 렌더링합니다.
+ */
+const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListProps) => {
+  const tagLabels = await tagLabelsPromise;
+
+  if (tagLabels.length === 0) return null;
+
+  return (
+    <ul aria-label={ariaLabel} className={tagListClass}>
+      {tagLabels.map(tagLabel => (
+        <li className={tagItemClass} key={tagLabel}>
+          <span className={tagButtonClass}>#{tagLabel}</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+/**
+ * 아티클 상세 하단 관련 글 섹션을 비동기 경계 안에서 렌더링합니다.
+ */
+const DeferredRelatedArticlesSection = async ({
+  relatedArticlesPromise,
+  title,
+}: DeferredRelatedArticlesSectionProps) => {
+  const relatedArticles = await relatedArticlesPromise;
+
+  return <RelatedArticlesSection items={relatedArticles} title={title} />;
+};
+
+export const ArticleDetailPage = ({
+  archivePagePromise,
   item,
   locale,
-  relatedArticles,
+  relatedArticlesPromise,
+  tagLabelsPromise,
 }: ArticleDetailPageProps) => {
-  const t = await getTranslations('ArticleDetail');
-  const articlesT = await getTranslations('Articles');
-  const detailUi = await getTranslations('DetailUi');
-  const navigationT = await getTranslations('Navigation');
-  const tagLabels = await getArticleTagLabels(item, locale);
+  const t = useTranslations('ArticleDetail');
+  const articlesT = useTranslations('Articles');
+  const detailUi = useTranslations('DetailUi');
+  const navigationT = useTranslations('Navigation');
   if (!item.publish_at) {
     throw new Error(`[articles] 공개 아티클 publish_at이 없습니다. id=${item.id}`);
   }
@@ -125,7 +191,7 @@ export const ArticleDetailPage = async ({
       description: item.description ?? t('emptySummary'),
       locale,
       path: articlePath,
-      tags: tagLabels,
+      tags: item.tags ?? [],
       thumbnailUrl: item.thumbnail_url,
       title: item.title,
       updatedAt: item.updated_at,
@@ -136,16 +202,6 @@ export const ArticleDetailPage = async ({
     <>
       <JsonLd data={structuredData} />
       <DetailPageShell
-        bottomContent={
-          <>
-            <ArticleCommentsSection
-              articleId={item.id}
-              initialPage={initialCommentsPage}
-              locale={locale}
-            />
-            <RelatedArticlesSection items={relatedArticles} title={t('relatedArticlesTitle')} />
-          </>
-        }
         content={item.content}
         emptyArchiveText={detailUi('emptyArchive')}
         emptyContentText={t('emptyContent')}
@@ -162,16 +218,14 @@ export const ArticleDetailPage = async ({
             primaryMetaText={publishedDate}
             shareText={detailUi('share')}
             actionSlot={
-              isAdmin ? (
-                <AdminDetailActions
-                  deleteAction={deleteArticleAction.bind(null, {
-                    articleId: item.id,
-                    articleSlug: articlePathSegment,
-                    locale,
-                  })}
-                  editHref={`/admin/articles/${item.id}/edit`}
-                />
-              ) : null
+              <AdminDetailActionsGate
+                deleteAction={deleteArticleAction.bind(null, {
+                  articleId: item.id,
+                  articleSlug: articlePathSegment,
+                  locale,
+                })}
+                editHref={`/admin/articles/${item.id}/edit`}
+              />
             }
             trackViewAction={incrementArticleViewCountAction.bind(null, {
               articleId: item.id,
@@ -182,32 +236,39 @@ export const ArticleDetailPage = async ({
           />
         }
         sidebarContent={
-          <DetailArchiveFeed
-            emptyText={detailUi('emptyArchive')}
-            hrefBasePath="/articles"
-            initialPage={archivePage}
-            loadErrorText={articlesT('loadError')}
-            loadPageAction={getArticleDetailArchivePageAction}
-            loadMoreEndText={articlesT('loadMoreEnd')}
-            loadingText={articlesT('loading')}
-            locale={locale}
-            retryText={articlesT('retry')}
-            selectedPathSegment={articlePathSegment}
-          />
+          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
+            <ArticleArchiveSidebar
+              archivePagePromise={archivePagePromise}
+              emptyText={detailUi('emptyArchive')}
+              loadErrorText={articlesT('loadError')}
+              loadMoreEndText={articlesT('loadMoreEnd')}
+              loadingText={articlesT('loading')}
+              locale={locale}
+              retryText={articlesT('retry')}
+              selectedPathSegment={articlePathSegment}
+            />
+          </Suspense>
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={
-          tagLabels.length > 0 ? (
-            <ul aria-label={t('tagSection')} className={tagListClass}>
-              {tagLabels.map(tagLabel => (
-                <li className={tagItemClass} key={tagLabel}>
-                  <span className={tagButtonClass}>#{tagLabel}</span>
-                </li>
-              ))}
-            </ul>
+          (item.tags?.length ?? 0) > 0 ? (
+            <Suspense fallback={<DetailTagListSkeleton />}>
+              <ArticleTagList ariaLabel={t('tagSection')} tagLabelsPromise={tagLabelsPromise} />
+            </Suspense>
           ) : undefined
         }
         title={item.title}
+        bottomContent={
+          <>
+            <ArticleCommentsSection articleId={item.id} locale={locale} />
+            <Suspense fallback={<DetailRelatedArticlesSkeleton />}>
+              <DeferredRelatedArticlesSection
+                relatedArticlesPromise={relatedArticlesPromise}
+                title={t('relatedArticlesTitle')}
+              />
+            </Suspense>
+          </>
+        }
       />
     </>
   );

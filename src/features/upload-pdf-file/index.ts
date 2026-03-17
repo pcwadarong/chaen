@@ -1,1 +1,1 @@
-export { uploadPdfFile } from './api/upload-pdf-file';
+export { uploadPdfFile } from '@/features/upload-pdf-file/api/upload-pdf-file';

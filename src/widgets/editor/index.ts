@@ -1,6 +1,3 @@
-export type { EditorCoreProps, PublishPanelProps } from './model/editor-core.types';
-export { EditorCore } from './ui/editor-core';
-export { PublishPanel } from './ui/publish-panel';
 export type {
   DraftSaveResult,
   EditorContentType,
@@ -10,3 +7,6 @@ export type {
   PublishSettings,
   TranslationField,
 } from '@/entities/editor/model/editor-types';
+export type { EditorCoreProps, PublishPanelProps } from '@/widgets/editor/model/editor-core.types';
+export { EditorCore } from '@/widgets/editor/ui/editor-core';
+export { PublishPanel } from '@/widgets/editor/ui/publish-panel';

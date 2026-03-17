@@ -1,11 +1,15 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import { getResolvedProject } from '@/entities/project/api/get-project';
-import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-import { getProjectDetailPageData } from '@/views/project';
-
-import ProjectDetailRoute, { generateMetadata } from './page';
+import ProjectDetailRoute, {
+  generateMetadata,
+  generateStaticParams,
+} from '@/app/[locale]/project/[id]/page';
+import {
+  getProjectDetailArchivePageData,
+  getProjectDetailShellData,
+  getProjectTagLabels,
+} from '@/views/project';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -21,30 +25,16 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
-vi.mock('@/shared/lib/auth/get-server-auth-state', () => ({
-  getServerAuthState: vi.fn(async () => ({
-    isAdmin: false,
-    isAuthenticated: false,
-    userEmail: null,
-    userId: null,
-  })),
-}));
-
-vi.mock('@/entities/project/api/get-project', () => ({
-  getResolvedProject: vi.fn(async () => ({
+vi.mock('@/views/project', () => ({
+  getProjectDetailShellData: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
   })),
-}));
-
-vi.mock('@/views/project', () => ({
-  getProjectDetailPageData: vi.fn(async () => ({
-    archivePage: {
-      items: [],
-      nextCursor: null,
-    },
-    item: null,
+  getProjectDetailArchivePageData: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
   })),
+  getProjectTagLabels: vi.fn(async () => []),
   ProjectDetailPage: function ProjectDetailPage() {
     return null;
   },
@@ -61,12 +51,12 @@ describe('ProjectDetailRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
+  it('상세 slug는 build 시 선생성하지 않는다', async () => {
+    await expect(generateStaticParams()).resolves.toEqual([]);
+  });
+
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
-    vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
-      archivePage: {
-        items: [],
-        nextCursor: null,
-      },
+    vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
       item: {
         id: 'supabase-editorial',
         slug: 'supabase-editorial-slug',
@@ -78,7 +68,13 @@ describe('ProjectDetailRoute', () => {
         created_at: '2026-03-01T00:00:00.000Z',
         publish_at: '2026-03-01T00:00:00.000Z',
       },
+      resolvedLocale: 'ko',
     });
+    vi.mocked(getProjectDetailArchivePageData).mockResolvedValueOnce({
+      items: [],
+      nextCursor: null,
+    });
+    vi.mocked(getProjectTagLabels).mockResolvedValueOnce(['Supabase']);
 
     const element = await ProjectDetailRoute({
       params: Promise.resolve({
@@ -90,50 +86,19 @@ describe('ProjectDetailRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('ProjectDetailPage');
     expect(element.props.locale).toBe('ko');
-    expect(element.props.isAdmin).toBe(false);
-    expect(getProjectDetailPageData).toHaveBeenCalledWith({
+    expect(getProjectDetailShellData).toHaveBeenCalledWith({
       locale: 'ko',
       projectSlug: 'supabase-editorial',
     });
-  });
-
-  it('관리자면 프로젝트 상세 페이지에 수정 버튼 노출용 isAdmin을 전달한다', async () => {
-    vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
-      archivePage: {
-        items: [],
-        nextCursor: null,
-      },
-      item: {
-        id: 'supabase-editorial',
-        slug: 'supabase-editorial-slug',
-        title: 'Supabase Editorial',
-        description: 'detail',
-        content: '# heading',
-        thumbnail_url: null,
-        tags: ['supabase'],
-        created_at: '2026-03-01T00:00:00.000Z',
-        publish_at: '2026-03-01T00:00:00.000Z',
-      },
+    await expect(element.props.archivePagePromise).resolves.toEqual({
+      items: [],
+      nextCursor: null,
     });
-    vi.mocked(getServerAuthState).mockResolvedValueOnce({
-      isAdmin: true,
-      isAuthenticated: true,
-      userEmail: 'admin@example.com',
-      userId: 'admin-id',
-    });
-
-    const element = await ProjectDetailRoute({
-      params: Promise.resolve({
-        id: 'supabase-editorial',
-        locale: 'ko',
-      }),
-    });
-
-    expect(element.props.isAdmin).toBe(true);
+    await expect(element.props.tagLabelsPromise).resolves.toEqual(['Supabase']);
   });
 
   it('프로젝트 상세 메타데이터에 OG 이미지를 포함한다', async () => {
-    vi.mocked(getResolvedProject).mockResolvedValueOnce({
+    vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
       item: {
         id: 'supabase-editorial',
         slug: 'supabase-editorial-slug',
@@ -166,12 +131,9 @@ describe('ProjectDetailRoute', () => {
   });
 
   it('데이터가 없으면 notFound를 호출한다', async () => {
-    vi.mocked(getProjectDetailPageData).mockResolvedValueOnce({
-      archivePage: {
-        items: [],
-        nextCursor: null,
-      },
+    vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
       item: null,
+      resolvedLocale: null,
     });
 
     await expect(
@@ -183,7 +145,7 @@ describe('ProjectDetailRoute', () => {
       }),
     ).rejects.toThrow('NOT_FOUND');
 
-    expect(getProjectDetailPageData).toHaveBeenCalledWith({
+    expect(getProjectDetailShellData).toHaveBeenCalledWith({
       locale: 'ko',
       projectSlug: 'missing-project',
     });

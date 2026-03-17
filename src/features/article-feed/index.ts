@@ -1,4 +1,4 @@
-export { useArticleFeed } from './model/use-article-feed';
-export { ArticleFeed } from './ui/article-feed';
-export { ArticleSearchForm } from './ui/article-search-form';
-export { ArticleTagFilterList } from './ui/article-tag-filter-list';
+export { useArticleFeed } from '@/features/article-feed/model/use-article-feed';
+export { ArticleFeed } from '@/features/article-feed/ui/article-feed';
+export { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
+export { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';

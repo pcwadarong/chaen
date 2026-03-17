@@ -1,4 +1,4 @@
-import { normalizeHttpUrl } from './normalize-http-url';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 describe('normalizeHttpUrl', () => {
   it('http/https URL만 허용한다', () => {

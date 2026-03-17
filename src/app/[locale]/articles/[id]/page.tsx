@@ -3,17 +3,26 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { getResolvedArticle } from '@/entities/article/api/get-article';
 import type { AppLocale } from '@/i18n/routing';
-import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
-import { ArticleDetailPage, getArticleDetailPageData } from '@/views/articles';
+import {
+  ArticleDetailPage,
+  getArticleDetailArchivePageData,
+  getArticleDetailRelatedArticlesData,
+  getArticleDetailShellData,
+  getArticleTagLabels,
+} from '@/views/articles';
 
 export const revalidate = 3600;
+
+/**
+ * 상세 slug는 첫 요청 시 정적으로 생성하고 이후 ISR로 재사용합니다.
+ */
+export const generateStaticParams = async () => [];
 
 type ArticleDetailRouteProps = {
   params: Promise<{
@@ -28,7 +37,10 @@ type ArticleDetailRouteProps = {
 export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Promise<Metadata> => {
   const { id, locale } = await params;
   const [resolvedArticle, t] = await Promise.all([
-    getResolvedArticle(id, locale),
+    getArticleDetailShellData({
+      articleSlug: id,
+      locale,
+    }),
     getTranslations({ locale, namespace: 'ArticleDetail' }),
   ]);
   const { item, resolvedLocale } = resolvedArticle;
@@ -82,24 +94,32 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
  */
 const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   const { id, locale } = await params;
-  const [{ archivePage, initialCommentsPage, item, relatedArticles }, authState] =
-    await Promise.all([
-      getArticleDetailPageData({
-        articleSlug: id,
-        locale,
-      }),
-      getServerAuthState(),
-    ]);
+  const { item, resolvedLocale } = await getArticleDetailShellData({
+    articleSlug: id,
+    locale,
+  });
   if (!item) notFound();
+
+  const archivePagePromise = getArticleDetailArchivePageData({
+    item,
+    locale,
+  });
+  const relatedArticlesPromise = getArticleDetailRelatedArticlesData({
+    articleId: item.id,
+    locale: resolvedLocale ?? locale,
+  });
+  const tagLabelsPromise = getArticleTagLabels({
+    item,
+    locale,
+  });
 
   return (
     <ArticleDetailPage
-      archivePage={archivePage}
-      initialCommentsPage={initialCommentsPage}
-      isAdmin={authState.isAdmin}
+      archivePagePromise={archivePagePromise}
       item={item}
       locale={locale as AppLocale}
-      relatedArticles={relatedArticles}
+      relatedArticlesPromise={relatedArticlesPromise}
+      tagLabelsPromise={tagLabelsPromise}
     />
   );
 };

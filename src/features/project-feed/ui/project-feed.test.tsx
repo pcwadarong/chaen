@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
@@ -10,6 +10,10 @@ import '@testing-library/jest-dom/vitest';
 const projectFeedMockState = vi.hoisted(() => ({
   showcaseRenderCount: 0,
 }));
+
+type ObserverCallback = IntersectionObserverCallback;
+
+let observerCallback: ObserverCallback | null = null;
 
 vi.mock('@/features/project-feed/model/use-project-feed', () => ({
   useProjectFeed: vi.fn(),
@@ -34,9 +38,14 @@ const getUseProjectFeedMock = async () => {
 describe('ProjectFeed', () => {
   beforeEach(() => {
     projectFeedMockState.showcaseRenderCount = 0;
+    observerCallback = null;
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
       value: class {
+        constructor(callback: ObserverCallback) {
+          observerCallback = callback;
+        }
+
         disconnect() {}
         observe() {}
       },
@@ -140,5 +149,53 @@ describe('ProjectFeed', () => {
     );
 
     expect(projectFeedMockState.showcaseRenderCount).toBe(1);
+  });
+
+  it('초기 intersection만으로는 추가 로드를 시작하지 않고 스크롤 이후에만 자동 로드한다', async () => {
+    const useProjectFeed = await getUseProjectFeedMock();
+    const loadMore = vi.fn();
+    useProjectFeed.mockReturnValue({
+      errorMessage: null,
+      hasMore: true,
+      isLoadingMore: false,
+      items: [
+        {
+          description: '설명',
+          id: 'project-1',
+          publish_at: '2026-03-08T00:00:00.000Z',
+          slug: 'project-1',
+          thumbnail_url: null,
+          title: '테스트 프로젝트',
+        },
+      ],
+      loadMore,
+    });
+
+    render(
+      <ProjectFeed
+        emptyText="비어 있음"
+        initialCursor="cursor-1"
+        initialItems={[]}
+        loadErrorText="불러오기 실패"
+        loadMoreEndText="모든 프로젝트를 확인했습니다."
+        loadingText="불러오는 중"
+        locale="ko"
+        retryText="다시 시도"
+      />,
+    );
+
+    observerCallback?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    expect(loadMore).not.toHaveBeenCalled();
+
+    fireEvent.scroll(window);
+
+    observerCallback?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    expect(loadMore).toHaveBeenCalledTimes(1);
   });
 });

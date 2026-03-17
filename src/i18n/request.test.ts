@@ -4,7 +4,7 @@ vi.mock('next-intl/server', () => ({
 
 describe('request', () => {
   it('유효한 locale 요청이면 해당 locale과 메시지를 반환한다', async () => {
-    const { default: getRequestConfig } = await import('./request');
+    const { default: getRequestConfig } = await import('@/i18n/request');
 
     const result = await getRequestConfig({
       requestLocale: Promise.resolve('ja'),
@@ -16,7 +16,7 @@ describe('request', () => {
   });
 
   it('locale 요청이 없으면 기본 locale과 메시지를 반환한다', async () => {
-    const { default: getRequestConfig } = await import('./request');
+    const { default: getRequestConfig } = await import('@/i18n/request');
 
     const result = await getRequestConfig({
       requestLocale: Promise.resolve(undefined),
@@ -28,7 +28,7 @@ describe('request', () => {
   });
 
   it('지원하지 않는 locale 요청이면 기본 locale로 되돌린다', async () => {
-    const { default: getRequestConfig } = await import('./request');
+    const { default: getRequestConfig } = await import('@/i18n/request');
 
     const result = await getRequestConfig({
       requestLocale: Promise.resolve('jp'),

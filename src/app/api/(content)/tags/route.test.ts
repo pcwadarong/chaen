@@ -1,6 +1,5 @@
+import { GET } from '@/app/api/(content)/tags/route';
 import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
-
-import { GET } from './route';
 
 vi.mock('@/entities/tag/api/query-tags', () => ({
   getTagOptionsByLocale: vi.fn(),

@@ -1,14 +1,12 @@
 import { vi } from 'vitest';
 
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { hashGuestbookPassword } from '../model/password';
-
 import {
   createGuestbookEntry,
   deleteGuestbookEntry,
   updateGuestbookEntry,
-} from './mutate-guestbook-entry';
+} from '@/entities/guestbook/api/mutate-guestbook-entry';
+import { hashGuestbookPassword } from '@/entities/guestbook/model/password';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),

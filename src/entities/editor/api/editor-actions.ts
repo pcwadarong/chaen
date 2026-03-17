@@ -5,6 +5,14 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
+import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
+import type { EditorContentTableConfig } from '@/entities/editor/api/editor.utils';
+import {
+  buildDraftFieldRecord,
+  buildEditorTranslationRows,
+  getEditorContentTableConfig,
+  resolveEditorPublicationState,
+} from '@/entities/editor/api/editor.utils';
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { validateEditorState } from '@/entities/editor/model/editor-state-utils';
 import type {
@@ -19,15 +27,6 @@ import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug'
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
-
-import { checkSlugDuplicate } from './check-slug-duplicate';
-import type { EditorContentTableConfig } from './editor.utils';
-import {
-  buildDraftFieldRecord,
-  buildEditorTranslationRows,
-  getEditorContentTableConfig,
-  resolveEditorPublicationState,
-} from './editor.utils';
 
 const translationFieldSchema = z.object({
   content: z.string(),

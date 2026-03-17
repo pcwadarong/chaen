@@ -2,8 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-
-import { GuestbookThreadCard } from './guestbook-thread-card';
+import { GuestbookThreadCard } from '@/entities/guestbook/ui/guestbook-thread-card';
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ko',

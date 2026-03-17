@@ -1,7 +1,6 @@
+import { POST } from '@/app/api/(files)/images/route';
 import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import { POST } from './route';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   AdminAuthorizationError: class AdminAuthorizationError extends Error {},

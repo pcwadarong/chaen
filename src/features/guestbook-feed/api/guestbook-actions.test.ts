@@ -8,17 +8,16 @@ import {
   createGuestbookError,
   GUESTBOOK_ERROR_CODE,
 } from '@/entities/guestbook/model/guestbook-error';
-import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-
 import {
   initialSubmitGuestbookEntryState,
   initialVerifyGuestbookSecretState,
-} from './guestbook-action-state';
+} from '@/features/guestbook-feed/api/guestbook-action-state';
 import {
   getGuestbookThreadsPage,
   submitGuestbookEntry,
   verifyGuestbookSecretAction,
-} from './guestbook-actions';
+} from '@/features/guestbook-feed/api/guestbook-actions';
+import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 vi.mock('@/entities/guestbook', () => ({
   createGuestbookEntry: vi.fn(),

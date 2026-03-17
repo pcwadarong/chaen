@@ -1,10 +1,9 @@
 import { isValidElement } from 'react';
 
+import AdminProjectNewRoute, { metadata } from '@/app/[locale]/admin/projects/new/page';
 import { createEditorSeed, getEditorDraftSeed } from '@/entities/editor/api/editor-read';
 import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-
-import AdminProjectNewRoute, { metadata } from './page';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),

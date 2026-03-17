@@ -1,1 +1,1 @@
-export { HomeHeroScene } from './ui/home-hero-scene';
+export { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';

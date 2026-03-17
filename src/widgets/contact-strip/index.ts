@@ -1,1 +1,1 @@
-export { ContactStrip } from './ui/contact-strip';
+export { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';

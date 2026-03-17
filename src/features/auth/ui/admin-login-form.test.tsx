@@ -3,8 +3,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import { signInAdmin } from '@/features/auth/api/sign-in-admin';
-
-import { AdminLoginForm } from './admin-login-form';
+import { AdminLoginForm } from '@/features/auth/ui/admin-login-form';
 
 vi.mock('@/features/auth/api/sign-in-admin', () => ({
   signInAdmin: vi.fn(),

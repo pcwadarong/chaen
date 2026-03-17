@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
-import { ArticleTagFilterList } from './article-tag-filter-list';
+import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
 
 const linkRenderSpy = vi.fn();
 

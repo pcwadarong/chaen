@@ -3,17 +3,25 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
-import { getResolvedProject } from '@/entities/project/api/get-project';
 import type { AppLocale } from '@/i18n/routing';
-import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
-import { getProjectDetailPageData, ProjectDetailPage } from '@/views/project';
+import {
+  getProjectDetailArchivePageData,
+  getProjectDetailShellData,
+  getProjectTagLabels,
+  ProjectDetailPage,
+} from '@/views/project';
 
 export const revalidate = 3600;
+
+/**
+ * 상세 slug는 첫 요청 시 정적으로 생성하고 이후 ISR로 재사용합니다.
+ */
+export const generateStaticParams = async () => [];
 
 type ProjectDetailRouteProps = {
   params: Promise<{
@@ -28,7 +36,10 @@ type ProjectDetailRouteProps = {
 export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Promise<Metadata> => {
   const { id, locale } = await params;
   const [resolvedProject, t] = await Promise.all([
-    getResolvedProject(id, locale),
+    getProjectDetailShellData({
+      locale,
+      projectSlug: id,
+    }),
     getTranslations({ locale, namespace: 'ProjectDetail' }),
   ]);
   const { item, resolvedLocale } = resolvedProject;
@@ -82,21 +93,27 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
  */
 const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const { id, locale } = await params;
-  const [{ archivePage, item }, authState] = await Promise.all([
-    getProjectDetailPageData({
-      locale,
-      projectSlug: id,
-    }),
-    getServerAuthState(),
-  ]);
+  const { item } = await getProjectDetailShellData({
+    locale,
+    projectSlug: id,
+  });
   if (!item) notFound();
+
+  const archivePagePromise = getProjectDetailArchivePageData({
+    item,
+    locale,
+  });
+  const tagLabelsPromise = getProjectTagLabels({
+    item,
+    locale,
+  });
 
   return (
     <ProjectDetailPage
-      archivePage={archivePage}
-      isAdmin={authState.isAdmin}
+      archivePagePromise={archivePagePromise}
       item={item}
       locale={locale as AppLocale}
+      tagLabelsPromise={tagLabelsPromise}
     />
   );
 };
