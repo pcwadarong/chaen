@@ -12,6 +12,9 @@ const composeFormSpy = vi.fn();
 const actionPopoverRenderCount = vi.hoisted(() => ({
   value: 0,
 }));
+const sortButtonRenderCount = vi.hoisted(() => ({
+  value: 0,
+}));
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, values?: Record<string, string>) => {
@@ -51,6 +54,24 @@ vi.mock('@/shared/ui/comment-compose-form', () => ({
           {props.isReplyMode ? 'reply-compose-form' : 'root-compose-form'}
         </button>
       </div>
+    );
+  },
+}));
+
+vi.mock('@/shared/ui/button/button', () => ({
+  Button: ({
+    children,
+    role,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => {
+    if (role === 'tab') {
+      sortButtonRenderCount.value += 1;
+    }
+
+    return (
+      <button role={role} type="button" {...props}>
+        {children}
+      </button>
     );
   },
 }));
@@ -152,6 +173,7 @@ describe('ArticleCommentsSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     actionPopoverRenderCount.value = 0;
+    sortButtonRenderCount.value = 0;
     resetArticleCommentsPageCacheForTest();
   });
 
@@ -380,6 +402,19 @@ describe('ArticleCommentsSection', () => {
     });
 
     expect(actionPopoverRenderCount.value).toBe(2);
+    expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
+  });
+
+  it('루트 작성 폼 입력 중에는 정렬 탭을 다시 그리지 않는다', () => {
+    render(<ArticleCommentsSection articleId="article-1" initialPage={initialPage} locale="ko" />);
+
+    expect(sortButtonRenderCount.value).toBe(2);
+
+    fireEvent.change(screen.getByLabelText('root-compose-input'), {
+      target: { value: 'hello sort tabs' },
+    });
+
+    expect(sortButtonRenderCount.value).toBe(2);
     expect(getArticleCommentsPageAction).not.toHaveBeenCalled();
   });
 });

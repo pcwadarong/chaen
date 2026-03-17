@@ -545,6 +545,164 @@ CommentThreadItemViewBase.displayName = 'CommentThreadItemView';
 
 const CommentThreadItemView = React.memo(CommentThreadItemViewBase);
 
+type CommentsSortToolbarProps = {
+  currentSort: ArticleCommentsSort;
+  onChangeSort: (sort: ArticleCommentsSort) => void;
+  text: ArticleCommentsText;
+};
+
+/**
+ * 댓글 정렬 탭 영역만 분리해 작성 폼 입력과 무관한 리렌더를 줄입니다.
+ */
+const CommentsSortToolbarBase = ({ currentSort, onChangeSort, text }: CommentsSortToolbarProps) => (
+  <div className={listToolbarClass}>
+    <div aria-label={text.sortLabel} className={sortGroupClass} role="tablist">
+      <Button
+        aria-selected={currentSort === 'latest'}
+        className={cx(
+          sortButtonClass,
+          currentSort === 'latest' ? activeSortButtonClass : undefined,
+        )}
+        onClick={() => onChangeSort('latest')}
+        role="tab"
+        size="sm"
+        tone="white"
+        type="button"
+        variant={currentSort === 'latest' ? 'solid' : 'ghost'}
+      >
+        {text.sortLatest}
+      </Button>
+      <Button
+        aria-selected={currentSort === 'oldest'}
+        className={cx(
+          sortButtonClass,
+          currentSort === 'oldest' ? activeSortButtonClass : undefined,
+        )}
+        onClick={() => onChangeSort('oldest')}
+        role="tab"
+        size="sm"
+        tone="white"
+        type="button"
+        variant={currentSort === 'oldest' ? 'solid' : 'ghost'}
+      >
+        {text.sortOldest}
+      </Button>
+    </div>
+  </div>
+);
+
+CommentsSortToolbarBase.displayName = 'CommentsSortToolbar';
+
+const CommentsSortToolbar = React.memo(CommentsSortToolbarBase);
+
+type CommentsThreadListPanelProps = {
+  activeReplyPlaceholder: string | null;
+  articleId: string;
+  errorMessage: string | null;
+  isLoading: boolean;
+  isReplySubmitting: boolean;
+  locale: string;
+  onDelete: (entry: ArticleComment) => void;
+  onEdit: (entry: ArticleComment) => void;
+  onPageChange: (page: number) => void;
+  onReply: (thread: ArticleCommentThreadItem, entry: ArticleComment) => void;
+  onRetryLoad: () => void;
+  pageData: ArticleCommentPage;
+  queryState: CommentQueryState;
+  replySubmitState: ActionResult<SubmitArticleCommentActionData>;
+  replyTarget: ReplyTarget | null;
+  submitReplyCommentAction: React.FormHTMLAttributes<HTMLFormElement>['action'];
+  text: ArticleCommentsText;
+};
+
+/**
+ * 댓글 상태 카드, 목록, 페이지네이션을 묶어 작성 폼 입력과 렌더 경계를 분리합니다.
+ */
+const CommentsThreadListPanelBase = ({
+  activeReplyPlaceholder,
+  articleId,
+  errorMessage,
+  isLoading,
+  isReplySubmitting,
+  locale,
+  onDelete,
+  onEdit,
+  onPageChange,
+  onReply,
+  onRetryLoad,
+  pageData,
+  queryState,
+  replySubmitState,
+  replyTarget,
+  submitReplyCommentAction,
+  text,
+}: CommentsThreadListPanelProps) => (
+  <>
+    {errorMessage && pageData.items.length === 0 ? (
+      <div className={stateCardClass} role="alert">
+        <p className={stateTextClass}>{errorMessage}</p>
+        <Button onClick={onRetryLoad} tone="white" type="button">
+          {text.retry}
+        </Button>
+      </div>
+    ) : null}
+
+    {!errorMessage && isLoading && pageData.items.length === 0 ? (
+      <div className={stateCardClass}>
+        <p className={stateTextClass}>{text.loading}</p>
+      </div>
+    ) : null}
+
+    {isLoading && pageData.items.length > 0 ? (
+      <CommentsLoadingSkeleton loadingText={text.loading} />
+    ) : null}
+
+    {!isLoading && !errorMessage && pageData.items.length === 0 ? (
+      <div className={stateCardClass}>
+        <p className={stateTextClass}>{text.emptyItems}</p>
+      </div>
+    ) : null}
+
+    {!isLoading && pageData.items.length > 0 ? (
+      <ol className={threadListClass}>
+        {pageData.items.map(thread => (
+          <li key={thread.id}>
+            <CommentThreadItemView
+              articleId={articleId}
+              isReplySubmitting={isReplySubmitting}
+              locale={locale}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onReply={onReply}
+              replyPlaceholder={replyTarget?.parentId === thread.id ? activeReplyPlaceholder : null}
+              replySubmitState={replySubmitState}
+              replyTarget={replyTarget}
+              submitReplyCommentAction={submitReplyCommentAction}
+              text={text}
+              thread={thread}
+            />
+          </li>
+        ))}
+      </ol>
+    ) : null}
+
+    {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
+      <div className={footerPaginationWrapClass}>
+        <Pagination
+          ariaLabel={text.paginationLabel}
+          currentPage={queryState.page}
+          onPageChange={onPageChange}
+          totalPages={pageData.totalPages}
+        />
+      </div>
+    ) : null}
+  </>
+);
+
+CommentsThreadListPanelBase.displayName = 'CommentsThreadListPanel';
+
+const CommentsThreadListPanel = React.memo(CommentsThreadListPanelBase);
+
 /**
  * 아티클 상세 하단 댓글 섹션 위젯입니다.
  */
@@ -592,6 +750,15 @@ export const ArticleCommentsSection = ({
   const [isModalSubmitting, setIsModalSubmitting] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const text = useMemo(() => createArticleCommentsText(t), [t]);
+  const activeReplyPlaceholder = useMemo(
+    () =>
+      replyTarget
+        ? t('composeReplyPlaceholder', {
+            authorName: replyTarget.authorName,
+          })
+        : null,
+    [replyTarget, t],
+  );
 
   useEffect(() => {
     if (toasts.length === 0) return;
@@ -940,105 +1107,31 @@ export const ArticleCommentsSection = ({
         textPlaceholder={text.composePlaceholder}
       />
 
-      <div className={listToolbarClass}>
-        <div aria-label={text.sortLabel} className={sortGroupClass} role="tablist">
-          <Button
-            aria-selected={pageData.sort === 'latest'}
-            className={cx(
-              sortButtonClass,
-              queryState.sort === 'latest' ? activeSortButtonClass : undefined,
-            )}
-            onClick={() => handleChangeSort('latest')}
-            role="tab"
-            size="sm"
-            tone="white"
-            type="button"
-            variant={queryState.sort === 'latest' ? 'solid' : 'ghost'}
-          >
-            {text.sortLatest}
-          </Button>
-          <Button
-            aria-selected={queryState.sort === 'oldest'}
-            className={cx(
-              sortButtonClass,
-              queryState.sort === 'oldest' ? activeSortButtonClass : undefined,
-            )}
-            onClick={() => handleChangeSort('oldest')}
-            role="tab"
-            size="sm"
-            tone="white"
-            type="button"
-            variant={queryState.sort === 'oldest' ? 'solid' : 'ghost'}
-          >
-            {text.sortOldest}
-          </Button>
-        </div>
-      </div>
+      <CommentsSortToolbar
+        currentSort={queryState.sort}
+        onChangeSort={handleChangeSort}
+        text={text}
+      />
 
-      {errorMessage && pageData.items.length === 0 ? (
-        <div className={stateCardClass} role="alert">
-          <p className={stateTextClass}>{errorMessage}</p>
-          <Button onClick={handleRetryLoad} tone="white" type="button">
-            {text.retry}
-          </Button>
-        </div>
-      ) : null}
-
-      {!errorMessage && isLoading && pageData.items.length === 0 ? (
-        <div className={stateCardClass}>
-          <p className={stateTextClass}>{text.loading}</p>
-        </div>
-      ) : null}
-
-      {isLoading && pageData.items.length > 0 ? (
-        <CommentsLoadingSkeleton loadingText={text.loading} />
-      ) : null}
-
-      {!isLoading && !errorMessage && pageData.items.length === 0 ? (
-        <div className={stateCardClass}>
-          <p className={stateTextClass}>{text.emptyItems}</p>
-        </div>
-      ) : null}
-
-      {!isLoading && pageData.items.length > 0 ? (
-        <ol className={threadListClass}>
-          {pageData.items.map(thread => (
-            <li key={thread.id}>
-              <CommentThreadItemView
-                articleId={articleId}
-                isReplySubmitting={isReplySubmitting}
-                locale={locale}
-                onDelete={openDeleteModal}
-                onEdit={openEditModal}
-                onReply={handleReply}
-                replyPlaceholder={
-                  replyTarget?.parentId === thread.id
-                    ? t('composeReplyPlaceholder', {
-                        authorName: replyTarget.authorName,
-                      })
-                    : null
-                }
-                replySubmitState={replySubmitState}
-                replyTarget={replyTarget}
-                submitReplyCommentAction={submitReplyCommentAction}
-                text={text}
-                thread={thread}
-              />
-            </li>
-          ))}
-        </ol>
-      ) : null}
-
-      {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
-        <div className={footerPaginationWrapClass}>
-          <Pagination
-            ariaLabel={text.paginationLabel}
-            currentPage={queryState.page}
-            onPageChange={handlePaginationChange}
-            totalPages={pageData.totalPages}
-          />
-        </div>
-      ) : null}
+      <CommentsThreadListPanel
+        activeReplyPlaceholder={activeReplyPlaceholder}
+        articleId={articleId}
+        errorMessage={errorMessage}
+        isLoading={isLoading}
+        isReplySubmitting={isReplySubmitting}
+        locale={locale}
+        onDelete={openDeleteModal}
+        onEdit={openEditModal}
+        onPageChange={handlePaginationChange}
+        onReply={handleReply}
+        onRetryLoad={handleRetryLoad}
+        pageData={pageData}
+        queryState={queryState}
+        replySubmitState={replySubmitState}
+        replyTarget={replyTarget}
+        submitReplyCommentAction={submitReplyCommentAction}
+        text={text}
+      />
 
       <Modal
         ariaDescribedBy={modalState?.mode === 'delete' ? modalDescriptionId : undefined}
