@@ -78,6 +78,17 @@ export const getArticleTagLabels = async ({
   const tagLabelMap = await getTagLabelMapBySlugs({
     locale,
     slugs: tags,
+  }).catch(error => {
+    console.error('[articles] getTagLabelMapBySlugs failed for locale', {
+      error,
+      locale,
+      tags,
+    });
+
+    return {
+      data: new Map<string, string>(),
+      schemaMissing: true,
+    };
   });
 
   if (tagLabelMap.schemaMissing) return tags;
