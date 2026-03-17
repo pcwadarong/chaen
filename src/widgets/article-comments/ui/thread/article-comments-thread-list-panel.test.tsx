@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
+import { createArticleCommentsText } from '@/widgets/article-comments/ui/state/article-comments-text';
 import { CommentsThreadListPanel } from '@/widgets/article-comments/ui/thread/article-comments-thread-list-panel';
 
 vi.mock('@/widgets/article-comments/ui/thread/article-comments-thread-item-view', () => ({
@@ -14,30 +15,12 @@ vi.mock('@/widgets/article-comments/ui/thread/article-comments-thread-list-skele
 }));
 
 const text = {
-  actionDeleteLabel: '삭제',
-  actionEditLabel: '수정',
-  actionMenuLabel: '메뉴',
-  actionMenuPanelLabel: '패널',
-  actionReplyLabel: '답글',
-  composeAuthorBlogUrlInvalidMessage: '',
-  composeAuthorBlogUrlLabel: '',
-  composeAuthorBlogUrlPlaceholder: '',
-  composeAuthorNameLabel: '',
-  composeAuthorNamePlaceholder: '',
-  composeCharacterCountLabel: '',
-  composeContentShortcutHint: '',
-  composePasswordLabel: '',
-  composePasswordPlaceholder: '',
-  composeReplyContentLabel: '',
-  composeReplyPreviewLabel: '',
-  deletedPlaceholder: '',
+  ...createArticleCommentsText(key => key),
   emptyItems: '댓글 없음',
   loading: '불러오는 중',
   paginationLabel: '댓글 페이지 이동',
-  report: '',
   retry: '다시 시도',
-  submit: '',
-} as const;
+};
 
 const pageData = {
   items: [],
