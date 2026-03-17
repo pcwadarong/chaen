@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
+import { getArticleStaticSeedParams } from '@/entities/article/api/detail/get-article-static-seed-params';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
@@ -11,7 +12,6 @@ import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import {
   ArticleDetailPage,
-  getArticleDetailArchivePageData,
   getArticleDetailRelatedArticlesData,
   getArticleDetailShellData,
   getArticleTagLabels,
@@ -20,9 +20,9 @@ import {
 export const revalidate = 3600;
 
 /**
- * 상세 slug는 첫 요청 시 정적으로 생성하고 이후 ISR로 재사용합니다.
+ * 상세 slug는 대표 경로를 일부만 빌드하고 나머지는 첫 요청 시 정적으로 생성합니다.
  */
-export const generateStaticParams = async () => [];
+export const generateStaticParams = async () => getArticleStaticSeedParams();
 
 type ArticleDetailRouteProps = {
   params: Promise<{
@@ -100,10 +100,6 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   });
   if (!item) notFound();
 
-  const archivePagePromise = getArticleDetailArchivePageData({
-    item,
-    locale,
-  });
   const relatedArticlesPromise = getArticleDetailRelatedArticlesData({
     articleId: item.id,
     locale: resolvedLocale ?? locale,
@@ -115,7 +111,6 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
 
   return (
     <ArticleDetailPage
-      archivePagePromise={archivePagePromise}
       item={item}
       locale={locale as AppLocale}
       relatedArticlesPromise={relatedArticlesPromise}

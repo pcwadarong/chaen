@@ -5,8 +5,8 @@ import ArticleDetailRoute, {
   generateMetadata,
   generateStaticParams,
 } from '@/app/[locale]/articles/[id]/page';
+import { getArticleStaticSeedParams } from '@/entities/article/api/detail/get-article-static-seed-params';
 import {
-  getArticleDetailArchivePageData,
   getArticleDetailRelatedArticlesData,
   getArticleDetailShellData,
   getArticleTagLabels,
@@ -26,14 +26,14 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
+vi.mock('@/entities/article/api/detail/get-article-static-seed-params', () => ({
+  getArticleStaticSeedParams: vi.fn(async () => []),
+}));
+
 vi.mock('@/views/articles', () => ({
   getArticleDetailShellData: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
-  })),
-  getArticleDetailArchivePageData: vi.fn(async () => ({
-    items: [],
-    nextCursor: null,
   })),
   getArticleDetailRelatedArticlesData: vi.fn(async () => []),
   getArticleTagLabels: vi.fn(async () => []),
@@ -53,8 +53,10 @@ describe('ArticleDetailRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('상세 slug는 build 시 선생성하지 않는다', async () => {
-    await expect(generateStaticParams()).resolves.toEqual([]);
+  it('상세 slug는 대표 경로만 seed한다', async () => {
+    vi.mocked(getArticleStaticSeedParams).mockResolvedValueOnce([{ id: 'seed-article' }]);
+
+    await expect(generateStaticParams()).resolves.toEqual([{ id: 'seed-article' }]);
   });
 
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {
@@ -72,10 +74,6 @@ describe('ArticleDetailRoute', () => {
       },
       resolvedLocale: 'ko',
     });
-    vi.mocked(getArticleDetailArchivePageData).mockResolvedValueOnce({
-      items: [],
-      nextCursor: null,
-    });
     vi.mocked(getArticleDetailRelatedArticlesData).mockResolvedValueOnce([]);
     vi.mocked(getArticleTagLabels).mockResolvedValueOnce(['React']);
 
@@ -92,10 +90,6 @@ describe('ArticleDetailRoute', () => {
     expect(getArticleDetailShellData).toHaveBeenCalledWith({
       articleSlug: 'frontend-performance',
       locale: 'ko',
-    });
-    await expect(element.props.archivePagePromise).resolves.toEqual({
-      items: [],
-      nextCursor: null,
     });
     await expect(element.props.relatedArticlesPromise).resolves.toEqual([]);
     await expect(element.props.tagLabelsPromise).resolves.toEqual(['React']);

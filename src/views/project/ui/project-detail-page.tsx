@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
+import type { Project } from '@/entities/project/model/types';
 import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
 import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
 import type { AppLocale } from '@/i18n/routing';
@@ -21,14 +21,12 @@ import {
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ProjectDetailPageProps = {
-  archivePagePromise: Promise<ProjectArchivePage>;
   item: Project;
   locale: AppLocale;
   tagLabelsPromise: Promise<string[]>;
 };
 
 type ProjectArchiveSidebarProps = {
-  archivePagePromise: Promise<ProjectArchivePage>;
   emptyText: string;
   loadErrorText: string;
   loadMoreEndText: string;
@@ -46,8 +44,7 @@ type ProjectTagListProps = {
 /**
  * 프로젝트 상세 좌측 아카이브를 비동기 경계 안에서 렌더링합니다.
  */
-const ProjectArchiveSidebar = async ({
-  archivePagePromise,
+const ProjectArchiveSidebar = ({
   emptyText,
   loadErrorText,
   loadMoreEndText,
@@ -55,24 +52,19 @@ const ProjectArchiveSidebar = async ({
   locale,
   retryText,
   selectedPathSegment,
-}: ProjectArchiveSidebarProps) => {
-  const archivePage = await archivePagePromise;
-
-  return (
-    <DetailArchiveFeed
-      emptyText={emptyText}
-      hrefBasePath="/project"
-      initialPage={archivePage}
-      loadErrorText={loadErrorText}
-      loadPageAction={getProjectDetailArchivePageAction}
-      loadMoreEndText={loadMoreEndText}
-      loadingText={loadingText}
-      locale={locale}
-      retryText={retryText}
-      selectedPathSegment={selectedPathSegment}
-    />
-  );
-};
+}: ProjectArchiveSidebarProps) => (
+  <DetailArchiveFeed
+    emptyText={emptyText}
+    hrefBasePath="/project"
+    loadErrorText={loadErrorText}
+    loadPageAction={getProjectDetailArchivePageAction}
+    loadMoreEndText={loadMoreEndText}
+    loadingText={loadingText}
+    locale={locale}
+    retryText={retryText}
+    selectedPathSegment={selectedPathSegment}
+  />
+);
 
 /**
  * 프로젝트 상세 태그 목록을 비동기 경계 안에서 렌더링합니다.
@@ -96,12 +88,7 @@ const ProjectTagList = async ({ ariaLabel, tagLabelsPromise }: ProjectTagListPro
 /**
  * 프로젝트 상세 페이지 컨테이너입니다.
  */
-export const ProjectDetailPage = ({
-  archivePagePromise,
-  item,
-  locale,
-  tagLabelsPromise,
-}: ProjectDetailPageProps) => {
+export const ProjectDetailPage = ({ item, locale, tagLabelsPromise }: ProjectDetailPageProps) => {
   const t = useTranslations('ProjectDetail');
   const projectT = useTranslations('Project');
   const detailUi = useTranslations('DetailUi');
@@ -177,7 +164,6 @@ export const ProjectDetailPage = ({
         sidebarContent={
           <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
             <ProjectArchiveSidebar
-              archivePagePromise={archivePagePromise}
               emptyText={detailUi('emptyArchive')}
               loadErrorText={projectT('loadError')}
               loadMoreEndText={projectT('loadMoreEnd')}
