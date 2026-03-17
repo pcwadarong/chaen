@@ -5,9 +5,8 @@ import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { parseEditorError } from '@/entities/editor/model/editor-error';
-import { Link } from '@/i18n/navigation';
-import { Button } from '@/shared/ui/button/button';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
+import { DraftTableRow } from '@/views/editor-drafts/ui/editor-drafts-row';
 
 type EditorDraftsPageProps = {
   items: EditorDraftSummary[];
@@ -16,57 +15,6 @@ type EditorDraftsPageProps = {
     contentType: EditorDraftSummary['contentType'],
   ) => Promise<void>;
 };
-
-type DraftTableRowProps = {
-  isPending: boolean;
-  item: EditorDraftSummary;
-  onDeleteDraft?: (item: EditorDraftSummary) => Promise<void> | void;
-};
-
-/**
- * draft 목록 row를 렌더링합니다.
- * pending 여부가 바뀐 row만 다시 그릴 수 있도록 분리합니다.
- */
-const DraftTableRowBase = ({ isPending, item, onDeleteDraft }: DraftTableRowProps) => {
-  const continueHref = React.useMemo(() => buildDraftContinueHref(item), [item]);
-  const updatedAtLabel = React.useMemo(
-    () => formatDraftUpdatedAt(item.updatedAt),
-    [item.updatedAt],
-  );
-  const handleDeleteClick = React.useCallback(() => {
-    onDeleteDraft?.(item);
-  }, [item, onDeleteDraft]);
-
-  return (
-    <tr>
-      <td>{item.contentType}</td>
-      <td>{item.title}</td>
-      <td>{updatedAtLabel}</td>
-      <td>
-        <div className={rowActionsClass}>
-          <Button asChild size="sm" tone="primary" variant="ghost">
-            <Link href={continueHref}>이어쓰기</Link>
-          </Button>
-          {onDeleteDraft ? (
-            <Button
-              disabled={isPending}
-              onClick={handleDeleteClick}
-              size="sm"
-              tone="black"
-              variant="ghost"
-            >
-              {isPending ? '삭제 중...' : '삭제'}
-            </Button>
-          ) : null}
-        </div>
-      </td>
-    </tr>
-  );
-};
-
-DraftTableRowBase.displayName = 'DraftTableRow';
-
-const DraftTableRow = React.memo(DraftTableRowBase);
 
 /**
  * 관리자 임시저장 목록을 표 형태로 렌더링합니다.
@@ -170,44 +118,6 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
   );
 };
 
-/**
- * draft 타입과 contentId 여부에 따라 이어쓰기 경로를 계산합니다.
- */
-const buildDraftContinueHref = (item: EditorDraftSummary) => {
-  if (item.contentType === 'article') {
-    return item.contentId
-      ? `/admin/articles/${item.contentId}/edit`
-      : `/admin/articles/new?draftId=${item.id}`;
-  }
-
-  if (item.contentType === 'project') {
-    return item.contentId
-      ? `/admin/projects/${item.contentId}/edit`
-      : `/admin/projects/new?draftId=${item.id}`;
-  }
-
-  return `/admin/resume/edit?draftId=${item.id}`;
-};
-
-/**
- * 목록 표시용 수정 시각을 YYYY-MM-DD HH:MM 형식으로 포맷합니다.
- */
-const formatDraftUpdatedAt = (updatedAt: string) => {
-  const date = new Date(updatedAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return updatedAt;
-  }
-
-  const year = `${date.getFullYear()}`;
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  const hours = `${date.getHours()}`.padStart(2, '0');
-  const minutes = `${date.getMinutes()}`.padStart(2, '0');
-
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
-};
-
 const pageClass = css({
   width: 'full',
   px: '4',
@@ -263,13 +173,6 @@ const tableClass = css({
   '& tbody tr:last-child td': {
     borderBottom: 'none',
   },
-});
-
-const rowActionsClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '2',
-  justifyContent: 'flex-end',
 });
 
 const emptyStateClass = css({

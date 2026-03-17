@@ -2,17 +2,15 @@ import { useTranslations } from 'next-intl';
 import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import {
-  deleteArticleAction,
-  getArticleDetailArchivePageAction,
-  incrementArticleViewCountAction,
-} from '@/entities/article/api/mutations/article-actions';
 import type {
   Article,
   ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
+import { getArticleDetailArchivePageAction } from '@/features/browse-article-archive/api/get-article-archive-page';
+import { deleteArticleAction } from '@/features/manage-article/api/delete-article';
+import { incrementArticleViewCountAction } from '@/features/track-article-view/api/increment-article-view-count-action';
 import type { AppLocale } from '@/i18n/routing';
 import {
   resolvePublicContentPathSegment,
@@ -20,17 +18,17 @@ import {
 } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/shared/lib/seo/structured-data';
-import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
-import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { JsonLd } from '@/shared/ui/seo/JsonLd';
+import { ArticleCommentsSection } from '@/widgets/article-comments';
+import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
+import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
+import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
   DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
   DetailTagListSkeleton,
-} from '@/shared/ui/detail-page/detail-page-section-skeletons';
-import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
-import { JsonLd } from '@/shared/ui/seo/JsonLd';
-import { ArticleCommentsSection } from '@/widgets/article-comments';
+} from '@/widgets/detail-page/ui/detail-page-section-skeletons';
+import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
   archivePagePromise: Promise<ArticleArchivePage>;

@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
 import { GuestbookBoard } from '@/widgets/guestbook';
+import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 export type GuestPageProps = {
   initialCursor: string | null;

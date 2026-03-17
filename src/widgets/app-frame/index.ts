@@ -1,1 +1,1 @@
-export { AppFrame } from '@/widgets/app-frame/app-frame';
+export { AppFrame } from '@/widgets/app-frame/ui/app-frame';

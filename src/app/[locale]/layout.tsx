@@ -7,7 +7,7 @@ import { type ReactNode, Suspense } from 'react';
 import { isValidLocale, routing } from '@/i18n/routing';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
-import { AppFrame } from '@/widgets/app-frame/app-frame';
+import { AppFrame } from '@/widgets/app-frame/ui/app-frame';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
 export const metadata: Metadata = {

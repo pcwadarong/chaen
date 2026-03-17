@@ -7,6 +7,9 @@ export type {
   PublishSettings,
   TranslationField,
 } from '@/entities/editor/model/editor-types';
-export type { EditorCoreProps, PublishPanelProps } from '@/widgets/editor/model/editor-core.types';
-export { EditorCore } from '@/widgets/editor/ui/editor-core';
-export { PublishPanel } from '@/widgets/editor/ui/publish-panel';
+export { EditorCore } from '@/widgets/editor/ui/core/editor-core';
+export type {
+  EditorCoreProps,
+  PublishPanelProps,
+} from '@/widgets/editor/ui/core/editor-core.types';
+export { PublishPanel } from '@/widgets/editor/ui/publish/publish-panel';

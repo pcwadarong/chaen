@@ -46,7 +46,7 @@ vi.mock('@/shared/providers', () => ({
   }),
 }));
 
-vi.mock('@/widgets/global-nav/model/build-navigation-items', () => ({
+vi.mock('@/widgets/global-nav/ui/build-navigation-items', () => ({
   buildGlobalNavigationItems: buildNavigationItemsMock,
 }));
 
@@ -87,7 +87,7 @@ vi.mock('@/widgets/global-nav/ui/global-nav-mobile-menu', () => {
   };
 });
 
-vi.mock('@/features/article-feed/ui/article-search-form', () => ({
+vi.mock('@/features/article-search/ui/article-search-form', () => ({
   ArticleSearchForm: ({ onSubmitComplete }: { onSubmitComplete?: () => void }) => (
     <div>
       <p>search-form</p>

@@ -4,7 +4,7 @@ import { ContactShadows, Float, RoundedBox } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { RefObject } from 'react';
 
-import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
+import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/ui/use-home-hero-scene-transition';
 
 type HomeHeroStageCanvasProps = {
   readonly triggerRef: RefObject<HTMLElement | null>;

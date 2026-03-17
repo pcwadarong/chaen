@@ -5,19 +5,19 @@ import React, { useActionState, useCallback, useEffect, useMemo, useRef, useStat
 import { css } from 'styled-system/css';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { initialSubmitGuestbookEntryState } from '@/features/guestbook-feed/api/guestbook-action-state';
-import { submitGuestbookEntry } from '@/features/guestbook-feed/api/guestbook-actions';
-import { useGuestbookFeed } from '@/features/guestbook-feed/model/use-guestbook-feed';
-import { GuestbookFeed } from '@/features/guestbook-feed/ui/guestbook-feed';
+import { useBrowseGuestbook } from '@/features/browse-guestbook/model/use-browse-guestbook';
+import { initialSubmitGuestbookEntryState } from '@/features/guestbook-entry-compose/api/guestbook-entry-action-state';
+import { submitGuestbookEntry } from '@/features/guestbook-entry-compose/api/submit-guestbook-entry';
+import { useManageGuestbookEntryModal } from '@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-modal';
 import type { ActionResult } from '@/shared/lib/action/action-result';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
-import { CommentComposeForm } from '@/shared/ui/comment-compose-form';
+import { CommentComposeForm } from '@/shared/ui/comment-compose';
 import { Input } from '@/shared/ui/input/input';
 import { Modal } from '@/shared/ui/modal/modal';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
-import { useGuestbookActionModal } from '@/widgets/guestbook/model/use-guestbook-action-modal';
+import { GuestbookFeed } from '@/widgets/guestbook/ui/guestbook-feed';
 
 const createOptimisticId = () =>
   `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -140,7 +140,7 @@ export const GuestbookBoard = ({
     removeThreadById,
     retryInitialLoad,
     updateThreadById,
-  } = useGuestbookFeed({
+  } = useBrowseGuestbook({
     initialCursor,
     initialItems,
     locale,
@@ -259,7 +259,7 @@ export const GuestbookBoard = ({
     setModalError,
     setModalPassword,
     shouldHideModalPassword,
-  } = useGuestbookActionModal({
+  } = useManageGuestbookEntryModal({
     applyServerThread,
     applyServerThreadEntry,
     isAdmin,

@@ -1,7 +1,7 @@
 import { isValidElement } from 'react';
 
 import { EditorPage } from '@/views/editor/ui/editor-page';
-import { createEmptyTranslations } from '@/widgets/editor/model/editor-core.utils';
+import { createEmptyTranslations } from '@/widgets/editor/ui/core/editor-core.utils';
 
 describe('EditorPage', () => {
   it('client wrapper에 editor 초기 props를 전달한다', () => {

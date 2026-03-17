@@ -5,7 +5,7 @@ import { ResumeEditorClient } from '@/views/resume-editor/ui/resume-editor-clien
 import type {
   ResumeEditorCoreProps,
   ResumePublishPanelProps,
-} from '@/widgets/resume-editor/model/resume-editor.types';
+} from '@/widgets/resume-editor/ui/resume-editor.types';
 
 import '@testing-library/jest-dom/vitest';
 

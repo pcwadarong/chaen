@@ -10,4 +10,3 @@ export {
   hashGuestbookPassword,
   verifyGuestbookPassword,
 } from '@/entities/guestbook/model/password';
-export { useGuestbookBubbleActionMenu } from '@/entities/guestbook/model/use-guestbook-bubble-action-menu';

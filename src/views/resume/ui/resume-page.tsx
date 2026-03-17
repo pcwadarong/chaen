@@ -2,7 +2,7 @@ import { css } from 'styled-system/css';
 
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 export type ResumePageProps = {
   content: PdfFileContent;

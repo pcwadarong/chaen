@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AdminLoginForm, buildAdminPath } from '@/features/auth';
+import { AdminLoginForm, buildAdminPath } from '@/features/admin-session';
 
 type LoginPageProps = {
   locale: string;

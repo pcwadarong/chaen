@@ -9,7 +9,7 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
-vi.mock('@/features/auth/ui/admin-sign-out-button', () => ({
+vi.mock('@/features/admin-session/ui/admin-sign-out-button', () => ({
   AdminSignOutButton: ({ submitLabel }: { submitLabel: string }) => <button>{submitLabel}</button>,
 }));
 

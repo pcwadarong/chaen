@@ -1,10 +1,10 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import { AdminSignOutButton, buildAdminPath } from '@/features/auth';
+import { AdminSignOutButton, buildAdminPath } from '@/features/admin-session';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
-import { PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import { PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 type DashboardPageProps = {
   locale: string;

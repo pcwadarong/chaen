@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
-import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
+import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/slug/slug';
 
 /**
  * 관리자 전용 slug 중복 확인 API입니다.
