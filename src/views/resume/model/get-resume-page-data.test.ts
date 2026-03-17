@@ -54,4 +54,16 @@ describe('getResumePageData', () => {
     ]);
     expect(data.content.locale).toBe('ko');
   });
+
+  it('resume PDF 부가 데이터 조회가 실패해도 기본 본문과 빈 다운로드 목록으로 폴백한다', async () => {
+    vi.mocked(getPdfFileDownloadOptions).mockRejectedValue(new Error('download options failed'));
+    vi.mocked(getPdfFileContent).mockRejectedValue(new Error('pdf content failed'));
+
+    const data = await getResumePageData({ locale: 'ko' });
+
+    expect(data.downloadOptions).toEqual([]);
+    expect(data.content.locale).toBe('ko');
+    expect(data.content.download_button_label).toBeTruthy();
+    expect(data.content.download_unavailable_label).toBeTruthy();
+  });
 });

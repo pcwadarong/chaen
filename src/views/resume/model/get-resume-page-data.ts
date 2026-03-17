@@ -14,13 +14,13 @@ type GetResumePageDataInput = {
 export const getResumePageData = async ({
   locale,
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
-  const [downloadOptions, content] = await Promise.all([
-    getPdfFileDownloadOptions('resume'),
-    getPdfFileContent({
-      locale,
-      kind: 'resume',
-    }),
-  ]);
+  const safeDownloadOptions = getPdfFileDownloadOptions('resume').catch(() => []);
+  const safeContent = getPdfFileContent({
+    locale,
+    kind: 'resume',
+  }).catch(() => null);
+
+  const [downloadOptions, content] = await Promise.all([safeDownloadOptions, safeContent]);
 
   return {
     content: content ?? createDefaultPdfFileContent(locale),
