@@ -10,6 +10,7 @@ type ArticleStaticSeedParam = {
 export const getArticleStaticSeedParams = async (): Promise<ArticleStaticSeedParam[]> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return [];
+  const nowIsoString = new Date().toISOString();
 
   const { data, error } = await supabase
     .from('articles')
@@ -17,6 +18,7 @@ export const getArticleStaticSeedParams = async (): Promise<ArticleStaticSeedPar
     .eq('visibility', 'public')
     .not('slug', 'is', null)
     .not('publish_at', 'is', null)
+    .lte('publish_at', nowIsoString)
     .order('publish_at', { ascending: false })
     .limit(1);
 

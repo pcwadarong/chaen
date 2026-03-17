@@ -23,7 +23,6 @@ import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
-  DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
   DetailTagListSkeleton,
 } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
@@ -42,6 +41,7 @@ type RelatedArticlesSectionProps = {
 };
 
 type ArticleArchiveSidebarProps = {
+  currentItem: Article;
   emptyText: string;
   loadErrorText: string;
   loadMoreEndText: string;
@@ -87,6 +87,7 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
  * 아티클 상세 좌측 아카이브를 비동기 경계 안에서 렌더링합니다.
  */
 const ArticleArchiveSidebar = ({
+  currentItem,
   emptyText,
   loadErrorText,
   loadMoreEndText,
@@ -96,6 +97,7 @@ const ArticleArchiveSidebar = ({
   selectedPathSegment,
 }: ArticleArchiveSidebarProps) => (
   <DetailArchiveFeed
+    currentItem={currentItem}
     emptyText={emptyText}
     hrefBasePath="/articles"
     loadErrorText={loadErrorText}
@@ -224,17 +226,16 @@ export const ArticleDetailPage = ({
           />
         }
         sidebarContent={
-          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
-            <ArticleArchiveSidebar
-              emptyText={detailUi('emptyArchive')}
-              loadErrorText={articlesT('loadError')}
-              loadMoreEndText={articlesT('loadMoreEnd')}
-              loadingText={articlesT('loading')}
-              locale={locale}
-              retryText={articlesT('retry')}
-              selectedPathSegment={articlePathSegment}
-            />
-          </Suspense>
+          <ArticleArchiveSidebar
+            currentItem={item}
+            emptyText={detailUi('emptyArchive')}
+            loadErrorText={articlesT('loadError')}
+            loadMoreEndText={articlesT('loadMoreEnd')}
+            loadingText={articlesT('loading')}
+            locale={locale}
+            retryText={articlesT('retry')}
+            selectedPathSegment={articlePathSegment}
+          />
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={

@@ -12,6 +12,7 @@ import React, {
 import type { AuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
 import { createBrowserSupabaseClient } from '@/shared/lib/supabase/client';
+import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 
 type AuthContextValue = AuthState;
 
@@ -27,14 +28,13 @@ const EMPTY_AUTH_STATE: AuthContextValue = {
 type AuthProviderProps = {
   adminUserId?: string | null;
   children: ReactNode;
-  value?: AuthContextValue;
 };
 
 /**
  * 브라우저 세션을 구독해 전역 인증 상태를 제공하는 프로바이더입니다.
  */
-export const AuthProvider = ({ adminUserId = null, children, value }: AuthProviderProps) => {
-  const [authState, setAuthState] = useState<AuthContextValue>(value ?? EMPTY_AUTH_STATE);
+export const AuthProvider = ({ adminUserId = null, children }: AuthProviderProps) => {
+  const [authState, setAuthState] = useState<AuthContextValue>(EMPTY_AUTH_STATE);
   const adminIdentity = useMemo(
     () => ({
       adminUserId,
@@ -43,6 +43,11 @@ export const AuthProvider = ({ adminUserId = null, children, value }: AuthProvid
   );
 
   useEffect(() => {
+    if (!hasSupabaseEnv()) {
+      setAuthState(EMPTY_AUTH_STATE);
+      return;
+    }
+
     const supabase = createBrowserSupabaseClient();
     let isMounted = true;
 
@@ -52,10 +57,19 @@ export const AuthProvider = ({ adminUserId = null, children, value }: AuthProvid
         error,
       } = await supabase.auth.getUser();
 
-      if (!isMounted || error) {
-        if (isMounted) {
-          setAuthState(EMPTY_AUTH_STATE);
-        }
+      if (error) {
+        console.error('[auth] syncAuthState failed', {
+          adminIdentity,
+          error,
+        });
+      }
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        setAuthState(EMPTY_AUTH_STATE);
         return;
       }
 

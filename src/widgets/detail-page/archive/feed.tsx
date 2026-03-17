@@ -35,6 +35,7 @@ type DetailArchivePage<TItem> = {
 };
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
+  currentItem?: TItem | null;
   emptyText: string;
   hrefBasePath: string;
   initialPage?: DetailArchivePage<TItem> | null;
@@ -58,6 +59,7 @@ const DETAIL_ARCHIVE_DEFAULT_LIMIT = 10;
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
  */
 export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
+  currentItem = null,
   emptyText,
   hrefBasePath,
   initialPage = null,
@@ -69,8 +71,8 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   retryText,
   selectedPathSegment,
 }: DetailArchiveFeedProps<TItem>) => {
-  const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(
-    initialPage,
+  const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(() =>
+    prependCurrentArchiveItem(initialPage, currentItem),
   );
   const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
@@ -109,7 +111,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 
   useEffect(() => {
     if (initialPage) {
-      setBootstrapPage(initialPage);
+      setBootstrapPage(prependCurrentArchiveItem(initialPage, currentItem));
       setBootstrapError(null);
       setIsBootstrapping(false);
       return;
@@ -136,10 +138,15 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 
         if (!isMounted) return;
 
-        setBootstrapPage({
-          items: result.data.items,
-          nextCursor: result.data.nextCursor,
-        });
+        setBootstrapPage(
+          prependCurrentArchiveItem(
+            {
+              items: result.data.items,
+              nextCursor: result.data.nextCursor,
+            },
+            currentItem,
+          ),
+        );
       } catch (error) {
         if (!isMounted) return;
 
@@ -156,7 +163,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     return () => {
       isMounted = false;
     };
-  }, [bootstrapRequestKey, initialPage, loadPageAction, locale]);
+  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale]);
 
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
     initialCursor: resolvedInitialPage.nextCursor,
@@ -228,12 +235,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
             {loadErrorText}
           </p>
           <Button
-            onClick={() => {
-              setBootstrapPage(null);
-              setBootstrapError(null);
-              setIsBootstrapping(true);
-              setBootstrapRequestKey(previous => previous + 1);
-            }}
+            onClick={() => setBootstrapRequestKey(previous => previous + 1)}
             tone="white"
             variant="ghost"
           >
@@ -280,6 +282,25 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 const sidebarSentinelClass = css({
   height: '1',
 });
+
+/**
+ * 현재 상세 항목이 초기 아카이브 페이지에 없을 때 목록 앞에 한 번만 보강합니다.
+ */
+const prependCurrentArchiveItem = <TItem extends DetailArchiveRecord>(
+  page: DetailArchivePage<TItem> | null,
+  currentItem: TItem | null,
+): DetailArchivePage<TItem> | null => {
+  if (!page || !currentItem) return page;
+
+  const dedupedItems = [currentItem, ...page.items].filter(
+    (item, index, items) => items.findIndex(candidate => candidate.id === item.id) === index,
+  );
+
+  return {
+    ...page,
+    items: dedupedItems,
+  };
+};
 
 type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
   hrefBasePath: string;
