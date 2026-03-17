@@ -1,47 +1,119 @@
-import type { PdfFileContent, PdfFileKind } from '@/entities/pdf-file/model/types';
+import type {
+  PdfFileAssetKey,
+  PdfFileAssetLocale,
+  PdfFileContent,
+  PdfFileKind,
+} from '@/entities/pdf-file/model/types';
 import { createStoragePath, STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
 
 type PdfFileStorageConfig = {
+  assetKey: PdfFileAssetKey;
   bucket: string;
-  filePath: string;
   downloadFileName: string;
+  filePath: string;
+  kind: PdfFileKind;
+  locale: PdfFileAssetLocale;
+  title: string;
 };
 
 type PdfFileContentConfig = {
   tableName: string;
 };
 
-const PDF_FILE_NAME_ENV_BY_KIND: Record<PdfFileKind, string | undefined> = {
-  resume: process.env.NEXT_PUBLIC_RESUME_NAME,
-  portfolio: process.env.NEXT_PUBLIC_PORTFOLIO_NAME,
+type PdfFileAssetDefinition = {
+  envFileName?: string;
+  kind: PdfFileKind;
+  locale: PdfFileAssetLocale;
+  title: string;
 };
 
-const DEFAULT_PDF_FILE_NAME_BY_KIND: Record<PdfFileKind, string> = {
-  resume: 'ParkChaewon-Resume.pdf',
-  portfolio: 'ParkChaewon-Portfolio.pdf',
+const DEFAULT_PDF_FILE_ASSET_KEY_BY_KIND: Record<PdfFileKind, PdfFileAssetKey> = {
+  portfolio: 'portfolio-en',
+  resume: 'resume-en',
 };
 
-const PDF_FILE_BUCKET_BY_KIND: Record<PdfFileKind, string> = {
-  resume: STORAGE_BUCKET.pdf,
-  portfolio: STORAGE_BUCKET.pdf,
+const PDF_FILE_ASSET_KEY_ORDER: PdfFileAssetKey[] = [
+  'resume-ko',
+  'resume-en',
+  'portfolio-ko',
+  'portfolio-en',
+];
+
+const PDF_FILE_BUCKET = STORAGE_BUCKET.pdf;
+
+const PDF_FILE_ASSET_DEFINITION_BY_KEY: Record<PdfFileAssetKey, PdfFileAssetDefinition> = {
+  'portfolio-en': {
+    envFileName: process.env.NEXT_PUBLIC_PDF_PORTFOLIO_EN_NAME,
+    kind: 'portfolio',
+    locale: 'en',
+    title: '포트폴리오 PDF · 영문',
+  },
+  'portfolio-ko': {
+    envFileName: process.env.NEXT_PUBLIC_PDF_PORTFOLIO_KO_NAME,
+    kind: 'portfolio',
+    locale: 'ko',
+    title: '포트폴리오 PDF · 국문',
+  },
+  'resume-en': {
+    envFileName: process.env.NEXT_PUBLIC_PDF_RESUME_EN_NAME,
+    kind: 'resume',
+    locale: 'en',
+    title: '이력서 PDF · 영문',
+  },
+  'resume-ko': {
+    envFileName: process.env.NEXT_PUBLIC_PDF_RESUME_KO_NAME,
+    kind: 'resume',
+    locale: 'ko',
+    title: '이력서 PDF · 국문',
+  },
+};
+
+const DEFAULT_PDF_FILE_NAME_BY_ASSET_KEY: Record<PdfFileAssetKey, string> = {
+  'portfolio-en': 'ParkChaewon-Portfolio.pdf',
+  'portfolio-ko': '박채원_포트폴리오.pdf',
+  'resume-en': 'ParkChaewon-Resume.pdf',
+  'resume-ko': '박채원_이력서.pdf',
 };
 
 const SHARED_PDF_FILE_CONTENT_TABLE_NAME = 'resume_contents';
 
 /**
- * PDF 종류별 Supabase Storage 설정을 반환합니다.
- * - `resume`: `pdf/{fileName}`
- * - `portfolio`: `pdf/{fileName}`
+ * 특정 PDF 자산 키의 Supabase Storage 설정을 반환합니다.
  */
-export const getPdfFileStorageConfig = (kind: PdfFileKind): PdfFileStorageConfig => {
-  const resolvedFileName = PDF_FILE_NAME_ENV_BY_KIND[kind] ?? DEFAULT_PDF_FILE_NAME_BY_KIND[kind];
+export const getPdfFileAssetStorageConfig = (assetKey: PdfFileAssetKey): PdfFileStorageConfig => {
+  const assetDefinition = PDF_FILE_ASSET_DEFINITION_BY_KEY[assetKey];
+  const resolvedFileName =
+    assetDefinition.envFileName ?? DEFAULT_PDF_FILE_NAME_BY_ASSET_KEY[assetKey];
 
   return {
-    bucket: PDF_FILE_BUCKET_BY_KIND[kind],
-    filePath: createStoragePath(resolvedFileName),
+    assetKey,
+    bucket: PDF_FILE_BUCKET,
     downloadFileName: resolvedFileName,
+    filePath: createStoragePath(resolvedFileName),
+    kind: assetDefinition.kind,
+    locale: assetDefinition.locale,
+    title: assetDefinition.title,
   };
 };
+
+/**
+ * 특정 PDF 종류가 공개 다운로드에서 사용할 기본 자산 키를 반환합니다.
+ */
+export const getDefaultPdfFileAssetKey = (kind: PdfFileKind): PdfFileAssetKey =>
+  DEFAULT_PDF_FILE_ASSET_KEY_BY_KIND[kind];
+
+/**
+ * PDF 자산 전체 목록을 관리자 화면 순서에 맞춰 반환합니다.
+ */
+export const listPdfFileAssetStorageConfigs = (): PdfFileStorageConfig[] =>
+  PDF_FILE_ASSET_KEY_ORDER.map(assetKey => getPdfFileAssetStorageConfig(assetKey));
+
+/**
+ * PDF 종류별 기본 Supabase Storage 설정을 반환합니다.
+ * 기존 공개 다운로드 경로는 kind별 기본 자산(영문 파일명)을 사용합니다.
+ */
+export const getPdfFileStorageConfig = (kind: PdfFileKind): PdfFileStorageConfig =>
+  getPdfFileAssetStorageConfig(getDefaultPdfFileAssetKey(kind));
 
 /**
  * PDF 소개 콘텐츠 조회 설정을 반환합니다.

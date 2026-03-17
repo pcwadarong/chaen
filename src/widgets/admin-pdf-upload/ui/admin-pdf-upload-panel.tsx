@@ -3,8 +3,8 @@
 import React, { useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
-import { uploadPdfFileByKind } from '@/entities/pdf-file/api/upload-pdf-file-by-kind';
-import type { PdfFileKind } from '@/entities/pdf-file/model/types';
+import { uploadPdfFileByAssetKey } from '@/entities/pdf-file/api/upload-pdf-file-by-asset-key';
+import type { PdfFileAssetKey } from '@/entities/pdf-file/model/types';
 import { Button } from '@/shared/ui/button/button';
 import type { AdminPdfUploadItem } from '@/widgets/admin-pdf-upload/model/admin-pdf-upload.types';
 
@@ -18,52 +18,39 @@ type UploadFeedback = {
 };
 
 /**
- * 관리자 대시보드에서 노출할 PDF 종류별 한국어 라벨을 반환합니다.
- */
-const getPdfKindLabel = (kind: PdfFileKind) => (kind === 'resume' ? '이력서' : '포트폴리오');
-
-/**
  * 업로드 성공 직후 사용자에게 보여줄 상태 메시지를 만듭니다.
  */
-const createUploadSuccessMessage = (kind: PdfFileKind) =>
-  `${getPdfKindLabel(kind)} PDF를 최신 파일로 교체했습니다.`;
+const createUploadSuccessMessage = (title: string) => `${title} 파일을 최신 PDF로 교체했습니다.`;
 
 /**
  * 업로드 실패 시 사용자에게 보여줄 기본 오류 메시지를 만듭니다.
  */
-const createUploadErrorMessage = (kind: PdfFileKind) =>
-  `${getPdfKindLabel(kind)} PDF 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.`;
+const createUploadErrorMessage = (title: string) =>
+  `${title} 파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.`;
 
 /**
- * 대시보드에서 resume/portfolio PDF를 즉시 교체 업로드할 수 있는 관리자 패널입니다.
+ * 대시보드에서 PDF 자산 4종을 개별 업로드/다운로드 확인할 수 있는 관리자 패널입니다.
  */
 export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) => {
-  const resumeInputRef = useRef<HTMLInputElement | null>(null);
-  const portfolioInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRefs = useRef<Partial<Record<PdfFileAssetKey, HTMLInputElement | null>>>({});
   const [items, setItems] = useState(initialItems);
-  const [feedbackByKind, setFeedbackByKind] = useState<
-    Partial<Record<PdfFileKind, UploadFeedback>>
+  const [feedbackByAssetKey, setFeedbackByAssetKey] = useState<
+    Partial<Record<PdfFileAssetKey, UploadFeedback>>
   >({});
-  const [uploadingKind, setUploadingKind] = useState<PdfFileKind | null>(null);
-
-  /**
-   * PDF 종류에 맞는 파일 input ref를 반환합니다.
-   */
-  const getInputRef = (kind: PdfFileKind) =>
-    kind === 'resume' ? resumeInputRef : portfolioInputRef;
+  const [uploadingAssetKey, setUploadingAssetKey] = useState<PdfFileAssetKey | null>(null);
 
   /**
    * 파일 선택 버튼에서 숨겨진 input 클릭을 위임합니다.
    */
-  const handleUploadButtonClick = (kind: PdfFileKind) => {
-    getInputRef(kind).current?.click();
+  const handleUploadButtonClick = (assetKey: PdfFileAssetKey) => {
+    inputRefs.current[assetKey]?.click();
   };
 
   /**
    * 선택된 PDF 파일을 업로드하고 카드 상태를 최신 결과로 갱신합니다.
    */
   const handleFileChange =
-    (kind: PdfFileKind): React.ChangeEventHandler<HTMLInputElement> =>
+    (item: AdminPdfUploadItem): React.ChangeEventHandler<HTMLInputElement> =>
     async event => {
       const input = event.target;
       const file = input.files?.[0];
@@ -72,121 +59,84 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
         return;
       }
 
-      setUploadingKind(kind);
-      setFeedbackByKind(previous => ({
+      setUploadingAssetKey(item.assetKey);
+      setFeedbackByAssetKey(previous => ({
         ...previous,
-        [kind]: undefined,
+        [item.assetKey]: undefined,
       }));
 
       try {
-        const uploadedSettings = await uploadPdfFileByKind({
+        const uploadedSettings = await uploadPdfFileByAssetKey({
+          assetKey: item.assetKey,
           file,
-          kind,
         });
 
         setItems(previous =>
-          previous.map(item =>
-            item.kind === kind
+          previous.map(previousItem =>
+            previousItem.assetKey === uploadedSettings.assetKey
               ? {
-                  ...item,
+                  ...previousItem,
                   ...uploadedSettings,
                 }
-              : item,
+              : previousItem,
           ),
         );
-        setFeedbackByKind(previous => ({
+        setFeedbackByAssetKey(previous => ({
           ...previous,
-          [kind]: {
-            message: createUploadSuccessMessage(kind),
+          [item.assetKey]: {
+            message: createUploadSuccessMessage(item.title),
             tone: 'success',
           },
         }));
       } catch (error) {
         const message =
-          error instanceof Error && error.message ? error.message : createUploadErrorMessage(kind);
+          error instanceof Error && error.message
+            ? error.message
+            : createUploadErrorMessage(item.title);
 
-        setFeedbackByKind(previous => ({
+        setFeedbackByAssetKey(previous => ({
           ...previous,
-          [kind]: {
+          [item.assetKey]: {
             message,
             tone: 'error',
           },
         }));
       } finally {
-        setUploadingKind(null);
+        setUploadingAssetKey(null);
         input.value = '';
       }
     };
 
   return (
     <section aria-labelledby="admin-pdf-upload-title" className={sectionClass}>
-      <div className={cardGridClass}>
+      <h2 className={sectionTitleClass} id="admin-pdf-upload-title">
+        PDF 파일 관리
+      </h2>
+      <div className={rowListClass}>
         {items.map(item => {
-          const isUploading = uploadingKind === item.kind;
-          const feedback = feedbackByKind[item.kind];
+          const isUploading = uploadingAssetKey === item.assetKey;
+          const feedback = feedbackByAssetKey[item.assetKey];
 
           return (
-            <article className={cardClass} key={item.kind}>
-              <div className={cardHeaderClass}>
-                <h3 className={cardTitleClass}>{item.title}</h3>
-                <span className={statusBadgeClass({ ready: item.isPdfReady })}>
-                  {isUploading ? '업로드 중...' : item.isPdfReady ? '업로드됨' : '업로드 필요'}
-                </span>
-              </div>
-
-              <dl className={metaListClass}>
-                <div className={metaRowClass}>
-                  <dt className={metaLabelClass}>고정 파일명</dt>
-                  <dd className={metaValueClass}>{item.downloadFileName}</dd>
-                </div>
-                <div className={metaRowClass}>
-                  <dt className={metaLabelClass}>Storage 경로</dt>
-                  <dd className={metaValueClass}>{item.filePath}</dd>
-                </div>
-              </dl>
-
-              <div className={actionRowClass}>
-                <Button
-                  className={actionButtonClass}
-                  disabled={isUploading}
-                  onClick={() => handleUploadButtonClick(item.kind)}
-                  tone="primary"
-                  type="button"
-                  variant="solid"
-                >
-                  {isUploading
-                    ? `${getPdfKindLabel(item.kind)} PDF 업로드 중...`
-                    : `${getPdfKindLabel(item.kind)} PDF 업로드`}
-                </Button>
-                {item.isPdfReady ? (
-                  <Button asChild className={actionButtonClass} tone="white" variant="solid">
-                    <a href={item.downloadPath} rel="noopener noreferrer" target="_blank">
-                      다운로드 확인
-                    </a>
-                  </Button>
-                ) : null}
-              </div>
-
+            <AdminPdfUploadRow
+              feedback={feedback}
+              isUploading={isUploading}
+              item={item}
+              key={item.assetKey}
+              onUploadButtonClick={handleUploadButtonClick}
+            >
               <input
                 accept="application/pdf"
-                aria-label={`${getPdfKindLabel(item.kind)} PDF 파일 선택`}
+                aria-label={`${item.title} 파일 선택`}
                 className={hiddenInputClass}
                 disabled={isUploading}
-                onChange={handleFileChange(item.kind)}
-                ref={getInputRef(item.kind)}
+                onChange={handleFileChange(item)}
+                ref={element => {
+                  inputRefs.current[item.assetKey] = element;
+                }}
                 type="file"
               />
-
-              {feedback ? (
-                <p
-                  aria-live={feedback.tone === 'success' ? 'polite' : 'assertive'}
-                  className={feedbackTextClass({ tone: feedback.tone })}
-                  role={feedback.tone === 'error' ? 'alert' : 'status'}
-                >
-                  {feedback.message}
-                </p>
-              ) : null}
-            </article>
+            </AdminPdfUploadRow>
           );
         })}
       </div>
@@ -194,23 +144,88 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
   );
 };
 
+type AdminPdfUploadRowProps = {
+  children: React.ReactNode;
+  feedback?: UploadFeedback;
+  isUploading: boolean;
+  item: AdminPdfUploadItem;
+  onUploadButtonClick: (assetKey: PdfFileAssetKey) => void;
+};
+
+/**
+ * 하나의 PDF 자산 업로드/다운로드 확인 행입니다.
+ */
+const AdminPdfUploadRow = ({
+  children,
+  feedback,
+  isUploading,
+  item,
+  onUploadButtonClick,
+}: AdminPdfUploadRowProps) => (
+  <article className={rowClass}>
+    <div className={rowMainClass}>
+      <div className={rowCopyClass}>
+        <h3 className={rowTitleClass}>{item.title}</h3>
+        <p className={fileNameClass}>{item.downloadFileName}</p>
+      </div>
+      <div className={actionRowClass}>
+        <Button
+          className={actionButtonClass}
+          disabled={isUploading}
+          onClick={() => onUploadButtonClick(item.assetKey)}
+          tone="white"
+          type="button"
+          variant="solid"
+        >
+          {isUploading ? '업로드 중...' : '업로드'}
+        </Button>
+        {item.isPdfReady ? (
+          <Button asChild className={actionButtonClass} tone="black" variant="solid">
+            <a href={item.downloadPath} rel="noopener noreferrer" target="_blank">
+              다운로드 확인
+            </a>
+          </Button>
+        ) : (
+          <Button className={actionButtonClass} disabled tone="black" type="button" variant="solid">
+            다운로드 확인
+          </Button>
+        )}
+      </div>
+    </div>
+
+    {children}
+
+    {feedback ? (
+      <p
+        aria-live={feedback.tone === 'success' ? 'polite' : 'assertive'}
+        className={feedbackTextClass({ tone: feedback.tone })}
+        role={feedback.tone === 'error' ? 'alert' : 'status'}
+      >
+        {feedback.message}
+      </p>
+    ) : null}
+  </article>
+);
+
 const sectionClass = css({
   display: 'grid',
   gap: '4',
 });
 
-const cardGridClass = css({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '4',
-  '@media (max-width: 768px)': {
-    gridTemplateColumns: '1fr',
-  },
+const sectionTitleClass = css({
+  m: '0',
+  fontSize: 'xl',
+  lineHeight: 'tight',
 });
 
-const cardClass = css({
+const rowListClass = css({
   display: 'grid',
-  gap: '4',
+  gap: '3',
+});
+
+const rowClass = css({
+  display: 'grid',
+  gap: '3',
   p: '4',
   borderWidth: '1px',
   borderStyle: 'solid',
@@ -219,52 +234,33 @@ const cardClass = css({
   bg: 'surface',
 });
 
-const cardHeaderClass = css({
+const rowMainClass = css({
   display: 'flex',
-  alignItems: 'start',
+  alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '3',
+  gap: '4',
+  '@media (max-width: 768px)': {
+    alignItems: 'start',
+    flexDirection: 'column',
+  },
 });
 
-const cardTitleClass = css({
+const rowCopyClass = css({
+  display: 'grid',
+  gap: '1',
+  minWidth: '0',
+});
+
+const rowTitleClass = css({
   m: '0',
-  fontSize: 'lg',
+  fontSize: 'md',
   lineHeight: 'tight',
 });
 
-const statusBadgeClass = ({ ready }: { ready: boolean }) =>
-  css({
-    flex: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    minHeight: '8',
-    px: '3',
-    borderRadius: 'full',
-    fontSize: 'xs',
-    fontWeight: '[700]',
-    color: ready ? 'green.700' : 'orange.700',
-    bg: ready ? 'green.50' : 'orange.50',
-  });
-
-const metaListClass = css({
-  display: 'grid',
-  gap: '2',
-});
-
-const metaRowClass = css({
-  display: 'grid',
-  gap: '1',
-});
-
-const metaLabelClass = css({
-  fontSize: 'xs',
-  fontWeight: '[700]',
-  color: 'muted',
-});
-
-const metaValueClass = css({
+const fileNameClass = css({
   m: '0',
   fontSize: 'sm',
+  color: 'muted',
   lineHeight: 'relaxed',
   wordBreak: 'break-all',
 });
@@ -273,10 +269,16 @@ const actionRowClass = css({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '3',
+  flex: 'none',
+  justifyContent: 'flex-end',
+  '@media (max-width: 768px)': {
+    width: 'full',
+    justifyContent: 'flex-start',
+  },
 });
 
 const actionButtonClass = css({
-  minWidth: '[9rem]',
+  minWidth: '[8.5rem]',
 });
 
 const hiddenInputClass = css({

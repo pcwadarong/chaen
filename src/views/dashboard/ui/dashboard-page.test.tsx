@@ -7,22 +7,36 @@ vi.mock('@/views/dashboard/model/get-dashboard-page-data', () => ({
   getDashboardPageData: vi.fn().mockResolvedValue({
     pdfUploadItems: [
       {
-        description: '이력서 페이지에서 노출되는 resume PDF를 교체합니다.',
-        downloadFileName: 'ParkChaewon-Resume.pdf',
-        downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume.pdf',
-        isPdfReady: true,
-        kind: 'resume',
-        title: '이력서 PDF',
+        assetKey: 'resume-ko',
+        downloadFileName: '박채원_이력서.pdf',
+        downloadPath: '/api/pdf/file/resume-ko',
+        filePath: '박채원_이력서.pdf',
+        isPdfReady: false,
+        title: '이력서 PDF · 국문',
       },
       {
-        description: '프로젝트 페이지에서 노출되는 포트폴리오 PDF를 교체합니다.',
+        assetKey: 'resume-en',
+        downloadFileName: 'ParkChaewon-Resume.pdf',
+        downloadPath: '/api/pdf/file/resume-en',
+        filePath: 'ParkChaewon-Resume.pdf',
+        isPdfReady: true,
+        title: '이력서 PDF · 영문',
+      },
+      {
+        assetKey: 'portfolio-ko',
+        downloadFileName: '박채원_포트폴리오.pdf',
+        downloadPath: '/api/pdf/file/portfolio-ko',
+        filePath: '박채원_포트폴리오.pdf',
+        isPdfReady: false,
+        title: '포트폴리오 PDF · 국문',
+      },
+      {
+        assetKey: 'portfolio-en',
         downloadFileName: 'ParkChaewon-Portfolio.pdf',
-        downloadPath: '/api/pdf/portfolio',
+        downloadPath: '/api/pdf/file/portfolio-en',
         filePath: 'ParkChaewon-Portfolio.pdf',
         isPdfReady: false,
-        kind: 'portfolio',
-        title: '포트폴리오 PDF',
+        title: '포트폴리오 PDF · 영문',
       },
     ],
   }),
@@ -55,7 +69,7 @@ vi.mock('@/widgets/admin-pdf-upload', () => ({
 }));
 
 describe('DashboardPage', () => {
-  it('관리자 작업 링크와 PDF 업로드 섹션을 함께 렌더링한다', async () => {
+  it('관리자 작업 링크와 4개 PDF 업로드 섹션을 함께 렌더링한다', async () => {
     render(await DashboardPage({ locale: 'ko' }));
 
     expect(screen.getByRole('link', { name: '새 기록' }).getAttribute('href')).toBe(
@@ -67,7 +81,9 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: '이력서 편집' }).getAttribute('href')).toBe(
       '/admin/resume/edit',
     );
-    expect(screen.getByText('이력서 PDF')).toBeTruthy();
-    expect(screen.getByText('포트폴리오 PDF')).toBeTruthy();
+    expect(screen.getByText('이력서 PDF · 국문')).toBeTruthy();
+    expect(screen.getByText('이력서 PDF · 영문')).toBeTruthy();
+    expect(screen.getByText('포트폴리오 PDF · 국문')).toBeTruthy();
+    expect(screen.getByText('포트폴리오 PDF · 영문')).toBeTruthy();
   });
 });

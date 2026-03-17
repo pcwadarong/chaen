@@ -54,7 +54,10 @@ const dashboardContentClass = css({
 });
 
 const actionGridClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: '3',
+  '@media (max-width: 520px)': {
+    gridTemplateColumns: '1fr',
+  },
 });

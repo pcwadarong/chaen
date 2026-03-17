@@ -1,37 +1,34 @@
 import { revalidateTag } from 'next/cache';
 
-import { buildPdfFileDownloadPath, revalidatePdfDependentPaths } from '@/entities/pdf-file';
+import { buildPdfFileAssetDownloadPath, revalidatePdfDependentPaths } from '@/entities/pdf-file';
 import {
   createPdfFileAvailabilityCacheTag,
   PDF_FILES_CACHE_TAG,
 } from '@/entities/pdf-file/model/cache-tags';
-import {
-  getDefaultPdfFileAssetKey,
-  getPdfFileStorageConfig,
-} from '@/entities/pdf-file/model/config';
+import { getPdfFileAssetStorageConfig } from '@/entities/pdf-file/model/config';
 import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
-import { isPdfFileKind } from '@/entities/pdf-file/model/types';
+import { isPdfFileAssetKey } from '@/entities/pdf-file/model/types';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
-type PdfUploadRouteContext = {
+type PdfAssetUploadRouteContext = {
   params: Promise<{
-    kind: string;
+    assetKey: string;
   }>;
 };
 
 /**
- * 관리자 편집 화면에서 kind 기본 PDF 경로를 교체 업로드합니다.
+ * 관리자 대시보드에서 개별 PDF 자산 고정 경로를 교체 업로드합니다.
  */
-export const POST = async (request: Request, { params }: PdfUploadRouteContext) =>
+export const POST = async (request: Request, { params }: PdfAssetUploadRouteContext) =>
   runJsonRoute({
     adminOnly: true,
     action: async () => {
-      const { kind } = await params;
+      const { assetKey } = await params;
 
-      if (!isPdfFileKind(kind)) {
+      if (!isPdfFileAssetKey(assetKey)) {
         return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.notFound, 404);
       }
 
@@ -42,7 +39,7 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
         return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
       }
 
-      const storageConfig = getPdfFileStorageConfig(kind);
+      const storageConfig = getPdfFileAssetStorageConfig(assetKey);
       const filePath = await uploadPdfFile({
         bucket: storageConfig.bucket,
         file,
@@ -51,13 +48,14 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
       });
 
       revalidateTag(PDF_FILES_CACHE_TAG);
-      revalidateTag(createPdfFileAvailabilityCacheTag(kind));
-      revalidateTag(createPdfFileAvailabilityCacheTag(getDefaultPdfFileAssetKey(kind)));
-      revalidatePdfDependentPaths(kind);
+      revalidateTag(createPdfFileAvailabilityCacheTag(assetKey));
+      revalidateTag(createPdfFileAvailabilityCacheTag(storageConfig.kind));
+      revalidatePdfDependentPaths(storageConfig.kind);
 
       return {
+        assetKey,
         downloadFileName: storageConfig.downloadFileName,
-        downloadPath: buildPdfFileDownloadPath(kind),
+        downloadPath: buildPdfFileAssetDownloadPath(assetKey),
         filePath,
         isPdfReady: true,
       };
