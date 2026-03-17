@@ -266,7 +266,7 @@ describe('getArticle', () => {
     });
   });
 
-  it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
+  it('fallback 후보 전체에 번역이 없으면 null을 반환한다', async () => {
     const articleSlugQuery = {
       eq: vi.fn().mockReturnThis(),
       lte: vi.fn().mockReturnThis(),
@@ -288,9 +288,7 @@ describe('getArticle', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    await expect(getArticle('frontend-performance', 'fr')).rejects.toThrow(
-      '[articles] 조회 가능한 번역이 없습니다. articleSlug=frontend-performance locales=fr>ko>en>ja',
-    );
+    await expect(getArticle('frontend-performance', 'fr')).resolves.toBeNull();
   });
 
   it('slug로 들어온 상세 경로는 내부 article id를 다시 찾아 조회한다', async () => {
@@ -385,7 +383,7 @@ describe('getArticle', () => {
     });
   });
 
-  it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
+  it('태그 relation schema가 없으면 태그 없이 본문을 반환한다', async () => {
     const articleSlugQuery = createArticleSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
@@ -426,8 +424,10 @@ describe('getArticle', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
-      '[articles] 태그 relation schema가 없습니다.',
-    );
+    await expect(getArticle('frontend-performance', 'ko')).resolves.toMatchObject({
+      id: 'frontend-performance',
+      tags: [],
+      title: 'Frontend Performance',
+    });
   });
 });

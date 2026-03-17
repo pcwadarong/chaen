@@ -23,6 +23,7 @@ import type {
 import {
   buildPublishSettings,
   createDefaultPublishSettings,
+  shouldDisablePublishCommentsSetting,
   toScheduledPublishUtcIso,
   validatePublishSettings,
 } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -49,16 +50,18 @@ type PublishErrors = {
  * 패널이 열릴 때 editor 상태와 초기 발행 설정을 form 값으로 동기화합니다.
  */
 const createInitialFormState = ({
+  disableComments = false,
   editorSlug,
   initialSettings,
 }: {
+  disableComments?: boolean;
   editorSlug: string;
   initialSettings?: PublishSettings;
 }) => {
   const scheduleFields = getInitialScheduleFields(initialSettings?.publishAt ?? null);
 
   return {
-    allowComments: initialSettings?.allowComments ?? true,
+    allowComments: disableComments ? false : (initialSettings?.allowComments ?? true),
     dateInput: scheduleFields.dateInput,
     publishMode: scheduleFields.publishMode,
     slug: initialSettings?.slug ?? editorSlug,
@@ -93,6 +96,10 @@ export const PublishPanel = ({
   onSettingsChange,
   onSubmit,
 }: PublishPanelProps) => {
+  const isCommentsSettingLocked = shouldDisablePublishCommentsSetting({
+    contentType,
+    publicationState,
+  });
   const [slug, setSlug] = useState('');
   const [visibility, setVisibility] = useState<PublishVisibility>('public');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -124,8 +131,10 @@ export const PublishPanel = ({
     openedAtRef.current = new Date();
 
     const nextFormState = createInitialFormState({
+      disableComments: isCommentsSettingLocked,
       editorSlug: editorState.slug,
       initialSettings: createDefaultPublishSettings({
+        disableComments: isCommentsSettingLocked,
         initialSettings,
         slug: editorState.slug,
       }),
@@ -144,7 +153,7 @@ export const PublishPanel = ({
     setDateInput(nextFormState.dateInput);
     setTimeInput(nextFormState.timeInput);
     setErrors({});
-  }, [editorState.slug, initialSettings, isOpen, isPublished]);
+  }, [editorState.slug, initialSettings, isCommentsSettingLocked, isOpen, isPublished]);
 
   useEffect(() => {
     if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
@@ -168,7 +177,7 @@ export const PublishPanel = ({
   const currentSettings = useMemo(
     () =>
       buildPublishSettings({
-        allowComments,
+        allowComments: isCommentsSettingLocked ? false : allowComments,
         dateInput,
         publishMode,
         slug,
@@ -176,7 +185,16 @@ export const PublishPanel = ({
         timeInput,
         visibility,
       }),
-    [allowComments, dateInput, publishMode, slug, thumbnailUrl, timeInput, visibility],
+    [
+      allowComments,
+      dateInput,
+      isCommentsSettingLocked,
+      publishMode,
+      slug,
+      thumbnailUrl,
+      timeInput,
+      visibility,
+    ],
   );
 
   const thumbnailPreviewUrl = thumbnailUrl.trim();
@@ -396,8 +414,9 @@ export const PublishPanel = ({
           <section className={sectionClass}>
             <label className={checkboxLabelClass}>
               <input
-                checked={allowComments}
+                checked={isCommentsSettingLocked ? false : allowComments}
                 className={checkboxClass}
+                disabled={isCommentsSettingLocked}
                 onChange={event => handleAllowCommentsChange(event.target.checked)}
                 type="checkbox"
               />

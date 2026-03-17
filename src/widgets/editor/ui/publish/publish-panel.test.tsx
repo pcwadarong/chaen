@@ -45,7 +45,7 @@ const renderPublishPanel = (
   const onClose = options?.onClose ?? vi.fn();
   const onSubmit = options?.onSubmit ?? vi.fn().mockResolvedValue(undefined);
 
-  render(
+  const renderResult = render(
     <PublishPanel
       contentType={options?.contentType ?? 'article'}
       editorState={options?.editorState ?? { ...baseEditorState }}
@@ -61,6 +61,7 @@ const renderPublishPanel = (
   return {
     onClose,
     onSubmit,
+    unmount: renderResult.unmount,
   };
 };
 
@@ -180,6 +181,80 @@ describe('PublishPanel', () => {
     expect(
       screen.queryByText('이미 공개된 콘텐츠는 예약 발행으로 다시 전환할 수 없습니다.'),
     ).toBeNull();
+  });
+
+  it('draft article에서는 댓글 허용을 계속 조정할 수 있다', async () => {
+    const { onSubmit } = renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: null,
+        slug: 'draft-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      publicationState: 'draft',
+    });
+
+    const commentCheckbox = screen.getByLabelText('댓글 허용');
+
+    expect(commentCheckbox).not.toBeDisabled();
+    expect(commentCheckbox).toBeChecked();
+
+    mockSlugCheckResponse(false);
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowComments: true,
+        }),
+      );
+    });
+  });
+
+  it('published article 수정에서는 댓글 허용을 계속 조정할 수 있다', () => {
+    renderPublishPanel({
+      initialSettings: {
+        allowComments: true,
+        publishAt: null,
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+      },
+      isPublished: true,
+      publicationState: 'published',
+    });
+
+    const commentCheckbox = screen.getByLabelText('댓글 허용');
+
+    expect(commentCheckbox).not.toBeDisabled();
+    expect(commentCheckbox).toBeChecked();
+  });
+
+  it('project에서는 publication state와 무관하게 댓글 허용이 비활성화된다', () => {
+    for (const publicationState of ['draft', 'scheduled', 'published'] as const) {
+      const { unmount } = renderPublishPanel({
+        contentType: 'project',
+        initialSettings: {
+          allowComments: true,
+          publishAt: null,
+          slug: `${publicationState}-project`,
+          thumbnailUrl: '',
+          visibility: 'public',
+        },
+        isPublished: publicationState !== 'draft',
+        publicationState,
+      });
+
+      const commentCheckbox = screen.getByLabelText('댓글 허용');
+
+      expect(commentCheckbox).toBeDisabled();
+      expect(commentCheckbox).not.toBeChecked();
+
+      unmount();
+    }
   });
 
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {

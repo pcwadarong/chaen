@@ -138,11 +138,13 @@ const fetchProjectFromContentSchema = async (
     entityId: projectId,
     relationTable: 'project_tags',
   });
-  if (relatedTags.schemaMissing) throw new Error('[projects] 태그 relation schema가 없습니다.');
 
   return {
     data: {
-      item: mapProject(mapProjectFallbackRpcRow(translation), relatedTags.data),
+      item: mapProject(
+        mapProjectFallbackRpcRow(translation),
+        relatedTags.schemaMissing ? [] : relatedTags.data,
+      ),
       resolvedLocale: translation.locale.toLowerCase(),
     },
     schemaMissing: false,

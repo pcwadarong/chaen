@@ -32,6 +32,11 @@ type GetArticleTagLabelsInput = {
 
 export type ArticleDetailShellData = Awaited<ReturnType<typeof getResolvedArticle>>;
 
+const EMPTY_ARTICLE_ARCHIVE_PAGE: ArticleArchivePage = {
+  items: [],
+  nextCursor: null,
+};
+
 /**
  * 상세 아티클을 public archive 요약 shape로 좁힙니다.
  */
@@ -96,7 +101,14 @@ export const getArticleDetailArchivePageData = async ({
   item,
   locale,
 }: GetArticleDetailArchivePageDataInput): Promise<ArticleArchivePage> => {
-  const archivePage = await getArticleDetailList({ locale });
+  const archivePage = await getArticleDetailList({ locale }).catch(error => {
+    console.error('[articles] getArticleDetailList failed for locale', {
+      error,
+      locale,
+    });
+
+    return EMPTY_ARTICLE_ARCHIVE_PAGE;
+  });
 
   return ensureCurrentArticleInArchive(item, archivePage);
 };

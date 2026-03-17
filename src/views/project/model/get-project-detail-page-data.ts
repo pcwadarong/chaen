@@ -25,6 +25,11 @@ type GetProjectTagLabelsInput = {
 
 export type ProjectDetailShellData = Awaited<ReturnType<typeof getResolvedProject>>;
 
+const EMPTY_PROJECT_ARCHIVE_PAGE: ProjectArchivePage = {
+  items: [],
+  nextCursor: null,
+};
+
 /**
  * 상세 프로젝트를 public archive 요약 shape로 좁힙니다.
  */
@@ -68,9 +73,7 @@ export const getProjectTagLabels = async ({
     slugs: tags,
   });
 
-  if (tagLabelMap.schemaMissing) {
-    throw new Error('[projects] 태그 label schema가 없습니다.');
-  }
+  if (tagLabelMap.schemaMissing) return tags;
 
   return tags.map(tag => tagLabelMap.data.get(tag) ?? tag);
 };
@@ -91,7 +94,14 @@ export const getProjectDetailArchivePageData = async ({
   item,
   locale,
 }: GetProjectDetailArchivePageDataInput): Promise<ProjectArchivePage> => {
-  const archivePage = await getProjectDetailList({ locale });
+  const archivePage = await getProjectDetailList({ locale }).catch(error => {
+    console.error('[projects] getProjectDetailList failed for locale', {
+      error,
+      locale,
+    });
+
+    return EMPTY_PROJECT_ARCHIVE_PAGE;
+  });
 
   return ensureCurrentProjectInArchive(item, archivePage);
 };
