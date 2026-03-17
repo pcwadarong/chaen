@@ -13,7 +13,10 @@ import {
   type PublishSettings,
   type TranslationField,
 } from '@/widgets/editor';
-import { createDefaultPublishSettings } from '@/widgets/editor/ui/publish/publish-panel.utils';
+import {
+  createDefaultPublishSettings,
+  shouldDisablePublishCommentsSetting,
+} from '@/widgets/editor/ui/publish/publish-panel.utils';
 
 type EditorClientProps = {
   availableTags: {
@@ -67,6 +70,10 @@ export const EditorClient = ({
   onDraftSave,
   onPublishSubmit,
 }: EditorClientProps) => {
+  const isCommentsSettingLocked = shouldDisablePublishCommentsSetting({
+    contentType,
+    publicationState: initialPublicationState,
+  });
   const [isPublishPanelOpen, setIsPublishPanelOpen] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(initialDraftId);
   const [editorState, setEditorState] = useState<EditorState>(() => ({
@@ -77,6 +84,7 @@ export const EditorClient = ({
   }));
   const [publishSettings, setPublishSettings] = useState<PublishSettings>(() =>
     createDefaultPublishSettings({
+      disableComments: isCommentsSettingLocked,
       initialSettings,
       slug: initialSlug,
     }),

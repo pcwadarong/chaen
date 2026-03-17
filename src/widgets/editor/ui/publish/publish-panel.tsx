@@ -23,6 +23,7 @@ import type {
 import {
   buildPublishSettings,
   createDefaultPublishSettings,
+  shouldDisablePublishCommentsSetting,
   toScheduledPublishUtcIso,
   validatePublishSettings,
 } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -93,6 +94,10 @@ export const PublishPanel = ({
   onSettingsChange,
   onSubmit,
 }: PublishPanelProps) => {
+  const isCommentsSettingLocked = shouldDisablePublishCommentsSetting({
+    contentType,
+    publicationState,
+  });
   const [slug, setSlug] = useState('');
   const [visibility, setVisibility] = useState<PublishVisibility>('public');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -126,6 +131,7 @@ export const PublishPanel = ({
     const nextFormState = createInitialFormState({
       editorSlug: editorState.slug,
       initialSettings: createDefaultPublishSettings({
+        disableComments: isCommentsSettingLocked,
         initialSettings,
         slug: editorState.slug,
       }),
@@ -144,7 +150,13 @@ export const PublishPanel = ({
     setDateInput(nextFormState.dateInput);
     setTimeInput(nextFormState.timeInput);
     setErrors({});
-  }, [editorState.slug, initialSettings, isOpen, isPublished]);
+  }, [editorState.slug, initialSettings, isCommentsSettingLocked, isOpen, isPublished]);
+
+  useEffect(() => {
+    if (!isCommentsSettingLocked || !allowComments) return;
+
+    setAllowComments(false);
+  }, [allowComments, isCommentsSettingLocked]);
 
   useEffect(() => {
     if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
@@ -168,7 +180,7 @@ export const PublishPanel = ({
   const currentSettings = useMemo(
     () =>
       buildPublishSettings({
-        allowComments,
+        allowComments: isCommentsSettingLocked ? false : allowComments,
         dateInput,
         publishMode,
         slug,
@@ -176,7 +188,16 @@ export const PublishPanel = ({
         timeInput,
         visibility,
       }),
-    [allowComments, dateInput, publishMode, slug, thumbnailUrl, timeInput, visibility],
+    [
+      allowComments,
+      dateInput,
+      isCommentsSettingLocked,
+      publishMode,
+      slug,
+      thumbnailUrl,
+      timeInput,
+      visibility,
+    ],
   );
 
   const thumbnailPreviewUrl = thumbnailUrl.trim();
@@ -398,6 +419,7 @@ export const PublishPanel = ({
               <input
                 checked={allowComments}
                 className={checkboxClass}
+                disabled={isCommentsSettingLocked}
                 onChange={event => handleAllowCommentsChange(event.target.checked)}
                 type="checkbox"
               />
