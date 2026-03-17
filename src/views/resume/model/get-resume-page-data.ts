@@ -1,10 +1,6 @@
-import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import {
-  createDefaultPdfFileContent,
-  getPdfFileStorageConfig,
-} from '@/entities/pdf-file/model/config';
-import { buildPdfFileDownloadPath } from '@/entities/pdf-file/model/download-path';
+import { getPdfFileDownloadOptions } from '@/entities/pdf-file/api/get-pdf-file-download-options';
+import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { ResumePageProps } from '@/views/resume/ui/resume-page';
 
 type GetResumePageDataInput = {
@@ -18,20 +14,16 @@ type GetResumePageDataInput = {
 export const getResumePageData = async ({
   locale,
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
-  const resumeConfig = getPdfFileStorageConfig('resume');
-  const [isResumeReady, content] = await Promise.all([
-    getPdfFileAvailability({
-      kind: 'resume',
-    }).catch(() => false),
-    getPdfFileContent({
-      locale,
-      kind: 'resume',
-    }),
-  ]);
+  const safeDownloadOptions = getPdfFileDownloadOptions('resume').catch(() => []);
+  const safeContent = getPdfFileContent({
+    locale,
+    kind: 'resume',
+  }).catch(() => null);
+
+  const [downloadOptions, content] = await Promise.all([safeDownloadOptions, safeContent]);
 
   return {
     content: content ?? createDefaultPdfFileContent(locale),
-    downloadFileName: resumeConfig.downloadFileName,
-    resumeDownloadHref: isResumeReady ? buildPdfFileDownloadPath('resume') : null,
+    downloadOptions,
   };
 };

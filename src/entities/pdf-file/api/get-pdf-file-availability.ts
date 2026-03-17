@@ -4,8 +4,11 @@ import {
   createPdfFileAvailabilityCacheTag,
   PDF_FILES_CACHE_TAG,
 } from '@/entities/pdf-file/model/cache-tags';
-import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
-import type { PdfFileKind } from '@/entities/pdf-file/model/types';
+import {
+  getPdfFileAssetStorageConfig,
+  getPdfFileStorageConfig,
+} from '@/entities/pdf-file/model/config';
+import type { PdfFileAssetKey, PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -15,6 +18,7 @@ import 'server-only';
  * PDF 파일 존재 여부 조회 옵션입니다.
  */
 type GetPdfFileAvailabilityOptions = {
+  assetKey?: PdfFileAssetKey;
   kind?: PdfFileKind;
 };
 
@@ -41,12 +45,19 @@ const splitStorageFilePath = (filePath: string) => {
 /**
  * Supabase Storage에 PDF 파일이 실제로 존재하는지 확인하는 cached read입니다.
  */
-const readCachedPdfFileAvailability = async (kind: PdfFileKind): Promise<boolean> => {
+const readCachedPdfFileAvailability = async ({
+  assetKey,
+  kind,
+}: GetPdfFileAvailabilityOptions): Promise<boolean> => {
   'use cache';
 
-  cacheTag(PDF_FILES_CACHE_TAG, createPdfFileAvailabilityCacheTag(kind));
+  const cacheKey = assetKey ?? kind ?? 'resume';
 
-  const storageConfig = getPdfFileStorageConfig(kind);
+  cacheTag(PDF_FILES_CACHE_TAG, createPdfFileAvailabilityCacheTag(cacheKey));
+
+  const storageConfig = assetKey
+    ? getPdfFileAssetStorageConfig(assetKey)
+    : getPdfFileStorageConfig(kind ?? 'resume');
   const supabase = resolvePdfStorageClient();
   if (!supabase) return false;
 
@@ -66,5 +77,10 @@ const readCachedPdfFileAvailability = async (kind: PdfFileKind): Promise<boolean
  * Supabase Storage에 PDF 파일이 실제로 존재하는지 확인합니다.
  */
 export const getPdfFileAvailability = async ({
+  assetKey,
   kind = 'resume',
-}: GetPdfFileAvailabilityOptions = {}): Promise<boolean> => readCachedPdfFileAvailability(kind);
+}: GetPdfFileAvailabilityOptions = {}): Promise<boolean> =>
+  readCachedPdfFileAvailability({
+    assetKey,
+    kind,
+  });

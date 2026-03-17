@@ -1,7 +1,8 @@
 import { useTranslations } from 'next-intl';
 
+import type { PdfFileDownloadOption } from '@/entities/pdf-file/model/types';
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
+import { PdfDownloadPopover } from '@/shared/ui/pdf-download-popover/pdf-download-popover';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 import { ProjectFeed } from '@/widgets/project-feed/ui/project-feed';
 
@@ -11,8 +12,7 @@ export type ProjectListPageProps = {
   locale: string;
   portfolioButtonLabel: string;
   portfolioButtonUnavailableLabel: string;
-  portfolioDownloadHref: string | null;
-  portfolioDownloadFileName: string;
+  portfolioDownloadOptions: PdfFileDownloadOption[];
 };
 
 /** 프로젝트 목록 페이지 컨테이너입니다. */
@@ -22,8 +22,7 @@ export const ProjectListPage = ({
   locale,
   portfolioButtonLabel,
   portfolioButtonUnavailableLabel,
-  portfolioDownloadHref,
-  portfolioDownloadFileName,
+  portfolioDownloadOptions,
 }: ProjectListPageProps) => {
   const t = useTranslations('Project');
 
@@ -31,11 +30,10 @@ export const ProjectListPage = ({
     <PageShell hideAppFrameFooter>
       <PageHeader
         action={
-          <DownloadFileButton
-            fileName={portfolioDownloadFileName}
-            href={portfolioDownloadHref}
-            label={portfolioDownloadHref ? portfolioButtonLabel : portfolioButtonUnavailableLabel}
-            mode="download"
+          <PdfDownloadPopover
+            label={portfolioButtonLabel}
+            options={portfolioDownloadOptions}
+            unavailableLabel={portfolioButtonUnavailableLabel}
           />
         }
         description={t('showcaseDescription')}

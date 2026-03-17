@@ -13,6 +13,7 @@ import { createPortal } from 'react-dom';
 import { css, cx } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
+import type { ButtonSize, ButtonTone, ButtonVariant } from '@/shared/ui/button/button';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { Tooltip } from '@/shared/ui/tooltip/tooltip';
@@ -36,7 +37,10 @@ type PopoverProps = {
   triggerAriaLabel?: string;
   triggerClassName?: string;
   triggerContent?: ReactNode;
+  triggerSize?: ButtonSize;
+  triggerTone?: ButtonTone;
   triggerTooltip?: string;
+  triggerVariant?: ButtonVariant;
   value?: string;
 };
 
@@ -57,7 +61,10 @@ export const Popover = ({
   triggerAriaLabel,
   triggerClassName,
   triggerContent,
+  triggerSize = 'sm',
+  triggerTone = 'white',
   triggerTooltip,
+  triggerVariant = 'ghost',
   value,
 }: PopoverProps) => {
   const [uncontrolledIsOpen, setUncontrolledIsOpen] = useState(false);
@@ -180,10 +187,10 @@ export const Popover = ({
       onClick={() => setOpen(!isOpen)}
       onMouseDown={onTriggerMouseDown}
       ref={triggerRef}
-      size="sm"
-      tone="white"
+      size={triggerSize}
+      tone={triggerTone}
       type="button"
-      variant="ghost"
+      variant={triggerVariant}
     >
       {triggerContent ? (
         triggerContent
