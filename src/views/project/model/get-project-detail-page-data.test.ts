@@ -101,15 +101,36 @@ describe('project detail page data helpers', () => {
     );
   });
 
-  it('아카이브 helper는 조회 실패를 그대로 surface한다', async () => {
+  it('아카이브 helper는 조회 실패 시 현재 항목만 유지한 빈 목록으로 폴백한다', async () => {
     vi.mocked(getProjectDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
       getProjectDetailArchivePageData({
-        item: null,
+        item: {
+          id: 'funda',
+          title: 'FUNDA',
+          description: 'cs',
+          content: 'detail',
+          thumbnail_url: null,
+          tags: [],
+          created_at: '2026-03-02T00:00:00.000Z',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'funda',
+        },
         locale: 'ko',
       }),
-    ).rejects.toThrow('archive failed');
+    ).resolves.toEqual({
+      items: [
+        {
+          id: 'funda',
+          title: 'FUNDA',
+          description: 'cs',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'funda',
+        },
+      ],
+      nextCursor: null,
+    });
   });
 
   it('태그 label helper는 locale label을 반환한다', async () => {
@@ -134,5 +155,29 @@ describe('project detail page data helpers', () => {
         locale: 'ko',
       }),
     ).resolves.toEqual(['React']);
+  });
+
+  it('태그 label helper는 schema가 없으면 slug를 그대로 사용한다', async () => {
+    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
+      data: new Map(),
+      schemaMissing: true,
+    });
+
+    await expect(
+      getProjectTagLabels({
+        item: {
+          id: 'funda',
+          title: 'FUNDA',
+          description: 'cs',
+          content: 'detail',
+          thumbnail_url: null,
+          tags: ['react'],
+          created_at: '2026-03-02T00:00:00.000Z',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'funda',
+        },
+        locale: 'ko',
+      }),
+    ).resolves.toEqual(['react']);
   });
 });

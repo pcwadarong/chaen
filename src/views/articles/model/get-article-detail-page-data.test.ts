@@ -111,15 +111,38 @@ describe('article detail page data helpers', () => {
     );
   });
 
-  it('아카이브 helper는 조회 실패를 그대로 surface한다', async () => {
+  it('아카이브 helper는 조회 실패 시 현재 항목만 유지한 빈 목록으로 폴백한다', async () => {
     vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
 
     await expect(
       getArticleDetailArchivePageData({
-        item: null,
+        item: {
+          id: 'frontend',
+          title: 'Frontend',
+          description: 'cs',
+          content: 'detail',
+          thumbnail_url: null,
+          tags: [],
+          created_at: '2026-03-02T00:00:00.000Z',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'frontend',
+          updated_at: null,
+          view_count: 0,
+        },
         locale: 'ko',
       }),
-    ).rejects.toThrow('archive failed');
+    ).resolves.toEqual({
+      items: [
+        {
+          id: 'frontend',
+          title: 'Frontend',
+          description: 'cs',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'frontend',
+        },
+      ],
+      nextCursor: null,
+    });
   });
 
   it('관련 글 helper는 조회 실패를 빈 목록으로 대체한다', async () => {

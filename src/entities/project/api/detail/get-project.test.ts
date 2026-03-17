@@ -244,7 +244,7 @@ describe('getProject', () => {
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects', 'project:funda-project');
   });
 
-  it('태그 relation schema가 없으면 명시적 에러를 던진다', async () => {
+  it('태그 relation schema가 없으면 태그 없이 본문을 반환한다', async () => {
     const projectSlugQuery = createProjectSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn(),
@@ -287,8 +287,10 @@ describe('getProject', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    await expect(getProject('funda-project', 'ko')).rejects.toThrow(
-      '[projects] 태그 relation schema가 없습니다.',
-    );
+    await expect(getProject('funda-project', 'ko')).resolves.toMatchObject({
+      id: 'funda-project',
+      tags: [],
+      title: 'Funda Project',
+    });
   });
 });

@@ -141,11 +141,13 @@ const fetchArticleFromContentSchema = async (
     entityId: articleId,
     relationTable: 'article_tags',
   });
-  if (relatedTags.schemaMissing) throw new Error('[articles] 태그 relation schema가 없습니다.');
 
   return {
     data: {
-      item: mapArticle(mapArticleFallbackRpcRow(translation), relatedTags.data),
+      item: mapArticle(
+        mapArticleFallbackRpcRow(translation),
+        relatedTags.schemaMissing ? [] : relatedTags.data,
+      ),
       resolvedLocale: translation.locale.toLowerCase(),
     },
     schemaMissing: false,
@@ -183,19 +185,17 @@ const readCachedArticle = async (
 ): Promise<ResolvedArticle> => {
   'use cache';
 
-  const localeFallbackChain = buildContentLocaleFallbackChain(normalizedLocale);
-  const article = await fetchArticleByLocaleFallbackChain(articleSlug, localeFallbackChain);
+  const article = await fetchArticleByLocaleFallbackChain(
+    articleSlug,
+    buildContentLocaleFallbackChain(normalizedLocale),
+  );
   if (article.item) {
     cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(article.item.id));
   } else {
     cacheTag(ARTICLES_CACHE_TAG);
   }
 
-  if (article.item) return article;
-
-  throw new Error(
-    `[articles] 조회 가능한 번역이 없습니다. articleSlug=${articleSlug} locales=${localeFallbackChain.join('>')}`,
-  );
+  return article;
 };
 
 /**
