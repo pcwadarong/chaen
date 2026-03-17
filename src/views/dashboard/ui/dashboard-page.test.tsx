@@ -72,6 +72,7 @@ describe('DashboardPage', () => {
   it('관리자 작업 링크와 4개 PDF 업로드 섹션을 함께 렌더링한다', async () => {
     render(await DashboardPage({ locale: 'ko' }));
 
+    expect(screen.getByRole('navigation', { name: '관리자 작업' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '새 기록' }).getAttribute('href')).toBe(
       '/admin/articles/new',
     );

@@ -16,17 +16,20 @@ type GetProjectListPageDataInput = {
 export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
+  const safePortfolioDownloadOptions = getPdfFileDownloadOptions('portfolio').catch(() => []);
+  const safePortfolioContent = getPdfFileContent({
+    kind: 'portfolio',
+    locale,
+  }).catch(() => null);
+
   const [t, projectsPage, portfolioDownloadOptions, sharedPdfContent] = await Promise.all([
     getTranslations({ locale, namespace: 'Project' }),
     getProjects({ locale }).catch(() => ({
       items: [],
       nextCursor: null,
     })),
-    getPdfFileDownloadOptions('portfolio'),
-    getPdfFileContent({
-      kind: 'portfolio',
-      locale,
-    }),
+    safePortfolioDownloadOptions,
+    safePortfolioContent,
   ]);
 
   return {

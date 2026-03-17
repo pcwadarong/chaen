@@ -131,4 +131,26 @@ describe('getProjectListPageData', () => {
     ]);
     expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
   });
+
+  it('PDF 부가 데이터 조회 실패 시에도 프로젝트 목록 화면 데이터를 반환한다', async () => {
+    const translation = ((key: string) => {
+      if (key === 'portfolioDownload') return 'Download';
+      if (key === 'portfolioDownloadUnavailable') return 'Unavailable';
+
+      return key;
+    }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
+    vi.mocked(getTranslations).mockResolvedValue(translation);
+    vi.mocked(getProjects).mockResolvedValue({ items: [], nextCursor: null });
+    vi.mocked(getPdfFileDownloadOptions).mockRejectedValue(new Error('pdf options failed'));
+    vi.mocked(getPdfFileContent).mockRejectedValue(new Error('pdf content failed'));
+
+    await expect(getProjectListPageData({ locale: 'ko' })).resolves.toEqual({
+      initialCursor: null,
+      initialItems: [],
+      locale: 'ko',
+      portfolioButtonLabel: 'Download',
+      portfolioButtonUnavailableLabel: 'Unavailable',
+      portfolioDownloadOptions: [],
+    });
+  });
 });

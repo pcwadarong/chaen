@@ -22,7 +22,7 @@ export const DashboardPage = async ({ locale }: DashboardPageProps) => {
     <PageShell width="compact" hideAppFrameFooter>
       <PageSection>
         <div className={dashboardContentClass}>
-          <div className={actionGridClass}>
+          <nav aria-label="관리자 작업" className={actionGridClass}>
             <Button asChild fullWidth tone="primary" variant="solid">
               <Link href="/admin/articles/new">새 기록</Link>
             </Button>
@@ -35,7 +35,7 @@ export const DashboardPage = async ({ locale }: DashboardPageProps) => {
             <Button asChild fullWidth tone="white" variant="solid">
               <Link href="/admin/drafts">임시저장 목록</Link>
             </Button>
-          </div>
+          </nav>
           <AdminPdfUploadPanel initialItems={pdfUploadItems} />
           <AdminSignOutButton
             redirectPath={buildAdminPath({ locale, section: 'login' })}
