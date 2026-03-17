@@ -9,6 +9,19 @@ type UploadPdfFileByAssetKeyResult = {
   isPdfReady: boolean;
 };
 
+const DEFAULT_UPLOAD_ERROR_MESSAGE = 'PDF 업로드에 실패했습니다.';
+
+const isUploadPdfFileByAssetKeyResult = (
+  value: unknown,
+): value is UploadPdfFileByAssetKeyResult & { assetKey: PdfFileAssetKey } =>
+  typeof value === 'object' &&
+  value !== null &&
+  'assetKey' in value &&
+  'downloadFileName' in value &&
+  'downloadPath' in value &&
+  'filePath' in value &&
+  'isPdfReady' in value;
+
 /**
  * 관리자 대시보드에서 자산 키별 PDF 업로드 API를 호출합니다.
  */
@@ -27,22 +40,32 @@ export const uploadPdfFileByAssetKey = async ({
     body: formData,
     method: 'POST',
   });
-  const body = (await response.json()) as
-    | UploadPdfFileByAssetKeyResult
-    | {
-        error?: string;
-      };
+  let body: unknown = null;
 
-  if (!response.ok || !('filePath' in body) || !('assetKey' in body)) {
-    throw new Error(
-      'error' in body ? (body.error ?? 'PDF 업로드에 실패했습니다.') : 'PDF 업로드에 실패했습니다.',
-    );
+  try {
+    body = await response.json();
+  } catch {
+    try {
+      const fallbackText = await response.text();
+      body = fallbackText ? { error: fallbackText } : null;
+    } catch {
+      body = null;
+    }
+  }
+
+  const errorMessage =
+    typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string'
+      ? body.error
+      : DEFAULT_UPLOAD_ERROR_MESSAGE;
+
+  if (!response.ok || !isUploadPdfFileByAssetKeyResult(body)) {
+    throw new Error(errorMessage);
   }
 
   return {
     assetKey: body.assetKey,
     downloadFileName: body.downloadFileName,
-    downloadPath: body.downloadPath || buildPdfFileAssetDownloadPath(assetKey),
+    downloadPath: body.downloadPath || buildPdfFileAssetDownloadPath(body.assetKey),
     filePath: body.filePath,
     isPdfReady: body.isPdfReady,
   };

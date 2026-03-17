@@ -37,7 +37,9 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
   const [feedbackByAssetKey, setFeedbackByAssetKey] = useState<
     Partial<Record<PdfFileAssetKey, UploadFeedback>>
   >({});
-  const [uploadingAssetKey, setUploadingAssetKey] = useState<PdfFileAssetKey | null>(null);
+  const [uploadingByAssetKey, setUploadingByAssetKey] = useState<
+    Partial<Record<PdfFileAssetKey, boolean>>
+  >({});
 
   /**
    * 파일 선택 버튼에서 숨겨진 input 클릭을 위임합니다.
@@ -59,7 +61,10 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
         return;
       }
 
-      setUploadingAssetKey(item.assetKey);
+      setUploadingByAssetKey(previous => ({
+        ...previous,
+        [item.assetKey]: true,
+      }));
       setFeedbackByAssetKey(previous => ({
         ...previous,
         [item.assetKey]: undefined,
@@ -102,7 +107,10 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
           },
         }));
       } finally {
-        setUploadingAssetKey(null);
+        setUploadingByAssetKey(previous => ({
+          ...previous,
+          [item.assetKey]: false,
+        }));
         input.value = '';
       }
     };
@@ -114,7 +122,7 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
       </h2>
       <div className={rowListClass}>
         {items.map(item => {
-          const isUploading = uploadingAssetKey === item.assetKey;
+          const isUploading = uploadingByAssetKey[item.assetKey] === true;
           const feedback = feedbackByAssetKey[item.assetKey];
 
           return (
@@ -293,6 +301,12 @@ const hiddenInputClass = css({
   borderWidth: '0',
 });
 
+/**
+ * 업로드 피드백 tone에 맞춰 텍스트 스타일 클래스를 반환합니다.
+ *
+ * @param tone - 피드백 종류입니다. `success`면 성공, `error`면 오류 스타일을 적용합니다.
+ * @returns Panda CSS 클래스 이름입니다.
+ */
 const feedbackTextClass = ({ tone }: { tone: UploadFeedback['tone'] }) =>
   css({
     m: '0',

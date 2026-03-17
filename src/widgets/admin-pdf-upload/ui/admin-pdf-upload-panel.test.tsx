@@ -136,4 +136,97 @@ describe('AdminPdfUploadPanel', () => {
       ).toBeTruthy();
     });
   });
+
+  it('서로 다른 자산 업로드가 겹쳐도 각 행의 업로드 상태를 유지한다', async () => {
+    const { uploadPdfFileByAssetKey } =
+      await import('@/entities/pdf-file/api/upload-pdf-file-by-asset-key');
+
+    let resolveResumeKoUpload: (() => void) | undefined;
+    let resolveResumeEnUpload: (() => void) | undefined;
+
+    vi.mocked(uploadPdfFileByAssetKey)
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveResumeKoUpload = () =>
+              resolve({
+                assetKey: 'resume-ko',
+                downloadFileName: '박채원_이력서.pdf',
+                downloadPath: '/api/pdf/file/resume-ko',
+                filePath: '박채원_이력서.pdf',
+                isPdfReady: true,
+              });
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveResumeEnUpload = () =>
+              resolve({
+                assetKey: 'resume-en',
+                downloadFileName: 'ParkChaewon-Resume.pdf',
+                downloadPath: '/api/pdf/file/resume-en',
+                filePath: 'ParkChaewon-Resume.pdf',
+                isPdfReady: true,
+              });
+          }),
+      );
+
+    render(<AdminPdfUploadPanel initialItems={baseItems} />);
+
+    fireEvent.change(screen.getByLabelText('이력서 PDF · 국문 파일 선택', { selector: 'input' }), {
+      target: {
+        files: [new File(['pdf'], 'resume-ko.pdf', { type: 'application/pdf' })],
+      },
+    });
+    fireEvent.change(screen.getByLabelText('이력서 PDF · 영문 파일 선택', { selector: 'input' }), {
+      target: {
+        files: [new File(['pdf'], 'resume-en.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    const resumeKoCard = screen
+      .getByRole('heading', { level: 3, name: '이력서 PDF · 국문' })
+      .closest('article');
+    const resumeEnCard = screen
+      .getByRole('heading', { level: 3, name: '이력서 PDF · 영문' })
+      .closest('article');
+
+    if (!resumeKoCard || !resumeEnCard) {
+      throw new Error('resume upload cards not found');
+    }
+
+    await waitFor(() => {
+      expect(
+        within(resumeKoCard).getByRole('button', { name: '업로드 중...' }).hasAttribute('disabled'),
+      ).toBe(true);
+      expect(
+        within(resumeEnCard).getByRole('button', { name: '업로드 중...' }).hasAttribute('disabled'),
+      ).toBe(true);
+    });
+
+    if (!resolveResumeKoUpload || !resolveResumeEnUpload) {
+      throw new Error('upload resolvers not prepared');
+    }
+
+    resolveResumeKoUpload();
+
+    await waitFor(() => {
+      expect(
+        within(resumeKoCard).getByRole('button', { name: '업로드' }).hasAttribute('disabled'),
+      ).toBe(false);
+    });
+
+    expect(
+      within(resumeEnCard).getByRole('button', { name: '업로드 중...' }).hasAttribute('disabled'),
+    ).toBe(true);
+
+    resolveResumeEnUpload();
+
+    await waitFor(() => {
+      expect(
+        within(resumeEnCard).getByRole('button', { name: '업로드' }).hasAttribute('disabled'),
+      ).toBe(false);
+    });
+  });
 });

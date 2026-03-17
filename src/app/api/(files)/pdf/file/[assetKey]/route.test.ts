@@ -41,4 +41,19 @@ describe('api/pdf/file/[assetKey] route', () => {
       error: 'Not Found',
     });
   });
+
+  it('유효한 자산 키여도 signed URL이 없으면 404를 반환한다', async () => {
+    vi.mocked(getPdfFileUrl).mockResolvedValue(null);
+
+    const response = await GET(new Request('https://chaen.dev/api/pdf/file/resume-en'), {
+      params: Promise.resolve({
+        assetKey: 'resume-en',
+      }),
+    });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+    });
+  });
 });

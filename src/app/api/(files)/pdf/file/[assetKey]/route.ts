@@ -10,7 +10,7 @@ type PdfFileAssetRouteContext = {
 };
 
 /**
- * 관리자에서 특정 PDF 자산의 signed URL을 확인할 수 있도록 내부 다운로드 경로를 위임합니다.
+ * 특정 PDF 자산의 내부 다운로드 경로를 signed URL 생성 플로우로 위임합니다.
  */
 export const GET = async (_request: Request, { params }: PdfFileAssetRouteContext) => {
   const { assetKey } = await params;

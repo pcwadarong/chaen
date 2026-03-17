@@ -17,6 +17,13 @@ export type PdfFileAssetLocale = 'ko' | 'en';
  */
 export type PdfFileAssetKey = 'resume-ko' | 'resume-en' | 'portfolio-ko' | 'portfolio-en';
 
+const PDF_FILE_ASSET_KEYS = [
+  'resume-ko',
+  'resume-en',
+  'portfolio-ko',
+  'portfolio-en',
+] as const satisfies readonly PdfFileAssetKey[];
+
 /**
  * 공개 페이지에서 사용하는 PDF 다운로드 옵션입니다.
  */
@@ -37,10 +44,7 @@ export const isPdfFileKind = (value: string): value is PdfFileKind =>
  * 주어진 문자열이 지원하는 PDF 자산 키인지 확인합니다.
  */
 export const isPdfFileAssetKey = (value: string): value is PdfFileAssetKey =>
-  value === 'resume-ko' ||
-  value === 'resume-en' ||
-  value === 'portfolio-ko' ||
-  value === 'portfolio-en';
+  PDF_FILE_ASSET_KEYS.includes(value as PdfFileAssetKey);
 
 /**
  * Supabase의 PDF 소개 콘텐츠 테이블에서 사용하는 레코드 타입입니다.
