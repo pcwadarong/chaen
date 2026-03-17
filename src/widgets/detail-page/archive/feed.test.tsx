@@ -171,4 +171,56 @@ describe('DetailArchiveFeed', () => {
     expect(screen.getByText('불러오기 실패')).toBeInTheDocument();
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
+
+  it('현재 상세 항목이 초기 아카이브 페이지에 없어도 목록 앞에 유지한다', async () => {
+    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
+    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+      errorMessage: null,
+      hasMore: false,
+      isLoadingMore: false,
+      items: initialItems,
+      loadMore: vi.fn(),
+    }));
+
+    render(
+      <DetailArchiveFeed<TestArchiveItem>
+        currentItem={{
+          created_at: '2026-03-10T00:00:00.000Z',
+          description: '현재 글',
+          id: 'current-article',
+          publish_at: '2026-03-10T00:00:00.000Z',
+          slug: 'current-article-slug',
+          title: '현재 글',
+        }}
+        emptyText="비어 있음"
+        hrefBasePath="/articles"
+        initialPage={{
+          items: [
+            {
+              created_at: '2026-03-08T00:00:00.000Z',
+              description: '이전 글',
+              id: 'article-1',
+              publish_at: '2026-03-08T00:00:00.000Z',
+              slug: 'article-1-slug',
+              title: '이전 글',
+            },
+          ],
+          nextCursor: 'cursor-1',
+        }}
+        loadErrorText="불러오기 실패"
+        loadPageAction={loadPageActionMock}
+        loadMoreEndText="끝"
+        loadingText="불러오는 중"
+        locale="ko"
+        retryText="다시 시도"
+        selectedPathSegment="current-article-slug"
+      />,
+    );
+
+    const links = screen.getAllByRole('link');
+
+    expect(links[0]).toHaveAttribute('href', '/articles/current-article-slug');
+    expect(links[0]).toHaveAttribute('aria-current', 'page');
+    expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
+  });
 });

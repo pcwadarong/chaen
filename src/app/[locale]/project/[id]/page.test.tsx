@@ -5,11 +5,8 @@ import ProjectDetailRoute, {
   generateMetadata,
   generateStaticParams,
 } from '@/app/[locale]/project/[id]/page';
-import {
-  getProjectDetailArchivePageData,
-  getProjectDetailShellData,
-  getProjectTagLabels,
-} from '@/views/project';
+import { getProjectStaticSeedParams } from '@/entities/project/api/detail/get-project-static-seed-params';
+import { getProjectDetailShellData, getProjectTagLabels } from '@/views/project';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -25,14 +22,14 @@ vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
 
+vi.mock('@/entities/project/api/detail/get-project-static-seed-params', () => ({
+  getProjectStaticSeedParams: vi.fn(async () => []),
+}));
+
 vi.mock('@/views/project', () => ({
   getProjectDetailShellData: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
-  })),
-  getProjectDetailArchivePageData: vi.fn(async () => ({
-    items: [],
-    nextCursor: null,
   })),
   getProjectTagLabels: vi.fn(async () => []),
   ProjectDetailPage: function ProjectDetailPage() {
@@ -51,8 +48,10 @@ describe('ProjectDetailRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('상세 slug는 build 시 선생성하지 않는다', async () => {
-    await expect(generateStaticParams()).resolves.toEqual([]);
+  it('상세 slug는 대표 경로만 seed한다', async () => {
+    vi.mocked(getProjectStaticSeedParams).mockResolvedValueOnce([{ id: 'seed-project' }]);
+
+    await expect(generateStaticParams()).resolves.toEqual([{ id: 'seed-project' }]);
   });
 
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
@@ -70,10 +69,6 @@ describe('ProjectDetailRoute', () => {
       },
       resolvedLocale: 'ko',
     });
-    vi.mocked(getProjectDetailArchivePageData).mockResolvedValueOnce({
-      items: [],
-      nextCursor: null,
-    });
     vi.mocked(getProjectTagLabels).mockResolvedValueOnce(['Supabase']);
 
     const element = await ProjectDetailRoute({
@@ -89,10 +84,6 @@ describe('ProjectDetailRoute', () => {
     expect(getProjectDetailShellData).toHaveBeenCalledWith({
       locale: 'ko',
       projectSlug: 'supabase-editorial',
-    });
-    await expect(element.props.archivePagePromise).resolves.toEqual({
-      items: [],
-      nextCursor: null,
     });
     await expect(element.props.tagLabelsPromise).resolves.toEqual(['Supabase']);
   });

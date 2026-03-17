@@ -4,7 +4,6 @@ import { css } from 'styled-system/css';
 
 import type {
   Article,
-  ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
@@ -24,14 +23,12 @@ import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
-  DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
   DetailTagListSkeleton,
 } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
-  archivePagePromise: Promise<ArticleArchivePage>;
   item: Article;
   locale: AppLocale;
   relatedArticlesPromise: Promise<ArticleListItemModel[]>;
@@ -44,7 +41,7 @@ type RelatedArticlesSectionProps = {
 };
 
 type ArticleArchiveSidebarProps = {
-  archivePagePromise: Promise<ArticleArchivePage>;
+  currentItem: Article;
   emptyText: string;
   loadErrorText: string;
   loadMoreEndText: string;
@@ -89,8 +86,8 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
 /**
  * 아티클 상세 좌측 아카이브를 비동기 경계 안에서 렌더링합니다.
  */
-const ArticleArchiveSidebar = async ({
-  archivePagePromise,
+const ArticleArchiveSidebar = ({
+  currentItem,
   emptyText,
   loadErrorText,
   loadMoreEndText,
@@ -98,24 +95,20 @@ const ArticleArchiveSidebar = async ({
   locale,
   retryText,
   selectedPathSegment,
-}: ArticleArchiveSidebarProps) => {
-  const archivePage = await archivePagePromise;
-
-  return (
-    <DetailArchiveFeed
-      emptyText={emptyText}
-      hrefBasePath="/articles"
-      initialPage={archivePage}
-      loadErrorText={loadErrorText}
-      loadPageAction={getArticleDetailArchivePageAction}
-      loadMoreEndText={loadMoreEndText}
-      loadingText={loadingText}
-      locale={locale}
-      retryText={retryText}
-      selectedPathSegment={selectedPathSegment}
-    />
-  );
-};
+}: ArticleArchiveSidebarProps) => (
+  <DetailArchiveFeed
+    currentItem={currentItem}
+    emptyText={emptyText}
+    hrefBasePath="/articles"
+    loadErrorText={loadErrorText}
+    loadPageAction={getArticleDetailArchivePageAction}
+    loadMoreEndText={loadMoreEndText}
+    loadingText={loadingText}
+    locale={locale}
+    retryText={retryText}
+    selectedPathSegment={selectedPathSegment}
+  />
+);
 
 /**
  * 아티클 상세 태그 목록을 비동기 경계 안에서 렌더링합니다.
@@ -149,7 +142,6 @@ const DeferredRelatedArticlesSection = async ({
 };
 
 export const ArticleDetailPage = ({
-  archivePagePromise,
   item,
   locale,
   relatedArticlesPromise,
@@ -234,18 +226,16 @@ export const ArticleDetailPage = ({
           />
         }
         sidebarContent={
-          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
-            <ArticleArchiveSidebar
-              archivePagePromise={archivePagePromise}
-              emptyText={detailUi('emptyArchive')}
-              loadErrorText={articlesT('loadError')}
-              loadMoreEndText={articlesT('loadMoreEnd')}
-              loadingText={articlesT('loading')}
-              locale={locale}
-              retryText={articlesT('retry')}
-              selectedPathSegment={articlePathSegment}
-            />
-          </Suspense>
+          <ArticleArchiveSidebar
+            currentItem={item}
+            emptyText={detailUi('emptyArchive')}
+            loadErrorText={articlesT('loadError')}
+            loadMoreEndText={articlesT('loadMoreEnd')}
+            loadingText={articlesT('loading')}
+            locale={locale}
+            retryText={articlesT('retry')}
+            selectedPathSegment={articlePathSegment}
+          />
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={

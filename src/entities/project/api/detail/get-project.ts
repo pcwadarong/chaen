@@ -63,7 +63,6 @@ const resolveProjectLookup = async (
     .select('id')
     .eq('slug', projectSlug)
     .eq('visibility', 'public')
-    .lte('publish_at', new Date().toISOString())
     .not('publish_at', 'is', null)
     .maybeSingle<ProjectLookup>();
   const { data: projectBySlug, error: projectBySlugError } = await projectSlugQuery;

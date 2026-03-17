@@ -9,6 +9,7 @@ import {
   resolvePublicContentPublishedAt,
 } from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
+import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
@@ -18,6 +19,7 @@ import {
   DetailArchiveList,
   detailArchiveSidebarViewportClass,
 } from '@/widgets/detail-page/archive/list';
+import { DetailArchiveSidebarSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 
 type DetailArchiveRecord = {
   description: string | null;
@@ -33,9 +35,10 @@ type DetailArchivePage<TItem> = {
 };
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
+  currentItem?: TItem | null;
   emptyText: string;
   hrefBasePath: string;
-  initialPage: DetailArchivePage<TItem>;
+  initialPage?: DetailArchivePage<TItem> | null;
   loadErrorText: string;
   loadPageAction: (input: {
     cursor?: string | null;
@@ -50,14 +53,16 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
 };
 
 const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
+const DETAIL_ARCHIVE_DEFAULT_LIMIT = 10;
 
 /**
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
  */
 export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
+  currentItem = null,
   emptyText,
   hrefBasePath,
-  initialPage,
+  initialPage = null,
   loadErrorText,
   loadPageAction,
   loadMoreEndText,
@@ -66,6 +71,16 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   retryText,
   selectedPathSegment,
 }: DetailArchiveFeedProps<TItem>) => {
+  const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(() =>
+    prependCurrentArchiveItem(initialPage, currentItem),
+  );
+  const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
+  const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
+  const [bootstrapRequestKey, setBootstrapRequestKey] = React.useState(0);
+  const resolvedInitialPage = bootstrapPage ?? {
+    items: [] as TItem[],
+    nextCursor: null,
+  };
   const loadPage = useCallback(
     async ({
       cursor,
@@ -94,9 +109,65 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     [loadPageAction],
   );
 
+  useEffect(() => {
+    if (initialPage) {
+      setBootstrapPage(prependCurrentArchiveItem(initialPage, currentItem));
+      setBootstrapError(null);
+      setIsBootstrapping(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const bootstrapArchivePage = async () => {
+      setIsBootstrapping(true);
+      setBootstrapError(null);
+
+      try {
+        const result = await loadPageAction({
+          cursor: null,
+          limit: DETAIL_ARCHIVE_DEFAULT_LIMIT,
+          locale,
+        });
+
+        if (!result.ok || !result.data) {
+          throw new Error(
+            result.errorCode ?? result.errorMessage ?? DETAIL_ARCHIVE_LOAD_ERROR_CODE,
+          );
+        }
+
+        if (!isMounted) return;
+
+        setBootstrapPage(
+          prependCurrentArchiveItem(
+            {
+              items: result.data.items,
+              nextCursor: result.data.nextCursor,
+            },
+            currentItem,
+          ),
+        );
+      } catch (error) {
+        if (!isMounted) return;
+
+        setBootstrapError(getErrorMessage(error));
+      } finally {
+        if (isMounted) {
+          setIsBootstrapping(false);
+        }
+      }
+    };
+
+    void bootstrapArchivePage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale]);
+
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
-    initialCursor: initialPage.nextCursor,
-    initialItems: initialPage.items,
+    initialCursor: resolvedInitialPage.nextCursor,
+    initialItems: resolvedInitialPage.items,
     loadPage,
     locale,
     mergeItems: (previousItems, incomingItems) => {
@@ -148,6 +219,33 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     [hrefBasePath, items, locale, selectedPathSegment],
   );
 
+  if (isBootstrapping) {
+    return <DetailArchiveSidebarSkeleton />;
+  }
+
+  if (bootstrapError) {
+    return (
+      <div
+        className={detailArchiveSidebarViewportClass}
+        data-scroll-region="true"
+        ref={viewportRef}
+      >
+        <div className={sidebarFeedbackPanelClass}>
+          <p aria-live="polite" className={sidebarErrorTextClass}>
+            {loadErrorText}
+          </p>
+          <Button
+            onClick={() => setBootstrapRequestKey(previous => previous + 1)}
+            tone="white"
+            variant="ghost"
+          >
+            {retryText}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       aria-busy={isLoadingMore ? 'true' : undefined}
@@ -184,6 +282,25 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 const sidebarSentinelClass = css({
   height: '1',
 });
+
+/**
+ * 현재 상세 항목이 초기 아카이브 페이지에 없을 때 목록 앞에 한 번만 보강합니다.
+ */
+const prependCurrentArchiveItem = <TItem extends DetailArchiveRecord>(
+  page: DetailArchivePage<TItem> | null,
+  currentItem: TItem | null,
+): DetailArchivePage<TItem> | null => {
+  if (!page || !currentItem) return page;
+
+  const dedupedItems = [currentItem, ...page.items].filter(
+    (item, index, items) => items.findIndex(candidate => candidate.id === item.id) === index,
+  );
+
+  return {
+    ...page,
+    items: dedupedItems,
+  };
+};
 
 type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
   hrefBasePath: string;

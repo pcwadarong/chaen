@@ -45,10 +45,6 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
 const renderServerHtml = async () => {
   const { ArticleDetailPage } = await import('@/views/articles/ui/article-detail-page');
   const element = ArticleDetailPage({
-    archivePagePromise: Promise.resolve({
-      items: [],
-      nextCursor: null,
-    }),
     item: {
       id: 'article-1',
       slug: 'article-1-slug',

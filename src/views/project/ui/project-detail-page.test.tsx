@@ -34,10 +34,6 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
 const renderServerHtml = async () => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
   const element = ProjectDetailPage({
-    archivePagePromise: Promise.resolve({
-      items: [],
-      nextCursor: null,
-    }),
     item: {
       id: 'project-1',
       slug: 'project-1-slug',
