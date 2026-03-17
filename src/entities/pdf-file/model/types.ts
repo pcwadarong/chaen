@@ -18,6 +18,16 @@ export type PdfFileAssetLocale = 'ko' | 'en';
 export type PdfFileAssetKey = 'resume-ko' | 'resume-en' | 'portfolio-ko' | 'portfolio-en';
 
 /**
+ * 공개 페이지에서 사용하는 PDF 다운로드 옵션입니다.
+ */
+export type PdfFileDownloadOption = {
+  assetKey: PdfFileAssetKey;
+  fileName: string;
+  href: string | null;
+  locale: PdfFileAssetLocale;
+};
+
+/**
  * 주어진 문자열이 지원하는 PDF 파일 종류인지 확인합니다.
  */
 export const isPdfFileKind = (value: string): value is PdfFileKind =>

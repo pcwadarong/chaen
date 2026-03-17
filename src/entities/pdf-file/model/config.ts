@@ -109,6 +109,12 @@ export const listPdfFileAssetStorageConfigs = (): PdfFileStorageConfig[] =>
   PDF_FILE_ASSET_KEY_ORDER.map(assetKey => getPdfFileAssetStorageConfig(assetKey));
 
 /**
+ * 특정 PDF 종류에 연결된 자산 목록을 관리자/공개 노출 순서대로 반환합니다.
+ */
+export const listPdfFileAssetStorageConfigsByKind = (kind: PdfFileKind): PdfFileStorageConfig[] =>
+  listPdfFileAssetStorageConfigs().filter(storageConfig => storageConfig.kind === kind);
+
+/**
  * PDF 종류별 기본 Supabase Storage 설정을 반환합니다.
  * 기존 공개 다운로드 경로는 kind별 기본 자산(영문 파일명)을 사용합니다.
  */
