@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 
-import { ResumePageLoadingSkeleton } from '@/shared/ui/loading/route-loading';
+import { ResumePageLoadingSkeleton } from '@/widgets/page-loading/ui/page-loading-skeletons';
 
 /**
  * 이력 페이지 라우트 전환 중 즉시 노출하는 로딩 UI입니다.

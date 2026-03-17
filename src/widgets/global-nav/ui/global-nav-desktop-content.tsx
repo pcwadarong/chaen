@@ -3,9 +3,9 @@ import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
-import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
-import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
+import { isActiveNavigationItem } from '@/widgets/global-nav/ui/is-active-navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
+import type { GlobalNavItem } from '@/widgets/global-nav/ui/navigation-item';
 import { ThemeSwitcher } from '@/widgets/global-nav/ui/theme-switcher';
 
 type GlobalNavDesktopContentProps = {

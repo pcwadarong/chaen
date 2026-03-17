@@ -30,7 +30,7 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
-vi.mock('@/shared/ui/detail-page/admin-detail-actions-gate', () => ({
+vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
   AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
     <div data-testid="admin-detail-actions-gate">
       <a href={editHref}>수정</a>

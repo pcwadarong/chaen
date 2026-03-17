@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 
-import { DetailPageShellLoadingSkeleton } from '@/shared/ui/loading/route-loading';
+import { DetailPageShellLoadingSkeleton } from '@/widgets/page-loading/ui/page-loading-skeletons';
 
 /**
  * 상세 shell이 아직 준비되지 않은 구간의 fallback입니다.

@@ -13,7 +13,7 @@ import {
   type PublishSettings,
   type TranslationField,
 } from '@/widgets/editor';
-import { createDefaultPublishSettings } from '@/widgets/editor/model/publish-panel.utils';
+import { createDefaultPublishSettings } from '@/widgets/editor/ui/publish/publish-panel.utils';
 
 type EditorClientProps = {
   availableTags: {

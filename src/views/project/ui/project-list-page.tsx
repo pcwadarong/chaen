@@ -1,9 +1,9 @@
 import { useTranslations } from 'next-intl';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { ProjectFeed } from '@/features/project-feed/ui/project-feed';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
+import { ProjectFeed } from '@/widgets/project-feed/ui/project-feed';
 
 export type ProjectListPageProps = {
   initialCursor: string | null;

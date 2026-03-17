@@ -8,9 +8,9 @@ import { Button } from '@/shared/ui/button/button';
 import { HamburgerIcon } from '@/shared/ui/icons/app-icons';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { XButton } from '@/shared/ui/x-button/x-button';
-import { isActiveNavigationItem } from '@/widgets/global-nav/model/is-active-navigation-item';
-import type { GlobalNavItem } from '@/widgets/global-nav/model/navigation-item';
+import { isActiveNavigationItem } from '@/widgets/global-nav/ui/is-active-navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
+import type { GlobalNavItem } from '@/widgets/global-nav/ui/navigation-item';
 import { ThemeSwitcher } from '@/widgets/global-nav/ui/theme-switcher';
 
 type GlobalNavMobileMenuProps = {

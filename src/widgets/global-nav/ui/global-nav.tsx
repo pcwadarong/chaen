@@ -5,14 +5,14 @@ import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
+import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { XButton } from '@/shared/ui/x-button/x-button';
-import { buildGlobalNavigationItems } from '@/widgets/global-nav/model/build-navigation-items';
+import { buildGlobalNavigationItems } from '@/widgets/global-nav/ui/build-navigation-items';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
 

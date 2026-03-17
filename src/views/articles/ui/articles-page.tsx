@@ -3,10 +3,10 @@ import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
-import { ArticleFeed } from '@/features/article-feed/ui/article-feed';
-import { ArticleSearchForm } from '@/features/article-feed/ui/article-search-form';
-import { ArticleTagFilterList } from '@/features/article-feed/ui/article-tag-filter-list';
-import { PageHeader, PageSection, PageShell } from '@/shared/ui/page-shell/page-shell';
+import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
+import { ArticleTagFilterList } from '@/features/article-tag-filter/ui/article-tag-filter-list';
+import { ArticleFeed } from '@/widgets/article-feed/ui/article-feed';
+import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 export type ArticlesPageProps = {
   activeTag: string;

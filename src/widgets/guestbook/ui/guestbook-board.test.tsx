@@ -24,8 +24,8 @@ const authState = {
 
 const guestbookFeedProps = vi.fn();
 const commentComposeFormProps = vi.fn();
-const useGuestbookFeedSpy = vi.fn();
-useGuestbookFeedSpy.mockReturnValue(hookState);
+const useBrowseGuestbookSpy = vi.fn();
+useBrowseGuestbookSpy.mockReturnValue(hookState);
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ko',
@@ -36,11 +36,11 @@ vi.mock('@/shared/providers', () => ({
   useAuth: () => authState,
 }));
 
-vi.mock('@/features/guestbook-feed/model/use-guestbook-feed', () => ({
-  useGuestbookFeed: (input: unknown) => useGuestbookFeedSpy(input),
+vi.mock('@/features/browse-guestbook/model/use-browse-guestbook', () => ({
+  useBrowseGuestbook: (input: unknown) => useBrowseGuestbookSpy(input),
 }));
 
-vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
+vi.mock('@/features/guestbook-entry-compose/api/submit-guestbook-entry', () => ({
   initialSubmitGuestbookEntryState: {
     data: null,
     errorMessage: null,
@@ -49,14 +49,14 @@ vi.mock('@/features/guestbook-feed/api/guestbook-actions', () => ({
   submitGuestbookEntry: vi.fn(),
 }));
 
-vi.mock('@/features/guestbook-feed/ui/guestbook-feed', () => ({
+vi.mock('@/widgets/guestbook/ui/guestbook-feed', () => ({
   GuestbookFeed: (props: unknown) => {
     guestbookFeedProps(props);
     return <div data-testid="guestbook-feed" />;
   },
 }));
 
-vi.mock('@/shared/ui/comment-compose-form', () => ({
+vi.mock('@/shared/ui/comment-compose', () => ({
   CommentComposeForm: (props: unknown) => {
     commentComposeFormProps(props);
     const [value, setValue] = React.useState('');
@@ -108,7 +108,7 @@ describe('GuestbookBoard', () => {
         },
       }),
     );
-    expect(useGuestbookFeedSpy).toHaveBeenCalledWith(
+    expect(useBrowseGuestbookSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         initialCursor: null,
         initialItems: [],

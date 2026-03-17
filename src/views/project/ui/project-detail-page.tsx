@@ -2,25 +2,23 @@ import { useTranslations } from 'next-intl';
 import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import {
-  deleteProjectAction,
-  getProjectDetailArchivePageAction,
-} from '@/entities/project/api/mutations/project-actions';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
+import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
+import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
-import { AdminDetailActionsGate } from '@/shared/ui/detail-page/admin-detail-actions-gate';
-import { DetailArchiveFeed } from '@/shared/ui/detail-page/archive/feed';
-import { DetailMetaBar } from '@/shared/ui/detail-page/detail-meta-bar';
+import { JsonLd } from '@/shared/ui/seo/JsonLd';
+import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
+import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
+import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
   DetailArchiveSidebarSkeleton,
   DetailTagListSkeleton,
-} from '@/shared/ui/detail-page/detail-page-section-skeletons';
-import { DetailPageShell } from '@/shared/ui/detail-page/detail-page-shell';
-import { JsonLd } from '@/shared/ui/seo/JsonLd';
+} from '@/widgets/detail-page/ui/detail-page-section-skeletons';
+import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ProjectDetailPageProps = {
   archivePagePromise: Promise<ProjectArchivePage>;

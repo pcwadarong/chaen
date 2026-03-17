@@ -3,7 +3,7 @@ import React from 'react';
 
 import { LoginPage } from '@/views/auth/ui/login-page';
 
-vi.mock('@/features/auth/ui/admin-login-form', () => ({
+vi.mock('@/features/admin-session/ui/admin-login-form', () => ({
   AdminLoginForm: ({ successRedirectPath }: { successRedirectPath: string }) => (
     <div data-redirect-path={successRedirectPath}>관리자 로그인 폼</div>
   ),

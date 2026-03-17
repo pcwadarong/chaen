@@ -23,9 +23,9 @@ import type {
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/editor/slug';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/slug/slug';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 const translationFieldSchema = z.object({

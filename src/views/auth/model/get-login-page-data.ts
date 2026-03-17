@@ -1,4 +1,4 @@
-import { buildAdminPath } from '@/features/auth';
+import { buildAdminPath } from '@/features/admin-session';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 type GetLoginPageDataInput = {
