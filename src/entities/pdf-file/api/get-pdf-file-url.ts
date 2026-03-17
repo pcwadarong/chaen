@@ -1,5 +1,8 @@
-import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
-import type { PdfFileKind } from '@/entities/pdf-file/model/types';
+import {
+  getPdfFileAssetStorageConfig,
+  getPdfFileStorageConfig,
+} from '@/entities/pdf-file/model/config';
+import type { PdfFileAssetKey, PdfFileKind } from '@/entities/pdf-file/model/types';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -9,6 +12,7 @@ type PdfFileUrlAccessType = 'public' | 'signed';
 
 type GetPdfFileUrlOptions = {
   accessType?: PdfFileUrlAccessType;
+  assetKey?: PdfFileAssetKey;
   kind?: PdfFileKind;
   bucket?: string;
   filePath?: string;
@@ -37,13 +41,16 @@ const isStorageObjectMissing = (errorMessage: string) =>
  */
 export const getPdfFileUrl = async ({
   accessType = 'signed',
+  assetKey,
   kind = 'resume',
   bucket,
   filePath,
   signedUrlExpiresInSeconds = DEFAULT_SIGNED_URL_EXPIRES_IN_SECONDS,
   downloadFileName,
 }: GetPdfFileUrlOptions = {}): Promise<string | null> => {
-  const storageConfig = getPdfFileStorageConfig(kind);
+  const storageConfig = assetKey
+    ? getPdfFileAssetStorageConfig(assetKey)
+    : getPdfFileStorageConfig(kind);
   const resolvedBucket = bucket ?? storageConfig.bucket;
   const resolvedFilePath = filePath ?? storageConfig.filePath;
   const resolvedDownloadFileName = downloadFileName ?? storageConfig.downloadFileName;
@@ -67,7 +74,7 @@ export const getPdfFileUrl = async ({
 
   if (error) {
     if (isStorageObjectMissing(error.message)) return null;
-    throw new Error(`[pdf-file:${kind}] signed URL 생성 실패: ${error.message}`);
+    throw new Error(`[pdf-file:${assetKey ?? kind}] signed URL 생성 실패: ${error.message}`);
   }
 
   return data.signedUrl;
