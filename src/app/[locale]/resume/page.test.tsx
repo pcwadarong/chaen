@@ -19,13 +19,13 @@ vi.mock('@/views/resume', () => ({
       {
         assetKey: 'resume-ko',
         fileName: '박채원_이력서.pdf',
-        href: '/api/pdf/file/resume-ko',
+        href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
         assetKey: 'resume-en',
         fileName: 'ParkChaewon-Resume.pdf',
-        href: '/api/pdf/file/resume-en',
+        href: '/api/pdf/file/resume-en?source=resume-page',
         locale: 'en',
       },
     ],
@@ -57,7 +57,9 @@ describe('ResumeRoute', () => {
     expect(element.type.name).toBe('ResumePage');
     expect(getResumePageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.downloadOptions).toHaveLength(2);
-    expect(element.props.downloadOptions[0].href).toBe('/api/pdf/file/resume-ko');
+    expect(element.props.downloadOptions[0].href).toBe(
+      '/api/pdf/file/resume-ko?source=resume-page',
+    );
     expect(element.props.content.title).toBe('안녕하세요 박채원입니다.');
   });
 

@@ -40,13 +40,13 @@ describe('getProjectListPageData', () => {
       {
         assetKey: 'portfolio-ko',
         fileName: '박채원_포트폴리오.pdf',
-        href: '/api/pdf/file/portfolio-ko',
+        href: '/api/pdf/file/portfolio-ko?source=project-page',
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
         fileName: 'ParkChaewon-Portfolio.pdf',
-        href: '/api/pdf/file/portfolio-en',
+        href: '/api/pdf/file/portfolio-en?source=project-page',
         locale: 'en',
       },
     ]);
@@ -64,7 +64,9 @@ describe('getProjectListPageData', () => {
 
     expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('portfolio');
+    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('portfolio', {
+      source: 'project-page',
+    });
     expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
@@ -72,13 +74,13 @@ describe('getProjectListPageData', () => {
       {
         assetKey: 'portfolio-ko',
         fileName: '박채원_포트폴리오.pdf',
-        href: '/api/pdf/file/portfolio-ko',
+        href: '/api/pdf/file/portfolio-ko?source=project-page',
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
         fileName: 'ParkChaewon-Portfolio.pdf',
-        href: '/api/pdf/file/portfolio-en',
+        href: '/api/pdf/file/portfolio-en?source=project-page',
         locale: 'en',
       },
     ]);

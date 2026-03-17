@@ -13,8 +13,14 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-download-options', () => ({
 }));
 
 describe('getResumePageData', () => {
+  const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    consoleWarnSpy.mockRestore();
   });
 
   it('resume 본문이 없으면 locale fallback 본문과 내부 다운로드 경로를 반환한다', async () => {
@@ -22,7 +28,7 @@ describe('getResumePageData', () => {
       {
         assetKey: 'resume-ko',
         fileName: '박채원_이력서.pdf',
-        href: '/api/pdf/file/resume-ko',
+        href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
@@ -36,13 +42,15 @@ describe('getResumePageData', () => {
 
     const data = await getResumePageData({ locale: 'ko' });
 
-    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('resume');
+    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('resume', {
+      source: 'resume-page',
+    });
     expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko', kind: 'resume' });
     expect(data.downloadOptions).toEqual([
       {
         assetKey: 'resume-ko',
         fileName: '박채원_이력서.pdf',
-        href: '/api/pdf/file/resume-ko',
+        href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
@@ -56,7 +64,8 @@ describe('getResumePageData', () => {
   });
 
   it('resume PDF 부가 데이터 조회가 실패해도 기본 본문과 빈 다운로드 목록으로 폴백한다', async () => {
-    vi.mocked(getPdfFileDownloadOptions).mockRejectedValue(new Error('download options failed'));
+    const downloadOptionsError = new Error('download options failed');
+    vi.mocked(getPdfFileDownloadOptions).mockRejectedValue(downloadOptionsError);
     vi.mocked(getPdfFileContent).mockRejectedValue(new Error('pdf content failed'));
 
     const data = await getResumePageData({ locale: 'ko' });
@@ -65,5 +74,9 @@ describe('getResumePageData', () => {
     expect(data.content.locale).toBe('ko');
     expect(data.content.download_button_label).toBeTruthy();
     expect(data.content.download_unavailable_label).toBeTruthy();
+    expect(consoleWarnSpy).toHaveBeenCalledWith('[resume] getPdfFileDownloadOptions failed', {
+      error: downloadOptionsError,
+      source: 'resume-page',
+    });
   });
 });

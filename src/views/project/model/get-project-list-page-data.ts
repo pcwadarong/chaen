@@ -16,7 +16,9 @@ type GetProjectListPageDataInput = {
 export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
-  const safePortfolioDownloadOptions = getPdfFileDownloadOptions('portfolio').catch(() => []);
+  const safePortfolioDownloadOptions = getPdfFileDownloadOptions('portfolio', {
+    source: 'project-page',
+  }).catch(() => []);
   const safePortfolioContent = getPdfFileContent({
     kind: 'portfolio',
     locale,
