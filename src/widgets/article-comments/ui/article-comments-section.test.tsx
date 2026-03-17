@@ -226,6 +226,35 @@ describe('ArticleCommentsSection', () => {
     });
   });
 
+  it('초기 페이지가 없고 첫 요청이 끝나지 않았으면 댓글 목록 skeleton을 먼저 노출한다', async () => {
+    let resolveRequest:
+      | ((value: Awaited<ReturnType<typeof getArticleCommentsPageAction>>) => void)
+      | null = null;
+
+    vi.mocked(getArticleCommentsPageAction).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          resolveRequest = resolve;
+        }),
+    );
+
+    render(<ArticleCommentsSection articleId="article-1" locale="ko" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'loading' })).toBeTruthy();
+    });
+
+    expect(resolveRequest).toBeTruthy();
+
+    await act(async () => {
+      resolveRequest?.({
+        data: initialPage,
+        errorMessage: null,
+        ok: true,
+      });
+    });
+  });
+
   it('같은 글을 다시 열면 브라우저 메모리 캐시에서 첫 댓글 페이지를 재사용한다', async () => {
     vi.mocked(getArticleCommentsPageAction).mockResolvedValueOnce({
       data: initialPage,

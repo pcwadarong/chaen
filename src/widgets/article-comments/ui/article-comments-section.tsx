@@ -636,68 +636,74 @@ const CommentsThreadListPanelBase = ({
   replyTarget,
   submitReplyCommentAction,
   text,
-}: CommentsThreadListPanelProps) => (
-  <>
-    {errorMessage && pageData.items.length === 0 ? (
-      <div className={stateCardClass} role="alert">
-        <p className={stateTextClass}>{errorMessage}</p>
-        <Button onClick={onRetryLoad} tone="white" type="button">
-          {text.retry}
-        </Button>
-      </div>
-    ) : null}
+}: CommentsThreadListPanelProps) => {
+  const hasItems = pageData.items.length > 0;
+  const isInitialLoading = !errorMessage && isLoading && !hasItems;
+  const isRefreshingList = isLoading && hasItems;
+  const shouldShowEmptyState = !isLoading && !errorMessage && !hasItems;
+  const shouldShowErrorState = Boolean(errorMessage) && !hasItems;
+  const shouldShowThreadList = !isLoading && hasItems;
+  const shouldShowPagination = shouldShowThreadList && pageData.totalPages > 1;
 
-    {!errorMessage && isLoading && pageData.items.length === 0 ? (
-      <div className={stateCardClass}>
-        <p className={stateTextClass}>{text.loading}</p>
-      </div>
-    ) : null}
+  return (
+    <>
+      {shouldShowErrorState ? (
+        <div className={stateCardClass} role="alert">
+          <p className={stateTextClass}>{errorMessage}</p>
+          <Button onClick={onRetryLoad} tone="white" type="button">
+            {text.retry}
+          </Button>
+        </div>
+      ) : null}
 
-    {isLoading && pageData.items.length > 0 ? (
-      <CommentsLoadingSkeleton loadingText={text.loading} />
-    ) : null}
+      {isInitialLoading ? <CommentsLoadingSkeleton loadingText={text.loading} /> : null}
 
-    {!isLoading && !errorMessage && pageData.items.length === 0 ? (
-      <div className={stateCardClass}>
-        <p className={stateTextClass}>{text.emptyItems}</p>
-      </div>
-    ) : null}
+      {isRefreshingList ? <CommentsLoadingSkeleton loadingText={text.loading} /> : null}
 
-    {!isLoading && pageData.items.length > 0 ? (
-      <ol className={threadListClass}>
-        {pageData.items.map(thread => (
-          <li key={thread.id}>
-            <CommentThreadItemView
-              articleId={articleId}
-              isReplySubmitting={isReplySubmitting}
-              locale={locale}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onReply={onReply}
-              replyPlaceholder={replyTarget?.parentId === thread.id ? activeReplyPlaceholder : null}
-              replySubmitState={replySubmitState}
-              replyTarget={replyTarget}
-              submitReplyCommentAction={submitReplyCommentAction}
-              text={text}
-              thread={thread}
-            />
-          </li>
-        ))}
-      </ol>
-    ) : null}
+      {shouldShowEmptyState ? (
+        <div className={stateCardClass}>
+          <p className={stateTextClass}>{text.emptyItems}</p>
+        </div>
+      ) : null}
 
-    {!isLoading && pageData.items.length > 0 && pageData.totalPages > 1 ? (
-      <div className={footerPaginationWrapClass}>
-        <Pagination
-          ariaLabel={text.paginationLabel}
-          currentPage={queryState.page}
-          onPageChange={onPageChange}
-          totalPages={pageData.totalPages}
-        />
-      </div>
-    ) : null}
-  </>
-);
+      {shouldShowThreadList ? (
+        <ol className={threadListClass}>
+          {pageData.items.map(thread => (
+            <li key={thread.id}>
+              <CommentThreadItemView
+                articleId={articleId}
+                isReplySubmitting={isReplySubmitting}
+                locale={locale}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                onReply={onReply}
+                replyPlaceholder={
+                  replyTarget?.parentId === thread.id ? activeReplyPlaceholder : null
+                }
+                replySubmitState={replySubmitState}
+                replyTarget={replyTarget}
+                submitReplyCommentAction={submitReplyCommentAction}
+                text={text}
+                thread={thread}
+              />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      {shouldShowPagination ? (
+        <div className={footerPaginationWrapClass}>
+          <Pagination
+            ariaLabel={text.paginationLabel}
+            currentPage={queryState.page}
+            onPageChange={onPageChange}
+            totalPages={pageData.totalPages}
+          />
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 CommentsThreadListPanelBase.displayName = 'CommentsThreadListPanel';
 
