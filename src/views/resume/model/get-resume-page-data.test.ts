@@ -27,13 +27,13 @@ describe('getResumePageData', () => {
     vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([
       {
         assetKey: 'resume-ko',
-        fileName: '박채원_이력서.pdf',
+        fileName: 'ParkChaewon-Resume-kr.pdf',
         href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
         assetKey: 'resume-en',
-        fileName: 'ParkChaewon-Resume.pdf',
+        fileName: 'ParkChaewon-Resume-en.pdf',
         href: null,
         locale: 'en',
       },
@@ -49,13 +49,13 @@ describe('getResumePageData', () => {
     expect(data.downloadOptions).toEqual([
       {
         assetKey: 'resume-ko',
-        fileName: '박채원_이력서.pdf',
+        fileName: 'ParkChaewon-Resume-kr.pdf',
         href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
         assetKey: 'resume-en',
-        fileName: 'ParkChaewon-Resume.pdf',
+        fileName: 'ParkChaewon-Resume-en.pdf',
         href: null,
         locale: 'en',
       },
