@@ -104,7 +104,7 @@ describe('getProject', () => {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
       target_project_id: 'funda-project',
     });
-    expect(projectSlugQuery.lte).toHaveBeenCalledTimes(1);
+    expect(projectSlugQuery.lte).not.toHaveBeenCalled();
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects', 'project:funda-project');
   });
 

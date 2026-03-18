@@ -102,7 +102,7 @@ describe('getArticle', () => {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
       target_article_id: 'frontend-performance',
     });
-    expect(articleSlugQuery.lte).toHaveBeenCalledTimes(1);
+    expect(articleSlugQuery.lte).not.toHaveBeenCalled();
     expect(unstable_cacheTag).toHaveBeenCalledWith('articles', 'article:frontend-performance');
   });
 
