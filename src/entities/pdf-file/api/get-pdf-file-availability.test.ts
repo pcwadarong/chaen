@@ -40,7 +40,7 @@ describe('getPdfFileAvailability', () => {
       list: vi.fn().mockResolvedValue({
         data: [
           {
-            name: 'ParkChaewon-Resume.pdf',
+            name: 'ParkChaewon-Resume-en.pdf',
           },
         ],
         error: null,

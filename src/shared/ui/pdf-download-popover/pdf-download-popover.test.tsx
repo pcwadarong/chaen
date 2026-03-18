@@ -11,13 +11,13 @@ describe('PdfDownloadPopover', () => {
         options={[
           {
             assetKey: 'resume-ko',
-            fileName: '박채원_이력서.pdf',
+            fileName: 'ParkChaewon-Resume-kr.pdf',
             href: null,
             locale: 'ko',
           },
           {
             assetKey: 'resume-en',
-            fileName: 'ParkChaewon-Resume.pdf',
+            fileName: 'ParkChaewon-Resume-en.pdf',
             href: null,
             locale: 'en',
           },
@@ -36,13 +36,13 @@ describe('PdfDownloadPopover', () => {
         options={[
           {
             assetKey: 'resume-ko',
-            fileName: '박채원_이력서.pdf',
+            fileName: 'ParkChaewon-Resume-kr.pdf',
             href: '/api/pdf/file/resume-ko',
             locale: 'ko',
           },
           {
             assetKey: 'resume-en',
-            fileName: 'ParkChaewon-Resume.pdf',
+            fileName: 'ParkChaewon-Resume-en.pdf',
             href: null,
             locale: 'en',
           },
@@ -55,11 +55,11 @@ describe('PdfDownloadPopover', () => {
 
     expect(screen.getByRole('dialog', { name: '이력서 다운로드' })).toBeTruthy();
 
-    const koLink = screen.getByRole('link', { name: /KO 박채원_이력서\.pdf/ });
+    const koLink = screen.getByRole('link', { name: /KO ParkChaewon-Resume-kr\.pdf/ });
     expect(koLink.getAttribute('href')).toBe('/api/pdf/file/resume-ko');
-    expect(koLink.getAttribute('download')).toBe('박채원_이력서.pdf');
+    expect(koLink.getAttribute('download')).toBe('ParkChaewon-Resume-kr.pdf');
 
-    expect(screen.getByRole('button', { name: /EN ParkChaewon-Resume\.pdf/ })).toHaveProperty(
+    expect(screen.getByRole('button', { name: /EN ParkChaewon-Resume-en\.pdf/ })).toHaveProperty(
       'disabled',
       true,
     );

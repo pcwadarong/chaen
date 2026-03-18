@@ -10,33 +10,33 @@ vi.mock('@/entities/pdf-file/api/upload-pdf-file-by-asset-key', () => ({
 const baseItems = [
   {
     assetKey: 'resume-ko' as const,
-    downloadFileName: '박채원_이력서.pdf',
+    downloadFileName: 'ParkChaewon-Resume-kr.pdf',
     downloadPath: '/api/pdf/file/resume-ko',
-    filePath: '박채원_이력서.pdf',
+    filePath: 'ParkChaewon-Resume-kr.pdf',
     isPdfReady: false,
     title: '이력서 PDF · 국문',
   },
   {
     assetKey: 'resume-en' as const,
-    downloadFileName: 'ParkChaewon-Resume.pdf',
+    downloadFileName: 'ParkChaewon-Resume-en.pdf',
     downloadPath: '/api/pdf/file/resume-en',
-    filePath: 'ParkChaewon-Resume.pdf',
+    filePath: 'ParkChaewon-Resume-en.pdf',
     isPdfReady: false,
     title: '이력서 PDF · 영문',
   },
   {
     assetKey: 'portfolio-ko' as const,
-    downloadFileName: '박채원_포트폴리오.pdf',
+    downloadFileName: 'ParkChaewon-Portfolio-kr.pdf',
     downloadPath: '/api/pdf/file/portfolio-ko',
-    filePath: '박채원_포트폴리오.pdf',
+    filePath: 'ParkChaewon-Portfolio-kr.pdf',
     isPdfReady: false,
     title: '포트폴리오 PDF · 국문',
   },
   {
     assetKey: 'portfolio-en' as const,
-    downloadFileName: 'ParkChaewon-Portfolio.pdf',
+    downloadFileName: 'ParkChaewon-Portfolio-en.pdf',
     downloadPath: '/api/pdf/file/portfolio-en',
-    filePath: 'ParkChaewon-Portfolio.pdf',
+    filePath: 'ParkChaewon-Portfolio-en.pdf',
     isPdfReady: true,
     title: '포트폴리오 PDF · 영문',
   },
@@ -51,10 +51,10 @@ describe('AdminPdfUploadPanel', () => {
     render(<AdminPdfUploadPanel initialItems={baseItems} />);
 
     expect(screen.getByRole('heading', { level: 2, name: 'PDF 파일 관리' })).toBeTruthy();
-    expect(screen.getByText('박채원_이력서.pdf')).toBeTruthy();
-    expect(screen.getByText('ParkChaewon-Resume.pdf')).toBeTruthy();
-    expect(screen.getByText('박채원_포트폴리오.pdf')).toBeTruthy();
-    expect(screen.getByText('ParkChaewon-Portfolio.pdf')).toBeTruthy();
+    expect(screen.getByText('ParkChaewon-Resume-kr.pdf')).toBeTruthy();
+    expect(screen.getByText('ParkChaewon-Resume-en.pdf')).toBeTruthy();
+    expect(screen.getByText('ParkChaewon-Portfolio-kr.pdf')).toBeTruthy();
+    expect(screen.getByText('ParkChaewon-Portfolio-en.pdf')).toBeTruthy();
     expect(screen.getAllByRole('button', { name: '다운로드 확인' })).toHaveLength(3);
     expect(screen.getByRole('link', { name: '다운로드 확인' })).toBeTruthy();
   });
@@ -65,9 +65,9 @@ describe('AdminPdfUploadPanel', () => {
 
     vi.mocked(uploadPdfFileByAssetKey).mockResolvedValue({
       assetKey: 'resume-ko',
-      downloadFileName: '박채원_이력서.pdf',
+      downloadFileName: 'ParkChaewon-Resume-kr.pdf',
       downloadPath: '/api/pdf/file/resume-ko',
-      filePath: '박채원_이력서.pdf',
+      filePath: 'ParkChaewon-Resume-kr.pdf',
       isPdfReady: true,
     });
 
@@ -151,9 +151,9 @@ describe('AdminPdfUploadPanel', () => {
             resolveResumeKoUpload = () =>
               resolve({
                 assetKey: 'resume-ko',
-                downloadFileName: '박채원_이력서.pdf',
+                downloadFileName: 'ParkChaewon-Resume-kr.pdf',
                 downloadPath: '/api/pdf/file/resume-ko',
-                filePath: '박채원_이력서.pdf',
+                filePath: 'ParkChaewon-Resume-kr.pdf',
                 isPdfReady: true,
               });
           }),
@@ -164,9 +164,9 @@ describe('AdminPdfUploadPanel', () => {
             resolveResumeEnUpload = () =>
               resolve({
                 assetKey: 'resume-en',
-                downloadFileName: 'ParkChaewon-Resume.pdf',
+                downloadFileName: 'ParkChaewon-Resume-en.pdf',
                 downloadPath: '/api/pdf/file/resume-en',
-                filePath: 'ParkChaewon-Resume.pdf',
+                filePath: 'ParkChaewon-Resume-en.pdf',
                 isPdfReady: true,
               });
           }),

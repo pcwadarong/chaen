@@ -41,9 +41,9 @@ const baseEditorState = {
 };
 
 const baseSettings = {
-  downloadFileName: 'ParkChaewon-Resume.pdf',
+  downloadFileName: 'ParkChaewon-Resume-en.pdf',
   downloadPath: '/api/pdf/resume',
-  filePath: 'ParkChaewon-Resume.pdf',
+  filePath: 'ParkChaewon-Resume-en.pdf',
   isPdfReady: false,
 };
 

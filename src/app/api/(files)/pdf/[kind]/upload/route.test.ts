@@ -52,7 +52,7 @@ describe('api/pdf/[kind]/upload route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume.pdf');
+    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-en.pdf');
 
     const formData = new FormData();
     formData.set('file', new File(['pdf'], 'resume.pdf', { type: 'application/pdf' }));
@@ -72,13 +72,13 @@ describe('api/pdf/[kind]/upload route', () => {
     expect(uploadPdfFile).toHaveBeenCalledWith({
       bucket: 'pdf',
       file: expect.any(File),
-      filePath: 'ParkChaewon-Resume.pdf',
+      filePath: 'ParkChaewon-Resume-en.pdf',
       upsert: true,
     });
     expect(await response.json()).toEqual({
-      downloadFileName: 'ParkChaewon-Resume.pdf',
+      downloadFileName: 'ParkChaewon-Resume-en.pdf',
       downloadPath: '/api/pdf/resume',
-      filePath: 'ParkChaewon-Resume.pdf',
+      filePath: 'ParkChaewon-Resume-en.pdf',
       isPdfReady: true,
     });
     expect(revalidateTag).toHaveBeenCalledWith('pdf-files');

@@ -67,9 +67,9 @@ describe('AdminResumeEditRoute', () => {
         },
       },
       initialPublishSettings: {
-        downloadFileName: 'ParkChaewon-Resume.pdf',
+        downloadFileName: 'ParkChaewon-Resume-en.pdf',
         downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume.pdf',
+        filePath: 'ParkChaewon-Resume-en.pdf',
         isPdfReady: false,
       },
       initialSavedAt: '2026-03-12T00:00:00.000Z',
@@ -131,9 +131,9 @@ describe('AdminResumeEditRoute', () => {
       },
       initialDraftId: 'resume-draft-1',
       initialPublishSettings: {
-        downloadFileName: 'ParkChaewon-Resume.pdf',
+        downloadFileName: 'ParkChaewon-Resume-en.pdf',
         downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume.pdf',
+        filePath: 'ParkChaewon-Resume-en.pdf',
         isPdfReady: true,
       },
       initialSavedAt: '2026-03-12T00:00:00.000Z',

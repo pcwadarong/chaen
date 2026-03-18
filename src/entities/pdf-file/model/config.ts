@@ -69,10 +69,10 @@ const PDF_FILE_ASSET_DEFINITION_BY_KEY: Record<PdfFileAssetKey, PdfFileAssetDefi
 };
 
 const DEFAULT_PDF_FILE_NAME_BY_ASSET_KEY: Record<PdfFileAssetKey, string> = {
-  'portfolio-en': 'ParkChaewon-Portfolio.pdf',
-  'portfolio-ko': '박채원_포트폴리오.pdf',
-  'resume-en': 'ParkChaewon-Resume.pdf',
-  'resume-ko': '박채원_이력서.pdf',
+  'portfolio-en': 'ParkChaewon-Portfolio-en.pdf',
+  'portfolio-ko': 'ParkChaewon-Portfolio-kr.pdf',
+  'resume-en': 'ParkChaewon-Resume-en.pdf',
+  'resume-ko': 'ParkChaewon-Resume-kr.pdf',
 };
 
 const SHARED_PDF_FILE_CONTENT_TABLE_NAME = 'resume_contents';

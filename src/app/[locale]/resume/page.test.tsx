@@ -18,13 +18,13 @@ vi.mock('@/views/resume', () => ({
     downloadOptions: [
       {
         assetKey: 'resume-ko',
-        fileName: '박채원_이력서.pdf',
+        fileName: 'ParkChaewon-Resume-kr.pdf',
         href: '/api/pdf/file/resume-ko?source=resume-page',
         locale: 'ko',
       },
       {
         assetKey: 'resume-en',
-        fileName: 'ParkChaewon-Resume.pdf',
+        fileName: 'ParkChaewon-Resume-en.pdf',
         href: '/api/pdf/file/resume-en?source=resume-page',
         locale: 'en',
       },

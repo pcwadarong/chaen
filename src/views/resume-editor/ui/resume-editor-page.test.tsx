@@ -9,9 +9,9 @@ describe('ResumeEditorPage', () => {
       hideAppFrameFooter: true,
       initialContents: createDefaultResumeEditorContentMap(),
       initialPublishSettings: {
-        downloadFileName: 'ParkChaewon-Resume.pdf',
+        downloadFileName: 'ParkChaewon-Resume-en.pdf',
         downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume.pdf',
+        filePath: 'ParkChaewon-Resume-en.pdf',
         isPdfReady: false,
       },
     });
@@ -19,9 +19,9 @@ describe('ResumeEditorPage', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.props.hideAppFrameFooter).toBe(true);
     expect(element.props.initialPublishSettings).toEqual({
-      downloadFileName: 'ParkChaewon-Resume.pdf',
+      downloadFileName: 'ParkChaewon-Resume-en.pdf',
       downloadPath: '/api/pdf/resume',
-      filePath: 'ParkChaewon-Resume.pdf',
+      filePath: 'ParkChaewon-Resume-en.pdf',
       isPdfReady: false,
     });
   });

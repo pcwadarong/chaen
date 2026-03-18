@@ -9,9 +9,9 @@ describe('uploadPdfFileByAssetKey', () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       json: async () => ({
         assetKey: 'resume-ko',
-        downloadFileName: '박채원_이력서.pdf',
+        downloadFileName: 'ParkChaewon-Resume-kr.pdf',
         downloadPath: '/api/pdf/file/resume-ko',
-        filePath: '박채원_이력서.pdf',
+        filePath: 'ParkChaewon-Resume-kr.pdf',
         isPdfReady: true,
       }),
       ok: true,
@@ -25,9 +25,9 @@ describe('uploadPdfFileByAssetKey', () => {
       }),
     ).resolves.toEqual({
       assetKey: 'resume-ko',
-      downloadFileName: '박채원_이력서.pdf',
+      downloadFileName: 'ParkChaewon-Resume-kr.pdf',
       downloadPath: '/api/pdf/file/resume-ko',
-      filePath: '박채원_이력서.pdf',
+      filePath: 'ParkChaewon-Resume-kr.pdf',
       isPdfReady: true,
     });
   });

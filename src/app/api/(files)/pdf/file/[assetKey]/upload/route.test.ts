@@ -60,7 +60,7 @@ describe('api/pdf/file/[assetKey]/upload route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadPdfFile).mockResolvedValue('박채원_이력서.pdf');
+    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-kr.pdf');
 
     const formData = {
       get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body')),
@@ -84,14 +84,14 @@ describe('api/pdf/file/[assetKey]/upload route', () => {
         name: 'resume-ko.pdf',
         type: 'application/pdf',
       }),
-      filePath: '박채원_이력서.pdf',
+      filePath: 'ParkChaewon-Resume-kr.pdf',
       upsert: true,
     });
     expect(await response.json()).toEqual({
       assetKey: 'resume-ko',
-      downloadFileName: '박채원_이력서.pdf',
+      downloadFileName: 'ParkChaewon-Resume-kr.pdf',
       downloadPath: '/api/pdf/file/resume-ko',
-      filePath: '박채원_이력서.pdf',
+      filePath: 'ParkChaewon-Resume-kr.pdf',
       isPdfReady: true,
     });
     expect(revalidateTag).toHaveBeenCalledWith('pdf-files');

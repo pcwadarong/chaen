@@ -41,7 +41,7 @@ describe('resume-editor.utils', () => {
         settings: {
           downloadFileName: 'Resume.pdf',
           downloadPath: '/api/pdf/resume',
-          filePath: 'ParkChaewon-Resume.pdf',
+          filePath: 'ParkChaewon-Resume-en.pdf',
           isPdfReady: false,
         },
       }),

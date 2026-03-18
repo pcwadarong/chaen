@@ -158,9 +158,9 @@ describe('resume-editor-actions', () => {
       draftId: 'resume-draft-1',
       locale: 'ko',
       settings: {
-        downloadFileName: 'ParkChaewon-Resume.pdf',
+        downloadFileName: 'ParkChaewon-Resume-en.pdf',
         downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume.pdf',
+        filePath: 'ParkChaewon-Resume-en.pdf',
         isPdfReady: true,
       },
       state: {
@@ -292,9 +292,9 @@ describe('resume-editor-actions', () => {
         draftId: 'resume-draft-1',
         locale: 'ko',
         settings: {
-          downloadFileName: 'ParkChaewon-Resume.pdf',
+          downloadFileName: 'ParkChaewon-Resume-en.pdf',
           downloadPath: '/api/pdf/resume',
-          filePath: 'ParkChaewon-Resume.pdf',
+          filePath: 'ParkChaewon-Resume-en.pdf',
           isPdfReady: true,
         },
         state: {

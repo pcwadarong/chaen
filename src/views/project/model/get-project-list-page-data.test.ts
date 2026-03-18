@@ -39,13 +39,13 @@ describe('getProjectListPageData', () => {
     vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([
       {
         assetKey: 'portfolio-ko',
-        fileName: '박채원_포트폴리오.pdf',
+        fileName: 'ParkChaewon-Portfolio-kr.pdf',
         href: '/api/pdf/file/portfolio-ko?source=project-page',
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio.pdf',
+        fileName: 'ParkChaewon-Portfolio-en.pdf',
         href: '/api/pdf/file/portfolio-en?source=project-page',
         locale: 'en',
       },
@@ -73,13 +73,13 @@ describe('getProjectListPageData', () => {
     expect(data.portfolioDownloadOptions).toEqual([
       {
         assetKey: 'portfolio-ko',
-        fileName: '박채원_포트폴리오.pdf',
+        fileName: 'ParkChaewon-Portfolio-kr.pdf',
         href: '/api/pdf/file/portfolio-ko?source=project-page',
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio.pdf',
+        fileName: 'ParkChaewon-Portfolio-en.pdf',
         href: '/api/pdf/file/portfolio-en?source=project-page',
         locale: 'en',
       },
@@ -98,13 +98,13 @@ describe('getProjectListPageData', () => {
     vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([
       {
         assetKey: 'portfolio-ko',
-        fileName: '박채원_포트폴리오.pdf',
+        fileName: 'ParkChaewon-Portfolio-kr.pdf',
         href: null,
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio.pdf',
+        fileName: 'ParkChaewon-Portfolio-en.pdf',
         href: null,
         locale: 'en',
       },
@@ -120,13 +120,13 @@ describe('getProjectListPageData', () => {
     expect(data.portfolioDownloadOptions).toEqual([
       {
         assetKey: 'portfolio-ko',
-        fileName: '박채원_포트폴리오.pdf',
+        fileName: 'ParkChaewon-Portfolio-kr.pdf',
         href: null,
         locale: 'ko',
       },
       {
         assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio.pdf',
+        fileName: 'ParkChaewon-Portfolio-en.pdf',
         href: null,
         locale: 'en',
       },
