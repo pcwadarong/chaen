@@ -38,6 +38,11 @@ describe('EditorLocalePanel', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('제목 에러가 있으면 textarea와 에러 메시지를 연결한다', () => {
     render(<EditorLocalePanel {...baseProps} activeLocaleHasTitleError />);
     const titleField = screen.getByLabelText('제목');
@@ -55,5 +60,45 @@ describe('EditorLocalePanel', () => {
     });
 
     expect(baseProps.onContentChange).toHaveBeenCalledWith('ko', '새 본문');
+  });
+
+  it('본문 입력 변경으로 pane 측정 observer를 다시 만들지 않는다', () => {
+    const resizeObserver = {
+      disconnect: vi.fn(),
+      observe: vi.fn(),
+    };
+    const resizeObserverConstructor = vi.fn().mockImplementation(() => resizeObserver);
+    const boundingRect = {
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      toJSON: () => ({}),
+      top: 120,
+      width: 0,
+      x: 0,
+      y: 0,
+    } satisfies DOMRect;
+
+    vi.stubGlobal('ResizeObserver', resizeObserverConstructor);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+      boundingRect as DOMRect,
+    );
+
+    const { rerender } = render(<EditorLocalePanel {...baseProps} />);
+
+    expect(resizeObserverConstructor).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <EditorLocalePanel
+        {...baseProps}
+        translation={{
+          ...baseProps.translation,
+          title: '제목 변경',
+        }}
+      />,
+    );
+
+    expect(resizeObserverConstructor).toHaveBeenCalledTimes(1);
   });
 });

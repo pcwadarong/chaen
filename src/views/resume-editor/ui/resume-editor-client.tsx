@@ -16,7 +16,7 @@ type ResumeEditorClientProps = {
   initialDraftId?: string | null;
   initialContents: ResumeEditorState['contents'];
   initialSavedAt?: string | null;
-  onDraftSave?: (
+  onDraftSave: (
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<DraftSaveResult | void>;
@@ -40,10 +40,6 @@ export const ResumeEditorClient = ({
 
   const handleDraftSave = useCallback(
     async (state: EditorState) => {
-      if (!onDraftSave) {
-        return undefined;
-      }
-
       const result = await onDraftSave(editorStateToResumeEditorState(state), draftId);
 
       if (result?.draftId) {
@@ -73,7 +69,7 @@ export const ResumeEditorClient = ({
     <MemoizedEditorCore
       availableTags={[]}
       contentType="resume"
-      enableAutosave={false}
+      enableAutosave
       extraLocaleFieldLabel="다운로드 버튼 라벨"
       hideAppFrameFooter={hideAppFrameFooter}
       hideTagSelector

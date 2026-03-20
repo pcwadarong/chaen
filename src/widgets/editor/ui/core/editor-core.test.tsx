@@ -61,6 +61,7 @@ const availableTags = [
 const renderEditorCore = (options?: {
   initialTranslations?: React.ComponentProps<typeof EditorCore>['initialTranslations'];
   initialSavedAt?: string | null;
+  onDirectPublish?: React.ComponentProps<typeof EditorCore>['onDirectPublish'];
   onDraftSave?: (
     state: Parameters<NonNullable<React.ComponentProps<typeof EditorCore>['onDraftSave']>>[0],
   ) => Promise<void>;
@@ -85,6 +86,7 @@ const renderEditorCore = (options?: {
           ko: { content: '', description: '', title: '' },
         }
       }
+      onDirectPublish={options?.onDirectPublish}
       onDraftSave={onDraftSave}
       onOpenPublishPanel={onOpenPublishPanel}
     />,
@@ -399,6 +401,25 @@ describe('EditorCore', () => {
           title: 'publish-title',
         },
       },
+    });
+  });
+
+  it('direct publish는 저장 가능한 상태가 아니면 실행하지 않고 토스트를 띄운다', async () => {
+    const onDirectPublish = vi.fn().mockResolvedValue(undefined);
+
+    renderEditorCore({
+      onDirectPublish,
+      onDraftSave: undefined,
+      onOpenPublishPanel: undefined,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(onDirectPublish).not.toHaveBeenCalled();
+      expect(
+        screen.getByText('저장하려면 제목과 본문이 모두 있는 언어 버전이 최소 하나는 필요합니다.'),
+      ).toBeTruthy();
     });
   });
 });

@@ -401,6 +401,8 @@ export const EditorCore = ({
     });
 
     if (onDirectPublish) {
+      if (!ensureSavable('manual')) return;
+
       setIsPublishingDirectly(true);
 
       try {
@@ -423,6 +425,7 @@ export const EditorCore = ({
     onOpenPublishPanel?.(snapshot);
   }, [
     dirty,
+    ensureSavable,
     onDirectPublish,
     onDirectPublishError,
     onOpenPublishPanel,

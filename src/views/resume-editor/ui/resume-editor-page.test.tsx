@@ -9,6 +9,7 @@ describe('ResumeEditorPage', () => {
     const element = ResumeEditorPage({
       hideAppFrameFooter: true,
       initialContents,
+      onDraftSave: vi.fn().mockResolvedValue(undefined),
     });
 
     expect(isValidElement(element)).toBe(true);

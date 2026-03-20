@@ -66,6 +66,7 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
       },
     },
   },
+  lastOnDraftSave: undefined as EditorCoreProps['onDraftSave'] | undefined,
   lastOnDirectPublish: undefined as EditorCoreProps['onDirectPublish'] | undefined,
 }));
 
@@ -74,8 +75,9 @@ vi.mock('@/widgets/editor', async () => {
 
   return {
     ...actual,
-    EditorCore: ({ hideAppFrameFooter, onDirectPublish }: EditorCoreProps) => {
+    EditorCore: ({ hideAppFrameFooter, onDirectPublish, onDraftSave }: EditorCoreProps) => {
       resumeEditorClientMockState.editorCoreRenderCount += 1;
+      resumeEditorClientMockState.lastOnDraftSave = onDraftSave;
       resumeEditorClientMockState.lastOnDirectPublish = onDirectPublish;
 
       return (
@@ -95,15 +97,18 @@ vi.mock('@/widgets/editor', async () => {
 describe('ResumeEditorClient', () => {
   beforeEach(() => {
     resumeEditorClientMockState.editorCoreRenderCount = 0;
+    resumeEditorClientMockState.lastOnDraftSave = undefined;
     resumeEditorClientMockState.lastOnDirectPublish = undefined;
   });
 
   it('발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다', async () => {
+    const onDraftSave = vi.fn().mockResolvedValue(undefined);
     const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(
       <ResumeEditorClient
         initialContents={toResumeInitialContents()}
+        onDraftSave={onDraftSave}
         onPublishSubmit={onPublishSubmit}
       />,
     );
@@ -147,11 +152,13 @@ describe('ResumeEditorClient', () => {
   });
 
   it('발행 버튼 클릭으로 resume editor core를 다시 그리지 않는다', async () => {
+    const onDraftSave = vi.fn().mockResolvedValue(undefined);
     const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(
       <ResumeEditorClient
         initialContents={toResumeInitialContents()}
+        onDraftSave={onDraftSave}
         onPublishSubmit={onPublishSubmit}
       />,
     );
@@ -169,15 +176,35 @@ describe('ResumeEditorClient', () => {
 
   it('hideAppFrameFooter를 resume editor core까지 전달한다', () => {
     const { container } = render(
-      <ResumeEditorClient hideAppFrameFooter initialContents={toResumeInitialContents()} />,
+      <ResumeEditorClient
+        hideAppFrameFooter
+        initialContents={toResumeInitialContents()}
+        onDraftSave={vi.fn().mockResolvedValue(undefined)}
+      />,
     );
 
     expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
   });
 
   it('onPublishSubmit이 없으면 resume editor core에 onPublish를 넘기지 않는다', () => {
-    render(<ResumeEditorClient initialContents={toResumeInitialContents()} />);
+    render(
+      <ResumeEditorClient
+        initialContents={toResumeInitialContents()}
+        onDraftSave={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
 
     expect(resumeEditorClientMockState.lastOnDirectPublish).toBeUndefined();
+  });
+
+  it('resume editor core에는 항상 draft save callback을 넘긴다', () => {
+    render(
+      <ResumeEditorClient
+        initialContents={toResumeInitialContents()}
+        onDraftSave={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    expect(typeof resumeEditorClientMockState.lastOnDraftSave).toBe('function');
   });
 });
