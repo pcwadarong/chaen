@@ -1,6 +1,7 @@
 import React from 'react';
 import { MarkdownAsync } from 'react-markdown';
 
+import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   getMarkdownOptions,
   markdownBodyClass,
@@ -20,7 +21,9 @@ type MarkdownRendererProps = {
 export const MarkdownRenderer = async ({ emptyText, locale, markdown }: MarkdownRendererProps) => {
   if (!markdown) return emptyText ? <p className={markdownEmptyTextClass}>{emptyText}</p> : null;
 
-  const markdownOptions = getMarkdownOptions();
+  const markdownOptions = getMarkdownOptions({
+    items: collectMarkdownImages(markdown),
+  });
 
   return (
     <div className={markdownBodyClass} lang={locale}>

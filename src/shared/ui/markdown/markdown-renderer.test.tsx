@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { renderToReadableStream } from 'react-dom/server';
 
+import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 
 vi.mock('next-intl', () => ({
@@ -39,6 +40,19 @@ const renderServerDocument = async (markdown: string) => {
 };
 
 describe('MarkdownRenderer', () => {
+  it('이미지 목록 helper는 본문 이미지 순서와 viewer id를 안정적으로 만든다', () => {
+    expect(
+      collectMarkdownImages(
+        ['![첫 번째](https://example.com/one.png)', '![두 번째](https://example.com/two.png)'].join(
+          '\n',
+        ),
+      ),
+    ).toEqual([
+      { alt: '첫 번째', src: 'https://example.com/one.png', viewerId: 'markdown-image-0' },
+      { alt: '두 번째', src: 'https://example.com/two.png', viewerId: 'markdown-image-1' },
+    ]);
+  });
+
   it('GFM과 코드 블럭 스타일을 포함한 markdown를 렌더링한다', async () => {
     const markdown = [
       '# 제목',

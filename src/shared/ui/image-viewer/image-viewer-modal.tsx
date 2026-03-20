@@ -27,7 +27,7 @@ type ImageViewerModalProps = {
   initialIndex: number | null;
   items: ImageViewerItem[];
   labels: ImageViewerLabels;
-  onClose: () => void;
+  onClose: (currentIndex: number) => void;
 };
 
 const MIN_ZOOM = 0.75;
@@ -255,7 +255,9 @@ export const ImageViewerModal = ({
       closeButtonClassName={viewerCloseButtonClass}
       frameClassName={viewerFrameClass}
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        onClose(currentIndex);
+      }}
     >
       <div className={viewerContentClass}>
         <div className={imageStageClass}>
@@ -460,6 +462,7 @@ const draggingImageViewportClass = css({
 
 const imageInnerClass = css({
   width: 'full',
+  height: 'full',
   minHeight: 'full',
   display: 'grid',
   placeItems: 'center',
@@ -467,8 +470,10 @@ const imageInnerClass = css({
 });
 
 const viewerImageClass = css({
-  width: '[min(100%,1120px)]',
+  width: 'auto',
+  maxWidth: '[min(100%,1440px)]',
   height: 'auto',
+  maxHeight: 'full',
   transformOrigin: 'center',
   transition: '[transform 140ms ease]',
   userSelect: 'none',
@@ -538,9 +543,10 @@ const thumbnailRailClass = css({
   gap: '2',
   overflowX: 'auto',
   pt: '1',
-  px: '1',
+  px: '4',
   pb: '2',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
+  scrollPaddingInline: '4',
 });
 
 const thumbnailButtonClass = css({

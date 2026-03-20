@@ -1,12 +1,61 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { type ImgHTMLAttributes, useMemo, useState } from 'react';
+import React, { type ImgHTMLAttributes, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownImageViewerItem } from '@/shared/lib/markdown/collect-markdown-images';
 import { ImageViewerModal } from '@/shared/ui/image-viewer/image-viewer-modal';
 
-type MarkdownImageProps = ImgHTMLAttributes<HTMLImageElement>;
+type MarkdownImageProps = ImgHTMLAttributes<HTMLImageElement> & {
+  imageIndex?: number;
+  viewerItems?: MarkdownImageViewerItem[];
+};
+
+const requestNextPaint = (callback: () => void) => {
+  if (typeof window === 'undefined') {
+    callback();
+    return 0;
+  }
+
+  return window.requestAnimationFrame(callback);
+};
+
+/**
+ * 현재 이미지가 속한 독립 스크롤 영역을 우선 찾아 복귀 위치를 계산합니다.
+ */
+const resolveScrollContainer = (targetImage: HTMLElement) =>
+  targetImage.closest<HTMLElement>(
+    '[data-primary-scroll-region="true"], [data-scroll-region="true"]',
+  );
+
+/**
+ * 대상 이미지가 보이도록 가장 가까운 스크롤 영역을 중앙 기준으로 이동합니다.
+ */
+const scrollImageIntoView = (targetImage: HTMLElement) => {
+  const scrollContainer = resolveScrollContainer(targetImage);
+
+  if (!scrollContainer) {
+    targetImage.scrollIntoView({
+      behavior: 'auto',
+      block: 'center',
+      inline: 'nearest',
+    });
+    return;
+  }
+
+  const targetRect = targetImage.getBoundingClientRect();
+  const containerRect = scrollContainer.getBoundingClientRect();
+  const nextTop =
+    scrollContainer.scrollTop +
+    (targetRect.top - containerRect.top) -
+    Math.max((containerRect.height - targetRect.height) / 2, 0);
+
+  scrollContainer.scrollTo({
+    top: Math.max(nextTop, 0),
+    behavior: 'auto',
+  });
+};
 
 /**
  * 마크다운 본문 이미지를 키보드 접근 가능한 이미지 뷰어 트리거로 렌더링합니다.
@@ -14,15 +63,24 @@ type MarkdownImageProps = ImgHTMLAttributes<HTMLImageElement>;
 export const MarkdownImage = ({
   alt,
   className,
+  imageIndex = 0,
   onClick,
   onKeyDown,
   src,
+  viewerItems,
   ...props
 }: MarkdownImageProps) => {
   const t = useTranslations('ImageViewer');
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [pendingScrollTargetId, setPendingScrollTargetId] = useState<string | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const resolvedAlt = alt ?? '';
   const resolvedSrc = typeof src === 'string' ? src : '';
+  const resolvedViewerItems =
+    viewerItems && viewerItems.length > 0
+      ? viewerItems
+      : [{ alt: resolvedAlt, src: resolvedSrc, viewerId: 'markdown-image-0' }];
+  const viewerItemId = resolvedViewerItems[imageIndex]?.viewerId ?? `markdown-image-${imageIndex}`;
   const imageViewerLabels = useMemo(
     () => ({
       closeAriaLabel: t('closeAriaLabel'),
@@ -74,6 +132,33 @@ export const MarkdownImage = ({
     openViewer(event);
   };
 
+  useEffect(() => {
+    if (isViewerOpen || !pendingScrollTargetId) return;
+
+    const targetViewerId = pendingScrollTargetId;
+    const frameId = requestNextPaint(() => {
+      requestNextPaint(() => {
+        const targetImage =
+          targetViewerId === viewerItemId
+            ? imageRef.current
+            : (document.querySelector(
+                `[data-markdown-viewer-id="${targetViewerId}"]`,
+              ) as HTMLImageElement | null);
+
+        if (targetImage) {
+          scrollImageIntoView(targetImage);
+        }
+
+        setPendingScrollTargetId(null);
+      });
+    });
+
+    return () => {
+      if (typeof window === 'undefined') return;
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [isViewerOpen, pendingScrollTargetId, viewerItemId]);
+
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -82,18 +167,22 @@ export const MarkdownImage = ({
         aria-haspopup="dialog"
         aria-label={openViewerAriaLabel}
         className={cx(markdownInteractiveImageClass, className)}
+        data-markdown-viewer-id={viewerItemId}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        ref={imageRef}
         role="button"
         src={resolvedSrc}
         tabIndex={0}
         {...props}
       />
       <ImageViewerModal
-        initialIndex={isViewerOpen ? 0 : null}
-        items={[{ alt: resolvedAlt, src: resolvedSrc }]}
+        initialIndex={isViewerOpen ? imageIndex : null}
+        items={resolvedViewerItems}
         labels={imageViewerLabels}
-        onClose={() => {
+        onClose={currentIndex => {
+          const targetViewerId = resolvedViewerItems[currentIndex]?.viewerId ?? viewerItemId;
+          setPendingScrollTargetId(targetViewerId);
           setIsViewerOpen(false);
         }}
       />
