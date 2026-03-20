@@ -46,6 +46,7 @@ export const ResumePublishPanel = ({
   const previousIsOpenRef = useRef(isOpen);
   const [settings, setSettings] = useState(initialSettings);
   const [errors, setErrors] = useState<ResumePublishErrors>({});
+  const [isCheckingPdfStatus, setIsCheckingPdfStatus] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
@@ -64,6 +65,55 @@ export const ResumePublishPanel = ({
 
     setSettings(latestInitialSettingsRef.current);
     setErrors({});
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const abortController = new AbortController();
+
+    const loadPdfAvailability = async () => {
+      setIsCheckingPdfStatus(true);
+
+      try {
+        const response = await fetch('/api/pdf/availability/resume', {
+          method: 'GET',
+          signal: abortController.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load resume PDF availability: ${response.status}`);
+        }
+
+        const data = (await response.json()) as {
+          isPdfReady: boolean;
+          kind: 'resume';
+        };
+
+        setSettings(previous => ({
+          ...previous,
+          isPdfReady: previous.isPdfReady || data.isPdfReady,
+        }));
+      } catch (error) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        console.error('[resume-publish] availability fetch failed', {
+          error,
+        });
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsCheckingPdfStatus(false);
+        }
+      }
+    };
+
+    void loadPdfAvailability();
+
+    return () => {
+      abortController.abort();
+    };
   }, [isOpen]);
 
   /**
@@ -199,11 +249,13 @@ export const ResumePublishPanel = ({
 
           <ResumePublishStatusSection
             errors={errors}
+            isCheckingPdfStatus={isCheckingPdfStatus}
             isUploading={isUploading}
             onFileChange={handleFileChange}
             settings={settings}
           />
           <ResumePublishFooter
+            isCheckingPdfStatus={isCheckingPdfStatus}
             isSubmitting={isSubmitting}
             isUploading={isUploading}
             onCancel={handleClose}

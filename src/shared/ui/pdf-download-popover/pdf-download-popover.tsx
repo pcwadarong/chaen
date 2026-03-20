@@ -13,6 +13,7 @@ type PdfDownloadPopoverProps = {
   label: string;
   options: PdfFileDownloadOption[];
   panelLabel?: string;
+  pending?: boolean;
   unavailableLabel: string;
 };
 
@@ -30,8 +31,29 @@ export const PdfDownloadPopover = ({
   label,
   options,
   panelLabel,
+  pending = false,
   unavailableLabel,
 }: PdfDownloadPopoverProps) => {
+  if (pending) {
+    return (
+      <Button
+        aria-busy="true"
+        aria-disabled="true"
+        className={cx(triggerButtonClass, className)}
+        disabled
+        size="md"
+        tone="white"
+        type="button"
+        variant="solid"
+      >
+        <span className={triggerLabelClass}>
+          <FileIcon aria-hidden color="muted" size="md" />
+          <span>{label}</span>
+        </span>
+      </Button>
+    );
+  }
+
   const hasDownloadableOption = options.some(option => option.href);
 
   if (!hasDownloadableOption) {

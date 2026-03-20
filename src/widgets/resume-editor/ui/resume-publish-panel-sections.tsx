@@ -14,12 +14,14 @@ type ResumePublishErrors = {
 
 type ResumePublishStatusSectionProps = {
   errors: ResumePublishErrors;
+  isCheckingPdfStatus: boolean;
   isUploading: boolean;
   onFileChange: React.ChangeEventHandler<HTMLInputElement>;
   settings: ResumePublishSettings;
 };
 
 type ResumePublishFooterProps = {
+  isCheckingPdfStatus: boolean;
   isSubmitting: boolean;
   isUploading: boolean;
   onCancel: () => void;
@@ -31,6 +33,7 @@ type ResumePublishFooterProps = {
  */
 const ResumePublishStatusSectionBase = ({
   errors,
+  isCheckingPdfStatus,
   isUploading,
   onFileChange,
   settings,
@@ -63,8 +66,12 @@ const ResumePublishStatusSectionBase = ({
       </div>
       <div className={metaItemClass}>
         <span className={metaLabelClass}>상태</span>
-        <span className={metaValueClass}>
-          {settings.isPdfReady ? '업로드됨' : 'PDF 업로드 필요'}
+        <span aria-live="polite" className={metaValueClass}>
+          {isCheckingPdfStatus
+            ? 'PDF 상태 확인 중...'
+            : settings.isPdfReady
+              ? '업로드됨'
+              : 'PDF 업로드 필요'}
         </span>
       </div>
     </div>
@@ -94,6 +101,7 @@ export const ResumePublishStatusSection = React.memo(ResumePublishStatusSectionB
  * 취소와 게시 액션만 담당하는 footer입니다.
  */
 const ResumePublishFooterBase = ({
+  isCheckingPdfStatus,
   isSubmitting,
   isUploading,
   onCancel,
@@ -103,7 +111,12 @@ const ResumePublishFooterBase = ({
     <Button onClick={onCancel} size="sm" variant="ghost">
       취소
     </Button>
-    <Button disabled={isSubmitting || isUploading} onClick={onSubmit} size="sm" tone="primary">
+    <Button
+      disabled={isSubmitting || isUploading || isCheckingPdfStatus}
+      onClick={onSubmit}
+      size="sm"
+      tone="primary"
+    >
       {isSubmitting ? '게시 중...' : '게시하기'}
     </Button>
   </footer>

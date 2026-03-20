@@ -43,11 +43,33 @@ const baseItems = [
 ];
 
 describe('AdminPdfUploadPanel', () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it('4개 고정 파일명과 현재 업로드 상태를 함께 보여준다', () => {
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('4개 고정 파일명과 현재 업로드 상태를 함께 보여준다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          items: [
+            { assetKey: 'resume-ko', isPdfReady: false },
+            { assetKey: 'resume-en', isPdfReady: false },
+            { assetKey: 'portfolio-ko', isPdfReady: false },
+            { assetKey: 'portfolio-en', isPdfReady: true },
+          ],
+        }),
+        ok: true,
+      }),
+    );
+
     render(<AdminPdfUploadPanel initialItems={baseItems} />);
 
     expect(screen.getByRole('heading', { level: 2, name: 'PDF 파일 관리' })).toBeTruthy();
@@ -55,8 +77,10 @@ describe('AdminPdfUploadPanel', () => {
     expect(screen.getByText('ParkChaewon-Resume-en.pdf')).toBeTruthy();
     expect(screen.getByText('ParkChaewon-Portfolio-kr.pdf')).toBeTruthy();
     expect(screen.getByText('ParkChaewon-Portfolio-en.pdf')).toBeTruthy();
-    expect(screen.getAllByRole('button', { name: '다운로드 확인' })).toHaveLength(3);
-    expect(screen.getByRole('link', { name: '다운로드 확인' })).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: '다운로드 확인' })).toHaveLength(3);
+      expect(screen.getByRole('link', { name: '다운로드 확인' })).toBeTruthy();
+    });
   });
 
   it('국문 이력서 PDF 업로드 성공 시 카드 상태를 최신 결과로 갱신한다', async () => {
@@ -70,6 +94,15 @@ describe('AdminPdfUploadPanel', () => {
       filePath: 'ParkChaewon-Resume-kr.pdf',
       isPdfReady: true,
     });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          items: [],
+        }),
+        ok: true,
+      }),
+    );
 
     render(<AdminPdfUploadPanel initialItems={baseItems} />);
 
@@ -114,6 +147,15 @@ describe('AdminPdfUploadPanel', () => {
 
     vi.mocked(uploadPdfFileByAssetKey).mockRejectedValue(
       new Error('포트폴리오 PDF · 국문 파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.'),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          items: [],
+        }),
+        ok: true,
+      }),
     );
 
     render(<AdminPdfUploadPanel initialItems={baseItems} />);
@@ -171,6 +213,15 @@ describe('AdminPdfUploadPanel', () => {
               });
           }),
       );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          items: [],
+        }),
+        ok: true,
+      }),
+    );
 
     render(<AdminPdfUploadPanel initialItems={baseItems} />);
 

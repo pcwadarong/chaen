@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server';
 import { vi } from 'vitest';
 
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getPdfFileDownloadOptions } from '@/entities/pdf-file/api/get-pdf-file-download-options';
 import { getProjects } from '@/entities/project/api/list/get-projects';
 import { getProjectListPageData } from '@/views/project/model/get-project-list-page-data';
 
@@ -18,16 +17,12 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
   getPdfFileContent: vi.fn(),
 }));
 
-vi.mock('@/entities/pdf-file/api/get-pdf-file-download-options', () => ({
-  getPdfFileDownloadOptions: vi.fn(),
-}));
-
 describe('getProjectListPageData', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('목록/다운로드/번역 데이터를 조합해 반환한다', async () => {
+  it('목록/PDF 본문/번역 데이터를 조합해 반환한다', async () => {
     const translation = ((key: string) => {
       if (key === 'portfolioDownload') return 'Download';
       if (key === 'portfolioDownloadUnavailable') return 'Unavailable';
@@ -36,20 +31,6 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockResolvedValue({ items: [], nextCursor: null });
-    vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([
-      {
-        assetKey: 'portfolio-ko',
-        fileName: 'ParkChaewon-Portfolio-kr.pdf',
-        href: '/api/pdf/file/portfolio-ko?source=project-page',
-        locale: 'ko',
-      },
-      {
-        assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio-en.pdf',
-        href: '/api/pdf/file/portfolio-en?source=project-page',
-        locale: 'en',
-      },
-    ]);
     vi.mocked(getPdfFileContent).mockResolvedValue({
       body: 'body',
       description: 'desc',
@@ -64,26 +45,9 @@ describe('getProjectListPageData', () => {
 
     expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('portfolio', {
-      source: 'project-page',
-    });
     expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
-    expect(data.portfolioDownloadOptions).toEqual([
-      {
-        assetKey: 'portfolio-ko',
-        fileName: 'ParkChaewon-Portfolio-kr.pdf',
-        href: '/api/pdf/file/portfolio-ko?source=project-page',
-        locale: 'ko',
-      },
-      {
-        assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio-en.pdf',
-        href: '/api/pdf/file/portfolio-en?source=project-page',
-        locale: 'en',
-      },
-    ]);
   });
 
   it('프로젝트 목록 조회 실패 시 빈 초기 목록으로 폴백한다', async () => {
@@ -95,20 +59,6 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockRejectedValue(new Error('temporary failure'));
-    vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([
-      {
-        assetKey: 'portfolio-ko',
-        fileName: 'ParkChaewon-Portfolio-kr.pdf',
-        href: null,
-        locale: 'ko',
-      },
-      {
-        assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio-en.pdf',
-        href: null,
-        locale: 'en',
-      },
-    ]);
     vi.mocked(getPdfFileContent).mockResolvedValue(null);
 
     const data = await getProjectListPageData({ locale: 'ko' });
@@ -117,24 +67,10 @@ describe('getProjectListPageData', () => {
     expect(data.initialCursor).toBeNull();
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
-    expect(data.portfolioDownloadOptions).toEqual([
-      {
-        assetKey: 'portfolio-ko',
-        fileName: 'ParkChaewon-Portfolio-kr.pdf',
-        href: null,
-        locale: 'ko',
-      },
-      {
-        assetKey: 'portfolio-en',
-        fileName: 'ParkChaewon-Portfolio-en.pdf',
-        href: null,
-        locale: 'en',
-      },
-    ]);
     expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
   });
 
-  it('PDF 부가 데이터 조회 실패 시에도 프로젝트 목록 화면 데이터를 반환한다', async () => {
+  it('PDF 본문 조회 실패 시에도 프로젝트 목록 화면 데이터를 반환한다', async () => {
     const translation = ((key: string) => {
       if (key === 'portfolioDownload') return 'Download';
       if (key === 'portfolioDownloadUnavailable') return 'Unavailable';
@@ -143,7 +79,6 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockResolvedValue({ items: [], nextCursor: null });
-    vi.mocked(getPdfFileDownloadOptions).mockRejectedValue(new Error('pdf options failed'));
     vi.mocked(getPdfFileContent).mockRejectedValue(new Error('pdf content failed'));
 
     await expect(getProjectListPageData({ locale: 'ko' })).resolves.toEqual({
@@ -152,7 +87,6 @@ describe('getProjectListPageData', () => {
       locale: 'ko',
       portfolioButtonLabel: 'Download',
       portfolioButtonUnavailableLabel: 'Unavailable',
-      portfolioDownloadOptions: [],
     });
   });
 });
