@@ -4,6 +4,7 @@ import React from 'react';
 import { css, cx } from 'styled-system/css';
 
 import type { PdfFileDownloadOption } from '@/entities/pdf-file/model/types';
+import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { Button } from '@/shared/ui/button/button';
 import { FileIcon } from '@/shared/ui/icons/app-icons';
 import { Popover } from '@/shared/ui/popover/popover';
@@ -16,11 +17,6 @@ type PdfDownloadPopoverProps = {
   pending?: boolean;
   unavailableLabel: string;
 };
-
-const localeCodeLabelMap = {
-  en: 'EN',
-  ko: 'KO',
-} as const;
 
 /**
  * 여러 고정 PDF 자산 중 하나를 선택해 내려받는 팝오버 버튼입니다.
@@ -90,7 +86,7 @@ export const PdfDownloadPopover = ({
     >
       <div className={optionListClass}>
         {options.map(option => {
-          const optionCode = localeCodeLabelMap[option.locale];
+          const optionCode = LOCALE_CODE_LABELS[option.locale];
           const optionAriaLabel = `${optionCode} ${option.fileName}`;
 
           if (option.href) {

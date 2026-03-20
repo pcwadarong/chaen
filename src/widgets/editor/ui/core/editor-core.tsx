@@ -12,6 +12,7 @@ import {
   insertTemplate,
   outdentMarkdownList,
 } from '@/entities/editor/model/selection-utils';
+import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { getMarkdownOptions } from '@/shared/lib/markdown/markdown-config';
 import { Button } from '@/shared/ui/button/button';
 import { ChevronRightIcon, EditIcon, EyeIcon } from '@/shared/ui/icons/app-icons';
@@ -41,13 +42,6 @@ import { useIsMobileEditorLayout } from '@/widgets/editor/ui/core/use-mobile-edi
 
 const AUTOSAVE_DELAY_MS = 180_000;
 type SaveSource = 'autosave' | 'manual';
-
-const LOCALE_LABELS: Record<Locale, string> = {
-  en: 'EN',
-  fr: 'FR',
-  ja: 'JA',
-  ko: 'KO',
-};
 
 /**
  * locale별 textarea 편집 상호작용을 구성합니다.
@@ -447,7 +441,7 @@ export const EditorCore = ({
             role="tab"
             type="button"
           >
-            {LOCALE_LABELS[locale]}
+            {LOCALE_CODE_LABELS[locale]}
           </button>
         ))}
       </div>

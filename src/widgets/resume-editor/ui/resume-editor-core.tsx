@@ -6,6 +6,7 @@ import { css, cva } from 'styled-system/css';
 import type { ResumeEditorContentMap } from '@/entities/resume/model/resume-editor.types';
 import { isResumeEditorContentMapEqual } from '@/entities/resume/model/resume-editor.utils';
 import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
+import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 import { Textarea } from '@/shared/ui/textarea/textarea';
@@ -13,13 +14,6 @@ import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/ui/core/editor-core.types';
 import { formatSavedAtLabel } from '@/widgets/editor/ui/core/editor-core.utils';
 import type { ResumeEditorCoreProps } from '@/widgets/resume-editor/ui/resume-editor.types';
-
-const RESUME_LOCALE_LABELS: Record<Locale, string> = {
-  en: 'EN',
-  fr: 'FR',
-  ja: 'JA',
-  ko: 'KO',
-};
 
 type ResumeEditorFieldKey =
   | 'body'
@@ -255,7 +249,7 @@ export const ResumeEditorCore = ({
               role="tab"
               type="button"
             >
-              {RESUME_LOCALE_LABELS[locale]}
+              {LOCALE_CODE_LABELS[locale]}
             </button>
           ))}
         </div>

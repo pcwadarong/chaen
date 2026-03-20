@@ -6,6 +6,7 @@ import { css } from 'styled-system/css';
 
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import { MarkdownToolbar } from '@/features/edit-markdown/ui/markdown-toolbar';
+import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { type getMarkdownOptions, markdownBodyClass } from '@/shared/lib/markdown/markdown-config';
 import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
 import { Textarea } from '@/shared/ui/textarea/textarea';
@@ -16,14 +17,8 @@ import type {
 } from '@/widgets/editor/ui/core/editor-core.types';
 import { resizeTextareaToContent } from '@/widgets/editor/ui/core/editor-core-textarea';
 
-const EDITOR_PANE_MAX_HEIGHT = '[min(70vh,44rem)]';
+const DESKTOP_EDITOR_PANE_MIN_HEIGHT = '[clamp(36rem,calc(100dvh - 23rem),64rem)]';
 const MOBILE_EDITOR_PANE_MAX_HEIGHT = '[60vh]';
-const LOCALE_LABELS: Record<Locale, string> = {
-  en: 'EN',
-  fr: 'FR',
-  ja: 'JA',
-  ko: 'KO',
-};
 
 type EditorLocalePanelProps = {
   activeLocaleHasTitleError: boolean;
@@ -68,7 +63,7 @@ const EditorLocalePanelBase = ({
   textareaRef,
   translation,
 }: EditorLocalePanelProps) => {
-  const localeLabel = LOCALE_LABELS[locale];
+  const localeLabel = LOCALE_CODE_LABELS[locale];
   const titleTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const descriptionTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -238,8 +233,7 @@ const editorPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
   minWidth: '0',
-  minHeight: '[36rem]',
-  maxHeight: EDITOR_PANE_MAX_HEIGHT,
+  minHeight: DESKTOP_EDITOR_PANE_MIN_HEIGHT,
   overflow: 'hidden',
   p: '4',
   borderRadius: '2xl',
@@ -273,8 +267,7 @@ const previewPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
   minWidth: '0',
-  minHeight: '[36rem]',
-  maxHeight: EDITOR_PANE_MAX_HEIGHT,
+  minHeight: DESKTOP_EDITOR_PANE_MIN_HEIGHT,
   overflowY: 'auto',
   overscrollBehaviorY: 'contain',
   p: '4',
