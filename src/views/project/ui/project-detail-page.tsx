@@ -7,6 +7,10 @@ import {
   type ProjectTechStackGroup,
 } from '@/entities/project/model/get-project-display-meta';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
+import {
+  TECH_STACK_CATEGORY_ORDER,
+  type TechStackCategory,
+} from '@/entities/tech-stack/model/types';
 import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
 import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
 import type { AppLocale } from '@/i18n/routing';
@@ -118,12 +122,25 @@ export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectD
   const projectT = useTranslations('Project');
   const detailUi = useTranslations('DetailUi');
   const navigationT = useTranslations('Navigation');
+  const techStackT = useTranslations('TechStack.category');
 
   if (!item.publish_at) {
     throw new Error(`[projects] 공개 프로젝트 publish_at이 없습니다. id=${item.id}`);
   }
 
-  const { periodText, techStackGroups } = getProjectDisplayMeta(item, locale, t('ongoing'));
+  const techStackCategoryLabels = TECH_STACK_CATEGORY_ORDER.reduce(
+    (labels, category) => ({
+      ...labels,
+      [category]: techStackT(category),
+    }),
+    {} as Record<TechStackCategory, string>,
+  );
+  const { periodText, techStackGroups } = getProjectDisplayMeta({
+    categoryLabels: techStackCategoryLabels,
+    item,
+    locale,
+    ongoingLabel: t('ongoing'),
+  });
   const projectTagLabels = (item.tech_stacks ?? []).map(techStack => techStack.name);
   const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({

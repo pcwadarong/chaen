@@ -23,19 +23,27 @@ export type ProjectDisplayMeta = {
   techStackGroups: ProjectTechStackGroup[];
 };
 
+type ProjectDisplayMetaInput = {
+  categoryLabels?: Record<TechStackCategory, string>;
+  item: ProjectDisplayMetaSource;
+  locale: string;
+  ongoingLabel: string;
+};
+
 /**
  * 프로젝트 카드와 상세에서 공통으로 쓰는 표시용 메타 데이터를 계산합니다.
  */
-export const getProjectDisplayMeta = (
-  item: ProjectDisplayMetaSource,
-  locale: string,
-  ongoingLabel: string,
-): ProjectDisplayMeta => {
+export const getProjectDisplayMeta = ({
+  categoryLabels,
+  item,
+  locale,
+  ongoingLabel,
+}: ProjectDisplayMetaInput): ProjectDisplayMeta => {
   const techStacks = item.tech_stacks ?? [];
   const techStackGroups = TECH_STACK_CATEGORY_ORDER.map(category => ({
     category,
     items: techStacks.filter(techStack => techStack.category === category),
-    label: TECH_STACK_CATEGORY_LABEL[category],
+    label: categoryLabels?.[category] ?? TECH_STACK_CATEGORY_LABEL[category],
   })).filter(group => group.items.length > 0);
 
   return {

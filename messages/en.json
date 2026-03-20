@@ -132,6 +132,14 @@
     "showcaseTitle": "Project archive",
     "viewProject": "View project"
   },
+  "TechStack": {
+    "category": {
+      "backend": "Backend",
+      "collaboration": "Collaboration",
+      "frontend": "Frontend",
+      "infra": "Infrastructure"
+    }
+  },
   "Resume": {
     "loading": "Loading resume.",
     "resumeDownloadUnavailable": "Resume unavailable"

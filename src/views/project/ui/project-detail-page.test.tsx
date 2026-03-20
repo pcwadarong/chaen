@@ -5,9 +5,18 @@ import { vi } from 'vitest';
 import type { Project } from '@/entities/project/model/types';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
-    if (key === 'periodLabel') return 'work period';
-    if (key === 'ongoing') return 'Ongoing';
+  useTranslations: (namespace?: string) => (key: string) => {
+    if (namespace === 'ProjectDetail') {
+      if (key === 'periodLabel') return 'work period';
+      if (key === 'ongoing') return 'Ongoing';
+    }
+
+    if (namespace === 'TechStack.category') {
+      if (key === 'frontend') return 'Frontend';
+      if (key === 'backend') return 'Backend';
+      if (key === 'infra') return 'Infrastructure';
+      if (key === 'collaboration') return 'Collaboration';
+    }
 
     return key;
   },
@@ -95,4 +104,25 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('수정');
     expect(html).toContain('삭제');
   }, 30000);
+
+  it('기술 스택 카테고리 라벨은 locale 번역을 사용한다', async () => {
+    const html = await renderServerHtml({
+      item: {
+        id: 'project-1',
+        slug: 'project-1-slug',
+        title: 'Project 1',
+        description: 'summary',
+        content: '# hello',
+        created_at: '2026-03-08T00:00:00.000Z',
+        publish_at: '2026-03-08T00:00:00.000Z',
+        period_start: '2026-01-01',
+        period_end: '2026-02-01',
+        tech_stacks: [{ category: 'frontend', id: 'react', name: 'React', slug: 'react' }],
+        thumbnail_url: null,
+      },
+    });
+
+    expect(html).toContain('Frontend');
+    expect(html).toContain('React');
+  });
 });

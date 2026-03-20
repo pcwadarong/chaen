@@ -18,7 +18,11 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
   const t = useTranslations('ProjectDetail');
   const thumbnailSrc = normalizeImageUrl(item.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
-  const { periodText } = getProjectDisplayMeta(item, locale, t('ongoing'));
+  const { periodText } = getProjectDisplayMeta({
+    item,
+    locale,
+    ongoingLabel: t('ongoing'),
+  });
 
   return (
     <ContentCard
