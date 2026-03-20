@@ -8,7 +8,11 @@ export default defineConfig({
   gitignore: false,
   cssVarRoot: ':where(:root, :host)',
   include: ['./src/**/*.{js,jsx,ts,tsx}'],
-  exclude: ['./styled-system/**/*'],
+  exclude: [
+    './styled-system/**/*',
+    './src/**/*.test.{js,jsx,ts,tsx}',
+    './src/**/*.spec.{js,jsx,ts,tsx}',
+  ],
   conditions: {
     extend: {
       dark: '[data-theme="dark"] &',
