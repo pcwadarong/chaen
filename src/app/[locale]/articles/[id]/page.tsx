@@ -12,6 +12,7 @@ import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import {
   ArticleDetailPage,
+  getArticleDetailArchivePageData,
   getArticleDetailRelatedArticlesData,
   getArticleDetailShellData,
   getArticleTagLabels,
@@ -99,10 +100,15 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
     locale,
   });
   if (!item) notFound();
+  const effectiveLocale = resolvedLocale ?? locale;
 
+  const initialArchivePage = await getArticleDetailArchivePageData({
+    item,
+    locale: effectiveLocale,
+  });
   const relatedArticlesPromise = getArticleDetailRelatedArticlesData({
     articleId: item.id,
-    locale: resolvedLocale ?? locale,
+    locale: effectiveLocale,
   });
   const tagLabelsPromise = getArticleTagLabels({
     item,
@@ -111,6 +117,7 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
 
   return (
     <ArticleDetailPage
+      initialArchivePage={initialArchivePage}
       item={item}
       locale={locale as AppLocale}
       relatedArticlesPromise={relatedArticlesPromise}

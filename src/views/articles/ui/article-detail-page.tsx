@@ -4,6 +4,7 @@ import { css } from 'styled-system/css';
 
 import type {
   Article,
+  ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
@@ -29,6 +30,7 @@ import {
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
+  initialArchivePage: ArticleArchivePage;
   item: Article;
   locale: AppLocale;
   relatedArticlesPromise: Promise<ArticleListItemModel[]>;
@@ -43,6 +45,7 @@ type RelatedArticlesSectionProps = {
 type ArticleArchiveSidebarProps = {
   currentItem: Article;
   emptyText: string;
+  initialPage: ArticleArchivePage;
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
@@ -89,6 +92,7 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
 const ArticleArchiveSidebar = ({
   currentItem,
   emptyText,
+  initialPage,
   loadErrorText,
   loadMoreEndText,
   loadingText,
@@ -97,14 +101,17 @@ const ArticleArchiveSidebar = ({
   selectedPathSegment,
 }: ArticleArchiveSidebarProps) => (
   <DetailArchiveFeed
+    activeItemViewportOffsetRatio={0.25}
     currentItem={currentItem}
     emptyText={emptyText}
     hrefBasePath="/articles"
+    initialPage={initialPage}
     loadErrorText={loadErrorText}
     loadPageAction={getArticleDetailArchivePageAction}
     loadMoreEndText={loadMoreEndText}
     loadingText={loadingText}
     locale={locale}
+    pinCurrentItemToTop={false}
     retryText={retryText}
     selectedPathSegment={selectedPathSegment}
   />
@@ -142,6 +149,7 @@ const DeferredRelatedArticlesSection = async ({
 };
 
 export const ArticleDetailPage = ({
+  initialArchivePage,
   item,
   locale,
   relatedArticlesPromise,
@@ -229,6 +237,7 @@ export const ArticleDetailPage = ({
           <ArticleArchiveSidebar
             currentItem={item}
             emptyText={detailUi('emptyArchive')}
+            initialPage={initialArchivePage}
             loadErrorText={articlesT('loadError')}
             loadMoreEndText={articlesT('loadMoreEnd')}
             loadingText={articlesT('loading')}

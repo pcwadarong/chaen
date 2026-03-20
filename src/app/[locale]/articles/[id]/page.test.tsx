@@ -7,6 +7,7 @@ import ArticleDetailRoute, {
 } from '@/app/[locale]/articles/[id]/page';
 import { getArticleStaticSeedParams } from '@/entities/article/api/detail/get-article-static-seed-params';
 import {
+  getArticleDetailArchivePageData,
   getArticleDetailRelatedArticlesData,
   getArticleDetailShellData,
   getArticleTagLabels,
@@ -34,6 +35,10 @@ vi.mock('@/views/articles', () => ({
   getArticleDetailShellData: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
+  })),
+  getArticleDetailArchivePageData: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
   })),
   getArticleDetailRelatedArticlesData: vi.fn(async () => []),
   getArticleTagLabels: vi.fn(async () => []),
@@ -75,6 +80,10 @@ describe('ArticleDetailRoute', () => {
       resolvedLocale: 'ko',
     });
     vi.mocked(getArticleDetailRelatedArticlesData).mockResolvedValueOnce([]);
+    vi.mocked(getArticleDetailArchivePageData).mockResolvedValueOnce({
+      items: [],
+      nextCursor: null,
+    });
     vi.mocked(getArticleTagLabels).mockResolvedValueOnce(['React']);
 
     const element = await ArticleDetailRoute({
@@ -90,6 +99,16 @@ describe('ArticleDetailRoute', () => {
     expect(getArticleDetailShellData).toHaveBeenCalledWith({
       articleSlug: 'frontend-performance',
       locale: 'ko',
+    });
+    expect(getArticleDetailArchivePageData).toHaveBeenCalledWith({
+      item: expect.objectContaining({
+        id: 'frontend-performance',
+      }),
+      locale: 'ko',
+    });
+    expect(element.props.initialArchivePage).toEqual({
+      items: [],
+      nextCursor: null,
     });
     await expect(element.props.relatedArticlesPromise).resolves.toEqual([]);
     await expect(element.props.tagLabelsPromise).resolves.toEqual(['React']);

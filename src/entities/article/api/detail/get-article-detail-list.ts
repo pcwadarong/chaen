@@ -38,6 +38,18 @@ type GetArticleDetailListOptions = {
   locale: string;
 };
 
+type GetArticleDetailListWindowOptions = {
+  currentItem: {
+    description: string | null;
+    id: string;
+    publish_at: string;
+    slug: string;
+    title: string;
+  };
+  limit?: number;
+  locale: string;
+};
+
 const isMissingArticleContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
   const hasMissingRelationText =
@@ -86,6 +98,54 @@ const fetchArticleArchiveBaseRows = async (
 
   return {
     data: (baseRows ?? []) as ArticleArchiveBaseRow[],
+    schemaMissing: false,
+  };
+};
+
+/**
+ * 현재 아티클보다 더 최신인 base row를 현재 글에 가까운 순서로 조회합니다.
+ */
+const fetchNewerArticleArchiveBaseRows = async (
+  currentItem: GetArticleDetailListWindowOptions['currentItem'],
+  pageSize: number,
+): Promise<{ data: ArticleArchiveBaseRow[]; schemaMissing: boolean }> => {
+  if (pageSize <= 0) {
+    return { data: [], schemaMissing: false };
+  }
+
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
+
+  const nowIsoString = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('articles')
+    .select('id,slug,visibility,publish_at')
+    .not('publish_at', 'is', null)
+    .not('slug', 'is', null)
+    .eq('visibility', 'public')
+    .or(
+      [
+        `and(publish_at.lte.${nowIsoString},publish_at.gt.${currentItem.publish_at})`,
+        `and(publish_at.lte.${nowIsoString},publish_at.eq.${currentItem.publish_at},id.gt.${currentItem.id})`,
+      ].join(','),
+    )
+    .order('publish_at', {
+      ascending: true,
+      nullsFirst: false,
+    })
+    .order('id', { ascending: true })
+    .limit(pageSize);
+
+  if (error) {
+    if (isMissingArticleContentSchemaError(error.message)) {
+      return { data: [], schemaMissing: true };
+    }
+
+    throw new Error(`[articles] 상세 목록 최신 base row 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: (data ?? []) as ArticleArchiveBaseRow[],
     schemaMissing: false,
   };
 };
@@ -243,4 +303,54 @@ export const getArticleDetailList = async ({
     normalizedLocale,
     pageSize,
   });
+};
+
+/**
+ * 현재 상세 아티클을 기준으로 자연스러운 위치의 초기 아카이브 slice를 구성합니다.
+ */
+export const getArticleDetailListWindow = async ({
+  currentItem,
+  limit,
+  locale,
+}: GetArticleDetailListWindowOptions): Promise<ArticleArchivePage> => {
+  if (!hasSupabaseEnv()) {
+    return {
+      items: [currentItem],
+      nextCursor: null,
+    };
+  }
+
+  const pageSize = parseKeysetLimit(limit);
+  const olderPage = await getArticleDetailList({
+    cursor: serializeLocaleAwarePublishedAtIdCursor({
+      id: currentItem.id,
+      locale,
+      publishedAt: currentItem.publish_at,
+    }),
+    limit: Math.max(pageSize - 1, 0),
+    locale,
+  });
+
+  const remainingSlots = Math.max(pageSize - (olderPage.items.length + 1), 0);
+  if (remainingSlots === 0) {
+    return {
+      items: [currentItem, ...olderPage.items],
+      nextCursor: olderPage.nextCursor,
+    };
+  }
+
+  const newerBaseRowsResult = await fetchNewerArticleArchiveBaseRows(currentItem, remainingSlots);
+  if (newerBaseRowsResult.schemaMissing) {
+    throw new Error('[articles] content schema가 없습니다.');
+  }
+
+  const newerItemsAscending = await resolveArticleArchiveItemsWithLocaleFallback(
+    newerBaseRowsResult.data,
+    locale,
+  );
+
+  return {
+    items: [...newerItemsAscending.reverse(), currentItem, ...olderPage.items],
+    nextCursor: olderPage.nextCursor,
+  };
 };

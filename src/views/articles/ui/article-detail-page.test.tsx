@@ -45,6 +45,18 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
 const renderServerHtml = async () => {
   const { ArticleDetailPage } = await import('@/views/articles/ui/article-detail-page');
   const element = ArticleDetailPage({
+    initialArchivePage: {
+      items: [
+        {
+          id: 'article-1',
+          slug: 'article-1-slug',
+          title: 'Article 1',
+          description: 'summary',
+          publish_at: '2026-03-08T00:00:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    },
     item: {
       id: 'article-1',
       slug: 'article-1-slug',

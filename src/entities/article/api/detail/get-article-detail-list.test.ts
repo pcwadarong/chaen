@@ -1,7 +1,10 @@
 import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
-import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import {
+  getArticleDetailList,
+  getArticleDetailListWindow,
+} from '@/entities/article/api/detail/get-article-detail-list';
 import { parseLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -282,6 +285,157 @@ describe('getArticleDetailList', () => {
 
     await expect(getArticleDetailList({ locale: 'ko' })).rejects.toThrow(
       '[articles] 상세 목록 base row 조회 실패: permission denied for table articles',
+    );
+  });
+});
+
+describe('getArticleDetailListWindow', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('현재 글 아래쪽을 우선 채우고 부족하면 위쪽 최근 글로 앞을 메운다', async () => {
+    const olderArticlesQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            id: 'older-1',
+            publish_at: '2026-03-01T00:00:00.000Z',
+            slug: 'older-1',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const olderTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            article_id: 'older-1',
+            locale: 'ko',
+            title: 'Older One',
+            description: 'older summary',
+          },
+        ],
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    const newerArticlesQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            id: 'newer-2',
+            publish_at: '2026-03-04T00:00:00.000Z',
+            slug: 'newer-2',
+          },
+          {
+            id: 'newer-3',
+            publish_at: '2026-03-05T00:00:00.000Z',
+            slug: 'newer-3',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const newerTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            article_id: 'newer-2',
+            locale: 'ko',
+            title: 'Newer Two',
+            description: 'newer summary 2',
+          },
+          {
+            article_id: 'newer-3',
+            locale: 'ko',
+            title: 'Newer Three',
+            description: 'newer summary 3',
+          },
+        ],
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockImplementationOnce((table: string) => {
+          if (table === 'articles') return olderArticlesQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'article_translations') return olderTranslationsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'articles') return newerArticlesQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'article_translations') return newerTranslationsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticleDetailListWindow({
+      currentItem: {
+        description: 'current summary',
+        id: 'current',
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'current',
+        title: 'Current Article',
+      },
+      limit: 4,
+      locale: 'ko',
+    });
+
+    expect(result).toEqual({
+      items: [
+        {
+          id: 'newer-3',
+          title: 'Newer Three',
+          description: 'newer summary 3',
+          publish_at: '2026-03-05T00:00:00.000Z',
+          slug: 'newer-3',
+        },
+        {
+          id: 'newer-2',
+          title: 'Newer Two',
+          description: 'newer summary 2',
+          publish_at: '2026-03-04T00:00:00.000Z',
+          slug: 'newer-2',
+        },
+        {
+          id: 'current',
+          title: 'Current Article',
+          description: 'current summary',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'current',
+        },
+        {
+          id: 'older-1',
+          title: 'Older One',
+          description: 'older summary',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'older-1',
+        },
+      ],
+      nextCursor: null,
+    });
+    expect(newerArticlesQuery.or).toHaveBeenCalledWith(
+      expect.stringContaining('publish_at.gt.2026-03-02T00:00:00.000Z),and(publish_at.lte.'),
+    );
+    expect(newerArticlesQuery.or).toHaveBeenCalledWith(
+      expect.stringContaining('publish_at.eq.2026-03-02T00:00:00.000Z,id.gt.current)'),
     );
   });
 });

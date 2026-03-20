@@ -35,6 +35,7 @@ type DetailArchivePage<TItem> = {
 };
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
+  activeItemViewportOffsetRatio?: number | null;
   currentItem?: TItem | null;
   emptyText: string;
   hrefBasePath: string;
@@ -48,6 +49,7 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   loadMoreEndText: string;
   loadingText: string;
   locale: string;
+  pinCurrentItemToTop?: boolean;
   retryText: string;
   selectedPathSegment: string;
 };
@@ -63,6 +65,7 @@ const EMPTY_DETAIL_ARCHIVE_PAGE = {
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
  */
 export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
+  activeItemViewportOffsetRatio = null,
   currentItem = null,
   emptyText,
   hrefBasePath,
@@ -72,11 +75,13 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   loadMoreEndText,
   loadingText,
   locale,
+  pinCurrentItemToTop = true,
   retryText,
   selectedPathSegment,
 }: DetailArchiveFeedProps<TItem>) => {
+  const alignedSelectedPathSegmentRef = useRef<string | null>(null);
   const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(() =>
-    prependCurrentArchiveItem(initialPage, currentItem),
+    mergeCurrentArchiveItemIntoPage(initialPage, currentItem, pinCurrentItemToTop),
   );
   const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
@@ -113,7 +118,9 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 
   useEffect(() => {
     if (initialPage) {
-      setBootstrapPage(prependCurrentArchiveItem(initialPage, currentItem));
+      setBootstrapPage(
+        mergeCurrentArchiveItemIntoPage(initialPage, currentItem, pinCurrentItemToTop),
+      );
       setBootstrapError(null);
       setIsBootstrapping(false);
       return;
@@ -141,12 +148,13 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
         if (!isMounted) return;
 
         setBootstrapPage(
-          prependCurrentArchiveItem(
+          mergeCurrentArchiveItemIntoPage(
             {
               items: result.data.items,
               nextCursor: result.data.nextCursor,
             },
             currentItem,
+            pinCurrentItemToTop,
           ),
         );
       } catch (error) {
@@ -165,7 +173,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     return () => {
       isMounted = false;
     };
-  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale]);
+  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale, pinCurrentItemToTop]);
 
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
     initialCursor: resolvedInitialPage.nextCursor,
@@ -191,6 +199,12 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (activeItemViewportOffsetRatio === null) return;
+
+    alignedSelectedPathSegmentRef.current = null;
+  }, [activeItemViewportOffsetRatio, selectedPathSegment]);
+
+  useEffect(() => {
     if (!sentinelRef.current || !viewportRef.current) return;
 
     const observer = new IntersectionObserver(
@@ -209,6 +223,26 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 
     return () => observer.disconnect();
   }, [errorMessage, isAutoLoadEnabled, loadMore]);
+
+  useEffect(() => {
+    if (activeItemViewportOffsetRatio === null || isBootstrapping || bootstrapError) return;
+    if (alignedSelectedPathSegmentRef.current === selectedPathSegment) return;
+
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const activeItem = viewport.querySelector<HTMLElement>('a[aria-current="page"]');
+      if (!activeItem) return;
+
+      alignActiveArchiveItemInViewport(viewport, activeItem, activeItemViewportOffsetRatio);
+      alignedSelectedPathSegmentRef.current = selectedPathSegment;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [activeItemViewportOffsetRatio, bootstrapError, isBootstrapping, selectedPathSegment]);
 
   const linkItems = useMemo(
     () =>
@@ -286,15 +320,39 @@ const sidebarSentinelClass = css({
 });
 
 /**
+ * 활성 아카이브 항목이 viewport 안에서 원하는 높이에 오도록 초기 스크롤을 맞춥니다.
+ */
+const alignActiveArchiveItemInViewport = (
+  viewport: HTMLElement,
+  activeItem: HTMLElement,
+  activeItemViewportOffsetRatio: number,
+) => {
+  const clampedOffsetRatio = Math.min(1, Math.max(0, activeItemViewportOffsetRatio));
+  const activeItemCenter = activeItem.offsetTop + activeItem.clientHeight / 2;
+  const preferredTop = viewport.clientHeight * clampedOffsetRatio;
+  const maxScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+  const nextScrollTop = Math.min(maxScrollTop, Math.max(0, activeItemCenter - preferredTop));
+
+  viewport.scrollTo({
+    behavior: 'auto',
+    top: nextScrollTop,
+  });
+};
+
+/**
  * 현재 상세 항목이 초기 아카이브 페이지에 없을 때 목록 앞에 한 번만 보강합니다.
  */
-const prependCurrentArchiveItem = <TItem extends DetailArchiveRecord>(
+const mergeCurrentArchiveItemIntoPage = <TItem extends DetailArchiveRecord>(
   page: DetailArchivePage<TItem> | null,
   currentItem: TItem | null,
+  pinCurrentItemToTop: boolean,
 ): DetailArchivePage<TItem> | null => {
   if (!page || !currentItem) return page;
 
-  const dedupedItems = [currentItem, ...page.items].filter(
+  const itemsWithCurrent = pinCurrentItemToTop
+    ? [currentItem, ...page.items]
+    : [...page.items, currentItem];
+  const dedupedItems = itemsWithCurrent.filter(
     (item, index, items) => items.findIndex(candidate => candidate.id === item.id) === index,
   );
 
