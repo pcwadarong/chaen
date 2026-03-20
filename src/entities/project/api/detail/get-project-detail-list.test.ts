@@ -35,7 +35,7 @@ const createQueryMock = ({
 }: {
   result: QueryResult;
   terminalCall?: number;
-  terminalMethod: 'in' | 'limit';
+  terminalMethod: 'in' | 'limit' | 'range';
 }) => {
   const query = {
     eq: vi.fn().mockReturnThis(),
@@ -51,6 +51,9 @@ const createQueryMock = ({
     not: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
+    range: vi
+      .fn()
+      .mockResolvedValue(terminalMethod === 'range' ? result : { data: null, error: null }),
     select: vi.fn().mockReturnThis(),
   };
 
@@ -80,7 +83,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -123,6 +126,7 @@ describe('getProjectDetailList', () => {
       nextCursor: null,
     });
     expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 12);
     expect(translationsQuery.in).toHaveBeenNthCalledWith(2, 'locale', ['ko', 'en', 'ja', 'fr']);
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
@@ -144,7 +148,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -176,6 +180,7 @@ describe('getProjectDetailList', () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.nextCursor).toBe('1');
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 1);
   });
 
   it('요청 locale 번역이 없어도 fallback locale 아카이브 항목을 반환한다', async () => {
@@ -190,7 +195,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -243,7 +248,7 @@ describe('getProjectDetailList', () => {
           message: 'relation "public.projects" does not exist',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {
@@ -269,7 +274,7 @@ describe('getProjectDetailList', () => {
           message: 'permission denied for table projects',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {

@@ -6,15 +6,21 @@ import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
-import {
-  buildOffsetPage,
-  parseOffsetCursor,
-  parseOffsetLimit,
-} from '@/shared/lib/pagination/offset-pagination';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
+
+/**
+ * 상세 아카이브 추가 로드에서 다음 페이지 여부를 확인하기 위해 1건을 더 조회합니다.
+ */
+const PROJECT_ARCHIVE_PAGE_FETCH_EXTRA = 1;
+
+/**
+ * 현재 상세 프로젝트 주변 window를 계산할 때 한 번에 읽어올 최대 base row 수입니다.
+ */
+const PROJECT_ARCHIVE_WINDOW_MAX_ROWS = 1000;
 
 type ProjectArchiveBaseRow = {
   display_order: number | null;
@@ -64,7 +70,13 @@ const isMissingProjectContentSchemaError = (error: { code?: string | null; messa
 /**
  * 공개 프로젝트 base row를 `display_order -> publish_at -> id` 기준으로 조회합니다.
  */
-const fetchProjectArchiveBaseRows = async (): Promise<{
+const fetchProjectArchiveBaseRows = async ({
+  offset,
+  pageSize,
+}: {
+  offset?: number;
+  pageSize?: number;
+} = {}): Promise<{
   data: ProjectArchiveBaseRow[];
   schemaMissing: boolean;
 }> => {
@@ -72,7 +84,7 @@ const fetchProjectArchiveBaseRows = async (): Promise<{
   if (!supabase) return { data: [], schemaMissing: false };
 
   const nowIsoString = new Date().toISOString();
-  const { data: baseRows, error: baseRowsError } = await supabase
+  const baseRowsQuery = supabase
     .from('projects')
     .select('id,slug,visibility,publish_at,display_order')
     .not('publish_at', 'is', null)
@@ -87,8 +99,11 @@ const fetchProjectArchiveBaseRows = async (): Promise<{
       ascending: false,
       nullsFirst: false,
     })
-    .order('id', { ascending: false })
-    .limit(1000);
+    .order('id', { ascending: false });
+  const { data: baseRows, error: baseRowsError } =
+    typeof offset === 'number' && typeof pageSize === 'number'
+      ? await baseRowsQuery.range(offset, offset + pageSize + PROJECT_ARCHIVE_PAGE_FETCH_EXTRA - 1)
+      : await baseRowsQuery.limit(PROJECT_ARCHIVE_WINDOW_MAX_ROWS);
 
   if (baseRowsError) {
     if (isMissingProjectContentSchemaError(baseRowsError)) {
@@ -193,20 +208,21 @@ const fetchProjectDetailListByLocaleFallback = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectArchivePage> => {
-  const baseRowsResult = await fetchProjectArchiveBaseRows();
+  const offset = parseOffsetCursor(cursor);
+  const baseRowsResult = await fetchProjectArchiveBaseRows({
+    offset,
+    pageSize,
+  });
   if (baseRowsResult.schemaMissing) {
     throw new Error('[projects] content schema가 없습니다.');
   }
 
-  const page = buildOffsetPage({
-    cursor,
-    items: baseRowsResult.data,
-    limit: pageSize,
-  });
+  const hasNextPage = baseRowsResult.data.length > pageSize;
+  const pageRows = hasNextPage ? baseRowsResult.data.slice(0, pageSize) : baseRowsResult.data;
 
   return {
-    items: await resolveProjectArchiveItemsWithLocaleFallback(page.items, locale),
-    nextCursor: page.nextCursor,
+    items: await resolveProjectArchiveItemsWithLocaleFallback(pageRows, locale),
+    nextCursor: hasNextPage ? String(offset + pageSize) : null,
   };
 };
 
