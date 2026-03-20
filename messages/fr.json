@@ -133,7 +133,8 @@
     "viewProject": "Voir le projet"
   },
   "Resume": {
-    "loading": "Chargement du CV."
+    "loading": "Chargement du CV.",
+    "resumeDownloadUnavailable": "CV indisponible"
   },
   "ProjectDetail": {
     "archiveLabel": "Archive des projets",

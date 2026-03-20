@@ -14,33 +14,30 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
         body: '',
         description: '',
         download_button_label: 'Download',
-        download_unavailable_label: 'Preparing',
         title: 'Resume',
       },
       fr: {
         body: '',
         description: '',
         download_button_label: 'Telecharger',
-        download_unavailable_label: 'Preparation',
         title: 'CV',
       },
       ja: {
         body: '',
         description: '',
         download_button_label: 'ダウンロード',
-        download_unavailable_label: '準備中',
         title: '履歴書',
       },
       ko: {
         body: '한국어 본문',
         description: '한국어 설명',
         download_button_label: '다운로드',
-        download_unavailable_label: '준비 중',
         title: '이력서',
       },
     },
     dirty: true,
   },
+  lastOnPublish: undefined as ResumeEditorCoreProps['onPublish'] | undefined,
 }));
 
 vi.mock('@/widgets/resume-editor', async () => {
@@ -48,19 +45,14 @@ vi.mock('@/widgets/resume-editor', async () => {
 
   return {
     ...actual,
-    ResumeEditorCore: ({
-      hideAppFrameFooter,
-      initialPublishSettings,
-      onPublish,
-    }: ResumeEditorCoreProps) => {
+    ResumeEditorCore: ({ hideAppFrameFooter, onPublish }: ResumeEditorCoreProps) => {
       resumeEditorClientMockState.editorCoreRenderCount += 1;
+      resumeEditorClientMockState.lastOnPublish = onPublish;
 
       return (
         <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
           <button
-            onClick={() =>
-              onPublish?.(resumeEditorClientMockState.editorState, initialPublishSettings)
-            }
+            onClick={() => onPublish?.(resumeEditorClientMockState.editorState)}
             type="button"
           >
             발행하기
@@ -71,25 +63,18 @@ vi.mock('@/widgets/resume-editor', async () => {
   };
 });
 
-const basePublishSettings = {
-  downloadFileName: 'ParkChaewon-Resume-en.pdf',
-  downloadPath: '/api/pdf/resume',
-  filePath: 'ParkChaewon-Resume-en.pdf',
-  isPdfReady: false,
-};
-
 describe('ResumeEditorClient', () => {
   beforeEach(() => {
     resumeEditorClientMockState.editorCoreRenderCount = 0;
+    resumeEditorClientMockState.lastOnPublish = undefined;
   });
 
-  it('발행하기 버튼 클릭 시 현재 editor 상태와 publish settings로 서버 발행 callback을 호출한다', async () => {
+  it('발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다', async () => {
     const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(
       <ResumeEditorClient
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
         onPublishSubmit={onPublishSubmit}
       />,
     );
@@ -97,11 +82,7 @@ describe('ResumeEditorClient', () => {
     fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
     await waitFor(() => {
-      expect(onPublishSubmit).toHaveBeenCalledWith(
-        basePublishSettings,
-        resumeEditorClientMockState.editorState,
-        null,
-      );
+      expect(onPublishSubmit).toHaveBeenCalledWith(resumeEditorClientMockState.editorState, null);
     });
   });
 
@@ -111,7 +92,6 @@ describe('ResumeEditorClient', () => {
     render(
       <ResumeEditorClient
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
         onPublishSubmit={onPublishSubmit}
       />,
     );
@@ -132,10 +112,17 @@ describe('ResumeEditorClient', () => {
       <ResumeEditorClient
         hideAppFrameFooter
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
       />,
     );
 
     expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
+  });
+
+  it('onPublishSubmit이 없으면 resume editor core에 onPublish를 넘기지 않는다', () => {
+    render(
+      <ResumeEditorClient initialContents={resumeEditorClientMockState.editorState.contents} />,
+    );
+
+    expect(resumeEditorClientMockState.lastOnPublish).toBeUndefined();
   });
 });

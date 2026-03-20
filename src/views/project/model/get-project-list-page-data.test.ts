@@ -1,7 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { vi } from 'vitest';
 
-import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getProjects } from '@/entities/project/api/list/get-projects';
 import { getProjectListPageData } from '@/views/project/model/get-project-list-page-data';
 
@@ -11,10 +10,6 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/entities/project/api/list/get-projects', () => ({
   getProjects: vi.fn(),
-}));
-
-vi.mock('@/entities/pdf-file/api/get-pdf-file-content', () => ({
-  getPdfFileContent: vi.fn(),
 }));
 
 describe('getProjectListPageData', () => {
@@ -31,23 +26,13 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockResolvedValue({ items: [], nextCursor: null });
-    vi.mocked(getPdfFileContent).mockResolvedValue({
-      body: 'body',
-      description: 'desc',
-      download_button_label: '다운로드',
-      download_unavailable_label: '준비 중',
-      locale: 'ko',
-      title: 'title',
-      updated_at: '2026-03-01T00:00:00.000Z',
-    });
 
     const data = await getProjectListPageData({ locale: 'ko' });
 
     expect(getTranslations).toHaveBeenCalledWith({ locale: 'ko', namespace: 'Project' });
     expect(getProjects).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
     expect(data.portfolioButtonLabel).toBe('Download');
-    expect(data.portfolioButtonUnavailableLabel).toBe('준비 중');
+    expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
   });
 
   it('프로젝트 목록 조회 실패 시 빈 초기 목록으로 폴백한다', async () => {
@@ -59,7 +44,6 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockRejectedValue(new Error('temporary failure'));
-    vi.mocked(getPdfFileContent).mockResolvedValue(null);
 
     const data = await getProjectListPageData({ locale: 'ko' });
 
@@ -67,10 +51,9 @@ describe('getProjectListPageData', () => {
     expect(data.initialCursor).toBeNull();
     expect(data.portfolioButtonLabel).toBe('Download');
     expect(data.portfolioButtonUnavailableLabel).toBe('Unavailable');
-    expect(getPdfFileContent).toHaveBeenCalledWith({ kind: 'portfolio', locale: 'ko' });
   });
 
-  it('PDF 본문 조회 실패 시에도 프로젝트 목록 화면 데이터를 반환한다', async () => {
+  it('프로젝트 번역과 목록만으로 화면 데이터를 반환한다', async () => {
     const translation = ((key: string) => {
       if (key === 'portfolioDownload') return 'Download';
       if (key === 'portfolioDownloadUnavailable') return 'Unavailable';
@@ -79,7 +62,6 @@ describe('getProjectListPageData', () => {
     }) as unknown as Awaited<ReturnType<typeof getTranslations>>;
     vi.mocked(getTranslations).mockResolvedValue(translation);
     vi.mocked(getProjects).mockResolvedValue({ items: [], nextCursor: null });
-    vi.mocked(getPdfFileContent).mockRejectedValue(new Error('pdf content failed'));
 
     await expect(getProjectListPageData({ locale: 'ko' })).resolves.toEqual({
       initialCursor: null,

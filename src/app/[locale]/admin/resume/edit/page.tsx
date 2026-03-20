@@ -35,10 +35,9 @@ const AdminResumeEditRoute = async ({
 
   await requireAdmin({ locale });
 
-  const { initialContents, initialDraftId, initialPublishSettings, initialSavedAt } =
-    await getResumeEditorSeed({
-      draftId: resolvedSearchParams?.draftId,
-    });
+  const { initialContents, initialDraftId, initialSavedAt } = await getResumeEditorSeed({
+    draftId: resolvedSearchParams?.draftId,
+  });
 
   const handleDraftSave = async (
     state: Parameters<NonNullable<React.ComponentProps<typeof ResumeEditorPage>['onDraftSave']>>[0],
@@ -54,12 +53,9 @@ const AdminResumeEditRoute = async ({
   };
 
   const handlePublishSubmit = async (
-    settings: Parameters<
-      NonNullable<React.ComponentProps<typeof ResumeEditorPage>['onPublishSubmit']>
-    >[0],
     state: Parameters<
       NonNullable<React.ComponentProps<typeof ResumeEditorPage>['onPublishSubmit']>
-    >[1],
+    >[0],
     draftId?: string | null,
   ) => {
     'use server';
@@ -67,7 +63,6 @@ const AdminResumeEditRoute = async ({
     await publishResumeContentAction({
       draftId,
       locale,
-      settings,
       state,
     });
   };
@@ -77,7 +72,6 @@ const AdminResumeEditRoute = async ({
       hideAppFrameFooter
       initialDraftId={initialDraftId}
       initialContents={initialContents}
-      initialPublishSettings={initialPublishSettings}
       initialSavedAt={initialSavedAt}
       onDraftSave={handleDraftSave}
       onPublishSubmit={handlePublishSubmit}

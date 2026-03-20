@@ -34,12 +34,7 @@ const RESUME_LOCALE_LABELS: Record<Locale, string> = {
   ko: 'KO',
 };
 
-type ResumeEditorFieldKey =
-  | 'body'
-  | 'description'
-  | 'download_button_label'
-  | 'download_unavailable_label'
-  | 'title';
+type ResumeEditorFieldKey = 'body' | 'description' | 'download_button_label' | 'title';
 
 type SaveStatus = 'dirty' | 'idle' | 'saving';
 
@@ -84,14 +79,6 @@ const ResumeLocaleFieldsBase = ({
         aria-label="다운로드 버튼 라벨"
         onChange={event => onFieldChange('download_button_label', event.target.value)}
         value={activeContent.download_button_label}
-      />
-    </label>
-    <label className={fieldClass}>
-      <span className={labelClass}>미준비 버튼 라벨</span>
-      <Input
-        aria-label="미준비 버튼 라벨"
-        onChange={event => onFieldChange('download_unavailable_label', event.target.value)}
-        value={activeContent.download_unavailable_label}
       />
     </label>
     <div className={bodyFieldClass}>
@@ -157,7 +144,6 @@ const ResumeLocaleFields = React.memo(ResumeLocaleFieldsBase);
 export const ResumeEditorCore = ({
   hideAppFrameFooter = false,
   initialContents,
-  initialPublishSettings,
   initialSavedAt = null,
   onDraftSave,
   onPublish,
@@ -195,14 +181,14 @@ export const ResumeEditorCore = ({
         };
       });
 
-      if (key === 'title') {
+      if (activeLocale === 'ko' && key === 'title') {
         setPublishErrors(previous => ({
           ...previous,
           koTitle: undefined,
         }));
       }
 
-      if (key === 'body') {
+      if (activeLocale === 'ko' && key === 'body') {
         setPublishErrors(previous => ({
           ...previous,
           koBody: undefined,
@@ -265,21 +251,18 @@ export const ResumeEditorCore = ({
       contents,
       dirty,
     };
-    const nextErrors = validateResumePublishState({
-      contents,
-      settings: initialPublishSettings,
-    });
+    const contentValidationErrors = validateResumePublishState({ contents });
 
-    setPublishErrors(nextErrors);
+    setPublishErrors(contentValidationErrors);
 
-    if (Object.keys(nextErrors).length > 0 || !onPublish) {
+    if (Object.keys(contentValidationErrors).length > 0 || !onPublish) {
       return;
     }
 
     setIsPublishing(true);
 
     try {
-      await onPublish(nextState, initialPublishSettings);
+      await onPublish(nextState);
     } catch (error) {
       const parsedError = parseResumeEditorError(error, 'publishFailed');
       const inlineField = resolveResumePublishInlineErrorField(parsedError.code);
@@ -296,7 +279,7 @@ export const ResumeEditorCore = ({
     } finally {
       setIsPublishing(false);
     }
-  }, [contents, dirty, initialPublishSettings, onPublish, pushToast]);
+  }, [contents, dirty, onPublish, pushToast]);
   const handlePublishClick = useCallback(() => {
     void handlePublish();
   }, [handlePublish]);
@@ -389,11 +372,6 @@ export const ResumeEditorCore = ({
           {publishErrors.koBody ? (
             <p aria-live="assertive" className={publishErrorClass} role="alert">
               {publishErrors.koBody}
-            </p>
-          ) : null}
-          {publishErrors.pdf ? (
-            <p aria-live="assertive" className={publishErrorClass} role="alert">
-              {publishErrors.pdf}
             </p>
           ) : null}
           <div className={publishButtonRowClass}>

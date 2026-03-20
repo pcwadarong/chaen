@@ -9,7 +9,6 @@ import {
   EDITOR_LOCALES,
   type Locale,
 } from '@/entities/editor/model/editor-types';
-import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import {
   createPdfFileAvailabilityCacheTag,
   createPdfFileContentCacheTag,
@@ -20,7 +19,6 @@ import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import type {
   ResumeEditorContentMap,
   ResumeEditorState,
-  ResumePublishSettings,
 } from '@/entities/resume/model/resume-editor.types';
 import {
   buildResumeDraftContentRecord,
@@ -39,7 +37,6 @@ const resumeContentSchema = z.object({
   body: z.string(),
   description: z.string(),
   download_button_label: z.string(),
-  download_unavailable_label: z.string(),
   title: z.string(),
 });
 
@@ -51,13 +48,6 @@ const resumeEditorStateSchema = z.object({
     ko: resumeContentSchema,
   }),
   dirty: z.boolean(),
-});
-
-const resumePublishSettingsSchema = z.object({
-  downloadFileName: z.string(),
-  downloadPath: z.string(),
-  filePath: z.string(),
-  isPdfReady: z.boolean(),
 });
 
 type ResumeDraftRow = {
@@ -74,7 +64,6 @@ type SaveResumeDraftActionInput = {
 type PublishResumeContentActionInput = {
   draftId?: string | null;
   locale?: string | null;
-  settings: ResumePublishSettings;
   state: ResumeEditorState;
 };
 
@@ -155,13 +144,11 @@ export const saveResumeDraftAction = async ({
 export const publishResumeContentAction = async ({
   draftId,
   locale,
-  settings,
   state,
 }: PublishResumeContentActionInput) => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
   const parsedState = resumeEditorStateSchema.safeParse(state);
-  const parsedSettings = resumePublishSettingsSchema.safeParse(settings);
 
   if (!parsedState.success) {
     throw createResumeEditorError(
@@ -169,17 +156,8 @@ export const publishResumeContentAction = async ({
       parsedState.error.issues[0]?.message ?? RESUME_EDITOR_ERROR_MESSAGE.publishInvalidState,
     );
   }
-
-  if (!parsedSettings.success) {
-    throw createResumeEditorError(
-      'publishInvalidSettings',
-      parsedSettings.error.issues[0]?.message ?? RESUME_EDITOR_ERROR_MESSAGE.publishInvalidSettings,
-    );
-  }
-
   const validation = validateResumePublishState({
     contents: parsedState.data.contents,
-    settings: parsedSettings.data,
   });
 
   if (validation.koTitle) {
@@ -188,17 +166,6 @@ export const publishResumeContentAction = async ({
 
   if (validation.koBody) {
     throw createResumeEditorError('missingKoBody', validation.koBody);
-  }
-
-  const isPdfReady = await getPdfFileAvailability({
-    kind: 'resume',
-  }).catch(() => false);
-
-  if (!parsedSettings.data.isPdfReady || !isPdfReady) {
-    throw createResumeEditorError(
-      'missingPdf',
-      validation.pdf ?? RESUME_EDITOR_ERROR_MESSAGE.missingPdf,
-    );
   }
 
   const supabase = createOptionalServiceRoleSupabaseClient();
@@ -247,7 +214,6 @@ const buildResumeContentRows = ({
     body: contents[locale].body.trim(),
     description: contents[locale].description.trim(),
     download_button_label: contents[locale].download_button_label.trim(),
-    download_unavailable_label: contents[locale].download_unavailable_label.trim(),
     locale,
     title: contents[locale].title.trim(),
     updated_at: updatedAt,

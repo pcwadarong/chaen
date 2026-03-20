@@ -124,6 +124,5 @@ export type PdfFileContent = {
   description: string;
   body: string;
   download_button_label: string;
-  download_unavailable_label: string;
   updated_at: string;
 };

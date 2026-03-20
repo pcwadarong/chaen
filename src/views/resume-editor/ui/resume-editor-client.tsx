@@ -3,27 +3,19 @@
 import React, { useCallback, useState } from 'react';
 
 import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
-import type {
-  ResumeEditorState,
-  ResumePublishSettings,
-} from '@/entities/resume/model/resume-editor.types';
+import type { ResumeEditorState } from '@/entities/resume/model/resume-editor.types';
 import { ResumeEditorCore } from '@/widgets/resume-editor';
 
 type ResumeEditorClientProps = {
   hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
   initialContents: ResumeEditorState['contents'];
-  initialPublishSettings: ResumePublishSettings;
   initialSavedAt?: string | null;
   onDraftSave?: (
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<DraftSaveResult | void>;
-  onPublishSubmit?: (
-    settings: ResumePublishSettings,
-    state: ResumeEditorState,
-    draftId?: string | null,
-  ) => Promise<void>;
+  onPublishSubmit?: (state: ResumeEditorState, draftId?: string | null) => Promise<void>;
 };
 
 const MemoizedResumeEditorCore = React.memo(ResumeEditorCore);
@@ -35,7 +27,6 @@ export const ResumeEditorClient = ({
   hideAppFrameFooter = false,
   initialDraftId = null,
   initialContents,
-  initialPublishSettings,
   initialSavedAt = null,
   onDraftSave,
   onPublishSubmit,
@@ -63,12 +54,12 @@ export const ResumeEditorClient = ({
    * 편집 셸 하단 발행 버튼을 서버 발행 흐름에 연결합니다.
    */
   const handlePublish = useCallback(
-    async (state: ResumeEditorState, settings: ResumePublishSettings) => {
+    async (state: ResumeEditorState) => {
       if (!onPublishSubmit) {
         return;
       }
 
-      await onPublishSubmit(settings, state, draftId);
+      await onPublishSubmit(state, draftId);
     },
     [draftId, onPublishSubmit],
   );
@@ -77,10 +68,9 @@ export const ResumeEditorClient = ({
     <MemoizedResumeEditorCore
       hideAppFrameFooter={hideAppFrameFooter}
       initialContents={initialContents}
-      initialPublishSettings={initialPublishSettings}
       initialSavedAt={initialSavedAt}
       onDraftSave={handleDraftSave}
-      onPublish={handlePublish}
+      onPublish={onPublishSubmit ? handlePublish : undefined}
     />
   );
 };

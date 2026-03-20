@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server';
 
-import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { getProjects } from '@/entities/project/api/list/get-projects';
 import type { ProjectListPageProps } from '@/views/project/ui/project-list-page';
 
@@ -15,18 +14,12 @@ type GetProjectListPageDataInput = {
 export const getProjectListPageData = async ({
   locale,
 }: GetProjectListPageDataInput): Promise<ProjectListPageProps> => {
-  const safePortfolioContent = getPdfFileContent({
-    kind: 'portfolio',
-    locale,
-  }).catch(() => null);
-
-  const [t, projectsPage, sharedPdfContent] = await Promise.all([
+  const [t, projectsPage] = await Promise.all([
     getTranslations({ locale, namespace: 'Project' }),
     getProjects({ locale }).catch(() => ({
       items: [],
       nextCursor: null,
     })),
-    safePortfolioContent,
   ]);
 
   return {
@@ -34,7 +27,6 @@ export const getProjectListPageData = async ({
     initialItems: projectsPage.items,
     locale,
     portfolioButtonLabel: t('portfolioDownload'),
-    portfolioButtonUnavailableLabel:
-      sharedPdfContent?.download_unavailable_label ?? t('portfolioDownloadUnavailable'),
+    portfolioButtonUnavailableLabel: t('portfolioDownloadUnavailable'),
   };
 };

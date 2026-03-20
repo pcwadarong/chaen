@@ -7,12 +7,13 @@ import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page
 
 export type ResumePageProps = {
   content: PdfFileContent;
+  unavailableLabel: string;
 };
 
 /**
  * 이력서 소개 페이지 컨테이너입니다.
  */
-export const ResumePage = ({ content }: ResumePageProps) => (
+export const ResumePage = ({ content, unavailableLabel }: ResumePageProps) => (
   <PageShell width="compact">
     <PageHeader
       action={
@@ -20,7 +21,7 @@ export const ResumePage = ({ content }: ResumePageProps) => (
           kind="resume"
           label={content.download_button_label}
           source="resume-page"
-          unavailableLabel={content.download_unavailable_label}
+          unavailableLabel={unavailableLabel}
         />
       }
       description={content.description}

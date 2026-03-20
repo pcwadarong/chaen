@@ -2,7 +2,6 @@ export type {
   ResumeEditorContentMap,
   ResumeEditorSeed,
   ResumeEditorState,
-  ResumePublishSettings,
 } from '@/entities/resume/model/resume-editor.types';
 export {
   createDefaultResumeEditorContentMap,

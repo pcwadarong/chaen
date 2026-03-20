@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server';
+
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
 import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { ResumePageProps } from '@/views/resume/ui/resume-page';
@@ -17,9 +19,13 @@ export const getResumePageData = async ({
     locale,
     kind: 'resume',
   }).catch(() => null);
-  const content = await safeContent;
+  const [content, t] = await Promise.all([
+    safeContent,
+    getTranslations({ locale, namespace: 'Resume' }),
+  ]);
 
   return {
     content: content ?? createDefaultPdfFileContent(locale),
+    unavailableLabel: t('resumeDownloadUnavailable'),
   };
 };

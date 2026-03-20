@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { createDefaultResumeEditorContentMap } from '@/entities/resume/model/resume-editor.utils';
@@ -8,21 +8,15 @@ import '@testing-library/jest-dom/vitest';
 
 describe('ResumeEditorCore', () => {
   const renderResumeEditorCore = (options?: {
+    initialContents?: React.ComponentProps<typeof ResumeEditorCore>['initialContents'];
     onDraftSave?: React.ComponentProps<typeof ResumeEditorCore>['onDraftSave'];
     onPublish?: React.ComponentProps<typeof ResumeEditorCore>['onPublish'];
   }) => {
-    const initialContents = createDefaultResumeEditorContentMap();
-    const initialPublishSettings = {
-      downloadFileName: 'ParkChaewon-Resume-en.pdf',
-      downloadPath: '/api/pdf/resume',
-      filePath: 'ParkChaewon-Resume-en.pdf',
-      isPdfReady: true,
-    };
+    const initialContents = options?.initialContents ?? createDefaultResumeEditorContentMap();
 
     render(
       <ResumeEditorCore
         initialContents={initialContents}
-        initialPublishSettings={initialPublishSettings}
         onDraftSave={options?.onDraftSave}
         onPublish={options?.onPublish ?? vi.fn()}
       />,
@@ -30,9 +24,12 @@ describe('ResumeEditorCore', () => {
 
     return {
       initialContents,
-      initialPublishSettings,
     };
   };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('임시저장 클릭 시 현재 resume 상태를 저장 callback으로 전달한다', async () => {
     const onDraftSave = vi.fn().mockResolvedValue({
@@ -100,9 +97,9 @@ describe('ResumeEditorCore', () => {
     ).toBeTruthy();
   });
 
-  it('하단 발행하기 버튼은 현재 resume 상태와 publish settings를 전달한다', async () => {
+  it('하단 발행하기 버튼은 현재 resume 상태를 전달한다', async () => {
     const onPublish = vi.fn().mockResolvedValue(undefined);
-    const { initialPublishSettings } = renderResumeEditorCore({ onPublish });
+    renderResumeEditorCore({ onPublish });
 
     fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
       target: { value: '게시 제목' },
@@ -110,17 +107,14 @@ describe('ResumeEditorCore', () => {
     fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
     await waitFor(() => {
-      expect(onPublish).toHaveBeenCalledWith(
-        {
-          contents: expect.objectContaining({
-            ko: expect.objectContaining({
-              title: '게시 제목',
-            }),
+      expect(onPublish).toHaveBeenCalledWith({
+        contents: expect.objectContaining({
+          ko: expect.objectContaining({
+            title: '게시 제목',
           }),
-          dirty: true,
-        },
-        initialPublishSettings,
-      );
+        }),
+        dirty: true,
+      });
     });
   });
 
@@ -139,26 +133,35 @@ describe('ResumeEditorCore', () => {
     expect(screen.getByText('Next.js')).toBeTruthy();
   });
 
-  it('pdf 준비가 안 되어 있으면 하단 발행 버튼에서 인라인 에러를 보여준다', async () => {
-    render(
-      <ResumeEditorCore
-        initialContents={createDefaultResumeEditorContentMap()}
-        initialPublishSettings={{
-          downloadFileName: 'ParkChaewon-Resume-en.pdf',
-          downloadPath: '/api/pdf/resume',
-          filePath: 'ParkChaewon-Resume-en.pdf',
-          isPdfReady: false,
-        }}
-        onPublish={vi.fn()}
-      />,
-    );
+  it('영문 입력은 기존 한국어 필수 에러를 지우지 않는다', async () => {
+    const initialContents = createDefaultResumeEditorContentMap();
+
+    initialContents.ko = {
+      ...initialContents.ko,
+      body: '',
+      title: '',
+    };
+
+    renderResumeEditorCore({
+      initialContents,
+    });
 
     fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
-    expect(
-      await screen.findByText(
-        '이력서 PDF가 준비되지 않았습니다. PDF 관리자 화면에서 업로드 상태를 확인해주세요.',
-      ),
-    ).toBeTruthy();
+    expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
+    expect(await screen.findByText('한국어 본문을 입력해주세요')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'EN' }));
+    await act(async () => {
+      fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
+        target: { value: 'English title' },
+      });
+      fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
+        target: { value: 'English body' },
+      });
+    });
+
+    expect(screen.getByText('한국어 제목을 입력해주세요')).toBeTruthy();
+    expect(screen.getByText('한국어 본문을 입력해주세요')).toBeTruthy();
   });
 });
