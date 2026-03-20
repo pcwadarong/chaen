@@ -8,11 +8,16 @@ import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
-import { buildOffsetPage, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
+import { parseOffsetCursor, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
+
+/**
+ * 다음 페이지 존재 여부를 판별하기 위해 pageSize보다 1개 더 조회합니다.
+ */
+const PROJECTS_PAGE_FETCH_EXTRA = 1;
 
 const isMissingProjectsContentSchemaError = (message: string) => {
   const normalizedMessage = message.toLowerCase();
@@ -46,7 +51,13 @@ type ProjectListTranslationSummaryRow = Pick<ProjectListItem, 'description' | 't
 /**
  * 공개 프로젝트 base row를 `display_order -> publish_at -> id` 기준으로 조회합니다.
  */
-const fetchPublicProjectBaseRows = async (): Promise<{
+const fetchPublicProjectBaseRows = async ({
+  offset,
+  pageSize,
+}: {
+  offset: number;
+  pageSize: number;
+}): Promise<{
   data: ProjectPublicBaseRow[];
   schemaMissing: boolean;
 }> => {
@@ -59,6 +70,7 @@ const fetchPublicProjectBaseRows = async (): Promise<{
   }
 
   const nowIsoString = new Date().toISOString();
+  const rangeEnd = offset + pageSize + PROJECTS_PAGE_FETCH_EXTRA - 1;
   const { data: baseRows, error: baseRowsError } = await supabase
     .from('projects')
     .select('id,thumbnail_url,slug,visibility,publish_at,display_order,period_start,period_end')
@@ -75,7 +87,7 @@ const fetchPublicProjectBaseRows = async (): Promise<{
       nullsFirst: false,
     })
     .order('id', { ascending: false })
-    .limit(1000);
+    .range(offset, rangeEnd);
 
   if (baseRowsError) {
     if (isMissingProjectsContentSchemaError(baseRowsError.message)) {
@@ -209,18 +221,19 @@ const fetchProjectsByLocaleFallback = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectListPage> => {
-  const baseRowsResult = await fetchPublicProjectBaseRows();
+  const offset = parseOffsetCursor(cursor);
+  const baseRowsResult = await fetchPublicProjectBaseRows({
+    offset,
+    pageSize,
+  });
   if (baseRowsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
-  const page = buildOffsetPage({
-    cursor,
-    items: baseRowsResult.data,
-    limit: pageSize,
-  });
+  const hasNextPage = baseRowsResult.data.length > pageSize;
+  const pageRows = hasNextPage ? baseRowsResult.data.slice(0, pageSize) : baseRowsResult.data;
 
   return {
-    items: dedupeById(await resolveProjectItemsWithLocaleFallback(page.items, locale)),
-    nextCursor: page.nextCursor,
+    items: dedupeById(await resolveProjectItemsWithLocaleFallback(pageRows, locale)),
+    nextCursor: hasNextPage ? String(offset + pageSize) : null,
   };
 };
 
