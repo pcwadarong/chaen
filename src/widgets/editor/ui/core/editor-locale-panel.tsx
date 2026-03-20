@@ -71,6 +71,15 @@ const EditorLocalePanelBase = ({
   const editorGridRef = React.useRef<HTMLDivElement | null>(null);
   const [paneHeight, setPaneHeight] = React.useState<string | undefined>(undefined);
   const shouldRenderPreview = isActive && (!isMobileLayout || mobileEditorPane === 'preview');
+  const measurePaneHeight = React.useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const node = editorGridRef.current;
+    if (!node) return;
+
+    const nextHeight = Math.max(0, window.innerHeight - node.getBoundingClientRect().top - 24);
+    setPaneHeight(`${nextHeight}px`);
+  }, []);
 
   React.useEffect(() => {
     if (!isActive) return;
@@ -84,26 +93,20 @@ const EditorLocalePanelBase = ({
 
     const node = editorGridRef.current;
     if (!node) return;
+    measurePaneHeight();
 
-    const measure = () => {
-      const nextHeight = Math.max(0, window.innerHeight - node.getBoundingClientRect().top - 24);
-      setPaneHeight(`${nextHeight}px`);
-    };
-
-    measure();
-
-    window.addEventListener('resize', measure);
-    window.addEventListener('scroll', measure, { passive: true });
+    window.addEventListener('resize', measurePaneHeight);
+    window.addEventListener('scroll', measurePaneHeight, { passive: true });
 
     if (typeof ResizeObserver === 'undefined') {
       return () => {
-        window.removeEventListener('resize', measure);
-        window.removeEventListener('scroll', measure);
+        window.removeEventListener('resize', measurePaneHeight);
+        window.removeEventListener('scroll', measurePaneHeight);
       };
     }
 
     const resizeObserver = new ResizeObserver(() => {
-      measure();
+      measurePaneHeight();
     });
 
     resizeObserver.observe(node);
@@ -116,19 +119,16 @@ const EditorLocalePanelBase = ({
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener('resize', measure);
-      window.removeEventListener('scroll', measure);
+      window.removeEventListener('resize', measurePaneHeight);
+      window.removeEventListener('scroll', measurePaneHeight);
     };
-  }, [
-    extraLocaleFieldLabel,
-    isActive,
-    isMobileLayout,
-    mobileEditorPane,
-    translation.content,
-    translation.description,
-    translation.download_button_label,
-    translation.title,
-  ]);
+  }, [extraLocaleFieldLabel, isActive, isMobileLayout, measurePaneHeight, mobileEditorPane]);
+
+  React.useEffect(() => {
+    if (!isActive) return;
+
+    measurePaneHeight();
+  }, [isActive, measurePaneHeight, translation.description, translation.title]);
 
   return (
     <section
