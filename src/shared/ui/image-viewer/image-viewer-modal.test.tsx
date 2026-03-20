@@ -3,11 +3,6 @@ import React from 'react';
 
 import { ImageViewerModal } from '@/shared/ui/image-viewer/image-viewer-modal';
 
-/* eslint-disable @next/next/no-img-element */
-vi.mock('next/image', () => ({
-  default: ({ alt, ...props }: { alt: string }) => <img alt={alt} {...props} />,
-}));
-
 vi.mock('@/shared/ui/modal/modal', () => ({
   Modal: ({
     ariaLabel,
@@ -72,5 +67,24 @@ describe('ImageViewerModal', () => {
     expect(
       screen.getByRole('button', { name: '첫 번째 이미지 1' }).getAttribute('aria-current'),
     ).toBe('true');
+  });
+
+  it('remotePatterns에 없는 외부 이미지 URL도 그대로 렌더링한다', () => {
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={[{ alt: '외부 이미지', src: 'https://github.com/user-attachments/assets/demo' }]}
+        labels={labels}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen
+        .getAllByAltText('외부 이미지')
+        .every(
+          node => node.getAttribute('src') === 'https://github.com/user-attachments/assets/demo',
+        ),
+    ).toBe(true);
   });
 });

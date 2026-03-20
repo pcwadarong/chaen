@@ -258,7 +258,9 @@
   },
   "ImageViewer": {
     "closeAriaLabel": "Close image viewer",
+    "imageViewerAriaLabel": "Image viewer",
     "nextAriaLabel": "View next image",
+    "openAriaLabel": "Open image viewer",
     "previousAriaLabel": "View previous image",
     "thumbnailListAriaLabel": "Image thumbnails",
     "zoomInAriaLabel": "Zoom in image",

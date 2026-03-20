@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
@@ -10,7 +9,6 @@ import { Modal } from '@/shared/ui/modal/modal';
 type ImageViewerItem = {
   alt: string;
   src: string;
-  unoptimized?: boolean;
 };
 
 export type ImageViewerLabels = {
@@ -149,13 +147,14 @@ export const ImageViewerModal = ({
 
           <div className={imageViewportClass}>
             <div className={imageInnerClass}>
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 alt={currentItem.alt}
                 className={viewerImageClass}
+                draggable={false}
                 height={1200}
                 src={currentItem.src}
                 style={{ transform: `scale(${zoomLevel})` }}
-                unoptimized={currentItem.unoptimized}
                 width={1920}
               />
             </div>
@@ -229,12 +228,14 @@ export const ImageViewerModal = ({
                 )}
                 type="button"
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   alt={item.alt}
                   className={thumbnailImageClass}
+                  draggable={false}
                   height={200}
+                  loading="lazy"
                   src={item.src}
-                  unoptimized={item.unoptimized}
                   width={320}
                 />
               </button>

@@ -258,7 +258,9 @@
   },
   "ImageViewer": {
     "closeAriaLabel": "이미지 뷰어 닫기",
+    "imageViewerAriaLabel": "이미지 뷰어",
     "nextAriaLabel": "다음 이미지 보기",
+    "openAriaLabel": "이미지 크게 보기",
     "previousAriaLabel": "이전 이미지 보기",
     "thumbnailListAriaLabel": "이미지 썸네일 목록",
     "zoomInAriaLabel": "이미지 확대",

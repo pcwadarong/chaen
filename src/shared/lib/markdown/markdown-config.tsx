@@ -20,6 +20,7 @@ import {
 import { getMarkdownColorPreset } from '@/shared/lib/markdown/markdown-color-presets';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
+import { MarkdownImage } from '@/shared/ui/markdown/markdown-image';
 import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
@@ -159,14 +160,11 @@ const isBlockCode = ({
 };
 
 /**
- * markdown 본문 이미지를 반응형으로 렌더링합니다.
+ * markdown 본문 이미지를 반응형 뷰어 트리거로 렌더링합니다.
  */
 const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImageElement>) => {
   const resolvedAlt = alt ?? '';
-
-  // markdown 본문 이미지는 원본 src를 그대로 존중해야 합니다.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img alt={resolvedAlt} className={markdownImageClass} src={src} {...props} />;
+  return <MarkdownImage alt={resolvedAlt} className={markdownImageClass} src={src} {...props} />;
 };
 
 /**
