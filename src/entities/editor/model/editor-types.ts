@@ -5,6 +5,7 @@ export type Locale = (typeof EDITOR_LOCALES)[number];
 export interface TranslationField {
   content: string;
   description: string;
+  download_button_label?: string;
   title: string;
 }
 

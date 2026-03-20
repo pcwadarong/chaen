@@ -216,8 +216,8 @@ const techStackListClass = css({
   display: 'grid',
   gap: '2',
   width: 'full',
-  maxWidth: '[42rem]',
   mx: 'auto',
+  px: '4',
 });
 
 const techStackRowClass = css({

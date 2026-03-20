@@ -24,6 +24,7 @@ export const buildEditorStateSnapshot = ({
       accumulator[locale] = {
         content: translations[locale]?.content ?? '',
         description: translations[locale]?.description ?? '',
+        download_button_label: translations[locale]?.download_button_label ?? '',
         title: translations[locale]?.title ?? '',
       };
 

@@ -285,10 +285,15 @@ describe('EditorCore', () => {
         slug: '',
         tags: ['react'],
         translations: {
-          en: { content: '', description: '', title: '' },
-          fr: { content: '', description: '', title: '' },
-          ja: { content: '', description: '', title: '' },
-          ko: { content: '저장 본문', description: '', title: '저장 제목' },
+          en: { content: '', description: '', download_button_label: '', title: '' },
+          fr: { content: '', description: '', download_button_label: '', title: '' },
+          ja: { content: '', description: '', download_button_label: '', title: '' },
+          ko: {
+            content: '저장 본문',
+            description: '',
+            download_button_label: '',
+            title: '저장 제목',
+          },
         },
       });
     });
@@ -367,10 +372,10 @@ describe('EditorCore', () => {
       slug: '',
       tags: [],
       translations: {
-        en: { content: '', description: '', title: '' },
-        fr: { content: '', description: '', title: '' },
-        ja: { content: '', description: '', title: '' },
-        ko: { content: '', description: '', title: '' },
+        en: { content: '', description: '', download_button_label: '', title: '' },
+        fr: { content: '', description: '', download_button_label: '', title: '' },
+        ja: { content: '', description: '', download_button_label: '', title: '' },
+        ko: { content: '', description: '', download_button_label: '', title: '' },
       },
     });
 
@@ -384,10 +389,15 @@ describe('EditorCore', () => {
       slug: '',
       tags: [],
       translations: {
-        en: { content: '', description: '', title: '' },
-        fr: { content: '', description: '', title: '' },
-        ja: { content: '', description: '', title: '' },
-        ko: { content: '', description: '', title: 'publish-title' },
+        en: { content: '', description: '', download_button_label: '', title: '' },
+        fr: { content: '', description: '', download_button_label: '', title: '' },
+        ja: { content: '', description: '', download_button_label: '', title: '' },
+        ko: {
+          content: '',
+          description: '',
+          download_button_label: '',
+          title: 'publish-title',
+        },
       },
     });
   });

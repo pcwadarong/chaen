@@ -48,7 +48,7 @@ vi.mock('@/widgets/editor', async () => {
       return (
         <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
           <button
-            onClick={() => onOpenPublishPanel(editorClientMockState.editorState)}
+            onClick={() => onOpenPublishPanel?.(editorClientMockState.editorState)}
             type="button"
           >
             발행하기

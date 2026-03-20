@@ -2,9 +2,14 @@
 
 import React, { useCallback, useState } from 'react';
 
-import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
+import type { DraftSaveResult, EditorState } from '@/entities/editor/model/editor-types';
 import type { ResumeEditorState } from '@/entities/resume/model/resume-editor.types';
-import { ResumeEditorCore } from '@/widgets/resume-editor';
+import {
+  editorStateToResumeEditorState,
+  resumeContentMapToEditorTranslations,
+} from '@/entities/resume/model/resume-editor.utils';
+import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
+import { EditorCore } from '@/widgets/editor';
 
 type ResumeEditorClientProps = {
   hideAppFrameFooter?: boolean;
@@ -18,7 +23,7 @@ type ResumeEditorClientProps = {
   onPublishSubmit?: (state: ResumeEditorState, draftId?: string | null) => Promise<void>;
 };
 
-const MemoizedResumeEditorCore = React.memo(ResumeEditorCore);
+const MemoizedEditorCore = React.memo(EditorCore);
 
 /**
  * resume 전용 관리자 화면에서 편집 셸과 서버 액션을 연결합니다.
@@ -34,12 +39,12 @@ export const ResumeEditorClient = ({
   const [draftId, setDraftId] = useState<string | null>(initialDraftId);
 
   const handleDraftSave = useCallback(
-    async (state: ResumeEditorState) => {
+    async (state: EditorState) => {
       if (!onDraftSave) {
         return undefined;
       }
 
-      const result = await onDraftSave(state, draftId);
+      const result = await onDraftSave(editorStateToResumeEditorState(state), draftId);
 
       if (result?.draftId) {
         setDraftId(result.draftId);
@@ -54,23 +59,33 @@ export const ResumeEditorClient = ({
    * 편집 셸 하단 발행 버튼을 서버 발행 흐름에 연결합니다.
    */
   const handlePublish = useCallback(
-    async (state: ResumeEditorState) => {
+    async (state: EditorState) => {
       if (!onPublishSubmit) {
         return;
       }
 
-      await onPublishSubmit(state, draftId);
+      await onPublishSubmit(editorStateToResumeEditorState(state), draftId);
     },
     [draftId, onPublishSubmit],
   );
 
   return (
-    <MemoizedResumeEditorCore
+    <MemoizedEditorCore
+      availableTags={[]}
+      contentType="resume"
+      enableAutosave={false}
+      extraLocaleFieldLabel="다운로드 버튼 라벨"
       hideAppFrameFooter={hideAppFrameFooter}
-      initialContents={initialContents}
+      hideTagSelector
+      initialSlug=""
+      initialTags={[]}
       initialSavedAt={initialSavedAt}
+      initialTranslations={resumeContentMapToEditorTranslations(initialContents)}
       onDraftSave={handleDraftSave}
-      onPublish={onPublishSubmit ? handlePublish : undefined}
+      onDirectPublish={onPublishSubmit ? handlePublish : undefined}
+      onDirectPublishError={error => parseResumeEditorError(error, 'publishFailed').message}
+      publishButtonLabel="발행하기"
+      publishPendingLabel="발행 중..."
     />
   );
 };
