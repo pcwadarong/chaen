@@ -29,7 +29,7 @@ describe('resume-editor.utils', () => {
     ).toBe('2026-03-12T09:30:00.000Z');
   });
 
-  it('게시 검증은 한국어 제목 본문과 pdf 준비 상태를 확인한다', () => {
+  it('게시 검증은 한국어 제목과 본문만 확인한다', () => {
     const contents = createDefaultResumeEditorContentMap();
 
     contents.ko.title = '';
@@ -38,17 +38,10 @@ describe('resume-editor.utils', () => {
     expect(
       validateResumePublishState({
         contents,
-        settings: {
-          downloadFileName: 'Resume.pdf',
-          downloadPath: '/api/pdf/resume',
-          filePath: 'ParkChaewon-Resume-en.pdf',
-          isPdfReady: false,
-        },
       }),
     ).toEqual({
       koBody: '한국어 본문을 입력해주세요',
       koTitle: '한국어 제목을 입력해주세요',
-      pdf: '이력서 PDF를 업로드해주세요',
     });
   });
 
@@ -58,14 +51,12 @@ describe('resume-editor.utils', () => {
         body: '본문',
         description: '설명',
         download_button_label: '다운로드',
-        download_unavailable_label: '준비 중',
         title: '제목',
       }),
     ).toEqual({
       body: '본문',
       description: '설명',
       download_button_label: '다운로드',
-      download_unavailable_label: '준비 중',
       title: '제목',
     });
   });

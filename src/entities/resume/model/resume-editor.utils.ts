@@ -6,7 +6,6 @@ import type {
   ResumeEditorContent,
   ResumeEditorContentMap,
   ResumeEditorSeed,
-  ResumePublishSettings,
   ResumePublishValidationErrors,
 } from '@/entities/resume/model/resume-editor.types';
 import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
@@ -17,15 +16,11 @@ const EMPTY_RESUME_EDITOR_ERROR: ResumePublishValidationErrors = {};
  * PDF 콘텐츠 row에서 편집에 필요한 텍스트 필드만 추립니다.
  */
 export const toResumeEditorContent = (
-  content: Pick<
-    PdfFileContent,
-    'body' | 'description' | 'download_button_label' | 'download_unavailable_label' | 'title'
-  >,
+  content: Pick<PdfFileContent, 'body' | 'description' | 'download_button_label' | 'title'>,
 ): ResumeEditorContent => ({
   body: content.body ?? '',
   description: content.description ?? '',
   download_button_label: content.download_button_label ?? '',
-  download_unavailable_label: content.download_unavailable_label ?? '',
   title: content.title ?? '',
 });
 
@@ -51,7 +46,6 @@ export const normalizeResumeEditorContentMap = (
       body: content?.body ?? '',
       description: content?.description ?? '',
       download_button_label: content?.download_button_label ?? '',
-      download_unavailable_label: content?.download_unavailable_label ?? '',
       title: content?.title ?? '',
     };
 
@@ -73,8 +67,7 @@ export const isResumeEditorContentMapEqual = (
       leftContent.title === rightContent.title &&
       leftContent.description === rightContent.description &&
       leftContent.body === rightContent.body &&
-      leftContent.download_button_label === rightContent.download_button_label &&
-      leftContent.download_unavailable_label === rightContent.download_unavailable_label
+      leftContent.download_button_label === rightContent.download_button_label
     );
   });
 
@@ -106,14 +99,12 @@ export const getResumeEditorSavedAt = (
 };
 
 /**
- * resume 게시 직전 최소 입력과 PDF 준비 여부를 검증합니다.
+ * resume 게시 직전 최소 입력값을 검증합니다.
  */
 export const validateResumePublishState = ({
   contents,
-  settings,
 }: {
   contents: ResumeEditorContentMap;
-  settings: ResumePublishSettings;
 }): ResumePublishValidationErrors => {
   const koContent = contents.ko;
   const errors: ResumePublishValidationErrors = {};
@@ -124,10 +115,6 @@ export const validateResumePublishState = ({
 
   if (!koContent.body.trim()) {
     errors.koBody = RESUME_EDITOR_ERROR_MESSAGE.missingKoBody;
-  }
-
-  if (!settings.isPdfReady) {
-    errors.pdf = RESUME_EDITOR_ERROR_MESSAGE.missingPdf;
   }
 
   return Object.keys(errors).length === 0 ? EMPTY_RESUME_EDITOR_ERROR : errors;
@@ -144,7 +131,6 @@ export const buildResumeDraftContentRecord = (contents: ResumeEditorContentMap) 
         body: contents[locale].body,
         description: contents[locale].description,
         download_button_label: contents[locale].download_button_label,
-        download_unavailable_label: contents[locale].download_unavailable_label,
         title: contents[locale].title,
       },
     ]),

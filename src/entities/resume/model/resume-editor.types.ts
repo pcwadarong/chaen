@@ -5,7 +5,7 @@ import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 
 export type ResumeEditorContent = Pick<
   PdfFileContent,
-  'body' | 'description' | 'download_button_label' | 'download_unavailable_label' | 'title'
+  'body' | 'description' | 'download_button_label' | 'title'
 >;
 
 export type ResumeEditorContentMap = Record<Locale, ResumeEditorContent>;
@@ -15,23 +15,14 @@ export type ResumeEditorState = {
   dirty: boolean;
 };
 
-export type ResumePublishSettings = {
-  downloadFileName: string;
-  downloadPath: string;
-  filePath: string;
-  isPdfReady: boolean;
-};
-
 export type ResumePublishValidationErrors = {
   koBody?: string;
   koTitle?: string;
-  pdf?: string;
 };
 
 export type ResumeEditorSeed = {
   initialDraftId?: string | null;
   initialContents: ResumeEditorContentMap;
-  initialPublishSettings: ResumePublishSettings;
   initialSavedAt: string | null;
 };
 

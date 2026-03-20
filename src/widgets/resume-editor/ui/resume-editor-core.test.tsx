@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { createDefaultResumeEditorContentMap } from '@/entities/resume/model/resume-editor.utils';
@@ -8,16 +8,17 @@ import '@testing-library/jest-dom/vitest';
 
 describe('ResumeEditorCore', () => {
   const renderResumeEditorCore = (options?: {
+    initialContents?: React.ComponentProps<typeof ResumeEditorCore>['initialContents'];
     onDraftSave?: React.ComponentProps<typeof ResumeEditorCore>['onDraftSave'];
-    onOpenPublishPanel?: React.ComponentProps<typeof ResumeEditorCore>['onOpenPublishPanel'];
+    onPublish?: React.ComponentProps<typeof ResumeEditorCore>['onPublish'];
   }) => {
-    const initialContents = createDefaultResumeEditorContentMap();
+    const initialContents = options?.initialContents ?? createDefaultResumeEditorContentMap();
 
     render(
       <ResumeEditorCore
         initialContents={initialContents}
         onDraftSave={options?.onDraftSave}
-        onOpenPublishPanel={options?.onOpenPublishPanel ?? vi.fn()}
+        onPublish={options?.onPublish ?? vi.fn()}
       />,
     );
 
@@ -25,6 +26,10 @@ describe('ResumeEditorCore', () => {
       initialContents,
     };
   };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('임시저장 클릭 시 현재 resume 상태를 저장 callback으로 전달한다', async () => {
     const onDraftSave = vi.fn().mockResolvedValue({
@@ -92,23 +97,71 @@ describe('ResumeEditorCore', () => {
     ).toBeTruthy();
   });
 
-  it('게시하기 버튼은 현재 resume 상태를 전달한다', () => {
-    const onOpenPublishPanel = vi.fn();
-
-    renderResumeEditorCore({ onOpenPublishPanel });
+  it('하단 발행하기 버튼은 현재 resume 상태를 전달한다', async () => {
+    const onPublish = vi.fn().mockResolvedValue(undefined);
+    renderResumeEditorCore({ onPublish });
 
     fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
       target: { value: '게시 제목' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
-    expect(onOpenPublishPanel).toHaveBeenCalledWith({
-      contents: expect.objectContaining({
-        ko: expect.objectContaining({
-          title: '게시 제목',
+    await waitFor(() => {
+      expect(onPublish).toHaveBeenCalledWith({
+        contents: expect.objectContaining({
+          ko: expect.objectContaining({
+            title: '게시 제목',
+          }),
         }),
-      }),
-      dirty: true,
+        dirty: true,
+      });
     });
+  });
+
+  it('본문 입력값을 우측 preview에 markdown 결과로 보여준다', async () => {
+    renderResumeEditorCore();
+
+    fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
+      target: { value: ['## 소개', '', '- React', '- Next.js'].join('\n') },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2, name: '소개' })).toBeTruthy();
+    });
+
+    expect(screen.getByText('React')).toBeTruthy();
+    expect(screen.getByText('Next.js')).toBeTruthy();
+  });
+
+  it('영문 입력은 기존 한국어 필수 에러를 지우지 않는다', async () => {
+    const initialContents = createDefaultResumeEditorContentMap();
+
+    initialContents.ko = {
+      ...initialContents.ko,
+      body: '',
+      title: '',
+    };
+
+    renderResumeEditorCore({
+      initialContents,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+
+    expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
+    expect(await screen.findByText('한국어 본문을 입력해주세요')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'EN' }));
+    await act(async () => {
+      fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
+        target: { value: 'English title' },
+      });
+      fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
+        target: { value: 'English body' },
+      });
+    });
+
+    expect(screen.getByText('한국어 제목을 입력해주세요')).toBeTruthy();
+    expect(screen.getByText('한국어 본문을 입력해주세요')).toBeTruthy();
   });
 });

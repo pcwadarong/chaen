@@ -66,6 +66,7 @@ const EditorLocalePanelBase = ({
   const localeLabel = LOCALE_CODE_LABELS[locale];
   const titleTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const descriptionTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const shouldRenderPreview = isActive && (!isMobileLayout || mobileEditorPane === 'preview');
 
   React.useEffect(() => {
     if (!isActive) return;
@@ -158,7 +159,7 @@ const EditorLocalePanelBase = ({
           hidden={isMobileLayout && mobileEditorPane !== 'preview'}
           id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
         >
-          {translation.content.trim().length > 0 ? (
+          {shouldRenderPreview && translation.content.trim().length > 0 ? (
             <div className={markdownBodyClass}>
               {renderRichMarkdown({
                 markdown: translation.content,

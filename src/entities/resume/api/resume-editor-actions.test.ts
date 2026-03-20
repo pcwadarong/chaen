@@ -1,7 +1,6 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
 import {
   publishResumeContentAction,
   saveResumeDraftAction,
@@ -25,10 +24,6 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createOptionalServiceRoleSupabaseClient: vi.fn(),
-}));
-
-vi.mock('@/entities/pdf-file/api/get-pdf-file-availability', () => ({
-  getPdfFileAvailability: vi.fn(),
 }));
 
 describe('resume-editor-actions', () => {
@@ -77,28 +72,24 @@ describe('resume-editor-actions', () => {
             body: '',
             description: '',
             download_button_label: 'Download',
-            download_unavailable_label: 'Preparing',
             title: 'Resume',
           },
           fr: {
             body: '',
             description: '',
             download_button_label: 'Telecharger',
-            download_unavailable_label: 'Preparation',
             title: 'CV',
           },
           ja: {
             body: '',
             description: '',
             download_button_label: 'ダウンロード',
-            download_unavailable_label: '準備中',
             title: '履歴書',
           },
           ko: {
             body: '한국어 본문',
             description: '한국어 설명',
             download_button_label: '다운로드',
-            download_unavailable_label: '준비 중',
             title: '이력서',
           },
         },
@@ -130,7 +121,6 @@ describe('resume-editor-actions', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(getPdfFileAvailability).mockResolvedValue(true);
 
     const upsertQuery = {
       upsert: vi.fn().mockResolvedValue({
@@ -157,40 +147,30 @@ describe('resume-editor-actions', () => {
     await publishResumeContentAction({
       draftId: 'resume-draft-1',
       locale: 'ko',
-      settings: {
-        downloadFileName: 'ParkChaewon-Resume-en.pdf',
-        downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume-en.pdf',
-        isPdfReady: true,
-      },
       state: {
         contents: {
           en: {
             body: '',
             description: '',
             download_button_label: 'Download',
-            download_unavailable_label: 'Preparing',
             title: 'Resume',
           },
           fr: {
             body: '',
             description: '',
             download_button_label: 'Telecharger',
-            download_unavailable_label: 'Preparation',
             title: 'CV',
           },
           ja: {
             body: '',
             description: '',
             download_button_label: 'ダウンロード',
-            download_unavailable_label: '準備中',
             title: '履歴書',
           },
           ko: {
             body: '한국어 본문',
             description: '한국어 설명',
             download_button_label: '다운로드',
-            download_unavailable_label: '준비 중',
             title: '이력서',
           },
         },
@@ -246,28 +226,24 @@ describe('resume-editor-actions', () => {
               body: '',
               description: '',
               download_button_label: 'Download',
-              download_unavailable_label: 'Preparing',
               title: 'Resume',
             },
             fr: {
               body: '',
               description: '',
               download_button_label: 'Telecharger',
-              download_unavailable_label: 'Preparation',
               title: 'CV',
             },
             ja: {
               body: '',
               description: '',
               download_button_label: 'ダウンロード',
-              download_unavailable_label: '準備中',
               title: '履歴書',
             },
             ko: {
               body: '한국어 본문',
               description: '한국어 설명',
               download_button_label: '다운로드',
-              download_unavailable_label: '준비 중',
               title: '이력서',
             },
           },
@@ -284,47 +260,36 @@ describe('resume-editor-actions', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(getPdfFileAvailability).mockResolvedValue(true);
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
 
     await expect(
       publishResumeContentAction({
         draftId: 'resume-draft-1',
         locale: 'ko',
-        settings: {
-          downloadFileName: 'ParkChaewon-Resume-en.pdf',
-          downloadPath: '/api/pdf/resume',
-          filePath: 'ParkChaewon-Resume-en.pdf',
-          isPdfReady: true,
-        },
         state: {
           contents: {
             en: {
               body: '',
               description: '',
               download_button_label: 'Download',
-              download_unavailable_label: 'Preparing',
               title: 'Resume',
             },
             fr: {
               body: '',
               description: '',
               download_button_label: 'Telecharger',
-              download_unavailable_label: 'Preparation',
               title: 'CV',
             },
             ja: {
               body: '',
               description: '',
               download_button_label: 'ダウンロード',
-              download_unavailable_label: '準備中',
               title: '履歴書',
             },
             ko: {
               body: '한국어 본문',
               description: '한국어 설명',
               download_button_label: '다운로드',
-              download_unavailable_label: '준비 중',
               title: '이력서',
             },
           },

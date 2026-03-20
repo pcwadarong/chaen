@@ -12,9 +12,9 @@ vi.mock('@/views/resume', () => ({
       description: '서버 내용',
       body: '본문',
       download_button_label: '이력서 다운로드',
-      download_unavailable_label: '이력서 준비 중',
       updated_at: '2026-03-02T00:00:00.000Z',
     },
+    unavailableLabel: '이력서 준비 중',
   })),
   ResumePage: function ResumePage() {
     return null;

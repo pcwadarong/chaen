@@ -1,7 +1,6 @@
 import type { Locale } from '@/entities/editor/model/editor-types';
 import type { PdfFileContent } from '@/entities/pdf-file';
-import { buildPdfFileDownloadPath, getPdfFileContentConfig } from '@/entities/pdf-file';
-import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
+import { getPdfFileContentConfig } from '@/entities/pdf-file';
 import type {
   ResumeDraftSeed,
   ResumeEditorContentMap,
@@ -28,7 +27,6 @@ type ResumeDraftLocaleContent = {
   body?: string;
   description?: string;
   download_button_label?: string;
-  download_unavailable_label?: string;
   title?: string;
 };
 
@@ -53,7 +51,7 @@ export const getResumeEditorContentMap = async (): Promise<ResumeEditorContentMa
 };
 
 /**
- * resume 편집 화면에서 사용할 초기 콘텐츠와 PDF 게시 상태를 함께 반환합니다.
+ * resume 편집 화면에서 사용할 초기 콘텐츠를 반환합니다.
  */
 export const getResumeEditorSeed = async ({
   draftId,
@@ -73,17 +71,9 @@ export const getResumeEditorSeed = async ({
     contentMap[normalizedLocale] = toResumeEditorContent(row);
   });
 
-  const storageConfig = getPdfFileStorageConfig('resume');
-
   const seed: ResumeEditorSeed = {
     initialDraftId: null,
     initialContents: contentMap,
-    initialPublishSettings: {
-      downloadFileName: storageConfig.downloadFileName,
-      downloadPath: buildPdfFileDownloadPath('resume'),
-      filePath: storageConfig.filePath,
-      isPdfReady: false,
-    },
     initialSavedAt: getResumeEditorSavedAt(rows),
   };
 
@@ -161,10 +151,6 @@ const getResumeDraftSeed = async ({
       download_button_label:
         typeof normalizedDraftContent?.download_button_label === 'string'
           ? normalizedDraftContent.download_button_label
-          : '',
-      download_unavailable_label:
-        typeof normalizedDraftContent?.download_unavailable_label === 'string'
-          ? normalizedDraftContent.download_unavailable_label
           : '',
       title: typeof normalizedDraftContent?.title === 'string' ? normalizedDraftContent.title : '',
     };

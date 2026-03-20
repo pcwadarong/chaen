@@ -133,7 +133,8 @@
     "viewProject": "View project"
   },
   "Resume": {
-    "loading": "Loading resume."
+    "loading": "Loading resume.",
+    "resumeDownloadUnavailable": "Resume unavailable"
   },
   "ProjectDetail": {
     "archiveLabel": "Project archive",

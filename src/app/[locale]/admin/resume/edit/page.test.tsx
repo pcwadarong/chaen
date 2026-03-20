@@ -41,36 +41,26 @@ describe('AdminResumeEditRoute', () => {
           body: '',
           description: '',
           download_button_label: 'Download',
-          download_unavailable_label: 'Preparing',
           title: 'Resume',
         },
         fr: {
           body: '',
           description: '',
           download_button_label: 'Telecharger',
-          download_unavailable_label: 'Preparation',
           title: 'CV',
         },
         ja: {
           body: '',
           description: '',
           download_button_label: 'ダウンロード',
-          download_unavailable_label: '準備中',
           title: '履歴書',
         },
         ko: {
           body: '',
           description: '',
           download_button_label: '다운로드',
-          download_unavailable_label: '준비 중',
           title: '이력서',
         },
-      },
-      initialPublishSettings: {
-        downloadFileName: 'ParkChaewon-Resume-en.pdf',
-        downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume-en.pdf',
-        isPdfReady: false,
       },
       initialSavedAt: '2026-03-12T00:00:00.000Z',
     });
@@ -89,6 +79,7 @@ describe('AdminResumeEditRoute', () => {
     expect(typeof element.props.onPublishSubmit).toBe('function');
     expect(element.props.initialDraftId).toBeUndefined();
     expect(element.props.hideAppFrameFooter).toBe(true);
+    expect(element.props.initialContents.ko.title).toBe('이력서');
   });
 
   it('draftId가 있으면 해당 resume draft seed를 우선 사용한다', async () => {
@@ -104,38 +95,28 @@ describe('AdminResumeEditRoute', () => {
           body: '',
           description: '',
           download_button_label: 'Download',
-          download_unavailable_label: 'Preparing',
           title: 'Resume',
         },
         fr: {
           body: '',
           description: '',
           download_button_label: 'Telecharger',
-          download_unavailable_label: 'Preparation',
           title: 'CV',
         },
         ja: {
           body: '',
           description: '',
           download_button_label: 'ダウンロード',
-          download_unavailable_label: '準備中',
           title: '履歴書',
         },
         ko: {
           body: '초안 본문',
           description: '',
           download_button_label: '다운로드',
-          download_unavailable_label: '준비 중',
           title: '초안 이력서',
         },
       },
       initialDraftId: 'resume-draft-1',
-      initialPublishSettings: {
-        downloadFileName: 'ParkChaewon-Resume-en.pdf',
-        downloadPath: '/api/pdf/resume',
-        filePath: 'ParkChaewon-Resume-en.pdf',
-        isPdfReady: true,
-      },
       initialSavedAt: '2026-03-12T00:00:00.000Z',
     });
 

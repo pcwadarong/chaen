@@ -2,10 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { ResumeEditorClient } from '@/views/resume-editor/ui/resume-editor-client';
-import type {
-  ResumeEditorCoreProps,
-  ResumePublishPanelProps,
-} from '@/widgets/resume-editor/ui/resume-editor.types';
+import type { ResumeEditorCoreProps } from '@/widgets/resume-editor/ui/resume-editor.types';
 
 import '@testing-library/jest-dom/vitest';
 
@@ -17,33 +14,30 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
         body: '',
         description: '',
         download_button_label: 'Download',
-        download_unavailable_label: 'Preparing',
         title: 'Resume',
       },
       fr: {
         body: '',
         description: '',
         download_button_label: 'Telecharger',
-        download_unavailable_label: 'Preparation',
         title: 'CV',
       },
       ja: {
         body: '',
         description: '',
         download_button_label: 'ダウンロード',
-        download_unavailable_label: '準備中',
         title: '履歴書',
       },
       ko: {
         body: '한국어 본문',
         description: '한국어 설명',
         download_button_label: '다운로드',
-        download_unavailable_label: '준비 중',
         title: '이력서',
       },
     },
     dirty: true,
   },
+  lastOnPublish: undefined as ResumeEditorCoreProps['onPublish'] | undefined,
 }));
 
 vi.mock('@/widgets/resume-editor', async () => {
@@ -51,80 +45,63 @@ vi.mock('@/widgets/resume-editor', async () => {
 
   return {
     ...actual,
-    ResumeEditorCore: ({ hideAppFrameFooter, onOpenPublishPanel }: ResumeEditorCoreProps) => {
+    ResumeEditorCore: ({ hideAppFrameFooter, onPublish }: ResumeEditorCoreProps) => {
       resumeEditorClientMockState.editorCoreRenderCount += 1;
+      resumeEditorClientMockState.lastOnPublish = onPublish;
 
       return (
         <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
           <button
-            onClick={() => onOpenPublishPanel(resumeEditorClientMockState.editorState)}
+            onClick={() => onPublish?.(resumeEditorClientMockState.editorState)}
             type="button"
           >
-            게시하기
+            발행하기
           </button>
         </div>
       );
     },
-    ResumePublishPanel: ({ isOpen, onClose }: ResumePublishPanelProps) =>
-      isOpen ? (
-        <div aria-label="이력서 게시 설정" role="dialog">
-          <button aria-label="이력서 게시 설정 닫기" onClick={onClose} type="button">
-            닫기
-          </button>
-        </div>
-      ) : null,
   };
 });
-
-const basePublishSettings = {
-  downloadFileName: 'ParkChaewon-Resume-en.pdf',
-  downloadPath: '/api/pdf/resume',
-  filePath: 'ParkChaewon-Resume-en.pdf',
-  isPdfReady: false,
-};
 
 describe('ResumeEditorClient', () => {
   beforeEach(() => {
     resumeEditorClientMockState.editorCoreRenderCount = 0;
+    resumeEditorClientMockState.lastOnPublish = undefined;
   });
 
-  it('게시하기 버튼 클릭 시 resume publish panel을 연다', async () => {
+  it('발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다', async () => {
+    const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
+
     render(
       <ResumeEditorClient
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
+        onPublishSubmit={onPublishSubmit}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog', { name: '이력서 게시 설정' })).toBeTruthy();
+      expect(onPublishSubmit).toHaveBeenCalledWith(resumeEditorClientMockState.editorState, null);
     });
   });
 
-  it('publish panel 열기와 닫기로 resume editor core를 다시 그리지 않는다', async () => {
+  it('발행 버튼 클릭으로 resume editor core를 다시 그리지 않는다', async () => {
+    const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
+
     render(
       <ResumeEditorClient
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
+        onPublishSubmit={onPublishSubmit}
       />,
     );
 
     expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
 
-    fireEvent.click(screen.getByRole('button', { name: '게시하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog', { name: '이력서 게시 설정' })).toBeTruthy();
-    });
-
-    expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
-
-    fireEvent.click(screen.getByRole('button', { name: '이력서 게시 설정 닫기' }));
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: '이력서 게시 설정' })).toBeNull();
+      expect(onPublishSubmit).toHaveBeenCalledTimes(1);
     });
 
     expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
@@ -135,10 +112,17 @@ describe('ResumeEditorClient', () => {
       <ResumeEditorClient
         hideAppFrameFooter
         initialContents={resumeEditorClientMockState.editorState.contents}
-        initialPublishSettings={basePublishSettings}
       />,
     );
 
     expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
+  });
+
+  it('onPublishSubmit이 없으면 resume editor core에 onPublish를 넘기지 않는다', () => {
+    render(
+      <ResumeEditorClient initialContents={resumeEditorClientMockState.editorState.contents} />,
+    );
+
+    expect(resumeEditorClientMockState.lastOnPublish).toBeUndefined();
   });
 });
