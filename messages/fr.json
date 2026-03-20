@@ -132,6 +132,14 @@
     "showcaseTitle": "Archive des projets",
     "viewProject": "Voir le projet"
   },
+  "TechStack": {
+    "category": {
+      "backend": "Backend",
+      "collaboration": "Collaboration",
+      "frontend": "Frontend",
+      "infra": "Infrastructure"
+    }
+  },
   "Resume": {
     "loading": "Chargement du CV.",
     "resumeDownloadUnavailable": "CV indisponible"

@@ -2,7 +2,6 @@ import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { normalizeSlugInput } from '@/shared/lib/slug/slug';
 import type {
   EditorContentType,
-  EditorPublicationState,
   EditorState,
   PublishSettings,
   PublishVisibility,
@@ -25,34 +24,24 @@ export type PublishPanelValidationErrors = {
 };
 
 /**
- * 현재 편집 대상에서 댓글 허용 제어를 잠가야 하는지 계산합니다.
- * 프로젝트는 댓글을 지원하지 않으므로 publish panel에서 항상 false로 잠급니다.
+ * 현재 편집 대상에서 댓글 허용 제어를 노출해야 하는지 계산합니다.
  */
-export const shouldDisablePublishCommentsSetting = ({
-  contentType,
-  publicationState,
-}: {
-  contentType: EditorContentType;
-  publicationState: EditorPublicationState;
-}) => {
-  void publicationState;
-
-  return contentType === 'project';
-};
+export const shouldShowPublishCommentsSetting = (contentType: EditorContentType) =>
+  contentType === 'article';
 
 /**
  * editor draft 저장과 publish panel 초기화에서 공통으로 쓰는 발행 설정 기본값을 만듭니다.
  */
 export const createDefaultPublishSettings = ({
-  disableComments = false,
+  contentType,
   initialSettings,
   slug,
 }: {
-  disableComments?: boolean;
+  contentType: EditorContentType;
   initialSettings?: PublishSettings;
   slug: string;
 }): PublishSettings => ({
-  allowComments: disableComments ? false : (initialSettings?.allowComments ?? true),
+  allowComments: contentType === 'article' ? (initialSettings?.allowComments ?? true) : false,
   publishAt: initialSettings?.publishAt ?? null,
   slug: initialSettings?.slug ?? slug,
   thumbnailUrl: initialSettings?.thumbnailUrl ?? '',

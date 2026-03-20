@@ -23,7 +23,7 @@ import type {
 import {
   buildPublishSettings,
   createDefaultPublishSettings,
-  shouldDisablePublishCommentsSetting,
+  shouldShowPublishCommentsSetting,
   toScheduledPublishUtcIso,
   validatePublishSettings,
 } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -50,24 +50,29 @@ type PublishErrors = {
  * 패널이 열릴 때 editor 상태와 초기 발행 설정을 form 값으로 동기화합니다.
  */
 const createInitialFormState = ({
-  disableComments = false,
+  contentType,
   editorSlug,
   initialSettings,
 }: {
-  disableComments?: boolean;
+  contentType: PublishPanelProps['contentType'];
   editorSlug: string;
   initialSettings?: PublishSettings;
 }) => {
   const scheduleFields = getInitialScheduleFields(initialSettings?.publishAt ?? null);
+  const defaultSettings = createDefaultPublishSettings({
+    contentType,
+    initialSettings,
+    slug: editorSlug,
+  });
 
   return {
-    allowComments: disableComments ? false : (initialSettings?.allowComments ?? true),
+    allowComments: defaultSettings.allowComments,
     dateInput: scheduleFields.dateInput,
     publishMode: scheduleFields.publishMode,
-    slug: initialSettings?.slug ?? editorSlug,
-    thumbnailUrl: initialSettings?.thumbnailUrl ?? '',
+    slug: defaultSettings.slug,
+    thumbnailUrl: defaultSettings.thumbnailUrl,
     timeInput: scheduleFields.timeInput,
-    visibility: initialSettings?.visibility ?? 'public',
+    visibility: defaultSettings.visibility,
   };
 };
 
@@ -96,10 +101,7 @@ export const PublishPanel = ({
   onSettingsChange,
   onSubmit,
 }: PublishPanelProps) => {
-  const isCommentsSettingLocked = shouldDisablePublishCommentsSetting({
-    contentType,
-    publicationState,
-  });
+  const showPublishCommentsSetting = shouldShowPublishCommentsSetting(contentType);
   const [slug, setSlug] = useState('');
   const [visibility, setVisibility] = useState<PublishVisibility>('public');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -131,13 +133,9 @@ export const PublishPanel = ({
     openedAtRef.current = new Date();
 
     const nextFormState = createInitialFormState({
-      disableComments: isCommentsSettingLocked,
+      contentType,
       editorSlug: editorState.slug,
-      initialSettings: createDefaultPublishSettings({
-        disableComments: isCommentsSettingLocked,
-        initialSettings,
-        slug: editorState.slug,
-      }),
+      initialSettings,
     });
     const nextSettings = buildPublishSettings(nextFormState);
 
@@ -153,7 +151,7 @@ export const PublishPanel = ({
     setDateInput(nextFormState.dateInput);
     setTimeInput(nextFormState.timeInput);
     setErrors({});
-  }, [editorState.slug, initialSettings, isCommentsSettingLocked, isOpen, isPublished]);
+  }, [contentType, editorState.slug, initialSettings, isOpen, isPublished]);
 
   useEffect(() => {
     if (!isOpen || !isScheduleLocked || publishMode === 'immediate') return;
@@ -177,7 +175,7 @@ export const PublishPanel = ({
   const currentSettings = useMemo(
     () =>
       buildPublishSettings({
-        allowComments: isCommentsSettingLocked ? false : allowComments,
+        allowComments: showPublishCommentsSetting ? allowComments : false,
         dateInput,
         publishMode,
         slug,
@@ -188,8 +186,8 @@ export const PublishPanel = ({
     [
       allowComments,
       dateInput,
-      isCommentsSettingLocked,
       publishMode,
+      showPublishCommentsSetting,
       slug,
       thumbnailUrl,
       timeInput,
@@ -411,18 +409,19 @@ export const PublishPanel = ({
             thumbnailUrl={thumbnailUrl}
           />
 
-          <section className={sectionClass}>
-            <label className={checkboxLabelClass}>
-              <input
-                checked={isCommentsSettingLocked ? false : allowComments}
-                className={checkboxClass}
-                disabled={isCommentsSettingLocked}
-                onChange={event => handleAllowCommentsChange(event.target.checked)}
-                type="checkbox"
-              />
-              댓글 허용
-            </label>
-          </section>
+          {showPublishCommentsSetting ? (
+            <section className={sectionClass}>
+              <label className={checkboxLabelClass}>
+                <input
+                  checked={allowComments}
+                  className={checkboxClass}
+                  onChange={event => handleAllowCommentsChange(event.target.checked)}
+                  type="checkbox"
+                />
+                댓글 허용
+              </label>
+            </section>
+          ) : null}
 
           <PublishScheduleSection
             dateInput={dateInput}

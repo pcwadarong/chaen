@@ -248,10 +248,7 @@ describe('PublishPanel', () => {
         publicationState,
       });
 
-      const commentCheckbox = screen.getByLabelText('댓글 허용');
-
-      expect(commentCheckbox).toBeDisabled();
-      expect(commentCheckbox).not.toBeChecked();
+      expect(screen.queryByLabelText('댓글 허용')).toBeNull();
 
       unmount();
     }
@@ -282,6 +279,7 @@ describe('PublishPanel', () => {
     const PublishPanelHarness = () => {
       const [settings, setSettings] = React.useState<PublishSettings>(() =>
         createDefaultPublishSettings({
+          contentType: 'article',
           initialSettings: {
             allowComments: true,
             publishAt: null,
@@ -325,6 +323,7 @@ describe('PublishPanel', () => {
     const PublishPanelHarness = () => {
       const [settings, setSettings] = React.useState<PublishSettings>(() =>
         createDefaultPublishSettings({
+          contentType: 'article',
           initialSettings: {
             allowComments: true,
             publishAt: null,

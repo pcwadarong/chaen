@@ -1,20 +1,23 @@
+import type { TechStack } from '@/entities/tech-stack/model/types';
+
 /**
  * Supabase `projects` 테이블 1개 레코드 타입입니다.
  */
 export type Project = {
-  id: string;
-  title: string;
-  description: string | null;
-  content: string | null;
-  slug?: string | null;
-  visibility?: 'public' | 'private' | null;
-  allow_comments?: boolean | null;
-  publish_at?: string | null;
-  thumbnail_url: string | null;
-  tags: string[] | null;
   created_at: string;
-  period_start?: string | null;
+  description: string | null;
+  display_order?: number | null;
+  content: string | null;
+  id: string;
   period_end?: string | null;
+  period_start?: string | null;
+  publish_at?: string | null;
+  slug?: string | null;
+  tags?: string[] | null;
+  tech_stacks?: TechStack[] | null;
+  thumbnail_url: string | null;
+  title: string;
+  visibility?: 'public' | 'private' | null;
 };
 
 /**
@@ -38,7 +41,15 @@ export type ProjectArchivePage = {
  */
 export type ProjectListItem = Pick<
   Project,
-  'id' | 'title' | 'description' | 'thumbnail_url' | 'publish_at' | 'slug'
+  | 'description'
+  | 'id'
+  | 'period_end'
+  | 'period_start'
+  | 'publish_at'
+  | 'slug'
+  | 'tech_stacks'
+  | 'thumbnail_url'
+  | 'title'
 >;
 
 /**

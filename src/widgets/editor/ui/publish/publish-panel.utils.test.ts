@@ -1,7 +1,7 @@
 import {
   buildPublishSettings,
   createDefaultPublishSettings,
-  shouldDisablePublishCommentsSetting,
+  shouldShowPublishCommentsSetting,
   toScheduledPublishUtcIso,
   validatePublishSettings,
 } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -36,49 +36,16 @@ describe('publish-panel utils', () => {
     });
   });
 
-  it('프로젝트일 때만 댓글 허용 제어를 잠근다', () => {
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'project',
-        publicationState: 'draft',
-      }),
-    ).toBe(true);
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'project',
-        publicationState: 'scheduled',
-      }),
-    ).toBe(true);
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'project',
-        publicationState: 'published',
-      }),
-    ).toBe(true);
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'article',
-        publicationState: 'draft',
-      }),
-    ).toBe(false);
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'article',
-        publicationState: 'scheduled',
-      }),
-    ).toBe(false);
-    expect(
-      shouldDisablePublishCommentsSetting({
-        contentType: 'article',
-        publicationState: 'published',
-      }),
-    ).toBe(false);
+  it('article일 때만 댓글 허용 제어를 노출한다', () => {
+    expect(shouldShowPublishCommentsSetting('project')).toBe(false);
+    expect(shouldShowPublishCommentsSetting('resume')).toBe(false);
+    expect(shouldShowPublishCommentsSetting('article')).toBe(true);
   });
 
-  it('댓글 허용이 잠긴 경우 기본 발행 설정도 false로 고정한다', () => {
+  it('project 기본 발행 설정은 댓글 허용을 false로 고정한다', () => {
     expect(
       createDefaultPublishSettings({
-        disableComments: true,
+        contentType: 'project',
         initialSettings: {
           allowComments: true,
           publishAt: null,

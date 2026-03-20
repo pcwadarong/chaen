@@ -21,6 +21,7 @@ import type {
   PublishSettings,
 } from '@/entities/editor/model/editor-types';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { getTechStackIdsBySlugs } from '@/entities/tech-stack/api/query-tech-stacks';
 import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
@@ -129,10 +130,13 @@ export const saveEditorDraftAction = async ({
     existingContentPublication?.publish_at ?? null,
     existingContentPublication?.visibility,
   );
-  const normalizedTagIds = await getTagIdsBySlugs(parsedState.data.tags);
+  const normalizedRelationIds = await getRelationIdsBySlugs({
+    contentType,
+    slugs: parsedState.data.tags,
+  });
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
-    allow_comments: parsedSettings.data.allowComments,
+    allow_comments: contentType === 'article' ? parsedSettings.data.allowComments : false,
     content: buildDraftFieldRecord(parsedState.data.translations, 'content'),
     content_id: contentId ?? null,
     content_type: contentType,
@@ -142,7 +146,7 @@ export const saveEditorDraftAction = async ({
         ? (existingContentPublication?.publish_at ?? null)
         : parsedSettings.data.publishAt,
     slug: normalizeSlugInput(parsedSettings.data.slug) || null,
-    tags: normalizedTagIds,
+    tags: normalizedRelationIds,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     title: buildDraftFieldRecord(parsedState.data.translations, 'title'),
     visibility: parsedSettings.data.visibility,
@@ -285,13 +289,21 @@ export const publishEditorContentAction = async ({
     visibility: parsedSettings.data.visibility,
     slug: normalizedSlug,
   });
-  const contentPayload = {
-    allow_comments: parsedSettings.data.allowComments,
-    publish_at: effectivePublishAt,
-    slug: normalizedSlug,
-    thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
-    visibility: parsedSettings.data.visibility,
-  };
+  const contentPayload =
+    contentType === 'article'
+      ? {
+          allow_comments: parsedSettings.data.allowComments,
+          publish_at: effectivePublishAt,
+          slug: normalizedSlug,
+          thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
+          visibility: parsedSettings.data.visibility,
+        }
+      : {
+          publish_at: effectivePublishAt,
+          slug: normalizedSlug,
+          thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
+          visibility: parsedSettings.data.visibility,
+        };
 
   if (contentId) {
     const { error } = await supabase
@@ -317,11 +329,11 @@ export const publishEditorContentAction = async ({
       supabase,
       translations: parsedState.data.translations,
     });
-    await syncEditorContentTags({
+    await syncEditorContentRelations({
       config,
       contentId: targetContentId,
       supabase,
-      tagSlugs: parsedState.data.tags,
+      relationSlugs: parsedState.data.tags,
     });
     await deleteEditorDrafts({
       contentId: targetContentId,
@@ -497,21 +509,35 @@ const resolveEditorDraftId = async ({
 };
 
 /**
- * slug 배열을 drafts/content relation 저장용 tag id 배열로 변환합니다.
+ * slug 배열을 drafts/content relation 저장용 id 배열로 변환합니다.
  */
-const getTagIdsBySlugs = async (tagSlugs: string[]) => {
-  if (tagSlugs.length === 0) return [];
+const getRelationIdsBySlugs = async ({
+  contentType,
+  slugs,
+}: {
+  contentType: 'article' | 'project';
+  slugs: string[];
+}) => {
+  if (slugs.length === 0) return [];
+
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) throw createEditorError('serviceRoleUnavailable');
+
+  if (contentType === 'project') {
+    return getTechStackIdsBySlugs({
+      slugs,
+      supabase,
+    });
+  }
 
   const normalizedTagSlugs = Array.from(
     new Set(
-      tagSlugs.map(tagSlug => tagSlug.trim().toLowerCase()).filter(tagSlug => tagSlug.length > 0),
+      slugs.map(tagSlug => tagSlug.trim().toLowerCase()).filter(tagSlug => tagSlug.length > 0),
     ),
   );
 
   if (normalizedTagSlugs.length === 0) return [];
 
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const { data, error } = await supabase
     .from('tags')
     .select('id,slug')
@@ -564,35 +590,38 @@ const syncEditorContentTranslations = async ({
 };
 
 /**
- * 콘텐츠 relation table의 태그 연결을 현재 editor 상태 기준으로 동기화합니다.
+ * 콘텐츠 relation table 연결을 현재 editor 상태 기준으로 동기화합니다.
  */
-const syncEditorContentTags = async ({
+const syncEditorContentRelations = async ({
   config,
   contentId,
   supabase,
-  tagSlugs,
+  relationSlugs,
 }: {
   config: EditorContentTableConfig;
   contentId: string;
   supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
-  tagSlugs: string[];
+  relationSlugs: string[];
 }) => {
   const { error: deleteError } = await supabase
     .from(config.relationTable)
     .delete()
     .eq(config.relationForeignKey, contentId);
 
-  if (deleteError) throw new Error(`[editor] 태그 relation 초기화 실패: ${deleteError.message}`);
+  if (deleteError) throw new Error(`[editor] relation 초기화 실패: ${deleteError.message}`);
 
-  const tagIds = await getTagIdsBySlugs(tagSlugs);
-  if (tagIds.length === 0) return;
+  const relationIds = await getRelationIdsBySlugs({
+    contentType: config.table === 'articles' ? 'article' : 'project',
+    slugs: relationSlugs,
+  });
+  if (relationIds.length === 0) return;
 
-  const relationRows = tagIds.map(tagId => ({
+  const relationRows = relationIds.map(relationId => ({
     [config.relationForeignKey]: contentId,
-    tag_id: tagId,
+    [config.relationIdColumn]: relationId,
   }));
   const { error: insertError } = await supabase.from(config.relationTable).insert(relationRows);
-  if (insertError) throw new Error(`[editor] 태그 relation 저장 실패: ${insertError.message}`);
+  if (insertError) throw new Error(`[editor] relation 저장 실패: ${insertError.message}`);
 };
 
 /**

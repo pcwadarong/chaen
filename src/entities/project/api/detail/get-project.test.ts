@@ -48,7 +48,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: 'project content',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: 'project description',
@@ -67,18 +66,21 @@ describe('getProject', () => {
         error: null,
       }),
     };
-    const projectTagsV2Query = {
+    const projectTechStacksQuery = {
       eq: vi.fn().mockResolvedValue({
-        data: [{ tag_id: 'tag-1' }, { tag_id: 'tag-2' }],
+        data: [
+          { project_id: 'funda-project', tech_stack_id: 'tech-1' },
+          { project_id: 'funda-project', tech_stack_id: 'tech-2' },
+        ],
         error: null,
       }),
       select: vi.fn().mockReturnThis(),
     };
-    const tagsQuery = {
+    const techStacksQuery = {
       in: vi.fn().mockResolvedValue({
         data: [
-          { id: 'tag-1', slug: 'react' },
-          { id: 'tag-2', slug: 'nextjs' },
+          { id: 'tech-1', slug: 'react', name: 'React', category: 'frontend' },
+          { id: 'tech-2', slug: 'nextjs', name: 'Next.js', category: 'frontend' },
         ],
         error: null,
       }),
@@ -87,8 +89,8 @@ describe('getProject', () => {
     supabaseClient.from = vi
       .fn()
       .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTagsV2Query)
-      .mockReturnValueOnce(tagsQuery);
+      .mockReturnValueOnce(projectTechStacksQuery)
+      .mockReturnValueOnce(techStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -97,8 +99,12 @@ describe('getProject', () => {
 
     expect(result).toMatchObject({
       id: 'funda-project',
+      tech_stacks: [
+        expect.objectContaining({ name: 'Next.js' }),
+        expect.objectContaining({ name: 'React' }),
+      ],
       title: 'Funda Project',
-      tags: ['react', 'nextjs'],
+      tags: ['Next.js', 'React'],
     });
     expect(supabaseClient.rpc).toHaveBeenCalledWith('get_project_translation_with_fallback', {
       fallback_locales: ['ko', 'en', 'ja', 'fr'],
@@ -179,7 +185,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: '본문',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: '설명',
@@ -198,7 +203,7 @@ describe('getProject', () => {
         error: null,
       }),
     };
-    const projectTagsV2Query = {
+    const projectTechStacksQuery = {
       eq: vi.fn().mockResolvedValue({
         data: [],
         error: null,
@@ -208,7 +213,7 @@ describe('getProject', () => {
     supabaseClient.from = vi
       .fn()
       .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTagsV2Query);
+      .mockReturnValueOnce(projectTechStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -251,7 +256,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: 'project content',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: 'project description',
@@ -270,11 +274,11 @@ describe('getProject', () => {
         error: null,
       }),
     };
-    const projectTagsV2Query = {
+    const projectTechStacksQuery = {
       eq: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.project_tags" does not exist',
+          message: 'relation "public.project_tech_stacks" does not exist',
         },
       }),
       select: vi.fn().mockReturnThis(),
@@ -282,7 +286,7 @@ describe('getProject', () => {
     supabaseClient.from = vi
       .fn()
       .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTagsV2Query);
+      .mockReturnValueOnce(projectTechStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);

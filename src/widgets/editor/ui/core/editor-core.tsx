@@ -49,13 +49,20 @@ type SaveSource = 'autosave' | 'manual';
 export const EditorCore = ({
   availableTags,
   contentType,
+  enableAutosave = true,
+  extraLocaleFieldLabel,
   initialSavedAt = null,
   initialSlug = '',
   initialTags,
   initialTranslations,
   hideAppFrameFooter = false,
+  hideTagSelector = false,
+  onDirectPublish,
   onDraftSave,
+  onDirectPublishError,
   onOpenPublishPanel,
+  publishButtonLabel = '발행하기',
+  publishPendingLabel = '발행 중...',
 }: EditorCoreProps) => {
   const [activeLocale, setActiveLocale] = useState<Locale>('ko');
   const [mobileEditorPane, setMobileEditorPane] = useState<MobileEditorPane>('edit');
@@ -84,6 +91,7 @@ export const EditorCore = ({
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isPublishingDirectly, setIsPublishingDirectly] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(initialSavedAt);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const saveRequestIdRef = useRef(0);
@@ -263,7 +271,7 @@ export const EditorCore = ({
    * autosave 기준을 만족하면 마지막 입력 후 180초 뒤 draft save를 실행합니다.
    */
   useEffect(() => {
-    if (!onDraftSave || !dirty) return;
+    if (!enableAutosave || !onDraftSave || !dirty) return;
     if (!validationResult.canSave) return;
 
     const timeoutId = window.setTimeout(() => {
@@ -273,7 +281,7 @@ export const EditorCore = ({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [dirty, onDraftSave, runDraftSave, validationResult.canSave]);
+  }, [dirty, enableAutosave, onDraftSave, runDraftSave, validationResult.canSave]);
 
   /**
    * locale 전환 전 현재 textarea scrollTop을 저장합니다.
@@ -384,16 +392,48 @@ export const EditorCore = ({
   const handleManualSave = useCallback(() => {
     void runDraftSave('manual');
   }, [runDraftSave]);
-  const handleOpenPublishPanel = useCallback(() => {
-    onOpenPublishPanel(
-      buildEditorStateSnapshot({
-        dirty,
-        slug,
-        tags: selectedTags,
-        translations,
-      }),
-    );
-  }, [dirty, onOpenPublishPanel, selectedTags, slug, translations]);
+  const handlePublishAction = useCallback(async () => {
+    const snapshot = buildEditorStateSnapshot({
+      dirty,
+      slug,
+      tags: selectedTags,
+      translations,
+    });
+
+    if (onDirectPublish) {
+      if (!ensureSavable('manual')) return;
+
+      setIsPublishingDirectly(true);
+
+      try {
+        await onDirectPublish(snapshot);
+      } catch (error) {
+        pushToast(
+          createSaveErrorToast(
+            onDirectPublishError
+              ? onDirectPublishError(error)
+              : parseEditorError(error, 'publishFailed').message,
+          ),
+        );
+      } finally {
+        setIsPublishingDirectly(false);
+      }
+
+      return;
+    }
+
+    onOpenPublishPanel?.(snapshot);
+  }, [
+    dirty,
+    ensureSavable,
+    onDirectPublish,
+    onDirectPublishError,
+    onOpenPublishPanel,
+    pushToast,
+    selectedTags,
+    slug,
+    translations,
+  ]);
 
   return (
     <section
@@ -411,22 +451,33 @@ export const EditorCore = ({
                 임시저장
               </Button>
             ) : null}
-            <Button
-              onClick={handleOpenPublishPanel}
-              size="sm"
-              tone="primary"
-              trailingVisual={<ChevronRightIcon aria-hidden color="current" size="md" />}
-            >
-              발행하기
-            </Button>
+            {onDirectPublish || onOpenPublishPanel ? (
+              <Button
+                disabled={isPublishingDirectly}
+                onClick={() => {
+                  void handlePublishAction();
+                }}
+                size="sm"
+                tone="primary"
+                trailingVisual={<ChevronRightIcon aria-hidden color="current" size="md" />}
+              >
+                {isPublishingDirectly ? publishPendingLabel : publishButtonLabel}
+              </Button>
+            ) : null}
           </div>
         </div>
-        <TagSelector
-          availableTags={availableTags}
-          className={tagSelectorClass}
-          onChange={setSelectedTags}
-          selectedTagSlugs={selectedTags}
-        />
+        {!hideTagSelector ? (
+          <TagSelector
+            availableTags={availableTags}
+            className={tagSelectorClass}
+            emptyText={contentType === 'project' ? '사용 가능한 기술 스택이 없습니다.' : undefined}
+            onChange={setSelectedTags}
+            poolLabel={contentType === 'project' ? '기술 스택 선택기' : undefined}
+            poolTitle={contentType === 'project' ? 'Tech Stack' : undefined}
+            selectLabel={contentType === 'project' ? '기술 스택' : undefined}
+            selectedTagSlugs={selectedTags}
+          />
+        ) : null}
       </div>
 
       <div aria-label="언어 선택" className={localeTabListClass} role="tablist">
@@ -484,6 +535,7 @@ export const EditorCore = ({
           <EditorLocalePanel
             activeLocaleHasTitleError={isActive && activeLocaleHasTitleError}
             contentType={contentType}
+            extraLocaleFieldLabel={extraLocaleFieldLabel}
             isActive={isActive}
             isMobileLayout={isMobileLayout}
             key={locale}
@@ -492,6 +544,12 @@ export const EditorCore = ({
             mobileEditorPane={mobileEditorPane}
             onContentChange={handleContentChange}
             onDescriptionChange={handleDescriptionChange}
+            onExtraLocaleFieldChange={
+              extraLocaleFieldLabel
+                ? (nextLocale, value) =>
+                    updateTranslationField(nextLocale, 'download_button_label', value)
+                : undefined
+            }
             onTextareaKeyDown={handleTextareaKeyDown}
             onTextareaPaste={handleTextareaPaste}
             onTextareaScroll={handleTextareaScroll}

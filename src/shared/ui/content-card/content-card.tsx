@@ -9,24 +9,25 @@ type ContentCardProps = {
   href: string;
   locale?: string;
   metaItems: string[];
-  tags?: string[];
   thumbnailAlt: string;
   thumbnailSrc: string | null;
   title: string;
 };
 
 const thumbnailWrapClass = css({
+  position: 'relative',
   borderTopLeftRadius: '3xl',
   borderTopRightRadius: '3xl',
   overflow: 'hidden',
   borderBottom: '[1px solid var(--colors-border)]',
+  minHeight: '[13rem]',
   backgroundColor: 'surfaceStrong',
 });
 
 const thumbnailClass = css({
   width: 'full',
   height: 'full',
-  aspectRatio: '[16 / 9]',
+  minHeight: '[13rem]',
   objectFit: 'cover',
   transition: 'transform',
   '[data-content-card="true"]:hover &': {
@@ -35,6 +36,12 @@ const thumbnailClass = css({
   '[data-content-card="true"]:focus-visible &': {
     transform: '[scale(1.03)]',
   },
+});
+
+const thumbnailPlaceholderClass = css({
+  minHeight: '[13rem]',
+  backgroundColor: 'surfaceStrong',
+  opacity: '0.65',
 });
 
 const contentClass = css({
@@ -49,24 +56,6 @@ const metaClass = css({
   gap: '3',
   color: 'muted',
   fontSize: 'sm',
-});
-
-const tagsClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '2',
-});
-
-const tagClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: '[1.75rem]',
-  px: '2',
-  py: '0',
-  borderRadius: 'full',
-  backgroundColor: 'textSubtle',
-  color: 'muted',
-  fontSize: 'xs',
 });
 
 const bodyClass = css({
@@ -97,7 +86,6 @@ const descriptionClass = css({
 
 /**
  * 프로젝트/기록 목록에서 공통으로 사용하는 미디어 카드입니다.
- * 메타(예: 연도)는 항상 렌더링하고, 태그는 전달된 경우에만 선택적으로 노출합니다.
  */
 export const ContentCard = ({
   ariaLabel,
@@ -105,7 +93,6 @@ export const ContentCard = ({
   href,
   locale,
   metaItems,
-  tags,
   thumbnailAlt,
   thumbnailSrc,
   title,
@@ -117,8 +104,8 @@ export const ContentCard = ({
     href={href}
   >
     <article className={contentCardRecipe}>
-      {thumbnailSrc ? (
-        <div className={thumbnailWrapClass}>
+      <div className={thumbnailWrapClass}>
+        {thumbnailSrc ? (
           <Image
             alt={thumbnailAlt}
             className={thumbnailClass}
@@ -126,23 +113,16 @@ export const ContentCard = ({
             src={thumbnailSrc}
             width={1280}
           />
-        </div>
-      ) : null}
+        ) : (
+          <div aria-hidden="true" className={thumbnailPlaceholderClass} />
+        )}
+      </div>
       <div className={contentClass}>
         <div className={metaClass}>
           {metaItems.map(item => (
             <span key={item}>{item}</span>
           ))}
         </div>
-        {tags && tags.length > 0 ? (
-          <div className={tagsClass}>
-            {tags.map(tag => (
-              <span className={tagClass} key={tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        ) : null}
         <div className={bodyClass}>
           <h3 className={titleClass} lang={locale}>
             {title}

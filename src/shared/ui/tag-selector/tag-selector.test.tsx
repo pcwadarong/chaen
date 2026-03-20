@@ -4,9 +4,9 @@ import React from 'react';
 import { TagSelector } from '@/shared/ui/tag-selector/tag-selector';
 
 const availableTags = [
-  { id: 'tag-1', label: '프론트엔드', slug: 'frontend' },
-  { id: 'tag-2', label: '리액트', slug: 'react' },
-  { id: 'tag-3', label: '타입스크립트', slug: 'typescript' },
+  { group: 'frontend', id: 'tag-1', label: '프론트엔드', slug: 'frontend' },
+  { group: 'frontend', id: 'tag-2', label: '리액트', slug: 'react' },
+  { group: 'backend', id: 'tag-3', label: '타입스크립트', slug: 'typescript' },
 ];
 
 const setup = (selectedTagSlugs: string[] = [], onChange = vi.fn()) => {
@@ -58,5 +58,13 @@ describe('TagSelector', () => {
     expect(screen.getByText('프론트엔드')).toBeTruthy();
     expect(screen.getByText('리액트')).toBeTruthy();
     expect(screen.queryByText('frontend')).toBeNull();
+  });
+
+  it('그룹이 바뀌면 시각적 간격용 separator를 렌더링한다', () => {
+    const { container } = render(
+      <TagSelector availableTags={availableTags} onChange={vi.fn()} selectedTagSlugs={[]} />,
+    );
+
+    expect(container.querySelectorAll('[data-group-separator]').length).toBe(1);
   });
 });

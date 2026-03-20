@@ -9,12 +9,13 @@ import {
 import { createEditorError } from '@/entities/editor/model/editor-error';
 import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
 import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
+import { getTechStackSlugsByIds } from '@/entities/tech-stack/api/query-tech-stacks';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
 
 type ContentRow = {
-  allow_comments: boolean;
+  allow_comments?: boolean | null;
   created_at: string;
   id: string;
   publish_at: string | null;
@@ -31,9 +32,7 @@ type TranslationRow = {
   title: string | null;
 };
 
-type RelationRow = {
-  tag_id: string;
-};
+type RelationRow = Partial<Record<'tag_id' | 'tech_stack_id', string>>;
 
 type TagRow = {
   id: string;
@@ -105,7 +104,11 @@ export const getEditorSeed = async ({
 
   const { data: contentRow, error: contentError } = await supabase
     .from(config.table)
-    .select('id,slug,thumbnail_url,visibility,allow_comments,publish_at,created_at,updated_at')
+    .select(
+      contentType === 'article'
+        ? 'id,slug,thumbnail_url,visibility,allow_comments,publish_at,created_at,updated_at'
+        : 'id,slug,thumbnail_url,visibility,publish_at,created_at,updated_at',
+    )
     .eq('id', contentId)
     .maybeSingle<ContentRow>();
 
@@ -128,15 +131,20 @@ export const getEditorSeed = async ({
 
   const { data: relationRows, error: relationError } = await supabase
     .from(config.relationTable)
-    .select('tag_id')
+    .select(config.relationIdColumn)
     .eq(config.relationForeignKey, contentId);
 
   if (relationError) {
     throw new Error(`[editor] ${contentType} 태그 relation 조회 실패: ${relationError.message}`);
   }
 
-  const tagIds = ((relationRows ?? []) as RelationRow[]).map(row => row.tag_id);
-  const tagSlugMap = await getEditorTagSlugMap(tagIds);
+  const relationIds = ((relationRows ?? []) as RelationRow[])
+    .map(row => row[config.relationIdColumn])
+    .filter((value): value is string => typeof value === 'string');
+  const relationSlugs = await getEditorRelationSlugsByIds({
+    contentType,
+    ids: relationIds,
+  });
 
   const translations = createEmptyTranslations();
 
@@ -167,16 +175,14 @@ export const getEditorSeed = async ({
     initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {
-      allowComments: contentRow.allow_comments,
+      allowComments: contentType === 'article' ? (contentRow.allow_comments ?? true) : false,
       publishAt: contentRow.publish_at,
       slug: contentRow.slug ?? '',
       thumbnailUrl: contentRow.thumbnail_url ?? '',
       visibility,
     },
     initialSlug: contentRow.slug ?? '',
-    initialTags: tagIds
-      .map(tagId => tagSlugMap.get(tagId))
-      .filter((slug): slug is string => typeof slug === 'string'),
+    initialTags: relationSlugs,
     initialTranslations: translations,
   };
 
@@ -318,12 +324,13 @@ const getDraftSeed = async ({
     return null;
   }
 
-  const tagSlugs = await getEditorTagSlugsByIds(
-    (draftRow.tags ?? []).filter((value): value is string => typeof value === 'string'),
-  );
+  const tagSlugs = await getEditorRelationSlugsByIds({
+    contentType,
+    ids: (draftRow.tags ?? []).filter((value): value is string => typeof value === 'string'),
+  });
 
   return {
-    allowComments: draftRow.allow_comments ?? true,
+    allowComments: contentType === 'article' ? (draftRow.allow_comments ?? true) : false,
     contentId: draftRow.content_id,
     draftId: draftRow.id,
     publishAt: draftRow.publish_at,
@@ -341,40 +348,39 @@ const getDraftSeed = async ({
 };
 
 /**
- * 태그 id 배열을 slug 맵으로 변환합니다.
+ * article은 태그, project는 기술 스택 slug 배열로 복원합니다.
  */
-const getEditorTagSlugMap = async (tagIds: string[]) => {
-  if (tagIds.length === 0) {
-    return new Map<string, string>();
-  }
+const getEditorRelationSlugsByIds = async ({
+  contentType,
+  ids,
+}: {
+  contentType: 'article' | 'project';
+  ids: string[];
+}) => {
+  if (ids.length === 0) return [];
 
   const supabase = getServiceRoleSupabaseOrThrow();
+
+  if (contentType === 'project') {
+    return getTechStackSlugsByIds({
+      ids,
+      supabase,
+    });
+  }
+
   const { data: tagRows, error: tagError } = await supabase
     .from('tags')
     .select('id,slug')
-    .in('id', tagIds);
+    .in('id', ids);
 
   if (tagError) {
     throw new Error(`[editor] 태그 slug 조회 실패: ${tagError.message}`);
   }
 
-  const tagSlugMap = new Map<string, string>();
+  const tagSlugById = new Map(((tagRows ?? []) as TagRow[]).map(row => [row.id, row.slug]));
 
-  ((tagRows ?? []) as TagRow[]).forEach(tag => {
-    tagSlugMap.set(tag.id, tag.slug);
-  });
-
-  return tagSlugMap;
-};
-
-/**
- * 태그 id 배열을 editor에서 사용하는 slug 배열로 정렬 없이 복원합니다.
- */
-const getEditorTagSlugsByIds = async (tagIds: string[]) => {
-  const tagSlugMap = await getEditorTagSlugMap(tagIds);
-
-  return tagIds
-    .map(tagId => tagSlugMap.get(tagId))
+  return ids
+    .map(id => tagSlugById.get(id))
     .filter((slug): slug is string => typeof slug === 'string');
 };
 

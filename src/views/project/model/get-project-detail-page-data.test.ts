@@ -5,11 +5,9 @@ import {
   getProjectDetailList,
   getProjectDetailListWindow,
 } from '@/entities/project/api/detail/get-project-detail-list';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import {
   getProjectDetailArchivePageData,
   getProjectDetailShellData,
-  getProjectTagLabels,
 } from '@/views/project/model/get-project-detail-page-data';
 
 vi.mock('@/entities/project/api/detail/get-project', () => ({
@@ -19,10 +17,6 @@ vi.mock('@/entities/project/api/detail/get-project', () => ({
 vi.mock('@/entities/project/api/detail/get-project-detail-list', () => ({
   getProjectDetailList: vi.fn(),
   getProjectDetailListWindow: vi.fn(),
-}));
-
-vi.mock('@/entities/tag/api/query-tags', () => ({
-  getTagLabelMapBySlugs: vi.fn(),
 }));
 
 describe('project detail page data helpers', () => {
@@ -166,85 +160,5 @@ describe('project detail page data helpers', () => {
     });
 
     expect(getProjectDetailList).toHaveBeenCalledWith({ locale: 'ko' });
-  });
-
-  it('태그 label helper는 locale label을 반환한다', async () => {
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map<string, string>([['react', 'React']]),
-      schemaMissing: false,
-    });
-
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tags: ['react'],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['React']);
-  });
-
-  it('태그 label helper는 schema가 없으면 slug를 그대로 사용한다', async () => {
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: true,
-    });
-
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tags: ['react'],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['react']);
-  });
-
-  it('태그 label helper는 조회 실패 시 로그를 남기고 slug로 폴백한다', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    vi.mocked(getTagLabelMapBySlugs).mockRejectedValue(new Error('tag lookup failed'));
-
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tags: ['react'],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['react']);
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '[projects] getTagLabelMapBySlugs failed for locale',
-      expect.objectContaining({
-        error: expect.any(Error),
-        locale: 'ko',
-        tags: ['react'],
-      }),
-    );
   });
 });

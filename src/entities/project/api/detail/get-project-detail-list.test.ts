@@ -5,7 +5,6 @@ import {
   getProjectDetailList,
   getProjectDetailListWindow,
 } from '@/entities/project/api/detail/get-project-detail-list';
-import { parseLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -36,7 +35,7 @@ const createQueryMock = ({
 }: {
   result: QueryResult;
   terminalCall?: number;
-  terminalMethod: 'in' | 'limit';
+  terminalMethod: 'in' | 'limit' | 'range';
 }) => {
   const query = {
     eq: vi.fn().mockReturnThis(),
@@ -45,12 +44,16 @@ const createQueryMock = ({
         ? Promise.resolve(result)
         : query,
     ),
+    lte: vi.fn().mockReturnThis(),
     limit: vi
       .fn()
       .mockResolvedValue(terminalMethod === 'limit' ? result : { data: null, error: null }),
     not: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
+    range: vi
+      .fn()
+      .mockResolvedValue(terminalMethod === 'range' ? result : { data: null, error: null }),
     select: vi.fn().mockReturnThis(),
   };
 
@@ -80,7 +83,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -122,12 +125,13 @@ describe('getProjectDetailList', () => {
       ],
       nextCursor: null,
     });
-    expect(projectsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 12);
     expect(translationsQuery.in).toHaveBeenNthCalledWith(2, 'locale', ['ko', 'en', 'ja', 'fr']);
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
-  it('limit보다 많은 결과가 있으면 요청 locale을 포함한 다음 cursor를 반환한다', async () => {
+  it('limit보다 많은 결과가 있으면 offset 기반 다음 cursor를 반환한다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: [
@@ -144,7 +148,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -175,11 +179,8 @@ describe('getProjectDetailList', () => {
     const result = await getProjectDetailList({ locale: 'fr', limit: 1 });
 
     expect(result.items).toHaveLength(1);
-    expect(parseLocaleAwarePublishedAtIdCursor(result.nextCursor)).toEqual({
-      id: 'project-2',
-      locale: 'fr',
-      publishedAt: '2026-03-02T00:00:00.000Z',
-    });
+    expect(result.nextCursor).toBe('1');
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 1);
   });
 
   it('요청 locale 번역이 없어도 fallback locale 아카이브 항목을 반환한다', async () => {
@@ -194,7 +195,7 @@ describe('getProjectDetailList', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -247,7 +248,7 @@ describe('getProjectDetailList', () => {
           message: 'relation "public.projects" does not exist',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {
@@ -273,7 +274,7 @@ describe('getProjectDetailList', () => {
           message: 'permission denied for table projects',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {
@@ -303,22 +304,59 @@ describe('getProjectDetailListWindow', () => {
   });
 
   it('현재 프로젝트 아래쪽을 우선 채우고 부족하면 위쪽 최근 프로젝트로 앞을 메운다', async () => {
-    const olderProjectsQuery = createQueryMock({
+    const projectsQuery = createQueryMock({
       result: {
         data: [
+          {
+            id: 'newer-3',
+            publish_at: '2026-03-05T00:00:00.000Z',
+            slug: 'newer-3',
+            display_order: 0,
+          },
+          {
+            id: 'newer-2',
+            publish_at: '2026-03-04T00:00:00.000Z',
+            slug: 'newer-2',
+            display_order: 0,
+          },
+          {
+            id: 'current',
+            publish_at: '2026-03-02T00:00:00.000Z',
+            slug: 'current',
+            display_order: 0,
+          },
           {
             id: 'older-1',
             publish_at: '2026-03-01T00:00:00.000Z',
             slug: 'older-1',
+            display_order: 0,
           },
         ],
         error: null,
       },
       terminalMethod: 'limit',
     });
-    const olderTranslationsQuery = createQueryMock({
+    const translationsQuery = createQueryMock({
       result: {
         data: [
+          {
+            project_id: 'newer-3',
+            locale: 'ko',
+            title: 'Newer Three',
+            description: 'newer summary 3',
+          },
+          {
+            project_id: 'newer-2',
+            locale: 'ko',
+            title: 'Newer Two',
+            description: 'newer summary 2',
+          },
+          {
+            project_id: 'current',
+            locale: 'ko',
+            title: 'Current Project',
+            description: 'current summary',
+          },
           {
             project_id: 'older-1',
             locale: 'ko',
@@ -331,64 +369,12 @@ describe('getProjectDetailListWindow', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
-    const newerProjectsQuery = createQueryMock({
-      result: {
-        data: [
-          {
-            id: 'newer-2',
-            publish_at: '2026-03-04T00:00:00.000Z',
-            slug: 'newer-2',
-          },
-          {
-            id: 'newer-3',
-            publish_at: '2026-03-05T00:00:00.000Z',
-            slug: 'newer-3',
-          },
-        ],
-        error: null,
-      },
-      terminalMethod: 'limit',
-    });
-    const newerTranslationsQuery = createQueryMock({
-      result: {
-        data: [
-          {
-            project_id: 'newer-2',
-            locale: 'ko',
-            title: 'Newer Two',
-            description: 'newer summary 2',
-          },
-          {
-            project_id: 'newer-3',
-            locale: 'ko',
-            title: 'Newer Three',
-            description: 'newer summary 3',
-          },
-        ],
-        error: null,
-      },
-      terminalCall: 2,
-      terminalMethod: 'in',
-    });
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockImplementationOnce((table: string) => {
-          if (table === 'projects') return olderProjectsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'project_translations') return olderTranslationsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'projects') return newerProjectsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'project_translations') return newerTranslationsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        }),
+      from: vi.fn((table: string) => {
+        if (table === 'projects') return projectsQuery;
+        if (table === 'project_translations') return translationsQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
@@ -439,11 +425,5 @@ describe('getProjectDetailListWindow', () => {
       ],
       nextCursor: null,
     });
-    expect(newerProjectsQuery.or).toHaveBeenCalledWith(
-      expect.stringContaining('publish_at.gt.2026-03-02T00:00:00.000Z),and(publish_at.lte.'),
-    );
-    expect(newerProjectsQuery.or).toHaveBeenCalledWith(
-      expect.stringContaining('publish_at.eq.2026-03-02T00:00:00.000Z,id.gt.current)'),
-    );
   });
 });

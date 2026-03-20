@@ -1,4 +1,5 @@
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
 
@@ -34,7 +35,8 @@ const checkSlugInTable = async (
   slug: string,
   excludeId?: string | null,
 ): Promise<TableSlugCheckResult> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase =
+    createOptionalServiceRoleSupabaseClient() ?? createOptionalPublicServerSupabaseClient();
   if (!supabase) return { duplicate: false, schemaMissing: false };
 
   let query = supabase.from(table).select('id').eq('slug', slug).limit(1);

@@ -6,11 +6,7 @@ import ProjectDetailRoute, {
   generateStaticParams,
 } from '@/app/[locale]/project/[id]/page';
 import { getProjectStaticSeedParams } from '@/entities/project/api/detail/get-project-static-seed-params';
-import {
-  getProjectDetailArchivePageData,
-  getProjectDetailShellData,
-  getProjectTagLabels,
-} from '@/views/project';
+import { getProjectDetailArchivePageData, getProjectDetailShellData } from '@/views/project';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -39,7 +35,6 @@ vi.mock('@/views/project', () => ({
     items: [],
     nextCursor: null,
   })),
-  getProjectTagLabels: vi.fn(async () => []),
   ProjectDetailPage: function ProjectDetailPage() {
     return null;
   },
@@ -77,7 +72,6 @@ describe('ProjectDetailRoute', () => {
       },
       resolvedLocale: 'ko',
     });
-    vi.mocked(getProjectTagLabels).mockResolvedValueOnce(['Supabase']);
     vi.mocked(getProjectDetailArchivePageData).mockResolvedValueOnce({
       items: [],
       nextCursor: null,
@@ -107,7 +101,6 @@ describe('ProjectDetailRoute', () => {
       items: [],
       nextCursor: null,
     });
-    await expect(element.props.tagLabelsPromise).resolves.toEqual(['Supabase']);
   });
 
   it('프로젝트 상세 메타데이터에 OG 이미지를 포함한다', async () => {

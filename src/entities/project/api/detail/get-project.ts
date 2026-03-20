@@ -7,7 +7,7 @@ import {
 } from '@/entities/project/api/shared/map-project-translation';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { Project } from '@/entities/project/model/types';
-import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
+import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -132,17 +132,20 @@ const fetchProjectFromContentSchema = async (
     };
   }
 
-  const relatedTags = await getRelatedTagSlugs({
-    entityColumn: 'project_id',
-    entityId: projectId,
-    relationTable: 'project_tags',
+  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(error => {
+    console.error('[projects] Failed to load tech stacks for project', {
+      error,
+      projectId,
+    });
+
+    return new Map();
   });
 
   return {
     data: {
       item: mapProject(
         mapProjectFallbackRpcRow(translation),
-        relatedTags.schemaMissing ? [] : relatedTags.data,
+        techStacksByProjectId.get(projectId) ?? [],
       ),
       resolvedLocale: translation.locale.toLowerCase(),
     },

@@ -6,8 +6,8 @@ import type {
 
 type ProjectBaseFields = Pick<
   Project,
-  | 'allow_comments'
   | 'created_at'
+  | 'display_order'
   | 'id'
   | 'period_end'
   | 'period_start'
@@ -63,8 +63,11 @@ export const mapProjectListItem = (row: ProjectTranslationRow): ProjectListItem 
   return {
     description: row.description,
     id: row.project_id,
+    period_end: null,
+    period_start: null,
     publish_at: projectBase.publish_at,
     slug: projectBase.slug,
+    tech_stacks: [],
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
   };
@@ -120,25 +123,29 @@ export const mapProjectDetailListItems = (rows: ProjectTranslationRow[]): Projec
  * 번역 + base join 응답 한 행을 최종 Project 타입으로 조합합니다.
  *
  * @param row - `project_translations`와 `projects`를 조인한 단일 응답 행
- * @param tags - relation table에서 조회한 tag slug 목록
+ * @param techStacks - relation table에서 조회한 기술 스택 목록
  * @returns 화면에서 사용할 완성된 프로젝트 또는 null
  */
-export const mapProject = (row: ProjectTranslationRow, tags: string[]): Project | null => {
+export const mapProject = (
+  row: ProjectTranslationRow,
+  techStacks: Project['tech_stacks'],
+): Project | null => {
   const projectBase = getEmbeddedProjectBaseRow(row.projects);
   if (!projectBase) return null;
   if (!projectBase.publish_at || !projectBase.slug) return null;
 
   return {
-    allow_comments: projectBase.allow_comments,
     content: row.content,
     created_at: projectBase.created_at,
     description: row.description,
+    display_order: projectBase.display_order,
     id: row.project_id,
     period_end: projectBase.period_end,
     period_start: projectBase.period_start,
     publish_at: projectBase.publish_at,
     slug: projectBase.slug,
-    tags,
+    tags: (techStacks ?? []).map(techStack => techStack.name),
+    tech_stacks: techStacks,
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
     visibility: projectBase.visibility,
@@ -159,8 +166,8 @@ export const mapProjectFallbackRpcRow = (
   locale: row.locale,
   project_id: row.project_id,
   projects: {
-    allow_comments: row.allow_comments,
     created_at: row.created_at,
+    display_order: row.display_order,
     id: row.id,
     period_end: row.period_end,
     period_start: row.period_start,

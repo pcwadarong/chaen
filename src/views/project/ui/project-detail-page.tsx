@@ -1,27 +1,32 @@
 import { useTranslations } from 'next-intl';
-import React, { Suspense } from 'react';
+import React from 'react';
 import { css } from 'styled-system/css';
 
+import {
+  getProjectDisplayMeta,
+  type ProjectTechStackGroup,
+} from '@/entities/project/model/get-project-display-meta';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
+import {
+  TECH_STACK_CATEGORY_ORDER,
+  type TechStackCategory,
+} from '@/entities/tech-stack/model/types';
 import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
 import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
-import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
-import { DetailTagListSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ProjectDetailPageProps = {
   initialArchivePage: ProjectArchivePage;
   item: Project;
   locale: AppLocale;
-  tagLabelsPromise: Promise<string[]>;
 };
 
 type ProjectArchiveSidebarProps = {
@@ -36,9 +41,9 @@ type ProjectArchiveSidebarProps = {
   selectedPathSegment: string;
 };
 
-type ProjectTagListProps = {
+type ProjectTechStackListProps = {
   ariaLabel: string;
-  tagLabelsPromise: Promise<string[]>;
+  groups: ProjectTechStackGroup[];
 };
 
 /**
@@ -86,62 +91,57 @@ const ProjectArchiveSidebar = ({
 );
 
 /**
- * 프로젝트 상세 태그 목록을 렌더링합니다.
- *
- * @param props 태그 aria label과 비동기 태그 label promise를 전달합니다.
- * @param props.ariaLabel 태그 목록을 설명하는 접근성 레이블입니다.
- * @param props.tagLabelsPromise locale fallback이 반영된 태그 label promise입니다.
- * @returns 태그가 없으면 `null`, 있으면 태그 pill 목록 React 노드를 반환합니다.
- *
- * @throws `tagLabelsPromise`가 reject되면 상위 `Suspense`/error 경계가 이를 처리합니다.
+ * 프로젝트 상세 기술 스택 목록을 카테고리별 행으로 렌더링합니다.
  */
-const ProjectTagList = async ({ ariaLabel, tagLabelsPromise }: ProjectTagListProps) => {
-  const tagLabels = await tagLabelsPromise;
-
-  if (tagLabels.length === 0) return null;
+const ProjectTechStackList = ({ ariaLabel, groups }: ProjectTechStackListProps) => {
+  if (groups.length === 0) return null;
 
   return (
-    <ul aria-label={ariaLabel} className={tagListClass}>
-      {tagLabels.map(tagLabel => (
-        <li className={tagItemClass} key={tagLabel}>
-          <span className={tagButtonClass}>#{tagLabel}</span>
-        </li>
+    <dl aria-label={ariaLabel} className={techStackListClass}>
+      {groups.map(group => (
+        <div className={techStackRowClass} key={group.category}>
+          <dt className={techStackCategoryClass}>{group.label}</dt>
+          <dd className={techStackItemsClass}>
+            {group.items.map(techStack => (
+              <span className={techStackNameClass} key={techStack.id}>
+                {techStack.name}
+              </span>
+            ))}
+          </dd>
+        </div>
       ))}
-    </ul>
+    </dl>
   );
 };
 
 /**
  * 프로젝트 상세 페이지의 본문/메타/좌측 아카이브 조합을 렌더링합니다.
- *
- * @param props 상세 본문 shell에 필요한 프로젝트 데이터와 locale, 태그 label promise를 전달합니다.
- * @param props.item 현재 상세에 표시할 프로젝트 본문 데이터입니다.
- * @param props.locale 날짜/경로/번역 문자열 생성에 사용할 locale입니다.
- * @param props.tagLabelsPromise 태그 label을 비동기로 읽어오는 promise입니다.
- * @returns 프로젝트 상세 전체 React 노드를 반환합니다.
- *
- * @throws 공개 프로젝트인데 `publish_at`이 비어 있으면 상세 계약 위반으로 예외를 던집니다.
- *
- * @remarks
- * 좌측 아카이브는 현재 프로젝트를 포함한 초기 window를 서버에서 미리 받아, 최신 목록
- * 첫 페이지로 점프하지 않고 현재 문맥부터 렌더링합니다.
  */
-export const ProjectDetailPage = ({
-  initialArchivePage,
-  item,
-  locale,
-  tagLabelsPromise,
-}: ProjectDetailPageProps) => {
+export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectDetailPageProps) => {
   const t = useTranslations('ProjectDetail');
   const projectT = useTranslations('Project');
   const detailUi = useTranslations('DetailUi');
   const navigationT = useTranslations('Navigation');
+  const techStackT = useTranslations('TechStack.category');
 
   if (!item.publish_at) {
     throw new Error(`[projects] 공개 프로젝트 publish_at이 없습니다. id=${item.id}`);
   }
 
-  const periodText = formatProjectPeriod(item, locale, t('ongoing'));
+  const techStackCategoryLabels = TECH_STACK_CATEGORY_ORDER.reduce(
+    (labels, category) => ({
+      ...labels,
+      [category]: techStackT(category),
+    }),
+    {} as Record<TechStackCategory, string>,
+  );
+  const { periodText, techStackGroups } = getProjectDisplayMeta({
+    categoryLabels: techStackCategoryLabels,
+    item,
+    locale,
+    ongoingLabel: t('ongoing'),
+  });
+  const projectTagLabels = (item.tech_stacks ?? []).map(techStack => techStack.name);
   const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({
     locale,
@@ -167,7 +167,7 @@ export const ProjectDetailPage = ({
       description: item.description ?? t('emptySummary'),
       locale,
       path: projectPath,
-      tags: item.tags ?? [],
+      tags: projectTagLabels,
       thumbnailUrl: item.thumbnail_url,
       title: item.title,
     }),
@@ -186,12 +186,6 @@ export const ProjectDetailPage = ({
         locale={locale}
         metaBar={
           <DetailMetaBar
-            copyFailedText={detailUi('copyFailed')}
-            copiedText={detailUi('shareCopied')}
-            locale={locale}
-            primaryMetaScreenReaderText={`${t('periodLabel')} ${periodText}`}
-            primaryMetaText={periodText}
-            shareText={detailUi('share')}
             actionSlot={
               <AdminDetailActionsGate
                 deleteAction={deleteProjectAction.bind(null, {
@@ -202,6 +196,12 @@ export const ProjectDetailPage = ({
                 editHref={`/admin/projects/${item.id}/edit`}
               />
             }
+            copyFailedText={detailUi('copyFailed')}
+            copiedText={detailUi('shareCopied')}
+            locale={locale}
+            primaryMetaScreenReaderText={`${t('periodLabel')} ${periodText}`}
+            primaryMetaText={periodText}
+            shareText={detailUi('share')}
           />
         }
         sidebarContent={
@@ -219,10 +219,8 @@ export const ProjectDetailPage = ({
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={
-          (item.tags?.length ?? 0) > 0 ? (
-            <Suspense fallback={<DetailTagListSkeleton />}>
-              <ProjectTagList ariaLabel={t('tagSection')} tagLabelsPromise={tagLabelsPromise} />
-            </Suspense>
+          techStackGroups.length > 0 ? (
+            <ProjectTechStackList ariaLabel={t('tagSection')} groups={techStackGroups} />
           ) : undefined
         }
         title={item.title}
@@ -231,36 +229,39 @@ export const ProjectDetailPage = ({
   );
 };
 
-const tagListClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  justifyContent: 'center',
-  alignItems: 'center',
-  rowGap: '1',
-  columnGap: '2',
-  listStyle: 'none',
-  p: '0',
-  m: '0',
+const techStackListClass = css({
+  display: 'grid',
+  gap: '2',
+  width: 'full',
+  mx: 'auto',
+  px: '4',
+});
+
+const techStackRowClass = css({
+  display: 'grid',
+  gridTemplateColumns: '[3rem 1fr]',
+  gap: '3',
+  alignItems: 'start',
+  textAlign: 'left',
+});
+
+const techStackCategoryClass = css({
   color: 'muted',
   fontSize: 'xs',
+  fontWeight: 'semibold',
   lineHeight: 'snug',
-  '@media (min-width: 961px)': {
-    columnGap: '3',
-    fontSize: 'sm',
-  },
+  textTransform: 'uppercase',
 });
 
-const tagItemClass = css({
-  display: 'block',
+const techStackItemsClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '2',
+  margin: '0',
 });
 
-const tagButtonClass = css({
-  px: '3',
-  py: '[0.35rem]',
-  borderRadius: 'full',
-  border: '[1px solid var(--colors-border)]',
-  backgroundColor: 'surface',
-  fontSize: '[inherit]',
-  lineHeight: 'tight',
-  color: 'muted',
+const techStackNameClass = css({
+  color: 'text',
+  fontSize: 'sm',
+  lineHeight: 'snug',
 });

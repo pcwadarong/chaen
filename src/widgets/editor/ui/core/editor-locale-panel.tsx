@@ -9,6 +9,7 @@ import { MarkdownToolbar } from '@/features/edit-markdown/ui/markdown-toolbar';
 import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { type getMarkdownOptions, markdownBodyClass } from '@/shared/lib/markdown/markdown-config';
 import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
+import { Input } from '@/shared/ui/input/input';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 import type {
   EditorState,
@@ -17,12 +18,10 @@ import type {
 } from '@/widgets/editor/ui/core/editor-core.types';
 import { resizeTextareaToContent } from '@/widgets/editor/ui/core/editor-core-textarea';
 
-const DESKTOP_EDITOR_PANE_MIN_HEIGHT = '[clamp(36rem,calc(100dvh - 23rem),64rem)]';
-const MOBILE_EDITOR_PANE_MAX_HEIGHT = '[60vh]';
-
 type EditorLocalePanelProps = {
   activeLocaleHasTitleError: boolean;
   contentType: EditorContentType;
+  extraLocaleFieldLabel?: string;
   isActive: boolean;
   isMobileLayout: boolean;
   locale: Locale;
@@ -30,6 +29,7 @@ type EditorLocalePanelProps = {
   markdownOptions: ReturnType<typeof getMarkdownOptions>;
   onContentChange: (locale: Locale, value: string) => void;
   onDescriptionChange: (locale: Locale, value: string) => void;
+  onExtraLocaleFieldChange?: (locale: Locale, value: string) => void;
   onTextareaKeyDown: (locale: Locale, event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onTextareaPaste: (
     locale: Locale,
@@ -49,6 +49,7 @@ type EditorLocalePanelProps = {
 const EditorLocalePanelBase = ({
   activeLocaleHasTitleError,
   contentType,
+  extraLocaleFieldLabel,
   isActive,
   isMobileLayout,
   locale,
@@ -56,6 +57,7 @@ const EditorLocalePanelBase = ({
   markdownOptions,
   onContentChange,
   onDescriptionChange,
+  onExtraLocaleFieldChange,
   onTextareaKeyDown,
   onTextareaPaste,
   onTextareaScroll,
@@ -66,7 +68,18 @@ const EditorLocalePanelBase = ({
   const localeLabel = LOCALE_CODE_LABELS[locale];
   const titleTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const descriptionTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const editorGridRef = React.useRef<HTMLDivElement | null>(null);
+  const [paneHeight, setPaneHeight] = React.useState<string | undefined>(undefined);
   const shouldRenderPreview = isActive && (!isMobileLayout || mobileEditorPane === 'preview');
+  const measurePaneHeight = React.useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const node = editorGridRef.current;
+    if (!node) return;
+
+    const nextHeight = Math.max(0, window.innerHeight - node.getBoundingClientRect().top - 24);
+    setPaneHeight(`${nextHeight}px`);
+  }, []);
 
   React.useEffect(() => {
     if (!isActive) return;
@@ -74,6 +87,48 @@ const EditorLocalePanelBase = ({
     resizeTextareaToContent(titleTextareaRef.current);
     resizeTextareaToContent(descriptionTextareaRef.current);
   }, [isActive, translation.description, translation.title]);
+
+  React.useEffect(() => {
+    if (!isActive || typeof window === 'undefined') return;
+
+    const node = editorGridRef.current;
+    if (!node) return;
+    measurePaneHeight();
+
+    window.addEventListener('resize', measurePaneHeight);
+    window.addEventListener('scroll', measurePaneHeight, { passive: true });
+
+    if (typeof ResizeObserver === 'undefined') {
+      return () => {
+        window.removeEventListener('resize', measurePaneHeight);
+        window.removeEventListener('scroll', measurePaneHeight);
+      };
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      measurePaneHeight();
+    });
+
+    resizeObserver.observe(node);
+
+    if (node.parentElement) {
+      resizeObserver.observe(node.parentElement);
+    }
+
+    resizeObserver.observe(document.body);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', measurePaneHeight);
+      window.removeEventListener('scroll', measurePaneHeight);
+    };
+  }, [extraLocaleFieldLabel, isActive, isMobileLayout, measurePaneHeight, mobileEditorPane]);
+
+  React.useEffect(() => {
+    if (!isActive) return;
+
+    measurePaneHeight();
+  }, [isActive, measurePaneHeight, translation.description, translation.title]);
 
   return (
     <section
@@ -120,9 +175,27 @@ const EditorLocalePanelBase = ({
             value={translation.description}
           />
         </div>
+        {extraLocaleFieldLabel && onExtraLocaleFieldChange ? (
+          <div className={summaryFieldClass}>
+            <label className={fieldLabelClass} htmlFor={`editor-extra-${locale}`}>
+              {extraLocaleFieldLabel}
+            </label>
+            <Input
+              aria-label={extraLocaleFieldLabel}
+              id={`editor-extra-${locale}`}
+              onChange={event => onExtraLocaleFieldChange(locale, event.target.value)}
+              placeholder={`${localeLabel} ${extraLocaleFieldLabel}`}
+              value={translation.download_button_label ?? ''}
+            />
+          </div>
+        ) : null}
       </div>
 
-      <div className={editorGridClass}>
+      <div
+        className={editorGridClass}
+        ref={editorGridRef}
+        style={paneHeight ? { height: paneHeight } : undefined}
+      >
         <section
           aria-label="본문 편집"
           className={editorPaneClass}
@@ -223,6 +296,7 @@ const editorGridClass = css({
   display: 'grid',
   gap: '4',
   minWidth: '0',
+  minHeight: '0',
   alignItems: 'stretch',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   '@media (max-width: 760px)': {
@@ -234,7 +308,8 @@ const editorPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
   minWidth: '0',
-  minHeight: DESKTOP_EDITOR_PANE_MIN_HEIGHT,
+  minHeight: '0',
+  height: 'full',
   overflow: 'hidden',
   p: '4',
   borderRadius: '2xl',
@@ -242,10 +317,6 @@ const editorPaneClass = css({
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surface',
-  '@media (max-width: 760px)': {
-    minHeight: '[28rem]',
-    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
-  },
 });
 
 const editorToolbarWrapClass = css({
@@ -268,7 +339,8 @@ const previewPaneClass = css({
   display: 'flex',
   flexDirection: 'column',
   minWidth: '0',
-  minHeight: DESKTOP_EDITOR_PANE_MIN_HEIGHT,
+  minHeight: '0',
+  height: 'full',
   overflowY: 'auto',
   overscrollBehaviorY: 'contain',
   p: '4',
@@ -277,10 +349,6 @@ const previewPaneClass = css({
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surface',
-  '@media (max-width: 760px)': {
-    minHeight: '[28rem]',
-    maxHeight: MOBILE_EDITOR_PANE_MAX_HEIGHT,
-  },
 });
 
 const editorTextareaClass = css({

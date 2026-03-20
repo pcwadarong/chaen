@@ -31,7 +31,7 @@ const createQueryMock = ({
 }: {
   result: QueryResult;
   terminalCall?: number;
-  terminalMethod: 'in' | 'limit';
+  terminalMethod: 'in' | 'range';
 }) => {
   const query = {
     eq: vi.fn().mockReturnThis(),
@@ -40,12 +40,13 @@ const createQueryMock = ({
         ? Promise.resolve(result)
         : query,
     ),
-    limit: vi
-      .fn()
-      .mockResolvedValue(terminalMethod === 'limit' ? result : { data: null, error: null }),
+    lte: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
+    range: vi
+      .fn()
+      .mockResolvedValue(terminalMethod === 'range' ? result : { data: null, error: null }),
     select: vi.fn().mockReturnThis(),
   };
 
@@ -80,13 +81,19 @@ describe('getProjects', () => {
       result: {
         data: [
           {
+            created_at: '2026-03-02T09:07:50.797695+00:00',
             id: 'project-ja',
+            period_end: null,
+            period_start: null,
             thumbnail_url: null,
             publish_at: '2026-03-02T09:07:50.797695+00:00',
             slug: 'project-ja',
           },
           {
+            created_at: '2026-03-01T09:07:50.797695+00:00',
             id: 'project-ko-only',
+            period_end: null,
+            period_start: null,
             thumbnail_url: null,
             publish_at: '2026-03-01T09:07:50.797695+00:00',
             slug: 'project-ko-only',
@@ -94,7 +101,7 @@ describe('getProjects', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -117,10 +124,18 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
+    const projectTechStacksQuery = createQueryMock({
+      result: {
+        data: [],
+        error: null,
+      },
+      terminalMethod: 'in',
+    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -133,42 +148,61 @@ describe('getProjects', () => {
     expect(result.items).toEqual([
       {
         id: 'project-ja',
+        period_end: null,
+        period_start: null,
         title: 'Japanese Project',
         description: 'ja summary',
         thumbnail_url: null,
         publish_at: '2026-03-02T09:07:50.797695+00:00',
         slug: 'project-ja',
+        tech_stacks: [],
       },
       {
         id: 'project-ko-only',
+        period_end: null,
+        period_start: null,
         title: '한국어 프로젝트',
         description: 'ko summary',
         thumbnail_url: null,
         publish_at: '2026-03-01T09:07:50.797695+00:00',
         slug: 'project-ko-only',
+        tech_stacks: [],
       },
     ]);
-    expect(projectsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z');
-    expect(projectsQuery.order).toHaveBeenNthCalledWith(1, 'publish_at', {
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.order).toHaveBeenNthCalledWith(1, 'display_order', {
+      ascending: true,
+      nullsFirst: false,
+    });
+    expect(projectsQuery.order).toHaveBeenNthCalledWith(2, 'publish_at', {
       ascending: false,
       nullsFirst: false,
     });
-    expect(projectsQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: false });
+    expect(projectsQuery.order).toHaveBeenNthCalledWith(3, 'id', { ascending: false });
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 12);
     expect(translationsQuery.in).toHaveBeenNthCalledWith(2, 'locale', ['ja', 'ko', 'en', 'fr']);
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
-  it('다음 페이지 조회는 공개 base row에도 publish_at + id keyset 조건을 적용한다', async () => {
+  it('다음 페이지 조회도 동일한 공개 필터를 유지한다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: [],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
+    });
+    const projectTechStacksQuery = createQueryMock({
+      result: {
+        data: [],
+        error: null,
+      },
+      terminalMethod: 'in',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -176,19 +210,10 @@ describe('getProjects', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
-    const cursor = Buffer.from(
-      JSON.stringify({
-        id: 'project-9',
-        publishedAt: '2026-03-02T09:07:50.797695+00:00',
-      }),
-      'utf-8',
-    ).toString('base64url');
+    await getProjects({ cursor: '1', locale: 'ko' });
 
-    await getProjects({ cursor, locale: 'ko' });
-
-    expect(projectsQuery.or).toHaveBeenCalledWith(
-      'and(publish_at.lte.2026-03-11T12:00:00.000Z,publish_at.lt.2026-03-02T09:07:50.797695+00:00),and(publish_at.lte.2026-03-11T12:00:00.000Z,publish_at.eq.2026-03-02T09:07:50.797695+00:00,id.lt.project-9)',
-    );
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.range).toHaveBeenCalledWith(1, 13);
   });
 
   it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
@@ -196,7 +221,10 @@ describe('getProjects', () => {
       result: {
         data: [
           {
+            created_at: '2026-03-02T09:07:50.797695+00:00',
             id: 'project-ja',
+            period_end: null,
+            period_start: null,
             thumbnail_url: null,
             publish_at: '2026-03-02T09:07:50.797695+00:00',
             slug: 'project-ja',
@@ -204,7 +232,7 @@ describe('getProjects', () => {
         ],
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -214,10 +242,18 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
+    const projectTechStacksQuery = createQueryMock({
+      result: {
+        data: [],
+        error: null,
+      },
+      terminalMethod: 'in',
+    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -235,13 +271,16 @@ describe('getProjects', () => {
       result: {
         data: Array.from({ length: 11 }, (_, index) => ({
           id: `project-${11 - index}`,
+          created_at: `2026-03-${String(11 - index).padStart(2, '0')}T09:07:50.797695+00:00`,
+          period_end: null,
+          period_start: null,
           thumbnail_url: null,
           publish_at: `2026-03-${String(11 - index).padStart(2, '0')}T09:07:50.797695+00:00`,
           slug: `project-${11 - index}`,
         })),
         error: null,
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const translationsQuery = createQueryMock({
       result: {
@@ -256,10 +295,18 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
+    const projectTechStacksQuery = createQueryMock({
+      result: {
+        data: [],
+        error: null,
+      },
+      terminalMethod: 'in',
+    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -270,7 +317,8 @@ describe('getProjects', () => {
     const result = await getProjects({ limit: 10, locale: 'ko' });
 
     expect(result.items).toHaveLength(10);
-    expect(result.nextCursor).not.toBeNull();
+    expect(result.nextCursor).toBe('10');
+    expect(projectsQuery.range).toHaveBeenCalledWith(0, 10);
   });
 
   it('content schema가 없으면 명시적 에러를 던진다', async () => {
@@ -281,7 +329,7 @@ describe('getProjects', () => {
           message: 'relation "public.projects" does not exist',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {
@@ -306,7 +354,7 @@ describe('getProjects', () => {
           message: 'permission denied for table projects',
         },
       },
-      terminalMethod: 'limit',
+      terminalMethod: 'range',
     });
     const supabaseClient = {
       from: vi.fn((table: string) => {

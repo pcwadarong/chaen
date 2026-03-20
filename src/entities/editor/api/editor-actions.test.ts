@@ -705,7 +705,7 @@ describe('editor-actions', () => {
     const translationsInsertQuery = {
       insert: vi.fn().mockResolvedValue({ error: null }),
     };
-    const projectTagsDeleteQuery = {
+    const projectTechStacksDeleteQuery = {
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     };
@@ -732,7 +732,7 @@ describe('editor-actions', () => {
             ? translationsDeleteQuery
             : translationsInsertQuery;
         }
-        if (table === 'project_tags') return projectTagsDeleteQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksDeleteQuery;
         if (table === 'drafts') return draftsDeleteQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
@@ -768,6 +768,7 @@ describe('editor-actions', () => {
         publish_at: '2026-03-22T01:00:00.000Z',
       }),
     );
+    expect(projectsUpdateQuery.update.mock.calls[0]?.[0]).not.toHaveProperty('allow_comments');
     expect(redirect).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');

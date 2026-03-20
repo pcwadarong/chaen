@@ -7,7 +7,8 @@ import {
   saveEditorDraftAction,
 } from '@/entities/editor/api/editor-actions';
 import { getEditorSeed } from '@/entities/editor/api/editor-read';
-import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
+import { getAllTechStacks } from '@/entities/tech-stack/api/query-tech-stacks';
+import { mapTechStacksToAvailableTags } from '@/entities/tech-stack/model/map-tech-stacks-to-available-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorPage } from '@/views/editor';
 
@@ -34,7 +35,9 @@ const AdminProjectEditRoute = async ({
   await requireAdmin({ locale });
 
   const [availableTags, seed] = await Promise.all([
-    getTagOptionsByLocale(locale),
+    getAllTechStacks()
+      .catch(() => [])
+      .then(mapTechStacksToAvailableTags),
     getEditorSeed({
       contentId: id,
       contentType: 'project',

@@ -13,7 +13,6 @@ import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import {
   getProjectDetailArchivePageData,
   getProjectDetailShellData,
-  getProjectTagLabels,
   ProjectDetailPage,
 } from '@/views/project';
 
@@ -106,17 +105,11 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
     locale: effectiveLocale,
   });
 
-  const tagLabelsPromise = getProjectTagLabels({
-    item,
-    locale,
-  });
-
   return (
     <ProjectDetailPage
       initialArchivePage={initialArchivePage}
       item={item}
       locale={locale as AppLocale}
-      tagLabelsPromise={tagLabelsPromise}
     />
   );
 };

@@ -7,6 +7,7 @@ import '@testing-library/jest-dom/vitest';
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ko',
+  useTranslations: () => (key: string) => (key === 'ongoing' ? '진행 중' : key),
 }));
 
 vi.mock('@/shared/ui/content-card/content-card', () => ({
@@ -32,14 +33,17 @@ vi.mock('@/shared/ui/content-card/content-card', () => ({
 }));
 
 describe('ProjectCard', () => {
-  it('publish_at이 있으면 그 연도와 slug 경로를 사용한다', () => {
+  it('프로젝트 기간과 slug 경로를 사용한다', () => {
     render(
       <ProjectCard
         item={{
           description: '설명',
           id: 'project-1',
+          period_end: '2026-02-01T00:00:00.000Z',
+          period_start: '2025-12-01T00:00:00.000Z',
           publish_at: '2026-03-01T00:00:00.000Z',
           slug: 'project-slug',
+          tech_stacks: [],
           thumbnail_url: null,
           title: '프로젝트',
         }}
@@ -50,6 +54,7 @@ describe('ProjectCard', () => {
       'href',
       '/project/project-slug',
     );
-    expect(screen.getByText(/2026/)).toBeTruthy();
+    expect(screen.getByText(/2025년 12월/)).toBeTruthy();
+    expect(screen.getByText(/2026년 2월/)).toBeTruthy();
   });
 });

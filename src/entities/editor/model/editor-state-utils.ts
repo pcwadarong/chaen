@@ -13,21 +13,25 @@ export const createEmptyTranslations = (): Record<Locale, TranslationField> => (
   en: {
     content: '',
     description: '',
+    download_button_label: '',
     title: '',
   },
   fr: {
     content: '',
     description: '',
+    download_button_label: '',
     title: '',
   },
   ja: {
     content: '',
     description: '',
+    download_button_label: '',
     title: '',
   },
   ko: {
     content: '',
     description: '',
+    download_button_label: '',
     title: '',
   },
 });
@@ -49,6 +53,7 @@ export const normalizeEditorState = (state: EditorState): EditorState => ({
     accumulator[locale] = {
       content: state.translations[locale]?.content ?? '',
       description: state.translations[locale]?.description ?? '',
+      download_button_label: state.translations[locale]?.download_button_label ?? '',
       title: state.translations[locale]?.title ?? '',
     };
 
@@ -78,7 +83,9 @@ export const isEditorStateEqual = (left: EditorState, right: EditorState) => {
     return (
       leftTranslation.title === rightTranslation.title &&
       leftTranslation.description === rightTranslation.description &&
-      leftTranslation.content === rightTranslation.content
+      leftTranslation.content === rightTranslation.content &&
+      (leftTranslation.download_button_label ?? '') ===
+        (rightTranslation.download_button_label ?? '')
     );
   });
 };

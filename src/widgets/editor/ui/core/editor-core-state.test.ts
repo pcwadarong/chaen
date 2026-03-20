@@ -16,6 +16,7 @@ describe('editor-core state helpers', () => {
         ko: {
           content: '본문',
           description: '설명',
+          download_button_label: '',
           title: '제목',
         },
       },

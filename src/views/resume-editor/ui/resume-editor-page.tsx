@@ -12,7 +12,7 @@ type ResumeEditorPageProps = {
   initialDraftId?: string | null;
   initialContents: ResumeEditorContentMap;
   initialSavedAt?: string | null;
-  onDraftSave?: (
+  onDraftSave: (
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<DraftSaveResult | void>;

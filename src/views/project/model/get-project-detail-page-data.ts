@@ -4,7 +4,6 @@ import {
   getProjectDetailListWindow,
 } from '@/entities/project/api/detail/get-project-detail-list';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 
 type GetProjectDetailPageDataInput = {
   locale: string;
@@ -12,11 +11,6 @@ type GetProjectDetailPageDataInput = {
 };
 
 type GetProjectDetailArchivePageDataInput = {
-  item: Project | null;
-  locale: string;
-};
-
-type GetProjectTagLabelsInput = {
   item: Project | null;
   locale: string;
 };
@@ -43,38 +37,6 @@ const toCurrentProjectArchiveItem = (item: Project | null): CurrentProjectArchiv
     slug: item.slug,
     title: item.title,
   };
-};
-
-/**
- * 상세 프로젝트 태그를 locale 기준 표시 라벨로 변환합니다.
- */
-export const getProjectTagLabels = async ({
-  item,
-  locale,
-}: GetProjectTagLabelsInput): Promise<string[]> => {
-  const tags = item?.tags ?? [];
-
-  if (tags.length === 0) return [];
-
-  const tagLabelMap = await getTagLabelMapBySlugs({
-    locale,
-    slugs: tags,
-  }).catch(error => {
-    console.error('[projects] getTagLabelMapBySlugs failed for locale', {
-      error,
-      locale,
-      tags,
-    });
-
-    return {
-      data: new Map<string, string>(),
-      schemaMissing: true,
-    };
-  });
-
-  if (tagLabelMap.schemaMissing) return tags;
-
-  return tags.map(tag => tagLabelMap.data.get(tag) ?? tag);
 };
 
 /**

@@ -1,4 +1,10 @@
-import { EDITOR_LOCALES, type Locale } from '@/entities/editor/model/editor-types';
+import { createEmptyTranslations } from '@/entities/editor/model/editor-state-utils';
+import {
+  EDITOR_LOCALES,
+  type EditorState,
+  type Locale,
+  type TranslationField,
+} from '@/entities/editor/model/editor-types';
 import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 import type {
@@ -6,6 +12,7 @@ import type {
   ResumeEditorContent,
   ResumeEditorContentMap,
   ResumeEditorSeed,
+  ResumeEditorState,
   ResumePublishValidationErrors,
 } from '@/entities/resume/model/resume-editor.types';
 import { RESUME_EDITOR_ERROR_MESSAGE } from '@/entities/resume/model/resume-editor-error';
@@ -147,4 +154,40 @@ export const mergeResumeEditorSeedWithDraft = (
   initialContents: draftSeed.contents,
   initialDraftId: draftSeed.draftId,
   initialSavedAt: draftSeed.updatedAt,
+});
+
+/**
+ * resume 편집 내용을 공용 editor translations 형태로 변환합니다.
+ */
+export const resumeContentMapToEditorTranslations = (
+  contents: ResumeEditorContentMap,
+): Record<Locale, TranslationField> =>
+  EDITOR_LOCALES.reduce<Record<Locale, TranslationField>>((accumulator, locale) => {
+    accumulator[locale] = {
+      content: contents[locale].body,
+      description: contents[locale].description,
+      download_button_label: contents[locale].download_button_label,
+      title: contents[locale].title,
+    };
+
+    return accumulator;
+  }, createEmptyTranslations());
+
+/**
+ * 공용 editor 상태를 resume 저장/발행 액션이 읽는 상태로 변환합니다.
+ */
+export const editorStateToResumeEditorState = (
+  state: Pick<EditorState, 'dirty' | 'translations'>,
+): ResumeEditorState => ({
+  contents: EDITOR_LOCALES.reduce<ResumeEditorContentMap>((accumulator, locale) => {
+    accumulator[locale] = {
+      body: state.translations[locale].content,
+      description: state.translations[locale].description,
+      download_button_label: state.translations[locale].download_button_label ?? '',
+      title: state.translations[locale].title,
+    };
+
+    return accumulator;
+  }, createDefaultResumeEditorContentMap()),
+  dirty: state.dirty,
 });
