@@ -4,11 +4,15 @@ import {
   mapProject,
   mapProjectFallbackRpcRow,
   type ProjectTranslationFallbackRpcRow,
+  type ProjectTranslationRow,
 } from '@/entities/project/api/shared/map-project-translation';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { Project } from '@/entities/project/model/types';
 import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
-import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
+import {
+  buildContentLocaleFallbackChain,
+  pickPreferredLocaleValue,
+} from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -43,6 +47,22 @@ const isMissingProjectContentSchemaError = ({ code, message }: ProjectContentSch
     (hasMissingObjectText && missingProjectFallbackFunctionPattern.test(normalizedMessage)) ||
     missingProjectTranslationsRelationPattern.test(normalizedMessage) ||
     missingProjectsRelationPattern.test(normalizedMessage)
+  );
+};
+
+const isRecoverableProjectFallbackRpcError = ({ code, message }: ProjectContentSchemaError) => {
+  if (code === '42703' || code === '42883' || code === '42P01' || code === 'PGRST202') {
+    return true;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+  const hasMissingObjectText =
+    normalizedMessage.includes('does not exist') ||
+    normalizedMessage.includes('could not find the function');
+
+  return (
+    (hasMissingObjectText && normalizedMessage.includes('get_project_translation_with_fallback')) ||
+    normalizedMessage.includes('allow_comments')
   );
 };
 
@@ -108,6 +128,10 @@ const fetchProjectFromContentSchema = async (
   );
 
   if (translationError) {
+    if (isRecoverableProjectFallbackRpcError(translationError)) {
+      return fetchProjectFromTranslationRows(projectId, localeFallbackChain);
+    }
+
     if (isMissingProjectContentSchemaError(translationError)) {
       return {
         data: {
@@ -148,6 +172,80 @@ const fetchProjectFromContentSchema = async (
         techStacksByProjectId.get(projectId) ?? [],
       ),
       resolvedLocale: translation.locale.toLowerCase(),
+    },
+    schemaMissing: false,
+  };
+};
+
+/**
+ * RPC가 stale schema로 실패할 때 direct join query로 locale fallback 번역을 복구합니다.
+ */
+const fetchProjectFromTranslationRows = async (
+  projectId: string,
+  localeFallbackChain: string[],
+): Promise<{ data: ResolvedProject; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
+
+  const { data: translationRows, error } = await supabase
+    .from('project_translations')
+    .select(
+      'project_id,locale,title,description,content,projects!inner(id,created_at,publish_at,slug,thumbnail_url,visibility,display_order,period_start,period_end)',
+    )
+    .eq('project_id', projectId)
+    .in('locale', localeFallbackChain);
+
+  if (error) {
+    if (isMissingProjectContentSchemaError(error)) {
+      return {
+        data: {
+          item: null,
+          resolvedLocale: null,
+        },
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[projects] 번역 조회 실패: ${error.message}`);
+  }
+
+  const preferredTranslation = pickPreferredLocaleValue({
+    locales: localeFallbackChain,
+    resolveLocale: row => row.locale,
+    rows: (translationRows ?? []) as ProjectTranslationRow[],
+  });
+
+  if (!preferredTranslation) {
+    return {
+      data: {
+        item: null,
+        resolvedLocale: null,
+      },
+      schemaMissing: false,
+    };
+  }
+
+  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(error => {
+    console.error('[projects] Failed to load tech stacks for project', {
+      error,
+      projectId,
+    });
+
+    return new Map();
+  });
+
+  return {
+    data: {
+      item: mapProject(preferredTranslation, techStacksByProjectId.get(projectId) ?? []),
+      resolvedLocale: preferredTranslation.locale.toLowerCase(),
     },
     schemaMissing: false,
   };

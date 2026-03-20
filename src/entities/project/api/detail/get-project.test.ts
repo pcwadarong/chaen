@@ -116,8 +116,22 @@ describe('getProject', () => {
 
   it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {
     const projectSlugQuery = createProjectSlugLookupQuery();
+    const projectTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42P01',
+          message: 'relation "public.project_translations" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(projectSlugQuery),
+      from: vi
+        .fn()
+        .mockReturnValueOnce(projectSlugQuery)
+        .mockReturnValueOnce(projectTranslationsQuery),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -138,8 +152,22 @@ describe('getProject', () => {
 
   it('PostgREST missing function 코드는 content schema missing으로 본다', async () => {
     const projectSlugQuery = createProjectSlugLookupQuery();
+    const projectTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42P01',
+          message: 'relation "public.project_translations" does not exist',
+        },
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(projectSlugQuery),
+      from: vi
+        .fn()
+        .mockReturnValueOnce(projectSlugQuery)
+        .mockReturnValueOnce(projectTranslationsQuery),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -155,6 +183,76 @@ describe('getProject', () => {
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
       '[projects] content schema가 없습니다.',
     );
+  });
+
+  it('fallback RPC가 stale column 오류로 실패하면 direct query로 복구한다', async () => {
+    const projectSlugQuery = createProjectSlugLookupQuery();
+    const projectTranslationsQuery = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockResolvedValue({
+        data: [
+          {
+            content: 'project content',
+            description: 'project description',
+            locale: 'ko',
+            project_id: 'funda-project',
+            projects: {
+              created_at: '2026-03-02T09:07:50.797695+00:00',
+              display_order: 1,
+              id: 'funda-project',
+              period_end: null,
+              period_start: '2025-01-01',
+              publish_at: '2026-03-02T09:07:50.797695+00:00',
+              slug: 'funda-project',
+              thumbnail_url: null,
+              visibility: 'public',
+            },
+            title: 'Funda Project',
+          },
+        ],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const projectTechStacksQuery = {
+      eq: vi.fn().mockResolvedValue({
+        data: [{ project_id: 'funda-project', tech_stack_id: 'tech-1' }],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const techStacksQuery = {
+      in: vi.fn().mockResolvedValue({
+        data: [{ id: 'tech-1', slug: 'react', name: 'React', category: 'frontend' }],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          code: '42703',
+          message: 'column projects.allow_comments does not exist',
+        },
+      }),
+    };
+    supabaseClient.from = vi
+      .fn()
+      .mockReturnValueOnce(projectSlugQuery)
+      .mockReturnValueOnce(projectTranslationsQuery)
+      .mockReturnValueOnce(projectTechStacksQuery)
+      .mockReturnValueOnce(techStacksQuery);
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(getProject('funda-project', 'ko')).resolves.toMatchObject({
+      id: 'funda-project',
+      tags: ['React'],
+      title: 'Funda Project',
+    });
   });
 
   it('권한 오류는 content schema missing으로 오인하지 않고 번역 조회 실패로 surface한다', async () => {
