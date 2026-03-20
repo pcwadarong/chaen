@@ -186,11 +186,12 @@ describe('MarkdownRenderer', () => {
     expect(blockCode?.getAttribute('style') ?? '').not.toContain('background-color');
   });
 
-  it('plaintext fenced code block은 기본 텍스트 색상을 밝게 고정한다', async () => {
+  it('plaintext fenced code block은 추가 inline color 없이 code class로 렌더링한다', async () => {
     const document = await renderServerDocument(['```', 'plain block', '```'].join('\n'));
     const blockCode = document.querySelector('pre code');
 
-    expect(blockCode?.getAttribute('style')).toContain('color:rgb(248, 250, 252)');
+    expect(blockCode?.className).toBeTruthy();
+    expect(blockCode?.getAttribute('style') ?? '').not.toContain('color:rgb(248, 250, 252)');
   });
 
   it('inline code 안의 custom syntax와 html alias는 변환하지 않는다', async () => {
@@ -217,14 +218,12 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('hr')).toBeNull();
   });
 
-  it('inline code는 primaryMuted 배경 토큰을 사용한다', async () => {
+  it('inline code는 inline style 없이 전용 class로 렌더링한다', async () => {
     const document = await renderServerDocument('`inline code`');
     const inlineCode = document.querySelector('p code');
 
-    expect(inlineCode?.getAttribute('style')).toContain(
-      'background-color:var(--colors-primary-muted)',
-    );
-    expect(inlineCode?.getAttribute('style')).toContain('border:1px solid var(--colors-primary)');
+    expect(inlineCode?.className).toBeTruthy();
+    expect(inlineCode?.getAttribute('style')).toBeNull();
   });
 
   it('본문이 비어 있으면 대체 문구를 렌더링한다', async () => {

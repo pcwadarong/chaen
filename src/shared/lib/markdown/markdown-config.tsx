@@ -158,17 +158,6 @@ const isBlockCode = ({
   );
 };
 
-const markdownInlineCodeStyle = {
-  backgroundColor: 'var(--colors-primary-subtle)',
-  border: '1px solid var(--colors-primary-muted)',
-  borderRadius: '0.25rem',
-  padding: '0.125rem 0.375rem',
-} satisfies React.CSSProperties;
-
-const markdownCodeBlockTextStyle = {
-  color: 'rgb(248, 250, 252)',
-} satisfies React.CSSProperties;
-
 /**
  * markdown 본문 이미지를 반응형으로 렌더링합니다.
  */
@@ -300,11 +289,8 @@ const createMarkdownComponents = (): Components => ({
     if (isBlockCode({ className, node, props: codeProps })) {
       return (
         <code
-          className={className}
-          style={{
-            ...(style as React.CSSProperties | undefined),
-            ...markdownCodeBlockTextStyle,
-          }}
+          className={cx(markdownCodeBlockCodeClass, className)}
+          style={style as React.CSSProperties | undefined}
           {...props}
         >
           {children}
@@ -313,7 +299,7 @@ const createMarkdownComponents = (): Components => ({
     }
 
     return (
-      <code className={markdownInlineCodeClass} style={markdownInlineCodeStyle} {...props}>
+      <code className={cx(markdownInlineCodeClass, className)} {...props}>
         {children}
       </code>
     );
@@ -500,10 +486,18 @@ const markdownInlineCodeClass = css({
   px: '[0.375rem]',
   py: '[0.125rem]',
   borderRadius: 'xs',
-  background: 'primaryMuted',
-  border: '[1px solid var(--colors-primary)]',
+  background: 'primarySubtle',
+  border: '[1px solid var(--colors-primary-muted)]',
   fontFamily: 'mono',
   fontSize: '[0.95em]',
+});
+
+const markdownCodeBlockCodeClass = css({
+  display: 'grid',
+  color: '[rgb(248 250 252)]',
+  fontFamily: 'mono',
+  fontSize: '[0.95rem]',
+  lineHeight: 'relaxed',
 });
 
 export const markdownH1Class = css({
@@ -617,13 +611,6 @@ const markdownCodeBlockPreClass = css({
   _focusVisible: {
     outline: '[2px solid var(--colors-primary)]',
     outlineOffset: '[-2px]',
-  },
-  '& code': {
-    display: 'grid',
-    color: '[inherit]',
-    fontFamily: 'mono',
-    fontSize: '[0.95rem]',
-    lineHeight: 'relaxed',
   },
   '&[data-language="plaintext"] code span': {
     color: '[rgb(248 250 252) !important]',
