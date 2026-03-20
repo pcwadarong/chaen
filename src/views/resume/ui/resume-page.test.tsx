@@ -18,7 +18,6 @@ const renderResumePageHtml = async () => {
         title: '박채원 이력서',
         updated_at: '2026-03-20T00:00:00.000Z',
       }}
-      downloadOptions={[]}
     />,
   );
 
