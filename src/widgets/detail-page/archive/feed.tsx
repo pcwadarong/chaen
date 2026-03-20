@@ -54,6 +54,10 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
 
 const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
 const DETAIL_ARCHIVE_DEFAULT_LIMIT = 10;
+const EMPTY_DETAIL_ARCHIVE_PAGE = {
+  items: [],
+  nextCursor: null,
+} satisfies DetailArchivePage<DetailArchiveRecord>;
 
 /**
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
@@ -77,10 +81,8 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
   const [bootstrapRequestKey, setBootstrapRequestKey] = React.useState(0);
-  const resolvedInitialPage = bootstrapPage ?? {
-    items: [] as TItem[],
-    nextCursor: null,
-  };
+  const resolvedInitialPage =
+    bootstrapPage ?? (EMPTY_DETAIL_ARCHIVE_PAGE as DetailArchivePage<TItem>);
   const loadPage = useCallback(
     async ({
       cursor,

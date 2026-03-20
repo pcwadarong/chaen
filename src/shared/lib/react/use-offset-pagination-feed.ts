@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 
@@ -38,6 +38,22 @@ type UseOffsetPaginationFeedResult<T> = {
 const DEFAULT_LIMIT = 10;
 
 /**
+ * 무한 스크롤 seed 배열이 새로 생성돼도 원소 참조가 그대로면 같은 값으로 간주합니다.
+ */
+const areShallowEqualItems = <T>(left: T[], right: T[]) => {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+
+  for (let index = 0; index < left.length; index += 1) {
+    if (!Object.is(left[index], right[index])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/**
  * offset(cursor) 기반 API를 사용하는 무한 스크롤 리스트 상태를 공통 관리합니다.
  */
 export const useOffsetPaginationFeed = <T>({
@@ -53,8 +69,18 @@ export const useOffsetPaginationFeed = <T>({
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const lastSeedCursorRef = useRef(initialCursor);
+  const lastSeedItemsRef = useRef(initialItems);
 
   useEffect(() => {
+    const isSameSeed =
+      Object.is(lastSeedCursorRef.current, initialCursor) &&
+      areShallowEqualItems(lastSeedItemsRef.current, initialItems);
+
+    if (isSameSeed) return;
+
+    lastSeedCursorRef.current = initialCursor;
+    lastSeedItemsRef.current = initialItems;
     setItems(initialItems);
     setNextCursor(initialCursor);
     setIsLoadingMore(false);

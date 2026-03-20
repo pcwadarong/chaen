@@ -130,4 +130,45 @@ describe('useOffsetPaginationFeed', () => {
     });
     expect(result.current.hasMore).toBe(false);
   });
+
+  it('같은 seed를 새 배열로 다시 받아도 목록을 불필요하게 초기화하지 않는다', async () => {
+    type HookProps = {
+      initialCursor: string | null;
+      initialItems: { id: string }[];
+    };
+    const seededItem = { id: 'a' };
+    const loadPage = vi.fn().mockResolvedValue({
+      items: [{ id: 'b' }],
+      nextCursor: null,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ initialCursor, initialItems }: HookProps) =>
+        useOffsetPaginationFeed<{ id: string }>({
+          initialCursor,
+          initialItems,
+          loadPage,
+          locale: 'ko',
+        }),
+      {
+        initialProps: {
+          initialCursor: '1',
+          initialItems: [seededItem],
+        },
+      },
+    );
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    rerender({
+      initialCursor: '1',
+      initialItems: [seededItem],
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual([{ id: 'a' }, { id: 'b' }]);
+    });
+  });
 });
