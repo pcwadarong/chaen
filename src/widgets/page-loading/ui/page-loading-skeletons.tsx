@@ -111,6 +111,26 @@ export const ArticlesPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeleto
 );
 
 /**
+ * 개별 라우트 스켈레톤이 없을 때 사용하는 전역 페이지 로딩 스켈레톤입니다.
+ */
+export const GenericPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonProps) => (
+  <main aria-busy="true" className={genericLoadingShellClass} role="status">
+    <span className={srOnlyClass}>{loadingText}</span>
+    <div aria-hidden className={genericLoadingDotsClass}>
+      {Array.from({ length: 3 }).map((_, index) => (
+        <span
+          className={genericLoadingDotClass}
+          key={index}
+          style={{
+            animationDelay: `${index * 140}ms`,
+          }}
+        />
+      ))}
+    </div>
+  </main>
+);
+
+/**
  * 프로젝트 목록 페이지 레이아웃을 닮은 로딩 스켈레톤입니다.
  */
 export const ProjectPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonProps) => (
@@ -165,6 +185,76 @@ export const ResumePageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonP
         <SkeletonBlock className={css({ width: '[42%]', height: '5' })} />
         <SkeletonBlock className={css({ width: '[58%]', height: '5' })} />
         <SkeletonBlock className={css({ width: '[36%]', height: '5' })} />
+      </div>
+    </section>
+  </main>
+);
+
+/**
+ * 방명록 페이지의 작성 폼과 목록 배치를 단순화한 로딩 스켈레톤입니다.
+ */
+export const GuestPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonProps) => (
+  <main aria-busy="true" className={guestPageShellClass} role="status">
+    <span className={srOnlyClass}>{loadingText}</span>
+    <section className={guestPageSectionClass}>
+      <div className={guestHeaderSkeletonClass}>
+        <SkeletonBlock className={css({ width: '[11rem]', height: '10' })} />
+        <SkeletonBlock className={css({ width: '[min(33rem, 88%)]', height: '5' })} />
+      </div>
+
+      <div className={guestConversationStackClass}>
+        <div className={guestThreadBlockClass}>
+          <div className={guestMetaRowClass}>
+            <SkeletonBlock className={css({ width: '16', height: '5' })} />
+            <SkeletonBlock className={css({ width: '20', height: '4' })} />
+          </div>
+          <div className={guestStartBubbleRowClass}>
+            <SkeletonBlock className={guestStartBubbleClass} />
+            <SkeletonBlock className={guestActionGlyphClass} />
+          </div>
+        </div>
+
+        <div className={guestThreadBlockClass}>
+          <div className={guestMetaRowClass}>
+            <SkeletonBlock className={css({ width: '14', height: '5' })} />
+            <SkeletonBlock className={css({ width: '20', height: '4' })} />
+          </div>
+          <div className={guestStartBubbleRowClass}>
+            <SkeletonBlock className={cx(guestStartBubbleClass, css({ width: '[27rem]' }))} />
+            <SkeletonBlock className={guestActionGlyphClass} />
+          </div>
+        </div>
+
+        <div className={guestReplyThreadBlockClass}>
+          <div className={guestMetaRowClass}>
+            <SkeletonBlock className={css({ width: '12', height: '5' })} />
+            <SkeletonBlock className={css({ width: '20', height: '4' })} />
+          </div>
+          <div className={guestReplyClusterClass}>
+            <div className={guestStartBubbleRowClass}>
+              <SkeletonBlock className={cx(guestStartBubbleClass, css({ width: '[13rem]' }))} />
+              <SkeletonBlock className={guestActionGlyphClass} />
+            </div>
+            <div className={guestEndBubbleRowClass}>
+              <SkeletonBlock className={guestActionGlyphClass} />
+              <div className={guestReplyBubbleColumnClass}>
+                <SkeletonBlock className={guestReplyBubbleClass} />
+                <SkeletonBlock className={css({ width: '20', height: '4', alignSelf: 'end' })} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={guestThreadBlockClass}>
+          <div className={guestMetaRowClass}>
+            <SkeletonBlock className={css({ width: '16', height: '5' })} />
+            <SkeletonBlock className={css({ width: '20', height: '4' })} />
+          </div>
+          <div className={guestStartBubbleRowClass}>
+            <SkeletonBlock className={cx(guestStartBubbleClass, css({ width: '[12rem]' }))} />
+            <SkeletonBlock className={guestActionGlyphClass} />
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -226,6 +316,30 @@ const headerActionClass = css({
 const pageSectionClass = css({
   display: 'grid',
   gap: '4',
+});
+
+const genericLoadingShellClass = css({
+  width: 'full',
+  minHeight: '[10rem]',
+  px: '4',
+  py: '20',
+  display: 'grid',
+  placeItems: 'center',
+});
+
+const genericLoadingDotsClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '3',
+});
+
+const genericLoadingDotClass = css({
+  display: 'inline-block',
+  width: '[0.8rem]',
+  height: '[0.8rem]',
+  borderRadius: 'full',
+  backgroundColor: 'textSubtle',
+  animation: '[global-route-loading-dot 880ms ease-in-out infinite]',
 });
 
 const articlesLayoutClass = css({
@@ -328,6 +442,93 @@ const projectCardBodyClass = css({
 const resumeBodyClass = css({
   display: 'grid',
   gap: '4',
+});
+
+const guestPageShellClass = css({
+  width: '[min(820px, 100%)]',
+  mx: 'auto',
+  minHeight: '[calc(100vh-5.5rem)]',
+  px: '4',
+  pt: '12',
+  pb: '8',
+});
+
+const guestPageSectionClass = css({
+  width: '[min(1080px, 100%)]',
+  mx: 'auto',
+  display: 'grid',
+  gap: '8',
+});
+
+const guestHeaderSkeletonClass = css({
+  display: 'grid',
+  gap: '4',
+  width: '[min(42rem, 100%)]',
+});
+
+const guestConversationStackClass = css({
+  display: 'grid',
+  gap: '12',
+  minHeight: '[42rem]',
+});
+
+const guestThreadBlockClass = css({
+  display: 'grid',
+  gap: '4',
+  justifyItems: 'start',
+});
+
+const guestReplyThreadBlockClass = css({
+  display: 'grid',
+  gap: '4',
+});
+
+const guestReplyClusterClass = css({
+  display: 'grid',
+  gap: '4',
+});
+
+const guestMetaRowClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4',
+});
+
+const guestStartBubbleRowClass = css({
+  display: 'inline-flex',
+  alignItems: 'flex-end',
+  gap: '2',
+});
+
+const guestEndBubbleRowClass = css({
+  display: 'inline-flex',
+  justifySelf: 'end',
+  alignItems: 'flex-end',
+  gap: '2',
+});
+
+const guestStartBubbleClass = css({
+  width: '[14rem]',
+  height: '[5rem]',
+  borderRadius: '2xl',
+});
+
+const guestReplyBubbleColumnClass = css({
+  display: 'grid',
+  justifyItems: 'end',
+  gap: '3',
+});
+
+const guestReplyBubbleClass = css({
+  width: '[16rem]',
+  height: '[4.5rem]',
+  borderRadius: '2xl',
+});
+
+const guestActionGlyphClass = css({
+  width: '[0.75rem]',
+  height: '[3rem]',
+  borderRadius: 'full',
 });
 
 const detailShellClass = css({

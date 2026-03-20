@@ -11,6 +11,7 @@
     "project": "Project"
   },
   "Common": {
+    "pageLoading": "Loading page.",
     "scrollToTopAriaLabel": "Back to top"
   },
   "Home": {
@@ -104,6 +105,7 @@
     "loading": "Loading articles.",
     "popularTagsEmpty": "No tags to show yet.",
     "popularTagsLoading": "Loading tag list.",
+    "tagNavigationLoading": "Loading articles for this tag.",
     "popularTagsTitle": "Tags",
     "paginationLabel": "Article page navigation",
     "paginationNext": "Next page",

@@ -11,6 +11,7 @@
     "project": "프로젝트"
   },
   "Common": {
+    "pageLoading": "페이지를 불러오는 중입니다.",
     "scrollToTopAriaLabel": "맨 위로 이동"
   },
   "Home": {
@@ -104,6 +105,7 @@
     "loading": "아티클을 불러오는 중입니다.",
     "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
     "popularTagsLoading": "태그 목록을 불러오는 중입니다.",
+    "tagNavigationLoading": "태그별 아티클을 불러오는 중입니다.",
     "popularTagsTitle": "tags",
     "paginationLabel": "아티클 페이지 이동",
     "paginationNext": "다음 페이지",
