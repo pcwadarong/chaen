@@ -135,9 +135,6 @@ const TagSelectorBase = ({
                     type="button"
                   >
                     <span className={chipLabelClass}>{tag.label}</span>
-                    <span className={srOnlyClass}>
-                      {` ${isSelected ? `${selectLabel} 해제` : `${selectLabel} 선택`}`}
-                    </span>
                   </button>
                 </React.Fragment>
               );
@@ -250,16 +247,4 @@ const chipRecipe = cva({
 
 const chipLabelClass = css({
   lineHeight: 'tight',
-});
-
-const srOnlyClass = css({
-  position: 'absolute',
-  width: '[1px]',
-  height: '[1px]',
-  padding: '0',
-  margin: '[-1px]',
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  borderWidth: '0',
 });

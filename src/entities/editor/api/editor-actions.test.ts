@@ -705,7 +705,7 @@ describe('editor-actions', () => {
     const translationsInsertQuery = {
       insert: vi.fn().mockResolvedValue({ error: null }),
     };
-    const projectTagsDeleteQuery = {
+    const projectTechStacksDeleteQuery = {
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     };
@@ -732,7 +732,7 @@ describe('editor-actions', () => {
             ? translationsDeleteQuery
             : translationsInsertQuery;
         }
-        if (table === 'project_tech_stacks') return projectTagsDeleteQuery;
+        if (table === 'project_tech_stacks') return projectTechStacksDeleteQuery;
         if (table === 'drafts') return draftsDeleteQuery;
         throw new Error(`unexpected table: ${table}`);
       }),

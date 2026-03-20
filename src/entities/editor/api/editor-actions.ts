@@ -130,7 +130,7 @@ export const saveEditorDraftAction = async ({
     existingContentPublication?.publish_at ?? null,
     existingContentPublication?.visibility,
   );
-  const normalizedTagIds = await getRelationIdsBySlugs({
+  const normalizedRelationIds = await getRelationIdsBySlugs({
     contentType,
     slugs: parsedState.data.tags,
   });
@@ -146,7 +146,7 @@ export const saveEditorDraftAction = async ({
         ? (existingContentPublication?.publish_at ?? null)
         : parsedSettings.data.publishAt,
     slug: normalizeSlugInput(parsedSettings.data.slug) || null,
-    tags: normalizedTagIds,
+    tags: normalizedRelationIds,
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     title: buildDraftFieldRecord(parsedState.data.translations, 'title'),
     visibility: parsedSettings.data.visibility,
@@ -321,11 +321,11 @@ export const publishEditorContentAction = async ({
       supabase,
       translations: parsedState.data.translations,
     });
-    await syncEditorContentTags({
+    await syncEditorContentRelations({
       config,
       contentId: targetContentId,
       supabase,
-      tagSlugs: parsedState.data.tags,
+      relationSlugs: parsedState.data.tags,
     });
     await deleteEditorDrafts({
       contentId: targetContentId,
@@ -584,16 +584,16 @@ const syncEditorContentTranslations = async ({
 /**
  * 콘텐츠 relation table 연결을 현재 editor 상태 기준으로 동기화합니다.
  */
-const syncEditorContentTags = async ({
+const syncEditorContentRelations = async ({
   config,
   contentId,
   supabase,
-  tagSlugs,
+  relationSlugs,
 }: {
   config: EditorContentTableConfig;
   contentId: string;
   supabase: NonNullable<ReturnType<typeof createOptionalServiceRoleSupabaseClient>>;
-  tagSlugs: string[];
+  relationSlugs: string[];
 }) => {
   const { error: deleteError } = await supabase
     .from(config.relationTable)
@@ -604,7 +604,7 @@ const syncEditorContentTags = async ({
 
   const relationIds = await getRelationIdsBySlugs({
     contentType: config.table === 'articles' ? 'article' : 'project',
-    slugs: tagSlugs,
+    slugs: relationSlugs,
   });
   if (relationIds.length === 0) return;
 

@@ -32,10 +32,7 @@ type TranslationRow = {
   title: string | null;
 };
 
-type RelationRow = {
-  tag_id?: string;
-  tech_stack_id?: string;
-};
+type RelationRow = Partial<Record<'tag_id' | 'tech_stack_id', string>>;
 
 type TagRow = {
   id: string;

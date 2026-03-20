@@ -150,7 +150,7 @@ export const ContentCard = ({
             width={1280}
           />
         ) : (
-          <div aria-hidden className={thumbnailPlaceholderClass} />
+          <div aria-hidden="true" className={thumbnailPlaceholderClass} />
         )}
       </div>
       <div className={contentClass}>
