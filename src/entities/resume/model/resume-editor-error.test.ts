@@ -10,7 +10,6 @@ describe('resume-editor-error', () => {
     expect(resolveResumePublishInlineErrorField('missingKoTitle')).toBe('koTitle');
     expect(resolveResumePublishInlineErrorField('missingKoBody')).toBe('koBody');
     expect(resolveResumePublishInlineErrorField('missingPdf')).toBe('pdf');
-    expect(resolveResumePublishInlineErrorField('pdfUploadFailed')).toBe('pdf');
   });
 
   it('toast 전용 에러는 인라인 필드로 매핑하지 않는다', () => {

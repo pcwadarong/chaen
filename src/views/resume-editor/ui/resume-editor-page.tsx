@@ -23,7 +23,6 @@ type ResumeEditorPageProps = {
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<void>;
-  onUploadPdf?: (file: File) => Promise<ResumePublishSettings>;
 };
 
 /**
@@ -37,7 +36,6 @@ export const ResumeEditorPage = ({
   initialSavedAt,
   onDraftSave,
   onPublishSubmit,
-  onUploadPdf,
 }: ResumeEditorPageProps) => (
   <ResumeEditorClient
     hideAppFrameFooter={hideAppFrameFooter}
@@ -47,6 +45,5 @@ export const ResumeEditorPage = ({
     initialSavedAt={initialSavedAt}
     onDraftSave={onDraftSave}
     onPublishSubmit={onPublishSubmit}
-    onUploadPdf={onUploadPdf}
   />
 );
