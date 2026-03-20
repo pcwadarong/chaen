@@ -103,6 +103,7 @@
     "loadMoreEnd": "Vous avez atteint la fin des articles.",
     "loading": "Chargement des articles.",
     "popularTagsEmpty": "Aucun tag à afficher pour le moment.",
+    "popularTagsLoading": "Chargement de la liste des tags.",
     "popularTagsTitle": "Tags",
     "paginationLabel": "Navigation entre les pages d'articles",
     "paginationNext": "Page suivante",

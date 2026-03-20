@@ -2,9 +2,9 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
+import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
-import { ArticleTagFilterList } from '@/features/article-tag-filter/ui/article-tag-filter-list';
+import { DeferredArticleTagFilterList } from '@/features/article-tag-filter/ui/deferred-article-tag-filter-list';
 import { ArticleFeed } from '@/widgets/article-feed/ui/article-feed';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
@@ -19,7 +19,6 @@ export type ArticlesPageProps = {
     nextHref: string | null;
     previousHref: string | null;
   };
-  popularTags: LocalizedArticleTagStat[];
   searchQuery: string;
 };
 
@@ -30,7 +29,6 @@ export const ArticlesPage = ({
   initialCursor,
   initialItems,
   locale,
-  popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
   const t = useTranslations('Articles');
@@ -67,10 +65,11 @@ export const ArticlesPage = ({
                   submitText={t('searchSubmit')}
                 />
               </div>
-              <ArticleTagFilterList
+              <DeferredArticleTagFilterList
                 activeTag={activeTag}
                 emptyText={t('popularTagsEmpty')}
-                items={popularTags}
+                loadingText={t('popularTagsLoading')}
+                locale={locale}
                 title={t('popularTagsTitle')}
               />
             </div>

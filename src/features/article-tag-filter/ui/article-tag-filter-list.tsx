@@ -10,6 +10,8 @@ type ArticleTagFilterListProps = {
   activeTag: string;
   emptyText: string;
   items: readonly LocalizedArticleTagStat[];
+  loadingText?: string;
+  pending?: boolean;
   title: string;
 };
 
@@ -51,6 +53,8 @@ const ArticleTagFilterListBase = ({
   activeTag,
   emptyText,
   items,
+  loadingText,
+  pending = false,
   title,
 }: ArticleTagFilterListProps) => {
   const linkItems = React.useMemo(() => buildTagLinkItems(items, activeTag), [activeTag, items]);
@@ -60,7 +64,11 @@ const ArticleTagFilterListBase = ({
       <h2 className={titleClass} id="article-tag-filter-title">
         {title}
       </h2>
-      {linkItems.length > 0 ? (
+      {pending ? (
+        <p aria-live="polite" className={emptyClass}>
+          {loadingText ?? emptyText}
+        </p>
+      ) : linkItems.length > 0 ? (
         <div className={listClass}>
           {linkItems.map(item => (
             <Link

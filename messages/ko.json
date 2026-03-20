@@ -103,6 +103,7 @@
     "loadMoreEnd": "마지막 아티클까지 모두 확인했습니다.",
     "loading": "아티클을 불러오는 중입니다.",
     "popularTagsEmpty": "표시할 태그가 아직 없습니다.",
+    "popularTagsLoading": "태그 목록을 불러오는 중입니다.",
     "popularTagsTitle": "tags",
     "paginationLabel": "아티클 페이지 이동",
     "paginationNext": "다음 페이지",

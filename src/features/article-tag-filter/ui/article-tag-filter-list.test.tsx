@@ -63,4 +63,19 @@ describe('ArticleTagFilterList', () => {
 
     expect(linkRenderSpy).toHaveBeenCalledTimes(2);
   });
+
+  it('pending 상태면 loading text를 렌더링한다', () => {
+    render(
+      <ArticleTagFilterList
+        activeTag=""
+        emptyText="비어 있음"
+        items={[]}
+        loadingText="불러오는 중"
+        pending
+        title="tags"
+      />,
+    );
+
+    expect(screen.getByText('불러오는 중')).toBeTruthy();
+  });
 });

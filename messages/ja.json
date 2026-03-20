@@ -103,6 +103,7 @@
     "loadMoreEnd": "最後の記事まで表示しました。",
     "loading": "記事を読み込み中です。",
     "popularTagsEmpty": "表示できるタグがまだありません。",
+    "popularTagsLoading": "タグ一覧を読み込み中です。",
     "popularTagsTitle": "tags",
     "paginationLabel": "記事ページ移動",
     "paginationNext": "次のページ",
