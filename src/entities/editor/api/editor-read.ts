@@ -15,7 +15,7 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 import 'server-only';
 
 type ContentRow = {
-  allow_comments: boolean;
+  allow_comments?: boolean | null;
   created_at: string;
   id: string;
   publish_at: string | null;
@@ -104,7 +104,11 @@ export const getEditorSeed = async ({
 
   const { data: contentRow, error: contentError } = await supabase
     .from(config.table)
-    .select('id,slug,thumbnail_url,visibility,allow_comments,publish_at,created_at,updated_at')
+    .select(
+      contentType === 'article'
+        ? 'id,slug,thumbnail_url,visibility,allow_comments,publish_at,created_at,updated_at'
+        : 'id,slug,thumbnail_url,visibility,publish_at,created_at,updated_at',
+    )
     .eq('id', contentId)
     .maybeSingle<ContentRow>();
 
@@ -171,7 +175,7 @@ export const getEditorSeed = async ({
     initialPublished: true,
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {
-      allowComments: contentRow.allow_comments,
+      allowComments: contentType === 'article' ? (contentRow.allow_comments ?? true) : false,
       publishAt: contentRow.publish_at,
       slug: contentRow.slug ?? '',
       thumbnailUrl: contentRow.thumbnail_url ?? '',
@@ -326,7 +330,7 @@ const getDraftSeed = async ({
   });
 
   return {
-    allowComments: draftRow.allow_comments ?? true,
+    allowComments: contentType === 'article' ? (draftRow.allow_comments ?? true) : false,
     contentId: draftRow.content_id,
     draftId: draftRow.id,
     publishAt: draftRow.publish_at,

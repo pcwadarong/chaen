@@ -136,7 +136,7 @@ export const saveEditorDraftAction = async ({
   });
   const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
-    allow_comments: parsedSettings.data.allowComments,
+    allow_comments: contentType === 'article' ? parsedSettings.data.allowComments : false,
     content: buildDraftFieldRecord(parsedState.data.translations, 'content'),
     content_id: contentId ?? null,
     content_type: contentType,
@@ -289,13 +289,21 @@ export const publishEditorContentAction = async ({
     visibility: parsedSettings.data.visibility,
     slug: normalizedSlug,
   });
-  const contentPayload = {
-    allow_comments: parsedSettings.data.allowComments,
-    publish_at: effectivePublishAt,
-    slug: normalizedSlug,
-    thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
-    visibility: parsedSettings.data.visibility,
-  };
+  const contentPayload =
+    contentType === 'article'
+      ? {
+          allow_comments: parsedSettings.data.allowComments,
+          publish_at: effectivePublishAt,
+          slug: normalizedSlug,
+          thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
+          visibility: parsedSettings.data.visibility,
+        }
+      : {
+          publish_at: effectivePublishAt,
+          slug: normalizedSlug,
+          thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
+          visibility: parsedSettings.data.visibility,
+        };
 
   if (contentId) {
     const { error } = await supabase

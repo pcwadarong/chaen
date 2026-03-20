@@ -768,6 +768,7 @@ describe('editor-actions', () => {
         publish_at: '2026-03-22T01:00:00.000Z',
       }),
     );
+    expect(projectsUpdateQuery.update.mock.calls[0]?.[0]).not.toHaveProperty('allow_comments');
     expect(redirect).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');

@@ -48,7 +48,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: 'project content',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: 'project description',
@@ -186,7 +185,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: '본문',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: '설명',
@@ -258,7 +256,6 @@ describe('getProject', () => {
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
-            allow_comments: true,
             content: 'project content',
             created_at: '2026-03-02T09:07:50.797695+00:00',
             description: 'project description',

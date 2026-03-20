@@ -6,7 +6,6 @@ import type {
 
 type ProjectBaseFields = Pick<
   Project,
-  | 'allow_comments'
   | 'created_at'
   | 'display_order'
   | 'id'
@@ -136,7 +135,6 @@ export const mapProject = (
   if (!projectBase.publish_at || !projectBase.slug) return null;
 
   return {
-    allow_comments: projectBase.allow_comments,
     content: row.content,
     created_at: projectBase.created_at,
     description: row.description,
@@ -168,7 +166,6 @@ export const mapProjectFallbackRpcRow = (
   locale: row.locale,
   project_id: row.project_id,
   projects: {
-    allow_comments: row.allow_comments,
     created_at: row.created_at,
     display_order: row.display_order,
     id: row.id,

@@ -4,7 +4,6 @@ import type { TechStack } from '@/entities/tech-stack/model/types';
  * Supabase `projects` 테이블 1개 레코드 타입입니다.
  */
 export type Project = {
-  allow_comments?: boolean | null;
   created_at: string;
   description: string | null;
   display_order?: number | null;
