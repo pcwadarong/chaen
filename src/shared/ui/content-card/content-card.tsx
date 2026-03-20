@@ -9,10 +9,6 @@ type ContentCardProps = {
   href: string;
   locale?: string;
   metaItems: string[];
-  taxonomyGroups?: Array<{
-    items: string[];
-    label: string;
-  }>;
   thumbnailAlt: string;
   thumbnailSrc: string | null;
   title: string;
@@ -62,37 +58,6 @@ const metaClass = css({
   fontSize: 'sm',
 });
 
-const taxonomyListClass = css({
-  display: 'grid',
-  gap: '1.5',
-});
-
-const taxonomyRowClass = css({
-  display: 'grid',
-  gridTemplateColumns: '[4.75rem 1fr]',
-  gap: '2',
-  alignItems: 'start',
-});
-
-const taxonomyLabelClass = css({
-  color: 'muted',
-  fontSize: 'xs',
-  fontWeight: 'semibold',
-  textTransform: 'uppercase',
-});
-
-const taxonomyItemsClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '1.5',
-  margin: '0',
-});
-
-const taxonomyItemClass = css({
-  color: 'text',
-  fontSize: 'xs',
-});
-
 const bodyClass = css({
   display: 'grid',
   minWidth: '0',
@@ -128,7 +93,6 @@ export const ContentCard = ({
   href,
   locale,
   metaItems,
-  taxonomyGroups,
   thumbnailAlt,
   thumbnailSrc,
   title,
@@ -159,22 +123,6 @@ export const ContentCard = ({
             <span key={item}>{item}</span>
           ))}
         </div>
-        {taxonomyGroups && taxonomyGroups.length > 0 ? (
-          <dl className={taxonomyListClass}>
-            {taxonomyGroups.map(group => (
-              <div className={taxonomyRowClass} key={group.label}>
-                <dt className={taxonomyLabelClass}>{group.label}</dt>
-                <dd className={taxonomyItemsClass}>
-                  {group.items.map(item => (
-                    <span className={taxonomyItemClass} key={item}>
-                      #{item}
-                    </span>
-                  ))}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
         <div className={bodyClass}>
           <h3 className={titleClass} lang={locale}>
             {title}
