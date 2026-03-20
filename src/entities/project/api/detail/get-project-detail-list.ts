@@ -78,7 +78,7 @@ const fetchProjectArchiveBaseRows = async (): Promise<{
     .not('publish_at', 'is', null)
     .not('slug', 'is', null)
     .eq('visibility', 'public')
-    .or(`publish_at.lte.${nowIsoString}`)
+    .lte('publish_at', nowIsoString)
     .order('display_order', {
       ascending: true,
       nullsFirst: false,
@@ -272,8 +272,12 @@ export const getProjectDetailListWindow = async ({
 
   const currentIndex = baseRowsResult.data.findIndex(row => row.id === currentItem.id);
   const fallbackStartIndex = parseOffsetCursor(null);
-  const startIndex =
-    currentIndex < 0 ? fallbackStartIndex : Math.max(0, currentIndex - Math.max(pageSize - 1, 0));
+  const offset = Math.max(pageSize - 1, 0);
+  /**
+   * 현재 항목을 page window의 끝쪽에 두도록 시작 offset을 계산합니다.
+   * 현재 항목을 찾지 못하면 기본 cursor 시작점(0)으로 폴백합니다.
+   */
+  const startIndex = currentIndex < 0 ? fallbackStartIndex : Math.max(0, currentIndex - offset);
   const windowRows = baseRowsResult.data.slice(startIndex, startIndex + pageSize);
   const resolvedItems = await resolveProjectArchiveItemsWithLocaleFallback(windowRows, locale);
 

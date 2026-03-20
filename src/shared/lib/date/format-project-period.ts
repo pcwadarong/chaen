@@ -22,6 +22,5 @@ export const formatProjectPeriod = (
 
   if (startText && endText) return `${startText} - ${endText}`;
   if (startText && !endText) return `${startText} - ${ongoingLabel}`;
-  if (startText) return startText;
   return ongoingLabel;
 };

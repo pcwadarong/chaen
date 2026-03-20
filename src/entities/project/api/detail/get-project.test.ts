@@ -277,11 +277,11 @@ describe('getProject', () => {
         error: null,
       }),
     };
-    const projectTagsV2Query = {
+    const projectTechStacksQuery = {
       eq: vi.fn().mockResolvedValue({
         data: null,
         error: {
-          message: 'relation "public.project_tags" does not exist',
+          message: 'relation "public.project_tech_stacks" does not exist',
         },
       }),
       select: vi.fn().mockReturnThis(),
@@ -289,7 +289,7 @@ describe('getProject', () => {
     supabaseClient.from = vi
       .fn()
       .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTagsV2Query);
+      .mockReturnValueOnce(projectTechStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);

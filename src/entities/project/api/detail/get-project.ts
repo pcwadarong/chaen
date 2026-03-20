@@ -132,7 +132,14 @@ const fetchProjectFromContentSchema = async (
     };
   }
 
-  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(() => new Map());
+  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(error => {
+    console.error('[projects] Failed to load tech stacks for project', {
+      error,
+      projectId,
+    });
+
+    return new Map();
+  });
 
   return {
     data: {

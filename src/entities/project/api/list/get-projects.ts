@@ -65,7 +65,7 @@ const fetchPublicProjectBaseRows = async (): Promise<{
     .not('publish_at', 'is', null)
     .not('slug', 'is', null)
     .eq('visibility', 'public')
-    .or(`publish_at.lte.${nowIsoString}`)
+    .lte('publish_at', nowIsoString)
     .order('display_order', {
       ascending: true,
       nullsFirst: false,
@@ -156,7 +156,14 @@ const resolveProjectItemsWithLocaleFallback = async (
   if (translationsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
   const techStacksByProjectId = await getProjectTechStackMap(baseRows.map(row => row.id)).catch(
-    () => new Map(),
+    error => {
+      console.error('[projects] Failed to fetch tech stacks for project IDs', {
+        error,
+        projectIds: baseRows.map(row => row.id),
+      });
+
+      return new Map();
+    },
   );
   const translationsByProjectId = new Map<string, ProjectListTranslationSummaryRow[]>();
 

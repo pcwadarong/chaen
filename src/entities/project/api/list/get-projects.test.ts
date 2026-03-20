@@ -40,6 +40,7 @@ const createQueryMock = ({
         ? Promise.resolve(result)
         : query,
     ),
+    lte: vi.fn().mockReturnThis(),
     limit: vi
       .fn()
       .mockResolvedValue(terminalMethod === 'limit' ? result : { data: null, error: null }),
@@ -168,7 +169,7 @@ describe('getProjects', () => {
         tech_stacks: [],
       },
     ]);
-    expect(projectsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
     expect(projectsQuery.order).toHaveBeenNthCalledWith(1, 'display_order', {
       ascending: true,
       nullsFirst: false,
@@ -210,7 +211,7 @@ describe('getProjects', () => {
 
     await getProjects({ cursor: '1', locale: 'ko' });
 
-    expect(projectsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
   });
 
   it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {

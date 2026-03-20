@@ -44,6 +44,7 @@ const createQueryMock = ({
         ? Promise.resolve(result)
         : query,
     ),
+    lte: vi.fn().mockReturnThis(),
     limit: vi
       .fn()
       .mockResolvedValue(terminalMethod === 'limit' ? result : { data: null, error: null }),
@@ -121,7 +122,7 @@ describe('getProjectDetailList', () => {
       ],
       nextCursor: null,
     });
-    expect(projectsQuery.or).toHaveBeenCalledWith('publish_at.lte.2026-03-11T12:00:00.000Z');
+    expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
     expect(translationsQuery.in).toHaveBeenNthCalledWith(2, 'locale', ['ko', 'en', 'ja', 'fr']);
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
@@ -314,6 +315,12 @@ describe('getProjectDetailListWindow', () => {
             display_order: 0,
           },
           {
+            id: 'current',
+            publish_at: '2026-03-02T00:00:00.000Z',
+            slug: 'current',
+            display_order: 0,
+          },
+          {
             id: 'older-1',
             publish_at: '2026-03-01T00:00:00.000Z',
             slug: 'older-1',
@@ -338,6 +345,12 @@ describe('getProjectDetailListWindow', () => {
             locale: 'ko',
             title: 'Newer Two',
             description: 'newer summary 2',
+          },
+          {
+            project_id: 'current',
+            locale: 'ko',
+            title: 'Current Project',
+            description: 'current summary',
           },
           {
             project_id: 'older-1',
@@ -389,6 +402,13 @@ describe('getProjectDetailListWindow', () => {
           description: 'newer summary 2',
           publish_at: '2026-03-04T00:00:00.000Z',
           slug: 'newer-2',
+        },
+        {
+          id: 'current',
+          title: 'Current Project',
+          description: 'current summary',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'current',
         },
         {
           id: 'older-1',
