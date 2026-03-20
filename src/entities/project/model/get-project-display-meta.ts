@@ -18,14 +18,8 @@ export type ProjectTechStackGroup = {
   label: string;
 };
 
-export type ProjectTaxonomyGroup = {
-  items: string[];
-  label: string;
-};
-
 export type ProjectDisplayMeta = {
   periodText: string;
-  taxonomyGroups: ProjectTaxonomyGroup[];
   techStackGroups: ProjectTechStackGroup[];
 };
 
@@ -46,10 +40,6 @@ export const getProjectDisplayMeta = (
 
   return {
     periodText: formatProjectPeriod(item, locale, ongoingLabel),
-    taxonomyGroups: techStackGroups.map(group => ({
-      items: group.items.map(techStack => techStack.name),
-      label: group.label,
-    })),
     techStackGroups,
   };
 };

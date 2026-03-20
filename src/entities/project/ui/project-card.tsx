@@ -18,7 +18,7 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
   const t = useTranslations('ProjectDetail');
   const thumbnailSrc = normalizeImageUrl(item.thumbnail_url);
   const previewThumbnailSrc = thumbnailSrc ? createImageViewerUrl(thumbnailSrc) : null;
-  const { periodText, taxonomyGroups } = getProjectDisplayMeta(item, locale, t('ongoing'));
+  const { periodText } = getProjectDisplayMeta(item, locale, t('ongoing'));
 
   return (
     <ContentCard
@@ -27,7 +27,6 @@ export const ProjectCard = ({ item }: ProjectCardProps) => {
       href={`/project/${resolvePublicContentPathSegment(item)}`}
       locale={locale}
       metaItems={[periodText]}
-      taxonomyGroups={taxonomyGroups}
       thumbnailAlt={`${item.title} thumbnail`}
       thumbnailSrc={previewThumbnailSrc}
       title={item.title}

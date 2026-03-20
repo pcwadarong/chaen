@@ -29,9 +29,5 @@ describe('getProjectDisplayMeta', () => {
         label: '백엔드',
       },
     ]);
-    expect(result.taxonomyGroups).toEqual([
-      { items: ['React'], label: '프론트' },
-      { items: ['NestJS'], label: '백엔드' },
-    ]);
   });
 });
