@@ -140,25 +140,33 @@ const isBlockCode = ({
 }) => {
   if (className && className.length > 0) return true;
 
-  const dataLanguage =
-    props?.['data-language'] ??
-    props?.['dataLanguage'] ??
-    node?.properties?.['data-language'] ??
-    node?.properties?.dataLanguage;
+  const rawStyle = props?.style ?? node?.properties?.style;
+  const styleText =
+    typeof rawStyle === 'string'
+      ? rawStyle
+      : rawStyle && typeof rawStyle === 'object'
+        ? Object.entries(rawStyle)
+            .map(([key, value]) => `${key}:${String(value)}`)
+            .join(';')
+        : '';
   const dataMeta = props?.['data-meta'] ?? props?.['dataMeta'] ?? node?.properties?.['data-meta'];
 
   return Boolean(
-    (typeof dataLanguage === 'string' && dataLanguage.length > 0) ||
+    /display\s*:\s*grid/i.test(styleText) ||
     (typeof dataMeta === 'string' && dataMeta.length > 0) ||
     (typeof node?.meta === 'string' && node.meta.length > 0),
   );
 };
 
 const markdownInlineCodeStyle = {
-  backgroundColor: 'rgba(59, 130, 246, 0.16)',
-  border: '1px solid rgba(59, 130, 246, 0.22)',
+  backgroundColor: 'var(--colors-primary-subtle)',
+  border: '1px solid var(--colors-primary-muted)',
   borderRadius: '0.25rem',
   padding: '0.125rem 0.375rem',
+} satisfies React.CSSProperties;
+
+const markdownCodeBlockTextStyle = {
+  color: 'rgb(248, 250, 252)',
 } satisfies React.CSSProperties;
 
 /**
@@ -283,10 +291,22 @@ const createMarkdownComponents = (): Components => ({
   blockquote: ({ children }) => (
     <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
   ),
-  code: ({ children, className, node, ...props }) => {
-    if (isBlockCode({ className, node, props })) {
+  code: ({ children, className, node, style, ...props }) => {
+    const codeProps = {
+      ...props,
+      style,
+    };
+
+    if (isBlockCode({ className, node, props: codeProps })) {
       return (
-        <code className={className} {...props}>
+        <code
+          className={className}
+          style={{
+            ...(style as React.CSSProperties | undefined),
+            ...markdownCodeBlockTextStyle,
+          }}
+          {...props}
+        >
           {children}
         </code>
       );
@@ -480,7 +500,8 @@ const markdownInlineCodeClass = css({
   px: '[0.375rem]',
   py: '[0.125rem]',
   borderRadius: 'xs',
-  background: '[rgba(59, 130, 246, 0.16)]',
+  background: 'primaryMuted',
+  border: '[1px solid var(--colors-primary)]',
   fontFamily: 'mono',
   fontSize: '[0.95em]',
 });
@@ -592,15 +613,23 @@ const markdownCodeBlockPreClass = css({
   m: '0',
   overflowX: 'auto',
   p: '[1rem]',
+  color: '[rgb(248 250 252)]',
   _focusVisible: {
     outline: '[2px solid var(--colors-primary)]',
     outlineOffset: '[-2px]',
   },
   '& code': {
     display: 'grid',
+    color: '[inherit]',
     fontFamily: 'mono',
     fontSize: '[0.95rem]',
     lineHeight: 'relaxed',
+  },
+  '&[data-language="plaintext"] code span': {
+    color: '[rgb(248 250 252) !important]',
+  },
+  '&[data-language="text"] code span': {
+    color: '[rgb(248 250 252) !important]',
   },
 });
 
