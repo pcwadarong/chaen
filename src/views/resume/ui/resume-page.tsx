@@ -1,6 +1,7 @@
-import { css } from 'styled-system/css';
+import React from 'react';
 
 import type { PdfFileContent, PdfFileDownloadOption } from '@/entities/pdf-file/model/types';
+import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 import { PdfDownloadPopover } from '@/shared/ui/pdf-download-popover/pdf-download-popover';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
@@ -26,12 +27,7 @@ export const ResumePage = ({ content, downloadOptions }: ResumePageProps) => (
       title={content.title}
     />
     <PageSection>
-      <p className={bodyClass}>{content.body}</p>
+      <MarkdownRenderer locale={content.locale} markdown={content.body} />
     </PageSection>
   </PageShell>
 );
-
-const bodyClass = css({
-  whiteSpace: 'pre-wrap',
-  lineHeight: 'relaxed',
-});
