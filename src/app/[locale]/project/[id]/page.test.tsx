@@ -6,7 +6,11 @@ import ProjectDetailRoute, {
   generateStaticParams,
 } from '@/app/[locale]/project/[id]/page';
 import { getProjectStaticSeedParams } from '@/entities/project/api/detail/get-project-static-seed-params';
-import { getProjectDetailShellData, getProjectTagLabels } from '@/views/project';
+import {
+  getProjectDetailArchivePageData,
+  getProjectDetailShellData,
+  getProjectTagLabels,
+} from '@/views/project';
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -30,6 +34,10 @@ vi.mock('@/views/project', () => ({
   getProjectDetailShellData: vi.fn(async () => ({
     item: null,
     resolvedLocale: null,
+  })),
+  getProjectDetailArchivePageData: vi.fn(async () => ({
+    items: [],
+    nextCursor: null,
   })),
   getProjectTagLabels: vi.fn(async () => []),
   ProjectDetailPage: function ProjectDetailPage() {
@@ -70,6 +78,10 @@ describe('ProjectDetailRoute', () => {
       resolvedLocale: 'ko',
     });
     vi.mocked(getProjectTagLabels).mockResolvedValueOnce(['Supabase']);
+    vi.mocked(getProjectDetailArchivePageData).mockResolvedValueOnce({
+      items: [],
+      nextCursor: null,
+    });
 
     const element = await ProjectDetailRoute({
       params: Promise.resolve({
@@ -84,6 +96,16 @@ describe('ProjectDetailRoute', () => {
     expect(getProjectDetailShellData).toHaveBeenCalledWith({
       locale: 'ko',
       projectSlug: 'supabase-editorial',
+    });
+    expect(getProjectDetailArchivePageData).toHaveBeenCalledWith({
+      item: expect.objectContaining({
+        id: 'supabase-editorial',
+      }),
+      locale: 'ko',
+    });
+    expect(element.props.initialArchivePage).toEqual({
+      items: [],
+      nextCursor: null,
     });
     await expect(element.props.tagLabelsPromise).resolves.toEqual(['Supabase']);
   });

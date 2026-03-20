@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import type { Project } from '@/entities/project/model/types';
+import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
 import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
 import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
 import type { AppLocale } from '@/i18n/routing';
@@ -18,6 +18,7 @@ import { DetailTagListSkeleton } from '@/widgets/detail-page/ui/detail-page-sect
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ProjectDetailPageProps = {
+  initialArchivePage: ProjectArchivePage;
   item: Project;
   locale: AppLocale;
   tagLabelsPromise: Promise<string[]>;
@@ -26,6 +27,7 @@ type ProjectDetailPageProps = {
 type ProjectArchiveSidebarProps = {
   currentItem: Project;
   emptyText: string;
+  initialPage: ProjectArchivePage;
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
@@ -44,24 +46,21 @@ type ProjectTagListProps = {
  *
  * @param props 현재 프로젝트를 포함해 좌측 아카이브가 유지해야 하는 링크 정보와
  * 로딩/오류 문구를 전달합니다.
- * @param props.currentItem 현재 보고 있는 프로젝트입니다. 초기 프리로드가 제거된 뒤에도
- * 좌측 목록에 활성 항목이 즉시 보이도록 내부 bootstrap 목록 앞에 보강합니다.
+ * @param props.currentItem 현재 보고 있는 프로젝트입니다.
  * @param props.emptyText 아카이브가 비어 있을 때 출력할 문구입니다.
+ * @param props.initialPage 현재 프로젝트를 포함한 초기 아카이브 slice입니다.
  * @param props.loadErrorText 아카이브 첫 페이지 또는 추가 로드 실패 시 보여줄 문구입니다.
  * @param props.loadMoreEndText 더 이상 불러올 항목이 없을 때 스크린리더에 알릴 문구입니다.
  * @param props.loadingText 추가 로드 중 상태 문구입니다.
  * @param props.locale 연도 표기와 archive page action에 전달할 locale입니다.
  * @param props.retryText bootstrap 또는 추가 로드 실패 후 다시 시도 버튼에 사용할 문구입니다.
  * @param props.selectedPathSegment 현재 상세 경로의 slug 또는 id입니다.
- * @returns 내부 bootstrap을 포함한 좌측 아카이브 피드 React 노드를 반환합니다.
- *
- * @remarks
- * 서버 프리로드를 제거했기 때문에 첫 페이지는 `DetailArchiveFeed`가 클라이언트에서 직접
- * bootstrap합니다. 호출자는 별도 `Suspense` fallback을 둘 필요가 없습니다.
+ * @returns 현재 프로젝트 주변 문맥을 포함한 좌측 아카이브 피드 React 노드를 반환합니다.
  */
 const ProjectArchiveSidebar = ({
   currentItem,
   emptyText,
+  initialPage,
   loadErrorText,
   loadMoreEndText,
   loadingText,
@@ -70,14 +69,17 @@ const ProjectArchiveSidebar = ({
   selectedPathSegment,
 }: ProjectArchiveSidebarProps) => (
   <DetailArchiveFeed
+    activeItemViewportOffsetRatio={0.25}
     currentItem={currentItem}
     emptyText={emptyText}
     hrefBasePath="/project"
+    initialPage={initialPage}
     loadErrorText={loadErrorText}
     loadPageAction={getProjectDetailArchivePageAction}
     loadMoreEndText={loadMoreEndText}
     loadingText={loadingText}
     locale={locale}
+    pinCurrentItemToTop={false}
     retryText={retryText}
     selectedPathSegment={selectedPathSegment}
   />
@@ -121,11 +123,15 @@ const ProjectTagList = async ({ ariaLabel, tagLabelsPromise }: ProjectTagListPro
  * @throws 공개 프로젝트인데 `publish_at`이 비어 있으면 상세 계약 위반으로 예외를 던집니다.
  *
  * @remarks
- * 좌측 아카이브는 더 이상 서버에서 초기 페이지를 프리로드하지 않고, 내부 bootstrap으로
- * 첫 페이지를 가져옵니다. 대신 현재 프로젝트 항목은 즉시 앞에 보강해 활성 상태와
- * 인접 이동 맥락을 유지합니다.
+ * 좌측 아카이브는 현재 프로젝트를 포함한 초기 window를 서버에서 미리 받아, 최신 목록
+ * 첫 페이지로 점프하지 않고 현재 문맥부터 렌더링합니다.
  */
-export const ProjectDetailPage = ({ item, locale, tagLabelsPromise }: ProjectDetailPageProps) => {
+export const ProjectDetailPage = ({
+  initialArchivePage,
+  item,
+  locale,
+  tagLabelsPromise,
+}: ProjectDetailPageProps) => {
   const t = useTranslations('ProjectDetail');
   const projectT = useTranslations('Project');
   const detailUi = useTranslations('DetailUi');
@@ -202,6 +208,7 @@ export const ProjectDetailPage = ({ item, locale, tagLabelsPromise }: ProjectDet
           <ProjectArchiveSidebar
             currentItem={item}
             emptyText={detailUi('emptyArchive')}
+            initialPage={initialArchivePage}
             loadErrorText={projectT('loadError')}
             loadMoreEndText={projectT('loadMoreEnd')}
             loadingText={projectT('loading')}

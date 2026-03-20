@@ -1,7 +1,10 @@
 import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
-import { getProjectDetailList } from '@/entities/project/api/detail/get-project-detail-list';
+import {
+  getProjectDetailList,
+  getProjectDetailListWindow,
+} from '@/entities/project/api/detail/get-project-detail-list';
 import { parseLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -284,6 +287,163 @@ describe('getProjectDetailList', () => {
 
     await expect(getProjectDetailList({ locale: 'ko' })).rejects.toThrow(
       '[projects] 상세 목록 base row 조회 실패: permission denied for table projects',
+    );
+  });
+});
+
+describe('getProjectDetailListWindow', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-11T12:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it('현재 프로젝트 아래쪽을 우선 채우고 부족하면 위쪽 최근 프로젝트로 앞을 메운다', async () => {
+    const olderProjectsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            id: 'older-1',
+            publish_at: '2026-03-01T00:00:00.000Z',
+            slug: 'older-1',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const olderTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            project_id: 'older-1',
+            locale: 'ko',
+            title: 'Older One',
+            description: 'older summary',
+          },
+        ],
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    const newerProjectsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            id: 'newer-2',
+            publish_at: '2026-03-04T00:00:00.000Z',
+            slug: 'newer-2',
+          },
+          {
+            id: 'newer-3',
+            publish_at: '2026-03-05T00:00:00.000Z',
+            slug: 'newer-3',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const newerTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            project_id: 'newer-2',
+            locale: 'ko',
+            title: 'Newer Two',
+            description: 'newer summary 2',
+          },
+          {
+            project_id: 'newer-3',
+            locale: 'ko',
+            title: 'Newer Three',
+            description: 'newer summary 3',
+          },
+        ],
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    const supabaseClient = {
+      from: vi
+        .fn()
+        .mockImplementationOnce((table: string) => {
+          if (table === 'projects') return olderProjectsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'project_translations') return olderTranslationsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'projects') return newerProjectsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        })
+        .mockImplementationOnce((table: string) => {
+          if (table === 'project_translations') return newerTranslationsQuery;
+          throw new Error(`unexpected table: ${table}`);
+        }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getProjectDetailListWindow({
+      currentItem: {
+        description: 'current summary',
+        id: 'current',
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'current',
+        title: 'Current Project',
+      },
+      limit: 4,
+      locale: 'ko',
+    });
+
+    expect(result).toEqual({
+      items: [
+        {
+          id: 'newer-3',
+          title: 'Newer Three',
+          description: 'newer summary 3',
+          publish_at: '2026-03-05T00:00:00.000Z',
+          slug: 'newer-3',
+        },
+        {
+          id: 'newer-2',
+          title: 'Newer Two',
+          description: 'newer summary 2',
+          publish_at: '2026-03-04T00:00:00.000Z',
+          slug: 'newer-2',
+        },
+        {
+          id: 'current',
+          title: 'Current Project',
+          description: 'current summary',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'current',
+        },
+        {
+          id: 'older-1',
+          title: 'Older One',
+          description: 'older summary',
+          publish_at: '2026-03-01T00:00:00.000Z',
+          slug: 'older-1',
+        },
+      ],
+      nextCursor: null,
+    });
+    expect(newerProjectsQuery.or).toHaveBeenCalledWith(
+      expect.stringContaining('publish_at.gt.2026-03-02T00:00:00.000Z),and(publish_at.lte.'),
+    );
+    expect(newerProjectsQuery.or).toHaveBeenCalledWith(
+      expect.stringContaining('publish_at.eq.2026-03-02T00:00:00.000Z,id.gt.current)'),
     );
   });
 });

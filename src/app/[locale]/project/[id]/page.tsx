@@ -10,7 +10,12 @@ import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/
 import { buildLocaleAlternates, buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
-import { getProjectDetailShellData, getProjectTagLabels, ProjectDetailPage } from '@/views/project';
+import {
+  getProjectDetailArchivePageData,
+  getProjectDetailShellData,
+  getProjectTagLabels,
+  ProjectDetailPage,
+} from '@/views/project';
 
 export const revalidate = 3600;
 
@@ -89,11 +94,17 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
  */
 const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   const { id, locale } = await params;
-  const { item } = await getProjectDetailShellData({
+  const { item, resolvedLocale } = await getProjectDetailShellData({
     locale,
     projectSlug: id,
   });
   if (!item) notFound();
+  const effectiveLocale = resolvedLocale ?? locale;
+
+  const initialArchivePage = await getProjectDetailArchivePageData({
+    item,
+    locale: effectiveLocale,
+  });
 
   const tagLabelsPromise = getProjectTagLabels({
     item,
@@ -102,6 +113,7 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
 
   return (
     <ProjectDetailPage
+      initialArchivePage={initialArchivePage}
       item={item}
       locale={locale as AppLocale}
       tagLabelsPromise={tagLabelsPromise}
