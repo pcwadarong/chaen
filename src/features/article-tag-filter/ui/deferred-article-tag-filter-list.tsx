@@ -10,6 +10,7 @@ type DeferredArticleTagFilterListProps = {
   emptyText: string;
   loadingText: string;
   locale: string;
+  onNavigationStart?: () => void;
   title: string;
 };
 
@@ -22,6 +23,7 @@ export const DeferredArticleTagFilterList = ({
   emptyText,
   loadingText,
   locale,
+  onNavigationStart,
   title,
 }: DeferredArticleTagFilterListProps) => {
   const [items, setItems] = React.useState<LocalizedArticleTagStat[]>([]);
@@ -76,6 +78,7 @@ export const DeferredArticleTagFilterList = ({
       emptyText={emptyText}
       items={items}
       loadingText={loadingText}
+      onNavigationStart={onNavigationStart}
       pending={status === 'idle' || status === 'loading'}
       title={title}
     />

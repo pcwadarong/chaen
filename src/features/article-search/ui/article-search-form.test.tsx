@@ -227,12 +227,14 @@ describe('ArticleSearchForm', () => {
     expect(nextOnSubmitComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
+  it('pending 상태 변경을 바깥으로 알린다', () => {
+    const onPendingChange = vi.fn();
     vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
 
     render(
       <ArticleSearchForm
         clearText="초기화"
+        onPendingChange={onPendingChange}
         pendingText="검색 중"
         placeholder="검색어 입력"
         searchQuery="next"
@@ -240,7 +242,6 @@ describe('ArticleSearchForm', () => {
       />,
     );
 
-    expect(screen.getByRole('status').textContent).toBe('검색 중');
-    expect(screen.getByRole('search').getAttribute('aria-busy')).toBe('true');
+    expect(onPendingChange).toHaveBeenCalledWith(true);
   });
 });

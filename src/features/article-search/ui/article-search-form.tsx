@@ -15,6 +15,7 @@ type ArticleSearchFormProps = {
   autoFocus?: boolean;
   clearText: string;
   fullWidth?: boolean;
+  onPendingChange?: (isPending: boolean) => void;
   onSubmitComplete?: () => void;
   pendingText: string;
   placeholder: string;
@@ -117,6 +118,7 @@ export const ArticleSearchForm = ({
   autoFocus = false,
   clearText,
   fullWidth = false,
+  onPendingChange,
   onSubmitComplete,
   pendingText,
   placeholder,
@@ -161,6 +163,10 @@ export const ArticleSearchForm = ({
     setIsAwaitingSubmitCompletion(false);
     onSubmitComplete?.();
   }, [isAwaitingSubmitCompletion, isPending, onSubmitComplete]);
+
+  React.useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
 
   /**
    * URL 동기화로 바뀐 값은 다시 검색하지 않고,

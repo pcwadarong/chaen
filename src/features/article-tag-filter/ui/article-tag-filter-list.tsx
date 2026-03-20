@@ -11,6 +11,7 @@ type ArticleTagFilterListProps = {
   emptyText: string;
   items: readonly LocalizedArticleTagStat[];
   loadingText?: string;
+  onNavigationStart?: () => void;
   pending?: boolean;
   title: string;
 };
@@ -54,6 +55,7 @@ const ArticleTagFilterListBase = ({
   emptyText,
   items,
   loadingText,
+  onNavigationStart,
   pending = false,
   title,
 }: ArticleTagFilterListProps) => {
@@ -76,6 +78,7 @@ const ArticleTagFilterListBase = ({
               className={cx(tagLinkClass, item.isActive ? activeTagLinkClass : undefined)}
               href={item.href}
               key={item.tag}
+              onClick={onNavigationStart}
             >
               <span>{item.label}</span>
               <span className={countClass}>({item.articleCount})</span>
