@@ -1,14 +1,11 @@
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
-import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import {
+  getArticleDetailList,
+  getArticleDetailListWindow,
+} from '@/entities/article/api/detail/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
-import type {
-  Article,
-  ArticleArchivePage,
-  ArticleDetailListItem,
-  ArticleListItem,
-} from '@/entities/article/model/types';
+import type { Article, ArticleArchivePage, ArticleListItem } from '@/entities/article/model/types';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
-import { prependCurrentArchiveItem } from '@/shared/lib/pagination/prepend-current-archive-item';
 
 type GetArticleDetailPageDataInput = {
   articleSlug: string;
@@ -32,6 +29,8 @@ type GetArticleTagLabelsInput = {
 
 export type ArticleDetailShellData = Awaited<ReturnType<typeof getResolvedArticle>>;
 
+type CurrentArticleArchiveItem = Parameters<typeof getArticleDetailListWindow>[0]['currentItem'];
+
 const EMPTY_ARTICLE_ARCHIVE_PAGE: ArticleArchivePage = {
   items: [],
   nextCursor: null,
@@ -40,7 +39,7 @@ const EMPTY_ARTICLE_ARCHIVE_PAGE: ArticleArchivePage = {
 /**
  * 상세 아티클을 public archive 요약 shape로 좁힙니다.
  */
-const toCurrentArticleArchiveItem = (item: Article | null): ArticleDetailListItem | null => {
+const toCurrentArticleArchiveItem = (item: Article | null): CurrentArticleArchiveItem | null => {
   if (!item?.publish_at || !item.slug) return null;
 
   return {
@@ -51,18 +50,6 @@ const toCurrentArticleArchiveItem = (item: Article | null): ArticleDetailListIte
     title: item.title,
   };
 };
-
-/**
- * 상세 대상 아티클을 좌측 아카이브 목록에 보정합니다.
- */
-const ensureCurrentArticleInArchive = (
-  item: Article | null,
-  archivePage: ArticleArchivePage,
-): ArticleArchivePage =>
-  prependCurrentArchiveItem<ArticleDetailListItem, ArticleDetailListItem>(
-    toCurrentArticleArchiveItem(item),
-    archivePage,
-  );
 
 /**
  * 상세 아티클 태그를 locale 기준 표시 라벨로 변환합니다.
@@ -106,22 +93,39 @@ export const getArticleDetailShellData = ({
   getResolvedArticle(articleSlug, locale);
 
 /**
- * 아티클 상세 좌측 아카이브를 조회하고 현재 항목을 목록에 보정합니다.
+ * 아티클 상세 좌측 아카이브를 현재 글을 포함한 초기 slice로 조회합니다.
  */
 export const getArticleDetailArchivePageData = async ({
   item,
   locale,
 }: GetArticleDetailArchivePageDataInput): Promise<ArticleArchivePage> => {
-  const archivePage = await getArticleDetailList({ locale }).catch(error => {
-    console.error('[articles] getArticleDetailList failed for locale', {
+  const currentArchiveItem = toCurrentArticleArchiveItem(item);
+
+  if (!currentArchiveItem) {
+    return getArticleDetailList({ locale }).catch(error => {
+      console.error('[articles] getArticleDetailList failed for locale', {
+        error,
+        locale,
+      });
+
+      return EMPTY_ARTICLE_ARCHIVE_PAGE;
+    });
+  }
+
+  return getArticleDetailListWindow({
+    currentItem: currentArchiveItem,
+    locale,
+  }).catch(error => {
+    console.error('[articles] getArticleDetailListWindow failed for locale', {
       error,
       locale,
     });
 
-    return EMPTY_ARTICLE_ARCHIVE_PAGE;
+    return {
+      items: [currentArchiveItem],
+      nextCursor: null,
+    };
   });
-
-  return ensureCurrentArticleInArchive(item, archivePage);
 };
 
 /**

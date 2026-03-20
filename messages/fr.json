@@ -11,6 +11,7 @@
     "project": "Projets"
   },
   "Common": {
+    "pageLoading": "Chargement de la page.",
     "scrollToTopAriaLabel": "Retour en haut"
   },
   "Home": {
@@ -103,6 +104,8 @@
     "loadMoreEnd": "Vous avez atteint la fin des articles.",
     "loading": "Chargement des articles.",
     "popularTagsEmpty": "Aucun tag à afficher pour le moment.",
+    "popularTagsLoading": "Chargement de la liste des tags.",
+    "tagNavigationLoading": "Chargement des articles pour ce tag.",
     "popularTagsTitle": "Tags",
     "paginationLabel": "Navigation entre les pages d'articles",
     "paginationNext": "Page suivante",

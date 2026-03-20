@@ -1,7 +1,10 @@
 import { vi } from 'vitest';
 
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
-import { getArticleDetailList } from '@/entities/article/api/detail/get-article-detail-list';
+import {
+  getArticleDetailList,
+  getArticleDetailListWindow,
+} from '@/entities/article/api/detail/get-article-detail-list';
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import { serializeLocaleAwarePublishedAtIdCursor } from '@/shared/lib/pagination/keyset-pagination';
@@ -22,6 +25,7 @@ vi.mock('@/entities/article/api/detail/get-related-articles', () => ({
 
 vi.mock('@/entities/article/api/detail/get-article-detail-list', () => ({
   getArticleDetailList: vi.fn(),
+  getArticleDetailListWindow: vi.fn(),
 }));
 
 vi.mock('@/entities/tag/api/query-tags', () => ({
@@ -64,15 +68,16 @@ describe('article detail page data helpers', () => {
     });
   });
 
-  it('현재 아티클이 목록에 없으면 아카이브 맨 앞에 보정한다', async () => {
-    const nextCursor = serializeLocaleAwarePublishedAtIdCursor({
-      id: 'archive-1',
-      locale: 'ko',
-      publishedAt: '2026-03-01T00:00:00.000Z',
-    });
-
-    vi.mocked(getArticleDetailList).mockResolvedValue({
+  it('현재 아티클 기준 초기 아카이브 slice를 조회한다', async () => {
+    vi.mocked(getArticleDetailListWindow).mockResolvedValue({
       items: [
+        {
+          id: 'frontend',
+          title: 'Frontend',
+          description: 'cs',
+          publish_at: '2026-03-02T00:00:00.000Z',
+          slug: 'frontend',
+        },
         {
           id: 'archive-1',
           title: 'Archive',
@@ -81,7 +86,11 @@ describe('article detail page data helpers', () => {
           slug: 'archive-1',
         },
       ],
-      nextCursor,
+      nextCursor: serializeLocaleAwarePublishedAtIdCursor({
+        id: 'archive-1',
+        locale: 'ko',
+        publishedAt: '2026-03-01T00:00:00.000Z',
+      }),
     });
 
     const result = await getArticleDetailArchivePageData({
@@ -102,19 +111,22 @@ describe('article detail page data helpers', () => {
     });
 
     expect(result.items[0]?.id).toBe('frontend');
-    expect(result.nextCursor).toBe(
-      serializeLocaleAwarePublishedAtIdCursor({
+    expect(getArticleDetailListWindow).toHaveBeenCalledWith({
+      currentItem: {
+        description: 'cs',
         id: 'frontend',
-        locale: 'ko',
-        publishedAt: '2026-03-02T00:00:00.000Z',
-      }),
-    );
+        publish_at: '2026-03-02T00:00:00.000Z',
+        slug: 'frontend',
+        title: 'Frontend',
+      },
+      locale: 'ko',
+    });
   });
 
   it('아카이브 helper는 조회 실패 시 현재 항목만 유지한 빈 목록으로 폴백한다', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    vi.mocked(getArticleDetailList).mockRejectedValue(new Error('archive failed'));
+    vi.mocked(getArticleDetailListWindow).mockRejectedValue(new Error('archive failed'));
 
     await expect(
       getArticleDetailArchivePageData({
@@ -146,12 +158,31 @@ describe('article detail page data helpers', () => {
       nextCursor: null,
     });
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '[articles] getArticleDetailList failed for locale',
+      '[articles] getArticleDetailListWindow failed for locale',
       expect.objectContaining({
         error: expect.any(Error),
         locale: 'ko',
       }),
     );
+  });
+
+  it('현재 항목이 없으면 기본 상세 목록 조회로 폴백한다', async () => {
+    vi.mocked(getArticleDetailList).mockResolvedValue({
+      items: [],
+      nextCursor: null,
+    });
+
+    await expect(
+      getArticleDetailArchivePageData({
+        item: null,
+        locale: 'ko',
+      }),
+    ).resolves.toEqual({
+      items: [],
+      nextCursor: null,
+    });
+
+    expect(getArticleDetailList).toHaveBeenCalledWith({ locale: 'ko' });
   });
 
   it('관련 글 helper는 조회 실패를 빈 목록으로 대체한다', async () => {

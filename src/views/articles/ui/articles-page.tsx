@@ -1,11 +1,8 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { css } from 'styled-system/css';
 
-import type { ArticleListItem, LocalizedArticleTagStat } from '@/entities/article/model/types';
-import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
-import { ArticleTagFilterList } from '@/features/article-tag-filter/ui/article-tag-filter-list';
-import { ArticleFeed } from '@/widgets/article-feed/ui/article-feed';
+import type { ArticleListItem } from '@/entities/article/model/types';
+import { ArticlesInteractiveShell } from '@/views/articles/ui/articles-interactive-shell';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 export type ArticlesPageProps = {
@@ -19,7 +16,6 @@ export type ArticlesPageProps = {
     nextHref: string | null;
     previousHref: string | null;
   };
-  popularTags: LocalizedArticleTagStat[];
   searchQuery: string;
 };
 
@@ -30,7 +26,6 @@ export const ArticlesPage = ({
   initialCursor,
   initialItems,
   locale,
-  popularTags,
   searchQuery,
 }: ArticlesPageProps) => {
   const t = useTranslations('Articles');
@@ -39,82 +34,26 @@ export const ArticlesPage = ({
     <PageShell hideAppFrameFooter>
       <PageHeader description={t('description')} title={t('title')} />
       <PageSection>
-        <div className={layoutClass}>
-          <div className={feedColumnClass}>
-            <ArticleFeed
-              activeTag={activeTag}
-              key={`${feedLocale}:${searchQuery}:${activeTag}`}
-              emptyText={t('emptyItems')}
-              initialCursor={initialCursor}
-              initialItems={initialItems}
-              loadErrorText={t('loadError')}
-              loadMoreEndText={t('loadMoreEnd')}
-              loadingText={t('loading')}
-              locale={feedLocale}
-              query={searchQuery}
-              retryText={t('retry')}
-            />
-          </div>
-          <aside className={sidebarClass}>
-            <div className={sidebarPanelClass}>
-              <div className={desktopSearchFormClass}>
-                <ArticleSearchForm
-                  clearText={t('searchClear')}
-                  key={`article-search:${locale}:${searchQuery}`}
-                  pendingText={t('loading')}
-                  placeholder={t('searchPlaceholder')}
-                  searchQuery={searchQuery}
-                  submitText={t('searchSubmit')}
-                />
-              </div>
-              <ArticleTagFilterList
-                activeTag={activeTag}
-                emptyText={t('popularTagsEmpty')}
-                items={popularTags}
-                title={t('popularTagsTitle')}
-              />
-            </div>
-          </aside>
-        </div>
+        <ArticlesInteractiveShell
+          activeTag={activeTag}
+          emptyText={t('emptyItems')}
+          feedLocale={feedLocale}
+          initialCursor={initialCursor}
+          initialItems={initialItems}
+          loadErrorText={t('loadError')}
+          loadMoreEndText={t('loadMoreEnd')}
+          loadingText={t('loading')}
+          popularTagsEmptyText={t('popularTagsEmpty')}
+          popularTagsLoadingText={t('popularTagsLoading')}
+          popularTagsTitle={t('popularTagsTitle')}
+          query={searchQuery}
+          retryText={t('retry')}
+          searchClearText={t('searchClear')}
+          searchPlaceholderText={t('searchPlaceholder')}
+          searchSubmitText={t('searchSubmit')}
+          tagLocale={locale}
+        />
       </PageSection>
     </PageShell>
   );
 };
-
-const layoutClass = css({
-  display: 'grid',
-  gap: '6',
-  '@media (min-width: 961px)': {
-    gridTemplateColumns: 'minmax(0, 1fr) 18rem',
-    alignItems: 'start',
-  },
-});
-
-const feedColumnClass = css({
-  minWidth: '0',
-  order: '2',
-  '@media (min-width: 961px)': {
-    order: '1',
-  },
-});
-
-const sidebarClass = css({
-  order: '1',
-  '@media (min-width: 961px)': {
-    position: 'sticky',
-    top: '8',
-    order: '2',
-  },
-});
-
-const sidebarPanelClass = css({
-  display: 'grid',
-  gap: '4',
-});
-
-const desktopSearchFormClass = css({
-  display: 'none',
-  '@media (min-width: 961px)': {
-    display: 'block',
-  },
-});

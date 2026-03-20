@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { css } from 'styled-system/css';
+import { css, cva } from 'styled-system/css';
 
 import { uploadPdfFileByAssetKey } from '@/entities/pdf-file/api/upload-pdf-file-by-asset-key';
 import type { PdfFileAssetKey } from '@/entities/pdf-file/model/types';
@@ -34,12 +34,68 @@ const createUploadErrorMessage = (title: string) =>
 export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) => {
   const inputRefs = useRef<Partial<Record<PdfFileAssetKey, HTMLInputElement | null>>>({});
   const [items, setItems] = useState(initialItems);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(true);
   const [feedbackByAssetKey, setFeedbackByAssetKey] = useState<
     Partial<Record<PdfFileAssetKey, UploadFeedback>>
   >({});
   const [uploadingByAssetKey, setUploadingByAssetKey] = useState<
     Partial<Record<PdfFileAssetKey, boolean>>
   >({});
+
+  React.useEffect(() => {
+    const abortController = new AbortController();
+
+    const loadAvailability = async () => {
+      setIsCheckingAvailability(true);
+
+      try {
+        const response = await fetch('/api/pdf/admin/availability', {
+          method: 'GET',
+          signal: abortController.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load admin PDF availability: ${response.status}`);
+        }
+
+        const data = (await response.json()) as {
+          items: Array<{
+            assetKey: PdfFileAssetKey;
+            isPdfReady: boolean;
+          }>;
+        };
+        const readinessByAssetKey = new Map(
+          data.items.map(item => [item.assetKey, item.isPdfReady] as const),
+        );
+
+        setItems(previous =>
+          previous.map(item => ({
+            ...item,
+            // 업로드 직후 true로 바뀐 상태는 늦게 도착한 초기 조회가 false로 덮지 않도록 유지합니다.
+            isPdfReady: item.isPdfReady || (readinessByAssetKey.get(item.assetKey) ?? false),
+          })),
+        );
+      } catch (error) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        console.error('[admin-pdf-upload] availability fetch failed', {
+          error,
+        });
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsCheckingAvailability(false);
+        }
+      }
+    };
+
+    void loadAvailability();
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
   /**
    * 파일 선택 버튼에서 숨겨진 input 클릭을 위임합니다.
@@ -128,6 +184,7 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
           return (
             <AdminPdfUploadRow
               feedback={feedback}
+              isCheckingAvailability={isCheckingAvailability}
               isUploading={isUploading}
               item={item}
               key={item.assetKey}
@@ -155,6 +212,7 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
 type AdminPdfUploadRowProps = {
   children: React.ReactNode;
   feedback?: UploadFeedback;
+  isCheckingAvailability: boolean;
   isUploading: boolean;
   item: AdminPdfUploadItem;
   onUploadButtonClick: (assetKey: PdfFileAssetKey) => void;
@@ -166,54 +224,65 @@ type AdminPdfUploadRowProps = {
 const AdminPdfUploadRow = ({
   children,
   feedback,
+  isCheckingAvailability,
   isUploading,
   item,
   onUploadButtonClick,
-}: AdminPdfUploadRowProps) => (
-  <article className={rowClass}>
-    <div className={rowMainClass}>
-      <div className={rowCopyClass}>
-        <h3 className={rowTitleClass}>{item.title}</h3>
-        <p className={fileNameClass}>{item.downloadFileName}</p>
-      </div>
-      <div className={actionRowClass}>
-        <Button
-          className={actionButtonClass}
-          disabled={isUploading}
-          onClick={() => onUploadButtonClick(item.assetKey)}
-          tone="white"
-          type="button"
-          variant="solid"
-        >
-          {isUploading ? '업로드 중...' : '업로드'}
-        </Button>
-        {item.isPdfReady ? (
-          <Button asChild className={actionButtonClass} tone="black" variant="solid">
-            <a href={item.downloadPath} rel="noopener noreferrer" target="_blank">
+}: AdminPdfUploadRowProps) => {
+  const isDownloadReady = !isCheckingAvailability && item.isPdfReady;
+
+  return (
+    <article className={rowClass}>
+      <div className={rowMainClass}>
+        <div className={rowCopyClass}>
+          <h3 className={rowTitleClass}>{item.title}</h3>
+          <p className={fileNameClass}>{item.downloadFileName}</p>
+        </div>
+        <div className={actionRowClass}>
+          <Button
+            className={actionButtonClass}
+            disabled={isUploading}
+            onClick={() => onUploadButtonClick(item.assetKey)}
+            tone="white"
+            type="button"
+            variant="solid"
+          >
+            {isUploading ? '업로드 중...' : '업로드'}
+          </Button>
+          {isDownloadReady ? (
+            <Button asChild className={actionButtonClass} tone="black" variant="solid">
+              <a href={item.downloadPath} rel="noopener noreferrer" target="_blank">
+                다운로드 확인
+              </a>
+            </Button>
+          ) : (
+            <Button
+              className={actionButtonClass}
+              disabled
+              tone="black"
+              type="button"
+              variant="solid"
+            >
               다운로드 확인
-            </a>
-          </Button>
-        ) : (
-          <Button className={actionButtonClass} disabled tone="black" type="button" variant="solid">
-            다운로드 확인
-          </Button>
-        )}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
 
-    {children}
+      {children}
 
-    {feedback ? (
-      <p
-        aria-live={feedback.tone === 'success' ? 'polite' : 'assertive'}
-        className={feedbackTextClass({ tone: feedback.tone })}
-        role={feedback.tone === 'error' ? 'alert' : 'status'}
-      >
-        {feedback.message}
-      </p>
-    ) : null}
-  </article>
-);
+      {feedback ? (
+        <p
+          aria-live={feedback.tone === 'success' ? 'polite' : 'assertive'}
+          className={feedbackTextClass({ tone: feedback.tone })}
+          role={feedback.tone === 'error' ? 'alert' : 'status'}
+        >
+          {feedback.message}
+        </p>
+      ) : null}
+    </article>
+  );
+};
 
 const sectionClass = css({
   display: 'grid',
@@ -307,10 +376,20 @@ const hiddenInputClass = css({
  * @param tone - 피드백 종류입니다. `success`면 성공, `error`면 오류 스타일을 적용합니다.
  * @returns Panda CSS 클래스 이름입니다.
  */
-const feedbackTextClass = ({ tone }: { tone: UploadFeedback['tone'] }) =>
-  css({
+const feedbackTextClass = cva({
+  base: {
     m: '0',
     fontSize: 'sm',
-    color: tone === 'success' ? 'green.700' : 'error',
     lineHeight: 'relaxed',
-  });
+  },
+  variants: {
+    tone: {
+      error: {
+        color: 'error',
+      },
+      success: {
+        color: 'green.700',
+      },
+    },
+  },
+});

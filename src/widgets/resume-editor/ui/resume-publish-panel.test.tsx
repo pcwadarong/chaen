@@ -48,6 +48,29 @@ const baseSettings = {
 };
 
 describe('ResumePublishPanel', () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({
+          isPdfReady: false,
+          kind: 'resume',
+        }),
+        ok: true,
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   it('rerender 이후 최신 onUploadPdf를 사용한다', async () => {
     const staleUploadPdf = vi.fn().mockRejectedValue(createResumeEditorError('pdfUploadFailed'));
     const nextUploadPdf = vi.fn().mockResolvedValue({

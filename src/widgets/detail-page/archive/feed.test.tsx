@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
@@ -22,6 +22,7 @@ type ObserverCallback = IntersectionObserverCallback;
 
 let observerCallback: ObserverCallback | null = null;
 let observerOptions: IntersectionObserverInit | null = null;
+let requestAnimationFrameCallbacks: FrameRequestCallback[] = [];
 type TestArchiveItem = {
   created_at: string;
   description: string | null;
@@ -46,6 +47,13 @@ describe('DetailArchiveFeed', () => {
   beforeEach(() => {
     observerCallback = null;
     observerOptions = null;
+    requestAnimationFrameCallbacks = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      requestAnimationFrameCallbacks.push(callback);
+
+      return requestAnimationFrameCallbacks.length;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
@@ -64,6 +72,7 @@ describe('DetailArchiveFeed', () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 
@@ -222,5 +231,156 @@ describe('DetailArchiveFeed', () => {
     expect(links[0]).toHaveAttribute('href', '/articles/current-article-slug');
     expect(links[0]).toHaveAttribute('aria-current', 'page');
     expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
+  });
+
+  it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice의 자연스러운 뒤쪽에 유지한다', async () => {
+    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
+    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+      errorMessage: null,
+      hasMore: false,
+      isLoadingMore: false,
+      items: initialItems,
+      loadMore: vi.fn(),
+    }));
+
+    render(
+      <DetailArchiveFeed<TestArchiveItem>
+        currentItem={{
+          created_at: '2026-03-10T00:00:00.000Z',
+          description: '현재 글',
+          id: 'current-article',
+          publish_at: '2026-03-10T00:00:00.000Z',
+          slug: 'current-article-slug',
+          title: '현재 글',
+        }}
+        emptyText="비어 있음"
+        hrefBasePath="/articles"
+        initialPage={{
+          items: [
+            {
+              created_at: '2026-03-12T00:00:00.000Z',
+              description: '최신 글',
+              id: 'article-2',
+              publish_at: '2026-03-12T00:00:00.000Z',
+              slug: 'article-2-slug',
+              title: '최신 글',
+            },
+            {
+              created_at: '2026-03-11T00:00:00.000Z',
+              description: '그다음 글',
+              id: 'article-1',
+              publish_at: '2026-03-11T00:00:00.000Z',
+              slug: 'article-1-slug',
+              title: '그다음 글',
+            },
+          ],
+          nextCursor: 'cursor-1',
+        }}
+        loadErrorText="불러오기 실패"
+        loadPageAction={loadPageActionMock}
+        loadMoreEndText="끝"
+        loadingText="불러오는 중"
+        locale="ko"
+        pinCurrentItemToTop={false}
+        retryText="다시 시도"
+        selectedPathSegment="current-article-slug"
+      />,
+    );
+
+    const links = screen.getAllByRole('link');
+
+    expect(links[0]).toHaveAttribute('href', '/articles/article-2-slug');
+    expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
+    expect(links[2]).toHaveAttribute('href', '/articles/current-article-slug');
+    expect(links[2]).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('활성 항목을 viewport 상단 쪽 기준으로 한 번만 스크롤 정렬한다', async () => {
+    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
+    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+      errorMessage: null,
+      hasMore: false,
+      isLoadingMore: false,
+      items: initialItems,
+      loadMore: vi.fn(),
+    }));
+
+    const { container } = render(
+      <DetailArchiveFeed<TestArchiveItem>
+        activeItemViewportOffsetRatio={0.25}
+        emptyText="비어 있음"
+        hrefBasePath="/articles"
+        initialPage={{
+          items: [
+            {
+              created_at: '2026-03-12T00:00:00.000Z',
+              description: '최신 글',
+              id: 'article-2',
+              publish_at: '2026-03-12T00:00:00.000Z',
+              slug: 'article-2-slug',
+              title: '최신 글',
+            },
+            {
+              created_at: '2026-03-11T00:00:00.000Z',
+              description: '그다음 글',
+              id: 'article-1',
+              publish_at: '2026-03-11T00:00:00.000Z',
+              slug: 'article-1-slug',
+              title: '그다음 글',
+            },
+            {
+              created_at: '2026-03-10T00:00:00.000Z',
+              description: '현재 글',
+              id: 'current-article',
+              publish_at: '2026-03-10T00:00:00.000Z',
+              slug: 'current-article-slug',
+              title: '현재 글',
+            },
+          ],
+          nextCursor: 'cursor-1',
+        }}
+        loadErrorText="불러오기 실패"
+        loadPageAction={loadPageActionMock}
+        loadMoreEndText="끝"
+        loadingText="불러오는 중"
+        locale="ko"
+        pinCurrentItemToTop={false}
+        retryText="다시 시도"
+        selectedPathSegment="current-article-slug"
+      />,
+    );
+
+    const viewport = container.querySelector('[data-scroll-region="true"]') as HTMLElement;
+    const scrollToMock = vi.fn();
+    Object.defineProperty(viewport, 'clientHeight', {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(viewport, 'scrollHeight', {
+      configurable: true,
+      value: 1200,
+    });
+    Object.defineProperty(viewport, 'scrollTo', {
+      configurable: true,
+      value: scrollToMock,
+    });
+
+    const activeLink = screen.getByRole('link', { name: '2026년 현재 글 현재 글' });
+    Object.defineProperty(activeLink, 'offsetTop', {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(activeLink, 'clientHeight', {
+      configurable: true,
+      value: 120,
+    });
+    requestAnimationFrameCallbacks.forEach(callback => callback(0));
+
+    await waitFor(() => {
+      expect(scrollToMock).toHaveBeenCalledWith({
+        behavior: 'auto',
+        top: 460,
+      });
+    });
   });
 });

@@ -58,6 +58,32 @@ describe('ArticleSearchForm', () => {
     expect(replaceMock).toHaveBeenCalledWith('/articles?q=react');
   });
 
+  it('replace 직전에 pending 상태를 즉시 알린다', () => {
+    const onPendingChange = vi.fn();
+
+    render(
+      <ArticleSearchForm
+        clearText="초기화"
+        onPendingChange={onPendingChange}
+        pendingText="검색 중"
+        placeholder="검색어 입력"
+        searchQuery="next"
+        submitText="검색"
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('searchbox', { name: '검색어 입력' }), {
+      target: { value: 'react' },
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(onPendingChange).toHaveBeenCalledWith(true);
+    expect(replaceMock).toHaveBeenCalledWith('/articles?q=react');
+  });
+
   it('URL searchParams가 바뀌면 input 값을 동기화한다', () => {
     const { rerender } = render(
       <ArticleSearchForm
@@ -227,12 +253,14 @@ describe('ArticleSearchForm', () => {
     expect(nextOnSubmitComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('pending 상태면 검색 중 상태를 보조기기에만 노출한다', () => {
-    vi.spyOn(React, 'useTransition').mockReturnValue([true, callback => callback()]);
+  it('transition이 시작되면 pending 상태 변경을 바깥으로 알린다', () => {
+    const onPendingChange = vi.fn();
+    vi.spyOn(React, 'useTransition').mockReturnValue([false, callback => callback()]);
 
     render(
       <ArticleSearchForm
         clearText="초기화"
+        onPendingChange={onPendingChange}
         pendingText="검색 중"
         placeholder="검색어 입력"
         searchQuery="next"
@@ -240,7 +268,14 @@ describe('ArticleSearchForm', () => {
       />,
     );
 
-    expect(screen.getByRole('status').textContent).toBe('검색 중');
-    expect(screen.getByRole('search').getAttribute('aria-busy')).toBe('true');
+    fireEvent.change(screen.getByRole('searchbox', { name: '검색어 입력' }), {
+      target: { value: 'react' },
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(onPendingChange).toHaveBeenCalledWith(true);
   });
 });

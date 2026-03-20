@@ -35,6 +35,19 @@ body {
   }
 }
 
+@keyframes global-route-loading-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    background-color: var(--colors-text-subtle);
+  }
+
+  45% {
+    transform: translateY(-0.45rem);
+    background-color: var(--colors-primary);
+  }
+}
+
 html,
 body,
 [data-app-scroll-viewport='true'],
