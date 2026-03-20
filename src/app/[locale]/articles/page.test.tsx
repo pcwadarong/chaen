@@ -64,7 +64,6 @@ vi.mock('@/views/articles', () => ({
       nextHref: '/ko/articles?page=2',
       previousHref: null,
     },
-    popularTags: [],
     searchQuery: '',
   })),
   normalizePageParams: (page: string | string[] | undefined) => {
@@ -148,7 +147,6 @@ describe('ArticlesRoute', () => {
         nextHref: '/ko/articles?page=3',
         previousHref: '/ko/articles',
       },
-      popularTags: [],
       searchQuery: '',
     });
 
@@ -193,7 +191,6 @@ describe('ArticlesRoute', () => {
         nextHref: '/ko/articles?page=3',
         previousHref: '/ko/articles',
       },
-      popularTags: [],
       searchQuery: '',
     });
 

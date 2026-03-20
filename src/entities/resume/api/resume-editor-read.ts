@@ -1,10 +1,6 @@
 import type { Locale } from '@/entities/editor/model/editor-types';
 import type { PdfFileContent } from '@/entities/pdf-file';
-import {
-  buildPdfFileDownloadPath,
-  getPdfFileAvailability,
-  getPdfFileContentConfig,
-} from '@/entities/pdf-file';
+import { buildPdfFileDownloadPath, getPdfFileContentConfig } from '@/entities/pdf-file';
 import { getPdfFileStorageConfig } from '@/entities/pdf-file/model/config';
 import type {
   ResumeDraftSeed,
@@ -64,12 +60,7 @@ export const getResumeEditorSeed = async ({
 }: {
   draftId?: string;
 } = {}): Promise<ResumeEditorSeed> => {
-  const [rows, isPdfReady] = await Promise.all([
-    getResumeEditorRows(),
-    getPdfFileAvailability({
-      kind: 'resume',
-    }).catch(() => false),
-  ]);
+  const rows = await getResumeEditorRows();
   const contentMap = createDefaultResumeEditorContentMap();
 
   rows.forEach(row => {
@@ -91,7 +82,7 @@ export const getResumeEditorSeed = async ({
       downloadFileName: storageConfig.downloadFileName,
       downloadPath: buildPdfFileDownloadPath('resume'),
       filePath: storageConfig.filePath,
-      isPdfReady,
+      isPdfReady: false,
     },
     initialSavedAt: getResumeEditorSavedAt(rows),
   };

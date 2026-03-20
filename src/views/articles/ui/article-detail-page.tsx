@@ -4,6 +4,7 @@ import { css } from 'styled-system/css';
 
 import type {
   Article,
+  ArticleArchivePage,
   ArticleListItem as ArticleListItemModel,
 } from '@/entities/article/model/types';
 import { ArticleListItem } from '@/entities/article/ui/article-list-item';
@@ -29,6 +30,7 @@ import {
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
+  initialArchivePage: ArticleArchivePage;
   item: Article;
   locale: AppLocale;
   relatedArticlesPromise: Promise<ArticleListItemModel[]>;
@@ -43,6 +45,7 @@ type RelatedArticlesSectionProps = {
 type ArticleArchiveSidebarProps = {
   currentItem: Article;
   emptyText: string;
+  initialPage: ArticleArchivePage;
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
@@ -89,6 +92,7 @@ const RelatedArticlesSection = ({ items, title }: RelatedArticlesSectionProps) =
 const ArticleArchiveSidebar = ({
   currentItem,
   emptyText,
+  initialPage,
   loadErrorText,
   loadMoreEndText,
   loadingText,
@@ -97,14 +101,17 @@ const ArticleArchiveSidebar = ({
   selectedPathSegment,
 }: ArticleArchiveSidebarProps) => (
   <DetailArchiveFeed
+    activeItemViewportOffsetRatio={0.25}
     currentItem={currentItem}
     emptyText={emptyText}
     hrefBasePath="/articles"
+    initialPage={initialPage}
     loadErrorText={loadErrorText}
     loadPageAction={getArticleDetailArchivePageAction}
     loadMoreEndText={loadMoreEndText}
     loadingText={loadingText}
     locale={locale}
+    pinCurrentItemToTop={false}
     retryText={retryText}
     selectedPathSegment={selectedPathSegment}
   />
@@ -141,7 +148,20 @@ const DeferredRelatedArticlesSection = async ({
   return <RelatedArticlesSection items={relatedArticles} title={title} />;
 };
 
+/**
+ * 아티클 상세 페이지를 렌더링합니다.
+ *
+ * @param props - 상세 페이지 전체 구성에 필요한 데이터 묶음입니다.
+ * @param props.initialArchivePage - 현재 아티클을 포함한 좌측 아카이브 초기 window입니다.
+ * `DetailArchiveFeed`의 첫 seed로 사용됩니다.
+ * @param props.item - 본문, 메타데이터, 액션 영역에 사용할 현재 아티클입니다.
+ * @param props.locale - 경로, 구조화 데이터, 번역 문자열에 사용할 locale입니다.
+ * @param props.relatedArticlesPromise - 하단 관련 글 섹션이 `Suspense` 경계 안에서 소비할 promise입니다.
+ * @param props.tagLabelsPromise - 태그 표시 라벨이 `Suspense` 경계 안에서 소비할 promise입니다.
+ * @returns 아티클 상세 전체 JSX 엘리먼트를 반환합니다.
+ */
 export const ArticleDetailPage = ({
+  initialArchivePage,
   item,
   locale,
   relatedArticlesPromise,
@@ -229,6 +249,7 @@ export const ArticleDetailPage = ({
           <ArticleArchiveSidebar
             currentItem={item}
             emptyText={detailUi('emptyArchive')}
+            initialPage={initialArchivePage}
             loadErrorText={articlesT('loadError')}
             loadMoreEndText={articlesT('loadMoreEnd')}
             loadingText={articlesT('loading')}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
@@ -11,7 +11,14 @@ vi.mock('@/i18n/navigation', () => ({
     linkRenderSpy(href);
 
     return (
-      <a href={typeof href === 'string' ? href : ''} {...props}>
+      <a
+        href={typeof href === 'string' ? href : ''}
+        {...props}
+        onClick={event => {
+          event.preventDefault();
+          props.onClick?.(event);
+        }}
+      >
         {children}
       </a>
     );
@@ -62,5 +69,40 @@ describe('ArticleTagFilterList', () => {
     rendered.rerender(<ArticleTagFilterList {...props} />);
 
     expect(linkRenderSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('pending 상태면 loading text를 렌더링한다', () => {
+    render(
+      <ArticleTagFilterList
+        activeTag=""
+        emptyText="비어 있음"
+        items={[]}
+        loadingText="불러오는 중"
+        pending
+        title="tags"
+      />,
+    );
+
+    expect(screen.getByText('불러오는 중')).toBeTruthy();
+  });
+
+  it('태그 링크를 클릭하면 상위에 이동 시작을 알린다', () => {
+    const onNavigationStart = vi.fn();
+
+    render(
+      <ArticleTagFilterList
+        activeTag=""
+        emptyText="비어 있음"
+        items={[{ article_count: 4, label: 'Next.js', tag: 'nextjs' }]}
+        onNavigationStart={onNavigationStart}
+        title="tags"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: /Next\.js/ }));
+
+    expect(onNavigationStart).toHaveBeenCalledWith({
+      nextTag: 'nextjs',
+    });
   });
 });

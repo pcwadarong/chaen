@@ -4,8 +4,6 @@ import {
   getArticles,
   getResolvedArticlesFirstPage,
 } from '@/entities/article/api/list/get-articles';
-import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import {
   buildArticlesPageHref,
   getArticlesPageData,
@@ -20,14 +18,6 @@ import {
 vi.mock('@/entities/article/api/list/get-articles', () => ({
   getArticles: vi.fn(),
   getResolvedArticlesFirstPage: vi.fn(),
-}));
-
-vi.mock('@/entities/article/api/list/get-popular-article-tags', () => ({
-  getPopularArticleTags: vi.fn(),
-}));
-
-vi.mock('@/entities/tag/api/query-tags', () => ({
-  getTagLabelMapBySlugs: vi.fn(),
 }));
 
 describe('getArticlesPageData', () => {
@@ -53,16 +43,6 @@ describe('getArticlesPageData', () => {
       },
       resolvedLocale: 'ko',
     });
-    vi.mocked(getPopularArticleTags).mockResolvedValue([
-      {
-        article_count: 5,
-        tag: 'nextjs',
-      },
-    ]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map([['nextjs', 'Next.js']]),
-      schemaMissing: false,
-    });
 
     const data = await getArticlesPageData({ locale: 'ko', page: 1, query: 'react' });
 
@@ -82,23 +62,12 @@ describe('getArticlesPageData', () => {
         nextHref: '/ko/articles?q=react&page=2&cursor=12',
         previousHref: null,
       },
-      popularTags: [
-        {
-          article_count: 5,
-          label: 'Next.js',
-          tag: 'nextjs',
-        },
-      ],
       searchQuery: 'react',
     });
   });
 
   it('아티클 조회 실패 시 에러를 그대로 전파한다', async () => {
     vi.mocked(getResolvedArticlesFirstPage).mockRejectedValue(new Error('temporary failure'));
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: false,
-    });
 
     await expect(getArticlesPageData({ locale: 'ko', page: 1, query: '' })).rejects.toThrow(
       'temporary failure',
@@ -140,11 +109,6 @@ describe('getArticlesPageData', () => {
         totalCount: 0,
       },
       resolvedLocale: 'ko',
-    });
-    vi.mocked(getPopularArticleTags).mockResolvedValue([]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: false,
     });
 
     const data = await getArticlesPageData({
@@ -205,11 +169,6 @@ describe('getArticlesPageData', () => {
       ],
       nextCursor: 'cursor-2',
       totalCount: null,
-    });
-    vi.mocked(getPopularArticleTags).mockResolvedValue([]);
-    vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
-      data: new Map(),
-      schemaMissing: false,
     });
 
     const data = await getArticlesPageData({

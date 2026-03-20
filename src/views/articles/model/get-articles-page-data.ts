@@ -2,8 +2,6 @@ import {
   getArticles,
   getResolvedArticlesFirstPage,
 } from '@/entities/article/api/list/get-articles';
-import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 import type { AppLocale } from '@/i18n/routing';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import type { ArticlesPageProps } from '@/views/articles/ui/articles-page';
@@ -172,7 +170,6 @@ export const getArticlesPageData = async ({
   const normalizedQuery = normalizeSearchParams(query);
   const normalizedTag = normalizedQuery ? '' : normalizeTagParams(tag);
   const shouldUseDirectCursor = page > 1 && normalizedCursor;
-  const popularTagsPromise = getPopularArticleTags({ locale });
   let currentCursor: string | null = null;
   const currentCursorHistory = normalizedCursorHistory;
   let currentPage = 1;
@@ -196,17 +193,6 @@ export const getArticlesPageData = async ({
     });
     feedLocale = resolvedArticlesPage.resolvedLocale;
     articlesPage = resolvedArticlesPage.page;
-  }
-
-  const popularTags = await popularTagsPromise;
-
-  const localizedTagLabels = await getTagLabelMapBySlugs({
-    locale,
-    slugs: popularTags.map(item => item.tag),
-  });
-
-  if (localizedTagLabels.schemaMissing) {
-    throw new Error('[articles] 태그 label schema가 없습니다.');
   }
 
   return {
@@ -239,10 +225,6 @@ export const getArticlesPageData = async ({
             })
           : null,
     },
-    popularTags: popularTags.map(item => ({
-      ...item,
-      label: localizedTagLabels.data.get(item.tag) ?? item.tag,
-    })),
     searchQuery: normalizedQuery,
   };
 };

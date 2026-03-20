@@ -1,5 +1,4 @@
 import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content';
-import { getPdfFileDownloadOptions } from '@/entities/pdf-file/api/get-pdf-file-download-options';
 import { createDefaultPdfFileContent } from '@/entities/pdf-file/model/config';
 import type { ResumePageProps } from '@/views/resume/ui/resume-page';
 
@@ -14,25 +13,13 @@ type GetResumePageDataInput = {
 export const getResumePageData = async ({
   locale,
 }: GetResumePageDataInput): Promise<ResumePageProps> => {
-  const safeDownloadOptions = getPdfFileDownloadOptions('resume', {
-    source: 'resume-page',
-  }).catch(error => {
-    console.warn('[resume] getPdfFileDownloadOptions failed', {
-      error,
-      source: 'resume-page',
-    });
-
-    return [];
-  });
   const safeContent = getPdfFileContent({
     locale,
     kind: 'resume',
   }).catch(() => null);
-
-  const [downloadOptions, content] = await Promise.all([safeDownloadOptions, safeContent]);
+  const content = await safeContent;
 
   return {
     content: content ?? createDefaultPdfFileContent(locale),
-    downloadOptions,
   };
 };

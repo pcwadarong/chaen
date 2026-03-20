@@ -12,6 +12,7 @@ import { buildOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import {
   ArticleDetailPage,
+  getArticleDetailArchivePageData,
   getArticleDetailRelatedArticlesData,
   getArticleDetailShellData,
   getArticleTagLabels,
@@ -100,17 +101,28 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
   });
   if (!item) notFound();
 
+  /**
+   * `effectiveLocale`는 content fallback이 발생하면 `resolvedLocale`을 우선 사용하고,
+   * 그렇지 않으면 요청 `locale`을 그대로 유지합니다.
+   */
+  const effectiveLocale = resolvedLocale ?? locale;
+  const initialArchivePagePromise = getArticleDetailArchivePageData({
+    item,
+    locale: effectiveLocale,
+  });
   const relatedArticlesPromise = getArticleDetailRelatedArticlesData({
     articleId: item.id,
-    locale: resolvedLocale ?? locale,
+    locale: effectiveLocale,
   });
   const tagLabelsPromise = getArticleTagLabels({
     item,
     locale,
   });
+  const initialArchivePage = await initialArchivePagePromise;
 
   return (
     <ArticleDetailPage
+      initialArchivePage={initialArchivePage}
       item={item}
       locale={locale as AppLocale}
       relatedArticlesPromise={relatedArticlesPromise}
