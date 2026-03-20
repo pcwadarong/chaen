@@ -2,6 +2,8 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
+import type { Project } from '@/entities/project/model/types';
+
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => {
     if (key === 'periodLabel') return 'work period';
@@ -31,7 +33,11 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
 /**
  * 서버 컴포넌트를 HTML 문자열로 변환합니다.
  */
-const renderServerHtml = async () => {
+const renderServerHtml = async ({
+  item,
+}: {
+  item?: Project;
+} = {}) => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
   const element = ProjectDetailPage({
     initialArchivePage: {
@@ -46,7 +52,7 @@ const renderServerHtml = async () => {
       ],
       nextCursor: null,
     },
-    item: {
+    item: item ?? {
       id: 'project-1',
       slug: 'project-1-slug',
       title: 'Project 1',
@@ -60,7 +66,6 @@ const renderServerHtml = async () => {
       thumbnail_url: null,
     },
     locale: 'en',
-    tagLabelsPromise: Promise.resolve(['React']),
   });
   const stream = await renderToReadableStream(element);
 

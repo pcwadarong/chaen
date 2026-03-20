@@ -23,7 +23,6 @@ type ProjectDetailPageProps = {
   initialArchivePage: ProjectArchivePage;
   item: Project;
   locale: AppLocale;
-  tagLabelsPromise?: Promise<string[]>;
 };
 
 type ProjectArchiveSidebarProps = {
@@ -125,6 +124,7 @@ export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectD
   }
 
   const { periodText, techStackGroups } = getProjectDisplayMeta(item, locale, t('ongoing'));
+  const projectTagLabels = (item.tech_stacks ?? []).map(techStack => techStack.name);
   const projectPathSegment = resolvePublicContentPathSegment(item);
   const projectPath = buildLocalizedPathname({
     locale,
@@ -150,7 +150,7 @@ export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectD
       description: item.description ?? t('emptySummary'),
       locale,
       path: projectPath,
-      tags: (item.tech_stacks ?? []).map(techStack => techStack.name),
+      tags: projectTagLabels,
       thumbnailUrl: item.thumbnail_url,
       title: item.title,
     }),

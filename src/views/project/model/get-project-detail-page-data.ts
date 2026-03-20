@@ -15,11 +15,6 @@ type GetProjectDetailArchivePageDataInput = {
   locale: string;
 };
 
-type GetProjectTagLabelsInput = {
-  item: Project | null;
-  locale: string;
-};
-
 export type ProjectDetailShellData = Awaited<ReturnType<typeof getResolvedProject>>;
 
 type CurrentProjectArchiveItem = Parameters<typeof getProjectDetailListWindow>[0]['currentItem'];
@@ -43,14 +38,6 @@ const toCurrentProjectArchiveItem = (item: Project | null): CurrentProjectArchiv
     title: item.title,
   };
 };
-
-/**
- * 하위 테스트/호환성을 위해 프로젝트 기술 스택 이름 목록을 반환합니다.
- */
-export const getProjectTagLabels = async ({ item }: GetProjectTagLabelsInput): Promise<string[]> =>
-  (item?.tech_stacks ?? []).map(techStack => techStack.name).length > 0
-    ? (item?.tech_stacks ?? []).map(techStack => techStack.name)
-    : (item?.tags ?? []);
 
 /**
  * 프로젝트 상세 본문 shell에 필요한 최소 데이터를 조회합니다.

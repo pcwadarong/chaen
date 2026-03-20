@@ -8,7 +8,6 @@ import {
 import {
   getProjectDetailArchivePageData,
   getProjectDetailShellData,
-  getProjectTagLabels,
 } from '@/views/project/model/get-project-detail-page-data';
 
 vi.mock('@/entities/project/api/detail/get-project', () => ({
@@ -161,62 +160,5 @@ describe('project detail page data helpers', () => {
     });
 
     expect(getProjectDetailList).toHaveBeenCalledWith({ locale: 'ko' });
-  });
-
-  it('태그 label helper는 locale label을 반환한다', async () => {
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tech_stacks: [{ id: 'tech-1', slug: 'react', name: 'React', category: 'frontend' }],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['React']);
-  });
-
-  it('태그 label helper는 schema가 없으면 slug를 그대로 사용한다', async () => {
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tags: ['react'],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['react']);
-  });
-
-  it('태그 label helper는 기술 스택이 없으면 기존 slug를 그대로 사용한다', async () => {
-    await expect(
-      getProjectTagLabels({
-        item: {
-          id: 'funda',
-          title: 'FUNDA',
-          description: 'cs',
-          content: 'detail',
-          thumbnail_url: null,
-          tags: ['react'],
-          created_at: '2026-03-02T00:00:00.000Z',
-          publish_at: '2026-03-02T00:00:00.000Z',
-          slug: 'funda',
-        },
-        locale: 'ko',
-      }),
-    ).resolves.toEqual(['react']);
   });
 });

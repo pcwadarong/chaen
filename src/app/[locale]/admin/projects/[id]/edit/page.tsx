@@ -8,6 +8,7 @@ import {
 } from '@/entities/editor/api/editor-actions';
 import { getEditorSeed } from '@/entities/editor/api/editor-read';
 import { getAllTechStacks } from '@/entities/tech-stack/api/query-tech-stacks';
+import { mapTechStacksToAvailableTags } from '@/entities/tech-stack/model/map-tech-stacks-to-available-tags';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorPage } from '@/views/editor';
 
@@ -34,14 +35,9 @@ const AdminProjectEditRoute = async ({
   await requireAdmin({ locale });
 
   const [availableTags, seed] = await Promise.all([
-    getAllTechStacks().then(items =>
-      items.map(techStack => ({
-        group: techStack.category,
-        id: techStack.id,
-        label: techStack.name,
-        slug: techStack.slug,
-      })),
-    ),
+    getAllTechStacks()
+      .catch(() => [])
+      .then(mapTechStacksToAvailableTags),
     getEditorSeed({
       contentId: id,
       contentType: 'project',
