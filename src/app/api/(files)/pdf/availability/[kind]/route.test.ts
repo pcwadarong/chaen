@@ -43,4 +43,19 @@ describe('api/pdf/availability route', () => {
       error: 'Not Found',
     });
   });
+
+  it('availability 조회가 실패하면 500 에러 계약을 반환한다', async () => {
+    vi.mocked(getPdfFileAvailability).mockRejectedValue(new Error('boom'));
+
+    const response = await GET(new Request('https://chaen.dev/api/pdf/availability/resume'), {
+      params: Promise.resolve({
+        kind: 'resume',
+      }),
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      error: 'Failed to load PDF availability',
+    });
+  });
 });

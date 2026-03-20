@@ -29,7 +29,7 @@ export const DeferredPdfDownloadPopover = ({
   unavailableLabel,
 }: DeferredPdfDownloadPopoverProps) => {
   const [options, setOptions] = React.useState<PdfFileDownloadOption[]>([]);
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading');
 
   React.useEffect(() => {
     const abortController = new AbortController();
@@ -80,7 +80,7 @@ export const DeferredPdfDownloadPopover = ({
       className={className}
       label={label}
       options={options}
-      pending={status === 'idle' || status === 'loading'}
+      pending={status === 'loading'}
       unavailableLabel={unavailableLabel}
     />
   );

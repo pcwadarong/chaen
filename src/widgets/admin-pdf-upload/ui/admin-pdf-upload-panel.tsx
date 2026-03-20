@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { css } from 'styled-system/css';
+import { css, cva } from 'styled-system/css';
 
 import { uploadPdfFileByAssetKey } from '@/entities/pdf-file/api/upload-pdf-file-by-asset-key';
 import type { PdfFileAssetKey } from '@/entities/pdf-file/model/types';
@@ -376,10 +376,20 @@ const hiddenInputClass = css({
  * @param tone - 피드백 종류입니다. `success`면 성공, `error`면 오류 스타일을 적용합니다.
  * @returns Panda CSS 클래스 이름입니다.
  */
-const feedbackTextClass = ({ tone }: { tone: UploadFeedback['tone'] }) =>
-  css({
+const feedbackTextClass = cva({
+  base: {
     m: '0',
     fontSize: 'sm',
-    color: tone === 'success' ? 'green.700' : 'error',
     lineHeight: 'relaxed',
-  });
+  },
+  variants: {
+    tone: {
+      error: {
+        color: 'error',
+      },
+      success: {
+        color: 'green.700',
+      },
+    },
+  },
+});

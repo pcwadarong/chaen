@@ -11,7 +11,7 @@ type ArticleTagFilterListProps = {
   emptyText: string;
   items: readonly LocalizedArticleTagStat[];
   loadingText?: string;
-  onNavigationStart?: () => void;
+  onNavigationStart?: (nextState: { nextTag: string }) => void;
   pending?: boolean;
   title: string;
 };
@@ -59,7 +59,10 @@ const ArticleTagFilterListBase = ({
   pending = false,
   title,
 }: ArticleTagFilterListProps) => {
-  const linkItems = React.useMemo(() => buildTagLinkItems(items, activeTag), [activeTag, items]);
+  const linkItems = React.useMemo(
+    () => (pending ? [] : buildTagLinkItems(items, activeTag)),
+    [activeTag, items, pending],
+  );
 
   return (
     <section aria-labelledby="article-tag-filter-title" className={sectionClass}>
@@ -78,7 +81,7 @@ const ArticleTagFilterListBase = ({
               className={cx(tagLinkClass, item.isActive ? activeTagLinkClass : undefined)}
               href={item.href}
               key={item.tag}
-              onClick={onNavigationStart}
+              onClick={() => onNavigationStart?.({ nextTag: item.isActive ? '' : item.tag })}
             >
               <span>{item.label}</span>
               <span className={countClass}>({item.articleCount})</span>

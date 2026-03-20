@@ -145,11 +145,12 @@ export const ArticleSearchForm = ({
     (nextQuery: string) => {
       const href = createSearchHref(pathname, searchParamsSnapshot, nextQuery);
 
+      onPendingChange?.(true);
       startTransition(() => {
         router.replace(href);
       });
     },
-    [pathname, router, searchParamsSnapshot, startTransition],
+    [onPendingChange, pathname, router, searchParamsSnapshot, startTransition],
   );
 
   React.useEffect(() => {
@@ -165,7 +166,9 @@ export const ArticleSearchForm = ({
   }, [isAwaitingSubmitCompletion, isPending, onSubmitComplete]);
 
   React.useEffect(() => {
-    onPendingChange?.(isPending);
+    if (!isPending) {
+      onPendingChange?.(false);
+    }
   }, [isPending, onPendingChange]);
 
   /**

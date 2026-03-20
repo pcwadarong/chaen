@@ -13,6 +13,11 @@ export const GET = async (request: Request) =>
     action: async () => {
       const locale = new URL(request.url).searchParams.get('locale')?.trim() || 'ko';
       const popularTags = await getPopularArticleTags({ locale });
+
+      if (popularTags.length === 0) {
+        return [];
+      }
+
       const localizedTagLabels = await getTagLabelMapBySlugs({
         locale,
         slugs: popularTags.map(item => item.tag),

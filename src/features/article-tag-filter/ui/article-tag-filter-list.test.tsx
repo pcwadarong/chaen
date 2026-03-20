@@ -101,6 +101,8 @@ describe('ArticleTagFilterList', () => {
 
     fireEvent.click(screen.getByRole('link', { name: /Next\.js/ }));
 
-    expect(onNavigationStart).toHaveBeenCalledTimes(1);
+    expect(onNavigationStart).toHaveBeenCalledWith({
+      nextTag: 'nextjs',
+    });
   });
 });

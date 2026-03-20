@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { vi } from 'vitest';
 
 import { DeferredArticleTagFilterList } from '@/features/article-tag-filter/ui/deferred-article-tag-filter-list';
 
@@ -12,13 +13,14 @@ vi.mock('@/i18n/navigation', () => ({
 }));
 
 describe('DeferredArticleTagFilterList', () => {
-  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-  });
-
-  afterAll(() => {
     consoleErrorSpy.mockRestore();
   });
 

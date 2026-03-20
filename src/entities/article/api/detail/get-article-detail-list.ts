@@ -286,6 +286,18 @@ const readCachedArticleDetailList = async (input: {
 };
 
 /**
+ * 현재 항목 위쪽에 둘 초기 window slot 수를 계산합니다.
+ *
+ * 활성 항목을 viewport 25% 지점 근처에 두는 상세 아카이브 정책과 맞추기 위해
+ * 전체 이웃 slot 중 일부만 위쪽에 배치하고, 나머지는 아래쪽 문맥에 우선 할당합니다.
+ */
+const getPreferredLeadingWindowSlotCount = (neighborSlots: number) => {
+  if (neighborSlots <= 0) return 0;
+
+  return Math.min(neighborSlots, Math.max(1, Math.round(neighborSlots * 0.25)));
+};
+
+/**
  * 아티클 상세 좌측 아카이브 목록의 cursor 기반 페이지를 가져옵니다.
  */
 export const getArticleDetailList = async ({
@@ -321,33 +333,63 @@ export const getArticleDetailListWindow = async ({
   }
 
   const pageSize = parseKeysetLimit(limit);
-  const olderPage = await getArticleDetailList({
-    cursor: serializeLocaleAwarePublishedAtIdCursor({
-      id: currentItem.id,
-      locale,
-      publishedAt: currentItem.publish_at,
-    }),
-    limit: Math.max(pageSize - 1, 0),
-    locale,
-  });
-
-  const remainingSlots = Math.max(pageSize - (olderPage.items.length + 1), 0);
-  if (remainingSlots === 0) {
+  const neighborSlots = Math.max(pageSize - 1, 0);
+  if (neighborSlots === 0) {
     return {
-      items: [currentItem, ...olderPage.items],
-      nextCursor: olderPage.nextCursor,
+      items: [currentItem],
+      nextCursor: null,
     };
   }
 
-  const newerBaseRowsResult = await fetchNewerArticleArchiveBaseRows(currentItem, remainingSlots);
+  const leadingSlots = getPreferredLeadingWindowSlotCount(neighborSlots);
+  const trailingSlots = neighborSlots - leadingSlots;
+  const olderCursor = serializeLocaleAwarePublishedAtIdCursor({
+    id: currentItem.id,
+    locale,
+    publishedAt: currentItem.publish_at,
+  });
+
+  let olderPage = await getArticleDetailList({
+    cursor: olderCursor,
+    limit: trailingSlots,
+    locale,
+  });
+  let newerBaseRowsResult = await fetchNewerArticleArchiveBaseRows(currentItem, leadingSlots);
   if (newerBaseRowsResult.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
   }
 
-  const newerItemsAscending = await resolveArticleArchiveItemsWithLocaleFallback(
+  let newerItemsAscending = await resolveArticleArchiveItemsWithLocaleFallback(
     newerBaseRowsResult.data,
     locale,
   );
+  const currentNeighborCount = olderPage.items.length + newerItemsAscending.length;
+
+  if (currentNeighborCount < neighborSlots) {
+    const shortfall = neighborSlots - currentNeighborCount;
+
+    if (olderPage.items.length < trailingSlots) {
+      newerBaseRowsResult = await fetchNewerArticleArchiveBaseRows(
+        currentItem,
+        leadingSlots + shortfall,
+      );
+
+      if (newerBaseRowsResult.schemaMissing) {
+        throw new Error('[articles] content schema가 없습니다.');
+      }
+
+      newerItemsAscending = await resolveArticleArchiveItemsWithLocaleFallback(
+        newerBaseRowsResult.data,
+        locale,
+      );
+    } else if (newerItemsAscending.length < leadingSlots) {
+      olderPage = await getArticleDetailList({
+        cursor: olderCursor,
+        limit: trailingSlots + shortfall,
+        locale,
+      });
+    }
+  }
 
   return {
     items: [...newerItemsAscending.reverse(), currentItem, ...olderPage.items],

@@ -31,6 +31,32 @@ const defaultUploadResumePdfFile = async (_file: File): Promise<ResumePublishSet
 };
 
 /**
+ * resume PDF availability 응답을 런타임에서 검증합니다.
+ */
+const parseResumePdfAvailabilityResponse = (
+  raw: unknown,
+): {
+  isPdfReady: boolean;
+  kind: 'resume';
+} => {
+  if (
+    typeof raw !== 'object' ||
+    raw === null ||
+    !('isPdfReady' in raw) ||
+    !('kind' in raw) ||
+    typeof raw.isPdfReady !== 'boolean' ||
+    raw.kind !== 'resume'
+  ) {
+    throw new Error('Invalid resume PDF availability payload');
+  }
+
+  return {
+    isPdfReady: raw.isPdfReady,
+    kind: raw.kind,
+  };
+};
+
+/**
  * resume 게시 전 PDF 업로드 상태를 확인하고 최종 제출을 담당합니다.
  */
 export const ResumePublishPanel = ({
@@ -85,10 +111,7 @@ export const ResumePublishPanel = ({
           throw new Error(`Failed to load resume PDF availability: ${response.status}`);
         }
 
-        const data = (await response.json()) as {
-          isPdfReady: boolean;
-          kind: 'resume';
-        };
+        const data = parseResumePdfAvailabilityResponse(await response.json());
 
         setSettings(previous => ({
           ...previous,

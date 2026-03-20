@@ -447,7 +447,7 @@ const resumeBodyClass = css({
 const guestPageShellClass = css({
   width: '[min(820px, 100%)]',
   mx: 'auto',
-  minHeight: '[calc(100vh-5.5rem)]',
+  minHeight: '[calc(100vh - 5.5rem)]',
   px: '4',
   pt: '12',
   pb: '8',

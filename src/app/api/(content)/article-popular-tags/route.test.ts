@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { GET } from '@/app/api/(content)/article-popular-tags/route';
 import { getPopularArticleTags } from '@/entities/article/api/list/get-popular-article-tags';
 import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
@@ -42,5 +44,15 @@ describe('api/article-popular-tags route', () => {
         tag: 'nextjs',
       },
     ]);
+  });
+
+  it('인기 태그가 비어 있으면 label 조회를 건너뛴다', async () => {
+    vi.mocked(getPopularArticleTags).mockResolvedValue([]);
+
+    const response = await GET(new Request('https://chaen.dev/api/article-popular-tags?locale=ko'));
+
+    expect(response.status).toBe(200);
+    expect(getTagLabelMapBySlugs).not.toHaveBeenCalled();
+    expect(await response.json()).toEqual([]);
   });
 });

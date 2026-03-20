@@ -11,12 +11,12 @@ import { ArticleFeed } from '@/widgets/article-feed/ui/article-feed';
 type ArticlesInteractiveShellProps = {
   activeTag: string;
   emptyText: string;
+  feedLocale: string;
   initialCursor: string | null;
   initialItems: ArticleListItem[];
   loadErrorText: string;
   loadMoreEndText: string;
   loadingText: string;
-  locale: string;
   popularTagsEmptyText: string;
   popularTagsLoadingText: string;
   popularTagsTitle: string;
@@ -25,6 +25,7 @@ type ArticlesInteractiveShellProps = {
   searchClearText: string;
   searchPlaceholderText: string;
   searchSubmitText: string;
+  tagLocale: string;
 };
 
 /**
@@ -33,12 +34,12 @@ type ArticlesInteractiveShellProps = {
 export const ArticlesInteractiveShell = ({
   activeTag,
   emptyText,
+  feedLocale,
   initialCursor,
   initialItems,
   loadErrorText,
   loadMoreEndText,
   loadingText,
-  locale,
   popularTagsEmptyText,
   popularTagsLoadingText,
   popularTagsTitle,
@@ -47,6 +48,7 @@ export const ArticlesInteractiveShell = ({
   searchClearText,
   searchPlaceholderText,
   searchSubmitText,
+  tagLocale,
 }: ArticlesInteractiveShellProps) => {
   const [isFeedPending, setIsFeedPending] = React.useState(false);
 
@@ -58,7 +60,7 @@ export const ArticlesInteractiveShell = ({
     <div className={layoutClass}>
       <div className={feedColumnClass}>
         {isFeedPending ? (
-          <div aria-busy="true" className={pendingFeedClass}>
+          <div aria-busy="true" aria-label={loadingText} className={pendingFeedClass} role="status">
             {Array.from({ length: 4 }).map((_, index) => (
               <div className={pendingItemClass} key={index}>
                 <div className={pendingTextColumnClass}>
@@ -79,7 +81,7 @@ export const ArticlesInteractiveShell = ({
             loadErrorText={loadErrorText}
             loadMoreEndText={loadMoreEndText}
             loadingText={loadingText}
-            locale={locale}
+            locale={feedLocale}
             query={query}
             retryText={retryText}
           />
@@ -101,8 +103,14 @@ export const ArticlesInteractiveShell = ({
             activeTag={activeTag}
             emptyText={popularTagsEmptyText}
             loadingText={popularTagsLoadingText}
-            locale={locale}
-            onNavigationStart={() => setIsFeedPending(true)}
+            locale={tagLocale}
+            onNavigationStart={({ nextTag }) => {
+              if (nextTag === activeTag && initialCursor === null && query.trim().length === 0) {
+                return;
+              }
+
+              setIsFeedPending(true);
+            }}
             title={popularTagsTitle}
           />
         </div>
@@ -215,6 +223,6 @@ const pendingThumbClass = css({
   backgroundSize: '[200% 100%]',
   animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
   '@media (max-width: 640px)': {
-    width: '[5.5rem]',
+    display: 'none',
   },
 });

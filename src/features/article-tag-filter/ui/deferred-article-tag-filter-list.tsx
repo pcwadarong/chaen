@@ -10,7 +10,7 @@ type DeferredArticleTagFilterListProps = {
   emptyText: string;
   loadingText: string;
   locale: string;
-  onNavigationStart?: () => void;
+  onNavigationStart?: (nextState: { nextTag: string }) => void;
   title: string;
 };
 

@@ -25,6 +25,7 @@ export const ArticlesPage = ({
   feedLocale,
   initialCursor,
   initialItems,
+  locale,
   searchQuery,
 }: ArticlesPageProps) => {
   const t = useTranslations('Articles');
@@ -36,12 +37,12 @@ export const ArticlesPage = ({
         <ArticlesInteractiveShell
           activeTag={activeTag}
           emptyText={t('emptyItems')}
+          feedLocale={feedLocale}
           initialCursor={initialCursor}
           initialItems={initialItems}
           loadErrorText={t('loadError')}
           loadMoreEndText={t('loadMoreEnd')}
           loadingText={t('loading')}
-          locale={feedLocale}
           popularTagsEmptyText={t('popularTagsEmpty')}
           popularTagsLoadingText={t('popularTagsLoading')}
           popularTagsTitle={t('popularTagsTitle')}
@@ -50,6 +51,7 @@ export const ArticlesPage = ({
           searchClearText={t('searchClear')}
           searchPlaceholderText={t('searchPlaceholder')}
           searchSubmitText={t('searchSubmit')}
+          tagLocale={locale}
         />
       </PageSection>
     </PageShell>

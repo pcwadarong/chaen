@@ -38,7 +38,6 @@ export const PdfDownloadPopover = ({
     return (
       <Button
         aria-busy="true"
-        aria-disabled="true"
         className={cx(triggerButtonClass, className)}
         disabled
         size="md"
@@ -59,7 +58,6 @@ export const PdfDownloadPopover = ({
   if (!hasDownloadableOption) {
     return (
       <Button
-        aria-disabled="true"
         className={cx(triggerButtonClass, className)}
         disabled
         size="md"
@@ -122,7 +120,6 @@ export const PdfDownloadPopover = ({
 
           return (
             <Button
-              aria-disabled="true"
               aria-label={optionAriaLabel}
               className={optionButtonClass}
               disabled

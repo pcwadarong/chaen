@@ -170,5 +170,7 @@ describe('useOffsetPaginationFeed', () => {
     await waitFor(() => {
       expect(result.current.items).toEqual([{ id: 'a' }, { id: 'b' }]);
     });
+    expect(result.current.hasMore).toBe(false);
+    expect(loadPage).toHaveBeenCalledTimes(1);
   });
 });

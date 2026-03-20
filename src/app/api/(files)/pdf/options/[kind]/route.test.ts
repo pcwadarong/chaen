@@ -45,6 +45,22 @@ describe('api/pdf/options route', () => {
     ]);
   });
 
+  it('source query가 없어도 다운로드 옵션을 반환한다', async () => {
+    vi.mocked(getPdfFileDownloadOptions).mockResolvedValue([]);
+
+    const response = await GET(new Request('https://chaen.dev/api/pdf/options/resume'), {
+      params: Promise.resolve({
+        kind: 'resume',
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(getPdfFileDownloadOptions).toHaveBeenCalledWith('resume', {
+      source: undefined,
+    });
+    expect(await response.json()).toEqual([]);
+  });
+
   it('지원하지 않는 kind면 404를 반환한다', async () => {
     const response = await GET(new Request('https://chaen.dev/api/pdf/options/unknown'), {
       params: Promise.resolve({

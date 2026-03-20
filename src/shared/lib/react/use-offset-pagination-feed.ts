@@ -38,7 +38,13 @@ type UseOffsetPaginationFeedResult<T> = {
 const DEFAULT_LIMIT = 10;
 
 /**
- * 무한 스크롤 seed 배열이 새로 생성돼도 원소 참조가 그대로면 같은 값으로 간주합니다.
+ * `areShallowEqualItems`는 무한 스크롤 seed 배열을 얕게 비교합니다.
+ *
+ * 먼저 배열 참조 동일성(`left === right`)을 확인하고, 다르면 길이를 비교한 뒤,
+ * 마지막으로 각 인덱스의 원소를 `Object.is` 기준으로 순서대로 검사합니다.
+ *
+ * 깊은 비교는 수행하지 않으므로, 중첩 객체나 배열 내부 값만 바뀌고 바깥 원소 참조가
+ * 그대로인 경우에는 변경을 감지하지 못합니다.
  */
 const areShallowEqualItems = <T>(left: T[], right: T[]) => {
   if (left === right) return true;
