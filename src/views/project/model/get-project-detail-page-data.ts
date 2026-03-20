@@ -4,7 +4,6 @@ import {
   getProjectDetailListWindow,
 } from '@/entities/project/api/detail/get-project-detail-list';
 import type { Project, ProjectArchivePage } from '@/entities/project/model/types';
-import { getTagLabelMapBySlugs } from '@/entities/tag/api/query-tags';
 
 type GetProjectDetailPageDataInput = {
   locale: string;
@@ -46,36 +45,12 @@ const toCurrentProjectArchiveItem = (item: Project | null): CurrentProjectArchiv
 };
 
 /**
- * 상세 프로젝트 태그를 locale 기준 표시 라벨로 변환합니다.
+ * 하위 테스트/호환성을 위해 프로젝트 기술 스택 이름 목록을 반환합니다.
  */
-export const getProjectTagLabels = async ({
-  item,
-  locale,
-}: GetProjectTagLabelsInput): Promise<string[]> => {
-  const tags = item?.tags ?? [];
-
-  if (tags.length === 0) return [];
-
-  const tagLabelMap = await getTagLabelMapBySlugs({
-    locale,
-    slugs: tags,
-  }).catch(error => {
-    console.error('[projects] getTagLabelMapBySlugs failed for locale', {
-      error,
-      locale,
-      tags,
-    });
-
-    return {
-      data: new Map<string, string>(),
-      schemaMissing: true,
-    };
-  });
-
-  if (tagLabelMap.schemaMissing) return tags;
-
-  return tags.map(tag => tagLabelMap.data.get(tag) ?? tag);
-};
+export const getProjectTagLabels = async ({ item }: GetProjectTagLabelsInput): Promise<string[]> =>
+  (item?.tech_stacks ?? []).map(techStack => techStack.name).length > 0
+    ? (item?.tech_stacks ?? []).map(techStack => techStack.name)
+    : (item?.tags ?? []);
 
 /**
  * 프로젝트 상세 본문 shell에 필요한 최소 데이터를 조회합니다.

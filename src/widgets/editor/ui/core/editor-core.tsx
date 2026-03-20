@@ -424,7 +424,11 @@ export const EditorCore = ({
         <TagSelector
           availableTags={availableTags}
           className={tagSelectorClass}
+          emptyText={contentType === 'project' ? '사용 가능한 기술 스택이 없습니다.' : undefined}
           onChange={setSelectedTags}
+          poolLabel={contentType === 'project' ? '기술 스택 선택기' : undefined}
+          poolTitle={contentType === 'project' ? 'Tech Stack' : undefined}
+          selectLabel={contentType === 'project' ? '기술 스택' : undefined}
           selectedTagSlugs={selectedTags}
         />
       </div>

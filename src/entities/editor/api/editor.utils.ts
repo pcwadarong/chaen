@@ -9,7 +9,8 @@ import type {
 
 export type EditorContentTableConfig = {
   relationForeignKey: 'article_id' | 'project_id';
-  relationTable: 'article_tags' | 'project_tags';
+  relationIdColumn: 'tag_id' | 'tech_stack_id';
+  relationTable: 'article_tags' | 'project_tech_stacks';
   table: 'articles' | 'projects';
   translationForeignKey: 'article_id' | 'project_id';
   translationTable: 'article_translations' | 'project_translations';
@@ -36,6 +37,7 @@ const EDITOR_CONTENT_TABLE_CONFIG_BY_TYPE: Record<'article' | 'project', EditorC
   {
     article: {
       relationForeignKey: 'article_id',
+      relationIdColumn: 'tag_id',
       relationTable: 'article_tags',
       table: 'articles',
       translationForeignKey: 'article_id',
@@ -43,7 +45,8 @@ const EDITOR_CONTENT_TABLE_CONFIG_BY_TYPE: Record<'article' | 'project', EditorC
     },
     project: {
       relationForeignKey: 'project_id',
-      relationTable: 'project_tags',
+      relationIdColumn: 'tech_stack_id',
+      relationTable: 'project_tech_stacks',
       table: 'projects',
       translationForeignKey: 'project_id',
       translationTable: 'project_translations',

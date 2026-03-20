@@ -2,24 +2,22 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { ProjectArchivePage } from '@/entities/project/model/types';
-import { resolvePublicContentPublishedAt } from '@/shared/lib/content/public-content';
 import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
 import {
-  buildPublishedAtIdPage,
-  parseKeysetLimit,
-  parseLocaleAwarePublishedAtIdCursor,
-  serializeLocaleAwarePublishedAtIdCursor,
-} from '@/shared/lib/pagination/keyset-pagination';
-import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
+  buildOffsetPage,
+  parseOffsetCursor,
+  parseOffsetLimit,
+} from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
 type ProjectArchiveBaseRow = {
+  display_order: number | null;
   id: string;
   publish_at: string;
   slug: string;
@@ -64,31 +62,33 @@ const isMissingProjectContentSchemaError = (error: { code?: string | null; messa
 };
 
 /**
- * 공개 프로젝트 base row를 `publish_at + id` 기준으로 조회합니다.
+ * 공개 프로젝트 base row를 `display_order -> publish_at -> id` 기준으로 조회합니다.
  */
-const fetchProjectArchiveBaseRows = async (
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<{ data: ProjectArchiveBaseRow[]; schemaMissing: boolean }> => {
+const fetchProjectArchiveBaseRows = async (): Promise<{
+  data: ProjectArchiveBaseRow[];
+  schemaMissing: boolean;
+}> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: [], schemaMissing: false };
 
-  const parsedCursor = parseLocaleAwarePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
-  const baseQuery = supabase
+  const { data: baseRows, error: baseRowsError } = await supabase
     .from('projects')
-    .select('id,slug,visibility,publish_at')
+    .select('id,slug,visibility,publish_at,display_order')
     .not('publish_at', 'is', null)
     .not('slug', 'is', null)
     .eq('visibility', 'public')
-    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }))
+    .or(`publish_at.lte.${nowIsoString}`)
+    .order('display_order', {
+      ascending: true,
+      nullsFirst: false,
+    })
     .order('publish_at', {
       ascending: false,
       nullsFirst: false,
     })
-    .order('id', { ascending: false });
-
-  const { data: baseRows, error: baseRowsError } = await baseQuery.limit(pageSize + 1);
+    .order('id', { ascending: false })
+    .limit(1000);
 
   if (baseRowsError) {
     if (isMissingProjectContentSchemaError(baseRowsError)) {
@@ -100,54 +100,6 @@ const fetchProjectArchiveBaseRows = async (
 
   return {
     data: (baseRows ?? []) as ProjectArchiveBaseRow[],
-    schemaMissing: false,
-  };
-};
-
-/**
- * 현재 프로젝트보다 더 최신인 base row를 현재 항목에 가까운 순서로 조회합니다.
- */
-const fetchNewerProjectArchiveBaseRows = async (
-  currentItem: GetProjectDetailListWindowOptions['currentItem'],
-  pageSize: number,
-): Promise<{ data: ProjectArchiveBaseRow[]; schemaMissing: boolean }> => {
-  if (pageSize <= 0) {
-    return { data: [], schemaMissing: false };
-  }
-
-  const supabase = createOptionalPublicServerSupabaseClient();
-  if (!supabase) return { data: [], schemaMissing: false };
-
-  const nowIsoString = new Date().toISOString();
-  const { data, error } = await supabase
-    .from('projects')
-    .select('id,slug,visibility,publish_at')
-    .not('publish_at', 'is', null)
-    .not('slug', 'is', null)
-    .eq('visibility', 'public')
-    .or(
-      [
-        `and(publish_at.lte.${nowIsoString},publish_at.gt.${currentItem.publish_at})`,
-        `and(publish_at.lte.${nowIsoString},publish_at.eq.${currentItem.publish_at},id.gt.${currentItem.id})`,
-      ].join(','),
-    )
-    .order('publish_at', {
-      ascending: true,
-      nullsFirst: false,
-    })
-    .order('id', { ascending: true })
-    .limit(pageSize);
-
-  if (error) {
-    if (isMissingProjectContentSchemaError(error)) {
-      return { data: [], schemaMissing: true };
-    }
-
-    throw new Error(`[projects] 상세 목록 최신 base row 조회 실패: ${error.message}`);
-  }
-
-  return {
-    data: (data ?? []) as ProjectArchiveBaseRow[],
     schemaMissing: false,
   };
 };
@@ -241,31 +193,20 @@ const fetchProjectDetailListByLocaleFallback = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectArchivePage> => {
-  const baseRowsResult = await fetchProjectArchiveBaseRows(cursor, pageSize);
+  const baseRowsResult = await fetchProjectArchiveBaseRows();
   if (baseRowsResult.schemaMissing) {
     throw new Error('[projects] content schema가 없습니다.');
   }
 
-  const page = buildPublishedAtIdPage({
+  const page = buildOffsetPage({
+    cursor,
+    items: baseRowsResult.data,
     limit: pageSize,
-    rows: baseRowsResult.data.map(row => ({
-      ...row,
-      publishedAt: resolvePublicContentPublishedAt(row),
-    })),
   });
 
   return {
-    items: await resolveProjectArchiveItemsWithLocaleFallback(
-      page.items.map(({ publishedAt: _publishedAt, ...row }) => row),
-      locale,
-    ),
-    nextCursor: page.nextCursor
-      ? serializeLocaleAwarePublishedAtIdCursor({
-          id: page.items.at(-1)!.id,
-          locale,
-          publishedAt: page.items.at(-1)!.publishedAt,
-        })
-      : null,
+    items: await resolveProjectArchiveItemsWithLocaleFallback(page.items, locale),
+    nextCursor: page.nextCursor,
   };
 };
 
@@ -281,25 +222,15 @@ const readCachedProjectDetailList = async (input: {
 
   cacheTag(PROJECTS_CACHE_TAG);
 
-  const parsedCursor = parseLocaleAwarePublishedAtIdCursor(input.cursor);
-  const requestedLocale = parsedCursor?.locale ?? input.normalizedLocale;
-
-  return fetchProjectDetailListByLocaleFallback(requestedLocale, input.cursor, input.pageSize);
-};
-
-/**
- * 현재 항목 위쪽에 둘 초기 window slot 수를 계산합니다.
- */
-const getPreferredLeadingWindowSlotCount = (neighborSlots: number) => {
-  if (neighborSlots <= 0) return 0;
-
-  return Math.min(neighborSlots, Math.max(1, Math.round(neighborSlots * 0.25)));
+  return fetchProjectDetailListByLocaleFallback(
+    input.normalizedLocale,
+    input.cursor,
+    input.pageSize,
+  );
 };
 
 /**
  * 프로젝트 상세 좌측 아카이브 목록을 가져옵니다.
- *
- * 현재 UI는 첫 페이지만 사용하지만, 조회 자체는 keyset 정렬 기준으로 통일합니다.
  */
 export const getProjectDetailList = async ({
   cursor,
@@ -309,7 +240,7 @@ export const getProjectDetailList = async ({
   if (!hasSupabaseEnv()) return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
-  const pageSize = parseKeysetLimit(limit);
+  const pageSize = parseOffsetLimit(limit);
 
   return readCachedProjectDetailList({
     cursor,
@@ -333,67 +264,24 @@ export const getProjectDetailListWindow = async ({
     };
   }
 
-  const pageSize = parseKeysetLimit(limit);
-  const neighborSlots = Math.max(pageSize - 1, 0);
-  if (neighborSlots === 0) {
-    return {
-      items: [currentItem],
-      nextCursor: null,
-    };
-  }
-
-  const leadingSlots = getPreferredLeadingWindowSlotCount(neighborSlots);
-  const trailingSlots = neighborSlots - leadingSlots;
-  const olderCursor = serializeLocaleAwarePublishedAtIdCursor({
-    id: currentItem.id,
-    locale,
-    publishedAt: currentItem.publish_at,
-  });
-
-  let olderPage = await getProjectDetailList({
-    cursor: olderCursor,
-    limit: trailingSlots,
-    locale,
-  });
-  let newerBaseRowsResult = await fetchNewerProjectArchiveBaseRows(currentItem, leadingSlots);
-  if (newerBaseRowsResult.schemaMissing) {
+  const pageSize = parseOffsetLimit(limit);
+  const baseRowsResult = await fetchProjectArchiveBaseRows();
+  if (baseRowsResult.schemaMissing) {
     throw new Error('[projects] content schema가 없습니다.');
   }
 
-  let newerItemsAscending = await resolveProjectArchiveItemsWithLocaleFallback(
-    newerBaseRowsResult.data,
-    locale,
-  );
-  const currentNeighborCount = olderPage.items.length + newerItemsAscending.length;
-
-  if (currentNeighborCount < neighborSlots) {
-    const shortfall = neighborSlots - currentNeighborCount;
-
-    if (olderPage.items.length < trailingSlots) {
-      newerBaseRowsResult = await fetchNewerProjectArchiveBaseRows(
-        currentItem,
-        leadingSlots + shortfall,
-      );
-
-      if (newerBaseRowsResult.schemaMissing) {
-        throw new Error('[projects] content schema가 없습니다.');
-      }
-
-      newerItemsAscending = await resolveProjectArchiveItemsWithLocaleFallback(
-        newerBaseRowsResult.data,
-        locale,
-      );
-    } else if (newerItemsAscending.length < leadingSlots) {
-      olderPage = await getProjectDetailList({
-        cursor: olderCursor,
-        limit: trailingSlots + shortfall,
-        locale,
-      });
-    }
-  }
+  const currentIndex = baseRowsResult.data.findIndex(row => row.id === currentItem.id);
+  const fallbackStartIndex = parseOffsetCursor(null);
+  const startIndex =
+    currentIndex < 0 ? fallbackStartIndex : Math.max(0, currentIndex - Math.max(pageSize - 1, 0));
+  const windowRows = baseRowsResult.data.slice(startIndex, startIndex + pageSize);
+  const resolvedItems = await resolveProjectArchiveItemsWithLocaleFallback(windowRows, locale);
 
   return {
-    items: [...newerItemsAscending.reverse(), currentItem, ...olderPage.items],
-    nextCursor: olderPage.nextCursor,
+    items: resolvedItems,
+    nextCursor:
+      startIndex + resolvedItems.length < baseRowsResult.data.length
+        ? String(startIndex + resolvedItems.length)
+        : null,
   };
 };

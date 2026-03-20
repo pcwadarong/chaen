@@ -6,6 +6,7 @@ import { css, cva, cx } from 'styled-system/css';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 
 type TagItem = {
+  group?: string;
   id: string;
   label: string;
   slug: string;
@@ -14,7 +15,11 @@ type TagItem = {
 type TagSelectorProps = {
   availableTags: TagItem[];
   className?: string;
+  emptyText?: string;
   onChange: (slugs: string[]) => void;
+  poolLabel?: string;
+  poolTitle?: string;
+  selectLabel?: string;
   selectedTagSlugs: string[];
 };
 
@@ -31,7 +36,11 @@ const hasSelectedTag = (selectedTagSlugs: string[], tagSlug: string) =>
 const TagSelectorBase = ({
   availableTags,
   className,
+  emptyText = '사용 가능한 태그가 없습니다.',
   onChange,
+  poolLabel = '태그 선택기',
+  poolTitle = 'Tags',
+  selectLabel = '태그',
   selectedTagSlugs,
 }: TagSelectorProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -73,13 +82,13 @@ const TagSelectorBase = ({
   }, []);
 
   return (
-    <section aria-label="태그 선택기" className={cx(rootClass, className)}>
+    <section aria-label={poolLabel} className={cx(rootClass, className)}>
       <div className={poolHeaderClass}>
-        <h2 className={poolTitleClass}>Tags</h2>
+        <h2 className={poolTitleClass}>{poolTitle}</h2>
         <button
           aria-controls={`${poolId}-panel`}
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? '태그 풀 접기' : '태그 풀 열기'}
+          aria-label={isExpanded ? `${selectLabel} 풀 접기` : `${selectLabel} 풀 열기`}
           className={toggleButtonClass}
           onClick={handleExpandedToggle}
           type="button"
@@ -97,28 +106,44 @@ const TagSelectorBase = ({
       {isExpanded ? (
         <div className={poolClass} id={`${poolId}-panel`}>
           {availableTags.length > 0 ? (
-            availableTags.map(tag => {
+            availableTags.map((tag, index) => {
               const isSelected = hasSelectedTag(selectedTagSlugs, tag.slug);
+              const previousTagGroup = index > 0 ? availableTags[index - 1]?.group : undefined;
+              const shouldRenderGroupGap =
+                index > 0 &&
+                typeof tag.group === 'string' &&
+                typeof previousTagGroup === 'string' &&
+                previousTagGroup !== tag.group;
 
               return (
-                <button
-                  aria-label={`${tag.label} ${isSelected ? '태그 해제' : '태그 선택'}`}
-                  aria-pressed={isSelected}
-                  className={chipRecipe({ selected: isSelected })}
-                  data-tag-slug={tag.slug}
-                  key={tag.id}
-                  onClick={handleTagClick}
-                  type="button"
-                >
-                  <span className={chipLabelClass}>{tag.label}</span>
-                  <span className={srOnlyClass}>
-                    {` ${isSelected ? '태그 해제' : '태그 선택'}`}
-                  </span>
-                </button>
+                <React.Fragment key={tag.id}>
+                  {shouldRenderGroupGap ? (
+                    <span
+                      aria-hidden
+                      className={groupSeparatorClass}
+                      data-group-separator={tag.group}
+                    />
+                  ) : null}
+                  <button
+                    aria-label={`${tag.label} ${
+                      isSelected ? `${selectLabel} 해제` : `${selectLabel} 선택`
+                    }`}
+                    aria-pressed={isSelected}
+                    className={chipRecipe({ selected: isSelected })}
+                    data-tag-slug={tag.slug}
+                    onClick={handleTagClick}
+                    type="button"
+                  >
+                    <span className={chipLabelClass}>{tag.label}</span>
+                    <span className={srOnlyClass}>
+                      {` ${isSelected ? `${selectLabel} 해제` : `${selectLabel} 선택`}`}
+                    </span>
+                  </button>
+                </React.Fragment>
               );
             })
           ) : (
-            <p className={helperTextClass}>사용 가능한 태그가 없습니다.</p>
+            <p className={helperTextClass}>{emptyText}</p>
           )}
         </div>
       ) : null}
@@ -177,6 +202,11 @@ const poolClass = css({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '2',
+});
+
+const groupSeparatorClass = css({
+  flexBasis: 'full',
+  height: '2',
 });
 
 const chipRecipe = cva({

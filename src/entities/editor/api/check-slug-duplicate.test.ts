@@ -1,8 +1,13 @@
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/supabase/service-role', () => ({
+  createOptionalServiceRoleSupabaseClient: vi.fn(),
 }));
 
 describe('checkSlugDuplicate', () => {
@@ -31,7 +36,7 @@ describe('checkSlugDuplicate', () => {
       from: vi.fn((table: string) => (table === 'articles' ? articlesQuery : projectsQuery)),
     };
 
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(checkSlugDuplicate('existing-slug')).resolves.toEqual({
       data: {
@@ -55,7 +60,7 @@ describe('checkSlugDuplicate', () => {
       from: vi.fn().mockReturnValue(query),
     };
 
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(checkSlugDuplicate('fresh-slug')).resolves.toEqual({
       data: {
@@ -81,7 +86,7 @@ describe('checkSlugDuplicate', () => {
       from: vi.fn().mockReturnValue(query),
     };
 
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(checkSlugDuplicate('fresh-slug')).resolves.toEqual({
       data: {
@@ -105,7 +110,7 @@ describe('checkSlugDuplicate', () => {
       from: vi.fn().mockReturnValue(query),
     };
 
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(checkSlugDuplicate('duplicated-slug')).resolves.toEqual({
       data: {
@@ -115,5 +120,30 @@ describe('checkSlugDuplicate', () => {
       schemaMissing: false,
     });
     expect(query.limit).toHaveBeenCalledWith(1);
+  });
+
+  it('service role이 없으면 public server client로 폴백한다', async () => {
+    const query = {
+      eq: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const supabaseClient = {
+      from: vi.fn().mockReturnValue(query),
+    };
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    await expect(checkSlugDuplicate('fresh-slug')).resolves.toEqual({
+      data: {
+        duplicate: false,
+        source: null,
+      },
+      schemaMissing: false,
+    });
   });
 });

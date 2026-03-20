@@ -21,7 +21,7 @@ export {
 } from '@/entities/editor/model/editor-types';
 
 export interface EditorCoreProps {
-  availableTags: { id: string; label: string; slug: string }[];
+  availableTags: { group?: string; id: string; label: string; slug: string }[];
   contentId?: string;
   contentType: EditorContentType;
   hideAppFrameFooter?: boolean;

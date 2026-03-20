@@ -7,7 +7,7 @@ import {
   saveEditorDraftAction,
 } from '@/entities/editor/api/editor-actions';
 import { createEditorSeed, getEditorDraftSeed } from '@/entities/editor/api/editor-read';
-import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
+import { getAllTechStacks } from '@/entities/tech-stack/api/query-tech-stacks';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorPage } from '@/views/editor';
 
@@ -37,7 +37,12 @@ const AdminProjectNewRoute = async ({
 
   await requireAdmin({ locale });
 
-  const availableTags = await getTagOptionsByLocale(locale);
+  const availableTags = (await getAllTechStacks()).map(techStack => ({
+    group: techStack.category,
+    id: techStack.id,
+    label: techStack.name,
+    slug: techStack.slug,
+  }));
   const seed = resolvedSearchParams?.draftId
     ? await getEditorDraftSeed({
         contentType: 'project',

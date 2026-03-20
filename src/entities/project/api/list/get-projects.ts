@@ -2,17 +2,13 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { ProjectListItem, ProjectListPage } from '@/entities/project/model/types';
+import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
-import {
-  buildPublishedAtIdPage,
-  parseKeysetLimit,
-  parsePublishedAtIdCursor,
-} from '@/shared/lib/pagination/keyset-pagination';
-import { buildReferencedPublicContentFilter } from '@/shared/lib/supabase/build-public-content-filter';
+import { buildOffsetPage, parseOffsetLimit } from '@/shared/lib/pagination/offset-pagination';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
@@ -35,7 +31,12 @@ type GetProjectsOptions = {
   locale: string;
 };
 
-type ProjectPublicBaseRow = Pick<ProjectListItem, 'id' | 'publish_at' | 'slug' | 'thumbnail_url'>;
+type ProjectPublicBaseRow = Pick<
+  ProjectListItem,
+  'id' | 'period_end' | 'period_start' | 'publish_at' | 'slug' | 'thumbnail_url'
+> & {
+  display_order: number | null;
+};
 
 type ProjectListTranslationSummaryRow = Pick<ProjectListItem, 'description' | 'title'> & {
   locale: string;
@@ -43,12 +44,12 @@ type ProjectListTranslationSummaryRow = Pick<ProjectListItem, 'description' | 't
 };
 
 /**
- * 공개 프로젝트 base row를 `publish_at + id` 기준으로 조회합니다.
+ * 공개 프로젝트 base row를 `display_order -> publish_at -> id` 기준으로 조회합니다.
  */
-const fetchPublicProjectBaseRows = async (
-  cursor: string | null | undefined,
-  pageSize: number,
-): Promise<{ data: ProjectPublicBaseRow[]; schemaMissing: boolean }> => {
+const fetchPublicProjectBaseRows = async (): Promise<{
+  data: ProjectPublicBaseRow[];
+  schemaMissing: boolean;
+}> => {
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
@@ -57,22 +58,24 @@ const fetchPublicProjectBaseRows = async (
     };
   }
 
-  const parsedCursor = parsePublishedAtIdCursor(cursor);
   const nowIsoString = new Date().toISOString();
-  const baseQuery = supabase
+  const { data: baseRows, error: baseRowsError } = await supabase
     .from('projects')
-    .select('id,thumbnail_url,slug,visibility,publish_at')
+    .select('id,thumbnail_url,slug,visibility,publish_at,display_order,period_start,period_end')
     .not('publish_at', 'is', null)
     .not('slug', 'is', null)
     .eq('visibility', 'public')
-    .or(buildReferencedPublicContentFilter({ cursor: parsedCursor, nowIsoString }))
+    .or(`publish_at.lte.${nowIsoString}`)
+    .order('display_order', {
+      ascending: true,
+      nullsFirst: false,
+    })
     .order('publish_at', {
       ascending: false,
       nullsFirst: false,
     })
-    .order('id', { ascending: false });
-
-  const { data: baseRows, error: baseRowsError } = await baseQuery.limit(pageSize + 1);
+    .order('id', { ascending: false })
+    .limit(1000);
 
   if (baseRowsError) {
     if (isMissingProjectsContentSchemaError(baseRowsError.message)) {
@@ -152,7 +155,11 @@ const resolveProjectItemsWithLocaleFallback = async (
   );
   if (translationsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
+  const techStacksByProjectId = await getProjectTechStackMap(baseRows.map(row => row.id)).catch(
+    () => new Map(),
+  );
   const translationsByProjectId = new Map<string, ProjectListTranslationSummaryRow[]>();
+
   translationsResult.data.forEach(row => {
     const rows = translationsByProjectId.get(row.project_id) ?? [];
     rows.push(row);
@@ -176,26 +183,16 @@ const resolveProjectItemsWithLocaleFallback = async (
     return {
       description: preferredTranslation.description,
       id: baseRow.id,
+      period_end: baseRow.period_end,
+      period_start: baseRow.period_start,
       publish_at: baseRow.publish_at,
       slug: baseRow.slug,
+      tech_stacks: techStacksByProjectId.get(baseRow.id) ?? [],
       thumbnail_url: baseRow.thumbnail_url,
       title: preferredTranslation.title,
     };
   });
 };
-
-/**
- * 공개 base row를 keyset 페이지 계산용 shape로 정규화합니다.
- *
- * 공개 목록은 `publish_at IS NOT NULL` 조건으로 조회하므로 여기서는 string으로 고정합니다.
- */
-const toPublishedProjectPageRows = (
-  rows: ProjectPublicBaseRow[],
-): Array<ProjectPublicBaseRow & { publishedAt: string }> =>
-  rows.map(row => ({
-    ...row,
-    publishedAt: row.publish_at ?? '',
-  }));
 
 /**
  * 공개 프로젝트 기본 목록을 base row + locale fallback 번역으로 조회합니다.
@@ -205,26 +202,17 @@ const fetchProjectsByLocaleFallback = async (
   cursor: string | null | undefined,
   pageSize: number,
 ): Promise<ProjectListPage> => {
-  const baseRowsResult = await fetchPublicProjectBaseRows(cursor, pageSize);
+  const baseRowsResult = await fetchPublicProjectBaseRows();
   if (baseRowsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
 
-  const page = buildPublishedAtIdPage({
+  const page = buildOffsetPage({
+    cursor,
+    items: baseRowsResult.data,
     limit: pageSize,
-    rows: toPublishedProjectPageRows(baseRowsResult.data),
   });
 
   return {
-    items: dedupeById(
-      await resolveProjectItemsWithLocaleFallback(
-        page.items.map(({ id, publish_at, slug, thumbnail_url }) => ({
-          id,
-          publish_at,
-          slug,
-          thumbnail_url,
-        })),
-        locale,
-      ),
-    ),
+    items: dedupeById(await resolveProjectItemsWithLocaleFallback(page.items, locale)),
     nextCursor: page.nextCursor,
   };
 };
@@ -245,9 +233,7 @@ const readCachedProjects = async (input: {
 };
 
 /**
- * 프로젝트 목록을 publish_at + id keyset cursor 기반 페이지 단위로 조회합니다.
- *
- * - 각 row마다 요청 locale -> `ko` -> `en` -> `ja` -> `fr` 순으로 번역을 채웁니다.
+ * 프로젝트 목록을 offset cursor 기반 페이지 단위로 조회합니다.
  */
 export const getProjects = async ({
   cursor,
@@ -257,7 +243,7 @@ export const getProjects = async ({
   if (!hasSupabaseEnv()) return { items: [], nextCursor: null };
 
   const normalizedLocale = locale.toLowerCase();
-  const pageSize = parseKeysetLimit(limit);
+  const pageSize = parseOffsetLimit(limit);
 
   return readCachedProjects({
     cursor,

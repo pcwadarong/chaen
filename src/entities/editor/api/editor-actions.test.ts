@@ -732,7 +732,7 @@ describe('editor-actions', () => {
             ? translationsDeleteQuery
             : translationsInsertQuery;
         }
-        if (table === 'project_tags') return projectTagsDeleteQuery;
+        if (table === 'project_tech_stacks') return projectTagsDeleteQuery;
         if (table === 'drafts') return draftsDeleteQuery;
         throw new Error(`unexpected table: ${table}`);
       }),

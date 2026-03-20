@@ -105,7 +105,6 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
     item,
     locale: effectiveLocale,
   });
-
   const tagLabelsPromise = getProjectTagLabels({
     item,
     locale,
