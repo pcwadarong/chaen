@@ -13,6 +13,7 @@ type ModalProps = {
   ariaLabelledBy?: string;
   children: ReactNode;
   closeAriaLabel: string;
+  closeButtonClassName?: string;
   frameClassName?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const Modal = ({
   ariaLabelledBy,
   children,
   closeAriaLabel,
+  closeButtonClassName,
   frameClassName,
   initialFocusRef,
   isOpen,
@@ -78,7 +80,11 @@ export const Modal = ({
         tabIndex={-1}
         className={cx(frameBaseClass, frameClassName)}
       >
-        <XButton ariaLabel={closeAriaLabel} className={closeButtonClass} onClick={onClose} />
+        <XButton
+          ariaLabel={closeAriaLabel}
+          className={cx(closeButtonClass, closeButtonClassName)}
+          onClick={onClose}
+        />
         {children}
       </div>
     </div>,

@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { Button } from '@/shared/ui/button/button';
+import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
 import { Modal } from '@/shared/ui/modal/modal';
 
@@ -126,24 +128,32 @@ export const ImageViewerModal = ({
     <Modal
       ariaLabel={resolvedDialogAriaLabel}
       closeAriaLabel={labels.closeAriaLabel}
+      closeButtonClassName={viewerCloseButtonClass}
       frameClassName={viewerFrameClass}
       isOpen={isOpen}
       onClose={onClose}
     >
       <div className={viewerContentClass}>
         <div className={imageStageClass}>
-          <button
+          <Button
             aria-label={labels.previousAriaLabel}
-            className={cx(sideButtonClass, sideButtonLeftClass)}
+            className={cx(viewerControlButtonClass, sideButtonClass, sideButtonLeftClass)}
             onClick={() => {
               const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
               setCurrentIndex(nextIndex);
               setZoomLevel(1);
             }}
+            tone="white"
             type="button"
+            variant="ghost"
           >
-            ‹
-          </button>
+            <ChevronRightIcon
+              aria-hidden="true"
+              className={sideButtonLeftIconClass}
+              color="current"
+              size={36}
+            />
+          </Button>
 
           <div className={imageViewportClass}>
             <div className={imageInnerClass}>
@@ -160,18 +170,20 @@ export const ImageViewerModal = ({
             </div>
           </div>
 
-          <button
+          <Button
             aria-label={labels.nextAriaLabel}
-            className={cx(sideButtonClass, sideButtonRightClass)}
+            className={cx(viewerControlButtonClass, sideButtonClass, sideButtonRightClass)}
             onClick={() => {
               const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
               setCurrentIndex(nextIndex);
               setZoomLevel(1);
             }}
+            tone="white"
             type="button"
+            variant="ghost"
           >
-            ›
-          </button>
+            <ChevronRightIcon aria-hidden="true" color="current" size={36} />
+          </Button>
 
           <div className={zoomDockClass}>
             <button
@@ -269,6 +281,28 @@ const imageStageClass = css({
   overflow: 'hidden',
 });
 
+const viewerControlButtonClass = css({
+  color: '[var(--colors-white)]',
+  backgroundColor: 'transparent',
+  borderColor: 'transparent',
+  minWidth: '[2.75rem]',
+  minHeight: '[2.75rem]',
+  px: '0',
+  _hover: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    opacity: 0.8,
+  },
+  _focusVisible: {
+    outline: '[2px solid rgb(255 255 255 / 0.92)]',
+    outlineOffset: '[2px]',
+  },
+});
+
+const viewerCloseButtonClass = css({
+  color: '[var(--colors-white)]',
+});
+
 const imageViewportClass = css({
   width: 'full',
   height: 'full',
@@ -294,20 +328,15 @@ const sideButtonClass = css({
   position: 'absolute',
   top: '[50%]',
   zIndex: '3',
-  width: '[2.6rem]',
-  height: '[3.2rem]',
-  borderRadius: 'full',
-  border: '[1px solid rgb(255 255 255 / 0.28)]',
-  backgroundColor: '[rgb(15 23 42 / 0.45)]',
-  color: '[var(--colors-white)]',
-  fontSize: '32',
-  lineHeight: 'none',
   transform: '[translateY(-50%)]',
-  cursor: 'pointer',
 });
 
 const sideButtonLeftClass = css({
   left: '[0.55rem]',
+});
+
+const sideButtonLeftIconClass = css({
+  transform: 'rotate(180deg)',
 });
 
 const sideButtonRightClass = css({
