@@ -17,6 +17,7 @@ import {
   resolveResumePublishInlineErrorField,
 } from '@/entities/resume/model/resume-editor-error';
 import { MarkdownToolbar } from '@/features/edit-markdown/ui/markdown-toolbar';
+import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { getMarkdownOptions, markdownBodyClass } from '@/shared/lib/markdown/markdown-config';
 import { renderRichMarkdown } from '@/shared/lib/markdown/rich-markdown';
 import { Button } from '@/shared/ui/button/button';
@@ -26,13 +27,6 @@ import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { EDITOR_LOCALES, type Locale } from '@/widgets/editor/ui/core/editor-core.types';
 import { formatSavedAtLabel } from '@/widgets/editor/ui/core/editor-core.utils';
 import type { ResumeEditorCoreProps } from '@/widgets/resume-editor/ui/resume-editor.types';
-
-const RESUME_LOCALE_LABELS: Record<Locale, string> = {
-  en: 'EN',
-  fr: 'FR',
-  ja: 'JA',
-  ko: 'KO',
-};
 
 type ResumeEditorFieldKey = 'body' | 'description' | 'download_button_label' | 'title';
 
@@ -153,8 +147,8 @@ export const ResumeEditorCore = ({
   const [savedSnapshot, setSavedSnapshot] = useState(initialContents);
   const [savedAt, setSavedAt] = useState<string | null>(initialSavedAt);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const [publishErrors, setPublishErrors] = useState<ResumePublishValidationErrors>({});
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishErrors, setPublishErrors] = useState<ResumePublishValidationErrors>({});
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const bodyTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const dirty = useMemo(
@@ -350,7 +344,7 @@ export const ResumeEditorCore = ({
               role="tab"
               type="button"
             >
-              {RESUME_LOCALE_LABELS[locale]}
+              {LOCALE_CODE_LABELS[locale]}
             </button>
           ))}
         </div>
