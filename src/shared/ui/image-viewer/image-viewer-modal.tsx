@@ -35,6 +35,7 @@ type ImageViewerModalProps = {
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
+const IMAGE_NAVIGATION_ANIMATION_MS = 360;
 const DEFAULT_PAN_OFFSET = { x: 0, y: 0 } as const;
 
 type ImageViewerPanOffset = {
@@ -67,6 +68,8 @@ type ImageViewerPinchState = {
   initialDistance: number;
   initialZoomLevel: number;
 };
+
+type ImageViewerTransitionDirection = 'next' | 'previous' | null;
 
 type ImageViewerSideControlsProps = {
   nextAriaLabel: string;
@@ -178,6 +181,9 @@ export const ImageViewerModal = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [panOffset, setPanOffset] = useState<ImageViewerPanOffset>(DEFAULT_PAN_OFFSET);
+  const [transitionDirection, setTransitionDirection] =
+    useState<ImageViewerTransitionDirection>(null);
+  const [transitionKey, setTransitionKey] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const activePointersRef = useRef<Map<number, ImageViewerPointerState>>(new Map());
   const dragStateRef = useRef<ImageViewerDragState | null>(null);
@@ -208,19 +214,29 @@ export const ImageViewerModal = ({
     return currentItem.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer';
   }, [currentItem, labels.imageViewerAriaLabel]);
 
+  /**
+   * 지정한 인덱스로 이동하면서 확대 상태를 초기화하고 방향 애니메이션을 적용합니다.
+   */
+  const navigateToImage = useCallback(
+    (nextIndex: number, direction: Exclude<ImageViewerTransitionDirection, null>) => {
+      setTransitionDirection(direction);
+      setTransitionKey(previousKey => previousKey + 1);
+      setCurrentIndex(nextIndex);
+      setPanOffset(DEFAULT_PAN_OFFSET);
+      setZoomLevel(1);
+    },
+    [],
+  );
+
   const handlePreviousImage = useCallback(() => {
     const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
-    setCurrentIndex(nextIndex);
-    setPanOffset(DEFAULT_PAN_OFFSET);
-    setZoomLevel(1);
-  }, [currentIndex, sanitizedItems.length]);
+    navigateToImage(nextIndex, 'previous');
+  }, [currentIndex, navigateToImage, sanitizedItems.length]);
 
   const handleNextImage = useCallback(() => {
     const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
-    setCurrentIndex(nextIndex);
-    setPanOffset(DEFAULT_PAN_OFFSET);
-    setZoomLevel(1);
-  }, [currentIndex, sanitizedItems.length]);
+    navigateToImage(nextIndex, 'next');
+  }, [currentIndex, navigateToImage, sanitizedItems.length]);
 
   const handleModalClose = useCallback(() => {
     onClose(currentIndex);
@@ -241,8 +257,21 @@ export const ImageViewerModal = ({
     if (!isOpen || initialIndex === null) return;
     setCurrentIndex(initialIndex);
     setPanOffset(DEFAULT_PAN_OFFSET);
+    setTransitionDirection(null);
     setZoomLevel(1);
   }, [initialIndex, isOpen]);
+
+  useEffect(() => {
+    if (!transitionDirection) return;
+
+    const timeout = window.setTimeout(() => {
+      setTransitionDirection(null);
+    }, IMAGE_NAVIGATION_ANIMATION_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [transitionDirection]);
 
   useEffect(() => {
     if (!isOpen || !isMounted) return;
@@ -288,18 +317,18 @@ export const ImageViewerModal = ({
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setCurrentIndex(prev => (prev < sanitizedItems.length - 1 ? prev + 1 : 0));
-        setZoomLevel(1);
+        const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
+        navigateToImage(nextIndex, 'next');
       }
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setCurrentIndex(prev => (prev > 0 ? prev - 1 : sanitizedItems.length - 1));
-        setZoomLevel(1);
+        const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
+        navigateToImage(nextIndex, 'previous');
       }
     };
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
-  }, [isOpen, sanitizedItems.length]);
+  }, [currentIndex, isOpen, navigateToImage, sanitizedItems.length]);
 
   /**
    * 현재 레이아웃 기준으로 다음 pan offset을 안전 범위로 보정합니다.
@@ -473,7 +502,16 @@ export const ImageViewerModal = ({
               onWheel={handleViewportWheel}
               ref={viewportRef}
             >
-              <div className={imageInnerClass} onClick={stopViewerClickPropagation}>
+              <div
+                className={cx(
+                  imageInnerClass,
+                  transitionDirection === 'next' ? nextTransitionImageClass : undefined,
+                  transitionDirection === 'previous' ? previousTransitionImageClass : undefined,
+                )}
+                data-transition-direction={transitionDirection ?? undefined}
+                key={`${currentItem.src}-${transitionKey}`}
+                onClick={stopViewerClickPropagation}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   alt={currentItem.alt}
@@ -535,8 +573,8 @@ export const ImageViewerModal = ({
                     } ${index + 1}`}
                     key={`${item.src}-${index}`}
                     onClick={() => {
-                      setCurrentIndex(index);
-                      setZoomLevel(1);
+                      if (index === currentIndex) return;
+                      navigateToImage(index, index > currentIndex ? 'next' : 'previous');
                     }}
                     ref={node => {
                       thumbnailButtonRefs.current[index] = node;
@@ -652,6 +690,14 @@ const viewerImageClass = css({
   willChange: 'transform',
   transition: '[transform 140ms ease-out]',
   userSelect: 'none',
+});
+
+const nextTransitionImageClass = css({
+  animation: `[image-viewer-slide-next ${IMAGE_NAVIGATION_ANIMATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)]`,
+});
+
+const previousTransitionImageClass = css({
+  animation: `[image-viewer-slide-previous ${IMAGE_NAVIGATION_ANIMATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)]`,
 });
 
 const viewerCloseButtonClass = css({

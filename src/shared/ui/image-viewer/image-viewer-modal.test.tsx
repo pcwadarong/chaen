@@ -138,6 +138,26 @@ describe('ImageViewerModal', () => {
     expect(screen.getByText('250%')).toBeTruthy();
   });
 
+  it('다음과 이전 전환 시 방향 데이터 속성을 적용한다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '다음 이미지' }));
+
+    expect(
+      document
+        .querySelector('[data-transition-direction="next"]')
+        ?.querySelector('[data-image-viewer-image="true"]'),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '이전 이미지' }));
+
+    expect(
+      document
+        .querySelector('[data-transition-direction="previous"]')
+        ?.querySelector('[data-image-viewer-image="true"]'),
+    ).toBeTruthy();
+  });
+
   it('마우스 휠로 이미지를 확대할 수 있다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
     const viewport = document.querySelector(
