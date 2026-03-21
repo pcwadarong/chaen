@@ -70,7 +70,6 @@ export const ResumeEditorClient = ({
       availableTags={[]}
       contentType="resume"
       enableAutosave
-      extraLocaleFieldLabel="다운로드 버튼 라벨"
       hideAppFrameFooter={hideAppFrameFooter}
       hideTagSelector
       initialSlug=""
@@ -80,8 +79,6 @@ export const ResumeEditorClient = ({
       onDraftSave={handleDraftSave}
       onDirectPublish={onPublishSubmit ? handlePublish : undefined}
       onDirectPublishError={error => parseResumeEditorError(error, 'publishFailed').message}
-      publishButtonLabel="발행하기"
-      publishPendingLabel="발행 중..."
     />
   );
 };

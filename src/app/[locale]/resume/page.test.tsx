@@ -11,9 +11,9 @@ vi.mock('@/views/resume', () => ({
       title: '안녕하세요 박채원입니다.',
       description: '서버 내용',
       body: '본문',
-      download_button_label: '이력서 다운로드',
       updated_at: '2026-03-02T00:00:00.000Z',
     },
+    downloadLabel: '이력서 다운로드',
     unavailableLabel: '이력서 준비 중',
   })),
   ResumePage: function ResumePage() {

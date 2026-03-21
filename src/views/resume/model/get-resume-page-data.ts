@@ -26,6 +26,7 @@ export const getResumePageData = async ({
 
   return {
     content: content ?? createDefaultPdfFileContent(locale),
+    downloadLabel: t('downloadButtonLabel'),
     unavailableLabel: t('resumeDownloadUnavailable'),
   };
 };

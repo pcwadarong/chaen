@@ -12,11 +12,11 @@ const renderResumePageHtml = async () => {
       content={{
         body: ['## 핵심 경험', '', '- Next.js App Router', '- Markdown preview'].join('\n'),
         description: '설명',
-        download_button_label: '이력서 다운로드',
         locale: 'ko',
         title: '박채원 이력서',
         updated_at: '2026-03-20T00:00:00.000Z',
       }}
+      downloadLabel="이력서 다운로드"
       unavailableLabel="이력서 준비 중"
     />,
   );

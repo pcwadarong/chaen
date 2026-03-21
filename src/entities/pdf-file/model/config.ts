@@ -139,7 +139,6 @@ const DEFAULT_PDF_FILE_CONTENT_TEXT = {
 렌더링 · 성능 · 접근성까지 고려해 경험의 완성도를 높입니다.
 CS 기반의 문제 분석 역량을 바탕으로 구현 방식을 선택하며,
 AI와 자동화 도구를 프로세스에 통합해 개발 효율과 품질을 함께 개선합니다.`,
-  download_button_label: 'Download',
 } satisfies Omit<PdfFileContent, 'locale' | 'updated_at'>;
 
 /**

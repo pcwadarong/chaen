@@ -23,11 +23,10 @@ const EMPTY_RESUME_EDITOR_ERROR: ResumePublishValidationErrors = {};
  * PDF 콘텐츠 row에서 편집에 필요한 텍스트 필드만 추립니다.
  */
 export const toResumeEditorContent = (
-  content: Pick<PdfFileContent, 'body' | 'description' | 'download_button_label' | 'title'>,
+  content: Pick<PdfFileContent, 'body' | 'description' | 'title'>,
 ): ResumeEditorContent => ({
   body: content.body ?? '',
   description: content.description ?? '',
-  download_button_label: content.download_button_label ?? '',
   title: content.title ?? '',
 });
 
@@ -52,7 +51,6 @@ export const normalizeResumeEditorContentMap = (
     accumulator[locale] = {
       body: content?.body ?? '',
       description: content?.description ?? '',
-      download_button_label: content?.download_button_label ?? '',
       title: content?.title ?? '',
     };
 
@@ -73,8 +71,7 @@ export const isResumeEditorContentMapEqual = (
     return (
       leftContent.title === rightContent.title &&
       leftContent.description === rightContent.description &&
-      leftContent.body === rightContent.body &&
-      leftContent.download_button_label === rightContent.download_button_label
+      leftContent.body === rightContent.body
     );
   });
 
@@ -137,7 +134,6 @@ export const buildResumeDraftContentRecord = (contents: ResumeEditorContentMap) 
       {
         body: contents[locale].body,
         description: contents[locale].description,
-        download_button_label: contents[locale].download_button_label,
         title: contents[locale].title,
       },
     ]),
@@ -166,7 +162,6 @@ export const resumeContentMapToEditorTranslations = (
     accumulator[locale] = {
       content: contents[locale].body,
       description: contents[locale].description,
-      download_button_label: contents[locale].download_button_label,
       title: contents[locale].title,
     };
 
@@ -183,7 +178,6 @@ export const editorStateToResumeEditorState = (
     accumulator[locale] = {
       body: state.translations[locale].content,
       description: state.translations[locale].description,
-      download_button_label: state.translations[locale].download_button_label ?? '',
       title: state.translations[locale].title,
     };
 

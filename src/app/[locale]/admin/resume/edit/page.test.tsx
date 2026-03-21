@@ -40,25 +40,21 @@ describe('AdminResumeEditRoute', () => {
         en: {
           body: '',
           description: '',
-          download_button_label: 'Download',
           title: 'Resume',
         },
         fr: {
           body: '',
           description: '',
-          download_button_label: 'Telecharger',
           title: 'CV',
         },
         ja: {
           body: '',
           description: '',
-          download_button_label: 'ダウンロード',
           title: '履歴書',
         },
         ko: {
           body: '',
           description: '',
-          download_button_label: '다운로드',
           title: '이력서',
         },
       },
@@ -94,25 +90,21 @@ describe('AdminResumeEditRoute', () => {
         en: {
           body: '',
           description: '',
-          download_button_label: 'Download',
           title: 'Resume',
         },
         fr: {
           body: '',
           description: '',
-          download_button_label: 'Telecharger',
           title: 'CV',
         },
         ja: {
           body: '',
           description: '',
-          download_button_label: 'ダウンロード',
           title: '履歴書',
         },
         ko: {
           body: '초안 본문',
           description: '',
-          download_button_label: '다운로드',
           title: '초안 이력서',
         },
       },

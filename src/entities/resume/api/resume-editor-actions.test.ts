@@ -71,25 +71,21 @@ describe('resume-editor-actions', () => {
           en: {
             body: '',
             description: '',
-            download_button_label: 'Download',
             title: 'Resume',
           },
           fr: {
             body: '',
             description: '',
-            download_button_label: 'Telecharger',
             title: 'CV',
           },
           ja: {
             body: '',
             description: '',
-            download_button_label: 'ダウンロード',
             title: '履歴書',
           },
           ko: {
             body: '한국어 본문',
             description: '한국어 설명',
-            download_button_label: '다운로드',
             title: '이력서',
           },
         },
@@ -152,25 +148,21 @@ describe('resume-editor-actions', () => {
           en: {
             body: '',
             description: '',
-            download_button_label: 'Download',
             title: 'Resume',
           },
           fr: {
             body: '',
             description: '',
-            download_button_label: 'Telecharger',
             title: 'CV',
           },
           ja: {
             body: '',
             description: '',
-            download_button_label: 'ダウンロード',
             title: '履歴書',
           },
           ko: {
             body: '한국어 본문',
             description: '한국어 설명',
-            download_button_label: '다운로드',
             title: '이력서',
           },
         },
@@ -225,25 +217,21 @@ describe('resume-editor-actions', () => {
             en: {
               body: '',
               description: '',
-              download_button_label: 'Download',
               title: 'Resume',
             },
             fr: {
               body: '',
               description: '',
-              download_button_label: 'Telecharger',
               title: 'CV',
             },
             ja: {
               body: '',
               description: '',
-              download_button_label: 'ダウンロード',
               title: '履歴書',
             },
             ko: {
               body: '한국어 본문',
               description: '한국어 설명',
-              download_button_label: '다운로드',
               title: '이력서',
             },
           },
@@ -271,25 +259,21 @@ describe('resume-editor-actions', () => {
             en: {
               body: '',
               description: '',
-              download_button_label: 'Download',
               title: 'Resume',
             },
             fr: {
               body: '',
               description: '',
-              download_button_label: 'Telecharger',
               title: 'CV',
             },
             ja: {
               body: '',
               description: '',
-              download_button_label: 'ダウンロード',
               title: '履歴書',
             },
             ko: {
               body: '한국어 본문',
               description: '한국어 설명',
-              download_button_label: '다운로드',
               title: '이력서',
             },
           },

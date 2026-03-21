@@ -50,13 +50,11 @@ describe('resume-editor.utils', () => {
       toResumeEditorContent({
         body: '본문',
         description: '설명',
-        download_button_label: '다운로드',
         title: '제목',
       }),
     ).toEqual({
       body: '본문',
       description: '설명',
-      download_button_label: '다운로드',
       title: '제목',
     });
   });

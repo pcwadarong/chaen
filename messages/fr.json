@@ -141,6 +141,7 @@
     }
   },
   "Resume": {
+    "downloadButtonLabel": "Libelle du bouton de telechargement",
     "loading": "Chargement du CV.",
     "resumeDownloadUnavailable": "CV indisponible"
   },

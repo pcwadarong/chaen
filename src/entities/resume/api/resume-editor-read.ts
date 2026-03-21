@@ -26,7 +26,6 @@ type ResumeDraftRow = {
 type ResumeDraftLocaleContent = {
   body?: string;
   description?: string;
-  download_button_label?: string;
   title?: string;
 };
 
@@ -147,10 +146,6 @@ const getResumeDraftSeed = async ({
       description:
         typeof normalizedDraftContent?.description === 'string'
           ? normalizedDraftContent.description
-          : '',
-      download_button_label:
-        typeof normalizedDraftContent?.download_button_label === 'string'
-          ? normalizedDraftContent.download_button_label
           : '',
       title: typeof normalizedDraftContent?.title === 'string' ? normalizedDraftContent.title : '',
     };

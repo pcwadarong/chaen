@@ -29,6 +29,7 @@ describe('getResumePageData', () => {
 
     expect(getPdfFileContent).toHaveBeenCalledWith({ locale: 'ko', kind: 'resume' });
     expect(data.content.locale).toBe('ko');
+    expect(data.downloadLabel).toBe('downloadButtonLabel');
     expect(data.unavailableLabel).toBe('Unavailable');
   });
 
@@ -43,7 +44,7 @@ describe('getResumePageData', () => {
     const data = await getResumePageData({ locale: 'ko' });
 
     expect(data.content.locale).toBe('ko');
-    expect(data.content.download_button_label).toBeTruthy();
+    expect(data.downloadLabel).toBe('downloadButtonLabel');
     expect(data.unavailableLabel).toBe('Unavailable');
   });
 });

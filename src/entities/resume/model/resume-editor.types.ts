@@ -3,10 +3,7 @@
 import type { Locale } from '@/entities/editor/model/editor-types';
 import type { PdfFileContent } from '@/entities/pdf-file/model/types';
 
-export type ResumeEditorContent = Pick<
-  PdfFileContent,
-  'body' | 'description' | 'download_button_label' | 'title'
->;
+export type ResumeEditorContent = Pick<PdfFileContent, 'body' | 'description' | 'title'>;
 
 export type ResumeEditorContentMap = Record<Locale, ResumeEditorContent>;
 

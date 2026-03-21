@@ -36,7 +36,6 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 const resumeContentSchema = z.object({
   body: z.string(),
   description: z.string(),
-  download_button_label: z.string(),
   title: z.string(),
 });
 
@@ -213,7 +212,6 @@ const buildResumeContentRows = ({
   EDITOR_LOCALES.map(locale => ({
     body: contents[locale].body.trim(),
     description: contents[locale].description.trim(),
-    download_button_label: contents[locale].download_button_label.trim(),
     locale,
     title: contents[locale].title.trim(),
     updated_at: updatedAt,

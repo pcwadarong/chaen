@@ -10,25 +10,21 @@ const toResumeInitialContents = () => ({
   en: {
     body: '',
     description: '',
-    download_button_label: 'Download',
     title: 'Resume',
   },
   fr: {
     body: '',
     description: '',
-    download_button_label: 'Telecharger',
     title: 'CV',
   },
   ja: {
     body: '',
     description: '',
-    download_button_label: 'ダウンロード',
     title: '履歴書',
   },
   ko: {
     body: '한국어 본문',
     description: '한국어 설명',
-    download_button_label: '다운로드',
     title: '이력서',
   },
 });
@@ -43,29 +39,26 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
       en: {
         content: '',
         description: '',
-        download_button_label: 'Download',
         title: 'Resume',
       },
       fr: {
         content: '',
         description: '',
-        download_button_label: 'Telecharger',
         title: 'CV',
       },
       ja: {
         content: '',
         description: '',
-        download_button_label: 'ダウンロード',
         title: '履歴書',
       },
       ko: {
         content: '한국어 본문',
         description: '한국어 설명',
-        download_button_label: '다운로드',
         title: '이력서',
       },
     },
   },
+  lastExtraLocaleFieldLabel: undefined as EditorCoreProps['extraLocaleFieldLabel'] | undefined,
   lastOnDraftSave: undefined as EditorCoreProps['onDraftSave'] | undefined,
   lastOnDirectPublish: undefined as EditorCoreProps['onDirectPublish'] | undefined,
 }));
@@ -75,8 +68,14 @@ vi.mock('@/widgets/editor', async () => {
 
   return {
     ...actual,
-    EditorCore: ({ hideAppFrameFooter, onDirectPublish, onDraftSave }: EditorCoreProps) => {
+    EditorCore: ({
+      extraLocaleFieldLabel,
+      hideAppFrameFooter,
+      onDirectPublish,
+      onDraftSave,
+    }: EditorCoreProps) => {
       resumeEditorClientMockState.editorCoreRenderCount += 1;
+      resumeEditorClientMockState.lastExtraLocaleFieldLabel = extraLocaleFieldLabel;
       resumeEditorClientMockState.lastOnDraftSave = onDraftSave;
       resumeEditorClientMockState.lastOnDirectPublish = onDirectPublish;
 
@@ -97,6 +96,7 @@ vi.mock('@/widgets/editor', async () => {
 describe('ResumeEditorClient', () => {
   beforeEach(() => {
     resumeEditorClientMockState.editorCoreRenderCount = 0;
+    resumeEditorClientMockState.lastExtraLocaleFieldLabel = undefined;
     resumeEditorClientMockState.lastOnDraftSave = undefined;
     resumeEditorClientMockState.lastOnDirectPublish = undefined;
   });
@@ -122,25 +122,21 @@ describe('ResumeEditorClient', () => {
             en: {
               body: '',
               description: '',
-              download_button_label: 'Download',
               title: 'Resume',
             },
             fr: {
               body: '',
               description: '',
-              download_button_label: 'Telecharger',
               title: 'CV',
             },
             ja: {
               body: '',
               description: '',
-              download_button_label: 'ダウンロード',
               title: '履歴書',
             },
             ko: {
               body: '한국어 본문',
               description: '한국어 설명',
-              download_button_label: '다운로드',
               title: '이력서',
             },
           },
@@ -206,5 +202,16 @@ describe('ResumeEditorClient', () => {
     );
 
     expect(typeof resumeEditorClientMockState.lastOnDraftSave).toBe('function');
+  });
+
+  it('resume editor는 extra locale field를 넘기지 않는다', () => {
+    render(
+      <ResumeEditorClient
+        initialContents={toResumeInitialContents()}
+        onDraftSave={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    expect(resumeEditorClientMockState.lastExtraLocaleFieldLabel).toBeUndefined();
   });
 });

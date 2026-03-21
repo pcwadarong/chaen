@@ -7,19 +7,20 @@ import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page
 
 export type ResumePageProps = {
   content: PdfFileContent;
+  downloadLabel: string;
   unavailableLabel: string;
 };
 
 /**
  * 이력서 소개 페이지 컨테이너입니다.
  */
-export const ResumePage = ({ content, unavailableLabel }: ResumePageProps) => (
+export const ResumePage = ({ content, downloadLabel, unavailableLabel }: ResumePageProps) => (
   <PageShell width="compact">
     <PageHeader
       action={
         <DeferredPdfDownloadPopover
           kind="resume"
-          label={content.download_button_label}
+          label={downloadLabel}
           source="resume-page"
           unavailableLabel={unavailableLabel}
         />
