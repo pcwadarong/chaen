@@ -145,6 +145,19 @@ describe('ImageViewerModal', () => {
     expect(screen.getByText('250%')).toBeTruthy();
   });
 
+  it('마우스 휠로 이미지를 확대할 수 있다', () => {
+    const { container } = render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />,
+    );
+    const viewport = container.querySelector(
+      '[data-image-viewer-viewport="true"]',
+    ) as HTMLDivElement;
+
+    fireEvent.wheel(viewport, { deltaY: -100 });
+
+    expect(screen.getByText('125%')).toBeTruthy();
+  });
+
   it('확대된 상태에서도 zoom dock 버튼을 계속 클릭할 수 있다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
@@ -155,5 +168,45 @@ describe('ImageViewerModal', () => {
     fireEvent.click(screen.getByRole('button', { name: '축소' }));
 
     expect(screen.getByText('100%')).toBeTruthy();
+  });
+
+  it('두 손가락 포인터 이동으로 이미지를 pinch 확대할 수 있다', () => {
+    const { container } = render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />,
+    );
+    const viewport = container.querySelector(
+      '[data-image-viewer-viewport="true"]',
+    ) as HTMLDivElement;
+
+    Object.defineProperty(viewport, 'setPointerCapture', { configurable: true, value: vi.fn() });
+    Object.defineProperty(viewport, 'hasPointerCapture', {
+      configurable: true,
+      value: vi.fn(() => true),
+    });
+    Object.defineProperty(viewport, 'releasePointerCapture', {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(viewport, {
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+      pointerType: 'touch',
+    });
+    fireEvent.pointerDown(viewport, {
+      clientX: 200,
+      clientY: 100,
+      pointerId: 2,
+      pointerType: 'touch',
+    });
+    fireEvent.pointerMove(viewport, {
+      clientX: 260,
+      clientY: 100,
+      pointerId: 2,
+      pointerType: 'touch',
+    });
+
+    expect(screen.getByText('160%')).toBeTruthy();
   });
 });

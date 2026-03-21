@@ -56,6 +56,16 @@ type ImageViewerDragState = {
   startY: number;
 };
 
+type ImageViewerPointerState = {
+  x: number;
+  y: number;
+};
+
+type ImageViewerPinchState = {
+  initialDistance: number;
+  initialZoomLevel: number;
+};
+
 type ImageViewerSideControlsProps = {
   nextAriaLabel: string;
   onNext: () => void;
@@ -128,6 +138,19 @@ const isInteractiveViewerTarget = (target: EventTarget | null) =>
   Boolean(target.closest('button, a, input, textarea, select, summary, [role="button"]'));
 
 /**
+ * 활성 포인터 두 개 사이의 거리를 계산합니다.
+ */
+const getPointerDistance = (points: ImageViewerPointerState[]) => {
+  if (points.length < 2) return 0;
+
+  const [firstPoint, secondPoint] = points;
+  const deltaX = secondPoint.x - firstPoint.x;
+  const deltaY = secondPoint.y - firstPoint.y;
+
+  return Math.hypot(deltaX, deltaY);
+};
+
+/**
  * 이미지 뷰어 모달을 렌더링합니다.
  */
 export const ImageViewerModal = ({
@@ -140,8 +163,10 @@ export const ImageViewerModal = ({
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [panOffset, setPanOffset] = useState<ImageViewerPanOffset>(DEFAULT_PAN_OFFSET);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const activePointersRef = useRef<Map<number, ImageViewerPointerState>>(new Map());
   const dragStateRef = useRef<ImageViewerDragState | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const pinchStateRef = useRef<ImageViewerPinchState | null>(null);
   const thumbnailRailRef = useRef<HTMLDivElement | null>(null);
   const thumbnailButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -193,7 +218,9 @@ export const ImageViewerModal = ({
 
   useEffect(() => {
     if (zoomLevel > 1) return;
+    activePointersRef.current.clear();
     dragStateRef.current = null;
+    pinchStateRef.current = null;
     setIsDraggingImage(false);
     setPanOffset(DEFAULT_PAN_OFFSET);
   }, [zoomLevel]);
@@ -251,9 +278,31 @@ export const ImageViewerModal = ({
    * 확대 상태에서 포인터 드래그를 시작합니다.
    */
   const handleViewportPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (zoomLevel <= 1) return;
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (isInteractiveViewerTarget(event.target)) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+    activePointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    if (activePointersRef.current.size >= 2) {
+      const pinchDistance = getPointerDistance(Array.from(activePointersRef.current.values()));
+
+      if (pinchDistance > 0) {
+        pinchStateRef.current = {
+          initialDistance: pinchDistance,
+          initialZoomLevel: zoomLevel,
+        };
+      }
+
+      dragStateRef.current = null;
+      setIsDraggingImage(false);
+      return;
+    }
+
+    if (zoomLevel <= 1) return;
 
     dragStateRef.current = {
       originOffset: panOffset,
@@ -261,7 +310,6 @@ export const ImageViewerModal = ({
       startX: event.clientX,
       startY: event.clientY,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
     setIsDraggingImage(true);
   };
 
@@ -269,6 +317,28 @@ export const ImageViewerModal = ({
    * 확대된 이미지를 포인터 이동량만큼 팬합니다.
    */
   const handleViewportPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointersRef.current.has(event.pointerId)) {
+      activePointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    if (pinchStateRef.current && activePointersRef.current.size >= 2) {
+      const nextDistance = getPointerDistance(Array.from(activePointersRef.current.values()));
+
+      if (nextDistance > 0) {
+        setZoomLevel(
+          clampZoomLevel(
+            pinchStateRef.current.initialZoomLevel *
+              (nextDistance / pinchStateRef.current.initialDistance),
+          ),
+        );
+      }
+
+      return;
+    }
+
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) return;
 
@@ -283,12 +353,31 @@ export const ImageViewerModal = ({
    * 팬 제스처를 종료하고 포인터 캡처를 해제합니다.
    */
   const handleViewportPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (dragStateRef.current?.pointerId !== event.pointerId) return;
-    dragStateRef.current = null;
-    setIsDraggingImage(false);
+    activePointersRef.current.delete(event.pointerId);
+
+    if (activePointersRef.current.size < 2) {
+      pinchStateRef.current = null;
+    }
+
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      dragStateRef.current = null;
+      setIsDraggingImage(false);
+    }
+
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+  };
+
+  /**
+   * 마우스 휠이나 트랙패드 제스처로 확대/축소합니다.
+   */
+  const handleViewportWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (isInteractiveViewerTarget(event.target)) return;
+
+    event.preventDefault();
+
+    setZoomLevel(previousZoomLevel => clampZoomLevel(previousZoomLevel - event.deltaY * 0.0025));
   };
 
   if (!isOpen || !currentItem) return null;
@@ -322,6 +411,7 @@ export const ImageViewerModal = ({
             onPointerDown={handleViewportPointerDown}
             onPointerMove={handleViewportPointerMove}
             onPointerUp={handleViewportPointerEnd}
+            onWheel={handleViewportWheel}
             ref={viewportRef}
           >
             <div className={imageInnerClass}>
