@@ -1,7 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import { renderToReadableStream } from 'react-dom/server';
 
+import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) =>
+    (
+      ({
+        closeAriaLabel: '이미지 뷰어 닫기',
+        imageViewerAriaLabel: '이미지 뷰어',
+        nextAriaLabel: '다음 이미지 보기',
+        openAriaLabel: '이미지 크게 보기',
+        previousAriaLabel: '이전 이미지 보기',
+        thumbnailListAriaLabel: '이미지 썸네일 목록',
+        zoomInAriaLabel: '이미지 확대',
+        zoomOutAriaLabel: '이미지 축소',
+      }) as const
+    )[key] ?? key,
+}));
 
 /**
  * 서버 컴포넌트 결과를 HTML 문자열로 수집합니다.
@@ -23,6 +40,19 @@ const renderServerDocument = async (markdown: string) => {
 };
 
 describe('MarkdownRenderer', () => {
+  it('이미지 목록 helper는 본문 이미지 순서와 viewer id를 안정적으로 만든다', () => {
+    expect(
+      collectMarkdownImages(
+        ['![첫 번째](https://example.com/one.png)', '![두 번째](https://example.com/two.png)'].join(
+          '\n',
+        ),
+      ),
+    ).toEqual([
+      { alt: '첫 번째', src: 'https://example.com/one.png', viewerId: 'markdown-image-0' },
+      { alt: '두 번째', src: 'https://example.com/two.png', viewerId: 'markdown-image-1' },
+    ]);
+  });
+
   it('GFM과 코드 블럭 스타일을 포함한 markdown를 렌더링한다', async () => {
     const markdown = [
       '# 제목',
@@ -77,13 +107,14 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('[data-link-embed-card="true"]')).toBeNull();
   });
 
-  it('이미지를 반응형 본문 이미지로 렌더링한다', async () => {
+  it('이미지를 반응형 뷰어 트리거 이미지로 렌더링한다', async () => {
     const document = await renderServerDocument('![설명](https://example.com/image.png "샘플")');
-    const image = document.querySelector('img');
+    const image = document.querySelector('img[role="button"]');
 
     expect(image).toBeTruthy();
     expect(image?.getAttribute('src')).toBe('https://example.com/image.png');
     expect(image?.getAttribute('alt')).toBe('설명');
+    expect(image?.getAttribute('aria-haspopup')).toBe('dialog');
     expect(image?.className).toBeTruthy();
   });
 

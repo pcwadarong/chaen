@@ -103,4 +103,26 @@ describe('Tooltip', () => {
     expect(tooltip.style.top).toBe('28px');
     expect(tooltip.style.transform).toBe('translate(-50%, 0)');
   });
+
+  it('openOnFocus가 false면 focus와 blur만으로 tooltip 상태를 바꾸지 않는다', () => {
+    render(
+      <Tooltip content="이미지 축소" openOnFocus={false}>
+        <button type="button">-</button>
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByRole('button', { name: '-' });
+
+    fireEvent.focus(trigger);
+    expect(screen.queryByRole('tooltip', { name: '이미지 축소' })).toBeNull();
+
+    fireEvent.blur(trigger);
+    expect(screen.queryByRole('tooltip', { name: '이미지 축소' })).toBeNull();
+
+    fireEvent.mouseEnter(trigger);
+    expect(screen.getByRole('tooltip', { name: '이미지 축소' })).toBeTruthy();
+
+    fireEvent.mouseLeave(trigger);
+    expect(screen.queryByRole('tooltip', { name: '이미지 축소' })).toBeNull();
+  });
 });

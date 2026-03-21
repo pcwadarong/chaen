@@ -2,7 +2,7 @@
 
 import React, { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { XButton } from '@/shared/ui/x-button/x-button';
@@ -13,7 +13,6 @@ type ModalProps = {
   ariaLabelledBy?: string;
   children: ReactNode;
   closeAriaLabel: string;
-  frameClassName?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +28,6 @@ export const Modal = ({
   ariaLabelledBy,
   children,
   closeAriaLabel,
-  frameClassName,
   initialFocusRef,
   isOpen,
   onClose,
@@ -76,7 +74,7 @@ export const Modal = ({
         ref={frameRef}
         role="dialog"
         tabIndex={-1}
-        className={cx(frameBaseClass, frameClassName)}
+        className={frameBaseClass}
       >
         <XButton ariaLabel={closeAriaLabel} className={closeButtonClass} onClick={onClose} />
         {children}

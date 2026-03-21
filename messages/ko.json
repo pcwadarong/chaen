@@ -257,8 +257,13 @@
     "viewCount": "조회수"
   },
   "ImageViewer": {
+    "actionBarAriaLabel": "이미지 액션 바",
     "closeAriaLabel": "이미지 뷰어 닫기",
+    "fitToScreenAriaLabel": "화면에 맞추기",
+    "imageViewerAriaLabel": "이미지 뷰어",
+    "locateSourceAriaLabel": "이미지 위치로 글 이동",
     "nextAriaLabel": "다음 이미지 보기",
+    "openAriaLabel": "이미지 크게 보기",
     "previousAriaLabel": "이전 이미지 보기",
     "thumbnailListAriaLabel": "이미지 썸네일 목록",
     "zoomInAriaLabel": "이미지 확대",

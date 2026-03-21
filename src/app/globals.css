@@ -48,6 +48,42 @@ body {
   }
 }
 
+@keyframes image-viewer-slide-next {
+  0% {
+    opacity: 0;
+    transform: translate3d(48px, 0, 0) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes image-viewer-slide-previous {
+  0% {
+    opacity: 0;
+    transform: translate3d(-48px, 0, 0) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes image-viewer-tooltip-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 html,
 body,
 [data-app-scroll-viewport='true'],

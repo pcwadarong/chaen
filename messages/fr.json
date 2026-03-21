@@ -257,8 +257,13 @@
     "viewCount": "Vues"
   },
   "ImageViewer": {
+    "actionBarAriaLabel": "Barre d'actions de l'image",
     "closeAriaLabel": "Fermer la visionneuse d'image",
+    "fitToScreenAriaLabel": "Ajuster à l'écran",
+    "imageViewerAriaLabel": "Visionneuse d'image",
+    "locateSourceAriaLabel": "Accéder à la source de l'image",
     "nextAriaLabel": "Afficher l'image suivante",
+    "openAriaLabel": "Ouvrir la visionneuse d'image",
     "previousAriaLabel": "Afficher l'image précédente",
     "thumbnailListAriaLabel": "Liste des miniatures d'images",
     "zoomInAriaLabel": "Agrandir l'image",

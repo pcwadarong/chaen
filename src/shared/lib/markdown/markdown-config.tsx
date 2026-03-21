@@ -12,6 +12,7 @@ import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownImageViewerItem } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   getLinkText,
   getMarkdownLinkRenderMode,
@@ -20,9 +21,13 @@ import {
 import { getMarkdownColorPreset } from '@/shared/lib/markdown/markdown-color-presets';
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
+import { MarkdownImage } from '@/shared/ui/markdown/markdown-image';
 import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
+type MarkdownViewerConfig = {
+  items?: MarkdownImageViewerItem[];
+};
 type MarkdownInlineDirective =
   | {
       type: 'background';
@@ -159,211 +164,253 @@ const isBlockCode = ({
 };
 
 /**
- * markdown 본문 이미지를 반응형으로 렌더링합니다.
+ * markdown 본문 이미지를 반응형 뷰어 트리거로 렌더링합니다.
  */
-const renderMarkdownImage = ({ alt, src, ...props }: ImgHTMLAttributes<HTMLImageElement>) => {
+const renderMarkdownImage = ({
+  alt,
+  imageIndex,
+  src,
+  viewerItems,
+  ...props
+}: ImgHTMLAttributes<HTMLImageElement> & {
+  imageIndex?: number;
+  viewerItems?: MarkdownImageViewerItem[];
+}) => {
   const resolvedAlt = alt ?? '';
+  const resolvedImageIndex = imageIndex ?? 0;
 
-  // markdown 본문 이미지는 원본 src를 그대로 존중해야 합니다.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img alt={resolvedAlt} className={markdownImageClass} src={src} {...props} />;
+  return (
+    <MarkdownImage
+      alt={resolvedAlt}
+      className={markdownImageClass}
+      imageIndex={resolvedImageIndex}
+      src={src}
+      viewerItems={viewerItems}
+      {...props}
+    />
+  );
 };
 
 /**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.
  */
-const createMarkdownComponents = (): Components => ({
-  a: ({ href, children, title, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
-    const inlineDirective = parseMarkdownInlineDirective(href);
+const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Components => {
+  let imageIndex = 0;
+  const viewerItems = items.filter(item => item.src.trim().length > 0);
 
-    if (inlineDirective?.type === 'color') {
-      const preset = getMarkdownColorPreset(inlineDirective.value);
+  return {
+    a: ({ href, children, title, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
+      const inlineDirective = parseMarkdownInlineDirective(href);
+
+      if (inlineDirective?.type === 'color') {
+        const preset = getMarkdownColorPreset(inlineDirective.value);
+
+        return (
+          <span
+            className={markdownColoredTextClass}
+            style={{ color: preset?.textColor ?? inlineDirective.value }}
+          >
+            {children}
+          </span>
+        );
+      }
+
+      if (inlineDirective?.type === 'background') {
+        const preset = getMarkdownColorPreset(inlineDirective.value);
+
+        return (
+          <span
+            className={markdownHighlightedTextClass}
+            style={{
+              backgroundColor: preset?.softBackgroundColor ?? `${inlineDirective.value}29`,
+            }}
+          >
+            {children}
+          </span>
+        );
+      }
+
+      if (inlineDirective?.type === 'style') {
+        const textPreset = inlineDirective.color
+          ? getMarkdownColorPreset(inlineDirective.color)
+          : null;
+        const backgroundPreset = inlineDirective.background
+          ? getMarkdownColorPreset(inlineDirective.background)
+          : null;
+
+        return (
+          <span
+            className={cx(
+              inlineDirective.background ? markdownHighlightedTextClass : undefined,
+              inlineDirective.color ? markdownColoredTextClass : undefined,
+            )}
+            style={{
+              backgroundColor: inlineDirective.background
+                ? (backgroundPreset?.softBackgroundColor ?? `${inlineDirective.background}29`)
+                : undefined,
+              color: inlineDirective.color
+                ? (textPreset?.textColor ?? inlineDirective.color)
+                : undefined,
+            }}
+          >
+            {children}
+          </span>
+        );
+      }
+
+      if (inlineDirective?.type === 'spoiler') {
+        return <MarkdownSpoilerButton>{children}</MarkdownSpoilerButton>;
+      }
+
+      if (inlineDirective?.type === 'underline') {
+        return <u className={markdownUnderlineClass}>{children}</u>;
+      }
+
+      const normalizedHref = normalizeHttpUrl(href);
+      const linkText = getLinkText(children);
+      const renderMode = isEmbedKeyword(children) ? 'embed' : getMarkdownLinkRenderMode(title);
+
+      if (normalizedHref && renderMode === 'preview') {
+        return (
+          <LinkEmbedCard
+            fallbackLabel={linkText || normalizedHref}
+            url={normalizedHref}
+            variant="preview"
+          />
+        );
+      }
+
+      if (normalizedHref && (renderMode === 'card' || renderMode === 'embed')) {
+        return (
+          <LinkEmbedCard
+            fallbackLabel={renderMode === 'embed' ? normalizedHref : linkText || normalizedHref}
+            url={normalizedHref}
+            variant="card"
+          />
+        );
+      }
 
       return (
-        <span
-          className={markdownColoredTextClass}
-          style={{ color: preset?.textColor ?? inlineDirective.value }}
-        >
-          {children}
-        </span>
-      );
-    }
-
-    if (inlineDirective?.type === 'background') {
-      const preset = getMarkdownColorPreset(inlineDirective.value);
-
-      return (
-        <span
-          className={markdownHighlightedTextClass}
-          style={{
-            backgroundColor: preset?.softBackgroundColor ?? `${inlineDirective.value}29`,
-          }}
-        >
-          {children}
-        </span>
-      );
-    }
-
-    if (inlineDirective?.type === 'style') {
-      const textPreset = inlineDirective.color
-        ? getMarkdownColorPreset(inlineDirective.color)
-        : null;
-      const backgroundPreset = inlineDirective.background
-        ? getMarkdownColorPreset(inlineDirective.background)
-        : null;
-
-      return (
-        <span
-          className={cx(
-            inlineDirective.background ? markdownHighlightedTextClass : undefined,
-            inlineDirective.color ? markdownColoredTextClass : undefined,
-          )}
-          style={{
-            backgroundColor: inlineDirective.background
-              ? (backgroundPreset?.softBackgroundColor ?? `${inlineDirective.background}29`)
-              : undefined,
-            color: inlineDirective.color
-              ? (textPreset?.textColor ?? inlineDirective.color)
-              : undefined,
-          }}
-        >
-          {children}
-        </span>
-      );
-    }
-
-    if (inlineDirective?.type === 'spoiler') {
-      return <MarkdownSpoilerButton>{children}</MarkdownSpoilerButton>;
-    }
-
-    if (inlineDirective?.type === 'underline') {
-      return <u className={markdownUnderlineClass}>{children}</u>;
-    }
-
-    const normalizedHref = normalizeHttpUrl(href);
-    const linkText = getLinkText(children);
-    const renderMode = isEmbedKeyword(children) ? 'embed' : getMarkdownLinkRenderMode(title);
-
-    if (normalizedHref && renderMode === 'preview') {
-      return (
-        <LinkEmbedCard
-          fallbackLabel={linkText || normalizedHref}
-          url={normalizedHref}
-          variant="preview"
-        />
-      );
-    }
-
-    if (normalizedHref && (renderMode === 'card' || renderMode === 'embed')) {
-      return (
-        <LinkEmbedCard
-          fallbackLabel={renderMode === 'embed' ? normalizedHref : linkText || normalizedHref}
-          url={normalizedHref}
-          variant="card"
-        />
-      );
-    }
-
-    return (
-      <a
-        href={href}
-        className={markdownLinkClass}
-        rel={isExternalHref(href) ? 'noreferrer noopener' : undefined}
-        target={isExternalHref(href) ? '_blank' : undefined}
-        title={title}
-        {...props}
-      >
-        {children}
-      </a>
-    );
-  },
-  blockquote: ({ children }) => (
-    <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
-  ),
-  code: ({ children, className, node, style, ...props }) => {
-    const codeProps = {
-      ...props,
-      style,
-    };
-
-    if (isBlockCode({ className, node, props: codeProps })) {
-      return (
-        <code
-          className={cx(markdownCodeBlockCodeClass, className)}
-          style={style as React.CSSProperties | undefined}
+        <a
+          href={href}
+          className={markdownLinkClass}
+          rel={isExternalHref(href) ? 'noreferrer noopener' : undefined}
+          target={isExternalHref(href) ? '_blank' : undefined}
+          title={title}
           {...props}
         >
           {children}
+        </a>
+      );
+    },
+    blockquote: ({ children }) => (
+      <blockquote className={markdownBlockquoteClass}>{children}</blockquote>
+    ),
+    code: ({ children, className, node, style, ...props }) => {
+      const codeProps = {
+        ...props,
+        style,
+      };
+
+      if (isBlockCode({ className, node, props: codeProps })) {
+        return (
+          <code
+            className={cx(markdownCodeBlockCodeClass, className)}
+            style={style as React.CSSProperties | undefined}
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+
+      return (
+        <code className={cx(markdownInlineCodeClass, className)} {...props}>
+          {children}
         </code>
       );
-    }
+    },
+    h1: ({ children }) => <h1 className={markdownH1Class}>{children}</h1>,
+    h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
+    h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
+    h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
+    hr: () => <hr className={markdownHorizontalRuleClass} />,
+    img: ({ alt, src, ...props }) => {
+      const hasViewerSource = typeof src === 'string' && src.trim().length > 0;
+      const currentImageIndex = hasViewerSource ? imageIndex : undefined;
 
-    return (
-      <code className={cx(markdownInlineCodeClass, className)} {...props}>
+      if (hasViewerSource) {
+        imageIndex += 1;
+      }
+
+      return renderMarkdownImage({
+        ...props,
+        alt,
+        imageIndex: currentImageIndex,
+        src,
+        viewerItems,
+      });
+    },
+    li: ({ children, className, ...props }) => (
+      <li className={cx(markdownListItemClass, className)} {...props}>
         {children}
-      </code>
-    );
-  },
-  h1: ({ children }) => <h1 className={markdownH1Class}>{children}</h1>,
-  h2: ({ children }) => <h2 className={markdownH2Class}>{children}</h2>,
-  h3: ({ children }) => <h3 className={markdownH3Class}>{children}</h3>,
-  h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
-  hr: () => <hr className={markdownHorizontalRuleClass} />,
-  img: renderMarkdownImage,
-  li: ({ children, className, ...props }) => (
-    <li className={cx(markdownListItemClass, className)} {...props}>
-      {children}
-    </li>
-  ),
-  ol: ({ children, className, ...props }) => (
-    <ol className={cx(markdownOrderedListClass, className)} {...props}>
-      {children}
-    </ol>
-  ),
-  p: ({ children, className, ...props }) => (
-    <p className={cx(markdownParagraphClass, className)} {...props}>
-      {children}
-    </p>
-  ),
-  pre: ({ children, className, ...props }) => (
-    <div className={markdownCodeBlockFrameClass}>
-      <div className={markdownCodeBlockHeaderClass}>
-        <div aria-hidden className={markdownTrafficLightRowClass}>
-          <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
-          <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
-          <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+      </li>
+    ),
+    ol: ({ children, className, ...props }) => (
+      <ol className={cx(markdownOrderedListClass, className)} {...props}>
+        {children}
+      </ol>
+    ),
+    p: ({ children, className, ...props }) => (
+      <p className={cx(markdownParagraphClass, className)} {...props}>
+        {children}
+      </p>
+    ),
+    pre: ({ children, className, ...props }) => (
+      <div className={markdownCodeBlockFrameClass}>
+        <div className={markdownCodeBlockHeaderClass}>
+          <div aria-hidden className={markdownTrafficLightRowClass}>
+            <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
+            <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
+            <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+          </div>
+          <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
         </div>
-        <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
+        <pre
+          aria-label={getCodeBlockAriaLabel(children)}
+          className={
+            className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
+          }
+          tabIndex={0}
+          {...props}
+        >
+          {children}
+        </pre>
       </div>
-      <pre
-        aria-label={getCodeBlockAriaLabel(children)}
-        className={
-          className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
-        }
-        tabIndex={0}
-        {...props}
-      >
+    ),
+    table: ({ children }) => (
+      <div aria-label="Markdown table" className={markdownTableScrollClass} tabIndex={0}>
+        <table className={markdownTableClass}>{children}</table>
+      </div>
+    ),
+    th: ({ children, className, ...props }) => (
+      <th className={className} suppressHydrationWarning {...props}>
         {children}
-      </pre>
-    </div>
-  ),
-  table: ({ children }) => (
-    <div aria-label="Markdown table" className={markdownTableScrollClass} tabIndex={0}>
-      <table className={markdownTableClass}>{children}</table>
-    </div>
-  ),
-  ul: ({ children, className, ...props }) => (
-    <ul className={cx(markdownUnorderedListClass, className)} {...props}>
-      {children}
-    </ul>
-  ),
-});
+      </th>
+    ),
+    ul: ({ children, className, ...props }) => (
+      <ul className={cx(markdownUnorderedListClass, className)} {...props}>
+        {children}
+      </ul>
+    ),
+  };
+};
 
 /**
  * 서버/클라이언트에서 공통으로 사용할 markdown 렌더링 옵션을 구성합니다.
  */
-export const getMarkdownOptions = (): MarkdownOptions => ({
-  components: createMarkdownComponents(),
+export const getMarkdownOptions = ({ items }: MarkdownViewerConfig = {}): MarkdownOptions => ({
+  components: createMarkdownComponents({ items }),
   rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
   remarkPlugins: [remarkGfm, remarkBreaks],
 });
