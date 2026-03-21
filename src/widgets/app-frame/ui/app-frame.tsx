@@ -59,7 +59,7 @@ const appFrameScrollViewportClass = css({
     display: 'flex',
     flexDirection: 'column',
     overflowY: 'auto',
-    overscrollBehavior: 'contain',
+    overscrollBehaviorY: 'contain',
     scrollbarGutter: 'stable',
     '&:has([data-page-scroll-mode="independent"])': {
       overflowY: 'hidden',
