@@ -83,6 +83,10 @@ type ImageViewerPinchState = {
 
 type ImageViewerTransitionDirection = 'next' | 'previous' | null;
 
+/**
+ * 이미지 뷰어 좌우 네비게이션 버튼에 필요한 접근성 라벨과 클릭 동작을 정의합니다.
+ * `stopClickPropagation`은 버튼 클릭이 backdrop 닫기로 전파되지 않도록 보장합니다.
+ */
 type ImageViewerSideControlsProps = {
   nextAriaLabel: string;
   onNext: () => void;
