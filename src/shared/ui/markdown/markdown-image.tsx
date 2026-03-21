@@ -83,8 +83,11 @@ export const MarkdownImage = ({
   const viewerItemId = resolvedViewerItems[imageIndex]?.viewerId ?? `markdown-image-${imageIndex}`;
   const imageViewerLabels = useMemo(
     () => ({
+      actionBarAriaLabel: t('actionBarAriaLabel'),
       closeAriaLabel: t('closeAriaLabel'),
+      fitToScreenAriaLabel: t('fitToScreenAriaLabel'),
       imageViewerAriaLabel: t('imageViewerAriaLabel'),
+      locateSourceAriaLabel: t('locateSourceAriaLabel'),
       nextAriaLabel: t('nextAriaLabel'),
       previousAriaLabel: t('previousAriaLabel'),
       thumbnailListAriaLabel: t('thumbnailListAriaLabel'),
@@ -180,7 +183,10 @@ export const MarkdownImage = ({
         initialIndex={isViewerOpen ? imageIndex : null}
         items={resolvedViewerItems}
         labels={imageViewerLabels}
-        onClose={currentIndex => {
+        onClose={() => {
+          setIsViewerOpen(false);
+        }}
+        onLocateSource={currentIndex => {
           const targetViewerId = resolvedViewerItems[currentIndex]?.viewerId ?? viewerItemId;
           setPendingScrollTargetId(targetViewerId);
           setIsViewerOpen(false);

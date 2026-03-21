@@ -13,8 +13,11 @@ describe('ImageViewerModal', () => {
   });
 
   const labels = {
+    actionBarAriaLabel: '이미지 액션 바',
     closeAriaLabel: '닫기',
+    fitToScreenAriaLabel: '화면 맞춤',
     imageViewerAriaLabel: '이미지 뷰어',
+    locateSourceAriaLabel: '이미지 위치로 글 이동',
     nextAriaLabel: '다음 이미지',
     previousAriaLabel: '이전 이미지',
     thumbnailListAriaLabel: '썸네일 목록',
@@ -94,6 +97,24 @@ describe('ImageViewerModal', () => {
     fireEvent.click(document.querySelector('[data-image-viewer-backdrop="true"]') as HTMLElement);
 
     expect(handleClose).toHaveBeenCalledWith(0);
+  });
+
+  it('액션 바의 이미지 위치 버튼으로 원문 이미지 위치 이동을 요청한다', () => {
+    const handleLocateSource = vi.fn();
+
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={items}
+        labels={labels}
+        onClose={vi.fn()}
+        onLocateSource={handleLocateSource}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '이미지 위치로 글 이동' }));
+
+    expect(handleLocateSource).toHaveBeenCalledWith(0);
   });
 
   it('확대된 상태에서는 포인터 드래그로 이미지를 이동한다', () => {
@@ -217,5 +238,14 @@ describe('ImageViewerModal', () => {
     });
 
     expect(screen.getByText('160%')).toBeTruthy();
+  });
+
+  it('화면 맞춤 버튼은 확대 상태를 기본 배율로 되돌린다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '확대' }));
+    fireEvent.click(screen.getByRole('button', { name: '화면 맞춤' }));
+
+    expect(screen.getByText('100%')).toBeTruthy();
   });
 });

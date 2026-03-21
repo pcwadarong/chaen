@@ -8,8 +8,11 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) =>
     (
       ({
+        actionBarAriaLabel: '이미지 액션 바',
         closeAriaLabel: '이미지 뷰어 닫기',
+        fitToScreenAriaLabel: '화면에 맞추기',
         imageViewerAriaLabel: '이미지 뷰어',
+        locateSourceAriaLabel: '이미지 위치로 글 이동',
         nextAriaLabel: '다음 이미지 보기',
         openAriaLabel: '이미지 크게 보기',
         previousAriaLabel: '이전 이미지 보기',
@@ -26,11 +29,13 @@ vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
     items,
     labels,
     onClose,
+    onLocateSource,
   }: {
     initialIndex: number | null;
     items: MarkdownImageViewerItem[];
     labels: { imageViewerAriaLabel?: string };
     onClose: (currentIndex: number) => void;
+    onLocateSource?: (currentIndex: number) => void;
   }) =>
     initialIndex !== null ? (
       <div
@@ -44,6 +49,9 @@ vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
       >
         <button onClick={() => onClose(1)} type="button">
           close-with-second-image
+        </button>
+        <button onClick={() => onLocateSource?.(1)} type="button">
+          locate-second-image
         </button>
       </div>
     ) : null,
@@ -119,7 +127,7 @@ describe('MarkdownImage', () => {
     expect(screen.getByRole('dialog', { name: '이미지 뷰어' })).toBeTruthy();
   });
 
-  it('닫을 때 현재 보고 있는 이미지 위치로 스크롤을 복귀한다', () => {
+  it('이미지 위치 액션으로 현재 보고 있는 이미지 위치로 스크롤을 복귀한다', () => {
     const scrollToMock = vi.fn();
     const viewerItems = [
       {
@@ -174,11 +182,51 @@ describe('MarkdownImage', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: '첫 번째 이미지 · 이미지 크게 보기' }));
-    fireEvent.click(screen.getByRole('button', { name: 'close-with-second-image' }));
+    fireEvent.click(screen.getByRole('button', { name: 'locate-second-image' }));
 
     expect(scrollToMock).toHaveBeenCalledWith({
       behavior: 'auto',
       top: 280,
     });
+  });
+
+  it('닫기만 할 때는 원문 이미지 위치로 스크롤을 이동하지 않는다', () => {
+    const scrollToMock = vi.fn();
+    const viewerItems = [
+      {
+        alt: '첫 번째 이미지',
+        src: 'https://example.com/one.png',
+        viewerId: 'markdown-image-0',
+      },
+      {
+        alt: '두 번째 이미지',
+        src: 'https://example.com/two.png',
+        viewerId: 'markdown-image-1',
+      },
+    ] satisfies MarkdownImageViewerItem[];
+    const { container } = render(
+      <div data-primary-scroll-region="true">
+        <MarkdownImage
+          alt="첫 번째 이미지"
+          imageIndex={0}
+          src="https://example.com/one.png"
+          viewerItems={viewerItems}
+        />
+      </div>,
+    );
+    const scrollRegion = container.querySelector(
+      '[data-primary-scroll-region="true"]',
+    ) as HTMLElement;
+
+    Object.defineProperty(scrollRegion, 'scrollTo', {
+      configurable: true,
+      value: scrollToMock,
+      writable: true,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '첫 번째 이미지 · 이미지 크게 보기' }));
+    fireEvent.click(screen.getByRole('button', { name: 'close-with-second-image' }));
+
+    expect(scrollToMock).not.toHaveBeenCalled();
   });
 });

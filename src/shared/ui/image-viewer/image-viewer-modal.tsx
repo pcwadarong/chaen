@@ -6,7 +6,13 @@ import { css, cx } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
-import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
+import {
+  ChevronRightIcon,
+  FitSizeIcon,
+  ImageQuestionIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from '@/shared/ui/icons/app-icons';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
 import { XButton } from '@/shared/ui/x-button/x-button';
 
@@ -16,8 +22,11 @@ type ImageViewerItem = {
 };
 
 export type ImageViewerLabels = {
+  actionBarAriaLabel: string;
   closeAriaLabel: string;
+  fitToScreenAriaLabel: string;
   imageViewerAriaLabel?: string;
+  locateSourceAriaLabel: string;
   nextAriaLabel: string;
   previousAriaLabel: string;
   thumbnailListAriaLabel: string;
@@ -30,6 +39,7 @@ type ImageViewerModalProps = {
   items: ImageViewerItem[];
   labels: ImageViewerLabels;
   onClose: (currentIndex: number) => void;
+  onLocateSource?: (currentIndex: number) => void;
 };
 
 const MIN_ZOOM = 0.5;
@@ -176,6 +186,7 @@ export const ImageViewerModal = ({
   items,
   labels,
   onClose,
+  onLocateSource,
 }: ImageViewerModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -241,6 +252,13 @@ export const ImageViewerModal = ({
   const handleModalClose = useCallback(() => {
     onClose(currentIndex);
   }, [currentIndex, onClose]);
+
+  /**
+   * 현재 보고 있는 이미지 원문 위치로 즉시 이동합니다.
+   */
+  const handleLocateSource = useCallback(() => {
+    onLocateSource?.(currentIndex);
+  }, [currentIndex, onLocateSource]);
 
   /**
    * 뷰어 내부 인터랙션 요소 클릭이 backdrop 닫기로 이어지지 않도록 전파를 중단합니다.
@@ -527,31 +545,52 @@ export const ImageViewerModal = ({
               </div>
 
               <div
-                className={zoomDockClass}
+                aria-label={labels.actionBarAriaLabel}
+                className={actionBarClass}
                 onClick={stopViewerClickPropagation}
                 onPointerDown={event => {
                   event.stopPropagation();
                 }}
+                role="toolbar"
               >
                 <button
                   aria-label={labels.zoomOutAriaLabel}
-                  className={dockButtonClass}
+                  className={actionButtonClass}
                   onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
                   type="button"
                 >
-                  -
+                  <ZoomOutIcon aria-hidden="true" size={18} />
                 </button>
-                <span aria-live="polite" className={zoomTextClass}>
-                  {Math.round(zoomLevel * 100)}%
-                </span>
                 <button
                   aria-label={labels.zoomInAriaLabel}
-                  className={dockButtonClass}
+                  className={actionButtonClass}
                   onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
                   type="button"
                 >
-                  +
+                  <ZoomInIcon aria-hidden="true" size={18} />
                 </button>
+                <button
+                  aria-label={labels.fitToScreenAriaLabel}
+                  className={actionButtonClass}
+                  onClick={() => {
+                    setPanOffset(DEFAULT_PAN_OFFSET);
+                    setZoomLevel(1);
+                  }}
+                  type="button"
+                >
+                  <FitSizeIcon aria-hidden="true" size={18} />
+                </button>
+                <button
+                  aria-label={labels.locateSourceAriaLabel}
+                  className={actionButtonClass}
+                  onClick={handleLocateSource}
+                  type="button"
+                >
+                  <ImageQuestionIcon aria-hidden="true" size={18} />
+                </button>
+                <span aria-live="polite" className={actionTextClass}>
+                  {Math.round(zoomLevel * 100)}%
+                </span>
               </div>
             </div>
           </div>
@@ -728,7 +767,7 @@ const sideButtonLeftClass = css({ left: '4' });
 const sideButtonRightClass = css({ right: '4' });
 const sideButtonLeftIconClass = css({ transform: 'rotate(180deg)' });
 
-const zoomDockClass = css({
+const actionBarClass = css({
   position: 'absolute',
   bottom: '6',
   left: '[50%]',
@@ -743,17 +782,14 @@ const zoomDockClass = css({
   zIndex: '10',
 });
 
-const dockButtonClass = css({
+const actionButtonClass = css({
   width: '8',
   height: '8',
-  borderRadius: 'full',
   color: 'white',
   cursor: 'pointer',
-  backgroundColor: '[rgb(255 255 255 / 0.1)]',
-  _hover: { backgroundColor: '[rgba(255, 255, 255, 0.2)]' },
 });
 
-const zoomTextClass = css({
+const actionTextClass = css({
   minWidth: '12',
   textAlign: 'center',
   color: 'zinc.200',
