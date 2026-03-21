@@ -19,19 +19,27 @@ type TooltipProps = {
   children: React.ReactElement<TooltipTriggerProps>;
   content: string;
   className?: string;
+  contentClassName?: string;
+  openOnFocus?: boolean;
 };
 
 /**
  * hover/focus 시 보조 설명을 노출하는 경량 툴팁입니다.
  * 트리거 요소에 aria-describedby를 연결해 접근성 이름을 보완합니다.
  */
-export const Tooltip = ({ children, className, content }: TooltipProps) => {
+export const Tooltip = ({
+  children,
+  className,
+  content,
+  contentClassName,
+  openOnFocus = true,
+}: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>();
   const rootRef = useRef<HTMLSpanElement | null>(null);
   const tooltipId = useId();
-  const isOpen = isFocused || isHovering;
+  const isOpen = isHovering || (openOnFocus && isFocused);
 
   if (!isValidElement(children)) {
     throw new Error('Tooltip requires a single React element child.');
@@ -82,7 +90,10 @@ export const Tooltip = ({ children, className, content }: TooltipProps) => {
       className={cx(rootClass, className)}
       ref={rootRef}
       onBlurCapture={() => setIsFocused(false)}
-      onFocusCapture={() => setIsFocused(true)}
+      onFocusCapture={() => {
+        if (!openOnFocus) return;
+        setIsFocused(true);
+      }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -91,7 +102,12 @@ export const Tooltip = ({ children, className, content }: TooltipProps) => {
       })}
       {isOpen
         ? createPortal(
-            <span className={tooltipClass} id={tooltipId} role="tooltip" style={tooltipStyle}>
+            <span
+              className={cx(tooltipClass, contentClassName)}
+              id={tooltipId}
+              role="tooltip"
+              style={tooltipStyle}
+            >
               {content}
             </span>,
             document.body,

@@ -117,6 +117,30 @@ describe('ImageViewerModal', () => {
     expect(handleLocateSource).toHaveBeenCalledWith(0);
   });
 
+  it('액션 바 버튼 hover 시 상단 tooltip을 표시하고 leave 시 숨긴다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    const fitToScreenButton = screen.getByRole('button', { name: '화면 맞춤' });
+
+    fireEvent.mouseEnter(fitToScreenButton);
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip.textContent).toBe('화면 맞춤');
+    expect(tooltip.closest('[role="toolbar"]')).toBeNull();
+
+    fireEvent.mouseLeave(fitToScreenButton);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  it('액션 바 버튼 focus 시에도 상단 tooltip을 표시한다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    const locateSourceButton = screen.getByRole('button', { name: '이미지 위치로 글 이동' });
+
+    fireEvent.focus(locateSourceButton);
+
+    expect(screen.getByRole('tooltip').textContent).toBe('이미지 위치로 글 이동');
+  });
+
   it('확대된 상태에서는 포인터 드래그로 이미지를 이동한다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
     const viewport = document.querySelector(

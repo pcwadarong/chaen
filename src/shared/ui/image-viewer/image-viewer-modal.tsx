@@ -14,6 +14,7 @@ import {
   ZoomOutIcon,
 } from '@/shared/ui/icons/app-icons';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
+import { Tooltip } from '@/shared/ui/tooltip/tooltip';
 import { XButton } from '@/shared/ui/x-button/x-button';
 
 type ImageViewerItem = {
@@ -259,6 +260,13 @@ export const ImageViewerModal = ({
   const handleLocateSource = useCallback(() => {
     onLocateSource?.(currentIndex);
   }, [currentIndex, onLocateSource]);
+
+  /**
+   * 마우스 클릭 시 버튼 포커스가 유지되어 tooltip이 남지 않도록 기본 focus 이동을 막습니다.
+   */
+  const preventActionButtonMouseDown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  }, []);
 
   /**
    * 뷰어 내부 인터랙션 요소 클릭이 backdrop 닫기로 이어지지 않도록 전파를 중단합니다.
@@ -553,41 +561,69 @@ export const ImageViewerModal = ({
                 }}
                 role="toolbar"
               >
-                <button
-                  aria-label={labels.zoomOutAriaLabel}
-                  className={actionButtonClass}
-                  onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
-                  type="button"
+                <Tooltip
+                  content={labels.zoomOutAriaLabel}
+                  contentClassName={actionTooltipClass}
+                  openOnFocus={false}
                 >
-                  <ZoomOutIcon aria-hidden="true" size={18} />
-                </button>
-                <button
-                  aria-label={labels.zoomInAriaLabel}
-                  className={actionButtonClass}
-                  onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
-                  type="button"
+                  <button
+                    aria-label={labels.zoomOutAriaLabel}
+                    className={actionButtonClass}
+                    onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
+                    onMouseDown={preventActionButtonMouseDown}
+                    type="button"
+                  >
+                    <ZoomOutIcon aria-hidden="true" size={18} />
+                  </button>
+                </Tooltip>
+                <Tooltip
+                  content={labels.zoomInAriaLabel}
+                  contentClassName={actionTooltipClass}
+                  openOnFocus={false}
                 >
-                  <ZoomInIcon aria-hidden="true" size={18} />
-                </button>
-                <button
-                  aria-label={labels.fitToScreenAriaLabel}
-                  className={actionButtonClass}
-                  onClick={() => {
-                    setPanOffset(DEFAULT_PAN_OFFSET);
-                    setZoomLevel(1);
-                  }}
-                  type="button"
+                  <button
+                    aria-label={labels.zoomInAriaLabel}
+                    className={actionButtonClass}
+                    onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
+                    onMouseDown={preventActionButtonMouseDown}
+                    type="button"
+                  >
+                    <ZoomInIcon aria-hidden="true" size={18} />
+                  </button>
+                </Tooltip>
+                <Tooltip
+                  content={labels.fitToScreenAriaLabel}
+                  contentClassName={actionTooltipClass}
+                  openOnFocus={false}
                 >
-                  <FitSizeIcon aria-hidden="true" size={18} />
-                </button>
-                <button
-                  aria-label={labels.locateSourceAriaLabel}
-                  className={actionButtonClass}
-                  onClick={handleLocateSource}
-                  type="button"
+                  <button
+                    aria-label={labels.fitToScreenAriaLabel}
+                    className={actionButtonClass}
+                    onClick={() => {
+                      setPanOffset(DEFAULT_PAN_OFFSET);
+                      setZoomLevel(1);
+                    }}
+                    onMouseDown={preventActionButtonMouseDown}
+                    type="button"
+                  >
+                    <FitSizeIcon aria-hidden="true" size={18} />
+                  </button>
+                </Tooltip>
+                <Tooltip
+                  content={labels.locateSourceAriaLabel}
+                  contentClassName={actionTooltipClass}
+                  openOnFocus={false}
                 >
-                  <ImageQuestionIcon aria-hidden="true" size={18} />
-                </button>
+                  <button
+                    aria-label={labels.locateSourceAriaLabel}
+                    className={actionButtonClass}
+                    onClick={handleLocateSource}
+                    onMouseDown={preventActionButtonMouseDown}
+                    type="button"
+                  >
+                    <ImageQuestionIcon aria-hidden="true" size={18} />
+                  </button>
+                </Tooltip>
                 <span aria-live="polite" className={actionTextClass}>
                   {Math.round(zoomLevel * 100)}%
                 </span>
@@ -780,6 +816,20 @@ const actionBarClass = css({
   borderRadius: 'full',
   backgroundColor: '[rgb(15 23 42 / 0.75)]',
   zIndex: '10',
+});
+
+const actionTooltipClass = css({
+  whiteSpace: 'nowrap',
+  px: '3',
+  py: '1.5',
+  borderRadius: 'full',
+  backgroundColor: '[rgb(15 23 42 / 0.92)]',
+  color: 'white',
+  fontSize: 'xs',
+  lineHeight: 'tight',
+  pointerEvents: 'none',
+  zIndex: '1300',
+  animation: '[image-viewer-tooltip-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)]',
 });
 
 const actionButtonClass = css({
