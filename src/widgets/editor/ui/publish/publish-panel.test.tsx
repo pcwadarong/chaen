@@ -266,6 +266,10 @@ describe('PublishPanel', () => {
     }
   });
 
+  /**
+   * project 발행 패널은 외부 링크 입력을 노출하고,
+   * 사용 가능한 slug 확인 이후 제출 payload에 website/github 값을 함께 포함해야 한다.
+   */
   it('project 발행 패널은 외부 링크 입력을 노출하고 제출 payload에 포함한다', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
@@ -303,6 +307,42 @@ describe('PublishPanel', () => {
         }),
       );
     });
+  });
+
+  it('project 외부 링크 입력이 잘못되면 인라인 에러를 표시하고 제출하지 않는다', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    renderPublishPanel({
+      contentType: 'project',
+      initialSettings: {
+        allowComments: false,
+        githubUrl: '',
+        publishAt: null,
+        slug: 'project-with-invalid-links',
+        thumbnailUrl: '',
+        visibility: 'public',
+        websiteUrl: '',
+      },
+      onSubmit,
+    });
+
+    fireEvent.change(screen.getByLabelText('웹사이트'), {
+      target: { value: 'invalid-url' },
+    });
+    fireEvent.change(screen.getByLabelText('GitHub'), {
+      target: { value: 'ftp://github.com/chaen/project' },
+    });
+
+    mockSlugCheckResponse(false);
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    expect(
+      await screen.findByText('웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.'),
+    ).toBeTruthy();
+    expect(screen.getByText('깃허브 주소는 http:// 또는 https://로 시작해야 합니다.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {

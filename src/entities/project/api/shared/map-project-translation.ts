@@ -3,6 +3,7 @@ import type {
   ProjectDetailListItem,
   ProjectListItem,
 } from '@/entities/project/model/types';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 type ProjectBaseFields = Pick<
   Project,
@@ -141,7 +142,7 @@ export const mapProject = (
     created_at: projectBase.created_at,
     description: row.description,
     display_order: projectBase.display_order,
-    github_url: projectBase.github_url,
+    github_url: normalizeHttpUrl(projectBase.github_url),
     id: row.project_id,
     period_end: projectBase.period_end,
     period_start: projectBase.period_start,
@@ -152,7 +153,7 @@ export const mapProject = (
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
     visibility: projectBase.visibility,
-    website_url: projectBase.website_url,
+    website_url: normalizeHttpUrl(projectBase.website_url),
   };
 };
 

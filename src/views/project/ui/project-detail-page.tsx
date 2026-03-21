@@ -17,6 +17,7 @@ import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { GithubIcon, GlobeIcon } from '@/shared/ui/icons/app-icons';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
@@ -125,18 +126,20 @@ const ProjectTechStackList = ({ ariaLabel, groups }: ProjectTechStackListProps) 
  * 프로젝트 상세 헤더 우측 외부 링크 아이콘 묶음을 렌더링합니다.
  */
 const ProjectExternalLinkList = ({ githubUrl, websiteUrl }: ProjectExternalLinkListProps) => {
+  const normalizedWebsiteUrl = normalizeHttpUrl(websiteUrl);
+  const normalizedGithubUrl = normalizeHttpUrl(githubUrl);
   const linkItems = [
-    websiteUrl
+    normalizedWebsiteUrl
       ? {
-          href: websiteUrl,
+          href: normalizedWebsiteUrl,
           icon: GlobeIcon,
           key: 'website',
           label: 'Website',
         }
       : null,
-    githubUrl
+    normalizedGithubUrl
       ? {
-          href: githubUrl,
+          href: normalizedGithubUrl,
           icon: GithubIcon,
           key: 'github',
           label: 'GitHub',

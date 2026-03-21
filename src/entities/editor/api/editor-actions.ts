@@ -249,14 +249,14 @@ export const publishEditorContentAction = async ({
 
   if (!isValidSlugFormat(normalizedSlug)) throw createEditorError('slugFormatInvalid');
 
-  const normalizedWebsiteUrl = normalizeProjectExternalUrl(
-    parsedSettings.data.websiteUrl,
-    'websiteUrlInvalid',
-  );
-  const normalizedGithubUrl = normalizeProjectExternalUrl(
-    parsedSettings.data.githubUrl,
-    'githubUrlInvalid',
-  );
+  const normalizedWebsiteUrl =
+    contentType === 'project'
+      ? normalizeProjectExternalUrl(parsedSettings.data.websiteUrl, 'websiteUrlInvalid')
+      : null;
+  const normalizedGithubUrl =
+    contentType === 'project'
+      ? normalizeProjectExternalUrl(parsedSettings.data.githubUrl, 'githubUrlInvalid')
+      : null;
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
