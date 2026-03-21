@@ -141,7 +141,7 @@
     }
   },
   "Resume": {
-    "downloadButtonLabel": "다운로드 버튼 라벨",
+    "downloadButtonLabel": "다운로드",
     "loading": "이력 페이지를 불러오는 중입니다.",
     "resumeDownloadUnavailable": "이력서 준비 중"
   },

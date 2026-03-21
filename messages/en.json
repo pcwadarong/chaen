@@ -141,7 +141,7 @@
     }
   },
   "Resume": {
-    "downloadButtonLabel": "Download button label",
+    "downloadButtonLabel": "Download",
     "loading": "Loading resume.",
     "resumeDownloadUnavailable": "Resume unavailable"
   },
