@@ -388,6 +388,11 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         <table className={markdownTableClass}>{children}</table>
       </div>
     ),
+    th: ({ children, className, ...props }) => (
+      <th className={className} suppressHydrationWarning {...props}>
+        {children}
+      </th>
+    ),
     ul: ({ children, className, ...props }) => (
       <ul className={cx(markdownUnorderedListClass, className)} {...props}>
         {children}
