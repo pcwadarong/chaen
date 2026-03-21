@@ -2,7 +2,7 @@
 
 import React, { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { XButton } from '@/shared/ui/x-button/x-button';
@@ -13,24 +13,10 @@ type ModalProps = {
   ariaLabelledBy?: string;
   children: ReactNode;
   closeAriaLabel: string;
-  closeButtonClassName?: string;
-  frameClassName?: string;
   initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
   onClose: () => void;
 };
-
-type ModalCloseButtonProps = {
-  ariaLabel: string;
-  className?: string;
-  onClick: () => void;
-};
-
-const ModalCloseButton = React.memo(({ ariaLabel, className, onClick }: ModalCloseButtonProps) => (
-  <XButton ariaLabel={ariaLabel} className={className} onClick={onClick} />
-));
-
-ModalCloseButton.displayName = 'ModalCloseButton';
 
 /**
  * 공통 포털 모달입니다.
@@ -42,8 +28,6 @@ export const Modal = ({
   ariaLabelledBy,
   children,
   closeAriaLabel,
-  closeButtonClassName,
-  frameClassName,
   initialFocusRef,
   isOpen,
   onClose,
@@ -90,13 +74,9 @@ export const Modal = ({
         ref={frameRef}
         role="dialog"
         tabIndex={-1}
-        className={cx(frameBaseClass, frameClassName)}
+        className={frameBaseClass}
       >
-        <ModalCloseButton
-          ariaLabel={closeAriaLabel}
-          className={cx(closeButtonClass, closeButtonClassName)}
-          onClick={onClose}
-        />
+        <XButton ariaLabel={closeAriaLabel} className={closeButtonClass} onClick={onClose} />
         {children}
       </div>
     </div>,

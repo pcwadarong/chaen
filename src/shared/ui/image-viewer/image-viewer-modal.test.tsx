@@ -3,23 +3,6 @@ import React from 'react';
 
 import { ImageViewerModal } from '@/shared/ui/image-viewer/image-viewer-modal';
 
-vi.mock('@/shared/ui/modal/modal', () => ({
-  Modal: ({
-    ariaLabel,
-    children,
-    isOpen,
-  }: {
-    ariaLabel?: string;
-    children: React.ReactNode;
-    isOpen: boolean;
-  }) =>
-    isOpen ? (
-      <div aria-label={ariaLabel} role="dialog">
-        {children}
-      </div>
-    ) : null,
-}));
-
 describe('ImageViewerModal', () => {
   beforeEach(() => {
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
@@ -101,14 +84,24 @@ describe('ImageViewerModal', () => {
     ).toBe(true);
   });
 
-  it('확대된 상태에서는 포인터 드래그로 이미지를 이동한다', () => {
-    const { container } = render(
-      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />,
+  it('backdrop을 클릭하면 이미지 뷰어를 닫는다', () => {
+    const handleClose = vi.fn();
+
+    render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={handleClose} />,
     );
-    const viewport = container.querySelector(
+
+    fireEvent.click(document.querySelector('[data-image-viewer-backdrop="true"]') as HTMLElement);
+
+    expect(handleClose).toHaveBeenCalledWith(0);
+  });
+
+  it('확대된 상태에서는 포인터 드래그로 이미지를 이동한다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+    const viewport = document.querySelector(
       '[data-image-viewer-viewport="true"]',
     ) as HTMLDivElement;
-    const image = container.querySelector('[data-image-viewer-image="true"]') as HTMLImageElement;
+    const image = document.querySelector('[data-image-viewer-image="true"]') as HTMLImageElement;
 
     Object.defineProperty(viewport, 'clientWidth', { configurable: true, value: 300 });
     Object.defineProperty(viewport, 'clientHeight', { configurable: true, value: 200 });
@@ -146,10 +139,8 @@ describe('ImageViewerModal', () => {
   });
 
   it('마우스 휠로 이미지를 확대할 수 있다', () => {
-    const { container } = render(
-      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />,
-    );
-    const viewport = container.querySelector(
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+    const viewport = document.querySelector(
       '[data-image-viewer-viewport="true"]',
     ) as HTMLDivElement;
 
@@ -171,10 +162,8 @@ describe('ImageViewerModal', () => {
   });
 
   it('두 손가락 포인터 이동으로 이미지를 pinch 확대할 수 있다', () => {
-    const { container } = render(
-      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />,
-    );
-    const viewport = container.querySelector(
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+    const viewport = document.querySelector(
       '[data-image-viewer-viewport="true"]',
     ) as HTMLDivElement;
 

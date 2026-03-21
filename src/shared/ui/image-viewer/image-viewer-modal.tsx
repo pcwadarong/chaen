@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { css, cx } from 'styled-system/css';
 
+import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-image-viewer-url';
-import { Modal } from '@/shared/ui/modal/modal';
+import { XButton } from '@/shared/ui/x-button/x-button';
 
 type ImageViewerItem = {
   alt: string;
@@ -71,15 +73,25 @@ type ImageViewerSideControlsProps = {
   onNext: () => void;
   onPrevious: () => void;
   previousAriaLabel: string;
+  stopClickPropagation: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
 const ImageViewerSideControls = React.memo(
-  ({ nextAriaLabel, onNext, onPrevious, previousAriaLabel }: ImageViewerSideControlsProps) => (
+  ({
+    nextAriaLabel,
+    onNext,
+    onPrevious,
+    previousAriaLabel,
+    stopClickPropagation,
+  }: ImageViewerSideControlsProps) => (
     <>
       <Button
         aria-label={previousAriaLabel}
         className={cx(viewerControlButtonClass, sideButtonClass, sideButtonLeftClass)}
-        onClick={onPrevious}
+        onClick={event => {
+          stopClickPropagation(event);
+          onPrevious();
+        }}
         tone="white"
         type="button"
         variant="ghost"
@@ -90,7 +102,10 @@ const ImageViewerSideControls = React.memo(
       <Button
         aria-label={nextAriaLabel}
         className={cx(viewerControlButtonClass, sideButtonClass, sideButtonRightClass)}
-        onClick={onNext}
+        onClick={event => {
+          stopClickPropagation(event);
+          onNext();
+        }}
         tone="white"
         type="button"
         variant="ghost"
@@ -159,12 +174,14 @@ export const ImageViewerModal = ({
   labels,
   onClose,
 }: ImageViewerModalProps) => {
+  const [isMounted, setIsMounted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [panOffset, setPanOffset] = useState<ImageViewerPanOffset>(DEFAULT_PAN_OFFSET);
   const [zoomLevel, setZoomLevel] = useState(1);
   const activePointersRef = useRef<Map<number, ImageViewerPointerState>>(new Map());
   const dragStateRef = useRef<ImageViewerDragState | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const pinchStateRef = useRef<ImageViewerPinchState | null>(null);
   const thumbnailRailRef = useRef<HTMLDivElement | null>(null);
@@ -209,12 +226,40 @@ export const ImageViewerModal = ({
     onClose(currentIndex);
   }, [currentIndex, onClose]);
 
+  /**
+   * 뷰어 내부 인터랙션 요소 클릭이 backdrop 닫기로 이어지지 않도록 전파를 중단합니다.
+   */
+  const stopViewerClickPropagation = useCallback((event: React.MouseEvent<Element>) => {
+    event.stopPropagation();
+  }, []);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!isOpen || initialIndex === null) return;
     setCurrentIndex(initialIndex);
     setPanOffset(DEFAULT_PAN_OFFSET);
     setZoomLevel(1);
   }, [initialIndex, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isMounted) return;
+
+    const bodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, [isMounted, isOpen]);
+
+  useDialogFocusManagement({
+    containerRef: frameRef,
+    isEnabled: isOpen && isMounted,
+    onEscape: handleModalClose,
+  });
 
   useEffect(() => {
     if (zoomLevel > 1) return;
@@ -380,136 +425,165 @@ export const ImageViewerModal = ({
     setZoomLevel(previousZoomLevel => clampZoomLevel(previousZoomLevel - event.deltaY * 0.0025));
   };
 
-  if (!isOpen || !currentItem) return null;
+  if (!isMounted || !isOpen || !currentItem) return null;
 
-  return (
-    <Modal
-      ariaLabel={resolvedDialogAriaLabel}
-      closeAriaLabel={labels.closeAriaLabel}
-      closeButtonClassName={viewerCloseButtonClass}
-      frameClassName={viewerFrameClass}
-      isOpen={isOpen}
-      onClose={handleModalClose}
+  return createPortal(
+    <div
+      className={viewerBackdropClass}
+      data-image-viewer-backdrop="true"
+      onClick={handleModalClose}
     >
-      <div className={viewerContentClass}>
-        <div aria-hidden className={topScrimClass} />
-        <div className={imageStageClass}>
-          <ImageViewerSideControls
-            nextAriaLabel={labels.nextAriaLabel}
-            onNext={handleNextImage}
-            onPrevious={handlePreviousImage}
-            previousAriaLabel={labels.previousAriaLabel}
-          />
-          <div
-            className={cx(
-              imageViewportClass,
-              zoomLevel > 1 ? zoomedImageViewportClass : undefined,
-              isDraggingImage ? draggingImageViewportClass : undefined,
-            )}
-            data-image-viewer-viewport="true"
-            onPointerCancel={handleViewportPointerEnd}
-            onPointerDown={handleViewportPointerDown}
-            onPointerMove={handleViewportPointerMove}
-            onPointerUp={handleViewportPointerEnd}
-            onWheel={handleViewportWheel}
-            ref={viewportRef}
-          >
-            <div className={imageInnerClass}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt={currentItem.alt}
-                className={viewerImageClass}
-                data-image-viewer-image="true"
-                draggable={false}
-                ref={imageRef}
-                src={currentItem.src}
-                style={{
-                  transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) scale(${zoomLevel})`,
-                }}
-              />
-            </div>
-
+      <div aria-hidden className={topScrimClass} />
+      <XButton
+        ariaLabel={labels.closeAriaLabel}
+        className={viewerCloseButtonClass}
+        onClick={event => {
+          stopViewerClickPropagation(event);
+          handleModalClose();
+        }}
+      />
+      <ImageViewerSideControls
+        nextAriaLabel={labels.nextAriaLabel}
+        onNext={handleNextImage}
+        onPrevious={handlePreviousImage}
+        previousAriaLabel={labels.previousAriaLabel}
+        stopClickPropagation={stopViewerClickPropagation}
+      />
+      <div
+        aria-label={resolvedDialogAriaLabel}
+        aria-modal="true"
+        className={viewerFrameClass}
+        ref={frameRef}
+        role="dialog"
+        tabIndex={-1}
+      >
+        <div className={viewerContentClass}>
+          <div className={imageStageClass}>
             <div
-              className={zoomDockClass}
-              onPointerDown={event => {
-                event.stopPropagation();
-              }}
+              className={cx(
+                imageViewportClass,
+                zoomLevel > 1 ? zoomedImageViewportClass : undefined,
+                isDraggingImage ? draggingImageViewportClass : undefined,
+              )}
+              data-image-viewer-viewport="true"
+              onPointerCancel={handleViewportPointerEnd}
+              onPointerDown={handleViewportPointerDown}
+              onPointerMove={handleViewportPointerMove}
+              onPointerUp={handleViewportPointerEnd}
+              onWheel={handleViewportWheel}
+              ref={viewportRef}
             >
-              <button
-                aria-label={labels.zoomOutAriaLabel}
-                className={dockButtonClass}
-                onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
-                type="button"
-              >
-                -
-              </button>
-              <span aria-live="polite" className={zoomTextClass}>
-                {Math.round(zoomLevel * 100)}%
-              </span>
-              <button
-                aria-label={labels.zoomInAriaLabel}
-                className={dockButtonClass}
-                onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
-                type="button"
-              >
-                +
-              </button>
-            </div>
-          </div>
-        </div>
+              <div className={imageInnerClass} onClick={stopViewerClickPropagation}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={currentItem.alt}
+                  className={viewerImageClass}
+                  data-image-viewer-image="true"
+                  draggable={false}
+                  ref={imageRef}
+                  src={currentItem.src}
+                  style={{
+                    transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) scale(${zoomLevel})`,
+                  }}
+                />
+              </div>
 
-        <div
-          aria-label={labels.thumbnailListAriaLabel}
-          className={thumbnailRailClass}
-          ref={thumbnailRailRef}
-        >
-          <div className={thumbnailRailTrackClass}>
-            {sanitizedItems.map((item, index) => {
-              const isActive = index === currentIndex;
-              return (
+              <div
+                className={zoomDockClass}
+                onClick={stopViewerClickPropagation}
+                onPointerDown={event => {
+                  event.stopPropagation();
+                }}
+              >
                 <button
-                  aria-current={isActive ? 'true' : undefined}
-                  aria-label={`${
-                    item.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer'
-                  } ${index + 1}`}
-                  key={`${item.src}-${index}`}
-                  onClick={() => {
-                    setCurrentIndex(index);
-                    setZoomLevel(1);
-                  }}
-                  ref={node => {
-                    thumbnailButtonRefs.current[index] = node;
-                  }}
-                  className={cx(
-                    thumbnailButtonClass,
-                    isActive ? activeThumbnailButtonClass : undefined,
-                  )}
+                  aria-label={labels.zoomOutAriaLabel}
+                  className={dockButtonClass}
+                  onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
                   type="button"
                 >
-                  <img
-                    alt={item.alt}
-                    className={thumbnailImageClass}
-                    draggable={false}
-                    loading="lazy"
-                    src={item.src}
-                  />
+                  -
                 </button>
-              );
-            })}
+                <span aria-live="polite" className={zoomTextClass}>
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <button
+                  aria-label={labels.zoomInAriaLabel}
+                  className={dockButtonClass}
+                  onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            aria-label={labels.thumbnailListAriaLabel}
+            className={thumbnailRailClass}
+            onClick={stopViewerClickPropagation}
+            ref={thumbnailRailRef}
+          >
+            <div className={thumbnailRailTrackClass}>
+              {sanitizedItems.map((item, index) => {
+                const isActive = index === currentIndex;
+                return (
+                  <button
+                    aria-current={isActive ? 'true' : undefined}
+                    aria-label={`${
+                      item.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer'
+                    } ${index + 1}`}
+                    key={`${item.src}-${index}`}
+                    onClick={() => {
+                      setCurrentIndex(index);
+                      setZoomLevel(1);
+                    }}
+                    ref={node => {
+                      thumbnailButtonRefs.current[index] = node;
+                    }}
+                    className={cx(
+                      thumbnailButtonClass,
+                      isActive ? activeThumbnailButtonClass : undefined,
+                    )}
+                    type="button"
+                  >
+                    <img
+                      alt={item.alt}
+                      className={thumbnailImageClass}
+                      draggable={false}
+                      loading="lazy"
+                      src={item.src}
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </Modal>
+    </div>,
+    document.body,
   );
 };
 
 /* Styles */
 
+const viewerBackdropClass = css({
+  position: 'fixed',
+  inset: '0',
+  zIndex: '1200',
+  backgroundColor: '[rgb(15 23 42 / 0.86)]',
+  display: 'grid',
+  placeItems: 'center',
+  p: '4',
+});
+
 const viewerFrameClass = css({
-  width: 'screen',
-  height: 'dvh',
+  position: 'relative',
+  width: '[min(1280px,100%)]',
+  height: '[min(94dvh,100%)]',
+  borderRadius: '3xl',
   overflow: 'hidden',
-  margin: '-4',
 });
 
 const viewerContentClass = css({
@@ -643,9 +717,7 @@ const zoomTextClass = css({
 const thumbnailRailClass = css({
   width: 'full',
   overflowX: 'auto',
-  mb: '4',
-  pb: '4',
-  px: '4',
+  overflowY: 'hidden',
 });
 
 const thumbnailRailTrackClass = css({
@@ -653,6 +725,7 @@ const thumbnailRailTrackClass = css({
   gap: '2',
   justifyContent: 'center',
   minWidth: '[max-content]',
+  alignItems: 'stretch',
 });
 
 const thumbnailButtonClass = css({
