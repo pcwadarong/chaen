@@ -39,7 +39,7 @@ type ImageViewerModalProps = {
   initialIndex: number | null;
   items: ImageViewerItem[];
   labels: ImageViewerLabels;
-  onClose: (currentIndex: number) => void;
+  onClose: () => void;
   onLocateSource?: (currentIndex: number) => void;
 };
 
@@ -91,6 +91,10 @@ type ImageViewerSideControlsProps = {
   stopClickPropagation: (event: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
+/**
+ * 이미지 뷰어의 이전/다음 이동 버튼 묶음을 렌더링합니다.
+ * 각 버튼은 이벤트 전파를 차단해 backdrop 닫기로 이어지지 않도록 유지합니다.
+ */
 const ImageViewerSideControls = React.memo(
   ({
     nextAriaLabel,
@@ -243,19 +247,27 @@ export const ImageViewerModal = ({
     [],
   );
 
+  /**
+   * 현재 인덱스를 기준으로 이전 이미지를 선택합니다.
+   * 첫 항목에서는 마지막 항목으로 순환하며 확대 상태도 함께 초기화합니다.
+   */
   const handlePreviousImage = useCallback(() => {
     const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
     navigateToImage(nextIndex, 'previous');
   }, [currentIndex, navigateToImage, sanitizedItems.length]);
 
+  /**
+   * 현재 인덱스를 기준으로 다음 이미지를 선택합니다.
+   * 마지막 항목에서는 첫 항목으로 순환하며 확대 상태도 함께 초기화합니다.
+   */
   const handleNextImage = useCallback(() => {
     const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
     navigateToImage(nextIndex, 'next');
   }, [currentIndex, navigateToImage, sanitizedItems.length]);
 
   const handleModalClose = useCallback(() => {
-    onClose(currentIndex);
-  }, [currentIndex, onClose]);
+    onClose();
+  }, [onClose]);
 
   /**
    * 현재 보고 있는 이미지 원문 위치로 즉시 이동합니다.
@@ -345,15 +357,6 @@ export const ImageViewerModal = ({
   });
 
   useEffect(() => {
-    if (zoomLevel > 1) return;
-    activePointersRef.current.clear();
-    dragStateRef.current = null;
-    pinchStateRef.current = null;
-    setIsDraggingImage(false);
-    setPanOffset(DEFAULT_PAN_OFFSET);
-  }, [zoomLevel]);
-
-  useEffect(() => {
     if (!isOpen) return;
     const rail = thumbnailRailRef.current;
     const activeButton = thumbnailButtonRefs.current[currentIndex];
@@ -387,20 +390,41 @@ export const ImageViewerModal = ({
   /**
    * 현재 레이아웃 기준으로 다음 pan offset을 안전 범위로 보정합니다.
    */
-  const getClampedPanOffset = (nextOffset: ImageViewerPanOffset) => {
-    const imageElement = imageRef.current;
-    const viewportElement = viewportRef.current;
-    if (!imageElement || !viewportElement) return DEFAULT_PAN_OFFSET;
+  const getClampedPanOffset = useCallback(
+    (nextOffset: ImageViewerPanOffset, nextZoomLevel: number = zoomLevel) => {
+      const imageElement = imageRef.current;
+      const viewportElement = viewportRef.current;
+      if (!imageElement || !viewportElement) {
+        return nextZoomLevel <= 1 ? DEFAULT_PAN_OFFSET : nextOffset;
+      }
 
-    return clampPanOffset({
-      imageHeight: imageElement.clientHeight,
-      imageWidth: imageElement.clientWidth,
-      nextOffset,
-      viewportHeight: viewportElement.clientHeight,
-      viewportWidth: viewportElement.clientWidth,
-      zoomLevel,
-    });
-  };
+      return clampPanOffset({
+        imageHeight: imageElement.clientHeight,
+        imageWidth: imageElement.clientWidth,
+        nextOffset,
+        viewportHeight: viewportElement.clientHeight,
+        viewportWidth: viewportElement.clientWidth,
+        zoomLevel: nextZoomLevel,
+      });
+    },
+    [zoomLevel],
+  );
+
+  useEffect(() => {
+    if (zoomLevel <= 1) {
+      activePointersRef.current.clear();
+      dragStateRef.current = null;
+      pinchStateRef.current = null;
+      setIsDraggingImage(false);
+    }
+
+    const nextOffset =
+      zoomLevel <= 1 ? DEFAULT_PAN_OFFSET : getClampedPanOffset(panOffset, zoomLevel);
+
+    if (nextOffset.x === panOffset.x && nextOffset.y === panOffset.y) return;
+
+    setPanOffset(nextOffset);
+  }, [getClampedPanOffset, panOffset, zoomLevel]);
 
   /**
    * 확대 상태에서 포인터 드래그를 시작합니다.
@@ -456,12 +480,13 @@ export const ImageViewerModal = ({
       const nextDistance = getPointerDistance(Array.from(activePointersRef.current.values()));
 
       if (nextDistance > 0) {
-        setZoomLevel(
-          clampZoomLevel(
-            pinchStateRef.current.initialZoomLevel *
-              (nextDistance / pinchStateRef.current.initialDistance),
-          ),
+        const nextZoomLevel = clampZoomLevel(
+          pinchStateRef.current.initialZoomLevel *
+            (nextDistance / pinchStateRef.current.initialDistance),
         );
+
+        setZoomLevel(nextZoomLevel);
+        setPanOffset(previousOffset => getClampedPanOffset(previousOffset, nextZoomLevel));
       }
 
       return;
@@ -505,7 +530,11 @@ export const ImageViewerModal = ({
 
     event.preventDefault();
 
-    setZoomLevel(previousZoomLevel => clampZoomLevel(previousZoomLevel - event.deltaY * 0.0025));
+    setZoomLevel(previousZoomLevel => {
+      const nextZoomLevel = clampZoomLevel(previousZoomLevel - event.deltaY * 0.0025);
+      setPanOffset(previousOffset => getClampedPanOffset(previousOffset, nextZoomLevel));
+      return nextZoomLevel;
+    });
   };
 
   if (!isMounted || !isOpen || !currentItem) return null;
@@ -598,7 +627,15 @@ export const ImageViewerModal = ({
                   <button
                     aria-label={labels.zoomOutAriaLabel}
                     className={actionButtonClass}
-                    onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
+                    onClick={() =>
+                      setZoomLevel(previousZoomLevel => {
+                        const nextZoomLevel = clampZoomLevel(previousZoomLevel - ZOOM_STEP);
+                        setPanOffset(previousOffset =>
+                          getClampedPanOffset(previousOffset, nextZoomLevel),
+                        );
+                        return nextZoomLevel;
+                      })
+                    }
                     onMouseDown={preventActionButtonMouseDown}
                     onPointerDown={() => showActionTooltipTemporarily(labels.zoomOutAriaLabel)}
                     type="button"
@@ -615,7 +652,15 @@ export const ImageViewerModal = ({
                   <button
                     aria-label={labels.zoomInAriaLabel}
                     className={actionButtonClass}
-                    onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
+                    onClick={() =>
+                      setZoomLevel(previousZoomLevel => {
+                        const nextZoomLevel = clampZoomLevel(previousZoomLevel + ZOOM_STEP);
+                        setPanOffset(previousOffset =>
+                          getClampedPanOffset(previousOffset, nextZoomLevel),
+                        );
+                        return nextZoomLevel;
+                      })
+                    }
                     onMouseDown={preventActionButtonMouseDown}
                     onPointerDown={() => showActionTooltipTemporarily(labels.zoomInAriaLabel)}
                     type="button"
@@ -643,23 +688,27 @@ export const ImageViewerModal = ({
                     <FitSizeIcon aria-hidden="true" size={18} />
                   </button>
                 </Tooltip>
-                <Tooltip
-                  content={labels.locateSourceAriaLabel}
-                  contentClassName={actionTooltipClass}
-                  forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
-                  openOnFocus={false}
-                >
-                  <button
-                    aria-label={labels.locateSourceAriaLabel}
-                    className={actionButtonClass}
-                    onClick={handleLocateSource}
-                    onMouseDown={preventActionButtonMouseDown}
-                    onPointerDown={() => showActionTooltipTemporarily(labels.locateSourceAriaLabel)}
-                    type="button"
+                {onLocateSource ? (
+                  <Tooltip
+                    content={labels.locateSourceAriaLabel}
+                    contentClassName={actionTooltipClass}
+                    forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
+                    openOnFocus={false}
                   >
-                    <ImageQuestionIcon aria-hidden="true" size={18} />
-                  </button>
-                </Tooltip>
+                    <button
+                      aria-label={labels.locateSourceAriaLabel}
+                      className={actionButtonClass}
+                      onClick={handleLocateSource}
+                      onMouseDown={preventActionButtonMouseDown}
+                      onPointerDown={() =>
+                        showActionTooltipTemporarily(labels.locateSourceAriaLabel)
+                      }
+                      type="button"
+                    >
+                      <ImageQuestionIcon aria-hidden="true" size={18} />
+                    </button>
+                  </Tooltip>
+                ) : null}
                 <span aria-live="polite" className={actionTextClass}>
                   {Math.round(zoomLevel * 100)}%
                 </span>
@@ -771,11 +820,11 @@ const imageViewportClass = css({
   alignItems: 'center',
   justifyContent: 'center',
   position: 'relative',
+  touchAction: 'none',
 });
 
 const zoomedImageViewportClass = css({
   cursor: 'grab',
-  touchAction: 'none',
   overflow: 'hidden',
 });
 

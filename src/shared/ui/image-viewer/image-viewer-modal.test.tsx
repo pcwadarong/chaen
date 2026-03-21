@@ -96,7 +96,7 @@ describe('ImageViewerModal', () => {
 
     fireEvent.click(document.querySelector('[data-image-viewer-backdrop="true"]') as HTMLElement);
 
-    expect(handleClose).toHaveBeenCalledWith(0);
+    expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
   it('액션 바의 이미지 위치 버튼으로 원문 이미지 위치 이동을 요청한다', () => {
@@ -117,6 +117,12 @@ describe('ImageViewerModal', () => {
     expect(handleLocateSource).toHaveBeenCalledWith(0);
   });
 
+  it('원문 위치 이동 핸들러가 없으면 locate 버튼을 렌더링하지 않는다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: '이미지 위치로 글 이동' })).toBeNull();
+  });
+
   it('액션 바 버튼 hover 시 상단 tooltip을 표시하고 leave 시 숨긴다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
@@ -134,11 +140,47 @@ describe('ImageViewerModal', () => {
   it('액션 바 버튼 click 시작 시에도 상단 tooltip을 표시한다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
-    const locateSourceButton = screen.getByRole('button', { name: '이미지 위치로 글 이동' });
+    const fitToScreenButton = screen.getByRole('button', { name: '화면 맞춤' });
 
-    fireEvent.pointerDown(locateSourceButton);
+    fireEvent.pointerDown(fitToScreenButton);
 
-    expect(screen.getByRole('tooltip').textContent).toBe('이미지 위치로 글 이동');
+    expect(screen.getByRole('tooltip').textContent).toBe('화면 맞춤');
+  });
+
+  it('이미지 내부 클릭은 backdrop 닫기로 이어지지 않는다', () => {
+    const handleClose = vi.fn();
+
+    render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={handleClose} />,
+    );
+
+    fireEvent.click(document.querySelector('[data-image-viewer-image="true"]') as HTMLElement);
+
+    expect(handleClose).not.toHaveBeenCalled();
+  });
+
+  it('썸네일 클릭은 backdrop 닫기로 이어지지 않는다', () => {
+    const handleClose = vi.fn();
+
+    render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={handleClose} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '두 번째 이미지 2' }));
+
+    expect(handleClose).not.toHaveBeenCalled();
+  });
+
+  it('액션 바 버튼 클릭은 backdrop 닫기로 이어지지 않는다', () => {
+    const handleClose = vi.fn();
+
+    render(
+      <ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={handleClose} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '화면 맞춤' }));
+
+    expect(handleClose).not.toHaveBeenCalled();
   });
 
   it('확대된 상태에서는 포인터 드래그로 이미지를 이동한다', () => {

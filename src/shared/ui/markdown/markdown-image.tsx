@@ -139,8 +139,9 @@ export const MarkdownImage = ({
     if (isViewerOpen || !pendingScrollTargetId) return;
 
     const targetViewerId = pendingScrollTargetId;
-    const frameId = requestNextPaint(() => {
-      requestNextPaint(() => {
+    let innerFrameId = 0;
+    const outerFrameId = requestNextPaint(() => {
+      innerFrameId = requestNextPaint(() => {
         const targetImage =
           targetViewerId === viewerItemId
             ? imageRef.current
@@ -158,7 +159,8 @@ export const MarkdownImage = ({
 
     return () => {
       if (typeof window === 'undefined') return;
-      window.cancelAnimationFrame(frameId);
+      window.cancelAnimationFrame(outerFrameId);
+      window.cancelAnimationFrame(innerFrameId);
     };
   }, [isViewerOpen, pendingScrollTargetId, viewerItemId]);
 

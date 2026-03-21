@@ -91,7 +91,10 @@ export const Tooltip = ({
     <span
       className={cx(rootClass, className)}
       ref={rootRef}
-      onBlurCapture={() => setIsFocused(false)}
+      onBlurCapture={() => {
+        if (!openOnFocus) return;
+        setIsFocused(false);
+      }}
       onFocusCapture={() => {
         if (!openOnFocus) return;
         setIsFocused(true);

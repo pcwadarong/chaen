@@ -196,6 +196,7 @@ const renderMarkdownImage = ({
  */
 const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Components => {
   let imageIndex = 0;
+  const viewerItems = items.filter(item => item.src.trim().length > 0);
 
   return {
     a: ({ href, children, title, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => {
@@ -335,15 +336,19 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
     h4: ({ children }) => <h4 className={markdownH4Class}>{children}</h4>,
     hr: () => <hr className={markdownHorizontalRuleClass} />,
     img: ({ alt, src, ...props }) => {
-      const currentImageIndex = imageIndex;
-      imageIndex += 1;
+      const hasViewerSource = typeof src === 'string' && src.trim().length > 0;
+      const currentImageIndex = hasViewerSource ? imageIndex : undefined;
+
+      if (hasViewerSource) {
+        imageIndex += 1;
+      }
 
       return renderMarkdownImage({
         ...props,
         alt,
         imageIndex: currentImageIndex,
         src,
-        viewerItems: items,
+        viewerItems,
       });
     },
     li: ({ children, className, ...props }) => (

@@ -34,7 +34,7 @@ vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
     initialIndex: number | null;
     items: MarkdownImageViewerItem[];
     labels: { imageViewerAriaLabel?: string };
-    onClose: (currentIndex: number) => void;
+    onClose: () => void;
     onLocateSource?: (currentIndex: number) => void;
   }) =>
     initialIndex !== null ? (
@@ -47,7 +47,7 @@ vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
         data-testid="image-viewer-modal"
         role="dialog"
       >
-        <button onClick={() => onClose(1)} type="button">
+        <button onClick={() => onClose()} type="button">
           close-with-second-image
         </button>
         <button onClick={() => onLocateSource?.(1)} type="button">
@@ -117,13 +117,16 @@ describe('MarkdownImage', () => {
     expect(modal.getAttribute('data-initial-index')).toBe('1');
   });
 
-  it('Enter 키로도 이미지 뷰어를 연다', () => {
+  it('Enter와 Space 키로도 이미지 뷰어를 연다', () => {
     render(<MarkdownImage alt="키보드 이미지" src="https://example.com/keyboard.png" />);
 
-    fireEvent.keyDown(screen.getByRole('button', { name: '키보드 이미지 · 이미지 크게 보기' }), {
-      key: 'Enter',
-    });
+    const trigger = screen.getByRole('button', { name: '키보드 이미지 · 이미지 크게 보기' });
 
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(screen.getByRole('dialog', { name: '이미지 뷰어' })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'close-with-second-image' }));
+    fireEvent.keyDown(trigger, { key: ' ' });
     expect(screen.getByRole('dialog', { name: '이미지 뷰어' })).toBeTruthy();
   });
 
