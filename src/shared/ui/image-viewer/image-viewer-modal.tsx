@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
@@ -30,8 +30,8 @@ type ImageViewerModalProps = {
   onClose: (currentIndex: number) => void;
 };
 
-const MIN_ZOOM = 0.75;
-const MAX_ZOOM = 3;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
 const DEFAULT_PAN_OFFSET = { x: 0, y: 0 } as const;
 
@@ -55,6 +55,43 @@ type ImageViewerDragState = {
   startX: number;
   startY: number;
 };
+
+type ImageViewerSideControlsProps = {
+  nextAriaLabel: string;
+  onNext: () => void;
+  onPrevious: () => void;
+  previousAriaLabel: string;
+};
+
+const ImageViewerSideControls = React.memo(
+  ({ nextAriaLabel, onNext, onPrevious, previousAriaLabel }: ImageViewerSideControlsProps) => (
+    <>
+      <Button
+        aria-label={previousAriaLabel}
+        className={cx(viewerControlButtonClass, sideButtonClass, sideButtonLeftClass)}
+        onClick={onPrevious}
+        tone="white"
+        type="button"
+        variant="ghost"
+      >
+        <ChevronRightIcon aria-hidden="true" className={sideButtonLeftIconClass} size={28} />
+      </Button>
+
+      <Button
+        aria-label={nextAriaLabel}
+        className={cx(viewerControlButtonClass, sideButtonClass, sideButtonRightClass)}
+        onClick={onNext}
+        tone="white"
+        type="button"
+        variant="ghost"
+      >
+        <ChevronRightIcon aria-hidden="true" size={28} />
+      </Button>
+    </>
+  ),
+);
+
+ImageViewerSideControls.displayName = 'ImageViewerSideControls';
 
 /**
  * 이미지 뷰어의 확대/축소 배율을 안전 범위 내로 제한합니다.
@@ -82,6 +119,13 @@ const clampPanOffset = ({
     y: Math.min(maxOffsetY, Math.max(-maxOffsetY, nextOffset.y)),
   };
 };
+
+/**
+ * 이벤트 타깃이 뷰어 내부 인터랙션 요소인지 판별합니다.
+ */
+const isInteractiveViewerTarget = (target: EventTarget | null) =>
+  target instanceof Element &&
+  Boolean(target.closest('button, a, input, textarea, select, summary, [role="button"]'));
 
 /**
  * 이미지 뷰어 모달을 렌더링합니다.
@@ -116,15 +160,32 @@ export const ImageViewerModal = ({
     () => sanitizedItems[currentIndex] ?? null,
     [currentIndex, sanitizedItems],
   );
+
   const resolvedDialogAriaLabel = useMemo(() => {
     if (!currentItem) return labels.imageViewerAriaLabel?.trim() || 'Image viewer';
-
     return currentItem.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer';
   }, [currentItem, labels.imageViewerAriaLabel]);
 
+  const handlePreviousImage = useCallback(() => {
+    const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
+    setCurrentIndex(nextIndex);
+    setPanOffset(DEFAULT_PAN_OFFSET);
+    setZoomLevel(1);
+  }, [currentIndex, sanitizedItems.length]);
+
+  const handleNextImage = useCallback(() => {
+    const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
+    setCurrentIndex(nextIndex);
+    setPanOffset(DEFAULT_PAN_OFFSET);
+    setZoomLevel(1);
+  }, [currentIndex, sanitizedItems.length]);
+
+  const handleModalClose = useCallback(() => {
+    onClose(currentIndex);
+  }, [currentIndex, onClose]);
+
   useEffect(() => {
     if (!isOpen || initialIndex === null) return;
-
     setCurrentIndex(initialIndex);
     setPanOffset(DEFAULT_PAN_OFFSET);
     setZoomLevel(1);
@@ -132,7 +193,6 @@ export const ImageViewerModal = ({
 
   useEffect(() => {
     if (zoomLevel > 1) return;
-
     dragStateRef.current = null;
     setIsDraggingImage(false);
     setPanOffset(DEFAULT_PAN_OFFSET);
@@ -140,44 +200,33 @@ export const ImageViewerModal = ({
 
   useEffect(() => {
     if (!isOpen) return;
-
     const rail = thumbnailRailRef.current;
     const activeButton = thumbnailButtonRefs.current[currentIndex];
-
     if (!rail || !activeButton) return;
 
     const targetLeft = activeButton.offsetLeft - (rail.clientWidth - activeButton.clientWidth) / 2;
     const maxScrollLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
     const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, targetLeft));
 
-    rail.scrollTo({
-      behavior: 'smooth',
-      left: nextScrollLeft,
-    });
+    rail.scrollTo({ behavior: 'smooth', left: nextScrollLeft });
   }, [currentIndex, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setCurrentIndex(previous => (previous < sanitizedItems.length - 1 ? previous + 1 : 0));
+        setCurrentIndex(prev => (prev < sanitizedItems.length - 1 ? prev + 1 : 0));
         setZoomLevel(1);
       }
-
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setCurrentIndex(previous => (previous > 0 ? previous - 1 : sanitizedItems.length - 1));
+        setCurrentIndex(prev => (prev > 0 ? prev - 1 : sanitizedItems.length - 1));
         setZoomLevel(1);
       }
     };
-
     window.addEventListener('keydown', handleKeydown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeydown);
-    };
+    return () => window.removeEventListener('keydown', handleKeydown);
   }, [isOpen, sanitizedItems.length]);
 
   /**
@@ -186,7 +235,6 @@ export const ImageViewerModal = ({
   const getClampedPanOffset = (nextOffset: ImageViewerPanOffset) => {
     const imageElement = imageRef.current;
     const viewportElement = viewportRef.current;
-
     if (!imageElement || !viewportElement) return DEFAULT_PAN_OFFSET;
 
     return clampPanOffset({
@@ -205,6 +253,7 @@ export const ImageViewerModal = ({
   const handleViewportPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (zoomLevel <= 1) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (isInteractiveViewerTarget(event.target)) return;
 
     dragStateRef.current = {
       originOffset: panOffset,
@@ -221,14 +270,12 @@ export const ImageViewerModal = ({
    */
   const handleViewportPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const dragState = dragStateRef.current;
-
     if (!dragState || dragState.pointerId !== event.pointerId) return;
 
     const nextOffset = getClampedPanOffset({
       x: dragState.originOffset.x + (event.clientX - dragState.startX),
       y: dragState.originOffset.y + (event.clientY - dragState.startY),
     });
-
     setPanOffset(nextOffset);
   };
 
@@ -237,10 +284,8 @@ export const ImageViewerModal = ({
    */
   const handleViewportPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
     if (dragStateRef.current?.pointerId !== event.pointerId) return;
-
     dragStateRef.current = null;
     setIsDraggingImage(false);
-
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -255,32 +300,17 @@ export const ImageViewerModal = ({
       closeButtonClassName={viewerCloseButtonClass}
       frameClassName={viewerFrameClass}
       isOpen={isOpen}
-      onClose={() => {
-        onClose(currentIndex);
-      }}
+      onClose={handleModalClose}
     >
       <div className={viewerContentClass}>
+        <div aria-hidden className={topScrimClass} />
         <div className={imageStageClass}>
-          <Button
-            aria-label={labels.previousAriaLabel}
-            className={cx(viewerControlButtonClass, sideButtonClass, sideButtonLeftClass)}
-            onClick={() => {
-              const nextIndex = currentIndex > 0 ? currentIndex - 1 : sanitizedItems.length - 1;
-              setCurrentIndex(nextIndex);
-              setZoomLevel(1);
-            }}
-            tone="white"
-            type="button"
-            variant="ghost"
-          >
-            <ChevronRightIcon
-              aria-hidden="true"
-              className={sideButtonLeftIconClass}
-              color="current"
-              size={36}
-            />
-          </Button>
-
+          <ImageViewerSideControls
+            nextAriaLabel={labels.nextAriaLabel}
+            onNext={handleNextImage}
+            onPrevious={handlePreviousImage}
+            previousAriaLabel={labels.previousAriaLabel}
+          />
           <div
             className={cx(
               imageViewportClass,
@@ -301,56 +331,40 @@ export const ImageViewerModal = ({
                 className={viewerImageClass}
                 data-image-viewer-image="true"
                 draggable={false}
-                height={1200}
                 ref={imageRef}
                 src={currentItem.src}
                 style={{
                   transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0) scale(${zoomLevel})`,
                 }}
-                width={1920}
               />
             </div>
-          </div>
 
-          <Button
-            aria-label={labels.nextAriaLabel}
-            className={cx(viewerControlButtonClass, sideButtonClass, sideButtonRightClass)}
-            onClick={() => {
-              const nextIndex = currentIndex < sanitizedItems.length - 1 ? currentIndex + 1 : 0;
-              setCurrentIndex(nextIndex);
-              setZoomLevel(1);
-            }}
-            tone="white"
-            type="button"
-            variant="ghost"
-          >
-            <ChevronRightIcon aria-hidden="true" color="current" size={36} />
-          </Button>
-
-          <div className={zoomDockClass}>
-            <button
-              aria-label={labels.zoomOutAriaLabel}
-              className={dockButtonClass}
-              onClick={() => {
-                setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP));
+            <div
+              className={zoomDockClass}
+              onPointerDown={event => {
+                event.stopPropagation();
               }}
-              type="button"
             >
-              -
-            </button>
-            <span aria-live="polite" className={zoomTextClass}>
-              {Math.round(zoomLevel * 100)}%
-            </span>
-            <button
-              aria-label={labels.zoomInAriaLabel}
-              className={dockButtonClass}
-              onClick={() => {
-                setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP));
-              }}
-              type="button"
-            >
-              +
-            </button>
+              <button
+                aria-label={labels.zoomOutAriaLabel}
+                className={dockButtonClass}
+                onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
+                type="button"
+              >
+                -
+              </button>
+              <span aria-live="polite" className={zoomTextClass}>
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                aria-label={labels.zoomInAriaLabel}
+                className={dockButtonClass}
+                onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
+                type="button"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
 
@@ -359,101 +373,97 @@ export const ImageViewerModal = ({
           className={thumbnailRailClass}
           ref={thumbnailRailRef}
         >
-          {sanitizedItems.map((item, index) => {
-            const isActive = index === currentIndex;
-
-            return (
-              <button
-                aria-current={isActive ? 'true' : undefined}
-                aria-label={`${
-                  item.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer'
-                } ${index + 1}`}
-                key={`${item.src}-${index}`}
-                onClick={() => {
-                  setCurrentIndex(index);
-                  setZoomLevel(1);
-                }}
-                ref={node => {
-                  thumbnailButtonRefs.current[index] = node;
-                }}
-                className={cx(
-                  thumbnailButtonClass,
-                  isActive ? activeThumbnailButtonClass : undefined,
-                )}
-                type="button"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={item.alt}
-                  className={thumbnailImageClass}
-                  draggable={false}
-                  height={200}
-                  loading="lazy"
-                  src={item.src}
-                  width={320}
-                />
-              </button>
-            );
-          })}
+          <div className={thumbnailRailTrackClass}>
+            {sanitizedItems.map((item, index) => {
+              const isActive = index === currentIndex;
+              return (
+                <button
+                  aria-current={isActive ? 'true' : undefined}
+                  aria-label={`${
+                    item.alt.trim() || labels.imageViewerAriaLabel?.trim() || 'Image viewer'
+                  } ${index + 1}`}
+                  key={`${item.src}-${index}`}
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    setZoomLevel(1);
+                  }}
+                  ref={node => {
+                    thumbnailButtonRefs.current[index] = node;
+                  }}
+                  className={cx(
+                    thumbnailButtonClass,
+                    isActive ? activeThumbnailButtonClass : undefined,
+                  )}
+                  type="button"
+                >
+                  <img
+                    alt={item.alt}
+                    className={thumbnailImageClass}
+                    draggable={false}
+                    loading="lazy"
+                    src={item.src}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </Modal>
   );
 };
 
+/* Styles */
+
 const viewerFrameClass = css({
-  width: '[min(1280px,100%)]',
-  height: '[min(94dvh,100%)]',
+  width: 'screen',
+  height: 'dvh',
+  overflow: 'hidden',
+  margin: '-4',
 });
 
 const viewerContentClass = css({
+  display: 'flex',
+  flexDirection: 'column',
   width: 'full',
   height: 'full',
-  display: 'grid',
-  gridTemplateRows: '[1fr auto]',
-  gap: '3',
+  position: 'relative',
+});
+
+const topScrimClass = css({
+  position: 'absolute',
+  top: '0',
+  left: '0',
+  right: '0',
+  height: '[120px]',
+  background: '[linear-gradient(to bottom, rgb(15 23 42 / 0.72) 0%, transparent 100%)]',
+  zIndex: '5',
+  pointerEvents: 'none',
 });
 
 const imageStageClass = css({
+  flex: '1',
+  display: 'flex',
+  flexDirection: 'column',
   position: 'relative',
   minHeight: '0',
-  borderRadius: 'lg',
-  border: '[1px solid rgb(255 255 255 / 0.18)]',
-  backgroundColor: '[rgb(15 23 42 / 0.22)]',
-  overflow: 'hidden',
-});
-
-const viewerControlButtonClass = css({
-  color: '[var(--colors-white)]',
-  backgroundColor: 'transparent',
-  borderColor: 'transparent',
-  minWidth: '[2.75rem]',
-  minHeight: '[2.75rem]',
-  px: '0',
-  _hover: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    opacity: 0.8,
-  },
-  _focusVisible: {
-    outline: '[2px solid rgb(255 255 255 / 0.92)]',
-    outlineOffset: '[2px]',
-  },
-});
-
-const viewerCloseButtonClass = css({
-  color: '[var(--colors-white)]',
+  alignItems: 'center',
 });
 
 const imageViewportClass = css({
+  flex: '1',
   width: 'full',
-  height: 'full',
-  overflow: 'hidden',
+  minHeight: '0',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
 });
 
 const zoomedImageViewportClass = css({
   cursor: 'grab',
   touchAction: 'none',
+  overflow: 'hidden',
 });
 
 const draggingImageViewportClass = css({
@@ -463,114 +473,118 @@ const draggingImageViewportClass = css({
 const imageInnerClass = css({
   width: 'full',
   height: 'full',
-  minHeight: 'full',
-  display: 'grid',
-  placeItems: 'center',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   p: '4',
 });
 
 const viewerImageClass = css({
-  width: 'auto',
-  maxWidth: '[min(100%,1440px)]',
-  height: 'auto',
+  maxWidth: 'full',
   maxHeight: 'full',
-  transformOrigin: 'center',
-  transition: '[transform 140ms ease]',
-  userSelect: 'none',
+  width: 'auto',
+  height: 'auto',
+  objectFit: 'contain',
   willChange: 'transform',
+  transition: '[transform 140ms ease-out]',
+  userSelect: 'none',
+});
+
+const viewerCloseButtonClass = css({
+  position: 'fixed',
+  top: '4',
+  right: '4',
+  zIndex: '10',
+  color: 'white',
+});
+
+const viewerControlButtonClass = css({
+  color: 'white',
+  backgroundColor: '[rgb(15 23 42 / 0.52)]',
+  borderRadius: 'full',
+  zIndex: '8',
+  _hover: {
+    backgroundColor: '[rgb(15 23 42 / 0.64)]',
+  },
 });
 
 const sideButtonClass = css({
   position: 'absolute',
   top: '[50%]',
-  zIndex: '3',
-  transform: '[translateY(-50%)]',
+  transform: 'translateY(-50%)',
 });
 
-const sideButtonLeftClass = css({
-  left: '[0.55rem]',
-});
-
-const sideButtonLeftIconClass = css({
-  transform: 'rotate(180deg)',
-});
-
-const sideButtonRightClass = css({
-  right: '[0.55rem]',
-});
+const sideButtonLeftClass = css({ left: '4' });
+const sideButtonRightClass = css({ right: '4' });
+const sideButtonLeftIconClass = css({ transform: 'rotate(180deg)' });
 
 const zoomDockClass = css({
   position: 'absolute',
+  bottom: '6',
   left: '[50%]',
-  bottom: '[0.9rem]',
-  zIndex: '3',
   transform: '[translateX(-50%)]',
   display: 'inline-flex',
   alignItems: 'center',
   gap: '2',
-  minHeight: '[2.6rem]',
-  px: '2',
-  py: '1',
+  px: '3',
+  py: '1.5',
   borderRadius: 'full',
-  border: '[1px solid rgb(255 255 255 / 0.25)]',
-  backgroundColor: '[rgb(15 23 42 / 0.45)]',
+  backgroundColor: '[rgb(15 23 42 / 0.75)]',
+  zIndex: '10',
 });
 
 const dockButtonClass = css({
-  minWidth: '[2.15rem]',
+  width: '8',
   height: '8',
   borderRadius: 'full',
-  border: '[1px solid rgb(255 255 255 / 0.3)]',
-  backgroundColor: '[rgb(255 255 255 / 0.08)]',
-  color: '[var(--colors-white)]',
-  fontSize: 'md',
-  lineHeight: 'none',
+  color: 'white',
   cursor: 'pointer',
+  backgroundColor: '[rgb(255 255 255 / 0.1)]',
+  _hover: { backgroundColor: '[rgba(255, 255, 255, 0.2)]' },
 });
 
 const zoomTextClass = css({
-  minWidth: '[3.5rem]',
+  minWidth: '12',
   textAlign: 'center',
-  color: '[var(--colors-zinc-200)]',
+  color: 'zinc.200',
   fontSize: 'sm',
-  fontVariantNumeric: 'tabular-nums',
 });
 
 const thumbnailRailClass = css({
-  display: 'grid',
-  gridAutoFlow: 'column',
-  gridAutoColumns: '[max-content]',
-  gap: '2',
+  width: 'full',
   overflowX: 'auto',
-  pt: '1',
+  mb: '4',
+  pb: '4',
   px: '4',
-  pb: '2',
-  justifyContent: 'flex-start',
-  scrollPaddingInline: '4',
+});
+
+const thumbnailRailTrackClass = css({
+  display: 'flex',
+  gap: '2',
+  justifyContent: 'center',
+  minWidth: '[max-content]',
 });
 
 const thumbnailButtonClass = css({
-  width: '[clamp(84px,13vw,128px)]',
-  border: '[1px solid rgb(255 255 255 / 0.2)]',
-  background: 'transparent',
+  width: '[clamp(80px, 12vw, 120px)]',
+  aspectRatio: '[16 / 9]',
   borderRadius: 'md',
-  p: '0',
   overflow: 'hidden',
-  opacity: 0.75,
-  transform: '[scale(0.96)]',
-  transition: '[transform 220ms ease, opacity 220ms ease, border-color 220ms ease]',
-  cursor: 'pointer',
+  transition: '[all 0.2s]',
+  border: '[2px solid transparent]',
+  _focusVisible: {
+    outline: '[4px solid var(--colors-primary)]',
+    outlineOffset: '[2px]',
+  },
 });
 
 const activeThumbnailButtonClass = css({
-  opacity: 1,
-  transform: '[scale(1)]',
-  borderColor: '[rgb(255 255 255 / 0.8)]',
+  borderColor: 'primary',
+  transform: 'scale(1.05)',
 });
 
 const thumbnailImageClass = css({
   width: 'full',
-  height: 'auto',
-  aspectRatio: '[16 / 9]',
+  height: 'full',
   objectFit: 'cover',
 });

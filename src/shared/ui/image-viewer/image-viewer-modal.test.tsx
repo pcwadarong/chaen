@@ -55,6 +55,19 @@ describe('ImageViewerModal', () => {
     ).toBeNull();
   });
 
+  it('alt가 비어 있어도 이미지 뷰어 라벨 fallback을 사용한다', () => {
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={[{ alt: '', src: '/empty-alt.jpg' }]}
+        labels={labels}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '이미지 뷰어 1' })).toBeTruthy();
+  });
+
   it('ArrowRight와 ArrowLeft 키로 이미지를 전환한다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
@@ -120,5 +133,27 @@ describe('ImageViewerModal', () => {
 
     expect(image.getAttribute('style')).toContain('translate3d(50px, 0px, 0)');
     expect(image.getAttribute('style')).toContain('scale(2)');
+  });
+
+  it('확대 버튼을 여러 번 눌러도 계속 확대된다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    for (let step = 0; step < 6; step += 1) {
+      fireEvent.click(screen.getByRole('button', { name: '확대' }));
+    }
+
+    expect(screen.getByText('250%')).toBeTruthy();
+  });
+
+  it('확대된 상태에서도 zoom dock 버튼을 계속 클릭할 수 있다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '확대' }));
+    expect(screen.getByText('125%')).toBeTruthy();
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: '확대' }), { pointerId: 1 });
+    fireEvent.click(screen.getByRole('button', { name: '축소' }));
+
+    expect(screen.getByText('100%')).toBeTruthy();
   });
 });
