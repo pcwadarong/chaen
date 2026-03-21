@@ -546,21 +546,6 @@ export const ImageViewerModal = ({
       onClick={handleModalClose}
     >
       <div aria-hidden className={topScrimClass} />
-      <XButton
-        ariaLabel={labels.closeAriaLabel}
-        className={viewerCloseButtonClass}
-        onClick={event => {
-          stopViewerClickPropagation(event);
-          handleModalClose();
-        }}
-      />
-      <ImageViewerSideControls
-        nextAriaLabel={labels.nextAriaLabel}
-        onNext={handleNextImage}
-        onPrevious={handlePreviousImage}
-        previousAriaLabel={labels.previousAriaLabel}
-        stopClickPropagation={stopViewerClickPropagation}
-      />
       <div
         aria-label={resolvedDialogAriaLabel}
         aria-modal="true"
@@ -569,6 +554,21 @@ export const ImageViewerModal = ({
         role="dialog"
         tabIndex={-1}
       >
+        <XButton
+          ariaLabel={labels.closeAriaLabel}
+          className={viewerCloseButtonClass}
+          onClick={event => {
+            stopViewerClickPropagation(event);
+            handleModalClose();
+          }}
+        />
+        <ImageViewerSideControls
+          nextAriaLabel={labels.nextAriaLabel}
+          onNext={handleNextImage}
+          onPrevious={handlePreviousImage}
+          previousAriaLabel={labels.previousAriaLabel}
+          stopClickPropagation={stopViewerClickPropagation}
+        />
         <div className={viewerContentClass}>
           <div className={imageStageClass}>
             <div

@@ -75,12 +75,12 @@ body {
 @keyframes image-viewer-tooltip-rise {
   0% {
     opacity: 0;
-    translate: 0 8px;
+    transform: translate3d(0, 8px, 0);
   }
 
   100% {
     opacity: 1;
-    translate: 0 0;
+    transform: translate3d(0, 0, 0);
   }
 }
 

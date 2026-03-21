@@ -99,6 +99,16 @@ describe('ImageViewerModal', () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
+  it('닫기와 좌우 네비게이션 버튼은 dialog 포커스 트랩 안에 포함된다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    const dialog = screen.getByRole('dialog', { name: '첫 번째 이미지' });
+
+    expect(dialog.contains(screen.getByRole('button', { name: '닫기' }))).toBe(true);
+    expect(dialog.contains(screen.getByRole('button', { name: '이전 이미지' }))).toBe(true);
+    expect(dialog.contains(screen.getByRole('button', { name: '다음 이미지' }))).toBe(true);
+  });
+
   it('액션 바의 이미지 위치 버튼으로 원문 이미지 위치 이동을 요청한다', () => {
     const handleLocateSource = vi.fn();
 
