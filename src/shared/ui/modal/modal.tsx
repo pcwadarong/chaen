@@ -20,6 +20,18 @@ type ModalProps = {
   onClose: () => void;
 };
 
+type ModalCloseButtonProps = {
+  ariaLabel: string;
+  className?: string;
+  onClick: () => void;
+};
+
+const ModalCloseButton = React.memo(({ ariaLabel, className, onClick }: ModalCloseButtonProps) => (
+  <XButton ariaLabel={ariaLabel} className={className} onClick={onClick} />
+));
+
+ModalCloseButton.displayName = 'ModalCloseButton';
+
 /**
  * 공통 포털 모달입니다.
  * 어두운 배경, 우측 상단 닫기 버튼, 배경 클릭 닫기 동작을 기본으로 제공합니다.
@@ -80,7 +92,7 @@ export const Modal = ({
         tabIndex={-1}
         className={cx(frameBaseClass, frameClassName)}
       >
-        <XButton
+        <ModalCloseButton
           ariaLabel={closeAriaLabel}
           className={cx(closeButtonClass, closeButtonClassName)}
           onClick={onClose}
