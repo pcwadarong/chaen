@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { DraftSaveResult } from '@/entities/editor/model/editor-types';
+import type { DraftSaveResult, PublishActionResult } from '@/entities/editor/model/editor-types';
 import type {
   ResumeEditorContentMap,
   ResumeEditorState,
@@ -16,7 +16,10 @@ type ResumeEditorPageProps = {
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<DraftSaveResult | void>;
-  onPublishSubmit?: (state: ResumeEditorState, draftId?: string | null) => Promise<void>;
+  onPublishSubmit?: (
+    state: ResumeEditorState,
+    draftId?: string | null,
+  ) => Promise<PublishActionResult | void>;
 };
 
 /**

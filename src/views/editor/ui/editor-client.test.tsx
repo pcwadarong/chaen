@@ -35,6 +35,13 @@ const editorClientMockState = vi.hoisted(() => ({
       },
     },
   },
+  routerPush: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: editorClientMockState.routerPush,
+  }),
 }));
 
 vi.mock('@/widgets/editor', async () => {
@@ -64,7 +71,7 @@ vi.mock('@/widgets/editor', async () => {
         </div>
       );
     },
-    PublishPanel: ({ isOpen, onClose, onSettingsChange }: PublishPanelProps) =>
+    PublishPanel: ({ isOpen, onClose, onSettingsChange, onSubmit }: PublishPanelProps) =>
       isOpen ? (
         <div aria-label="발행 설정" role="dialog">
           <button
@@ -84,6 +91,20 @@ vi.mock('@/widgets/editor', async () => {
           <button aria-label="발행 설정 닫기" onClick={onClose} type="button">
             닫기
           </button>
+          <button
+            onClick={() =>
+              void onSubmit({
+                allowComments: true,
+                publishAt: '2026-03-20T01:00:00.000Z',
+                slug: 'draft-slug',
+                thumbnailUrl: 'https://example.com/thumb.png',
+                visibility: 'private',
+              })
+            }
+            type="button"
+          >
+            발행 제출
+          </button>
         </div>
       ) : null,
   };
@@ -92,6 +113,7 @@ vi.mock('@/widgets/editor', async () => {
 describe('EditorClient', () => {
   beforeEach(() => {
     editorClientMockState.editorCoreRenderCount = 0;
+    editorClientMockState.routerPush.mockReset();
   });
 
   it('발행하기 버튼 클릭 시 publish panel을 연다', async () => {
@@ -186,5 +208,33 @@ describe('EditorClient', () => {
     );
 
     expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
+  });
+
+  it('발행 성공 시 반환된 redirectPath로 이동한다', async () => {
+    const onPublishSubmit = vi.fn().mockResolvedValue({
+      redirectPath: '/ko/articles/draft-slug',
+    });
+
+    render(
+      <EditorClient
+        availableTags={[]}
+        contentType="article"
+        initialTranslations={editorClientMockState.editorState.translations}
+        onPublishSubmit={onPublishSubmit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '발행 설정' })).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '발행 제출' }));
+
+    await waitFor(() => {
+      expect(onPublishSubmit).toHaveBeenCalled();
+      expect(editorClientMockState.routerPush).toHaveBeenCalledWith('/ko/articles/draft-slug');
+    });
   });
 });

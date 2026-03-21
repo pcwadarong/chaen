@@ -76,7 +76,7 @@ const AdminProjectEditRoute = async ({
   ) => {
     'use server';
 
-    await publishEditorContentAction({
+    return publishEditorContentAction({
       contentId: id,
       contentType: 'project',
       draftId,

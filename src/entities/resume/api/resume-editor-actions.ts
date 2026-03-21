@@ -1,13 +1,13 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import {
   type DraftSaveResult,
   EDITOR_LOCALES,
   type Locale,
+  type PublishActionResult,
 } from '@/entities/editor/model/editor-types';
 import {
   createPdfFileAvailabilityCacheTag,
@@ -144,7 +144,7 @@ export const publishResumeContentAction = async ({
   draftId,
   locale,
   state,
-}: PublishResumeContentActionInput) => {
+}: PublishResumeContentActionInput): Promise<PublishActionResult> => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
   const parsedState = resumeEditorStateSchema.safeParse(state);
@@ -191,12 +191,12 @@ export const publishResumeContentAction = async ({
   revalidatePdfReadCaches();
   revalidateResumePublicPaths();
 
-  redirect(
-    buildLocalizedPathname({
+  return {
+    redirectPath: buildLocalizedPathname({
       locale: resolveActionLocale(locale),
       pathname: '/admin/resume/edit',
     }),
-  );
+  };
 };
 
 /**

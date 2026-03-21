@@ -61,6 +61,13 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
   lastExtraLocaleFieldLabel: undefined as EditorCoreProps['extraLocaleFieldLabel'] | undefined,
   lastOnDraftSave: undefined as EditorCoreProps['onDraftSave'] | undefined,
   lastOnDirectPublish: undefined as EditorCoreProps['onDirectPublish'] | undefined,
+  routerPush: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: resumeEditorClientMockState.routerPush,
+  }),
 }));
 
 vi.mock('@/widgets/editor', async () => {
@@ -99,6 +106,7 @@ describe('ResumeEditorClient', () => {
     resumeEditorClientMockState.lastExtraLocaleFieldLabel = undefined;
     resumeEditorClientMockState.lastOnDraftSave = undefined;
     resumeEditorClientMockState.lastOnDirectPublish = undefined;
+    resumeEditorClientMockState.routerPush.mockReset();
   });
 
   it('발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다', async () => {
@@ -213,5 +221,27 @@ describe('ResumeEditorClient', () => {
     );
 
     expect(resumeEditorClientMockState.lastExtraLocaleFieldLabel).toBeUndefined();
+  });
+
+  it('resume 발행 성공 시 반환된 redirectPath로 이동한다', async () => {
+    const onDraftSave = vi.fn().mockResolvedValue(undefined);
+    const onPublishSubmit = vi.fn().mockResolvedValue({
+      redirectPath: '/ko/admin/resume/edit',
+    });
+
+    render(
+      <ResumeEditorClient
+        initialContents={toResumeInitialContents()}
+        onDraftSave={onDraftSave}
+        onPublishSubmit={onPublishSubmit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(onPublishSubmit).toHaveBeenCalledTimes(1);
+      expect(resumeEditorClientMockState.routerPush).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    });
   });
 });

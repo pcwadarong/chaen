@@ -1,5 +1,4 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import {
@@ -13,10 +12,6 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
-}));
-
-vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -369,7 +364,7 @@ describe('editor-actions', () => {
       }),
     } as never);
 
-    await publishEditorContentAction({
+    const result = await publishEditorContentAction({
       contentId: 'article-1',
       contentType: 'article',
       draftId: 'draft-1',
@@ -400,7 +395,7 @@ describe('editor-actions', () => {
       }),
     );
     expect(articlesUpdateQuery.update.mock.calls[0]?.[0]).not.toHaveProperty('updated_at');
-    expect(redirect).toHaveBeenCalledWith('/ko/articles/published-article');
+    expect(result).toEqual({ redirectPath: '/ko/articles/published-article' });
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/published-article');
@@ -477,7 +472,7 @@ describe('editor-actions', () => {
       }),
     } as never);
 
-    await publishEditorContentAction({
+    const result = await publishEditorContentAction({
       contentId: 'article-1',
       contentType: 'article',
       draftId: 'draft-4',
@@ -502,7 +497,7 @@ describe('editor-actions', () => {
       },
     });
 
-    expect(redirect).toHaveBeenCalledWith('/ko/admin/articles/article-1/edit');
+    expect(result).toEqual({ redirectPath: '/ko/admin/articles/article-1/edit' });
   });
 
   it('아직 공개 전인 예약 article은 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
@@ -575,7 +570,7 @@ describe('editor-actions', () => {
       }),
     } as never);
 
-    await publishEditorContentAction({
+    const result = await publishEditorContentAction({
       contentId: 'article-1',
       contentType: 'article',
       draftId: 'draft-2',
@@ -605,7 +600,7 @@ describe('editor-actions', () => {
         publish_at: '2026-03-22T01:00:00.000Z',
       }),
     );
-    expect(redirect).toHaveBeenCalledWith('/ko/articles');
+    expect(result).toEqual({ redirectPath: '/ko/articles' });
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/scheduled-article');
@@ -738,7 +733,7 @@ describe('editor-actions', () => {
       }),
     } as never);
 
-    await publishEditorContentAction({
+    const result = await publishEditorContentAction({
       contentId: 'project-1',
       contentType: 'project',
       draftId: 'draft-3',
@@ -769,7 +764,7 @@ describe('editor-actions', () => {
       }),
     );
     expect(projectsUpdateQuery.update.mock.calls[0]?.[0]).not.toHaveProperty('allow_comments');
-    expect(redirect).toHaveBeenCalledWith('/ko/project');
+    expect(result).toEqual({ redirectPath: '/ko/project' });
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project/scheduled-project');
@@ -833,6 +828,5 @@ describe('editor-actions', () => {
     });
 
     expect(revalidateTag).not.toHaveBeenCalled();
-    expect(redirect).not.toHaveBeenCalled();
   });
 });

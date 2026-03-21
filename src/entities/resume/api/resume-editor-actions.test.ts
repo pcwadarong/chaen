@@ -1,5 +1,4 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import {
   publishResumeContentAction,
@@ -12,10 +11,6 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
-}));
-
-vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -140,7 +135,7 @@ describe('resume-editor-actions', () => {
         ),
     } as never);
 
-    await publishResumeContentAction({
+    const result = await publishResumeContentAction({
       draftId: 'resume-draft-1',
       locale: 'ko',
       state: {
@@ -197,7 +192,7 @@ describe('resume-editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
-    expect(redirect).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    expect(result).toEqual({ redirectPath: '/ko/admin/resume/edit' });
   });
 
   it('service role이 없으면 resume draft 저장을 중단한다', async () => {

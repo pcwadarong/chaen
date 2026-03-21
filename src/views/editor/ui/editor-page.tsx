@@ -1,5 +1,6 @@
 import React from 'react';
 
+import type { PublishActionResult } from '@/entities/editor/model/editor-types';
 import { EditorClient } from '@/views/editor/ui/editor-client';
 import type {
   DraftSaveResult,
@@ -37,7 +38,7 @@ type EditorPageProps = {
     settings: PublishSettings,
     editorState: EditorState,
     draftId?: string | null,
-  ) => Promise<void>;
+  ) => Promise<PublishActionResult | void>;
 };
 
 /**

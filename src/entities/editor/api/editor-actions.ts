@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
@@ -18,6 +17,7 @@ import { validateEditorState } from '@/entities/editor/model/editor-state-utils'
 import type {
   DraftSaveResult,
   EditorState,
+  PublishActionResult,
   PublishSettings,
 } from '@/entities/editor/model/editor-types';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
@@ -213,7 +213,7 @@ export const publishEditorContentAction = async ({
   editorState,
   locale,
   settings,
-}: PublishEditorContentActionInput) => {
+}: PublishEditorContentActionInput): Promise<PublishActionResult> => {
   await requireAdmin({ locale, onUnauthorized: 'throw' });
 
   const parsedState = editorStateSchema.safeParse(editorState);
@@ -351,12 +351,12 @@ export const publishEditorContentAction = async ({
     slug: normalizedSlug,
   });
 
-  redirect(
-    buildLocalizedPathname({
+  return {
+    redirectPath: buildLocalizedPathname({
       locale: resolveActionLocale(locale),
       pathname: redirectPath,
     }),
-  );
+  };
 };
 
 /**

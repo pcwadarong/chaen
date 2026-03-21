@@ -60,7 +60,7 @@ const AdminResumeEditRoute = async ({
   ) => {
     'use server';
 
-    await publishResumeContentAction({
+    return publishResumeContentAction({
       draftId,
       locale,
       state,

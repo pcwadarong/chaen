@@ -21,6 +21,10 @@ export type DraftSaveResult = {
   savedAt?: string | null;
 };
 
+export type PublishActionResult = {
+  redirectPath: string;
+};
+
 export type EditorContentType = 'article' | 'project' | 'resume';
 export type EditorPublicationState = 'draft' | 'published' | 'scheduled';
 export type PublishVisibility = 'public' | 'private';

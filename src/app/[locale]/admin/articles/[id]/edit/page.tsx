@@ -73,7 +73,7 @@ const AdminArticleEditRoute = async ({
   ) => {
     'use server';
 
-    await publishEditorContentAction({
+    return publishEditorContentAction({
       contentId: id,
       contentType: 'article',
       draftId,

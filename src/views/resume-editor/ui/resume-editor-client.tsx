@@ -1,8 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useState } from 'react';
 
-import type { DraftSaveResult, EditorState } from '@/entities/editor/model/editor-types';
+import type {
+  DraftSaveResult,
+  EditorState,
+  PublishActionResult,
+} from '@/entities/editor/model/editor-types';
 import type { ResumeEditorState } from '@/entities/resume/model/resume-editor.types';
 import {
   editorStateToResumeEditorState,
@@ -20,7 +25,10 @@ type ResumeEditorClientProps = {
     state: ResumeEditorState,
     draftId?: string | null,
   ) => Promise<DraftSaveResult | void>;
-  onPublishSubmit?: (state: ResumeEditorState, draftId?: string | null) => Promise<void>;
+  onPublishSubmit?: (
+    state: ResumeEditorState,
+    draftId?: string | null,
+  ) => Promise<PublishActionResult | void>;
 };
 
 const MemoizedEditorCore = React.memo(EditorCore);
@@ -36,6 +44,7 @@ export const ResumeEditorClient = ({
   onDraftSave,
   onPublishSubmit,
 }: ResumeEditorClientProps) => {
+  const router = useRouter();
   const [draftId, setDraftId] = useState<string | null>(initialDraftId);
 
   const handleDraftSave = useCallback(
@@ -60,9 +69,13 @@ export const ResumeEditorClient = ({
         return;
       }
 
-      await onPublishSubmit(editorStateToResumeEditorState(state), draftId);
+      const result = await onPublishSubmit(editorStateToResumeEditorState(state), draftId);
+
+      if (result?.redirectPath) {
+        router.push(result.redirectPath);
+      }
     },
-    [draftId, onPublishSubmit],
+    [draftId, onPublishSubmit, router],
   );
 
   return (

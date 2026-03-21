@@ -1,7 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useState } from 'react';
 
+import type { PublishActionResult } from '@/entities/editor/model/editor-types';
 import {
   type DraftSaveResult,
   type EditorContentType,
@@ -41,7 +43,7 @@ type EditorClientProps = {
     settings: PublishSettings,
     editorState: EditorState,
     draftId?: string | null,
-  ) => Promise<void>;
+  ) => Promise<PublishActionResult | void>;
 };
 
 const EMPTY_TAGS: string[] = [];
@@ -67,6 +69,7 @@ export const EditorClient = ({
   onDraftSave,
   onPublishSubmit,
 }: EditorClientProps) => {
+  const router = useRouter();
   const [isPublishPanelOpen, setIsPublishPanelOpen] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(initialDraftId);
   const [editorState, setEditorState] = useState<EditorState>(() => ({
@@ -133,10 +136,14 @@ export const EditorClient = ({
       setPublishSettings(settings);
 
       if (onPublishSubmit) {
-        await onPublishSubmit(settings, editorState, draftId);
+        const result = await onPublishSubmit(settings, editorState, draftId);
+
+        if (result?.redirectPath) {
+          router.push(result.redirectPath);
+        }
       }
     },
-    [draftId, editorState, onPublishSubmit],
+    [draftId, editorState, onPublishSubmit, router],
   );
 
   return (
