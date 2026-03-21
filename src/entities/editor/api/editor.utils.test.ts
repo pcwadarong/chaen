@@ -97,10 +97,12 @@ describe('editor.utils', () => {
       initialSavedAt: '2026-03-13T00:00:00.000Z',
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'published-slug',
         thumbnailUrl: '',
         visibility: 'public' as const,
+        websiteUrl: '',
       },
       initialSlug: 'published-slug',
       initialTags: ['react'],
@@ -112,6 +114,7 @@ describe('editor.utils', () => {
         allowComments: false,
         contentId: 'article-1',
         draftId: 'draft-1',
+        githubUrl: '',
         publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'draft-slug',
         tags: ['nextjs'],
@@ -122,6 +125,7 @@ describe('editor.utils', () => {
         },
         updatedAt: '2026-03-14T09:00:00.000Z',
         visibility: 'public',
+        websiteUrl: '',
       }),
     ).toEqual({
       contentId: 'article-1',
@@ -132,18 +136,24 @@ describe('editor.utils', () => {
       initialSavedAt: '2026-03-14T09:00:00.000Z',
       initialSettings: {
         allowComments: false,
+        githubUrl: '',
         publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'draft-slug',
         thumbnailUrl: 'https://example.com/thumb.png',
         visibility: 'public',
+        websiteUrl: '',
       },
       initialSlug: 'draft-slug',
       initialTags: ['nextjs'],
       initialTranslations: {
-        en: { content: '', description: '', title: '' },
-        fr: { content: '', description: '', title: '' },
-        ja: { content: '', description: '', title: '' },
-        ko: { content: '임시 본문', description: '임시 설명', title: '임시 제목' },
+        en: { content: '', description: '', download_button_label: '', title: '' },
+        fr: { content: '', description: '', download_button_label: '', title: '' },
+        ja: { content: '', description: '', download_button_label: '', title: '' },
+        ko: {
+          content: '임시 본문',
+          description: '임시 설명',
+          title: '임시 제목',
+        },
       },
     });
   });

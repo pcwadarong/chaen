@@ -58,10 +58,12 @@ describe('AdminArticleEditRoute', () => {
       initialSavedAt: '2026-03-12T10:00:00.000Z',
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'hello-world',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       initialSlug: 'hello-world',
       initialTags: ['react'],

@@ -20,6 +20,7 @@ export type EditorDraftSeed = {
   allowComments: boolean;
   contentId: string | null;
   draftId: string;
+  githubUrl: string;
   publishAt: string | null;
   slug: string;
   tags: string[];
@@ -27,6 +28,7 @@ export type EditorDraftSeed = {
   translations: Record<Locale, TranslationField>;
   updatedAt: string;
   visibility: PublishSettings['visibility'];
+  websiteUrl: string;
 };
 
 type DraftFieldKey = 'content' | 'description' | 'title';
@@ -135,10 +137,12 @@ export const mergeEditorSeedWithDraft = (
   initialSavedAt: draftSeed.updatedAt,
   initialSettings: {
     allowComments: draftSeed.allowComments,
+    githubUrl: draftSeed.githubUrl,
     publishAt: draftSeed.publishAt,
     slug: draftSeed.slug,
     thumbnailUrl: draftSeed.thumbnailUrl,
     visibility: draftSeed.visibility,
+    websiteUrl: draftSeed.websiteUrl,
   },
   initialSlug: draftSeed.slug,
   initialTags: draftSeed.tags,

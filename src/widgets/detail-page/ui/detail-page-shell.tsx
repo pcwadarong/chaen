@@ -18,6 +18,7 @@ type DetailPageShellProps = {
   emptyContentText?: string;
   guestbookCtaText: string;
   heroDescription: string;
+  heroTitleAccessory?: ReactNode;
   hideAppFrameFooter?: boolean;
   locale?: string;
   metaBar: ReactNode;
@@ -37,6 +38,7 @@ type DetailPageSidebarProps = {
 
 type DetailPageHeroProps = {
   description: string;
+  titleAccessory?: ReactNode;
   locale?: string;
   tagContent?: ReactNode;
   title: string;
@@ -68,12 +70,23 @@ const DetailPageSidebar = ({ content, emptyArchiveText, items, label }: DetailPa
 /**
  * 디테일 페이지 hero 영역을 렌더링합니다.
  */
-const DetailPageHero = ({ description, locale, tagContent, title }: DetailPageHeroProps) => (
+const DetailPageHero = ({
+  description,
+  locale,
+  tagContent,
+  title,
+  titleAccessory,
+}: DetailPageHeroProps) => (
   <header className={detailPageHeroClass}>
     <div className={detailPageHeroTextClass}>
-      <h1 className={detailPageTitleClass} lang={locale}>
-        {title}
-      </h1>
+      <div className={detailPageTitleRowClass}>
+        <h1 className={detailPageTitleClass} lang={locale}>
+          {title}
+        </h1>
+        {titleAccessory ? (
+          <div className={detailPageTitleAccessoryClass}>{titleAccessory}</div>
+        ) : null}
+      </div>
       <p className={detailPageDescriptionClass} lang={locale}>
         {description}
       </p>
@@ -124,6 +137,7 @@ export const DetailPageShell = ({
   emptyContentText,
   guestbookCtaText,
   heroDescription,
+  heroTitleAccessory,
   hideAppFrameFooter = false,
   locale,
   metaBar,
@@ -162,6 +176,7 @@ export const DetailPageShell = ({
           locale={locale}
           tagContent={tagContent}
           title={title}
+          titleAccessory={heroTitleAccessory}
         />
         <div className={detailPageMetaBarSectionClass}>{metaBar}</div>
         <DetailPageBody
@@ -246,6 +261,20 @@ const detailPageTitleClass = css({
     wordBreak: 'break-all',
     overflowWrap: 'anywhere',
   },
+});
+
+const detailPageTitleRowClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '3',
+});
+
+const detailPageTitleAccessoryClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  marginLeft: '1',
 });
 
 const detailPageDescriptionClass = css({

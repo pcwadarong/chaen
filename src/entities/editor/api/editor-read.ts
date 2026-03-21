@@ -11,18 +11,21 @@ import { createEmptyTranslations } from '@/entities/editor/model/editor-state-ut
 import type { EditorContentType, Locale } from '@/entities/editor/model/editor-types';
 import { getTechStackSlugsByIds } from '@/entities/tech-stack/api/query-tech-stacks';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 import 'server-only';
 
 type ContentRow = {
   allow_comments?: boolean | null;
   created_at: string;
+  github_url?: string | null;
   id: string;
   publish_at: string | null;
   slug: string | null;
   thumbnail_url: string | null;
   updated_at: string | null;
   visibility: 'private' | 'public' | null;
+  website_url?: string | null;
 };
 
 type TranslationRow = {
@@ -45,6 +48,7 @@ type DraftRow = {
   content_id: string | null;
   content_type: EditorContentType;
   description: Record<string, unknown> | null;
+  github_url?: string | null;
   id: string;
   publish_at: string | null;
   slug: string | null;
@@ -53,6 +57,7 @@ type DraftRow = {
   title: Record<string, unknown> | null;
   updated_at: string;
   visibility: string | null;
+  website_url?: string | null;
 };
 
 type ResumeDraftRow = {
@@ -107,7 +112,7 @@ export const getEditorSeed = async ({
     .select(
       contentType === 'article'
         ? 'id,slug,thumbnail_url,visibility,allow_comments,publish_at,created_at,updated_at'
-        : 'id,slug,thumbnail_url,visibility,publish_at,created_at,updated_at',
+        : 'id,slug,thumbnail_url,visibility,publish_at,created_at,updated_at,website_url,github_url',
     )
     .eq('id', contentId)
     .maybeSingle<ContentRow>();
@@ -176,10 +181,12 @@ export const getEditorSeed = async ({
     initialSavedAt: contentRow.updated_at ?? contentRow.created_at,
     initialSettings: {
       allowComments: contentType === 'article' ? (contentRow.allow_comments ?? true) : false,
+      githubUrl: contentType === 'project' ? (normalizeHttpUrl(contentRow.github_url) ?? '') : '',
       publishAt: contentRow.publish_at,
       slug: contentRow.slug ?? '',
       thumbnailUrl: contentRow.thumbnail_url ?? '',
       visibility,
+      websiteUrl: contentType === 'project' ? (normalizeHttpUrl(contentRow.website_url) ?? '') : '',
     },
     initialSlug: contentRow.slug ?? '',
     initialTags: relationSlugs,
@@ -298,7 +305,7 @@ const getDraftSeed = async ({
   let query = supabase
     .from('drafts')
     .select(
-      'id,content_type,content_id,title,description,content,tags,slug,thumbnail_url,visibility,allow_comments,publish_at,updated_at',
+      'id,content_type,content_id,title,description,content,tags,slug,thumbnail_url,visibility,allow_comments,publish_at,updated_at,website_url,github_url',
     )
     .eq('content_type', contentType)
     .order('updated_at', { ascending: false })
@@ -333,6 +340,7 @@ const getDraftSeed = async ({
     allowComments: contentType === 'article' ? (draftRow.allow_comments ?? true) : false,
     contentId: draftRow.content_id,
     draftId: draftRow.id,
+    githubUrl: contentType === 'project' ? (draftRow.github_url ?? '') : '',
     publishAt: draftRow.publish_at,
     slug: draftRow.slug ?? '',
     tags: tagSlugs,
@@ -344,6 +352,7 @@ const getDraftSeed = async ({
     }),
     updatedAt: draftRow.updated_at,
     visibility: normalizeEditorVisibility(draftRow.visibility),
+    websiteUrl: contentType === 'project' ? (draftRow.website_url ?? '') : '',
   };
 };
 

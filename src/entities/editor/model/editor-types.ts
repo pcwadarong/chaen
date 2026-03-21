@@ -42,8 +42,10 @@ export type EditorValidationResult = {
 
 export interface PublishSettings {
   allowComments: boolean;
+  githubUrl: string;
   publishAt: string | null;
   slug: string;
   thumbnailUrl: string;
   visibility: PublishVisibility;
+  websiteUrl: string;
 }

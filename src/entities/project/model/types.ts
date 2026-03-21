@@ -8,6 +8,7 @@ export type Project = {
   description: string | null;
   display_order?: number | null;
   content: string | null;
+  github_url?: string | null;
   id: string;
   period_end?: string | null;
   period_start?: string | null;
@@ -18,6 +19,7 @@ export type Project = {
   thumbnail_url: string | null;
   title: string;
   visibility?: 'public' | 'private' | null;
+  website_url?: string | null;
 };
 
 /**

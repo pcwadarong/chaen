@@ -36,6 +36,15 @@ type PublishScheduleSectionProps = {
   timeInput: string;
 };
 
+type PublishProjectLinksSectionProps = {
+  githubUrl: string;
+  githubUrlError?: string;
+  onGithubUrlChange: (value: string) => void;
+  onWebsiteUrlChange: (value: string) => void;
+  websiteUrl: string;
+  websiteUrlError?: string;
+};
+
 const visibilityOptions: Array<{ label: string; value: PublishVisibility }> = [
   { label: '공개', value: 'public' },
   { label: '비공개', value: 'private' },
@@ -176,6 +185,55 @@ PublishScheduleSectionBase.displayName = 'PublishScheduleSection';
 
 export const PublishScheduleSection = React.memo(PublishScheduleSectionBase);
 
+const PublishProjectLinksSectionBase = ({
+  githubUrl,
+  githubUrlError,
+  onGithubUrlChange,
+  onWebsiteUrlChange,
+  websiteUrl,
+  websiteUrlError,
+}: PublishProjectLinksSectionProps) => (
+  <section className={sectionClass}>
+    <p className={fieldLabelClass}>외부 링크</p>
+    <div className={linkFieldGridClass}>
+      <label className={linkFieldClass}>
+        <span className={scheduleLabelClass}>웹사이트</span>
+        <Input
+          className={scheduleInputClass}
+          onChange={event => onWebsiteUrlChange(event.target.value)}
+          placeholder="https://example.com"
+          type="url"
+          value={websiteUrl}
+        />
+        {websiteUrlError ? (
+          <p className={errorTextClass} role="alert">
+            {websiteUrlError}
+          </p>
+        ) : null}
+      </label>
+      <label className={linkFieldClass}>
+        <span className={scheduleLabelClass}>GitHub</span>
+        <Input
+          className={scheduleInputClass}
+          onChange={event => onGithubUrlChange(event.target.value)}
+          placeholder="https://github.com/owner/repository"
+          type="url"
+          value={githubUrl}
+        />
+        {githubUrlError ? (
+          <p className={errorTextClass} role="alert">
+            {githubUrlError}
+          </p>
+        ) : null}
+      </label>
+    </div>
+  </section>
+);
+
+PublishProjectLinksSectionBase.displayName = 'PublishProjectLinksSection';
+
+export const PublishProjectLinksSection = React.memo(PublishProjectLinksSectionBase);
+
 const sectionClass = css({
   display: 'grid',
   gap: '3',
@@ -225,6 +283,16 @@ const scheduleFieldGridClass = css({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '3',
+});
+
+const linkFieldGridClass = css({
+  display: 'grid',
+  gap: '3',
+});
+
+const linkFieldClass = css({
+  display: 'grid',
+  gap: '2',
 });
 
 const scheduleFieldClass = css({

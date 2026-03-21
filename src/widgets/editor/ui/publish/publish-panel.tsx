@@ -33,6 +33,7 @@ import {
   type PublishMode,
 } from '@/widgets/editor/ui/publish/publish-panel-schedule';
 import {
+  PublishProjectLinksSection,
   PublishScheduleSection,
   PublishThumbnailSection,
   PublishVisibilitySection,
@@ -40,10 +41,12 @@ import {
 import { PublishSlugInput } from '@/widgets/editor/ui/publish/publish-slug-input';
 
 type PublishErrors = {
+  githubUrl?: string;
   koTitle?: string;
   publishAt?: string;
   slug?: string;
   thumbnail?: string;
+  websiteUrl?: string;
 };
 
 /**
@@ -68,11 +71,13 @@ const createInitialFormState = ({
   return {
     allowComments: defaultSettings.allowComments,
     dateInput: scheduleFields.dateInput,
+    githubUrl: defaultSettings.githubUrl,
     publishMode: scheduleFields.publishMode,
     slug: defaultSettings.slug,
     thumbnailUrl: defaultSettings.thumbnailUrl,
     timeInput: scheduleFields.timeInput,
     visibility: defaultSettings.visibility,
+    websiteUrl: defaultSettings.websiteUrl,
   };
 };
 
@@ -81,10 +86,12 @@ const createInitialFormState = ({
  */
 const isSamePublishSettings = (left: PublishSettings, right: PublishSettings) =>
   left.allowComments === right.allowComments &&
+  left.githubUrl === right.githubUrl &&
   left.publishAt === right.publishAt &&
   left.slug === right.slug &&
   left.thumbnailUrl === right.thumbnailUrl &&
-  left.visibility === right.visibility;
+  left.visibility === right.visibility &&
+  left.websiteUrl === right.websiteUrl;
 
 /**
  * 발행 설정을 우측 슬라이드 패널로 편집합니다.
@@ -106,6 +113,8 @@ export const PublishPanel = ({
   const [visibility, setVisibility] = useState<PublishVisibility>('public');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [allowComments, setAllowComments] = useState(true);
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
   const [publishMode, setPublishMode] = useState<PublishMode>('immediate');
   const [dateInput, setDateInput] = useState('');
   const [timeInput, setTimeInput] = useState('');
@@ -147,6 +156,8 @@ export const PublishPanel = ({
     setVisibility(nextFormState.visibility);
     setThumbnailUrl(nextFormState.thumbnailUrl);
     setAllowComments(nextFormState.allowComments);
+    setWebsiteUrl(nextFormState.websiteUrl);
+    setGithubUrl(nextFormState.githubUrl);
     setPublishMode(nextFormState.publishMode);
     setDateInput(nextFormState.dateInput);
     setTimeInput(nextFormState.timeInput);
@@ -177,21 +188,25 @@ export const PublishPanel = ({
       buildPublishSettings({
         allowComments: showPublishCommentsSetting ? allowComments : false,
         dateInput,
+        githubUrl,
         publishMode,
         slug,
         thumbnailUrl,
         timeInput,
         visibility,
+        websiteUrl,
       }),
     [
       allowComments,
       dateInput,
+      githubUrl,
       publishMode,
       showPublishCommentsSetting,
       slug,
       thumbnailUrl,
       timeInput,
       visibility,
+      websiteUrl,
     ],
   );
 
@@ -238,6 +253,16 @@ export const PublishPanel = ({
   }, []);
   const handleThumbnailUrlChange = useCallback((value: string) => {
     setThumbnailUrl(previous => (previous === value ? previous : value));
+  }, []);
+  const handleWebsiteUrlChange = useCallback((value: string) => {
+    setWebsiteUrl(previous => (previous === value ? previous : value));
+    setErrors(previous =>
+      previous.websiteUrl ? { ...previous, websiteUrl: undefined } : previous,
+    );
+  }, []);
+  const handleGithubUrlChange = useCallback((value: string) => {
+    setGithubUrl(previous => (previous === value ? previous : value));
+    setErrors(previous => (previous.githubUrl ? { ...previous, githubUrl: undefined } : previous));
   }, []);
   const handleAllowCommentsChange = useCallback((checked: boolean) => {
     setAllowComments(previous => (previous === checked ? previous : checked));
@@ -408,6 +433,17 @@ export const PublishPanel = ({
             thumbnailPreviewUrl={thumbnailPreviewUrl}
             thumbnailUrl={thumbnailUrl}
           />
+
+          {contentType === 'project' ? (
+            <PublishProjectLinksSection
+              githubUrl={githubUrl}
+              githubUrlError={errors.githubUrl}
+              onGithubUrlChange={handleGithubUrlChange}
+              onWebsiteUrlChange={handleWebsiteUrlChange}
+              websiteUrl={websiteUrl}
+              websiteUrlError={errors.websiteUrl}
+            />
+          ) : null}
 
           {showPublishCommentsSetting ? (
             <section className={sectionClass}>

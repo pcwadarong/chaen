@@ -71,10 +71,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: false,
+        githubUrl: '',
         publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'draft-slug',
         thumbnailUrl: 'https://example.com/thumb.png',
         visibility: 'private',
+        websiteUrl: '',
       },
       state: {
         dirty: true,
@@ -156,10 +158,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'draft-slug',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       state: {
         dirty: true,
@@ -237,10 +241,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-22T01:00:00.000Z',
         slug: 'draft-slug',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       state: {
         dirty: true,
@@ -382,10 +388,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'published-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
     });
 
@@ -490,10 +498,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'published-article',
         thumbnailUrl: '',
         visibility: 'private',
+        websiteUrl: '',
       },
     });
 
@@ -588,10 +598,12 @@ describe('editor-actions', () => {
       locale: 'ko',
       settings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-22T01:00:00.000Z',
         slug: 'scheduled-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
     });
 
@@ -652,10 +664,12 @@ describe('editor-actions', () => {
         locale: 'ko',
         settings: {
           allowComments: true,
+          githubUrl: '',
           publishAt: '2026-03-20T01:00:00.000Z',
           slug: 'published-article',
           thumbnailUrl: '',
           visibility: 'public',
+          websiteUrl: '',
         },
       }),
     ).rejects.toThrow(
@@ -750,11 +764,13 @@ describe('editor-actions', () => {
       },
       locale: 'ko',
       settings: {
-        allowComments: true,
+        allowComments: false,
+        githubUrl: '',
         publishAt: '2026-03-22T01:00:00.000Z',
         slug: 'scheduled-project',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
     });
 

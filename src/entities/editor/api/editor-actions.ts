@@ -28,6 +28,7 @@ import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/slug/slug';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
 const translationFieldSchema = z.object({
   content: z.string(),
@@ -49,10 +50,12 @@ const editorStateSchema = z.object({
 
 const publishSettingsSchema = z.object({
   allowComments: z.boolean(),
+  githubUrl: z.string(),
   publishAt: z.string().nullable(),
   slug: z.string(),
   thumbnailUrl: z.string(),
   visibility: z.enum(['public', 'private']),
+  websiteUrl: z.string(),
 });
 
 type EditorDraftRow = {
@@ -135,12 +138,17 @@ export const saveEditorDraftAction = async ({
     slugs: parsedState.data.tags,
   });
   const normalizedLocale = resolveActionLocale(locale);
+  const draftWebsiteUrl =
+    contentType === 'project' ? parsedSettings.data.websiteUrl.trim() || null : null;
+  const draftGithubUrl =
+    contentType === 'project' ? parsedSettings.data.githubUrl.trim() || null : null;
   const draftPayload = {
     allow_comments: contentType === 'article' ? parsedSettings.data.allowComments : false,
     content: buildDraftFieldRecord(parsedState.data.translations, 'content'),
     content_id: contentId ?? null,
     content_type: contentType,
     description: buildDraftFieldRecord(parsedState.data.translations, 'description'),
+    github_url: draftGithubUrl,
     publish_at:
       existingPublicationState === 'published'
         ? (existingContentPublication?.publish_at ?? null)
@@ -150,6 +158,7 @@ export const saveEditorDraftAction = async ({
     thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
     title: buildDraftFieldRecord(parsedState.data.translations, 'title'),
     visibility: parsedSettings.data.visibility,
+    website_url: draftWebsiteUrl,
   };
   const resolvedDraftId =
     draftId ??
@@ -240,6 +249,15 @@ export const publishEditorContentAction = async ({
 
   if (!isValidSlugFormat(normalizedSlug)) throw createEditorError('slugFormatInvalid');
 
+  const normalizedWebsiteUrl =
+    contentType === 'project'
+      ? normalizeProjectExternalUrl(parsedSettings.data.websiteUrl, 'websiteUrlInvalid')
+      : null;
+  const normalizedGithubUrl =
+    contentType === 'project'
+      ? normalizeProjectExternalUrl(parsedSettings.data.githubUrl, 'githubUrlInvalid')
+      : null;
+
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
   const targetContentId = contentId ?? crypto.randomUUID();
@@ -299,10 +317,12 @@ export const publishEditorContentAction = async ({
           visibility: parsedSettings.data.visibility,
         }
       : {
+          github_url: normalizedGithubUrl,
           publish_at: effectivePublishAt,
           slug: normalizedSlug,
           thumbnail_url: parsedSettings.data.thumbnailUrl.trim() || null,
           visibility: parsedSettings.data.visibility,
+          website_url: normalizedWebsiteUrl,
         };
 
   if (contentId) {
@@ -552,6 +572,26 @@ const getRelationIdsBySlugs = async ({
   return normalizedTagSlugs
     .map(tagSlug => tagIdBySlug.get(tagSlug))
     .filter((tagId): tagId is string => typeof tagId === 'string');
+};
+
+/**
+ * project 외부 링크 입력을 공개 저장 가능한 http/https URL 또는 null로 정규화합니다.
+ */
+const normalizeProjectExternalUrl = (
+  rawUrl: string,
+  errorCode: 'githubUrlInvalid' | 'websiteUrlInvalid',
+) => {
+  const trimmed = rawUrl.trim();
+
+  if (!trimmed) return null;
+
+  const normalized = normalizeHttpUrl(trimmed);
+
+  if (!normalized) {
+    throw createEditorError(errorCode);
+  }
+
+  return normalized;
 };
 
 /**

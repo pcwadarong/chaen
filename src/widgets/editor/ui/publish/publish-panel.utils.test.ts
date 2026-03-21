@@ -21,18 +21,22 @@ describe('publish-panel utils', () => {
       buildPublishSettings({
         allowComments: true,
         dateInput: '2026-03-20',
+        githubUrl: ' https://github.com/example/repo ',
         publishMode: 'immediate',
         slug: 'demo-post',
         thumbnailUrl: ' https://example.com/thumb.png ',
         timeInput: '10:00',
         visibility: 'public',
+        websiteUrl: ' https://example.com ',
       }),
     ).toEqual({
       allowComments: true,
+      githubUrl: 'https://github.com/example/repo',
       publishAt: null,
       slug: 'demo-post',
       thumbnailUrl: 'https://example.com/thumb.png',
       visibility: 'public',
+      websiteUrl: 'https://example.com',
     });
   });
 
@@ -48,23 +52,27 @@ describe('publish-panel utils', () => {
         contentType: 'project',
         initialSettings: {
           allowComments: true,
+          githubUrl: '',
           publishAt: null,
           slug: 'demo-post',
           thumbnailUrl: '',
           visibility: 'public',
+          websiteUrl: '',
         },
         slug: 'demo-post',
       }),
     ).toEqual({
       allowComments: false,
+      githubUrl: '',
       publishAt: null,
       slug: 'demo-post',
       thumbnailUrl: '',
       visibility: 'public',
+      websiteUrl: '',
     });
   });
 
-  it('한국어 제목, slug 형식, 예약 시간 과거 여부를 검증한다', () => {
+  it('한국어 제목, slug 형식, 링크 URL, 예약 시간 과거 여부를 검증한다', () => {
     const errors = validatePublishSettings({
       editorState: {
         dirty: true,
@@ -80,17 +88,21 @@ describe('publish-panel utils', () => {
       now: new Date('2026-03-13T00:00:00.000Z'),
       settings: {
         allowComments: true,
+        githubUrl: 'github.com/example/repo',
         publishAt: '2026-03-12T23:59:59.000Z',
         slug: '!!!',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: 'example.com',
       },
     });
 
     expect(errors).toEqual({
+      githubUrl: '깃허브 주소는 http:// 또는 https://로 시작해야 합니다.',
       koTitle: '한국어 제목을 입력해주세요',
       publishAt: '발행 시간은 현재 시간 이후여야 합니다',
       slug: '슬러그는 영문 소문자, 숫자, 하이픈만 사용 가능합니다',
+      websiteUrl: '웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.',
     });
   });
 });

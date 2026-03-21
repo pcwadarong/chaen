@@ -17,7 +17,10 @@ import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
+import { GithubIcon, GlobeIcon } from '@/shared/ui/icons/app-icons';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
@@ -44,6 +47,11 @@ type ProjectArchiveSidebarProps = {
 type ProjectTechStackListProps = {
   ariaLabel: string;
   groups: ProjectTechStackGroup[];
+};
+
+type ProjectExternalLinkListProps = {
+  githubUrl?: string | null;
+  websiteUrl?: string | null;
 };
 
 /**
@@ -115,6 +123,51 @@ const ProjectTechStackList = ({ ariaLabel, groups }: ProjectTechStackListProps) 
 };
 
 /**
+ * 프로젝트 상세 헤더 우측 외부 링크 아이콘 묶음을 렌더링합니다.
+ */
+const ProjectExternalLinkList = ({ githubUrl, websiteUrl }: ProjectExternalLinkListProps) => {
+  const normalizedWebsiteUrl = normalizeHttpUrl(websiteUrl);
+  const normalizedGithubUrl = normalizeHttpUrl(githubUrl);
+  const linkItems = [
+    normalizedWebsiteUrl
+      ? {
+          href: normalizedWebsiteUrl,
+          icon: GlobeIcon,
+          key: 'website',
+          label: 'Website',
+        }
+      : null,
+    normalizedGithubUrl
+      ? {
+          href: normalizedGithubUrl,
+          icon: GithubIcon,
+          key: 'github',
+          label: 'GitHub',
+        }
+      : null,
+  ].filter(item => item !== null);
+
+  if (linkItems.length === 0) return null;
+
+  return (
+    <div className={externalLinkWrapClass}>
+      {linkItems.map(item => (
+        <a
+          className={externalLinkClass}
+          href={item.href}
+          key={item.key}
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          <item.icon aria-hidden="true" size="md" />
+          <span className={srOnlyClass}>{item.label}</span>
+        </a>
+      ))}
+    </div>
+  );
+};
+
+/**
  * 프로젝트 상세 페이지의 본문/메타/좌측 아카이브 조합을 렌더링합니다.
  */
 export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectDetailPageProps) => {
@@ -182,6 +235,9 @@ export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectD
         emptyContentText={t('emptyContent')}
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
+        heroTitleAccessory={
+          <ProjectExternalLinkList githubUrl={item.github_url} websiteUrl={item.website_url} />
+        }
         hideAppFrameFooter
         locale={locale}
         metaBar={
@@ -235,6 +291,28 @@ const techStackListClass = css({
   width: 'full',
   mx: 'auto',
   px: '4',
+});
+
+const externalLinkWrapClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '2',
+  alignItems: 'center',
+});
+
+const externalLinkClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'primary',
+  transition: 'colors',
+  _hover: {
+    color: 'text',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
 });
 
 const techStackRowClass = css({

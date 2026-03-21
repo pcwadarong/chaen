@@ -78,10 +78,12 @@ vi.mock('@/widgets/editor', async () => {
             onClick={() =>
               onSettingsChange?.({
                 allowComments: true,
+                githubUrl: '',
                 publishAt: '2026-03-20T01:00:00.000Z',
                 slug: 'draft-slug',
                 thumbnailUrl: 'https://example.com/thumb.png',
                 visibility: 'private',
+                websiteUrl: '',
               })
             }
             type="button"
@@ -95,10 +97,12 @@ vi.mock('@/widgets/editor', async () => {
             onClick={() =>
               void onSubmit({
                 allowComments: true,
+                githubUrl: '',
                 publishAt: '2026-03-20T01:00:00.000Z',
                 slug: 'draft-slug',
                 thumbnailUrl: 'https://example.com/thumb.png',
                 visibility: 'private',
+                websiteUrl: '',
               })
             }
             type="button"
@@ -159,10 +163,12 @@ describe('EditorClient', () => {
         editorClientMockState.editorState,
         {
           allowComments: true,
+          githubUrl: '',
           publishAt: '2026-03-20T01:00:00.000Z',
           slug: 'draft-slug',
           thumbnailUrl: 'https://example.com/thumb.png',
           visibility: 'private',
+          websiteUrl: '',
         },
         null,
       );

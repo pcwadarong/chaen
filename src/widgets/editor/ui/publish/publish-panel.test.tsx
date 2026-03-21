@@ -119,10 +119,12 @@ describe('PublishPanel', () => {
     renderPublishPanel({
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-10T09:00:00.000Z',
         slug: 'published-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       isPublished: true,
       publicationState: 'published',
@@ -137,10 +139,12 @@ describe('PublishPanel', () => {
     renderPublishPanel({
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-10T09:00:00.000Z',
         slug: 'published-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       isPublished: true,
       publicationState: 'published',
@@ -166,10 +170,12 @@ describe('PublishPanel', () => {
     renderPublishPanel({
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: '2026-03-20T01:00:00.000Z',
         slug: 'scheduled-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       isPublished: true,
       publicationState: 'scheduled',
@@ -187,10 +193,12 @@ describe('PublishPanel', () => {
     const { onSubmit } = renderPublishPanel({
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'draft-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       publicationState: 'draft',
     });
@@ -218,10 +226,12 @@ describe('PublishPanel', () => {
     renderPublishPanel({
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'published-article',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       isPublished: true,
       publicationState: 'published',
@@ -238,11 +248,13 @@ describe('PublishPanel', () => {
       const { unmount } = renderPublishPanel({
         contentType: 'project',
         initialSettings: {
-          allowComments: true,
+          allowComments: false,
+          githubUrl: '',
           publishAt: null,
           slug: `${publicationState}-project`,
           thumbnailUrl: '',
           visibility: 'public',
+          websiteUrl: '',
         },
         isPublished: publicationState !== 'draft',
         publicationState,
@@ -252,6 +264,85 @@ describe('PublishPanel', () => {
 
       unmount();
     }
+  });
+
+  /**
+   * project 발행 패널은 외부 링크 입력을 노출하고,
+   * 사용 가능한 slug 확인 이후 제출 payload에 website/github 값을 함께 포함해야 한다.
+   */
+  it('project 발행 패널은 외부 링크 입력을 노출하고 제출 payload에 포함한다', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    renderPublishPanel({
+      contentType: 'project',
+      initialSettings: {
+        allowComments: false,
+        githubUrl: '',
+        publishAt: null,
+        slug: 'project-with-links',
+        thumbnailUrl: '',
+        visibility: 'public',
+        websiteUrl: '',
+      },
+      onSubmit,
+    });
+
+    fireEvent.change(screen.getByLabelText('웹사이트'), {
+      target: { value: 'https://chaen.dev/project' },
+    });
+    fireEvent.change(screen.getByLabelText('GitHub'), {
+      target: { value: 'https://github.com/chaen/project' },
+    });
+
+    mockSlugCheckResponse(false);
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          githubUrl: 'https://github.com/chaen/project',
+          websiteUrl: 'https://chaen.dev/project',
+        }),
+      );
+    });
+  });
+
+  it('project 외부 링크 입력이 잘못되면 인라인 에러를 표시하고 제출하지 않는다', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    renderPublishPanel({
+      contentType: 'project',
+      initialSettings: {
+        allowComments: false,
+        githubUrl: '',
+        publishAt: null,
+        slug: 'project-with-invalid-links',
+        thumbnailUrl: '',
+        visibility: 'public',
+        websiteUrl: '',
+      },
+      onSubmit,
+    });
+
+    fireEvent.change(screen.getByLabelText('웹사이트'), {
+      target: { value: 'invalid-url' },
+    });
+    fireEvent.change(screen.getByLabelText('GitHub'), {
+      target: { value: 'ftp://github.com/chaen/project' },
+    });
+
+    mockSlugCheckResponse(false);
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
+    await screen.findByText('사용 가능한 슬러그입니다.');
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
+
+    expect(
+      await screen.findByText('웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.'),
+    ).toBeTruthy();
+    expect(screen.getByText('깃허브 주소는 http:// 또는 https://로 시작해야 합니다.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {
@@ -282,10 +373,12 @@ describe('PublishPanel', () => {
           contentType: 'article',
           initialSettings: {
             allowComments: true,
+            githubUrl: '',
             publishAt: null,
             slug: 'draft-slug',
             thumbnailUrl: '',
             visibility: 'public',
+            websiteUrl: '',
           },
           slug: '',
         }),
@@ -326,10 +419,12 @@ describe('PublishPanel', () => {
           contentType: 'article',
           initialSettings: {
             allowComments: true,
+            githubUrl: '',
             publishAt: null,
             slug: 'draft-slug',
             thumbnailUrl: 'https://example.com/original.png',
             visibility: 'public',
+            websiteUrl: '',
           },
           slug: '',
         }),
