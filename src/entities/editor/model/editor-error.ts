@@ -6,6 +6,7 @@ export const EDITOR_ERROR_MESSAGE = {
   draftSaveFailed: '임시 저장에 실패했습니다. 잠시 후 다시 시도해주세요.',
   draftSaveInvalidState: '임시 저장 요청을 확인해주세요.',
   draftSaveInvalidSettings: '임시 저장 설정을 확인해주세요.',
+  githubUrlInvalid: '깃허브 주소는 http:// 또는 https://로 시작해야 합니다.',
   imageUploadFailedWithRetry: '이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.',
   serviceRoleUnavailable: '관리자 저장 권한이 연결되지 않았습니다. 환경 변수를 확인해주세요.',
   missingCompleteTranslation: '제목과 본문이 모두 있는 언어 버전이 최소 하나는 필요합니다.',
@@ -21,10 +22,16 @@ export const EDITOR_ERROR_MESSAGE = {
   slugFormatInvalid: '슬러그는 영문 소문자, 숫자, 하이픈만 사용 가능합니다',
   thumbnailUploadFailed: '썸네일 업로드에 실패했습니다',
   thumbnailUploadFailedWithRetry: '썸네일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.',
+  websiteUrlInvalid: '웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.',
 } as const;
 
 export type EditorErrorCode = keyof typeof EDITOR_ERROR_MESSAGE;
-export type EditorPublishInlineErrorField = 'koTitle' | 'publishAt' | 'slug';
+export type EditorPublishInlineErrorField =
+  | 'githubUrl'
+  | 'koTitle'
+  | 'publishAt'
+  | 'slug'
+  | 'websiteUrl';
 
 const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
   EditorErrorCode,
@@ -35,6 +42,7 @@ const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
   draftSaveFailed: null,
   draftSaveInvalidSettings: null,
   draftSaveInvalidState: null,
+  githubUrlInvalid: 'githubUrl',
   imageUploadFailedWithRetry: null,
   serviceRoleUnavailable: null,
   missingCompleteTranslation: null,
@@ -50,6 +58,7 @@ const EDITOR_PUBLISH_INLINE_ERROR_FIELD_BY_CODE: Record<
   slugFormatInvalid: 'slug',
   thumbnailUploadFailed: null,
   thumbnailUploadFailedWithRetry: null,
+  websiteUrlInvalid: 'websiteUrl',
 };
 
 /**

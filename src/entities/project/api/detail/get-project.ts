@@ -198,7 +198,7 @@ const fetchProjectFromTranslationRows = async (
   const { data: translationRows, error } = await supabase
     .from('project_translations')
     .select(
-      'project_id,locale,title,description,content,projects!inner(id,created_at,publish_at,slug,thumbnail_url,visibility,display_order,period_start,period_end)',
+      'project_id,locale,title,description,content,projects!inner(id,created_at,publish_at,slug,thumbnail_url,visibility,display_order,period_start,period_end,website_url,github_url)',
     )
     .eq('project_id', projectId)
     .in('locale', localeFallbackChain);

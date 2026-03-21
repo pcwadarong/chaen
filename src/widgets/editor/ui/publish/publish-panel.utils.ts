@@ -1,5 +1,6 @@
 import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { normalizeSlugInput } from '@/shared/lib/slug/slug';
+import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import type {
   EditorContentType,
   EditorState,
@@ -10,17 +11,21 @@ import type {
 export type PublishPanelFormValues = {
   allowComments: boolean;
   dateInput: string;
+  githubUrl: string;
   publishMode: 'immediate' | 'scheduled';
   slug: string;
   thumbnailUrl: string;
   timeInput: string;
   visibility: PublishVisibility;
+  websiteUrl: string;
 };
 
 export type PublishPanelValidationErrors = {
+  githubUrl?: string;
   koTitle?: string;
   publishAt?: string;
   slug?: string;
+  websiteUrl?: string;
 };
 
 /**
@@ -42,10 +47,12 @@ export const createDefaultPublishSettings = ({
   slug: string;
 }): PublishSettings => ({
   allowComments: contentType === 'article' ? (initialSettings?.allowComments ?? true) : false,
+  githubUrl: initialSettings?.githubUrl ?? '',
   publishAt: initialSettings?.publishAt ?? null,
   slug: initialSettings?.slug ?? slug,
   thumbnailUrl: initialSettings?.thumbnailUrl ?? '',
   visibility: initialSettings?.visibility ?? 'public',
+  websiteUrl: initialSettings?.websiteUrl ?? '',
 });
 
 /**
@@ -66,6 +73,7 @@ export const toScheduledPublishUtcIso = (dateInput: string, timeInput: string) =
  */
 export const buildPublishSettings = (formValues: PublishPanelFormValues): PublishSettings => ({
   allowComments: formValues.allowComments,
+  githubUrl: formValues.githubUrl.trim(),
   publishAt:
     formValues.publishMode === 'scheduled'
       ? toScheduledPublishUtcIso(formValues.dateInput, formValues.timeInput)
@@ -73,6 +81,7 @@ export const buildPublishSettings = (formValues: PublishPanelFormValues): Publis
   slug: formValues.slug.trim(),
   thumbnailUrl: formValues.thumbnailUrl.trim(),
   visibility: formValues.visibility,
+  websiteUrl: formValues.websiteUrl.trim(),
 });
 
 /**
@@ -102,6 +111,14 @@ export const validatePublishSettings = ({
     errors.slug = EDITOR_ERROR_MESSAGE.slugFormatInvalid;
   } else if (verifiedSlug !== normalizedSlug) {
     errors.slug = EDITOR_ERROR_MESSAGE.slugVerificationRequired;
+  }
+
+  if (settings.websiteUrl.trim() && !normalizeHttpUrl(settings.websiteUrl)) {
+    errors.websiteUrl = EDITOR_ERROR_MESSAGE.websiteUrlInvalid;
+  }
+
+  if (settings.githubUrl.trim() && !normalizeHttpUrl(settings.githubUrl)) {
+    errors.githubUrl = EDITOR_ERROR_MESSAGE.githubUrlInvalid;
   }
 
   if (settings.publishAt) {

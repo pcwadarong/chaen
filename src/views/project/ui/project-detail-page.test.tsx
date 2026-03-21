@@ -9,6 +9,8 @@ vi.mock('next-intl', () => ({
     if (namespace === 'ProjectDetail') {
       if (key === 'periodLabel') return 'work period';
       if (key === 'ongoing') return 'Ongoing';
+      if (key === 'websiteLabel') return 'Website';
+      if (key === 'githubLabel') return 'GitHub';
     }
 
     if (namespace === 'TechStack.category') {
@@ -72,7 +74,9 @@ const renderServerHtml = async ({
       period_start: '2026-01-01',
       period_end: '2026-02-01',
       tags: ['react'],
+      github_url: 'https://github.com/example/project-1',
       thumbnail_url: null,
+      website_url: 'https://project-1.example.com',
     },
     locale: 'en',
   });
@@ -103,6 +107,10 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('/admin/projects/project-1/edit');
     expect(html).toContain('수정');
     expect(html).toContain('삭제');
+    expect(html).toContain('Website');
+    expect(html).toContain('GitHub');
+    expect(html).toContain('https://project-1.example.com');
+    expect(html).toContain('https://github.com/example/project-1');
   }, 30000);
 
   it('기술 스택 카테고리 라벨은 locale 번역을 사용한다', async () => {

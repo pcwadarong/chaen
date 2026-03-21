@@ -53,5 +53,5 @@ export interface PublishPanelProps {
   publicationState?: EditorPublicationState;
   onClose: () => void;
   onSettingsChange?: (settings: PublishSettings) => void;
-  onSubmit: (settings: PublishSettings) => Promise<void>;
+  onSubmit: (settings: PublishSettings) => Promise<void> | void;
 }

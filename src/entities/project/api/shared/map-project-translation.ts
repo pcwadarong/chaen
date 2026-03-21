@@ -8,6 +8,7 @@ type ProjectBaseFields = Pick<
   Project,
   | 'created_at'
   | 'display_order'
+  | 'github_url'
   | 'id'
   | 'period_end'
   | 'period_start'
@@ -15,6 +16,7 @@ type ProjectBaseFields = Pick<
   | 'slug'
   | 'thumbnail_url'
   | 'visibility'
+  | 'website_url'
 >;
 
 type EmbeddedProjectBaseRow = ProjectBaseFields | ProjectBaseFields[] | null;
@@ -139,6 +141,7 @@ export const mapProject = (
     created_at: projectBase.created_at,
     description: row.description,
     display_order: projectBase.display_order,
+    github_url: projectBase.github_url,
     id: row.project_id,
     period_end: projectBase.period_end,
     period_start: projectBase.period_start,
@@ -149,6 +152,7 @@ export const mapProject = (
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
     visibility: projectBase.visibility,
+    website_url: projectBase.website_url,
   };
 };
 
@@ -168,6 +172,7 @@ export const mapProjectFallbackRpcRow = (
   projects: {
     created_at: row.created_at,
     display_order: row.display_order,
+    github_url: row.github_url,
     id: row.id,
     period_end: row.period_end,
     period_start: row.period_start,
@@ -175,6 +180,7 @@ export const mapProjectFallbackRpcRow = (
     slug: row.slug,
     thumbnail_url: row.thumbnail_url,
     visibility: row.visibility,
+    website_url: row.website_url,
   },
   title: row.title,
 });

@@ -92,10 +92,12 @@ describe('AdminArticleNewRoute', () => {
       initialSavedAt: '2026-03-13T10:00:00.000Z',
       initialSettings: {
         allowComments: true,
+        githubUrl: '',
         publishAt: null,
         slug: 'draft-slug',
         thumbnailUrl: '',
         visibility: 'public',
+        websiteUrl: '',
       },
       initialSlug: 'draft-slug',
       initialTags: ['react'],
