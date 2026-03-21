@@ -209,7 +209,7 @@ const detailPageContentClass = css({
     minHeight: '0',
     height: 'full',
     overflowY: 'auto',
-    overscrollBehavior: 'contain',
+    overscrollBehaviorY: 'contain',
     pb: '0',
   },
 });
