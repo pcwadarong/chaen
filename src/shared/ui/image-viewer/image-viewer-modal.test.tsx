@@ -131,12 +131,12 @@ describe('ImageViewerModal', () => {
     expect(screen.queryByRole('tooltip')).toBeNull();
   });
 
-  it('액션 바 버튼 focus 시에도 상단 tooltip을 표시한다', () => {
+  it('액션 바 버튼 click 시작 시에도 상단 tooltip을 표시한다', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
     const locateSourceButton = screen.getByRole('button', { name: '이미지 위치로 글 이동' });
 
-    fireEvent.focus(locateSourceButton);
+    fireEvent.pointerDown(locateSourceButton);
 
     expect(screen.getByRole('tooltip').textContent).toBe('이미지 위치로 글 이동');
   });

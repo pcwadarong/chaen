@@ -20,6 +20,7 @@ type TooltipProps = {
   content: string;
   className?: string;
   contentClassName?: string;
+  forceOpen?: boolean;
   openOnFocus?: boolean;
 };
 
@@ -32,6 +33,7 @@ export const Tooltip = ({
   className,
   content,
   contentClassName,
+  forceOpen = false,
   openOnFocus = true,
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -39,7 +41,7 @@ export const Tooltip = ({
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>();
   const rootRef = useRef<HTMLSpanElement | null>(null);
   const tooltipId = useId();
-  const isOpen = isHovering || (openOnFocus && isFocused);
+  const isOpen = forceOpen || isHovering || (openOnFocus && isFocused);
 
   if (!isValidElement(children)) {
     throw new Error('Tooltip requires a single React element child.');

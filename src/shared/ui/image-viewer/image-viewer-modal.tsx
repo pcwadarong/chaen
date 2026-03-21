@@ -47,6 +47,7 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
 const IMAGE_NAVIGATION_ANIMATION_MS = 360;
+const ACTION_TOOLTIP_HOLD_MS = 1200;
 const DEFAULT_PAN_OFFSET = { x: 0, y: 0 } as const;
 
 type ImageViewerPanOffset = {
@@ -189,6 +190,7 @@ export const ImageViewerModal = ({
   onClose,
   onLocateSource,
 }: ImageViewerModalProps) => {
+  const [activeActionTooltip, setActiveActionTooltip] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
@@ -202,6 +204,7 @@ export const ImageViewerModal = ({
   const frameRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const pinchStateRef = useRef<ImageViewerPinchState | null>(null);
+  const actionTooltipTimeoutRef = useRef<number | null>(null);
   const thumbnailRailRef = useRef<HTMLDivElement | null>(null);
   const thumbnailButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -269,6 +272,22 @@ export const ImageViewerModal = ({
   }, []);
 
   /**
+   * 탭/클릭 시 action bar tooltip을 잠시 강제로 노출합니다.
+   */
+  const showActionTooltipTemporarily = useCallback((tooltipText: string) => {
+    setActiveActionTooltip(tooltipText);
+
+    if (actionTooltipTimeoutRef.current !== null) {
+      window.clearTimeout(actionTooltipTimeoutRef.current);
+    }
+
+    actionTooltipTimeoutRef.current = window.setTimeout(() => {
+      setActiveActionTooltip(null);
+      actionTooltipTimeoutRef.current = null;
+    }, ACTION_TOOLTIP_HOLD_MS);
+  }, []);
+
+  /**
    * 뷰어 내부 인터랙션 요소 클릭이 backdrop 닫기로 이어지지 않도록 전파를 중단합니다.
    */
   const stopViewerClickPropagation = useCallback((event: React.MouseEvent<Element>) => {
@@ -278,6 +297,15 @@ export const ImageViewerModal = ({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(
+    () => () => {
+      if (actionTooltipTimeoutRef.current !== null) {
+        window.clearTimeout(actionTooltipTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!isOpen || initialIndex === null) return;
@@ -564,6 +592,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomOutAriaLabel}
                   contentClassName={actionTooltipClass}
+                  forceOpen={activeActionTooltip === labels.zoomOutAriaLabel}
                   openOnFocus={false}
                 >
                   <button
@@ -571,6 +600,7 @@ export const ImageViewerModal = ({
                     className={actionButtonClass}
                     onClick={() => setZoomLevel(prev => clampZoomLevel(prev - ZOOM_STEP))}
                     onMouseDown={preventActionButtonMouseDown}
+                    onPointerDown={() => showActionTooltipTemporarily(labels.zoomOutAriaLabel)}
                     type="button"
                   >
                     <ZoomOutIcon aria-hidden="true" size={18} />
@@ -579,6 +609,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomInAriaLabel}
                   contentClassName={actionTooltipClass}
+                  forceOpen={activeActionTooltip === labels.zoomInAriaLabel}
                   openOnFocus={false}
                 >
                   <button
@@ -586,6 +617,7 @@ export const ImageViewerModal = ({
                     className={actionButtonClass}
                     onClick={() => setZoomLevel(prev => clampZoomLevel(prev + ZOOM_STEP))}
                     onMouseDown={preventActionButtonMouseDown}
+                    onPointerDown={() => showActionTooltipTemporarily(labels.zoomInAriaLabel)}
                     type="button"
                   >
                     <ZoomInIcon aria-hidden="true" size={18} />
@@ -594,6 +626,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.fitToScreenAriaLabel}
                   contentClassName={actionTooltipClass}
+                  forceOpen={activeActionTooltip === labels.fitToScreenAriaLabel}
                   openOnFocus={false}
                 >
                   <button
@@ -604,6 +637,7 @@ export const ImageViewerModal = ({
                       setZoomLevel(1);
                     }}
                     onMouseDown={preventActionButtonMouseDown}
+                    onPointerDown={() => showActionTooltipTemporarily(labels.fitToScreenAriaLabel)}
                     type="button"
                   >
                     <FitSizeIcon aria-hidden="true" size={18} />
@@ -612,6 +646,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.locateSourceAriaLabel}
                   contentClassName={actionTooltipClass}
+                  forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
                   openOnFocus={false}
                 >
                   <button
@@ -619,6 +654,7 @@ export const ImageViewerModal = ({
                     className={actionButtonClass}
                     onClick={handleLocateSource}
                     onMouseDown={preventActionButtonMouseDown}
+                    onPointerDown={() => showActionTooltipTemporarily(labels.locateSourceAriaLabel)}
                     type="button"
                   >
                     <ImageQuestionIcon aria-hidden="true" size={18} />
