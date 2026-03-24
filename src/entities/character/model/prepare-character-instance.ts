@@ -22,18 +22,21 @@ export type CharacterOutfitColors =
   (typeof CHARACTER_OUTFIT_COLOR_CONFIG)[keyof typeof CHARACTER_OUTFIT_COLOR_CONFIG];
 
 type CharacterMaterialOptions = Readonly<{
+  instance: 'contact' | 'main';
   outfitIdMap: Texture;
   outfitColors: CharacterOutfitColors;
 }>;
 
 type MaterialCompileShader = Parameters<NonNullable<MeshStandardMaterial['onBeforeCompile']>>[0];
 
+const CONTACT_HIDDEN_MESH_NAMES = new Set(['laptop', 'monitor']);
+
 /**
  * 캐릭터 GLB 씬을 복제한 뒤 인스턴스별 초기 상태를 적용합니다.
  */
 export const prepareCharacterInstance = (
   sourceScene: Group,
-  { outfitColors, outfitIdMap }: CharacterMaterialOptions,
+  { instance, outfitColors, outfitIdMap }: CharacterMaterialOptions,
 ): Group => {
   const clonedScene = sourceScene.clone(true) as Group;
 
@@ -41,6 +44,11 @@ export const prepareCharacterInstance = (
     if (!isMeshNode(node)) return;
 
     if (node.name === 'heart') {
+      node.visible = false;
+      return;
+    }
+
+    if (instance === 'contact' && CONTACT_HIDDEN_MESH_NAMES.has(node.name)) {
       node.visible = false;
       return;
     }

@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { RefObject } from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group, PerspectiveCamera } from 'three';
 import { Vector3 } from 'three';
 
@@ -29,8 +29,10 @@ export const useHomeHeroSceneTransition = ({
   const { camera, gl } = useThree();
   const pivotRef = useRef<Group>(null);
   const cameraMountRef = useRef<Group>(null);
+  const isScrollDrivenRef = useRef(false);
   const targetVector = useMemo(() => new Vector3(), []);
   const worldCameraPosition = useMemo(() => new Vector3(), []);
+  const [isScrollDriven, setIsScrollDriven] = useState(false);
 
   useEffect(() => {
     if (!triggerRef.current || !webUiRef.current || !pivotRef.current || !cameraMountRef.current) {
@@ -80,6 +82,15 @@ export const useHomeHeroSceneTransition = ({
         opacity >= homeHeroCameraMotion.interactiveThreshold ? 'auto' : 'none';
     };
 
+    const syncScrollDriven = (progress: number) => {
+      const nextIsScrollDriven = progress > 0.001;
+
+      if (isScrollDrivenRef.current === nextIsScrollDriven) return;
+
+      isScrollDrivenRef.current = nextIsScrollDriven;
+      setIsScrollDriven(nextIsScrollDriven);
+    };
+
     const timeline = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
@@ -91,8 +102,14 @@ export const useHomeHeroSceneTransition = ({
         pin: triggerRef.current,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        onUpdate: syncInteractivity,
-        onRefresh: syncInteractivity,
+        onUpdate: self => {
+          syncInteractivity();
+          syncScrollDriven(self.progress);
+        },
+        onRefresh: self => {
+          syncInteractivity();
+          syncScrollDriven(self.progress);
+        },
       },
     });
 
@@ -168,13 +185,15 @@ export const useHomeHeroSceneTransition = ({
     return () => {
       timeline.scrollTrigger?.kill();
       timeline.kill();
+      isScrollDrivenRef.current = false;
+      setIsScrollDriven(false);
       webUiElement.style.pointerEvents = 'none';
       canvasElement.style.opacity = '1';
     };
   }, [camera, gl, triggerRef, webUiRef]);
 
   useFrame(() => {
-    if (!pivotRef.current || !cameraMountRef.current) {
+    if (!isScrollDrivenRef.current || !pivotRef.current || !cameraMountRef.current) {
       return;
     }
 
@@ -190,5 +209,6 @@ export const useHomeHeroSceneTransition = ({
   return {
     pivotRef,
     cameraMountRef,
+    isScrollDriven,
   };
 };

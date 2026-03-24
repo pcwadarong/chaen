@@ -15,6 +15,7 @@ describe('prepareCharacterInstance', () => {
     const outfitIdMap = new Texture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
+      instance: 'main',
       outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
       outfitIdMap,
     });
@@ -57,17 +58,20 @@ describe('prepareCharacterInstance', () => {
     const outfitIdMap = new Texture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
+      instance: 'contact',
       outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.contact,
       outfitIdMap,
     });
 
     const sourceHeart = getRequiredMesh(sourceScene, 'heart');
     const clonedHeart = getRequiredMesh(clonedScene, 'heart');
+    const clonedLaptop = getRequiredMesh(clonedScene, 'laptop');
     const sourceBody = getRequiredMesh(sourceScene, 'body');
     const clonedBody = getRequiredMesh(clonedScene, 'body');
 
     expect(sourceHeart.visible).toBe(true);
     expect(clonedHeart.visible).toBe(false);
+    expect(clonedLaptop.visible).toBe(false);
     expect(clonedBody.material).toBe(sourceBody.material);
   });
 });
@@ -132,6 +136,7 @@ const createCharacterSceneFixture = (): Group => {
   scene.add(createMesh('outfit', 'outfit_mat'));
   scene.add(createMesh('hair', 'hair_mat'));
   scene.add(createMesh('heart', 'heart_mat'));
+  scene.add(createMesh('laptop', 'laptop_mat'));
 
   return scene;
 };

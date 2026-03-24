@@ -1,10 +1,11 @@
 'use client';
 
-import { ContactShadows } from '@react-three/drei';
+import { ContactShadows, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import React, { type RefObject, Suspense } from 'react';
 
 import { Character } from '@/entities/character/ui/character';
+import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/ui/use-home-hero-scene-transition';
 
 type HomeHeroStageCanvasProps = {
@@ -18,14 +19,14 @@ type HomeHeroStageCanvasProps = {
 export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanvasProps) => (
   <Canvas
     camera={cameraSettings}
-    dpr={[1, 1.75]}
+    dpr={[1, 5]}
     gl={{ alpha: false, antialias: true }}
     onCreated={({ gl }) => {
       gl.domElement.id = 'three-canvas';
+      gl.domElement.style.touchAction = 'none';
     }}
   >
     <color args={[sceneColors.background]} attach="background" />
-    <fog args={[sceneColors.fog, 12, 28]} attach="fog" />
     <ambientLight color={sceneColors.ambientLight} intensity={1.25} />
     <directionalLight
       castShadow
@@ -54,22 +55,34 @@ const HomeHeroCameraRig = ({
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { pivotRef, cameraMountRef } = useHomeHeroSceneTransition({ triggerRef, webUiRef });
+  const { pivotRef, cameraMountRef, isScrollDriven } = useHomeHeroSceneTransition({
+    triggerRef,
+    webUiRef,
+  });
 
   return (
     <group ref={pivotRef}>
       <group ref={cameraMountRef} />
+      <OrbitControls
+        enablePan={false}
+        enableZoom={false}
+        enabled={!isScrollDriven}
+        makeDefault
+        target={[0, 1.8, 0]}
+      />
     </group>
   );
 };
 
 /**
- * 캐릭터와 바닥, 그림자만 포함한 홈 전용 스테이지 구성을 렌더링합니다.
+ * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 렌더링합니다.
  */
 const HomeHeroSceneObjects = () => (
   <group position={[0, -2.4, 0]}>
     <Character instance="main" position={[0, 0, 0]} />
-    <Character instance="contact" position={[0, 0, -10]} />
+    <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
+    <SceneProp path="/models/guitar.glb" position={[-1, 0.5, 0.4]} />
+    <SceneProp path="/models/table.glb" position={[1, 0.5, 0.25]} />
 
     <mesh receiveShadow position={[0, -0.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[30, 30]} />
@@ -96,11 +109,10 @@ const cameraSettings = {
 } as const;
 
 const sceneColors = {
-  background: '#d7dbe2',
-  fog: '#edf0f4',
-  floor: '#cfd4dc',
-  ambientLight: '#ffffff',
+  background: '#604DFF',
+  floor: '#604DFF',
+  ambientLight: '#E5EEFF',
   keyLight: '#ffffff',
-  fillLight: '#d2d8e1',
+  fillLight: '#FF1089',
   shadow: '#202734',
 } as const;

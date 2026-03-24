@@ -86,10 +86,12 @@ const getOrCreateCharacterCache = (scene: Group, outfitIdMap: Texture): Characte
   }
 
   const main = prepareCharacterInstance(scene, {
+    instance: 'main',
     outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
     outfitIdMap,
   });
   const contact = prepareCharacterInstance(scene, {
+    instance: 'contact',
     outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.contact,
     outfitIdMap,
   });
