@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 
 import { d2Coding, pretendard, pretendardJp } from '@/app/fonts';
 
+import '@/entities/scene/model/preloadGLB';
+
 import './globals.css';
 
 export const metadata: Metadata = {
