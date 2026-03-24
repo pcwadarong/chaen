@@ -1,6 +1,6 @@
 'use client';
 
-import { ContactShadows, OrbitControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import React, { type RefObject, Suspense } from 'react';
 
@@ -21,28 +21,36 @@ export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanva
     camera={cameraSettings}
     dpr={[1, 5]}
     gl={{ alpha: false, antialias: true }}
+    shadows
     onCreated={({ gl }) => {
       gl.domElement.id = 'three-canvas';
       gl.domElement.style.touchAction = 'none';
     }}
   >
-    <color args={[sceneColors.background]} attach="background" />
-    <ambientLight color={sceneColors.ambientLight} intensity={1.25} />
-    <directionalLight
-      castShadow
-      color={sceneColors.keyLight}
-      intensity={1.95}
-      position={[7.5, 9.2, 7.4]}
-      shadow-bias={-0.0002}
-      shadow-mapSize-height={1024}
-      shadow-mapSize-width={1024}
-    />
-    <directionalLight color={sceneColors.fillLight} intensity={0.8} position={[-7.4, 4.8, -5.4]} />
+    <color args={['#5d5bff']} attach="background" />
+    <HomeHeroLights />
     <HomeHeroCameraRig triggerRef={triggerRef} webUiRef={webUiRef} />
     <Suspense fallback={null}>
       <HomeHeroSceneObjects />
     </Suspense>
   </Canvas>
+);
+
+/**
+ * 홈 히어로 장면의 기본 조명을 역할별로 분리합니다.
+ */
+const HomeHeroLights = () => (
+  <>
+    <ambientLight color="#f8f4ff" intensity={2.2} />
+    <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
+    <pointLight
+      color="#fff8e8"
+      decay={1.5}
+      distance={16}
+      intensity={12}
+      position={[1.1, 1.9, 7.2]}
+    />
+  </>
 );
 
 /**
@@ -81,23 +89,13 @@ const HomeHeroSceneObjects = () => (
   <group position={[0, -2.4, 0]}>
     <Character instance="main" position={[0, 0, 0]} />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
-    <SceneProp path="/models/guitar.glb" position={[-1, 0.5, 0.4]} />
-    <SceneProp path="/models/table.glb" position={[1, 0.5, 0.25]} />
+    <SceneProp path="/models/guitar.glb" position={[-0.15, 0, 0.4]} />
+    <SceneProp path="/models/table.glb" position={[0.15, 0, 0.25]} />
 
-    <mesh receiveShadow position={[0, -0.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[30, 30]} />
-      <meshStandardMaterial color={sceneColors.floor} />
+    <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[80, 80]} />
+      <shadowMaterial color={'#322ea5'} opacity={0.42} transparent />
     </mesh>
-
-    <ContactShadows
-      blur={3.2}
-      color={sceneColors.shadow}
-      far={8}
-      opacity={0.32}
-      position={[0, -0.74, 0]}
-      resolution={1024}
-      scale={12}
-    />
   </group>
 );
 
@@ -106,13 +104,4 @@ const cameraSettings = {
   near: 0.1,
   far: 60,
   position: [0, 4.4, 18.5],
-} as const;
-
-const sceneColors = {
-  background: '#604DFF',
-  floor: '#604DFF',
-  ambientLight: '#E5EEFF',
-  keyLight: '#ffffff',
-  fillLight: '#FF1089',
-  shadow: '#202734',
 } as const;

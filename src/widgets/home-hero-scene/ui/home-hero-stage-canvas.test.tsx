@@ -12,7 +12,6 @@ vi.mock('@react-three/fiber', () => ({
 }));
 
 vi.mock('@react-three/drei', () => ({
-  ContactShadows: () => <div data-testid="contact-shadows" />,
   OrbitControls: () => <div data-testid="orbit-controls" />,
 }));
 
@@ -50,17 +49,14 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('orbit-controls')).toBeTruthy();
     expect(screen.getByTestId('character-main')).toHaveAttribute('data-position', '0,0,0');
     expect(screen.queryByTestId('character-contact')).toBeNull();
-    expect(screen.getByTestId('prop-/models/sofa.glb')).toHaveAttribute(
-      'data-position',
-      '0,-0.2,-1.4',
-    );
+    expect(screen.getByTestId('prop-/models/sofa.glb')).toHaveAttribute('data-position', '0,0,-2');
     expect(screen.getByTestId('prop-/models/guitar.glb')).toHaveAttribute(
       'data-position',
-      '-4.4,-0.15,0.4',
+      '-1,0,0.4',
     );
     expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute(
       'data-position',
-      '4.6,-0.15,0.25',
+      '1,0,0.25',
     );
 
     consoleErrorSpy.mockRestore();

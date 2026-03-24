@@ -50,6 +50,8 @@ export const prepareCharacterInstance = (
 
     if (!isMeshNode(node)) return;
 
+    node.castShadow = true;
+
     if (node.name === 'heart') {
       node.visible = false;
       return;
