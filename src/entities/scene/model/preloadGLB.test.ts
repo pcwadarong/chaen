@@ -1,32 +1,23 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-const preloadMock = vi.fn();
-
-vi.mock('@react-three/drei', () => ({
-  useGLTF: {
-    preload: preloadMock,
-  },
-}));
+import { preloadSceneGlbs, sceneModelPaths } from '@/entities/scene/model/preloadGLB';
 
 describe('preloadGLB', () => {
-  beforeEach(() => {
-    preloadMock.mockClear();
-    vi.resetModules();
-  });
+  it('등록된 GLB 경로를 모두 전달받은 preload 함수에 넘긴다', () => {
+    const preload = vi.fn();
 
-  it('등록된 GLB 경로를 모두 preload한다', async () => {
-    const preloadModule = await import('@/entities/scene/model/preloadGLB');
+    preloadSceneGlbs(preload);
 
-    expect(preloadModule.sceneModelPaths).toEqual([
+    expect(sceneModelPaths).toEqual([
       '/models/character.glb',
       '/models/guitar.glb',
       '/models/table.glb',
       '/models/sofa.glb',
     ]);
-    expect(preloadMock).toHaveBeenCalledTimes(4);
-    expect(preloadMock).toHaveBeenNthCalledWith(1, '/models/character.glb');
-    expect(preloadMock).toHaveBeenNthCalledWith(2, '/models/guitar.glb');
-    expect(preloadMock).toHaveBeenNthCalledWith(3, '/models/table.glb');
-    expect(preloadMock).toHaveBeenNthCalledWith(4, '/models/sofa.glb');
+    expect(preload).toHaveBeenCalledTimes(4);
+    expect(preload).toHaveBeenNthCalledWith(1, '/models/character.glb');
+    expect(preload).toHaveBeenNthCalledWith(2, '/models/guitar.glb');
+    expect(preload).toHaveBeenNthCalledWith(3, '/models/table.glb');
+    expect(preload).toHaveBeenNthCalledWith(4, '/models/sofa.glb');
   });
 });
