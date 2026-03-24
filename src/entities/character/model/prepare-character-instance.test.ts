@@ -3,126 +3,75 @@ import { Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
   characterTintMap,
-  createOutfitIdMapMaterial,
   findCharacterMesh,
-  outfitColorConfig,
   prepareCharacterInstance,
 } from '@/entities/character/model/prepare-character-instance';
 
 describe('prepareCharacterInstance', () => {
-  it('outfit은 ID 맵 셰이더 material을 적용하고 hair는 tint material을 적용한다', () => {
+  it('outer pants ribon hair는 mesh 이름 기준으로 분리된 material 색상을 적용한다', () => {
     const sourceScene = createCharacterSceneFixture();
-    const outfitIdMap = new Texture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
       instance: 'main',
       outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
-      outfitIdMap,
     });
 
-    const sourceOutfit = getRequiredMesh(sourceScene, 'outfit');
-    const clonedOutfit = getRequiredMesh(clonedScene, 'outfit');
+    const sourceOuter = getRequiredMesh(sourceScene, 'outer');
+    const clonedOuter = getRequiredMesh(clonedScene, 'outer');
+    const sourcePants = getRequiredMesh(sourceScene, 'pants');
+    const clonedPants = getRequiredMesh(clonedScene, 'pants');
+    const sourceRibon = getRequiredMesh(sourceScene, 'ribon');
+    const clonedRibon = getRequiredMesh(clonedScene, 'ribon');
     const sourceHair = getRequiredMesh(sourceScene, 'hair');
     const clonedHair = getRequiredMesh(clonedScene, 'hair');
 
-    expect(clonedOutfit).not.toBe(sourceOutfit);
+    expect(clonedOuter).not.toBe(sourceOuter);
+    expect(clonedPants).not.toBe(sourcePants);
+    expect(clonedRibon).not.toBe(sourceRibon);
     expect(clonedHair).not.toBe(sourceHair);
-    expect(clonedOutfit.material).not.toBe(sourceOutfit.material);
+    expect(clonedOuter.material).not.toBe(sourceOuter.material);
+    expect(clonedPants.material).not.toBe(sourcePants.material);
+    expect(clonedRibon.material).not.toBe(sourceRibon.material);
     expect(clonedHair.material).not.toBe(sourceHair.material);
-    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(characterTintMap.hair));
-    expect(getSingleMaterial(clonedOutfit.material).map).not.toBe(
-      getSingleMaterial(sourceOutfit.material).map,
-    );
-    expect(getMaterialColorHex(sourceOutfit.material)).toBe('ffffff');
-    expect(getMaterialColorHex(sourceHair.material)).toBe('ffffff');
-
-    const shader = createShaderFixture();
-    getSingleMaterial(clonedOutfit.material).onBeforeCompile?.(shader, {} as never);
-
-    expect(shader.uniforms.uIdMap?.value).toBe(outfitIdMap);
-    expect(shader.uniforms.uColorOuter?.value.getHexString()).toBe(
+    expect(getMaterialColorHex(clonedOuter.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.outer),
     );
-    expect(shader.uniforms.uColorPants?.value.getHexString()).toBe(
+    expect(getMaterialColorHex(clonedPants.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.pants),
     );
-    expect(shader.uniforms.uColorRibon?.value.getHexString()).toBe(
+    expect(getMaterialColorHex(clonedRibon.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.ribon),
     );
-    expect(shader.fragmentShader).toContain('uniform sampler2D uIdMap;');
-    expect(shader.fragmentShader).toContain('if (idColor.r > 0.9)');
+    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(characterTintMap.hair));
+    expect(getSingleMaterial(clonedOuter.material).map).toBe(
+      getSingleMaterial(sourceOuter.material).map,
+    );
+    expect(getMaterialColorHex(sourceOuter.material)).toBe('ffffff');
+    expect(getMaterialColorHex(sourcePants.material)).toBe('ffffff');
+    expect(getMaterialColorHex(sourceRibon.material)).toBe('ffffff');
+    expect(getMaterialColorHex(sourceHair.material)).toBe('ffffff');
   });
 
-  it('heart만 숨기고 다른 mesh의 공유 material은 유지한다', () => {
+  it('contact 인스턴스에서는 heart와 laptop 계열 노드를 숨기고 body material 공유는 유지한다', () => {
     const sourceScene = createCharacterSceneFixture();
-    const outfitIdMap = new Texture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
       instance: 'contact',
       outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.contact,
-      outfitIdMap,
     });
 
     const sourceHeart = getRequiredMesh(sourceScene, 'heart');
     const clonedHeart = getRequiredMesh(clonedScene, 'heart');
-    const clonedLaptop = getRequiredMesh(clonedScene, 'laptop');
+    const clonedLaptop = getRequiredNode(clonedScene, 'laptop');
+    const clonedLaptopScreen = getRequiredMesh(clonedScene, 'laptop_screen');
     const sourceBody = getRequiredMesh(sourceScene, 'body');
     const clonedBody = getRequiredMesh(clonedScene, 'body');
 
     expect(sourceHeart.visible).toBe(true);
     expect(clonedHeart.visible).toBe(false);
     expect(clonedLaptop.visible).toBe(false);
+    expect(clonedLaptopScreen.visible).toBe(false);
     expect(clonedBody.material).toBe(sourceBody.material);
-  });
-});
-
-describe('createOutfitIdMapMaterial', () => {
-  it('원본 map을 복제한 MeshStandardMaterial을 생성한다', () => {
-    const diffuseMap = new Texture();
-    const originalMaterial = new MeshStandardMaterial({ color: '#ffffff' });
-    const outfitIdMap = new Texture();
-
-    originalMaterial.map = diffuseMap;
-
-    const nextMaterial = createOutfitIdMapMaterial(
-      originalMaterial,
-      outfitIdMap,
-      outfitColorConfig.contact,
-    );
-
-    expect(nextMaterial).toBeInstanceOf(MeshStandardMaterial);
-    expect(nextMaterial).not.toBe(originalMaterial);
-    expect(getSingleMaterial(nextMaterial).map).not.toBe(diffuseMap);
-  });
-
-  it('인스턴스별 다른 outfit 색상 구성을 uniform에 반영할 수 있다', () => {
-    const originalMaterial = new MeshStandardMaterial({ color: '#ffffff' });
-    const outfitIdMap = new Texture();
-
-    const heroMaterial = getSingleMaterial(
-      createOutfitIdMapMaterial(originalMaterial, outfitIdMap, outfitColorConfig.main),
-    );
-    const contactMaterial = getSingleMaterial(
-      createOutfitIdMapMaterial(originalMaterial, outfitIdMap, outfitColorConfig.contact),
-    );
-    const heroShader = createShaderFixture();
-    const contactShader = createShaderFixture();
-
-    heroMaterial.onBeforeCompile?.(heroShader, {} as never);
-    contactMaterial.onBeforeCompile?.(contactShader, {} as never);
-
-    expect(heroShader.uniforms.uColorOuter?.value.getHexString()).toBe(
-      normalizeHex(outfitColorConfig.main.outer),
-    );
-    expect(heroShader.uniforms.uColorPants?.value.getHexString()).toBe(
-      normalizeHex(outfitColorConfig.main.pants),
-    );
-    expect(contactShader.uniforms.uColorOuter?.value.getHexString()).toBe(
-      normalizeHex(outfitColorConfig.contact.outer),
-    );
-    expect(contactShader.uniforms.uColorPants?.value.getHexString()).toBe(
-      normalizeHex(outfitColorConfig.contact.pants),
-    );
   });
 });
 
@@ -131,12 +80,18 @@ describe('createOutfitIdMapMaterial', () => {
  */
 const createCharacterSceneFixture = (): Group => {
   const scene = new Group();
+  const laptopGroup = new Group();
+  laptopGroup.name = 'laptop';
 
   scene.add(createMesh('body', 'body_mat'));
-  scene.add(createMesh('outfit', 'outfit_mat'));
+  scene.add(createMesh('outer', 'outer_mat'));
+  scene.add(createMesh('pants', 'pants_mat'));
+  scene.add(createMesh('ribon', 'ribon_mat'));
   scene.add(createMesh('hair', 'hair_mat'));
   scene.add(createMesh('heart', 'heart_mat'));
-  scene.add(createMesh('laptop', 'laptop_mat'));
+  scene.add(createMesh('laptop_screen', 'laptop_screen_mat'));
+  laptopGroup.add(createMesh('Cube', 'laptop_mat'));
+  scene.add(laptopGroup);
 
   return scene;
 };
@@ -169,6 +124,19 @@ const getRequiredMesh = (scene: Group, name: string): Mesh => {
 };
 
 /**
+ * 이름 기준으로 장면 안의 임의 Object3D를 조회합니다.
+ */
+const getRequiredNode = (scene: Group, name: string) => {
+  const targetNode = scene.getObjectByName(name);
+
+  if (!targetNode) {
+    throw new Error(`node not found: ${name}`);
+  }
+
+  return targetNode;
+};
+
+/**
  * 단일 material의 현재 색상을 hex 문자열로 반환합니다.
  */
 const getMaterialColorHex = (material: Mesh['material']): string =>
@@ -193,12 +161,3 @@ const getSingleMaterial = (material: Mesh['material']): MeshStandardMaterial => 
 
   return material;
 };
-
-/**
- * 셰이더 주입 결과를 확인하기 위한 최소 shader fixture를 생성합니다.
- */
-const createShaderFixture = () =>
-  ({
-    fragmentShader: 'void main() { #include <color_fragment> }',
-    uniforms: {},
-  }) as Parameters<MeshStandardMaterial['onBeforeCompile']>[0];

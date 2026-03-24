@@ -1,9 +1,9 @@
 'use client';
 
-import { useGLTF, useTexture } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
-import { AnimationMixer, type Group, NoColorSpace, type Texture } from 'three';
+import { AnimationMixer, type Group } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import {
@@ -25,7 +25,6 @@ type CharacterInstanceCache = {
   lastUpdatedFrame: number | null;
   main: Group;
   mainMixer: AnimationMixer;
-  outfitIdMap: Texture;
   sourceScene: Group;
 };
 
@@ -38,19 +37,7 @@ const analyzedScenes = new WeakSet<Group>();
  */
 export const Character = ({ instance, position }: CharacterProps) => {
   const gltf = useGLTF('/models/character.glb');
-  const outfitIdMap = useTexture('/textures/outfit_map.png');
-  const configuredOutfitIdMap = useMemo(() => {
-    outfitIdMap.colorSpace = NoColorSpace;
-    outfitIdMap.flipY = false;
-    outfitIdMap.needsUpdate = true;
-
-    return outfitIdMap;
-  }, [outfitIdMap]);
-
-  const characterCache = useMemo(
-    () => getOrCreateCharacterCache(gltf.scene, configuredOutfitIdMap),
-    [configuredOutfitIdMap, gltf.scene],
-  );
+  const characterCache = useMemo(() => getOrCreateCharacterCache(gltf.scene), [gltf.scene]);
 
   useEffect(() => {
     if (analyzedScenes.has(gltf.scene)) return;
@@ -77,23 +64,18 @@ export const Character = ({ instance, position }: CharacterProps) => {
 /**
  * 캐릭터 두 인스턴스와 각 mixer를 모듈 스코프 캐시에 한 번만 생성해 재사용합니다.
  */
-const getOrCreateCharacterCache = (scene: Group, outfitIdMap: Texture): CharacterInstanceCache => {
-  if (
-    characterInstanceCache?.sourceScene === scene &&
-    characterInstanceCache.outfitIdMap === outfitIdMap
-  ) {
+const getOrCreateCharacterCache = (scene: Group): CharacterInstanceCache => {
+  if (characterInstanceCache?.sourceScene === scene) {
     return characterInstanceCache;
   }
 
   const main = prepareCharacterInstance(scene, {
     instance: 'main',
     outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
-    outfitIdMap,
   });
   const contact = prepareCharacterInstance(scene, {
     instance: 'contact',
     outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.contact,
-    outfitIdMap,
   });
 
   characterInstanceCache = {
@@ -102,7 +84,6 @@ const getOrCreateCharacterCache = (scene: Group, outfitIdMap: Texture): Characte
     lastUpdatedFrame: null,
     main,
     mainMixer: new AnimationMixer(main),
-    outfitIdMap,
     sourceScene: scene,
   };
 
