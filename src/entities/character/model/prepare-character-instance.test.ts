@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshStandardMaterial, Texture } from 'three';
+import { Box3, BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
@@ -73,6 +73,21 @@ describe('prepareCharacterInstance', () => {
     expect(clonedLaptopScreen.visible).toBe(false);
     expect(clonedBody.material).toBe(sourceBody.material);
   });
+
+  it('clone한 캐릭터 인스턴스의 최저점을 원점에 맞춰 y 위치만 보정한다', () => {
+    const sourceScene = createCharacterSceneFixture();
+
+    const clonedScene = prepareCharacterInstance(sourceScene, {
+      instance: 'main',
+      outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
+    });
+
+    expect(sourceScene.position.y).toBe(0);
+    expect(clonedScene.position.x).toBe(0);
+    expect(clonedScene.position.z).toBe(0);
+    expect(clonedScene.position.y).toBeCloseTo(-0.75);
+    expect(new Box3().setFromObject(clonedScene).min.y).toBeCloseTo(0);
+  });
 });
 
 /**
@@ -104,8 +119,9 @@ const createMesh = (name: string, materialName: string): Mesh => {
   material.name = materialName;
   material.map = new Texture();
 
-  const mesh = new Mesh(undefined, material);
+  const mesh = new Mesh(new BoxGeometry(1, 1, 1), material);
   mesh.name = name;
+  mesh.position.y = 1.25;
 
   return mesh;
 };

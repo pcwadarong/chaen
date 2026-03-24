@@ -1,5 +1,5 @@
 import type { Group, Material, Mesh, Object3D } from 'three';
-import { Color } from 'three';
+import { Box3, Color } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export const CHARACTER_OUTFIT_COLOR_CONFIG = {
@@ -68,6 +68,8 @@ export const prepareCharacterInstance = (
     }
   });
 
+  groundCharacterInstance(clonedScene);
+
   return clonedScene;
 };
 
@@ -105,6 +107,17 @@ const applyMaterialColor = (material: Material, color: string): Material => {
  * 테스트와 후속 로직에서 사용하는 캐릭터 tint 값을 노출합니다.
  */
 export const characterTintMap = CHARACTER_TINTS;
+
+/**
+ * 캐릭터 인스턴스의 최저점을 원점에 맞춰, scene 위치가 곧 바닥 기준이 되게 정렬합니다.
+ */
+const groundCharacterInstance = (scene: Group) => {
+  const bounds = new Box3().setFromObject(scene);
+
+  if (!Number.isFinite(bounds.min.y)) return;
+
+  scene.position.y -= bounds.min.y;
+};
 
 /**
  * 테스트용으로 이름 기준 mesh를 조회합니다.
