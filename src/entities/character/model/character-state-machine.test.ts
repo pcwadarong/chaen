@@ -164,6 +164,28 @@ describe('CharacterStateMachine', () => {
     expect(listener).toHaveBeenCalledWith('idle', 'typing');
   });
 
+  it('해제한 transition callback은 더 이상 호출되지 않는다', () => {
+    const idleAction = createFakeAction();
+    const typingAction = createFakeAction();
+    const mixer = createFakeMixer({
+      idle: idleAction,
+      typing: typingAction,
+    });
+
+    const machine = new CharacterStateMachine({
+      clips: createClips('idle', 'typing'),
+      initialState: 'idle',
+      mixer,
+    });
+    const listener = vi.fn();
+
+    machine.onTransition(listener);
+    machine.offTransition(listener);
+    machine.transition('typing');
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('없는 clip 이름은 무시한다', () => {
     const idleAction = createFakeAction();
     const mixer = createFakeMixer({

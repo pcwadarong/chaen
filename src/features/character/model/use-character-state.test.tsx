@@ -34,6 +34,7 @@ describe('useCharacterState', () => {
   it('main 인스턴스는 idle로 시작하고 다른 상태로 전환할 수 있다', () => {
     const idleAction = createFakeAction();
     const typingAction = createFakeAction();
+    const clips = createClips('idle', 'typing');
     const mixer = createFakeMixer({
       idle: idleAction,
       typing: typingAction,
@@ -41,7 +42,7 @@ describe('useCharacterState', () => {
 
     const { result } = renderHook(() =>
       useCharacterState({
-        clips: createClips('idle', 'typing'),
+        clips,
         instance: 'main',
         mixer,
       }),
@@ -56,17 +57,22 @@ describe('useCharacterState', () => {
     expect(result.current.currentState).toBe('typing');
     expect(idleAction.fadeOut).toHaveBeenCalledWith(0.12);
     expect(typingAction.fadeIn).toHaveBeenCalledWith(0.12);
+    expect(typingAction.play).toHaveBeenCalledOnce();
+    expect(idleAction.play).toHaveBeenCalledOnce();
   });
 
   it('contact 인스턴스는 music으로 시작하고 전환 요청을 무시한다', () => {
+    const musicAction = createFakeAction();
+    const typingAction = createFakeAction();
+    const clips = createClips('music', 'typing');
     const mixer = createFakeMixer({
-      music: createFakeAction(),
-      typing: createFakeAction(),
+      music: musicAction,
+      typing: typingAction,
     });
 
     const { result } = renderHook(() =>
       useCharacterState({
-        clips: createClips('music', 'typing'),
+        clips,
         instance: 'contact',
         mixer,
       }),
@@ -79,5 +85,7 @@ describe('useCharacterState', () => {
     });
 
     expect(result.current.currentState).toBe('music');
+    expect(musicAction.play).toHaveBeenCalledOnce();
+    expect(typingAction.play).not.toHaveBeenCalled();
   });
 });

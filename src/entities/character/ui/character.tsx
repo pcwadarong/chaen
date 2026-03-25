@@ -91,7 +91,6 @@ export const Character = ({ instance, position }: CharacterProps) => {
     currentState,
     heartMesh: nodeRefs.heart,
     laptopMesh: nodeRefs.laptop,
-    mixer,
   });
 
   useEffect(() => {

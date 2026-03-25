@@ -49,7 +49,7 @@ describe('useHeartAnimation', () => {
     vi.clearAllMocks();
   });
 
-  it('notification 진입 시 delay 후 heart를 보이고 이탈 시 즉시 원복한다', () => {
+  it('notification 진입 시 delay는 notification 진입 시점 기준으로 계산한다', () => {
     const heartMesh = createHeartMesh();
     const laptopMesh = createObject('laptop');
 
@@ -59,7 +59,6 @@ describe('useHeartAnimation', () => {
           currentState,
           heartMesh,
           laptopMesh,
-          mixer: { time: 0.08 } as never,
         }),
       {
         initialProps: {
@@ -74,7 +73,7 @@ describe('useHeartAnimation', () => {
     rerender({ currentState: 'notification' });
 
     act(() => {
-      vi.advanceTimersByTime(19);
+      vi.advanceTimersByTime(99);
     });
 
     expect(heartMesh.visible).toBe(false);
@@ -105,7 +104,6 @@ describe('useHeartAnimation', () => {
           currentState,
           heartMesh,
           laptopMesh,
-          mixer: { time: 0 } as never,
         }),
       {
         initialProps: {
@@ -132,7 +130,6 @@ describe('useHeartAnimation', () => {
         currentState: 'notification',
         heartMesh,
         laptopMesh,
-        mixer: { time: 0 } as never,
       }),
     );
 

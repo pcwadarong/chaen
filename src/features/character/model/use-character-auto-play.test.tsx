@@ -1,10 +1,17 @@
 import { renderHook } from '@testing-library/react';
 import { AnimationClip } from 'three';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCharacterAutoPlay } from '@/features/character/model/use-character-auto-play';
 import type { CharacterAnimState } from '@/features/character/model/use-character-state';
 
+/**
+ * 상태 자동 전환 테스트에서 사용할 최소 AnimationClip 헬퍼를 생성합니다.
+ *
+ * @param name 생성할 clip의 상태 이름입니다.
+ * @param duration clip 길이입니다. 단위는 초입니다.
+ * @returns 주어진 이름과 길이를 가진 AnimationClip 인스턴스를 반환합니다.
+ */
 const createClip = (name: CharacterAnimState, duration: number) =>
   new AnimationClip(name, duration, []);
 
@@ -12,6 +19,11 @@ describe('useCharacterAutoPlay', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('main 인스턴스는 idle 이후 typing으로 전환한다', () => {

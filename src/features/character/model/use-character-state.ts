@@ -47,7 +47,7 @@ export const useCharacterState = ({
         initialState,
         mixer,
       }),
-    [clips, initialState, mixer],
+    [clips, instance, mixer],
   );
 
   const transitionTo = useCallback(

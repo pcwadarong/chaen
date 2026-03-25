@@ -79,4 +79,11 @@ export class CharacterStateMachine {
   public onTransition(callback: TransitionListener): void {
     this.listeners.add(callback);
   }
+
+  /**
+   * 등록된 상태 전환 구독을 해제합니다.
+   */
+  public offTransition(callback: TransitionListener): void {
+    this.listeners.delete(callback);
+  }
 }

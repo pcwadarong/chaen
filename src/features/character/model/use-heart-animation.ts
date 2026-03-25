@@ -10,7 +10,6 @@ type UseHeartAnimationOptions = Readonly<{
   currentState: CharacterAnimState;
   heartMesh: Object3D | null;
   laptopMesh: Object3D | null;
-  mixer: { time: number };
 }>;
 
 const HEART_APPEAR_TIME_MS = 100;
@@ -30,11 +29,11 @@ export const useHeartAnimation = ({
   currentState,
   heartMesh,
   laptopMesh,
-  mixer,
 }: UseHeartAnimationOptions): void => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialPositionRef = useRef<{ x: number; y: number } | null>(null);
   const initialRotationRef = useRef<{ x: number; y: number; z: number } | null>(null);
+  const notificationStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (heartMesh) {
@@ -60,6 +59,15 @@ export const useHeartAnimation = ({
   }, [currentState, laptopMesh]);
 
   useEffect(() => {
+    if (currentState === 'notification') {
+      notificationStartTimeRef.current ??= performance.now();
+      return;
+    }
+
+    notificationStartTimeRef.current = null;
+  }, [currentState]);
+
+  useEffect(() => {
     if (!heartMesh) return;
 
     if (currentState !== 'notification') {
@@ -74,7 +82,9 @@ export const useHeartAnimation = ({
     }
 
     const material = getOpacityMaterial(heartMesh);
-    const remainingDelay = Math.max(0, HEART_APPEAR_TIME_MS - mixer.time * 1000);
+    const notificationStartTime = notificationStartTimeRef.current ?? performance.now();
+    const elapsedTimeMs = performance.now() - notificationStartTime;
+    const remainingDelay = Math.max(0, HEART_APPEAR_TIME_MS - elapsedTimeMs);
 
     timeoutRef.current = setTimeout(() => {
       heartMesh.visible = true;
@@ -119,7 +129,7 @@ export const useHeartAnimation = ({
       );
       timeoutRef.current = null;
     };
-  }, [currentState, heartMesh, mixer]);
+  }, [currentState, heartMesh]);
 };
 
 /**
