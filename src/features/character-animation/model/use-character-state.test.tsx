@@ -29,7 +29,7 @@ const createFakeAction = (duration = 1): FakeAction => ({
   getClip: vi.fn(() => ({ duration }) as AnimationClip),
   play: vi.fn().mockReturnThis(),
   reset: vi.fn().mockReturnThis(),
-  setLoop: vi.fn().mockImplementation(function setLoop() {
+  setLoop: vi.fn().mockImplementation(function setLoop(this: FakeAction) {
     return this;
   }),
   time: 0,
