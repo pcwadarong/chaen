@@ -41,13 +41,13 @@ export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanva
  */
 const HomeHeroLights = () => (
   <>
-    <ambientLight color="#f8f4ff" intensity={2.2} />
+    <ambientLight color="#f8f4ff" intensity={1.5} />
     <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
     <pointLight
       color="#fff8e8"
       decay={1.5}
-      distance={16}
-      intensity={12}
+      distance={15}
+      intensity={4}
       position={[1.1, 1.9, 7.2]}
     />
   </>
@@ -89,8 +89,8 @@ const HomeHeroSceneObjects = () => (
   <group position={[0, -2.4, 0]}>
     <Character instance="main" position={[0, 0, 0]} />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
-    <SceneProp path="/models/guitar.glb" position={[-0.15, 0, 0.4]} />
-    <SceneProp path="/models/table.glb" position={[0.15, 0, 0.25]} />
+    <SceneProp path="/models/guitar.glb" position={[-3, 0, 0]} />
+    <SceneProp path="/models/table.glb" position={[3, 0, 0]} />
 
     <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[80, 80]} />

@@ -52,12 +52,9 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/sofa.glb')).toHaveAttribute('data-position', '0,0,-2');
     expect(screen.getByTestId('prop-/models/guitar.glb')).toHaveAttribute(
       'data-position',
-      '-1,0,0.4',
+      '-3,0,0',
     );
-    expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute(
-      'data-position',
-      '1,0,0.25',
-    );
+    expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute('data-position', '3,0,0');
 
     consoleErrorSpy.mockRestore();
   });

@@ -1,4 +1,4 @@
-import { Box3, BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
+import { Box3, BoxGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
@@ -8,7 +8,7 @@ import {
 } from '@/entities/character/model/prepare-character-instance';
 
 describe('prepareCharacterInstance', () => {
-  it('outer pants ribon hair는 mesh 이름 기준으로 분리된 material 색상을 적용한다', () => {
+  it('outer pants ribon hair는 mesh 이름 기준으로 분리된 material 색상을 적용하고 brows 계열은 양면 재질로 복제한다', () => {
     const sourceScene = createCharacterSceneFixture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
@@ -24,15 +24,23 @@ describe('prepareCharacterInstance', () => {
     const clonedRibon = getRequiredMesh(clonedScene, 'ribon');
     const sourceHair = getRequiredMesh(sourceScene, 'hair');
     const clonedHair = getRequiredMesh(clonedScene, 'hair');
+    const sourceBrows = getRequiredMesh(sourceScene, 'brows');
+    const clonedBrows = getRequiredMesh(clonedScene, 'brows');
+    const sourceEyebrow = getRequiredMesh(sourceScene, 'eyebrow');
+    const clonedEyebrow = getRequiredMesh(clonedScene, 'eyebrow');
 
     expect(clonedOuter).not.toBe(sourceOuter);
     expect(clonedPants).not.toBe(sourcePants);
     expect(clonedRibon).not.toBe(sourceRibon);
     expect(clonedHair).not.toBe(sourceHair);
+    expect(clonedBrows).not.toBe(sourceBrows);
+    expect(clonedEyebrow).not.toBe(sourceEyebrow);
     expect(clonedOuter.material).not.toBe(sourceOuter.material);
     expect(clonedPants.material).not.toBe(sourcePants.material);
     expect(clonedRibon.material).not.toBe(sourceRibon.material);
     expect(clonedHair.material).not.toBe(sourceHair.material);
+    expect(clonedBrows.material).not.toBe(sourceBrows.material);
+    expect(clonedEyebrow.material).not.toBe(sourceEyebrow.material);
     expect(getMaterialColorHex(clonedOuter.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.outer),
     );
@@ -46,6 +54,10 @@ describe('prepareCharacterInstance', () => {
     expect(getSingleMaterial(clonedOuter.material).map).toBe(
       getSingleMaterial(sourceOuter.material).map,
     );
+    expect(getSingleMaterial(clonedBrows.material).side).toBe(DoubleSide);
+    expect(getSingleMaterial(clonedEyebrow.material).side).toBe(DoubleSide);
+    expect(getSingleMaterial(sourceBrows.material).side).not.toBe(DoubleSide);
+    expect(getSingleMaterial(sourceEyebrow.material).side).not.toBe(DoubleSide);
     expect(getMaterialColorHex(sourceOuter.material)).toBe('ffffff');
     expect(getMaterialColorHex(sourcePants.material)).toBe('ffffff');
     expect(getMaterialColorHex(sourceRibon.material)).toBe('ffffff');
@@ -103,6 +115,8 @@ const createCharacterSceneFixture = (): Group => {
   scene.add(createMesh('pants', 'pants_mat'));
   scene.add(createMesh('ribon', 'ribon_mat'));
   scene.add(createMesh('hair', 'hair_mat'));
+  scene.add(createMesh('brows', 'brows_mat'));
+  scene.add(createMesh('eyebrow', 'eyebrow_mat'));
   scene.add(createMesh('heart', 'heart_mat'));
   scene.add(createMesh('laptop_screen', 'laptop_screen_mat'));
   laptopGroup.add(createMesh('Cube', 'laptop_mat'));

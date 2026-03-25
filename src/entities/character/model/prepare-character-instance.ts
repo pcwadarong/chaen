@@ -1,5 +1,5 @@
 import type { Group, Material, Mesh, Object3D } from 'three';
-import { Box3, Color } from 'three';
+import { Box3, Color, DoubleSide } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export const CHARACTER_OUTFIT_COLOR_CONFIG = {
@@ -16,7 +16,7 @@ export const CHARACTER_OUTFIT_COLOR_CONFIG = {
 } as const;
 
 const CHARACTER_TINTS = {
-  hair: '#3D2B1F',
+  hair: '#654835',
 } as const;
 
 export type CharacterOutfitColors =
@@ -27,6 +27,7 @@ type CharacterMaterialOptions = Readonly<{
   outfitColors: CharacterOutfitColors;
 }>;
 const CONTACT_HIDDEN_NODE_NAMES = new Set(['laptop', 'laptop_screen', 'monitor']);
+const DOUBLE_SIDED_MESH_NAMES = new Set(['brows', 'eyebrow']);
 const OUTFIT_MESH_COLOR_KEYS = {
   outer: 'outer',
   pants: 'pants',
@@ -59,6 +60,11 @@ export const prepareCharacterInstance = (
 
     if (node.name === 'hair') {
       node.material = createTintedMaterial(node.material, CHARACTER_TINTS.hair);
+      return;
+    }
+
+    if (DOUBLE_SIDED_MESH_NAMES.has(node.name)) {
+      node.material = createDoubleSidedMaterial(node.material);
       return;
     }
 
@@ -95,11 +101,33 @@ const createTintedMaterial = (
 };
 
 /**
+ * 얇은 평면 형태의 눈썹 계열은 실루엣을 유지하기 위해 양면 재질로 복제합니다.
+ */
+const createDoubleSidedMaterial = (material: Material | Material[]): Material | Material[] => {
+  if (Array.isArray(material)) {
+    return material.map(item => applyMaterialSide(item.clone()));
+  }
+
+  return applyMaterialSide(material.clone());
+};
+
+/**
  * color 속성이 있는 material에만 tint color를 반영합니다.
  */
 const applyMaterialColor = (material: Material, color: string): Material => {
   if ('color' in material && material.color instanceof Color) {
     material.color.set(color);
+  }
+
+  return material;
+};
+
+/**
+ * material에 양면 렌더링을 적용합니다.
+ */
+const applyMaterialSide = (material: Material): Material => {
+  if ('side' in material) {
+    material.side = DoubleSide;
   }
 
   return material;
