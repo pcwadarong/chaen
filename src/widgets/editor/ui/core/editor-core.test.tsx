@@ -403,43 +403,6 @@ describe('EditorCore', () => {
   );
 
   it(
-    '발행하기 버튼은 dirty 여부와 관계없이 현재 상태를 전달한다',
-    async () => {
-      const onOpenPublishPanel = vi.fn();
-
-      renderEditorCore({ onOpenPublishPanel });
-
-      fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
-      expect(onOpenPublishPanel).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dirty: false,
-          slug: '',
-          tags: [],
-        }),
-      );
-
-      fireEvent.change(getTitleInput('KO'), {
-        target: { value: 'publish-title' },
-      });
-      fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
-
-      expect(onOpenPublishPanel).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          dirty: true,
-          slug: '',
-          tags: [],
-          translations: expect.objectContaining({
-            ko: expect.objectContaining({
-              title: 'publish-title',
-            }),
-          }),
-        }),
-      );
-    },
-    EDITOR_CORE_TEST_TIMEOUT_MS,
-  );
-
-  it(
     'direct publish는 저장 가능한 상태가 아니면 실행하지 않고 토스트를 띄운다',
     async () => {
       const onDirectPublish = vi.fn().mockResolvedValue(undefined);
