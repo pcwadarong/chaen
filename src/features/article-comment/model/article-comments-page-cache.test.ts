@@ -3,7 +3,7 @@ import {
   DEFAULT_INITIAL_PAGE,
   getCachedArticleCommentsPage,
   resetArticleCommentsPageCacheForTest,
-} from '@/features/browse-article-comments/model/article-comments-page-cache';
+} from '@/features/article-comment/model/article-comments-page-cache';
 
 const pageData = {
   ...DEFAULT_INITIAL_PAGE,

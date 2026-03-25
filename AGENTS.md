@@ -1,92 +1,99 @@
-## AGENTS
+# AGENTS.md
 
-## Frontend Working Rules
+This document defines the core engineering principles, architectural rules, and workflow protocols for the AI Agent. Adherence to these rules ensures high code quality, maintainability, and consistency across the project.
 
-- Next.js App Router 기준으로 작업한다.
-- 함수 선언은 특별한 이유가 없으면 모두 `const`로 작성한다.
-- 공통 로직은 라우트 파일에 직접 두지 말고 적절한 레이어로 이동한다.
-- 경로 alias를 우선 사용하고 상대 경로 체인은 길게 늘리지 않는다.
-- SVG, font, style, config는 재사용 가능한 진입점을 먼저 만든다.
-- 함수는 JsDoc를 한국어로 꼼꼼히 작성한다.
-- 불필요하게 `div` wrapper를 만들어서 감싸지 않는다.
+## 1. Architecture: Feature-Sliced Design (FSD)
 
-## Styling Rules
+The project follows FSD principles integrated with Next.js App Router best practices. **Core Philosophy:** Group by **Domain** and **UX Slice**, not by technical type or name.
 
-- Panda CSS를 기본 스타일 시스템으로 사용하고, Emotion이나 `module.css`는 새로 추가하지 않는다.
-- 스타일 선언은 별도 `*.recipe.ts`/`*.styles.ts`로 분리하지 말고 컴포넌트 파일 안에서 `cva()`/`css()`로 co-location 한다.
-- 확장 포인트는 `className`만 허용하고, `cx(localRecipeOrClass, props.className)` 패턴으로 합친다.
-- `margin`, `gap` 같은 layout prop은 새로 추가하지 않고 필요한 레이아웃 확장은 `className`으로 해결한다.
-- `use client`는 상태, effect, 브라우저 API, `next/navigation`, `next-themes`, 포털/포커스 관리처럼 실제 클라이언트 런타임이 필요한 경우에만 선언한다.
-- 스타일링이나 단순 번역(`next-intl`)만으로는 `use client`를 붙이지 않는다. 가능하면 server/shared component로 유지하고, locale 제약이 있으면 서버 유틸 또는 상위에서 계산한 props로 푼다.
-- 마이그레이션/호환용 임시 코드, alias layer, 보조 스크립트는 작업 종료 시 실제 필요성을 다시 검토하고 제거 대상을 정리한다.
+### Layer Definitions
 
-## FSD (Feature-Sliced Design) 아키텍처 규칙
+- **`app/`**: Routing layer. Contains only layouts, metadata, and root providers.
+- **`src/views/`**: Page-level business logic and main layout (Container role).
+  - _Structure_: `src/views/{page-name}/ui/{PageName}.tsx`
+- **`src/widgets/`**: Independent, self-contained UI blocks (e.g., `GlobalNav`, `Sidebar`).
+- **`src/features/`**: **User Interaction & Business Logic Units.**
+  - **Grouping Rule**: Features sharing the same domain, state machine, or lifecycle must be unified into a single slice.
+  - **BAD**: `features/play-character-blink`, `features/play-character-heart` (Fragmented)
+  - **GOOD**: `features/character-animation/model/useBlink.ts`, `features/character-animation/model/useHeart.ts`
+- **`src/entities/`**: Domain entities, data models, and domain-specific rendering logic.
+  - _Technical utils_ (e.g., `apply-materials`) live here (e.g., `entities/character/lib`) or in `shared/lib`.
+- **`src/shared/`**: Reusable UI (Atomic), generic utilities, types, and assets.
 
-Next.js 공식 best practice를 우선하고, 구조는 FSD 관점을 따릅니다:
+---
 
-- `app/`: Next.js 라우팅 전용 레이어 (레이아웃, 메타데이터, 껍데기 페이지)
-- `src/views/`: 실제 페이지의 비즈니스 로직 및 전체 레이아웃 (Container 역할)
-  - `src/views/{page-name}/ui/{PageName}.tsx`: 페이지의 메인 엔트리 (Container)
+## 2. Frontend & Styling Rules
 
-- `src/widgets/`: 독립적으로 동작하는 완성된 UI 블록
-- `src/features/`: 사용자 상호작용 및 비즈니스 로직 단위
-- `src/entities/`: 도메인 엔터티 및 데이터 모델
-- `src/shared/`: 공통 UI 컴포넌트, 유틸리티, SVG 타입 정의
+### Development Standards
 
-# Quality Bar
+- **Framework**: Next.js App Router.
+- **Syntax**: Use `const` for all function declarations unless `function` is strictly required.
+- **Clean Code**:
+  - Prohibit unnecessary `div` wrappers; use Semantic HTML elements.
+  - No dead code, unused exports, or temporary logs in production-ready commits.
+  - Use Path Aliases (`@/...`) exclusively; avoid long relative path chains.
+  - Provide detailed **JSDoc in Korean** for all functions and hooks.
 
-- 동작 변경이 있으면 테스트 가능한 단위부터 먼저 정의하고 구현한다.
-- 최소 기준은 `pnpm lint`, `pnpm typecheck`, `pnpm test`를 통과하는 것이다.
-- UI 작업은 모바일과 데스크톱을 모두 고려한다.
-- 접근성, semantic HTML, loading/error/empty 상태를 기본 요구사항으로 본다.
-- 임시 로그, 죽은 코드, 사용하지 않는 export는 남기지 않는다.
+### Styling with Panda CSS
 
-## Test Writing Rules
+- **System**: Exclusively use Panda CSS. Do not introduce Emotion or CSS Modules.
+- **Responsive Design**: **Never hardcode pixel values.** Reference the central configuration in `src/shared/config/responsive.ts` (synced with `panda.config.ts`).
+  - _Usage_: Use `token('breakpoints.sm')` or responsive object syntax: `{ base: '...', md: '...' }`.
+- **Co-location**: Declare styles (`css()`, `cva()`) within the component file. Do not use separate `*.styles.ts` files.
+- **Extensibility**: Only the `className` prop is permitted for external style overrides.
+- **Composition**: Merge styles using the `cx(localRecipe, props.className)` pattern.
+- **Layout**: Do not add layout props (e.g., `margin`, `gap`) to components; handle offsets via `className`.
 
-- 테스트는 기본적으로 "가장 싼 레이어"부터 작성한다. 순수 함수/데이터 변환/서버 액션 입력-출력 매핑은 먼저 `node` 환경 테스트로 해결하고, 브라우저가 꼭 필요한 경우에만 `jsdom`으로 올린다.
-- `route handler`, `slug/url/date/markdown` 유틸, 서버 액션 payload 변환, 캐시 키/정렬/포맷팅 로직은 `@vitest-environment node` 후보로 먼저 검토한다.
-- hook 테스트와 UI 테스트를 섞지 않는다. 상태 전이, 타이머, selection/template 매핑, payload 조합은 hook/helper 쪽으로 내리고, 컴포넌트 테스트는 렌더링과 wiring에 집중한다.
-- `jsdom` 테스트는 역할에 따라 나눈다. 단순 렌더링, 콜백 연결, 접근성 속성 확인은 가벼운 컴포넌트 테스트로 유지하고, 포털/모달/popover/textarea selection/scroll 복원처럼 비용이 큰 시나리오는 하나의 파일에 과도하게 몰아넣지 않는다.
-- 무거운 `jsdom` 테스트를 발견하면 먼저 helper/hook/adapter로 규칙을 아래 레이어로 내릴 수 있는지 검토한다. "통합 테스트 하나를 추가"보다 "순수 규칙 테스트 + 얇은 wiring 테스트" 조합을 우선한다.
-- 무거운 테스트가 보인다고 바로 실행 그룹이나 worker 수부터 건드리지 않는다. 먼저 순수 규칙을 아래로 내리고, 그 다음에야 실행 구조 조정을 검토한다.
-- 실제 브라우저 구현 차이가 중요한 시나리오만 Playwright 후보로 본다. 예: focus trap, portal, selection/caret, 실제 스크롤/리사이즈, overlay 상호작용. 단순 렌더링이나 콜백 연결을 Playwright로 옮기지 않는다.
-- 테스트를 추가할 때는 "이 테스트가 왜 `node`, `jsdom`, Playwright 중 이 레이어에 있어야 하는가"를 설명할 수 있어야 한다. 설명이 약하면 대체로 더 아래 레이어로 내릴 여지가 있는 것이다.
-- 새 테스트 파일을 만들거나 무거운 테스트를 수정할 때는 파일 단위 cleanup을 명시적으로 챙긴다. fake timer, `stubGlobal`, `spyOn`, prototype patch는 실패해도 복구되도록 `afterEach` 또는 `try/finally`로 정리한다.
-- `spyOn(...).mockRestore()`를 테스트 본문 마지막 줄에 두는 패턴은 피한다. assertion 실패 시 복구가 건너뛰어질 수 있으므로 lifecycle cleanup으로 관리한다.
-- 테스트 헬퍼와 fixture도 레이어를 의식한다. 여러 UI 테스트가 같은 규칙/fixture를 반복하면, helper로 승격할지 또는 model 테스트로 옮길지 먼저 검토한다.
-- 테스트 실행 시 무조건 종료 여부를 확인한다. timeout 된다면 강제로 종료 후 디버깅한다.
+### Client/Server Strategy
 
-## PR Working Rules
+- **`use client`**: Apply only for State, Effects, Browser APIs, `next/navigation`, or complex portal/focus management.
+- **Server-First**: Components used solely for styling or static translations (`next-intl`) must remain Server Components.
 
-- 하나의 PR 단위 기능을 구현할 때 모든 테스트를 한 번에 몰아서 작성하지 않는다.
-- 테스트 하나 작성 -> 구현 하나 진행 흐름을 기본으로 한다.
-- 예를 들어 로그인 기능은 라우팅 테스트/구현, 페이지 테스트/구현, 폼 테스트/구현, 검증 테스트/구현, 요청 테스트/구현, 마지막 통합 테스트처럼 잘게 나누어 순차적으로 진행한다.
-- 하나의 대화가 시작되면 루트의 `docs/` 폴더를 확인하고, 없으면 생성한다.
-- 해당 작업용 PR 문서를 `docs/pr/` 아래에 markdown으로 생성하거나 기존 문서를 찾아 이어서 갱신한다.
-- PR 문서에는 "무엇을 추가했는가"보다 "어떤 문제를 해결했고, 사용자/SEO/성능/운영 관점에서 무엇이 달라졌는가"를 우선 정리한다.
-- PR 문서에는 가능한 경우 다음 내용을 포함한다: 작업 목표, 핵심 정책, 판단 근거, 완료된 범위, 남은 검토 포인트
-- PR 문서는 가능하면 아래 순서를 기본 골격으로 사용한다.
-  - 작업 목표
-  - 이번 브랜치에서 한 작업
-  - 사용자 관점에서 달라진 점
-  - 구현상 눈에 띄는 포인트
-  - 검증
-- "이번 브랜치에서 한 작업"은 누적 작업 로그처럼 쌓지 말고, 현재 브랜치 기준으로 완료된 작업을 기능 단위로 다시 묶어 정리한다.
-- "구현상 눈에 띄는 포인트"는 모든 사소한 구현 내역을 적는 곳이 아니라, 나중에 다시 봤을 때 도움이 되는 설계 판단, tricky한 처리, 주의점만 남긴다.
-- 의존성 판단, 처리 방식 같은 구현 원리는 가능하면 이 섹션에 따로 정리한다.
-- PR 문서에는 파일 경로를 장황하게 나열하지 말고, 개념 단위로 묶어 설명한다. 파일 언급은 필요한 경우에만 최소화한다.
-- PR 문서는 구현 중간에도 현재 결정사항과 보류사항이 드러나도록 계속 갱신하고, 마지막에는 "지금 시점에서 완료된 것과 남은 것"이 한눈에 보이게 정리한다.
-- 어떤 명령이 들어와도 작업을 한 번에 끝내지 말고, 의미 있는 커밋 단위로 나눠서 진행한다.
-- 각 커밋 단위 작업이 끝날 때마다 다음 단계로 넘어가기 전에 사용자 확인을 받는다.
-- 각 커밋 단위 종료 시점에는 추천 커밋 제목(한국어)과 간단한 커밋 메시지(한국어)를 함께 제안한다.
+---
 
-## Accessibility (A11y) 기준
+## 3. Test Writing Rules
 
-- 가능한 경우 semantic HTML 요소를 우선 사용한다.
-- 의미 전달이 필요한 경우 ARIA role / aria-\* attribute를 명확하게 적용한다.
-- 모든 인터랙션 요소는 keyboard navigation (Tab / Enter / Space)으로 접근 가능해야 한다.
-- 이미지, SVG 아이콘에는 적절한 `alt` 또는 `aria-label`을 제공한다.
-- 상태 변경 UI는 screen reader가 인식할 수 있도록 `aria-live` 또는 role을 고려한다.
-- 클릭 가능한 요소를 `div`로 구현하는 것을 지양하고 interactive element를 우선 사용한다.
-- 색상에만 의존한 정보 전달을 피하고 텍스트 또는 아이콘을 함께 제공한다.
-- focus outline을 제거하지 말고 명확한 focus 상태를 유지한다.
+### Environment Selection (The "Lowest Cost" Contract)
+
+The Agent must evaluate the code dependencies to enforce the most efficient test environment.
+
+- **Node Environment (`@vitest-environment node`)**:
+  - **Contract**: Ensures consistency of pure data transformations and logic.
+  - **Trigger**: Any logic not referencing Browser APIs (`window`, `document`, `HTMLElement`, etc.).
+  - **Targets**: Route Handlers, Server Actions, Utility functions (Slug, Date, Formatting), and Cache Key logic.
+- **JSDom Environment (`@vitest-environment jsdom`)**:
+  - **Contract**: Ensures correct UI rendering and basic event wiring within the DOM.
+  - **Trigger**: React components, hooks with `useEffect`, or logic requiring DOM manipulation.
+  - **Strategy**: Isolate complex logic into pure functions (tested in Node) and keep JSDom tests focused on "wiring."
+- **E2E (Playwright)**:
+  - **Contract**: Guarantees runtime behavior across real browser engines.
+  - **Targets**: Focus traps, Portals, Selection/Caret control, and actual Scroll/Resize interactions.
+
+### Test Description Protocol (Contract-based)
+
+Test descriptions must describe a **Contract between State and Result**, not an action log.
+
+- **Format**: Under **[Condition/Context]**, **[Subject]** must **[Expected Behavior/State Change]**.
+- **Examples**:
+  - **BAD**: "Saves user info."
+  - **GOOD**: "When valid user data is submitted, the 'user' state in the store must be updated with the provided payload."
+  - **GOOD**: "Clicking the 'Publish' button must trigger form validation; upon success, the 'Save Complete' toast must be rendered."
+
+---
+
+## 4. Workflow & PR Protocol
+
+1.  **Iterative TDD**: Write one test -> Implement one logic unit -> Repeat.
+2.  **Commit Granularity**: Divide work into meaningful, logical units. Seek user confirmation after each unit.
+3.  **PR Documentation**: Maintain markdown files in `docs/pr/`. Focus on "Problems Solved" and "Impact" (UX/SEO/Performance).
+    - **Structure**: Goal -> Changes in this branch -> User-facing changes -> Implementation Highlights (Design decisions, tricky logic) -> Verification results.
+4.  **Language**: Commit messages and PR summaries must be in **Korean**.
+
+---
+
+## 5. Accessibility (A11y) Standards
+
+- **Semantic HTML**: Prioritize native elements over ARIA roles.
+- **Keyboard Access**: All interactive elements must be accessible via `Tab`, `Enter`, and `Space`.
+- **Visual Cues**: Never remove focus outlines; ensure high-contrast focus states.
+- **Screen Readers**: Use `aria-live` for dynamic status updates and provide `alt`/`aria-label` for all non-text content.
