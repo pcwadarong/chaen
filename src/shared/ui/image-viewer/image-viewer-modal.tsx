@@ -749,6 +749,7 @@ export const ImageViewerModal = ({
                     )}
                     type="button"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 썸네일 그리드에서 원본 src와 드래그/포커스 제어가 필요해 img를 유지합니다. */}
                     <img
                       alt={item.alt}
                       className={thumbnailImageClass}
