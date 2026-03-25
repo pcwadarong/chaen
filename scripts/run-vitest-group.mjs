@@ -81,13 +81,13 @@ const resolveTestGroup = group => {
     case 'dom-model':
       return {
         files: domModelFiles,
-        maxWorkers: '2',
+        maxWorkers: '4',
       };
     case 'dom-ui':
       return {
         files: domUiFiles,
         chunks: domUiChunks,
-        maxWorkers: '1',
+        maxWorkers: '2',
       };
     default:
       if (group.startsWith('dom-ui:')) {
@@ -95,14 +95,14 @@ const resolveTestGroup = group => {
 
         return {
           files: domUiChunks[chunkIndex] ?? [],
-          maxWorkers: '1',
+          maxWorkers: '2',
         };
       }
 
       if (group === 'dom-heavy') {
         return {
           files: heavyFiles,
-          maxWorkers: '1',
+          maxWorkers: '2',
         };
       }
 
