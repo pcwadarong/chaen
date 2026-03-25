@@ -30,8 +30,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    maxWorkers: 1,
     clearMocks: true,
-    restoreMocks: true,
     unstubGlobals: true,
     unstubEnvs: true,
     coverage: {

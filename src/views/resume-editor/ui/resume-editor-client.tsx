@@ -9,11 +9,12 @@ import type {
   PublishActionResult,
 } from '@/entities/editor/model/editor-types';
 import type { ResumeEditorState } from '@/entities/resume/model/resume-editor.types';
-import {
-  editorStateToResumeEditorState,
-  resumeContentMapToEditorTranslations,
-} from '@/entities/resume/model/resume-editor.utils';
+import { resumeContentMapToEditorTranslations } from '@/entities/resume/model/resume-editor.utils';
 import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
+import {
+  submitResumeDraft,
+  submitResumePublish,
+} from '@/views/resume-editor/model/resume-editor-client-actions';
 import { EditorCore } from '@/widgets/editor';
 
 type ResumeEditorClientProps = {
@@ -49,10 +50,14 @@ export const ResumeEditorClient = ({
 
   const handleDraftSave = useCallback(
     async (state: EditorState) => {
-      const result = await onDraftSave(editorStateToResumeEditorState(state), draftId);
+      const { nextDraftId, result } = await submitResumeDraft({
+        draftId,
+        onDraftSave,
+        state,
+      });
 
-      if (result?.draftId) {
-        setDraftId(result.draftId);
+      if (nextDraftId !== draftId) {
+        setDraftId(nextDraftId);
       }
 
       return result;
@@ -69,10 +74,14 @@ export const ResumeEditorClient = ({
         return;
       }
 
-      const result = await onPublishSubmit(editorStateToResumeEditorState(state), draftId);
+      const { redirectPath } = await submitResumePublish({
+        draftId,
+        onPublishSubmit,
+        state,
+      });
 
-      if (result?.redirectPath) {
-        router.push(result.redirectPath);
+      if (redirectPath) {
+        router.push(redirectPath);
       }
     },
     [draftId, onPublishSubmit, router],

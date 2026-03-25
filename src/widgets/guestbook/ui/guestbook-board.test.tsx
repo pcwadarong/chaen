@@ -85,6 +85,7 @@ describe('GuestbookBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authState.isAdmin = false;
+    useBrowseGuestbookSpy.mockReturnValue(hookState);
   });
 
   it('작성 폼에 Server Action과 submission 상태를 연결한다', async () => {
