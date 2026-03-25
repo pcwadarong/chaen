@@ -41,13 +41,13 @@ export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanva
  */
 const HomeHeroLights = () => (
   <>
-    <ambientLight color="#f8f4ff" intensity={2.2} />
+    <ambientLight color="#f8f4ff" intensity={1.5} />
     <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
     <pointLight
       color="#fff8e8"
       decay={1.5}
-      distance={16}
-      intensity={12}
+      distance={15}
+      intensity={4}
       position={[1.1, 1.9, 7.2]}
     />
   </>

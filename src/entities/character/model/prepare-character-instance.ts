@@ -16,7 +16,7 @@ export const CHARACTER_OUTFIT_COLOR_CONFIG = {
 } as const;
 
 const CHARACTER_TINTS = {
-  hair: '#3D2B1F',
+  hair: '#654835',
 } as const;
 
 export type CharacterOutfitColors =
