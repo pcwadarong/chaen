@@ -11,7 +11,7 @@ import {
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
-  path: '/models/guitar.glb' | '/models/sofa.glb' | '/models/table.glb';
+  path: '/models/bass.glb' | '/models/sofa.glb' | '/models/table.glb';
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];

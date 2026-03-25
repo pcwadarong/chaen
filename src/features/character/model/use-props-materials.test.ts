@@ -25,7 +25,7 @@ const createOrmTextures = (): PropsOrmTextures => ({
 
 describe('applyPropsMaterials', () => {
   it('bass, sofa, table 계열 소품에는 모두 room ORM을 연결한다', () => {
-    const guitarScene = new Group();
+    const bassScene = new Group();
     const tableScene = new Group();
     const sofaScene = new Group();
     const bassBodyMesh = createMesh('bass_body');
@@ -38,11 +38,11 @@ describe('applyPropsMaterials', () => {
     const sofaMesh = createMesh('sofa');
     const textures = createOrmTextures();
 
-    guitarScene.add(bassBodyMesh, lineMesh);
+    bassScene.add(bassBodyMesh, lineMesh);
     tableScene.add(tableMesh, cameraMesh, bookMesh, frameMesh, frameScreenMesh);
     sofaScene.add(sofaMesh);
 
-    applyPropsMaterials(guitarScene, textures);
+    applyPropsMaterials(bassScene, textures);
     applyPropsMaterials(tableScene, textures);
     applyPropsMaterials(sofaScene, textures);
 
