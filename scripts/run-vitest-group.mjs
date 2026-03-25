@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -21,11 +21,34 @@ const HEAVY_TEST_FILES = [
  * @returns 현재 저장소의 `*.test.ts`, `*.test.tsx` 파일 목록입니다.
  */
 const getAllTestFiles = () => {
-  const srcFiles = execFileSync('rg', ['--files', 'src'], { encoding: 'utf8' })
-    .trim()
-    .split('\n')
-    .filter(Boolean)
-    .filter(filePath => filePath.endsWith('.test.ts') || filePath.endsWith('.test.tsx'));
+  /**
+   * `src/` 아래 파일을 재귀적으로 순회해 테스트 파일만 수집합니다.
+   *
+   * @param directory 현재 순회 중인 디렉터리 절대 경로입니다.
+   * @returns 상대 경로 테스트 파일 배열입니다.
+   */
+  const collectTestFiles = directory => {
+    const entries = fs.readdirSync(directory, { withFileTypes: true });
+    const collectedFiles = [];
+
+    for (const entry of entries) {
+      const absolutePath = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        collectedFiles.push(...collectTestFiles(absolutePath));
+        continue;
+      }
+
+      if (!entry.isFile()) continue;
+      if (!absolutePath.endsWith('.test.ts') && !absolutePath.endsWith('.test.tsx')) continue;
+
+      collectedFiles.push(path.relative(process.cwd(), absolutePath).split(path.sep).join('/'));
+    }
+
+    return collectedFiles;
+  };
+
+  const srcFiles = collectTestFiles(path.resolve('src')).sort();
 
   return fs.existsSync('middleware.test.ts') ? [...srcFiles, 'middleware.test.ts'] : srcFiles;
 };
@@ -152,7 +175,7 @@ const runVitestGroup = async group => {
       }
     }
 
-    return;
+    process.exit(0);
   }
 
   const code = await runVitest(resolved.files, resolved.maxWorkers);
