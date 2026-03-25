@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
-import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import {
+  normalizeEmbedInput,
+  uploadImageEmbedSource,
+} from '@/features/edit-markdown/model/embed-popover-state';
 import { uploadEditorImage } from '@/shared/lib/image/upload-editor-image';
 import { Button } from '@/shared/ui/button/button';
 import { ImageIcon } from '@/shared/ui/icons/app-icons';
@@ -32,7 +35,7 @@ export const ImageEmbedPopover = ({
   const [isUploading, setIsUploading] = useState(false);
 
   const handleApply = (closePopover?: ClosePopover) => {
-    const normalizedInput = imageInput.trim();
+    const normalizedInput = normalizeEmbedInput(imageInput);
 
     if (!normalizedInput) return;
 
@@ -53,15 +56,19 @@ export const ImageEmbedPopover = ({
     setImageError(null);
 
     try {
-      setImageInput(
-        await uploadEditorImage({
-          contentType,
-          file,
-          imageKind: 'content',
-        }),
-      );
-    } catch {
-      setImageError(EDITOR_ERROR_MESSAGE.imageUploadFailedWithRetry);
+      const { errorMessage, url } = await uploadImageEmbedSource({
+        contentType,
+        file,
+        uploadEditorImage,
+      });
+
+      if (url) {
+        setImageInput(url);
+      }
+
+      if (errorMessage) {
+        setImageError(errorMessage);
+      }
     } finally {
       setIsUploading(false);
       event.target.value = '';
@@ -90,10 +97,13 @@ export const ImageEmbedPopover = ({
             onFileChange={handleFileChange}
             onValueChange={value => setImageInput(value)}
             previewAlt="삽입할 이미지 미리보기"
-            previewUrl={imageInput.trim()}
+            previewUrl={normalizeEmbedInput(imageInput) ?? ''}
             value={imageInput}
           />
-          <Button disabled={!imageInput.trim()} onClick={() => handleApply(closePopover)}>
+          <Button
+            disabled={normalizeEmbedInput(imageInput) === null}
+            onClick={() => handleApply(closePopover)}
+          >
             삽입
           </Button>
         </div>

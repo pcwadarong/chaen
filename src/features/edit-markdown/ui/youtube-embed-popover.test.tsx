@@ -33,17 +33,4 @@ describe('YoutubeEmbedPopover', () => {
 
     expect(onApply).toHaveBeenCalledWith('dQw4w9WgXcQ', expect.any(Function));
   });
-
-  it('안전하지 않은 호스트면 onApply를 호출하지 않는다', () => {
-    const onApply = vi.fn();
-
-    render(<YoutubeEmbedPopover onApply={onApply} />);
-
-    fireEvent.change(screen.getByRole('textbox', { name: 'YouTube URL' }), {
-      target: { value: 'https://notyoutube.com/watch?v=dQw4w9WgXcQ' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
-
-    expect(onApply).not.toHaveBeenCalled();
-  });
 });

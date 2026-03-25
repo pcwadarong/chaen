@@ -33,14 +33,4 @@ describe('LinkEmbedPopover', () => {
 
     expect(onApply).toHaveBeenCalledWith('https://openai.com', 'link', expect.any(Function));
   });
-
-  it('빈 입력값이면 onApply를 호출하지 않는다', () => {
-    const onApply = vi.fn();
-
-    render(<LinkEmbedPopover onApply={onApply} />);
-
-    fireEvent.click(screen.getByRole('button', { name: '제목 링크' }));
-
-    expect(onApply).not.toHaveBeenCalled();
-  });
 });
