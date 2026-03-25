@@ -316,7 +316,7 @@ const rowMainClass = css({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '4',
-  _tabletDown: {
+  _mobileLargeDown: {
     alignItems: 'start',
     flexDirection: 'column',
   },
@@ -348,7 +348,7 @@ const actionRowClass = css({
   gap: '3',
   flex: 'none',
   justifyContent: 'flex-end',
-  _tabletDown: {
+  _mobileLargeDown: {
     width: 'full',
     justifyContent: 'flex-start',
   },

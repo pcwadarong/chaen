@@ -589,8 +589,15 @@ const descriptionClass = css({
 });
 
 const modalBodyClass = css({
+  width: '[min(26rem, 90vw)]',
+  px: '4',
+  pt: '10',
+  pb: '4',
   display: 'grid',
   gap: '4',
+  backgroundColor: 'surface',
+  borderRadius: 'sm',
+  boxShadow: 'floating',
 });
 
 const modalTitleClass = css({
