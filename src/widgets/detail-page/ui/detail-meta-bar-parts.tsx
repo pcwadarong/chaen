@@ -98,7 +98,7 @@ const metaItemClass = css({
   px: '3',
   color: 'text',
   fontSize: 'sm',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     fontSize: 'md',
   },
 });
@@ -108,7 +108,7 @@ const shareButtonClass = css({
   px: '3',
   py: '0',
   fontSize: 'sm',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     fontSize: 'md',
   },
   _hover: {

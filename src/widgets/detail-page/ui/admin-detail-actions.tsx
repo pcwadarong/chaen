@@ -91,7 +91,7 @@ const actionButtonClass = css({
   px: '3',
   py: '0',
   fontSize: 'sm',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     fontSize: 'md',
   },
 });

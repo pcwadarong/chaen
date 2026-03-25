@@ -109,10 +109,10 @@ const leftFieldsClass = css({
   gap: '2',
   flex: '[0 1 44rem]',
   justifyContent: 'start',
-  '@media (max-width: 920px)': {
+  _tabletDown: {
     gridTemplateColumns: '[repeat(2, minmax(9rem, 1fr))]',
   },
-  '@media (max-width: 640px)': {
+  _mobileLargeDown: {
     gridTemplateColumns: '1fr',
   },
 });

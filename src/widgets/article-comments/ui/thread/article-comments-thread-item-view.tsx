@@ -164,7 +164,7 @@ const replyListClass = css({
   paddingBottom: '0',
   paddingLeft: '4',
   marginTop: '1',
-  '@media (min-width: 721px)': {
+  _desktopUp: {
     paddingLeft: '6',
   },
 });
@@ -173,7 +173,7 @@ const replyComposeWrapClass = css({
   paddingLeft: '4',
   paddingBottom: '5',
   marginTop: '1',
-  '@media (min-width: 721px)': {
+  _desktopUp: {
     paddingLeft: '6',
     paddingBottom: '6',
   },

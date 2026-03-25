@@ -7,6 +7,7 @@ import { css, cx } from 'styled-system/css';
 
 import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
@@ -16,7 +17,7 @@ import { buildGlobalNavigationItems } from '@/widgets/global-nav/ui/build-naviga
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
 
-const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
+const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 
 type GlobalNavMobileSearchOverlayProps = {
   clearText: string;
@@ -302,7 +303,7 @@ const headerClass = css({
   boxShadow: 'floating',
   willChange: 'transform, opacity',
   transition: '[transform 240ms ease, opacity 240ms ease]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     borderTopLeftRadius: '[calc(2rem - 1px)]',
     borderTopRightRadius: '[calc(2rem - 1px)]',
   },
@@ -347,7 +348,7 @@ const mobileSearchOverlayClass = css({
   alignItems: 'center',
   backgroundColor: 'surface',
   backdropFilter: '[blur(18px) saturate(135%)]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'none',
   },
 });

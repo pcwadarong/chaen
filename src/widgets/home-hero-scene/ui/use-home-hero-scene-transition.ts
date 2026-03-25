@@ -8,11 +8,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group, PerspectiveCamera } from 'three';
 import { Vector3 } from 'three';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { homeHeroCameraMotion } from '@/widgets/home-hero-scene/ui/home-hero-camera-motion';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
+const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 
 type UseHomeHeroSceneTransitionParams = {
   readonly triggerRef: RefObject<HTMLElement | null>;

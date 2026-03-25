@@ -2,7 +2,9 @@
 
 import { useLayoutEffect, useState } from 'react';
 
-const MOBILE_MEDIA_QUERY = '(max-width: 760px)';
+import { viewportMediaQuery } from '@/shared/config/responsive';
+
+const MOBILE_MEDIA_QUERY = viewportMediaQuery.tabletDown;
 
 /**
  * `window.matchMedia` 기반으로 모바일 전용 editor mode 적용 여부를 추적합니다.

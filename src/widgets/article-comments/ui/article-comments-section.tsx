@@ -560,7 +560,7 @@ const headerClass = css({
   display: 'flex',
   flexDirection: 'column',
   gap: '4',
-  '@media (min-width: 721px)': {
+  _desktopUp: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',

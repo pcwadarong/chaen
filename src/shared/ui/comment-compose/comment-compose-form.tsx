@@ -322,7 +322,7 @@ const fixedFormClass = css({
   pb: '[calc(var(--spacing-4) + env(safe-area-inset-bottom))]',
   display: 'grid',
   gap: '3',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     left: '[50%]',
     right: '[auto]',
     width:

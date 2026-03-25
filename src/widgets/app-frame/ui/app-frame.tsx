@@ -26,7 +26,7 @@ export const AppFrame = ({ children }: AppFrameProps) => (
 
 const appFrameRootClass = css({
   minHeight: '[100dvh]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     p: '[1.25rem]',
   },
 });
@@ -39,7 +39,7 @@ const appFrameClass = css({
   display: 'flex',
   flexDirection: 'column',
   backgroundColor: 'surface',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     width: '[min(1280px, calc(100vw - 2.5rem))]',
     height: '[calc(100dvh - 2.5rem)]',
     minHeight: '0',
@@ -55,7 +55,7 @@ const appFrameClass = css({
 const appFrameScrollViewportClass = css({
   flex: '[1 1 auto]',
   minHeight: '0',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'flex',
     flexDirection: 'column',
     overflowY: 'auto',

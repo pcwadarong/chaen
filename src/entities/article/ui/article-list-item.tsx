@@ -93,7 +93,7 @@ const contentClass = css({
   justifyContent: 'space-between',
   minWidth: '0',
   flex: '[1 1 auto]',
-  '@media (min-width: 480px)': {
+  _mobileLargeUp: {
     minHeight: '[8.75rem]',
   },
 });
@@ -143,7 +143,7 @@ const dateClass = css({
 
 const mediaClass = css({
   display: 'none',
-  '@media (min-width: 480px)': {
+  _mobileLargeUp: {
     display: 'block',
     position: 'relative',
     flex: '[0 0 8.75rem]',

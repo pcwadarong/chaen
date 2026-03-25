@@ -15,7 +15,7 @@ const appFrameFooterClass = css({
   px: '4',
   pt: '3',
   pb: '[max(var(--spacing-3), env(safe-area-inset-bottom))]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     mt: '8',
     px: '5',
     py: '3',
