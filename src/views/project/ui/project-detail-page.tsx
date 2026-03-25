@@ -20,7 +20,10 @@ import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/stru
 import { GithubIcon, GlobeIcon } from '@/shared/ui/icons/app-icons';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
-import { resolveProjectExternalLinkItems } from '@/views/project/model/project-detail-page';
+import {
+  type ProjectExternalLinkItem,
+  resolveProjectExternalLinkItems,
+} from '@/views/project/model/project-detail-page';
 import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
@@ -53,6 +56,11 @@ type ProjectExternalLinkListProps = {
   githubUrl?: string | null;
   websiteUrl?: string | null;
 };
+
+const LINK_ICONS = {
+  github: GithubIcon,
+  website: GlobeIcon,
+} satisfies Record<ProjectExternalLinkItem['key'], typeof GithubIcon>;
 
 /**
  * 프로젝트 상세 좌측 아카이브 블록을 렌더링합니다.
@@ -131,7 +139,7 @@ const ProjectExternalLinkList = ({ githubUrl, websiteUrl }: ProjectExternalLinkL
     websiteUrl,
   }).map(item => ({
     ...item,
-    icon: item.key === 'website' ? GlobeIcon : GithubIcon,
+    icon: LINK_ICONS[item.key],
   }));
 
   if (linkItems.length === 0) return null;

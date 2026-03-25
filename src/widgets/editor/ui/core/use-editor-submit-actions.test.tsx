@@ -156,6 +156,11 @@ describe('useEditorSubmitActions', () => {
         dirty: false,
         slug: '',
         tags: [],
+        translations: expect.objectContaining({
+          ko: expect.objectContaining({
+            title: '',
+          }),
+        }),
       }),
     );
 

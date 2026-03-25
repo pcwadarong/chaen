@@ -73,6 +73,7 @@ export const useOffsetPaginationFeed = <T>({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastSeedCursorRef = useRef(initialCursor);
   const lastSeedItemsRef = useRef(initialItems);
+  const itemsRef = useRef(initialItems);
 
   useEffect(() => {
     const isSameSeed =
@@ -83,6 +84,7 @@ export const useOffsetPaginationFeed = <T>({
 
     lastSeedCursorRef.current = initialCursor;
     lastSeedItemsRef.current = initialItems;
+    itemsRef.current = initialItems;
     setItems(initialItems);
     setNextCursor(initialCursor);
     setIsLoadingMore(false);
@@ -98,7 +100,7 @@ export const useOffsetPaginationFeed = <T>({
     try {
       const resolved = await resolveOffsetPaginationLoadMore({
         currentCursor: nextCursor,
-        currentItems: items,
+        currentItems: itemsRef.current,
         limit,
         locale,
         loadPage,
@@ -106,13 +108,14 @@ export const useOffsetPaginationFeed = <T>({
         queryParams,
       });
 
+      itemsRef.current = resolved.items;
       setItems(resolved.items);
       setNextCursor(resolved.nextCursor);
       setErrorMessage(resolved.errorMessage);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, items, limit, loadPage, locale, mergeItems, nextCursor, queryParams]);
+  }, [isLoadingMore, limit, loadPage, locale, mergeItems, nextCursor, queryParams]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

@@ -1,6 +1,6 @@
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 
-type ProjectExternalLinkItem = {
+export type ProjectExternalLinkItem = {
   href: string;
   key: 'github' | 'website';
   label: 'GitHub' | 'Website';

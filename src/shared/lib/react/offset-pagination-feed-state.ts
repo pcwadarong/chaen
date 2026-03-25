@@ -72,8 +72,23 @@ export const resolveOffsetPaginationLoadMore = async <T>({
       nextCursor: payload.nextCursor,
     };
   } catch (error) {
+    const resolvedErrorMessage = getErrorMessage(error);
+    const fallbackErrorMessage =
+      typeof error === 'string'
+        ? error
+        : (() => {
+            try {
+              return JSON.stringify(error);
+            } catch {
+              return undefined;
+            }
+          })();
+
     return {
-      errorMessage: getErrorMessage(error),
+      errorMessage:
+        resolvedErrorMessage === 'unknown error'
+          ? (fallbackErrorMessage ?? 'unknown error')
+          : resolvedErrorMessage,
       items: currentItems,
       nextCursor: currentCursor,
     };
