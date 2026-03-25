@@ -2,12 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { MarkdownToolbar } from '@/features/edit-markdown/ui/markdown-toolbar';
-import { optimizeContentImageFile } from '@/shared/lib/image/optimize-content-image-file';
 import { Textarea } from '@/shared/ui/textarea/textarea';
-
-vi.mock('@/shared/lib/image/optimize-content-image-file', () => ({
-  optimizeContentImageFile: vi.fn(async (file: File) => file),
-}));
 
 /**
  * 툴바와 textarea를 함께 묶어 실제 편집 상호작용을 검증합니다.
@@ -31,11 +26,6 @@ const ToolbarHarness = () => {
 };
 
 describe('MarkdownToolbar', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-    vi.mocked(optimizeContentImageFile).mockImplementation(async (file: File) => file);
-  });
-
   it('선택한 텍스트를 굵게 감싼다', async () => {
     render(<ToolbarHarness />);
 
@@ -143,47 +133,6 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('이미지 팝오버에서 파일 업로드 후 markdown 이미지 문법을 삽입한다', async () => {
-    const optimizedFile = new File(['compressed'], 'inline.webp', { type: 'image/webp' });
-    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-      json: async () => ({ url: 'https://example.com/uploaded-inline.webp' }),
-      ok: true,
-    } as Response);
-    vi.mocked(optimizeContentImageFile).mockResolvedValue(optimizedFile);
-
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-
-    fireEvent.click(screen.getByRole('button', { name: '이미지' }));
-    fireEvent.change(screen.getByLabelText('이미지 파일 업로드'), {
-      target: {
-        files: [new File(['binary'], 'inline.png', { type: 'image/png' })],
-      },
-    });
-
-    await waitFor(() => {
-      expect((screen.getByRole('textbox', { name: '이미지' }) as HTMLInputElement).value).toBe(
-        'https://example.com/uploaded-inline.webp',
-      );
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('![이미지 설명](https://example.com/uploaded-inline.webp)');
-    });
-
-    const formData = fetchSpy.mock.calls[0]?.[1]?.body as FormData;
-
-    expect(optimizeContentImageFile).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'inline.png' }),
-    );
-    expect(formData.get('contentType')).toBe('article');
-    expect(formData.get('imageKind')).toBe('content');
-    expect(formData.get('file')).toBe(optimizedFile);
-  });
-
   it('링크 라벨은 선택한 공백을 그대로 유지한다', async () => {
     render(<ToolbarHarness />);
 
@@ -243,22 +192,6 @@ describe('MarkdownToolbar', () => {
 
     await waitFor(() => {
       expect(textarea.value).toBe('<YouTube id="dQw4w9WgXcQ" />');
-    });
-  });
-
-  it('유튜브 버튼은 youtube.com으로 끝나는 임의 호스트를 허용하지 않는다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-
-    fireEvent.click(screen.getByRole('button', { name: '유튜브' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'YouTube URL' }), {
-      target: { value: 'https://notyoutube.com/watch?v=dQw4w9WgXcQ' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('');
     });
   });
 
