@@ -16,6 +16,12 @@ import type {
   ToolbarActionItem,
   ToolbarSection,
 } from '@/features/edit-markdown/model/markdown-toolbar.types';
+import {
+  createAlignBlockMarkdown,
+  createImageEmbedMarkdown,
+  createToggleBlockMarkdown,
+  createYoutubeEmbedMarkdown,
+} from '@/features/edit-markdown/model/markdown-toolbar-templates';
 import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
 import { ImageEmbedPopover } from '@/features/edit-markdown/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover';
@@ -105,9 +111,9 @@ export const useMarkdownToolbar = ({
 
   const applyAlign = React.useCallback(
     (align: 'center' | 'left' | 'right') => {
-      applyWrap(`:::align ${align}\n`, '\n:::', '텍스트');
+      applyTemplate(createAlignBlockMarkdown(align), 16);
     },
-    [applyWrap],
+    [applyTemplate],
   );
 
   const handleAlignApply = React.useCallback(
@@ -139,7 +145,7 @@ export const useMarkdownToolbar = ({
     (url: string, closePopover?: ClosePopover) => {
       const selectedText = getSelectedText();
       const altText = selectedText || '이미지 설명';
-      const nextValue = `![${altText}](${url})`;
+      const nextValue = createImageEmbedMarkdown(altText, url);
 
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
@@ -167,7 +173,7 @@ export const useMarkdownToolbar = ({
 
   const handleYoutubeApply = React.useCallback(
     (videoId: string, closePopover?: ClosePopover) => {
-      applyTemplate(`<YouTube id="${videoId}" />`);
+      applyTemplate(createYoutubeEmbedMarkdown(videoId));
       closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
@@ -178,16 +184,16 @@ export const useMarkdownToolbar = ({
       if (!textareaRef.current) return;
 
       const selectedText = getSelectedText();
-      const headingPrefix = '#'.repeat(level);
+      const toggleBlock = createToggleBlockMarkdown(level, selectedText);
 
       if (!selectedText) {
-        applyTemplate(`:::toggle ${headingPrefix} \n:::`, `:::toggle ${headingPrefix} `.length);
+        applyTemplate(toggleBlock.text, toggleBlock.cursorOffset);
         return;
       }
 
-      applyWrap(`:::toggle ${headingPrefix} `, '\n내용\n:::', '제목');
+      applyTemplate(toggleBlock.text, toggleBlock.cursorOffset);
     },
-    [applyTemplate, applyWrap, getSelectedText, textareaRef],
+    [applyTemplate, getSelectedText, textareaRef],
   );
 
   const headingActions = React.useMemo<ToolbarActionItem[]>(
