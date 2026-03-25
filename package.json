@@ -21,7 +21,6 @@
     "test:dom:model": "node scripts/run-vitest-group.mjs dom-model",
     "test:dom:ui": "node scripts/run-vitest-group.mjs dom-ui",
     "test:dom:heavy": "node scripts/run-vitest-group.mjs dom-heavy",
-    "test:groups": "node scripts/run-vitest-group.mjs list",
     "test:watch": "vitest",
     "postinstall": "husky"
   },

@@ -106,22 +106,6 @@ const resolveTestGroup = group => {
         };
       }
 
-      if (group === 'list') {
-        return {
-          files: allFiles,
-          maxWorkers: '1',
-          summary: {
-            'dom-heavy': heavyFiles.length,
-            'dom-model': domModelFiles.length,
-            'dom-ui': domUiFiles.length,
-            'dom-ui:chunks': domUiChunks.length,
-            'dom-ui:chunk-size': DOM_UI_CHUNK_SIZE,
-            node: nodeFiles.length,
-            total: allFiles.length,
-          },
-        };
-      }
-
       throw new Error(`알 수 없는 테스트 그룹입니다: ${group}`);
   }
 };
@@ -151,11 +135,6 @@ const runVitest = (files, maxWorkers) =>
 const runVitestGroup = async group => {
   const resolved = resolveTestGroup(group);
 
-  if (group === 'list') {
-    console.log(JSON.stringify(resolved.summary, null, 2));
-    return;
-  }
-
   if (resolved.files.length === 0) {
     console.log(`[run-vitest-group] '${group}' 그룹에는 실행할 테스트가 없습니다.`);
     return;
@@ -180,4 +159,10 @@ const runVitestGroup = async group => {
   process.exit(code);
 };
 
-runVitestGroup(process.argv[2] ?? 'list');
+const group = process.argv[2];
+
+if (!group) {
+  throw new Error('실행할 테스트 그룹 이름을 전달해주세요.');
+}
+
+runVitestGroup(group);
