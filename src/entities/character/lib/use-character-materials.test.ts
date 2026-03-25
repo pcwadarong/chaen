@@ -86,7 +86,7 @@ describe('applyCharacterMaterials', () => {
     expect(laptopScreenMesh.material.metalnessMap).toBe(null);
   });
 
-  it('사전에 정리된 ORM texture는 NoColorSpace와 flipY=false를 유지한다', () => {
+  it('prepareOrmTexture를 거친 ORM texture 설정을 덮어쓰지 않는다', () => {
     const scene = new Group();
     const bodyMesh = createMesh('body');
     const hairMesh = createMesh('hair');

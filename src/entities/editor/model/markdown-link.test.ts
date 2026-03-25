@@ -17,7 +17,7 @@ describe('markdown-link utils', () => {
     });
   });
 
-  it('선택된 텍스트의 앞뒤 공백이 있으면 그대로 유지한다', () => {
+  it('선택 텍스트의 앞뒤 공백을 링크 라벨에 포함한다', () => {
     expect(
       buildEditorLinkInsertion({
         clipboardText: 'https://openai.com',

@@ -96,7 +96,7 @@ describe('ProjectDetailPage', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('프로젝트 메타 바는 기간만 표시하고 스크린리더 라벨은 유지한다', async () => {
+  it('프로젝트 메타 바에는 기간만 노출하고 스크린리더용 라벨은 함께 제공한다', async () => {
     const html = await renderServerHtml();
 
     expect(html).toContain('January 2026 - February 2026');

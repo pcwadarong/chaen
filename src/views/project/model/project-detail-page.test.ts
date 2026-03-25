@@ -3,7 +3,7 @@
 import { resolveProjectExternalLinkItems } from '@/views/project/model/project-detail-page';
 
 describe('project-detail-page helpers', () => {
-  it('프로젝트 외부 링크 라벨은 locale과 무관하게 영문으로 유지한다', () => {
+  it('프로젝트 외부 링크 라벨은 locale과 무관하게 영문으로 만든다', () => {
     expect(
       resolveProjectExternalLinkItems({
         githubUrl: 'https://github.com/example/project-1',

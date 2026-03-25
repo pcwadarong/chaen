@@ -21,7 +21,7 @@ describe('createImageViewerUrl', () => {
     expect(result).toBe('https://[invalid-url');
   });
 
-  it('baseUrl 없이 상대경로면 원본 문자열을 유지한다', () => {
+  it('baseUrl 없이 상대경로면 입력 문자열을 그대로 반환한다', () => {
     const result = createImageViewerUrl('/images/demo.jpg?download=1');
 
     expect(result).toBe('/images/demo.jpg?download=1');

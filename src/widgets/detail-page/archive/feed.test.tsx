@@ -181,7 +181,7 @@ describe('DetailArchiveFeed', () => {
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('현재 상세 항목이 초기 아카이브 페이지에 없어도 목록 앞에 유지한다', async () => {
+  it('현재 상세 항목이 초기 아카이브 페이지에 없어도 목록 맨 앞에 삽입한다', async () => {
     const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
     useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
       errorMessage: null,
@@ -233,7 +233,7 @@ describe('DetailArchiveFeed', () => {
     expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
   });
 
-  it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice의 자연스러운 뒤쪽에 유지한다', async () => {
+  it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice 순서에 맞는 위치에 둔다', async () => {
     const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
     useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
       errorMessage: null,

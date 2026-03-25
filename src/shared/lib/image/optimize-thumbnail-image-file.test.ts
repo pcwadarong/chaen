@@ -83,7 +83,7 @@ describe('optimizeThumbnailImageFile', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:thumbnail');
   });
 
-  it('압축 결과가 원본보다 크면 원본 파일을 유지한다', async () => {
+  it('압축 결과가 원본보다 크면 원본 파일을 반환한다', async () => {
     const drawImage = vi.fn();
     const canvas = {
       getContext: vi.fn().mockReturnValue({ drawImage }),

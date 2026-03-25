@@ -330,7 +330,7 @@ describe('PublishPanel', () => {
     expect(screen.getByLabelText('시간')).not.toHaveAttribute('min');
   });
 
-  it('draft slug가 있는 상태에서 패널이 열리면 부모 동기화로 빈 값으로 되돌아가지 않는다', async () => {
+  it('패널을 다시 열어도 draft slug 입력값을 빈 문자열로 덮어쓰지 않는다', async () => {
     const PublishPanelHarness = () => {
       const [settings, setSettings] = React.useState<PublishSettings>(() =>
         createDefaultPublishSettings({
@@ -376,7 +376,7 @@ describe('PublishPanel', () => {
     expect(screen.getByTestId('settings-slug')).toHaveTextContent('draft-slug');
   });
 
-  it('썸네일 URL을 바꿔도 부모 동기화 때문에 입력값이 다시 초기화되지 않는다', async () => {
+  it('썸네일 URL을 변경해도 사용자가 수정 중인 입력값을 초기 props로 되돌리지 않는다', async () => {
     const PublishPanelHarness = () => {
       const [settings, setSettings] = React.useState<PublishSettings>(() =>
         createDefaultPublishSettings({

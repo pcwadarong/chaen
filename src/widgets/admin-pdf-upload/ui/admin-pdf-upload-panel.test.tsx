@@ -180,7 +180,7 @@ describe('AdminPdfUploadPanel', () => {
     });
   });
 
-  it('서로 다른 자산 업로드가 겹쳐도 각 행의 업로드 상태를 유지한다', async () => {
+  it('서로 다른 자산 업로드가 겹쳐도 각 행의 pending 상태를 독립적으로 표시한다', async () => {
     const { uploadPdfFileByAssetKey } =
       await import('@/entities/pdf-file/api/upload-pdf-file-by-asset-key');
 

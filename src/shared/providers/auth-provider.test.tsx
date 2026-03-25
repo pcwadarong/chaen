@@ -126,7 +126,7 @@ describe('AuthProvider', () => {
     });
   });
 
-  it('Supabase 환경변수가 없으면 브라우저 클라이언트를 만들지 않고 비로그인 상태를 유지한다', () => {
+  it('Supabase 환경변수가 없으면 브라우저 클라이언트를 만들지 않고 비로그인 상태로 초기화한다', () => {
     vi.mocked(hasSupabaseEnv).mockReturnValue(false);
 
     render(
@@ -173,7 +173,7 @@ describe('AuthProvider', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('getUser가 null user를 반환하면 비로그인 상태로 유지한다', async () => {
+  it('getUser가 null user를 반환하면 비로그인 상태로 남긴다', async () => {
     const { client } = createSupabaseClientMock();
     vi.mocked(createBrowserSupabaseClient).mockReturnValue(client);
 

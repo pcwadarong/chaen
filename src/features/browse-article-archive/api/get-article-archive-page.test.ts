@@ -10,7 +10,7 @@ describe('getArticleDetailArchivePageAction', () => {
     vi.clearAllMocks();
   });
 
-  it('상세 아카이브 조회 결과를 그대로 반환한다', async () => {
+  it('상세 아카이브 조회 결과를 추가 가공 없이 반환한다', async () => {
     vi.mocked(getArticleDetailList).mockResolvedValue({
       items: [],
       nextCursor: 'cursor-2',

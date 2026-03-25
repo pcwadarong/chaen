@@ -42,7 +42,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('팝오버 삽입 뒤에도 textarea 포커스와 커서 위치를 유지한다', async () => {
+  it('팝오버로 링크를 삽입한 뒤 textarea 포커스와 커서를 삽입 직후 위치로 복원한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -82,7 +82,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('링크 라벨은 선택한 공백을 그대로 유지한다', async () => {
+  it('선택 텍스트의 앞뒤 공백도 링크 라벨에 포함한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;

@@ -18,7 +18,7 @@ describe('requireAdmin', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자 세션이면 인증 상태를 그대로 반환한다', async () => {
+  it('관리자 세션이면 redirect 없이 인증 결과를 반환한다', async () => {
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,

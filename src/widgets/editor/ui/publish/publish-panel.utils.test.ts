@@ -16,7 +16,7 @@ describe('publish-panel utils', () => {
     vi.useRealTimers();
   });
 
-  it('예약 발행이 아니면 publishAt을 null로 정리한다', () => {
+  it('즉시 발행 모드에서는 publishAt을 null로 반환한다', () => {
     expect(
       buildPublishSettings({
         allowComments: true,

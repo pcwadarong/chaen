@@ -175,7 +175,7 @@ describe('CharacterStateMachine', () => {
     expect(notificationAction.play).toHaveBeenCalledOnce();
   });
 
-  it('transition callback은 이전 상태와 다음 상태를 그대로 전달한다', () => {
+  it('transition listener에는 이전 상태와 다음 상태를 순서대로 전달한다', () => {
     const idleAction = createFakeAction();
     const typingAction = createFakeAction();
     const mixer = createFakeMixer({

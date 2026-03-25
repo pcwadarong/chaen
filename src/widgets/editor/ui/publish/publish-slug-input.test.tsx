@@ -4,7 +4,7 @@ import React from 'react';
 import { PublishSlugInput } from '@/widgets/editor/ui/publish/publish-slug-input';
 
 describe('PublishSlugInput', () => {
-  it('slug 입력 시 원본 문자열을 그대로 전달한다', () => {
+  it('slug 입력 중에는 문자열을 정규화하지 않고 onChange로 전달한다', () => {
     const onChange = vi.fn();
 
     render(<PublishSlugInput onChange={onChange} value="" />);
@@ -42,7 +42,7 @@ describe('PublishSlugInput', () => {
     expect(firstInput.getAttribute('id')).not.toBe(secondInput.getAttribute('id'));
   });
 
-  it('하이픈 입력 자체는 원본 그대로 유지한다', () => {
+  it('하이픈 입력은 onChange 단계에서 제거하지 않는다', () => {
     const onChange = vi.fn();
 
     render(<PublishSlugInput onChange={onChange} value="" />);

@@ -122,7 +122,7 @@ describe('useEditorSubmitActions', () => {
     );
   });
 
-  it('publish panel open callback에는 dirty 여부와 현재 snapshot을 그대로 전달한다', async () => {
+  it('publish panel open callback에 dirty 여부와 현재 editor snapshot을 전달한다', async () => {
     const onOpenPublishPanel = vi.fn();
 
     const { result, rerender } = renderHook(
