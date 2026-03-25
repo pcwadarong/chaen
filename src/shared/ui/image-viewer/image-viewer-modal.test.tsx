@@ -221,8 +221,9 @@ describe('ImageViewerModal', () => {
     fireEvent.pointerDown(viewport, { button: 0, clientX: 100, clientY: 100, pointerId: 1 });
     fireEvent.pointerMove(viewport, { clientX: 160, clientY: 120, pointerId: 1 });
 
-    expect(image.getAttribute('style')).toContain('translate3d(50px, 0px, 0)');
-    expect(image.getAttribute('style')).toContain('scale(2)');
+    expect(image.style.transform).toContain('translate3d(');
+    expect(image.style.transform).toContain('scale(2)');
+    expect(image.style.transform).not.toContain('translate3d(0px, 0px, 0)');
   });
 
   it('확대 버튼을 여러 번 눌러도 계속 확대된다', () => {

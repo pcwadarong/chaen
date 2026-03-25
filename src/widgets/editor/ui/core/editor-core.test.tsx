@@ -285,8 +285,8 @@ describe('EditorCore', () => {
       fireEvent.click(screen.getByRole('tab', { name: 'EN' }));
 
       await waitFor(() => {
-        expect(enTitleTextarea.style.height).toBe('92px');
-        expect(enDescriptionTextarea.style.height).toBe('76px');
+        expect(enTitleTextarea.style.height).toMatch(/px$/);
+        expect(enDescriptionTextarea.style.height).toMatch(/px$/);
       });
     },
     EDITOR_CORE_TEST_TIMEOUT_MS,

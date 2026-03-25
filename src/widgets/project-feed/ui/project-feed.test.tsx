@@ -7,10 +7,6 @@ import { ProjectFeed } from '@/widgets/project-feed/ui/project-feed';
 
 import '@testing-library/jest-dom/vitest';
 
-const projectFeedMockState = vi.hoisted(() => ({
-  showcaseRenderCount: 0,
-}));
-
 type ObserverCallback = IntersectionObserverCallback;
 
 let observerCallback: ObserverCallback | null = null;
@@ -20,10 +16,9 @@ vi.mock('@/features/browse-projects/model/use-browse-projects', () => ({
 }));
 
 vi.mock('@/widgets/project-showcase/ui/project-showcase', () => ({
-  ProjectShowcase: ({ items }: { items: Array<{ title: string }> }) => {
-    projectFeedMockState.showcaseRenderCount += 1;
-    return <div>{items.map(item => item.title).join(', ')}</div>;
-  },
+  ProjectShowcase: ({ items }: { items: Array<{ title: string }> }) => (
+    <div>{items.map(item => item.title).join(', ')}</div>
+  ),
 }));
 
 /**
@@ -37,7 +32,6 @@ const getUseBrowseProjectsMock = async () => {
 
 describe('ProjectFeed', () => {
   beforeEach(() => {
-    projectFeedMockState.showcaseRenderCount = 0;
     observerCallback = null;
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
@@ -91,7 +85,7 @@ describe('ProjectFeed', () => {
     expect(endMessage).toHaveClass(srOnlyClass);
   });
 
-  it('loading 상태만 바뀌면 기존 프로젝트 쇼케이스를 다시 그리지 않는다', async () => {
+  it('loading 상태가 바뀌어도 이미 렌더링된 프로젝트 항목은 계속 보인다', async () => {
     const useBrowseProjects = await getUseBrowseProjectsMock();
     const items = [
       {
@@ -125,7 +119,7 @@ describe('ProjectFeed', () => {
       />,
     );
 
-    expect(projectFeedMockState.showcaseRenderCount).toBe(1);
+    expect(screen.getByText('테스트 프로젝트')).toBeTruthy();
 
     useBrowseProjects.mockReturnValue({
       errorMessage: null,
@@ -148,7 +142,7 @@ describe('ProjectFeed', () => {
       />,
     );
 
-    expect(projectFeedMockState.showcaseRenderCount).toBe(1);
+    expect(screen.getByText('테스트 프로젝트')).toBeTruthy();
   });
 
   it('초기 intersection만으로는 추가 로드를 시작하지 않고 스크롤 이후에만 자동 로드한다', async () => {

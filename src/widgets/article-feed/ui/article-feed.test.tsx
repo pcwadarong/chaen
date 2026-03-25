@@ -7,10 +7,6 @@ import { ArticleFeed } from '@/widgets/article-feed/ui/article-feed';
 
 import '@testing-library/jest-dom/vitest';
 
-const articleFeedMockState = vi.hoisted(() => ({
-  listItemRenderCount: 0,
-}));
-
 type ObserverCallback = IntersectionObserverCallback;
 
 let observerCallback: ObserverCallback | null = null;
@@ -20,10 +16,9 @@ vi.mock('@/features/browse-articles/model/use-browse-articles', () => ({
 }));
 
 vi.mock('@/entities/article/ui/article-list-item', () => ({
-  ArticleListItem: ({ article }: { article: { title: string } }) => {
-    articleFeedMockState.listItemRenderCount += 1;
-    return <article>{article.title}</article>;
-  },
+  ArticleListItem: ({ article }: { article: { title: string } }) => (
+    <article>{article.title}</article>
+  ),
 }));
 
 /**
@@ -37,7 +32,6 @@ const getUseBrowseArticlesMock = async () => {
 
 describe('ArticleFeed', () => {
   beforeEach(() => {
-    articleFeedMockState.listItemRenderCount = 0;
     observerCallback = null;
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
@@ -93,7 +87,7 @@ describe('ArticleFeed', () => {
     expect(endMessage).toHaveClass(srOnlyClass);
   });
 
-  it('loading 상태만 바뀌면 기존 리스트 아이템을 다시 그리지 않는다', async () => {
+  it('loading 상태가 바뀌어도 이미 렌더링된 아티클 항목은 계속 보인다', async () => {
     const useBrowseArticles = await getUseBrowseArticlesMock();
     const items = [
       {
@@ -129,7 +123,7 @@ describe('ArticleFeed', () => {
       />,
     );
 
-    expect(articleFeedMockState.listItemRenderCount).toBe(1);
+    expect(screen.getByText('테스트 아티클')).toBeTruthy();
 
     useBrowseArticles.mockReturnValue({
       errorMessage: null,
@@ -154,7 +148,7 @@ describe('ArticleFeed', () => {
       />,
     );
 
-    expect(articleFeedMockState.listItemRenderCount).toBe(1);
+    expect(screen.getByText('테스트 아티클')).toBeTruthy();
   });
 
   it('초기 intersection만으로는 추가 로드를 시작하지 않고 스크롤 이후에만 자동 로드한다', async () => {

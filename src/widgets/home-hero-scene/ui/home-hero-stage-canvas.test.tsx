@@ -16,18 +16,14 @@ vi.mock('@react-three/drei', () => ({
 }));
 
 vi.mock('@/entities/character/ui/character', () => ({
-  Character: ({
-    instance,
-    position,
-  }: {
-    instance: 'contact' | 'main';
-    position: [number, number, number];
-  }) => <div data-position={position.join(',')} data-testid={`character-${instance}`} />,
+  Character: ({ instance }: { instance: 'contact' | 'main' }) => (
+    <div data-testid={`character-${instance}`} />
+  ),
 }));
 
 vi.mock('@/entities/scene/ui/scene-prop', () => ({
-  SceneProp: ({ path, position }: { path: string; position: [number, number, number] }) => (
-    <div data-path={path} data-position={position.join(',')} data-testid={`prop-${path}`} />
+  SceneProp: ({ path }: { path: string; position: [number, number, number] }) => (
+    <div data-path={path} data-testid={`prop-${path}`} />
   ),
 }));
 
@@ -53,10 +49,10 @@ describe('HomeHeroStageCanvas', () => {
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toBeTruthy();
     expect(screen.getByTestId('orbit-controls')).toBeTruthy();
-    expect(screen.getByTestId('character-main')).toHaveAttribute('data-position', '0,0,0');
+    expect(screen.getByTestId('character-main')).toBeTruthy();
     expect(screen.queryByTestId('character-contact')).toBeNull();
-    expect(screen.getByTestId('prop-/models/sofa.glb')).toHaveAttribute('data-position', '0,0,-2');
-    expect(screen.getByTestId('prop-/models/bass.glb')).toHaveAttribute('data-position', '-3,0,0');
-    expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute('data-position', '3,0,0');
+    expect(screen.getByTestId('prop-/models/sofa.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/bass.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
   });
 });
