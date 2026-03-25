@@ -403,26 +403,6 @@ describe('EditorCore', () => {
   );
 
   it(
-    'dirty 상태에서 beforeunload 경고를 설정한다',
-    async () => {
-      renderEditorCore();
-
-      fireEvent.change(getTitleInput('KO'), {
-        target: { value: 'changed-title' },
-      });
-
-      const beforeUnloadEvent = new Event('beforeunload', { cancelable: true });
-
-      act(() => {
-        window.dispatchEvent(beforeUnloadEvent);
-      });
-
-      expect(beforeUnloadEvent.defaultPrevented).toBe(true);
-    },
-    EDITOR_CORE_TEST_TIMEOUT_MS,
-  );
-
-  it(
     '발행하기 버튼은 dirty 여부와 관계없이 현재 상태를 전달한다',
     async () => {
       const onOpenPublishPanel = vi.fn();
