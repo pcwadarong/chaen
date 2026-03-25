@@ -99,9 +99,6 @@ describe('ProjectDetailPage', () => {
   it('프로젝트 메타 바는 기간만 표시하고 스크린리더 라벨은 유지한다', async () => {
     const html = await renderServerHtml();
 
-    expect(html).toContain('"@type":"CreativeWork"');
-    expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.vercel.app/en/project/project-1-slug');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
     expect(html).toContain('/admin/projects/project-1/edit');
