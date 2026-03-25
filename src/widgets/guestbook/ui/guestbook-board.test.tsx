@@ -36,17 +36,20 @@ vi.mock('@/shared/providers', () => ({
   useAuth: () => authState,
 }));
 
-vi.mock('@/features/browse-guestbook/model/use-browse-guestbook', () => ({
+vi.mock('@/features/guestbook-entry/model/use-browse-guestbook', () => ({
   useBrowseGuestbook: (input: unknown) => useBrowseGuestbookSpy(input),
 }));
 
-vi.mock('@/features/guestbook-entry-compose/api/submit-guestbook-entry', () => ({
+vi.mock('@/features/guestbook-entry/api/submit-guestbook-entry', () => ({
+  submitGuestbookEntry: vi.fn(),
+}));
+
+vi.mock('@/features/guestbook-entry/model/guestbook-entry-action-state', () => ({
   initialSubmitGuestbookEntryState: {
     data: null,
     errorMessage: null,
     ok: false,
   },
-  submitGuestbookEntry: vi.fn(),
 }));
 
 vi.mock('@/widgets/guestbook/ui/guestbook-feed', () => ({

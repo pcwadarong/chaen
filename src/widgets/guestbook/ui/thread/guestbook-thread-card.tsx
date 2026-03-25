@@ -5,8 +5,8 @@ import React, { useActionState, useCallback, useEffect, useRef, useState } from 
 import { css } from 'styled-system/css';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { verifyGuestbookSecretAction } from '@/features/reveal-guestbook-secret/api/verify-guestbook-secret';
-import { initialVerifyGuestbookSecretState } from '@/features/reveal-guestbook-secret/api/verify-guestbook-secret.state';
+import { verifyGuestbookSecretAction } from '@/features/guestbook-entry/api/verify-guestbook-secret';
+import { initialVerifyGuestbookSecretState } from '@/features/guestbook-entry/model/guestbook-entry-action-state';
 import { GuestbookReplyBubble } from '@/widgets/guestbook/ui/thread/guestbook-reply-bubble';
 import { GuestbookThreadBubble } from '@/widgets/guestbook/ui/thread/guestbook-thread-bubble';
 

@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { getGuestbookThreadsPage } from '@/features/browse-guestbook/api/get-guestbook-threads-page';
-import { useBrowseGuestbook } from '@/features/browse-guestbook/model/use-browse-guestbook';
+import { getGuestbookThreadsPage } from '@/features/guestbook-entry/api/get-guestbook-threads-page';
+import { useBrowseGuestbook } from '@/features/guestbook-entry/model/use-browse-guestbook';
 
-vi.mock('@/features/browse-guestbook/api/get-guestbook-threads-page', () => ({
+vi.mock('@/features/guestbook-entry/api/get-guestbook-threads-page', () => ({
   getGuestbookThreadsPage: vi.fn(),
 }));
 
