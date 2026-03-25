@@ -33,7 +33,7 @@ describe('useCharacterAutoPlay', () => {
     expect(transitionTo).toHaveBeenCalledWith('typing');
   });
 
-  it('typing과 notification은 clip 길이 기준으로 다음 상태를 예약한다', () => {
+  it('typing 이후에는 idle로 돌아가고, 다음 idle은 notification을 예약한다', () => {
     const transitionTo = vi.fn();
     const clips = [createClip('typing', 1.5), createClip('notification', 0.9)];
 
@@ -56,6 +56,16 @@ describe('useCharacterAutoPlay', () => {
     expect(transitionTo).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1);
+    expect(transitionTo).toHaveBeenLastCalledWith('idle');
+
+    rerender({
+      currentState: 'idle',
+    });
+
+    vi.advanceTimersByTime(3199);
+    expect(transitionTo).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1);
     expect(transitionTo).toHaveBeenLastCalledWith('notification');
 
     rerender({
@@ -63,7 +73,7 @@ describe('useCharacterAutoPlay', () => {
     });
 
     vi.advanceTimersByTime(899);
-    expect(transitionTo).toHaveBeenCalledTimes(1);
+    expect(transitionTo).toHaveBeenCalledTimes(2);
 
     vi.advanceTimersByTime(1);
     expect(transitionTo).toHaveBeenLastCalledWith('idle');

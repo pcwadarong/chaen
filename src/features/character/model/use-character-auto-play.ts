@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { AnimationClip } from 'three';
 
 import type { CharacterAnimState } from '@/features/character/model/use-character-state';
@@ -18,6 +18,8 @@ const IDLE_DELAY_BASE_MS = 3200;
 const IDLE_DELAY_RANDOM_MS = 2800;
 const DEFAULT_CLIP_DURATION_MS = 1800;
 
+type ScheduledState = Exclude<CharacterAnimState, 'idle' | 'music'>;
+
 /**
  * 메인 캐릭터가 idle에서 시작해 typing, notification을 간헐적으로 순환하도록 제어합니다.
  * contact 인스턴스는 music 고정이므로 자동 재생 대상에서 제외합니다.
@@ -28,6 +30,7 @@ export const useCharacterAutoPlay = ({
   instance,
   transitionTo,
 }: UseCharacterAutoPlayOptions): void => {
+  const nextStateAfterIdleRef = useRef<ScheduledState>('typing');
   const clipDurations = useMemo(
     () => ({
       notification: resolveClipDuration(clips, 'notification'),
@@ -42,7 +45,7 @@ export const useCharacterAutoPlay = ({
     if (currentState === 'idle') {
       const timer = window.setTimeout(
         () => {
-          transitionTo('typing');
+          transitionTo(nextStateAfterIdleRef.current);
         },
         IDLE_DELAY_BASE_MS + Math.random() * IDLE_DELAY_RANDOM_MS,
       );
@@ -54,7 +57,8 @@ export const useCharacterAutoPlay = ({
 
     if (currentState === 'typing') {
       const timer = window.setTimeout(() => {
-        transitionTo('notification');
+        nextStateAfterIdleRef.current = 'notification';
+        transitionTo('idle');
       }, clipDurations.typing);
 
       return () => {
@@ -64,6 +68,7 @@ export const useCharacterAutoPlay = ({
 
     if (currentState === 'notification') {
       const timer = window.setTimeout(() => {
+        nextStateAfterIdleRef.current = 'typing';
         transitionTo('idle');
       }, clipDurations.notification);
 

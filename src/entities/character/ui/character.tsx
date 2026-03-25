@@ -182,7 +182,7 @@ const findCharacterNodeRefs = (scene: Group): CharacterNodeRefs => {
       return;
     }
 
-    if (node.name === 'head') {
+    if (node.name === 'head' || node.name === 'face') {
       head = node;
     }
   });

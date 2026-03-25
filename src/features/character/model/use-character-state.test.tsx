@@ -32,9 +32,11 @@ const createClips = (...names: string[]): AnimationClip[] =>
 
 describe('useCharacterState', () => {
   it('main 인스턴스는 idle로 시작하고 다른 상태로 전환할 수 있다', () => {
+    const idleAction = createFakeAction();
+    const typingAction = createFakeAction();
     const mixer = createFakeMixer({
-      idle: createFakeAction(),
-      typing: createFakeAction(),
+      idle: idleAction,
+      typing: typingAction,
     });
 
     const { result } = renderHook(() =>
@@ -52,6 +54,8 @@ describe('useCharacterState', () => {
     });
 
     expect(result.current.currentState).toBe('typing');
+    expect(idleAction.fadeOut).toHaveBeenCalledWith(0.12);
+    expect(typingAction.fadeIn).toHaveBeenCalledWith(0.12);
   });
 
   it('contact 인스턴스는 music으로 시작하고 전환 요청을 무시한다', () => {

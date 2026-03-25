@@ -80,10 +80,10 @@ const STATE_MORPH_TARGETS: Record<
       up: 0,
     },
     eyebrow: {
-      eye_close: 0.5,
+      eye_close: 0.3,
     },
     head: {
-      eye_close: 0.5,
+      eye_close: 0.3,
       mouth_curious: 1,
       mouth_smile: 0,
     },

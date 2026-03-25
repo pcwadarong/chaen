@@ -89,8 +89,8 @@ const HomeHeroSceneObjects = () => (
   <group position={[0, -2.4, 0]}>
     <Character instance="main" position={[0, 0, 0]} />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
-    <SceneProp path="/models/guitar.glb" position={[-0.15, 0, 0.4]} />
-    <SceneProp path="/models/table.glb" position={[0.15, 0, 0.25]} />
+    <SceneProp path="/models/guitar.glb" position={[-3, 0, 0]} />
+    <SceneProp path="/models/table.glb" position={[3, 0, 0]} />
 
     <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[80, 80]} />

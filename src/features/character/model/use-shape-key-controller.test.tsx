@@ -76,12 +76,12 @@ describe('useShapeKeyController', () => {
     expect(result.current.browMorphs.down).toBe(1);
     expect(result.current.browMorphs.up).toBe(0);
     expect(browMesh.morphTargetInfluences).toEqual([0, 1]);
-    expect(result.current.headMorphs.eye_close).toBe(0.5);
+    expect(result.current.headMorphs.eye_close).toBe(0.3);
     expect(result.current.headMorphs.mouth_curious).toBe(1);
     expect(result.current.headMorphs.mouth_smile).toBe(0);
-    expect(headMesh.morphTargetInfluences).toEqual([0.5, 1, 0]);
-    expect(result.current.eyebrowMorphs.eye_close).toBe(0.5);
-    expect(eyebrowMesh.morphTargetInfluences[0]).toBe(0.5);
+    expect(headMesh.morphTargetInfluences).toEqual([0.3, 1, 0]);
+    expect(result.current.eyebrowMorphs.eye_close).toBe(0.3);
+    expect(eyebrowMesh.morphTargetInfluences[0]).toBe(0.3);
   });
 
   it('notification과 music 상태에서 표정 목표값을 다르게 적용한다', () => {

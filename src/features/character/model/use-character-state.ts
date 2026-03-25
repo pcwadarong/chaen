@@ -20,6 +20,13 @@ const INSTANCE_INITIAL_STATE: Record<CharacterInstanceType, CharacterAnimState> 
   main: 'idle',
 };
 
+const STATE_FADE_DURATIONS: Record<CharacterAnimState, number> = {
+  idle: 0.2,
+  music: 0.18,
+  notification: 0.08,
+  typing: 0.12,
+};
+
 /**
  * 캐릭터 인스턴스별 초기 상태와 전환 가능 범위를 React 훅으로 관리합니다.
  */
@@ -47,7 +54,7 @@ export const useCharacterState = ({
     (state: CharacterAnimState) => {
       if (instance === 'contact') return;
 
-      stateMachine.transition(state);
+      stateMachine.transition(state, STATE_FADE_DURATIONS[state]);
 
       const nextState = stateMachine.getCurrentState();
       if (nextState) setCurrentState(nextState as CharacterAnimState);
