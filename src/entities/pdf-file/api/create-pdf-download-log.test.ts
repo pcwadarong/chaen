@@ -8,13 +8,14 @@ vi.mock('@/shared/lib/supabase/service-role', () => ({
 }));
 
 describe('createPdfDownloadLog', () => {
-  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    vi.restoreAllMocks();
     consoleErrorSpy.mockRestore();
   });
 

@@ -43,14 +43,15 @@ const baseItems = [
 ];
 
 describe('AdminPdfUploadPanel', () => {
-  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-  afterEach(() => {
-    vi.clearAllMocks();
-    vi.unstubAllGlobals();
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     consoleErrorSpy.mockRestore();
   });
 
