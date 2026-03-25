@@ -1,5 +1,4 @@
 import { AnimationClip, Bone, Group, Mesh, MeshStandardMaterial } from 'three';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { analyzeCharacterGltf } from '@/entities/character/lib/analyze-character-gltf';
 
@@ -37,7 +36,7 @@ describe('analyzeCharacterGltf', () => {
 /**
  * analyzeCharacterGltf 테스트에 사용할 최소 GLTF 구조를 생성합니다.
  */
-const createGltfFixture = (): GLTF => {
+const createGltfFixture = () => {
   const root = new Group();
   root.name = 'root';
 
@@ -55,11 +54,6 @@ const createGltfFixture = (): GLTF => {
 
   return {
     animations: [new AnimationClip('idle'), new AnimationClip('typing')],
-    asset: { generator: 'vitest', version: '2.0' },
-    cameras: [],
-    parser: {} as GLTF['parser'],
     scene: root,
-    scenes: [root],
-    userData: {},
-  } as GLTF;
+  };
 };

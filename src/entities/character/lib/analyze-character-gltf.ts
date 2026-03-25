@@ -1,10 +1,14 @@
-import type { Material, Object3D } from 'three';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { AnimationClip, Group, Material, Object3D } from 'three';
+
+type CharacterGltfLike = Readonly<{
+  animations: AnimationClip[];
+  scene: Group;
+}>;
 
 /**
  * 캐릭터 GLTF 씬 트리를 순회하면서 노드와 애니메이션 구조를 개발 환경에서만 출력합니다.
  */
-export const analyzeCharacterGltf = (gltf: GLTF): void => {
+export const analyzeCharacterGltf = (gltf: CharacterGltfLike): void => {
   if (process.env.NODE_ENV !== 'development') return;
 
   gltf.scene.traverse(node => {
