@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const NODE_ENV_MARKER = '@vitest-environment node';
-const DOM_UI_CHUNK_SIZE = 11;
+const DOM_UI_CHUNK_SIZE = 6;
 
 const HEAVY_TEST_FILES = [
   'src/widgets/editor/ui/core/editor-core.test.tsx',
