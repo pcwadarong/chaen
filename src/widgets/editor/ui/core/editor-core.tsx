@@ -38,8 +38,8 @@ import {
   resolveSavedAt,
   shouldScheduleEditorAutosave,
 } from '@/widgets/editor/ui/core/editor-core-state';
-import { rememberTextareaScroll } from '@/widgets/editor/ui/core/editor-core-textarea';
 import { EditorLocalePanel } from '@/widgets/editor/ui/core/editor-locale-panel';
+import { useEditorLocaleState } from '@/widgets/editor/ui/core/use-editor-locale-state';
 import { useIsMobileEditorLayout } from '@/widgets/editor/ui/core/use-mobile-editor-layout';
 
 const AUTOSAVE_DELAY_MS = 180_000;
@@ -66,12 +66,18 @@ export const EditorCore = ({
   publishButtonLabel = '발행하기',
   publishPendingLabel = '발행 중...',
 }: EditorCoreProps) => {
-  const [activeLocale, setActiveLocale] = useState<Locale>('ko');
   const [mobileEditorPane, setMobileEditorPane] = useState<MobileEditorPane>('edit');
   const [slug] = useState(initialSlug);
   const [selectedTags, setSelectedTags] = useState(initialTags);
-  const [translations, setTranslations] = useState(
-    buildEditorStateSnapshot({
+  const {
+    activeLocale,
+    handleLocaleChange,
+    handleTextareaScroll,
+    textareaRefs,
+    translations,
+    updateTranslationField,
+  } = useEditorLocaleState({
+    initialTranslations: buildEditorStateSnapshot({
       dirty: false,
       slug: initialSlug,
       tags: initialTags,
@@ -80,7 +86,7 @@ export const EditorCore = ({
         ...initialTranslations,
       },
     }).translations,
-  );
+  });
   const [savedState, setSavedState] = useState<EditorState>(() =>
     buildEditorStateSnapshot({
       dirty: false,
@@ -97,25 +103,6 @@ export const EditorCore = ({
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(initialSavedAt);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const saveRequestIdRef = useRef(0);
-  const scrollTopByLocaleRef = useRef<Record<Locale, number>>({
-    en: 0,
-    fr: 0,
-    ja: 0,
-    ko: 0,
-  });
-  const enTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const frTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const jaTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const koTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const textareaRefs = useMemo(
-    () => ({
-      en: enTextareaRef,
-      fr: frTextareaRef,
-      ja: jaTextareaRef,
-      ko: koTextareaRef,
-    }),
-    [],
-  );
   const isMobileLayout = useIsMobileEditorLayout();
   const markdownOptions = useMemo(() => getMarkdownOptions(), []);
 
@@ -166,17 +153,6 @@ export const EditorCore = ({
   }, [dirty]);
 
   /**
-   * active locale을 다시 열 때 직전 scrollTop을 복원합니다.
-   */
-  useEffect(() => {
-    const textarea = textareaRefs[activeLocale].current;
-
-    if (!textarea) return;
-
-    textarea.scrollTop = scrollTopByLocaleRef.current[activeLocale];
-  }, [activeLocale, textareaRefs]);
-
-  /**
    * 데스크톱으로 돌아오면 모바일 pane 상태를 기본값으로 정리합니다.
    */
   useEffect(() => {
@@ -194,26 +170,6 @@ export const EditorCore = ({
   const closeToast = useCallback((id: string) => {
     setToastItems(previous => previous.filter(item => item.id !== id));
   }, []);
-
-  /**
-   * locale별 번역 필드를 변경하되 값이 같으면 기존 객체를 재사용합니다.
-   */
-  const updateTranslationField = useCallback(
-    (locale: Locale, field: keyof EditorState['translations'][Locale], value: string) => {
-      setTranslations(previous => {
-        if (previous[locale][field] === value) return previous;
-
-        return {
-          ...previous,
-          [locale]: {
-            ...previous[locale],
-            [field]: value,
-          },
-        };
-      });
-    },
-    [],
-  );
 
   /**
    * 현재 편집 상태가 저장 가능한지 확인하고, 실패 시 필요한 피드백을 적용합니다.
@@ -294,17 +250,6 @@ export const EditorCore = ({
       window.clearTimeout(timeoutId);
     };
   }, [dirty, enableAutosave, onDraftSave, runDraftSave, validationResult.canSave]);
-
-  /**
-   * locale 전환 전 현재 textarea scrollTop을 저장합니다.
-   */
-  const handleLocaleChange = useCallback(
-    (nextLocale: Locale) => {
-      rememberTextareaScroll(activeLocale, scrollTopByLocaleRef, textareaRefs);
-      setActiveLocale(nextLocale);
-    },
-    [activeLocale, textareaRefs],
-  );
 
   /**
    * 제목 입력을 locale별로 갱신합니다.
@@ -398,9 +343,6 @@ export const EditorCore = ({
     },
     [handleContentChange],
   );
-  const handleTextareaScroll = useCallback((locale: Locale, scrollTop: number) => {
-    scrollTopByLocaleRef.current[locale] = scrollTop;
-  }, []);
   const handleManualSave = useCallback(() => {
     void runDraftSave('manual');
   }, [runDraftSave]);
