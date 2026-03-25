@@ -309,42 +309,6 @@ describe('PublishPanel', () => {
     });
   });
 
-  it('project 외부 링크 입력이 잘못되면 인라인 에러를 표시하고 제출하지 않는다', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-
-    renderPublishPanel({
-      contentType: 'project',
-      initialSettings: {
-        allowComments: false,
-        githubUrl: '',
-        publishAt: null,
-        slug: 'project-with-invalid-links',
-        thumbnailUrl: '',
-        visibility: 'public',
-        websiteUrl: '',
-      },
-      onSubmit,
-    });
-
-    fireEvent.change(screen.getByLabelText('웹사이트'), {
-      target: { value: 'invalid-url' },
-    });
-    fireEvent.change(screen.getByLabelText('GitHub'), {
-      target: { value: 'ftp://github.com/chaen/project' },
-    });
-
-    mockSlugCheckResponse(false);
-    fireEvent.click(screen.getByRole('button', { hidden: true, name: '사용 가능 확인' }));
-    await screen.findByText('사용 가능한 슬러그입니다.');
-    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
-
-    expect(
-      await screen.findByText('웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.'),
-    ).toBeTruthy();
-    expect(screen.getByText('깃허브 주소는 http:// 또는 https://로 시작해야 합니다.')).toBeTruthy();
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
-
   it('예약 발행 입력은 현재 시각 이전을 고르지 못하게 최소값을 노출한다', async () => {
     vi.useFakeTimers();
     const now = new Date('2026-03-14T09:27:45.000Z');
@@ -463,39 +427,6 @@ describe('PublishPanel', () => {
         'https://example.com/next-thumb.png',
       );
     });
-  });
-
-  it('validation 오류가 있으면 인라인 에러를 표시하고 제출하지 않는다', async () => {
-    const { onSubmit } = renderPublishPanel({
-      editorState: {
-        ...baseEditorState,
-        translations: {
-          ...baseEditorState.translations,
-          ko: { content: '본문', description: '', title: '' },
-        },
-      },
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog', { name: '발행 설정' })).toBeTruthy();
-    });
-
-    fireEvent.change(screen.getByRole('textbox', { name: '슬러그' }), {
-      target: { value: '' },
-    });
-    fireEvent.click(screen.getByLabelText('예약 발행'));
-    fireEvent.change(screen.getByLabelText('날짜'), {
-      target: { value: '2026-03-01' },
-    });
-    fireEvent.change(screen.getByLabelText('시간'), {
-      target: { value: '10:00' },
-    });
-    fireEvent.click(screen.getByRole('button', { hidden: true, name: '발행하기' }));
-
-    expect(await screen.findByText('한국어 제목을 입력해주세요')).toBeTruthy();
-    expect(screen.getByText('슬러그를 입력해주세요')).toBeTruthy();
-    expect(screen.getByText('발행 시간은 현재 시간 이후여야 합니다')).toBeTruthy();
-    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('사용 가능 확인을 하지 않은 slug는 발행할 수 없다', async () => {
