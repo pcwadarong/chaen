@@ -3,13 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { uploadEditorImage } from '@/entities/editor/api/upload-editor-image';
 import {
   createEditorError,
   EDITOR_ERROR_MESSAGE,
   parseEditorError,
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
-import { uploadEditorImage } from '@/shared/lib/image/upload-editor-image';
 import { normalizeSlugInput } from '@/shared/lib/slug/slug';
 import { Button } from '@/shared/ui/button/button';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';

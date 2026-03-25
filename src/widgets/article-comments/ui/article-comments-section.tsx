@@ -19,17 +19,17 @@ import type {
   ArticleCommentsSort,
   ArticleCommentThreadItem,
 } from '@/entities/article/comment/model';
-import { getArticleCommentsPageAction } from '@/features/browse-article-comments/api/get-article-comments-page';
+import { deleteArticleCommentAction } from '@/features/article-comment/api/delete-article-comment';
+import { getArticleCommentsPageAction } from '@/features/article-comment/api/get-article-comments-page';
+import { submitArticleComment } from '@/features/article-comment/api/submit-article-comment';
+import { updateArticleCommentAction } from '@/features/article-comment/api/update-article-comment';
 import {
   cacheArticleCommentsPage,
   DEFAULT_INITIAL_PAGE,
   getCachedArticleCommentsPage,
   resetArticleCommentsPageCacheForTest,
-} from '@/features/browse-article-comments/model/article-comments-page-cache';
-import { submitArticleComment } from '@/features/create-article-comment/api/submit-article-comment';
-import { initialSubmitArticleCommentState } from '@/features/create-article-comment/api/submit-article-comment.state';
-import { deleteArticleCommentAction } from '@/features/manage-article-comment/api/delete-article-comment';
-import { updateArticleCommentAction } from '@/features/manage-article-comment/api/update-article-comment';
+} from '@/features/article-comment/model/article-comments-page-cache';
+import { initialSubmitArticleCommentState } from '@/features/article-comment/model/submit-article-comment.state';
 import { Button } from '@/shared/ui/button/button';
 import { CommentComposeForm } from '@/shared/ui/comment-compose';
 import { Input } from '@/shared/ui/input/input';

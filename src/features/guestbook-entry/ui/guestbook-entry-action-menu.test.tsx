@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { GuestbookEntryActionMenu } from '@/features/manage-guestbook-entry/ui/guestbook-entry-action-menu';
+import { GuestbookEntryActionMenu } from '@/features/guestbook-entry/ui/guestbook-entry-action-menu';
 
 const actionMenuButtonProps = vi.fn();
 

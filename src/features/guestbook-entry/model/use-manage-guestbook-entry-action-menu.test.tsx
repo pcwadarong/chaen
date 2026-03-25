@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useManageGuestbookEntryActionMenu } from '@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-action-menu';
+import { useManageGuestbookEntryActionMenu } from '@/features/guestbook-entry/model/use-manage-guestbook-entry-action-menu';
 
 describe('useManageGuestbookEntryActionMenu', () => {
   beforeEach(() => {

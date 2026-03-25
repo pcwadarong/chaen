@@ -5,8 +5,8 @@ import { css } from 'styled-system/css';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookEntryBubble } from '@/entities/guestbook/ui/guestbook-entry-bubble';
-import { useManageGuestbookEntryActionMenu } from '@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-action-menu';
-import { GuestbookEntryActionMenu } from '@/features/manage-guestbook-entry/ui/guestbook-entry-action-menu';
+import { useManageGuestbookEntryActionMenu } from '@/features/guestbook-entry/model/use-manage-guestbook-entry-action-menu';
+import { GuestbookEntryActionMenu } from '@/features/guestbook-entry/ui/guestbook-entry-action-menu';
 import { Button } from '@/shared/ui/button/button';
 import { Input } from '@/shared/ui/input/input';
 

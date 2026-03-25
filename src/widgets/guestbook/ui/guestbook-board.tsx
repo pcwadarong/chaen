@@ -5,10 +5,10 @@ import React, { useActionState, useCallback, useEffect, useMemo, useRef, useStat
 import { css } from 'styled-system/css';
 
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { useBrowseGuestbook } from '@/features/browse-guestbook/model/use-browse-guestbook';
-import { initialSubmitGuestbookEntryState } from '@/features/guestbook-entry-compose/api/guestbook-entry-action-state';
-import { submitGuestbookEntry } from '@/features/guestbook-entry-compose/api/submit-guestbook-entry';
-import { useManageGuestbookEntryModal } from '@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-modal';
+import { submitGuestbookEntry } from '@/features/guestbook-entry/api/submit-guestbook-entry';
+import { initialSubmitGuestbookEntryState } from '@/features/guestbook-entry/model/guestbook-entry-action-state';
+import { useBrowseGuestbook } from '@/features/guestbook-entry/model/use-browse-guestbook';
+import { useManageGuestbookEntryModal } from '@/features/guestbook-entry/model/use-manage-guestbook-entry-modal';
 import type { ActionResult } from '@/shared/lib/action/action-result';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';

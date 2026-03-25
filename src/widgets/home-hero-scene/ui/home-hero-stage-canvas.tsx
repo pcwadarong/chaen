@@ -4,8 +4,8 @@ import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import React, { type RefObject, Suspense } from 'react';
 
-import { Character } from '@/entities/character/ui/character';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/ui/use-home-hero-scene-transition';
 
 type HomeHeroStageCanvasProps = {
@@ -87,7 +87,7 @@ const HomeHeroCameraRig = ({
  */
 const HomeHeroSceneObjects = () => (
   <group position={[0, -2.4, 0]}>
-    <Character instance="main" position={[0, 0, 0]} />
+    <HomeHeroCharacter instance="main" position={[0, 0, 0]} />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
     <SceneProp path="/models/bass.glb" position={[-3, 0, 0]} />
     <SceneProp path="/models/table.glb" position={[3, 0, 0]} />

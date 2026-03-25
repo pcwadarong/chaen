@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { getGuestbookThreadsPage } from '@/features/browse-guestbook/api/get-guestbook-threads-page';
+import { getGuestbookThreadsPage } from '@/features/guestbook-entry/api/get-guestbook-threads-page';
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 
 type UseBrowseGuestbookOptions = {

@@ -39,15 +39,15 @@ vi.mock('next-intl', () => ({
   },
 }));
 
-vi.mock('@/features/browse-article-comments/api/get-article-comments-page', () => ({
+vi.mock('@/features/article-comment/api/get-article-comments-page', () => ({
   getArticleCommentsPageAction: mockedCommentActions.getArticleCommentsPageAction,
 }));
 
-vi.mock('@/features/create-article-comment/api/submit-article-comment', () => ({
+vi.mock('@/features/article-comment/api/submit-article-comment', () => ({
   submitArticleComment: mockedCommentActions.submitArticleComment,
 }));
 
-vi.mock('@/features/create-article-comment/api/submit-article-comment.state', () => ({
+vi.mock('@/features/article-comment/model/submit-article-comment.state', () => ({
   initialSubmitArticleCommentState: {
     data: null,
     errorMessage: null,
@@ -55,11 +55,11 @@ vi.mock('@/features/create-article-comment/api/submit-article-comment.state', ()
   },
 }));
 
-vi.mock('@/features/manage-article-comment/api/update-article-comment', () => ({
+vi.mock('@/features/article-comment/api/update-article-comment', () => ({
   updateArticleCommentAction: mockedCommentActions.updateArticleCommentAction,
 }));
 
-vi.mock('@/features/manage-article-comment/api/delete-article-comment', () => ({
+vi.mock('@/features/article-comment/api/delete-article-comment', () => ({
   deleteArticleCommentAction: mockedCommentActions.deleteArticleCommentAction,
 }));
 

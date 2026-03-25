@@ -4,7 +4,7 @@ import React from 'react';
 import type { GuestbookThreadItem } from '@/entities/guestbook/model/types';
 import { GuestbookThreadBubble } from '@/widgets/guestbook/ui/thread/guestbook-thread-bubble';
 
-vi.mock('@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-action-menu', () => ({
+vi.mock('@/features/guestbook-entry/model/use-manage-guestbook-entry-action-menu', () => ({
   useManageGuestbookEntryActionMenu: () => ({
     isOpen: false,
     longPressHandlers: {},
@@ -12,7 +12,7 @@ vi.mock('@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-acti
   }),
 }));
 
-vi.mock('@/features/manage-guestbook-entry/ui/guestbook-entry-action-menu', () => ({
+vi.mock('@/features/guestbook-entry/ui/guestbook-entry-action-menu', () => ({
   GuestbookEntryActionMenu: () => <div data-testid="guestbook-entry-action-menu" />,
 }));
 

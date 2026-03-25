@@ -1,15 +1,15 @@
 import { act, renderHook } from '@testing-library/react';
 
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { deleteGuestbookEntryAction } from '@/features/manage-guestbook-entry/api/delete-guestbook-entry';
-import { updateGuestbookEntryAction } from '@/features/manage-guestbook-entry/api/update-guestbook-entry';
-import { useManageGuestbookEntryModal } from '@/features/manage-guestbook-entry/model/use-manage-guestbook-entry-modal';
+import { deleteGuestbookEntryAction } from '@/features/guestbook-entry/api/delete-guestbook-entry';
+import { updateGuestbookEntryAction } from '@/features/guestbook-entry/api/update-guestbook-entry';
+import { useManageGuestbookEntryModal } from '@/features/guestbook-entry/model/use-manage-guestbook-entry-modal';
 
-vi.mock('@/features/manage-guestbook-entry/api/delete-guestbook-entry', () => ({
+vi.mock('@/features/guestbook-entry/api/delete-guestbook-entry', () => ({
   deleteGuestbookEntryAction: vi.fn(),
 }));
 
-vi.mock('@/features/manage-guestbook-entry/api/update-guestbook-entry', () => ({
+vi.mock('@/features/guestbook-entry/api/update-guestbook-entry', () => ({
   updateGuestbookEntryAction: vi.fn(),
 }));
 

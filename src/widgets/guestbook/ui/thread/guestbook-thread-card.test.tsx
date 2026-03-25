@@ -8,13 +8,16 @@ vi.mock('next-intl', () => ({
   useLocale: () => 'ko',
 }));
 
-vi.mock('@/features/guestbook-entry/server/guestbook-entry-actions', () => ({
+vi.mock('@/features/guestbook-entry/api/verify-guestbook-secret', () => ({
+  verifyGuestbookSecretAction: vi.fn(),
+}));
+
+vi.mock('@/features/guestbook-entry/model/guestbook-entry-action-state', () => ({
   initialVerifyGuestbookSecretState: {
     data: null,
     errorMessage: null,
     ok: false,
   },
-  verifyGuestbookSecretAction: vi.fn(),
 }));
 
 vi.mock('@/widgets/guestbook/ui/thread/guestbook-reply-bubble', () => ({

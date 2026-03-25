@@ -4,8 +4,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { GUESTBOOK_ERROR_CODE } from '@/entities/guestbook/model/guestbook-error';
 import type { GuestbookEntry, GuestbookThreadItem } from '@/entities/guestbook/model/types';
-import { deleteGuestbookEntryAction } from '@/features/manage-guestbook-entry/api/delete-guestbook-entry';
-import { updateGuestbookEntryAction } from '@/features/manage-guestbook-entry/api/update-guestbook-entry';
+import { deleteGuestbookEntryAction } from '@/features/guestbook-entry/api/delete-guestbook-entry';
+import { updateGuestbookEntryAction } from '@/features/guestbook-entry/api/update-guestbook-entry';
 import type { ToastItem } from '@/shared/ui/toast/toast';
 
 type ActionModalState =

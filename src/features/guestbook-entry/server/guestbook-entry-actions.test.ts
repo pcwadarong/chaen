@@ -9,14 +9,14 @@ import {
   GUESTBOOK_ERROR_CODE,
 } from '@/entities/guestbook/model/guestbook-error';
 import {
+  initialSubmitGuestbookEntryState,
+  initialVerifyGuestbookSecretState,
+} from '@/features/guestbook-entry/model/guestbook-entry-action-state';
+import {
   getGuestbookThreadsPage,
   submitGuestbookEntry,
   verifyGuestbookSecretAction,
 } from '@/features/guestbook-entry/server/guestbook-entry-actions';
-import {
-  initialSubmitGuestbookEntryState,
-  initialVerifyGuestbookSecretState,
-} from '@/features/guestbook-entry-compose/api/guestbook-entry-action-state';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 vi.mock('@/entities/guestbook', () => ({

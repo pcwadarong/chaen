@@ -11,13 +11,13 @@ import {
   ARTICLE_COMMENT_ERROR_CODE,
   createArticleCommentError,
 } from '@/entities/article/comment/error';
+import { initialSubmitArticleCommentState } from '@/features/article-comment/model/submit-article-comment.state';
 import {
   deleteArticleCommentAction,
   getArticleCommentsPageAction,
   submitArticleComment,
   updateArticleCommentAction,
 } from '@/features/article-comment/server/article-comment-actions';
-import { initialSubmitArticleCommentState } from '@/features/create-article-comment/api/submit-article-comment.state';
 import { getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
 
 const { createOptionalPublicServerSupabaseClient } = vi.hoisted(() => ({
