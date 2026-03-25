@@ -6,8 +6,6 @@ import type { Group, Texture } from 'three';
 
 import { applyOrmToMaterial, isMeshNode, prepareOrmTexture } from '@/shared/lib/three/orm-material';
 
-type ScenePropPath = '/models/guitar.glb' | '/models/sofa.glb' | '/models/table.glb';
-
 export type PropsOrmTextures = Readonly<{
   room: Texture;
 }>;
@@ -33,15 +31,9 @@ export const usePropsMaterials = (): PropsOrmTextures => {
 };
 
 /**
- * 소품 clone scene에 path 기준 ORM texture를 1회 주입합니다.
+ * 소품 clone scene에 room ORM texture를 1회 주입합니다.
  */
-export const applyPropsMaterials = (
-  scene: Group,
-  _path: ScenePropPath,
-  textures: PropsOrmTextures,
-): void => {
-  prepareOrmTexture(textures.room);
-
+export const applyPropsMaterials = (scene: Group, textures: PropsOrmTextures): void => {
   scene.traverse(node => {
     if (!isMeshNode(node)) return;
     if (ROOM_ORM_EXCLUDED_MESH_NAMES.has(node.name)) return;

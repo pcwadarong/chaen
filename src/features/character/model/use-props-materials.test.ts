@@ -5,6 +5,7 @@ import {
   applyPropsMaterials,
   type PropsOrmTextures,
 } from '@/features/character/model/use-props-materials';
+import { prepareOrmTexture } from '@/shared/lib/three/orm-material';
 
 /**
  * 테스트용 소품 mesh를 생성합니다.
@@ -41,9 +42,9 @@ describe('applyPropsMaterials', () => {
     tableScene.add(tableMesh, cameraMesh, bookMesh, frameMesh, frameScreenMesh);
     sofaScene.add(sofaMesh);
 
-    applyPropsMaterials(guitarScene, '/models/guitar.glb', textures);
-    applyPropsMaterials(tableScene, '/models/table.glb', textures);
-    applyPropsMaterials(sofaScene, '/models/sofa.glb', textures);
+    applyPropsMaterials(guitarScene, textures);
+    applyPropsMaterials(tableScene, textures);
+    applyPropsMaterials(sofaScene, textures);
 
     expect(bassBodyMesh.material.aoMap).toBe(textures.room);
     expect(lineMesh.material.roughnessMap).toBe(textures.room);
@@ -52,17 +53,21 @@ describe('applyPropsMaterials', () => {
     expect(bookMesh.material.roughnessMap).toBe(textures.room);
     expect(frameMesh.material.aoMap).toBe(textures.room);
     expect(frameScreenMesh.material.aoMap).toBe(null);
+    expect(frameScreenMesh.material.roughnessMap).toBe(null);
+    expect(frameScreenMesh.material.metalnessMap).toBe(null);
     expect(sofaMesh.material.roughnessMap).toBe(textures.room);
   });
 
-  it('props ORM texture는 NoColorSpace와 flipY=false로 정리한다', () => {
+  it('사전에 정리된 props ORM texture는 NoColorSpace와 flipY=false를 유지한다', () => {
     const scene = new Group();
     const mesh = createMesh('prop');
     const textures = createOrmTextures();
 
+    prepareOrmTexture(textures.room);
+
     scene.add(mesh);
 
-    applyPropsMaterials(scene, '/models/guitar.glb', textures);
+    applyPropsMaterials(scene, textures);
 
     expect(textures.room.colorSpace).toBe(NoColorSpace);
     expect(textures.room.flipY).toBe(false);

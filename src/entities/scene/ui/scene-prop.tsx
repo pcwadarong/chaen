@@ -38,11 +38,11 @@ export const SceneProp = ({
       node.receiveShadow = true;
     });
 
-    applyPropsMaterials(clonedScene, path, ormTextures);
+    applyPropsMaterials(clonedScene, ormTextures);
     groundSceneProp(clonedScene);
 
     return clonedScene;
-  }, [gltf.scene, ormTextures, path]);
+  }, [gltf.scene, ormTextures]);
 
   return (
     <primitive

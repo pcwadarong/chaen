@@ -44,7 +44,7 @@ export const useCharacterState = ({
     () =>
       new CharacterStateMachine({
         clips,
-        initialState,
+        initialState: INSTANCE_INITIAL_STATE[instance],
         mixer,
       }),
     [clips, instance, mixer],

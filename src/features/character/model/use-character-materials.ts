@@ -62,11 +62,6 @@ export const useCharacterMaterials = (): CharacterOrmTextures => {
  * 캐릭터 clone scene에 body/outfit/hair ORM texture를 연결합니다.
  */
 export const applyCharacterMaterials = (scene: Group, textures: CharacterOrmTextures): void => {
-  prepareOrmTexture(textures.gear);
-  prepareOrmTexture(textures.skin);
-  prepareOrmTexture(textures.outfit);
-  prepareOrmTexture(textures.hair);
-
   scene.traverse(node => {
     if (!isMeshNode(node)) return;
 

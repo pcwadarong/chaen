@@ -5,6 +5,7 @@ import {
   applyCharacterMaterials,
   type CharacterOrmTextures,
 } from '@/features/character/model/use-character-materials';
+import { prepareOrmTexture } from '@/shared/lib/three/orm-material';
 
 /**
  * 테스트용 mesh를 생성합니다.
@@ -81,13 +82,20 @@ describe('applyCharacterMaterials', () => {
     expect(laptopMesh.material.roughnessMap).toBe(textures.gear);
     expect(shoesMesh.material.metalnessMap).toBe(textures.gear);
     expect(laptopScreenMesh.material.aoMap).toBe(null);
+    expect(laptopScreenMesh.material.roughnessMap).toBe(null);
+    expect(laptopScreenMesh.material.metalnessMap).toBe(null);
   });
 
-  it('모든 ORM texture는 NoColorSpace와 flipY=false로 정리한다', () => {
+  it('사전에 정리된 ORM texture는 NoColorSpace와 flipY=false를 유지한다', () => {
     const scene = new Group();
     const bodyMesh = createMesh('body');
     const hairMesh = createMesh('hair');
     const textures = createOrmTextures();
+
+    prepareOrmTexture(textures.gear);
+    prepareOrmTexture(textures.skin);
+    prepareOrmTexture(textures.outfit);
+    prepareOrmTexture(textures.hair);
 
     scene.add(bodyMesh, hairMesh);
 
