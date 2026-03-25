@@ -52,7 +52,13 @@ export const uploadImageEmbedSource = async ({
         imageKind: 'content',
       }),
     };
-  } catch {
+  } catch (error) {
+    console.error('uploadImageEmbedSource failed', {
+      contentType,
+      error,
+      imageKind: 'content',
+    });
+
     return {
       errorMessage: EDITOR_ERROR_MESSAGE.imageUploadFailedWithRetry,
       url: null,

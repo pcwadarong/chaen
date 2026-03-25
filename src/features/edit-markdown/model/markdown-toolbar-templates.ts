@@ -1,3 +1,11 @@
+const escapeMarkdownAltText = (value: string) => value.replaceAll(']', '\\]');
+
+const escapeMarkdownLinkDestination = (value: string) =>
+  value.replaceAll('<', '%3C').replaceAll('>', '%3E');
+
+const escapeJsxAttribute = (value: string) =>
+  value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+
 /**
  * pathname에서 첫 번째 비어 있지 않은 segment를 읽습니다.
  *
@@ -55,7 +63,8 @@ export const extractYoutubeId = (value: string) => {
  * @param url 이미지 URL입니다.
  * @returns markdown 이미지 문법 문자열을 반환합니다.
  */
-export const createImageEmbedMarkdown = (altText: string, url: string) => `![${altText}](${url})`;
+export const createImageEmbedMarkdown = (altText: string, url: string) =>
+  `![${escapeMarkdownAltText(altText)}](<${escapeMarkdownLinkDestination(url)}>)`;
 
 /**
  * YouTube embed markdown 문자열을 생성합니다.
@@ -63,16 +72,23 @@ export const createImageEmbedMarkdown = (altText: string, url: string) => `![${a
  * @param videoId YouTube video id입니다.
  * @returns 커스텀 YouTube markdown 문자열을 반환합니다.
  */
-export const createYoutubeEmbedMarkdown = (videoId: string) => `<YouTube id="${videoId}" />`;
+export const createYoutubeEmbedMarkdown = (videoId: string) =>
+  `<YouTube id="${escapeJsxAttribute(videoId)}" />`;
 
 /**
  * align block markdown 문자열을 생성합니다.
  *
  * @param align 정렬 방향입니다.
- * @returns align block markdown 문자열을 반환합니다.
+ * @returns align block markdown 문자열과 placeholder 선택 시작 위치를 반환합니다.
  */
-export const createAlignBlockMarkdown = (align: 'center' | 'left' | 'right') =>
-  `:::align ${align}\n텍스트\n:::`;
+export const createAlignBlockMarkdown = (align: 'center' | 'left' | 'right') => {
+  const before = `:::align ${align}\n`;
+
+  return {
+    cursorOffset: before.length,
+    text: `${before}텍스트\n:::`,
+  };
+};
 
 /**
  * 토글 블록 markdown 문자열을 생성합니다.

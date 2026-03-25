@@ -111,9 +111,18 @@ export const useMarkdownToolbar = ({
 
   const applyAlign = React.useCallback(
     (align: 'center' | 'left' | 'right') => {
-      applyTemplate(createAlignBlockMarkdown(align), 16);
+      const selectedText = getSelectedText();
+
+      if (selectedText) {
+        applyWrap(`:::align ${align}\n`, '\n:::', '텍스트');
+        return;
+      }
+
+      const alignBlock = createAlignBlockMarkdown(align);
+
+      applyTemplate(alignBlock.text, alignBlock.cursorOffset);
     },
-    [applyTemplate],
+    [applyTemplate, applyWrap, getSelectedText],
   );
 
   const handleAlignApply = React.useCallback(
@@ -185,11 +194,6 @@ export const useMarkdownToolbar = ({
 
       const selectedText = getSelectedText();
       const toggleBlock = createToggleBlockMarkdown(level, selectedText);
-
-      if (!selectedText) {
-        applyTemplate(toggleBlock.text, toggleBlock.cursorOffset);
-        return;
-      }
 
       applyTemplate(toggleBlock.text, toggleBlock.cursorOffset);
     },

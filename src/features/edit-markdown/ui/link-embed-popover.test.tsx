@@ -33,4 +33,17 @@ describe('LinkEmbedPopover', () => {
 
     expect(onApply).toHaveBeenCalledWith('https://openai.com', 'link', expect.any(Function));
   });
+
+  it('공백만 입력하면 onApply를 호출하지 않는다', () => {
+    const onApply = vi.fn();
+
+    render(<LinkEmbedPopover onApply={onApply} />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: '링크 URL' }), {
+      target: { value: '   ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '하이퍼링크' }));
+
+    expect(onApply).not.toHaveBeenCalled();
+  });
 });

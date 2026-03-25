@@ -33,10 +33,9 @@ export const ImageEmbedPopover = ({
   const [imageInput, setImageInput] = useState('');
   const [imageError, setImageError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const normalizedInput = React.useMemo(() => normalizeEmbedInput(imageInput), [imageInput]);
 
   const handleApply = (closePopover?: ClosePopover) => {
-    const normalizedInput = normalizeEmbedInput(imageInput);
-
     if (!normalizedInput) return;
 
     setImageError(null);
@@ -97,13 +96,10 @@ export const ImageEmbedPopover = ({
             onFileChange={handleFileChange}
             onValueChange={value => setImageInput(value)}
             previewAlt="삽입할 이미지 미리보기"
-            previewUrl={normalizeEmbedInput(imageInput) ?? ''}
+            previewUrl={normalizedInput ?? ''}
             value={imageInput}
           />
-          <Button
-            disabled={normalizeEmbedInput(imageInput) === null}
-            onClick={() => handleApply(closePopover)}
-          >
+          <Button disabled={normalizedInput === null} onClick={() => handleApply(closePopover)}>
             삽입
           </Button>
         </div>

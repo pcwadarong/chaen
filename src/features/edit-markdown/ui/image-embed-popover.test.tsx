@@ -33,4 +33,17 @@ describe('ImageEmbedPopover', () => {
 
     expect(onApply).toHaveBeenCalledWith('https://example.com/image.png', expect.any(Function));
   });
+
+  it('공백만 입력하면 onApply를 호출하지 않는다', () => {
+    const onApply = vi.fn();
+
+    render(<ImageEmbedPopover contentType="article" onApply={onApply} />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: '이미지' }), {
+      target: { value: '   ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    expect(onApply).not.toHaveBeenCalled();
+  });
 });

@@ -129,7 +129,7 @@ describe('MarkdownToolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: '삽입' }));
 
     await waitFor(() => {
-      expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
+      expect(textarea.value).toBe('![이미지 설명](<https://example.com/image.png>)');
     });
   });
 
@@ -165,17 +165,20 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('정렬 팝오버는 삽입 액션을 textarea에 연결한다', async () => {
+  it('정렬 팝오버는 선택한 텍스트를 유지한 채 align block으로 감싼다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '정렬할 내용' } });
+    textarea.setSelectionRange(0, textarea.value.length);
 
     fireEvent.click(screen.getByRole('button', { name: '정렬' }));
     fireEvent.click(screen.getByRole('button', { name: '가운데 정렬' }));
 
     await waitFor(() => {
-      expect(textarea.value).toContain(':::align center');
-      expect(textarea.value).toContain('텍스트');
+      expect(textarea.value).toBe(':::align center\n정렬할 내용\n:::');
+      expect(textarea.selectionStart).toBe(':::align center\n'.length);
+      expect(textarea.selectionEnd).toBe(':::align center\n정렬할 내용'.length);
     });
   });
 
