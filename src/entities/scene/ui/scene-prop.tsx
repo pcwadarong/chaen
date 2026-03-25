@@ -2,7 +2,13 @@
 
 import { useGLTF } from '@react-three/drei';
 import { useMemo } from 'react';
-import { Box3, type Group, type Mesh, type Object3D } from 'three';
+import { Box3, type Group } from 'three';
+
+import {
+  applyPropsMaterials,
+  usePropsMaterials,
+} from '@/features/character/model/use-props-materials';
+import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
   path: '/models/guitar.glb' | '/models/sofa.glb' | '/models/table.glb';
@@ -21,6 +27,7 @@ export const SceneProp = ({
   scale = [1, 1, 1],
 }: ScenePropProps) => {
   const gltf = useGLTF(path);
+  const ormTextures = usePropsMaterials();
   const object = useMemo(() => {
     const clonedScene = gltf.scene.clone(true);
 
@@ -31,10 +38,11 @@ export const SceneProp = ({
       node.receiveShadow = true;
     });
 
+    applyPropsMaterials(clonedScene, path, ormTextures);
     groundSceneProp(clonedScene);
 
     return clonedScene;
-  }, [gltf.scene]);
+  }, [gltf.scene, ormTextures, path]);
 
   return (
     <primitive
@@ -46,11 +54,6 @@ export const SceneProp = ({
     />
   );
 };
-
-/**
- * 장면 순회 중 만난 Object3D를 Mesh로 좁혀 그림자 속성을 적용합니다.
- */
-const isMeshNode = (node: Object3D): node is Mesh => (node as Mesh).isMesh === true;
 
 /**
  * 소품 clone의 최저점을 원점에 맞춰, scene 위치가 곧 바닥 기준이 되게 정렬합니다.
