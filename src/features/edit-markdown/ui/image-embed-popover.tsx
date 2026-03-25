@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { uploadEditorImage } from '@/entities/editor/api/upload-editor-image';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import {
   normalizeEmbedInput,
   uploadImageEmbedSource,
 } from '@/features/edit-markdown/model/embed-popover-state';
-import { uploadEditorImage } from '@/shared/lib/image/upload-editor-image';
 import { Button } from '@/shared/ui/button/button';
 import { ImageIcon } from '@/shared/ui/icons/app-icons';
 import { ImageSourceField } from '@/shared/ui/image-source-field';

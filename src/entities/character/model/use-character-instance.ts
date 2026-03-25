@@ -4,8 +4,8 @@ import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import { type AnimationClip, AnimationMixer, type Group, type Mesh, type Object3D } from 'three';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import { analyzeCharacterGltf } from '@/entities/character/lib/analyze-character-gltf';
 import {
   applyCharacterMaterials,
   type CharacterOrmTextures,
@@ -17,7 +17,6 @@ import {
   resolveCharacterClipDurations,
 } from '@/entities/character/model/character-clip-durations';
 import { prepareCharacterInstance } from '@/entities/character/model/prepare-character-instance';
-import { analyzeGLB } from '@/shared/lib/analyzeGLB';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 export type CharacterInstanceType = 'main' | 'contact';
@@ -75,7 +74,7 @@ export const useCharacterInstance = ({
   useEffect(() => {
     if (analyzedScenes.has(gltf.scene)) return;
 
-    analyzeGLB(gltf as unknown as GLTF);
+    analyzeCharacterGltf(gltf);
     analyzedScenes.add(gltf.scene);
   }, [gltf]);
 

@@ -1,3 +1,7 @@
+import {
+  formatProjectPeriod,
+  type ProjectPeriodSource,
+} from '@/entities/project/model/format-project-period';
 import type { Project } from '@/entities/project/model/types';
 import {
   TECH_STACK_CATEGORY_LABEL,
@@ -5,10 +9,6 @@ import {
   type TechStack,
   type TechStackCategory,
 } from '@/entities/tech-stack/model/types';
-import {
-  formatProjectPeriod,
-  type ProjectPeriodSource,
-} from '@/shared/lib/date/format-project-period';
 
 type ProjectDisplayMetaSource = ProjectPeriodSource & Pick<Project, 'tech_stacks'>;
 

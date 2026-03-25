@@ -1,4 +1,4 @@
-import { formatProjectPeriod } from '@/shared/lib/date/format-project-period';
+import { formatProjectPeriod } from '@/entities/project/model/format-project-period';
 
 describe('formatProjectPeriod', () => {
   it('period_start가 없고 period_end도 없으면 created_at 기준으로 진행 중 라벨을 붙인다', () => {
