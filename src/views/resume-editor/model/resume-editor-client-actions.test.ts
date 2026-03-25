@@ -110,4 +110,28 @@ describe('resume-editor-client-actions', () => {
       },
     });
   });
+
+  it('draft 저장 callback 에러는 그대로 전파한다', async () => {
+    const onDraftSave = vi.fn().mockRejectedValue(new Error('저장 실패'));
+
+    await expect(
+      submitResumeDraft({
+        draftId: null,
+        onDraftSave,
+        state: createEditorState(),
+      }),
+    ).rejects.toThrow('저장 실패');
+  });
+
+  it('발행 callback 에러는 그대로 전파한다', async () => {
+    const onPublishSubmit = vi.fn().mockRejectedValue(new Error('발행 실패'));
+
+    await expect(
+      submitResumePublish({
+        draftId: 'draft-current',
+        onPublishSubmit,
+        state: createEditorState(),
+      }),
+    ).rejects.toThrow('발행 실패');
+  });
 });

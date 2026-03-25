@@ -8,6 +8,10 @@ import {
 } from '@/widgets/editor/ui/core/editor-core-state';
 
 describe('editor-core state helpers', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('snapshot은 누락된 locale 필드를 빈 값으로 채운다', () => {
     const snapshot = buildEditorStateSnapshot({
       dirty: true,
@@ -47,8 +51,6 @@ describe('editor-core state helpers', () => {
     expect(resolveSavedAt({ savedAt: '2026-03-10T00:00:00.000Z' })).toBe(
       '2026-03-10T00:00:00.000Z',
     );
-
-    vi.useRealTimers();
   });
 
   it('저장 상태 문구는 저장 중, dirty, 마지막 저장 시각 순서로 우선한다', () => {

@@ -130,7 +130,15 @@ describe('ResumeEditorClient', () => {
       await waitFor(() => {
         expect(onPublishSubmit).toHaveBeenCalledTimes(1);
         expect(onPublishSubmit).toHaveBeenCalledWith(
-          expect.objectContaining({ dirty: true }),
+          expect.objectContaining({
+            contents: expect.objectContaining({
+              ko: expect.objectContaining({
+                body: '한국어 본문',
+                title: '이력서',
+              }),
+            }),
+            dirty: true,
+          }),
           null,
         );
       });

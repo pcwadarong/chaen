@@ -3,6 +3,8 @@ import { act, renderHook } from '@testing-library/react';
 import { createEmptyTranslations } from '@/widgets/editor/ui/core/editor-core.utils';
 import { useEditorSubmitActions } from '@/widgets/editor/ui/core/use-editor-submit-actions';
 
+const AUTO_SAVE_DELAY_MS = 180_000;
+
 const createCurrentState = () => ({
   dirty: true,
   slug: '',
@@ -78,7 +80,7 @@ describe('useEditorSubmitActions', () => {
     );
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(179_999);
+      await vi.advanceTimersByTimeAsync(AUTO_SAVE_DELAY_MS - 1);
     });
     expect(onDraftSave).not.toHaveBeenCalled();
 
@@ -86,8 +88,6 @@ describe('useEditorSubmitActions', () => {
       await vi.advanceTimersByTimeAsync(1);
     });
     expect(onDraftSave).toHaveBeenCalledTimes(1);
-
-    vi.useRealTimers();
   });
 
   it('direct publish가 없으면 publish panel open callback을 호출한다', async () => {

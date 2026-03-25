@@ -60,6 +60,19 @@ export const EditorCore = ({
   publishButtonLabel = '발행하기',
   publishPendingLabel = '발행 중...',
 }: EditorCoreProps) => {
+  const initialSnapshot = useMemo(
+    () =>
+      buildEditorStateSnapshot({
+        dirty: false,
+        slug: initialSlug,
+        tags: initialTags,
+        translations: {
+          ...createEmptyTranslations(),
+          ...initialTranslations,
+        },
+      }),
+    [initialSlug, initialTags, initialTranslations],
+  );
   const [mobileEditorPane, setMobileEditorPane] = useState<MobileEditorPane>('edit');
   const [slug] = useState(initialSlug);
   const [selectedTags, setSelectedTags] = useState(initialTags);
@@ -71,27 +84,9 @@ export const EditorCore = ({
     translations,
     updateTranslationField,
   } = useEditorLocaleState({
-    initialTranslations: buildEditorStateSnapshot({
-      dirty: false,
-      slug: initialSlug,
-      tags: initialTags,
-      translations: {
-        ...createEmptyTranslations(),
-        ...initialTranslations,
-      },
-    }).translations,
+    initialTranslations: initialSnapshot.translations,
   });
-  const [savedState, setSavedState] = useState<EditorState>(() =>
-    buildEditorStateSnapshot({
-      dirty: false,
-      slug: initialSlug,
-      tags: initialTags,
-      translations: {
-        ...createEmptyTranslations(),
-        ...initialTranslations,
-      },
-    }),
-  );
+  const [savedState, setSavedState] = useState<EditorState>(initialSnapshot);
   const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const isMobileLayout = useIsMobileEditorLayout();
   const markdownOptions = useMemo(() => getMarkdownOptions(), []);

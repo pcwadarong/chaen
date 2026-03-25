@@ -21,7 +21,6 @@ describe('api/pdf/file/[assetKey] route', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    consoleErrorSpy.mockRestore();
   });
 
   it('지원하는 자산 키면 signed URL로 리다이렉트한다', async () => {
