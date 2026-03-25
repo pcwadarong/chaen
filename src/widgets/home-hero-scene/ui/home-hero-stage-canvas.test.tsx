@@ -40,9 +40,15 @@ vi.mock('@/widgets/home-hero-scene/ui/use-home-hero-scene-transition', () => ({
 }));
 
 describe('HomeHeroStageCanvas', () => {
-  it('홈 전용 stage 내부에 main 캐릭터와 소품을 배치하고 orbit controls를 렌더링한다', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('홈 전용 stage 내부에 main 캐릭터와 소품을 배치하고 orbit controls를 렌더링한다', () => {
     render(<HomeHeroStageCanvas triggerRef={{ current: null }} webUiRef={{ current: null }} />);
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toBeTruthy();
@@ -52,7 +58,5 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/sofa.glb')).toHaveAttribute('data-position', '0,0,-2');
     expect(screen.getByTestId('prop-/models/bass.glb')).toHaveAttribute('data-position', '-3,0,0');
     expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute('data-position', '3,0,0');
-
-    consoleErrorSpy.mockRestore();
   });
 });
