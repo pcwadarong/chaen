@@ -60,7 +60,7 @@ describe('useShapeKeyController', () => {
     vi.clearAllMocks();
   });
 
-  it('typing 상태에서 head와 eyebrow morph를 목표값으로 전환한다', () => {
+  it('typing 진입 시 morph를 목표값으로 맞추고 종료 0.5초 전에 release를 예약한다', () => {
     const browMesh = createMorphMesh({
       up: 0,
       down: 1,
@@ -110,7 +110,7 @@ describe('useShapeKeyController', () => {
     expect(result.current.eyebrowMorphs.eye_close).toBe(0);
   });
 
-  it('notification은 느리게 진입하고 idle로 돌아갈 때도 완만하게 풀린다', () => {
+  it('notification 진입은 0.85초로 올리고 notification -> idle은 0.6초로 release 한다', () => {
     const browMesh = createMorphMesh({
       up: 0,
       down: 1,
@@ -162,7 +162,7 @@ describe('useShapeKeyController', () => {
     expect(eyebrowMesh.morphTargetInfluences[0]).toBe(1);
   });
 
-  it('setMorph는 지정한 mesh key만 직접 갱신한다', () => {
+  it('setMorph는 넘겨받은 mesh와 key에 해당하는 morph influence만 직접 갱신한다', () => {
     const browMesh = createMorphMesh({
       up: 0,
       down: 1,

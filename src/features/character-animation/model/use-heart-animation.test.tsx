@@ -49,7 +49,7 @@ describe('useHeartAnimation', () => {
     vi.clearAllMocks();
   });
 
-  it('notification 진입 시 delay는 notification 진입 시점 기준으로 계산한다', () => {
+  it('notification 진입 후 heart 등장 delay는 notification 시작 시각 기준으로 계산한다', () => {
     const heartMesh = createHeartMesh();
     const laptopMesh = createObject('laptop');
 
@@ -94,7 +94,7 @@ describe('useHeartAnimation', () => {
     expect(heartMesh.rotation.z).toBe(0);
   });
 
-  it('music 상태에서는 laptop을 숨기고 다른 상태로 돌아오면 다시 보인다', () => {
+  it('music 상태 동안만 laptop을 숨기고 다른 상태로 돌아오면 다시 보인다', () => {
     const heartMesh = createHeartMesh();
     const laptopMesh = createObject('laptop');
 
@@ -121,7 +121,7 @@ describe('useHeartAnimation', () => {
     expect(laptopMesh.visible).toBe(true);
   });
 
-  it('heart 애니메이션 완료 시 visible과 위치를 원복한다', () => {
+  it('heart tween이 끝나면 visible, 위치, 회전을 초기 상태로 되돌린다', () => {
     const heartMesh = createHeartMesh();
     const laptopMesh = createObject('laptop');
 

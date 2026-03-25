@@ -50,7 +50,7 @@ const createClips = (...names: string[]): AnimationClip[] =>
   names.map(name => ({ name }) as AnimationClip);
 
 describe('useCharacterState', () => {
-  it('main 인스턴스는 idle로 시작하고 1회성 상태는 처음 프레임부터 전환한다', () => {
+  it('main 인스턴스의 idle -> typing 전환은 typing action을 0프레임 LoopOnce로 시작한다', () => {
     const idleAction = createFakeAction(4);
     const typingAction = createFakeAction(2);
     const clips = createClips('idle', 'typing');
@@ -83,7 +83,7 @@ describe('useCharacterState', () => {
     expect(idleAction.play).toHaveBeenCalledOnce();
   });
 
-  it('contact 인스턴스는 music으로 시작하고 전환 요청을 무시한다', () => {
+  it('contact 인스턴스는 music 고정이라 transitionTo 호출을 무시한다', () => {
     const musicAction = createFakeAction();
     const typingAction = createFakeAction();
     const clips = createClips('music', 'typing');

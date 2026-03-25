@@ -14,18 +14,18 @@ const createClip = (name: CharacterAnimState, duration: number) =>
   new AnimationClip(name, duration, []);
 
 describe('characterClipDurations', () => {
-  it('상태 이름에 맞는 clip 길이를 밀리초로 변환한다', () => {
+  it('상태 이름과 같은 clip을 찾으면 duration을 밀리초로 변환한다', () => {
     expect(resolveCharacterClipDuration([createClip('typing', 2.5)], 'typing')).toBe(2500);
   });
 
-  it('clip이 없거나 너무 짧으면 기본/최소 길이를 사용한다', () => {
+  it('clip이 없으면 기본 길이를 쓰고 너무 짧으면 최소 길이로 올린다', () => {
     expect(resolveCharacterClipDuration([], 'notification')).toBe(1800);
     expect(resolveCharacterClipDuration([createClip('notification', 0.1)], 'notification')).toBe(
       300,
     );
   });
 
-  it('상태별 duration 맵을 한 번에 계산한다', () => {
+  it('idle, typing, notification, music duration 맵을 한 번에 계산한다', () => {
     expect(
       resolveCharacterClipDurations([
         createClip('idle', 2.5),

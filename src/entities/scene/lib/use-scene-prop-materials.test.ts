@@ -24,7 +24,7 @@ const createOrmTextures = (): PropsOrmTextures => ({
 });
 
 describe('applyScenePropMaterials', () => {
-  it('bass, sofa, table 계열 소품에는 모두 room ORM을 연결한다', () => {
+  it('scene prop mesh에는 frame_screen을 제외하고 room ORM을 연결한다', () => {
     const bassScene = new Group();
     const tableScene = new Group();
     const sofaScene = new Group();

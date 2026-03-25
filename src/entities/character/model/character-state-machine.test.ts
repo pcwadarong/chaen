@@ -62,7 +62,7 @@ const createClips = (...names: string[]): AnimationClip[] =>
   names.map(name => ({ name }) as AnimationClip);
 
 describe('CharacterStateMachine', () => {
-  it('초기 state action을 재생하고 현재 state를 유지한다', () => {
+  it('초기 상태를 지정하면 해당 action을 즉시 재생하고 currentState에 기록한다', () => {
     const idleAction = createFakeAction();
     const typingAction = createFakeAction();
     const mixer = createFakeMixer({
@@ -82,7 +82,7 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.play).toHaveBeenCalledOnce();
   });
 
-  it('1회성 상태로 전환하면 처음 프레임부터 한 번만 재생되게 설정한다', () => {
+  it('idle -> typing 전환 시 typing action을 0프레임 LoopOnce로 cross fade 한다', () => {
     const idleAction = createFakeAction(4);
     const typingAction = createFakeAction(2);
     idleAction.time = 3;
@@ -108,7 +108,7 @@ describe('CharacterStateMachine', () => {
     expect(typingAction.play).toHaveBeenCalledOnce();
   });
 
-  it('루프 상태로 전환하면 이전 progress를 이어받아 cross fade 한다', () => {
+  it('typing -> idle 전환 시 idle action은 이전 progress를 이어받아 LoopRepeat로 cross fade 한다', () => {
     const typingAction = createFakeAction(2);
     const idleAction = createFakeAction(4);
     typingAction.time = 1.5;
@@ -131,7 +131,7 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.crossFadeFrom).toHaveBeenCalledWith(typingAction, 0.2, false);
   });
 
-  it('같은 state로 전환하면 아무 것도 하지 않는다', () => {
+  it('이미 같은 상태면 action 설정과 재생을 다시 건드리지 않는다', () => {
     const idleAction = createFakeAction();
     const mixer = createFakeMixer({
       idle: idleAction,
@@ -152,7 +152,7 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.play).not.toHaveBeenCalled();
   });
 
-  it('play는 현재 state를 유지한 채 1회 재생 action만 실행한다', () => {
+  it('보조 1회성 clip 재생은 currentState를 바꾸지 않고 LoopOnce만 실행한다', () => {
     const idleAction = createFakeAction();
     const notificationAction = createFakeAction();
     const mixer = createFakeMixer({
@@ -175,7 +175,7 @@ describe('CharacterStateMachine', () => {
     expect(notificationAction.play).toHaveBeenCalledOnce();
   });
 
-  it('transition callback은 from/to를 전달한다', () => {
+  it('transition callback은 이전 상태와 다음 상태를 그대로 전달한다', () => {
     const idleAction = createFakeAction();
     const typingAction = createFakeAction();
     const mixer = createFakeMixer({
@@ -196,7 +196,7 @@ describe('CharacterStateMachine', () => {
     expect(listener).toHaveBeenCalledWith('idle', 'typing');
   });
 
-  it('해제한 transition callback은 더 이상 호출되지 않는다', () => {
+  it('해제한 transition callback은 이후 전환에서 호출되지 않는다', () => {
     const idleAction = createFakeAction();
     const typingAction = createFakeAction();
     const mixer = createFakeMixer({
@@ -218,7 +218,7 @@ describe('CharacterStateMachine', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  it('없는 clip 이름은 무시한다', () => {
+  it('등록되지 않은 clip 이름은 현재 상태를 유지한 채 무시한다', () => {
     const idleAction = createFakeAction();
     const mixer = createFakeMixer({
       idle: idleAction,

@@ -27,7 +27,7 @@ const createOrmTextures = (): CharacterOrmTextures => ({
 });
 
 describe('applyCharacterMaterials', () => {
-  it('실제 character mesh 이름 기준으로 skin, outfit, hair, gear ORM을 나눠 연결한다', () => {
+  it('character mesh 이름 규칙에 따라 skin, outfit, hair, gear ORM을 분기 적용한다', () => {
     const scene = new Group();
     const bodyMesh = createMesh('body');
     const faceMesh = createMesh('face');

@@ -23,7 +23,7 @@ const clipDurations: CharacterClipDurations = {
 };
 
 describe('useCharacterAnimation', () => {
-  it('상태 훅과 자동 순환 훅을 같은 feature 내부에서 묶어 호출한다', () => {
+  it('상태 훅의 결과를 auto play에 그대로 넘기고 currentState와 transitionTo를 반환한다', () => {
     const transitionTo = vi.fn();
     const clips = [] as never[];
     const mixer = {} as never;

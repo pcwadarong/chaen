@@ -23,7 +23,7 @@ describe('useCharacterAutoPlay', () => {
     vi.restoreAllMocks();
   });
 
-  it('main 인스턴스는 idle 이후 typing으로 전환한다', () => {
+  it('main idle 타이머가 끝나면 첫 자동 상태로 typing을 요청한다', () => {
     const transitionTo = vi.fn();
 
     renderHook(() =>
@@ -42,7 +42,7 @@ describe('useCharacterAutoPlay', () => {
     expect(transitionTo).toHaveBeenCalledWith('typing');
   });
 
-  it('typing 이후에는 idle로 돌아가고, 다음 idle은 notification을 예약한다', () => {
+  it('typing 종료 후 idle을 거쳐 다음 자동 상태로 notification을 예약한다', () => {
     const transitionTo = vi.fn();
     const stateDurations: CharacterClipDurations = {
       ...clipDurations,
@@ -92,7 +92,7 @@ describe('useCharacterAutoPlay', () => {
     expect(transitionTo).toHaveBeenLastCalledWith('idle');
   });
 
-  it('contact 인스턴스는 자동 상태 순환을 시작하지 않는다', () => {
+  it('contact 인스턴스는 idle 타이머와 후속 자동 순환을 시작하지 않는다', () => {
     const transitionTo = vi.fn();
 
     renderHook(() =>

@@ -67,7 +67,7 @@ describe('useBlinkAnimation', () => {
     vi.clearAllMocks();
   });
 
-  it('idle 상태에서 3초 후 blink를 시작하고 eye_close를 다시 0으로 돌린다', () => {
+  it('idle에서는 base delay 이후 blink timeline을 시작하고 종료 시 eye_close를 0으로 돌린다', () => {
     const headMesh = createMorphMesh({ eye_close: 0 });
     const eyebrowMesh = createMorphMesh({ eye_close: 0 });
 
@@ -88,7 +88,7 @@ describe('useBlinkAnimation', () => {
     expect(eyebrowMesh.morphTargetInfluences[0]).toBe(0);
   });
 
-  it('idle이 아닌 상태로 바뀌면 타이머를 멈추고 eye_close를 0으로 리셋한다', () => {
+  it('idle을 벗어나면 예약된 blink와 timeline을 정리하고 eye_close를 0으로 복원한다', () => {
     const headMesh = createMorphMesh({ eye_close: 0 });
     const eyebrowMesh = createMorphMesh({ eye_close: 0 });
 
