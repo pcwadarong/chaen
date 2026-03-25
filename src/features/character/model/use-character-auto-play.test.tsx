@@ -1,19 +1,16 @@
 import { renderHook } from '@testing-library/react';
-import { AnimationClip } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { CharacterClipDurations } from '@/features/character/model/character-clip-durations';
 import { useCharacterAutoPlay } from '@/features/character/model/use-character-auto-play';
 import type { CharacterAnimState } from '@/features/character/model/use-character-state';
 
-/**
- * 상태 자동 전환 테스트에서 사용할 최소 AnimationClip 헬퍼를 생성합니다.
- *
- * @param name 생성할 clip의 상태 이름입니다.
- * @param duration clip 길이입니다. 단위는 초입니다.
- * @returns 주어진 이름과 길이를 가진 AnimationClip 인스턴스를 반환합니다.
- */
-const createClip = (name: CharacterAnimState, duration: number) =>
-  new AnimationClip(name, duration, []);
+const clipDurations: CharacterClipDurations = {
+  idle: 2500,
+  music: 2500,
+  notification: 800,
+  typing: 1200,
+};
 
 describe('useCharacterAutoPlay', () => {
   beforeEach(() => {
@@ -31,7 +28,7 @@ describe('useCharacterAutoPlay', () => {
 
     renderHook(() =>
       useCharacterAutoPlay({
-        clips: [createClip('typing', 1.2), createClip('notification', 0.8)],
+        clipDurations,
         currentState: 'idle',
         instance: 'main',
         transitionTo,
@@ -47,12 +44,16 @@ describe('useCharacterAutoPlay', () => {
 
   it('typing 이후에는 idle로 돌아가고, 다음 idle은 notification을 예약한다', () => {
     const transitionTo = vi.fn();
-    const clips = [createClip('typing', 1.5), createClip('notification', 0.9)];
+    const stateDurations: CharacterClipDurations = {
+      ...clipDurations,
+      notification: 900,
+      typing: 1500,
+    };
 
     const { rerender } = renderHook(
       ({ currentState }) =>
         useCharacterAutoPlay({
-          clips,
+          clipDurations: stateDurations,
           currentState,
           instance: 'main',
           transitionTo,
@@ -96,7 +97,7 @@ describe('useCharacterAutoPlay', () => {
 
     renderHook(() =>
       useCharacterAutoPlay({
-        clips: [createClip('typing', 1.2), createClip('notification', 0.8)],
+        clipDurations,
         currentState: 'idle',
         instance: 'contact',
         transitionTo,

@@ -10,6 +10,7 @@ import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
   prepareCharacterInstance,
 } from '@/entities/character/model/prepare-character-instance';
+import { resolveCharacterClipDurations } from '@/features/character/model/character-clip-durations';
 import { useBlinkAnimation } from '@/features/character/model/use-blink-animation';
 import { useCharacterAutoPlay } from '@/features/character/model/use-character-auto-play';
 import {
@@ -64,6 +65,10 @@ export const Character = ({ instance, position }: CharacterProps) => {
   const mixer = instance === 'main' ? characterCache.mainMixer : characterCache.contactMixer;
   const object = instance === 'main' ? characterCache.main : characterCache.contact;
   const nodeRefs = useMemo(() => findCharacterNodeRefs(object), [object]);
+  const clipDurations = useMemo(
+    () => resolveCharacterClipDurations(gltf.animations),
+    [gltf.animations],
+  );
   const { currentState, transitionTo } = useCharacterState({
     clips: gltf.animations,
     instance,
@@ -71,13 +76,14 @@ export const Character = ({ instance, position }: CharacterProps) => {
   });
 
   useCharacterAutoPlay({
-    clips: gltf.animations,
+    clipDurations,
     currentState,
     instance,
     transitionTo,
   });
   useShapeKeyController({
     browMesh: nodeRefs.brow,
+    clipDurations,
     currentState,
     eyebrowMesh: nodeRefs.eyebrow,
     headMesh: nodeRefs.head,

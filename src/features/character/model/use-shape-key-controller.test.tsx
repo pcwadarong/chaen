@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { Mesh } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { CharacterClipDurations } from '@/features/character/model/character-clip-durations';
 import type { CharacterAnimState } from '@/features/character/model/use-character-state';
 import { useShapeKeyController } from '@/features/character/model/use-shape-key-controller';
 
@@ -30,8 +31,16 @@ const createMorphMesh = (dictionary: Record<string, number>): MorphMesh => {
   return mesh;
 };
 
+const clipDurations: CharacterClipDurations = {
+  idle: 2500,
+  music: 2500,
+  notification: 2500,
+  typing: 2500,
+};
+
 describe('useShapeKeyController', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.mocked(gsap.to).mockImplementation((target, vars) => {
       Object.entries(vars).forEach(([key, value]) => {
         if (key === 'duration' || key === 'ease' || key === 'onUpdate') return;
@@ -47,6 +56,7 @@ describe('useShapeKeyController', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -67,6 +77,7 @@ describe('useShapeKeyController', () => {
     const { result } = renderHook(() =>
       useShapeKeyController({
         browMesh,
+        clipDurations,
         currentState: 'typing',
         eyebrowMesh,
         headMesh,
@@ -82,9 +93,24 @@ describe('useShapeKeyController', () => {
     expect(headMesh.morphTargetInfluences).toEqual([0.3, 1, 0]);
     expect(result.current.eyebrowMorphs.eye_close).toBe(0.3);
     expect(eyebrowMesh.morphTargetInfluences[0]).toBe(0.3);
+
+    act(() => {
+      vi.advanceTimersByTime(1759);
+    });
+
+    expect(result.current.headMorphs.mouth_curious).toBe(1);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(result.current.browMorphs.down).toBe(0);
+    expect(result.current.headMorphs.eye_close).toBe(0);
+    expect(result.current.headMorphs.mouth_curious).toBe(0);
+    expect(result.current.eyebrowMorphs.eye_close).toBe(0);
   });
 
-  it('notification과 music 상태에서 표정 목표값을 다르게 적용한다', () => {
+  it('notification은 느리게 진입하고 idle로 돌아갈 때도 완만하게 풀린다', () => {
     const browMesh = createMorphMesh({
       up: 0,
       down: 1,
@@ -102,6 +128,7 @@ describe('useShapeKeyController', () => {
       ({ currentState }) =>
         useShapeKeyController({
           browMesh,
+          clipDurations,
           currentState,
           eyebrowMesh,
           headMesh,
@@ -116,6 +143,17 @@ describe('useShapeKeyController', () => {
     expect(headMesh.morphTargetInfluences).toEqual([0, 0, 1]);
     expect(browMesh.morphTargetInfluences).toEqual([1, 0]);
     expect(eyebrowMesh.morphTargetInfluences).toEqual([0]);
+    expect(vi.mocked(gsap.to).mock.calls[0]?.[1]).toMatchObject({ duration: 0.85 });
+
+    rerender({ currentState: 'idle' });
+
+    expect(vi.mocked(gsap.to).mock.calls.slice(-3)).toEqual(
+      expect.arrayContaining([
+        [expect.anything(), expect.objectContaining({ duration: 0.6 })],
+        [expect.anything(), expect.objectContaining({ duration: 0.6 })],
+        [expect.anything(), expect.objectContaining({ duration: 0.6 })],
+      ]),
+    );
 
     rerender({ currentState: 'music' });
 
@@ -141,6 +179,7 @@ describe('useShapeKeyController', () => {
     const { result } = renderHook(() =>
       useShapeKeyController({
         browMesh,
+        clipDurations,
         currentState: 'idle',
         eyebrowMesh,
         headMesh,
