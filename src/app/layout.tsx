@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 import { d2Coding, pretendard, pretendardJp } from '@/app/fonts';
+import { SceneAssetPreloader } from '@/entities/scene/ui/scene-asset-preloader';
 
 import './globals.css';
 
@@ -23,7 +24,10 @@ const RootLayout = ({ children }: RootLayoutProps) => (
     className={`${pretendard.variable} ${pretendardJp.variable} ${d2Coding.variable}`}
     suppressHydrationWarning
   >
-    <body>{children}</body>
+    <body>
+      <SceneAssetPreloader />
+      {children}
+    </body>
   </html>
 );
 
