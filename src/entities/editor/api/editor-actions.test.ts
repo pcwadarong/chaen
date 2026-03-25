@@ -103,7 +103,7 @@ describe('editor-actions', () => {
     );
   });
 
-  it('이미 등록된 article draft 저장 시 publish_at은 기존 등록 시각을 유지한다', async () => {
+  it('이미 등록된 article draft를 저장해도 기존 publish_at은 덮어쓰지 않는다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -185,7 +185,7 @@ describe('editor-actions', () => {
     );
   });
 
-  it('아직 공개 전인 예약 article draft 저장은 변경한 publish_at을 유지한다', async () => {
+  it('아직 공개 전인 예약 article draft 저장은 변경한 publish_at으로 다시 저장한다', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-01T00:00:00.000Z'));
 

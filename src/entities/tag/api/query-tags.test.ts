@@ -40,7 +40,7 @@ describe('query-tags', () => {
     });
   });
 
-  it('권한 에러는 schemaMissing으로 오판하지 않고 그대로 surface한다', async () => {
+  it('권한 에러는 schemaMissing으로 바꾸지 않고 그대로 전파한다', async () => {
     const tagsQuery = {
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({

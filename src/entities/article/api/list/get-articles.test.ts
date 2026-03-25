@@ -214,7 +214,7 @@ describe('getArticles', () => {
     );
   });
 
-  it('resolved 첫 페이지 locale은 요청 locale을 유지한다', async () => {
+  it('resolved 첫 페이지 결과의 locale을 요청 locale로 기록한다', async () => {
     const articlesQuery = createQueryMock({
       result: {
         data: [
@@ -262,7 +262,7 @@ describe('getArticles', () => {
     expect(result.page.items[0]?.title).toBe('한국어 글');
   });
 
-  it('base row가 limit + 1개면 번역 결합 뒤에도 다음 cursor를 유지한다', async () => {
+  it('base row가 limit + 1개면 번역을 결합한 뒤에도 다음 cursor를 반환한다', async () => {
     const articlesQuery = createQueryMock({
       result: {
         data: Array.from({ length: 11 }, (_, index) => ({

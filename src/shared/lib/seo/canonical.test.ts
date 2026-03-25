@@ -1,7 +1,7 @@
 import { buildPathnameByLocale, resolveCanonicalLocale } from '@/shared/lib/seo/canonical';
 
 describe('seo canonical helpers', () => {
-  it('요청 locale 번역이 있으면 자기 자신을 canonical로 유지한다', () => {
+  it('요청 locale 번역이 있으면 해당 locale 경로를 canonical로 사용한다', () => {
     expect(
       resolveCanonicalLocale({
         requestedLocale: 'ko',

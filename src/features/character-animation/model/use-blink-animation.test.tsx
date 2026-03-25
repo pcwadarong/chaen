@@ -88,7 +88,7 @@ describe('useBlinkAnimation', () => {
     expect(eyebrowMesh.morphTargetInfluences[0]).toBe(0);
   });
 
-  it('idle을 벗어나면 예약된 blink와 timeline을 정리하고 eye_close를 0으로 복원한다', () => {
+  it('idle을 벗어나면 예약된 blink를 취소하고 eye_close를 0으로 되돌린다', () => {
     const headMesh = createMorphMesh({ eye_close: 0 });
     const eyebrowMesh = createMorphMesh({ eye_close: 0 });
 

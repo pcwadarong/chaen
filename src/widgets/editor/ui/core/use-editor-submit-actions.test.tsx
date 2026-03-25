@@ -5,17 +5,24 @@ import { useEditorSubmitActions } from '@/widgets/editor/ui/core/use-editor-subm
 
 const AUTO_SAVE_DELAY_MS = 180_000;
 
-const createCurrentState = () => ({
-  dirty: true,
-  slug: '',
-  tags: [],
+const createCurrentState = (
+  overrides?: Partial<{
+    dirty: boolean;
+    slug: string;
+    tags: string[];
+    title: string;
+  }>,
+) => ({
+  dirty: overrides?.dirty ?? true,
+  slug: overrides?.slug ?? '',
+  tags: overrides?.tags ?? [],
   translations: {
     ...createEmptyTranslations(),
     ko: {
       content: '본문',
       description: '설명',
       download_button_label: '',
-      title: '제목',
+      title: overrides?.title ?? '제목',
     },
   },
 });
@@ -111,6 +118,74 @@ describe('useEditorSubmitActions', () => {
     expect(onOpenPublishPanel).toHaveBeenCalledWith(
       expect.objectContaining({
         dirty: true,
+      }),
+    );
+  });
+
+  it('publish panel open callback에 dirty 여부와 현재 editor snapshot을 전달한다', async () => {
+    const onOpenPublishPanel = vi.fn();
+
+    const { result, rerender } = renderHook(
+      ({ currentState }) =>
+        useEditorSubmitActions({
+          currentState,
+          enableAutosave: true,
+          onOpenPublishPanel,
+          onSavedStateChange: vi.fn(),
+          pushToast: vi.fn(),
+          validationCanSave: true,
+        }),
+      {
+        initialProps: {
+          currentState: createCurrentState({
+            dirty: false,
+            tags: [],
+            title: '',
+          }),
+        },
+      },
+    );
+
+    await act(async () => {
+      await result.current.handlePublishAction();
+    });
+
+    expect(onOpenPublishPanel).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        dirty: false,
+        slug: '',
+        tags: [],
+        translations: expect.objectContaining({
+          ko: expect.objectContaining({
+            title: '',
+          }),
+        }),
+      }),
+    );
+
+    rerender({
+      currentState: createCurrentState({
+        dirty: true,
+        title: 'publish-title',
+      }),
+    });
+
+    await act(async () => {
+      await result.current.handlePublishAction();
+    });
+
+    expect(onOpenPublishPanel).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: expect.objectContaining({
+          ko: expect.objectContaining({
+            title: 'publish-title',
+          }),
+        }),
       }),
     );
   });

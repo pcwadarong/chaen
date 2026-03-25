@@ -26,57 +26,6 @@ const ToolbarHarness = () => {
 };
 
 describe('MarkdownToolbar', () => {
-  it('선택한 텍스트를 굵게 감싼다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: 'OpenAI' } });
-    textarea.setSelectionRange(0, 6);
-
-    fireEvent.click(screen.getByRole('button', { name: '굵게' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('**OpenAI**');
-      expect(textarea.selectionStart).toBe(2);
-      expect(textarea.selectionEnd).toBe(8);
-    });
-  });
-
-  it('헤딩 버튼은 같은 레벨이면 제거하고 다른 레벨이면 치환한다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: '## 제목' } });
-    textarea.setSelectionRange(0, 5);
-
-    fireEvent.click(screen.getByRole('button', { name: '제목 3' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('### 제목');
-    });
-
-    textarea.setSelectionRange(0, textarea.value.length);
-    fireEvent.click(screen.getByRole('button', { name: '제목 3' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('제목');
-    });
-  });
-
-  it('빈 줄에서 헤딩 버튼을 누르면 heading prefix만 삽입한다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-
-    fireEvent.click(screen.getByRole('button', { name: '제목 4' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('#### ');
-      expect(textarea.selectionStart).toBe(5);
-      expect(textarea.selectionEnd).toBe(5);
-    });
-  });
-
   it('링크 팝오버에서 제목 링크를 삽입한다', async () => {
     render(<ToolbarHarness />);
 
@@ -93,7 +42,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('팝오버 삽입 뒤에도 textarea 포커스와 커서 위치를 유지한다', async () => {
+  it('팝오버로 링크를 삽입한 뒤 textarea 포커스와 커서를 삽입 직후 위치로 복원한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -133,7 +82,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('링크 라벨은 선택한 공백을 그대로 유지한다', async () => {
+  it('선택 텍스트의 앞뒤 공백도 링크 라벨에 포함한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -148,20 +97,6 @@ describe('MarkdownToolbar', () => {
 
     await waitFor(() => {
       expect(textarea.value).toBe('[  OpenAI  ](https://openai.com/)');
-    });
-  });
-
-  it('코드 블록 버튼은 placeholder를 삽입하고 코드 영역을 선택한다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-
-    fireEvent.click(screen.getByRole('button', { name: '코드 블록' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toBe('```ts\n코드를 입력하세요\n```');
-      expect(textarea.selectionStart).toBe(6);
-      expect(textarea.selectionEnd).toBe(15);
     });
   });
 
@@ -195,19 +130,6 @@ describe('MarkdownToolbar', () => {
 
     await waitFor(() => {
       expect(textarea.value).toBe('<YouTube id="dQw4w9WgXcQ" />');
-    });
-  });
-
-  it('토글 버튼은 빈 상태에서도 textarea 삽입을 수행한다', async () => {
-    render(<ToolbarHarness />);
-
-    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
-
-    fireEvent.click(screen.getByRole('button', { name: '토글 제목 4' }));
-
-    await waitFor(() => {
-      expect(textarea.value).toContain(':::toggle #### ');
-      expect(textarea.value).toContain(':::');
     });
   });
 

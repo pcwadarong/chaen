@@ -62,7 +62,7 @@ describe('resume-editor-client-actions', () => {
     });
   });
 
-  it('draftId가 없으면 기존 draftId를 유지한다', async () => {
+  it('draft 저장 결과에 draftId가 없으면 기존 draftId를 nextDraftId로 사용한다', async () => {
     const onDraftSave = vi.fn().mockResolvedValue({
       savedAt: '2026-03-25T09:00:00.000Z',
     });
@@ -111,7 +111,7 @@ describe('resume-editor-client-actions', () => {
     });
   });
 
-  it('draft 저장 callback 에러는 그대로 전파한다', async () => {
+  it('draft 저장 callback 에러를 호출자에게 전파한다', async () => {
     const onDraftSave = vi.fn().mockRejectedValue(new Error('저장 실패'));
 
     await expect(
@@ -123,7 +123,7 @@ describe('resume-editor-client-actions', () => {
     ).rejects.toThrow('저장 실패');
   });
 
-  it('발행 callback 에러는 그대로 전파한다', async () => {
+  it('발행 callback 에러를 호출자에게 전파한다', async () => {
     const onPublishSubmit = vi.fn().mockRejectedValue(new Error('발행 실패'));
 
     await expect(

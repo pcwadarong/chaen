@@ -66,7 +66,7 @@ describe('getArticlesPageData', () => {
     });
   });
 
-  it('아티클 조회 실패 시 에러를 그대로 전파한다', async () => {
+  it('아티클 조회 실패 시 예외를 상위로 전파한다', async () => {
     vi.mocked(getResolvedArticlesFirstPage).mockRejectedValue(new Error('temporary failure'));
 
     await expect(getArticlesPageData({ locale: 'ko', page: 1, query: '' })).rejects.toThrow(

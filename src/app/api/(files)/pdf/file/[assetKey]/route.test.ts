@@ -108,7 +108,7 @@ describe('api/pdf/file/[assetKey] route', () => {
     expect(response.headers.get('location')).toBe(expectedUrl);
   });
 
-  it('로그 저장이 실패해도 다운로드 리다이렉트는 유지한다', async () => {
+  it('로그 저장이 실패해도 signed URL 다운로드 리다이렉트를 반환하고 에러를 기록한다', async () => {
     vi.mocked(getPdfFileUrl).mockResolvedValue('https://example.com/portfolio-en-signed.pdf');
     vi.mocked(createPdfDownloadLog).mockRejectedValue(new Error('temporary failure'));
 

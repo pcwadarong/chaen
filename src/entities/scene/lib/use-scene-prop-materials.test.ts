@@ -58,7 +58,7 @@ describe('applyScenePropMaterials', () => {
     expect(sofaMesh.material.roughnessMap).toBe(textures.room);
   });
 
-  it('사전에 정리된 props ORM texture는 NoColorSpace와 flipY=false를 유지한다', () => {
+  it('prepareOrmTexture를 거친 props ORM texture 설정을 덮어쓰지 않는다', () => {
     const scene = new Group();
     const mesh = createMesh('prop');
     const textures = createOrmTextures();

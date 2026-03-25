@@ -2,15 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { getErrorMessage } from '@/shared/lib/error/get-error-message';
-
-export type OffsetPaginationFeedQueryParams = Record<string, string | null | undefined>;
-
-export type OffsetPaginationFeedPage<T> = {
-  items: T[];
-  nextCursor: string | null;
-  totalCount?: number | null;
-};
+import {
+  type OffsetPaginationFeedPage,
+  type OffsetPaginationFeedQueryParams,
+  resolveOffsetPaginationLoadMore,
+} from '@/shared/lib/react/offset-pagination-feed-state';
 
 type UseOffsetPaginationFeedOptions<T> = {
   initialCursor: string | null;
@@ -77,6 +73,7 @@ export const useOffsetPaginationFeed = <T>({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastSeedCursorRef = useRef(initialCursor);
   const lastSeedItemsRef = useRef(initialItems);
+  const itemsRef = useRef(initialItems);
 
   useEffect(() => {
     const isSameSeed =
@@ -87,22 +84,12 @@ export const useOffsetPaginationFeed = <T>({
 
     lastSeedCursorRef.current = initialCursor;
     lastSeedItemsRef.current = initialItems;
+    itemsRef.current = initialItems;
     setItems(initialItems);
     setNextCursor(initialCursor);
     setIsLoadingMore(false);
     setErrorMessage(null);
   }, [initialCursor, initialItems]);
-
-  const appendItems = useCallback(
-    (incomingItems: T[]) => {
-      setItems(previousItems => {
-        if (!mergeItems) return [...previousItems, ...incomingItems];
-
-        return mergeItems(previousItems, incomingItems);
-      });
-    },
-    [mergeItems],
-  );
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore) return;
@@ -111,21 +98,24 @@ export const useOffsetPaginationFeed = <T>({
     setErrorMessage(null);
 
     try {
-      const payload = await loadPage({
-        cursor: nextCursor,
+      const resolved = await resolveOffsetPaginationLoadMore({
+        currentCursor: nextCursor,
+        currentItems: itemsRef.current,
         limit,
         locale,
+        loadPage,
+        mergeItems,
         queryParams,
       });
 
-      appendItems(payload.items);
-      setNextCursor(payload.nextCursor);
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      itemsRef.current = resolved.items;
+      setItems(resolved.items);
+      setNextCursor(resolved.nextCursor);
+      setErrorMessage(resolved.errorMessage);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [appendItems, isLoadingMore, limit, loadPage, locale, nextCursor, queryParams]);
+  }, [isLoadingMore, limit, loadPage, locale, mergeItems, nextCursor, queryParams]);
 
   const hasMore = useMemo(() => Boolean(nextCursor), [nextCursor]);
 

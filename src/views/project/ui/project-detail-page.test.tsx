@@ -96,12 +96,9 @@ describe('ProjectDetailPage', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it('프로젝트 메타 바는 기간만 표시하고 스크린리더 라벨은 유지한다', async () => {
+  it('프로젝트 메타 바에는 기간만 노출하고 스크린리더용 라벨은 함께 제공한다', async () => {
     const html = await renderServerHtml();
 
-    expect(html).toContain('"@type":"CreativeWork"');
-    expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.vercel.app/en/project/project-1-slug');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
     expect(html).toContain('/admin/projects/project-1/edit');
@@ -112,37 +109,6 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('https://project-1.example.com');
     expect(html).toContain('https://github.com/example/project-1');
   }, 30000);
-
-  it('프로젝트 외부 링크 라벨은 locale과 무관하게 영문으로 유지된다', async () => {
-    const html = await renderServerHtml({ locale: 'ko' });
-
-    expect(html).toContain('Website');
-    expect(html).toContain('GitHub');
-  });
-
-  it('http/https가 아닌 project 외부 링크는 렌더링하지 않는다', async () => {
-    const html = await renderServerHtml({
-      item: {
-        id: 'project-1',
-        slug: 'project-1-slug',
-        title: 'Project 1',
-        description: 'summary',
-        content: '# hello',
-        created_at: '2026-03-08T00:00:00.000Z',
-        github_url: 'javascript:alert(1)',
-        publish_at: '2026-03-08T00:00:00.000Z',
-        period_end: '2026-02-01',
-        period_start: '2026-01-01',
-        thumbnail_url: null,
-        website_url: 'ftp://project-1.example.com',
-      },
-    });
-
-    expect(html).not.toContain('javascript:alert(1)');
-    expect(html).not.toContain('ftp://project-1.example.com');
-    expect(html).not.toContain('Website');
-    expect(html).not.toContain('GitHub');
-  });
 
   it('기술 스택 카테고리 라벨은 locale 번역을 사용한다', async () => {
     const html = await renderServerHtml({

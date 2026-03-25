@@ -25,7 +25,7 @@ describe('getLoginPageData', () => {
     });
   });
 
-  it('관리자 세션이 아니면 로그인 페이지를 유지한다', async () => {
+  it('관리자 세션이 아니면 redirect 없이 로그인 페이지 데이터를 반환한다', async () => {
     vi.mocked(getServerAuthState).mockResolvedValue({
       isAdmin: false,
       isAuthenticated: false,

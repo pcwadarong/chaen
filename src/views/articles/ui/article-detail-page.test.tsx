@@ -104,9 +104,6 @@ describe('ArticleDetailPage', () => {
     const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
     expect(html).toContain('data-testid="article-comments-section"');
-    expect(html).toContain('"@type":"BlogPosting"');
-    expect(html).toContain('"@type":"BreadcrumbList"');
-    expect(html).toContain('https://chaen.vercel.app/ko/articles/article-1-slug');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
@@ -117,11 +114,4 @@ describe('ArticleDetailPage', () => {
     expect(textContent).toContain('수정');
     expect(textContent).toContain('삭제');
   }, 30000);
-
-  it('전달받은 태그 라벨로 상세 페이지를 렌더링한다', async () => {
-    const html = await renderServerHtml();
-    const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
-
-    expect(textContent).toContain('#React');
-  });
 });

@@ -190,7 +190,7 @@ describe('article-comment-actions', () => {
     );
   });
 
-  it('댓글 수정 action은 비밀번호 오류를 그대로 반환한다', async () => {
+  it('댓글 수정 action은 비밀번호 오류를 별도 변환 없이 반환한다', async () => {
     vi.mocked(updateArticleComment).mockRejectedValue(
       createArticleCommentError(ARTICLE_COMMENT_ERROR_CODE.invalidPassword),
     );
@@ -235,7 +235,7 @@ describe('article-comment-actions', () => {
     });
   });
 
-  it('slug 조회가 실패해도 댓글 작성 성공 결과는 유지한다', async () => {
+  it('slug 조회가 실패해도 댓글 작성 성공 응답을 반환한다', async () => {
     vi.mocked(createArticleComment).mockResolvedValue({
       article_id: 'article-1',
       author_blog_url: null,
@@ -284,7 +284,7 @@ describe('article-comment-actions', () => {
     );
   });
 
-  it('path revalidate가 실패해도 댓글 삭제 성공 결과는 유지한다', async () => {
+  it('path revalidate가 실패해도 댓글 삭제 성공 응답을 반환한다', async () => {
     vi.mocked(deleteArticleComment).mockResolvedValue({
       articleId: 'article-1',
       id: 'comment-1',

@@ -15,7 +15,7 @@ describe('routing', () => {
     expect(isValidLocale('de')).toBe(false);
   });
 
-  it('locale 쿠키 이름을 고정된 값으로 유지한다', () => {
+  it('locale 쿠키 이름으로 NEXT_LOCALE을 사용한다', () => {
     expect(localeCookieName).toBe('NEXT_LOCALE');
   });
 });

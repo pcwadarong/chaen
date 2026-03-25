@@ -35,6 +35,7 @@ import {
   getEditorSaveStatusLabel,
 } from '@/widgets/editor/ui/core/editor-core-state';
 import { EditorLocalePanel } from '@/widgets/editor/ui/core/editor-locale-panel';
+import { useEditorBeforeUnloadGuard } from '@/widgets/editor/ui/core/use-editor-before-unload-guard';
 import { useEditorLocaleState } from '@/widgets/editor/ui/core/use-editor-locale-state';
 import { useEditorSubmitActions } from '@/widgets/editor/ui/core/use-editor-submit-actions';
 import { useIsMobileEditorLayout } from '@/widgets/editor/ui/core/use-mobile-editor-layout';
@@ -109,23 +110,7 @@ export const EditorCore = ({
   const activeLocaleHasTitleError =
     validationResult.localeValidation[activeLocale].hasContentWithoutTitle;
 
-  /**
-   * dirty 상태에서만 페이지 이탈 경고를 연결합니다.
-   */
-  useEffect(() => {
-    if (!dirty || typeof window === 'undefined') return;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [dirty]);
+  useEditorBeforeUnloadGuard(dirty);
 
   /**
    * 데스크톱으로 돌아오면 모바일 pane 상태를 기본값으로 정리합니다.

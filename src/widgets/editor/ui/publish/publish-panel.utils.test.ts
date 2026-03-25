@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import {
   buildPublishSettings,
   createDefaultPublishSettings,
@@ -16,7 +18,7 @@ describe('publish-panel utils', () => {
     vi.useRealTimers();
   });
 
-  it('예약 발행이 아니면 publishAt을 null로 정리한다', () => {
+  it('즉시 발행 모드에서는 publishAt을 null로 반환한다', () => {
     expect(
       buildPublishSettings({
         allowComments: true,
@@ -104,5 +106,64 @@ describe('publish-panel utils', () => {
       slug: '슬러그는 영문 소문자, 숫자, 하이픈만 사용 가능합니다',
       websiteUrl: '웹사이트 주소는 http:// 또는 https://로 시작해야 합니다.',
     });
+  });
+
+  it('사용 가능 확인을 하지 않은 slug는 발행 검증에서 막는다', () => {
+    const errors = validatePublishSettings({
+      editorState: {
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '', title: '제목' },
+        },
+      },
+      settings: {
+        allowComments: true,
+        githubUrl: '',
+        publishAt: null,
+        slug: 'hello-world',
+        thumbnailUrl: '',
+        visibility: 'public',
+        websiteUrl: '',
+      },
+      verifiedSlug: null,
+    });
+
+    expect(errors).toEqual({
+      slug: '슬러그 사용 가능 확인을 완료해주세요.',
+    });
+  });
+
+  it('사용 가능 확인을 마친 slug와 유효한 project 링크는 에러 없이 통과한다', () => {
+    const errors = validatePublishSettings({
+      editorState: {
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '', title: '프로젝트 제목' },
+        },
+      },
+      now: new Date('2026-03-13T00:00:00.000Z'),
+      settings: {
+        allowComments: false,
+        githubUrl: 'https://github.com/chaen/project',
+        publishAt: '2026-03-20T01:00:00.000Z',
+        slug: 'hello-world',
+        thumbnailUrl: 'https://example.com/thumb.png',
+        visibility: 'public',
+        websiteUrl: 'https://chaen.dev/project',
+      },
+      verifiedSlug: 'hello-world',
+    });
+
+    expect(errors).toEqual({});
   });
 });

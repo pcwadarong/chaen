@@ -196,7 +196,7 @@ describe('article detail page data helpers', () => {
     ).resolves.toEqual([]);
   });
 
-  it('태그 label helper는 schema가 없으면 slug를 그대로 사용한다', async () => {
+  it('태그 label helper는 schema가 없으면 slug를 fallback label로 사용한다', async () => {
     vi.mocked(getTagLabelMapBySlugs).mockResolvedValue({
       data: new Map(),
       schemaMissing: true,

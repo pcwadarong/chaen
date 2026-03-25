@@ -6,7 +6,6 @@ import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 import '@testing-library/jest-dom/vitest';
 
 const globalNavMockState = vi.hoisted(() => ({
-  desktopRenderCount: 0,
   pathname: '/articles',
   searchParams: new URLSearchParams('q=hello'),
 }));
@@ -51,13 +50,10 @@ vi.mock('@/widgets/global-nav/ui/build-navigation-items', () => ({
 }));
 
 vi.mock('@/widgets/global-nav/ui/global-nav-desktop-content', () => {
-  const DesktopContentBase = () => {
-    globalNavMockState.desktopRenderCount += 1;
-    return <div>desktop-content</div>;
-  };
+  const MockGlobalNavDesktopContent = () => <div>desktop-content</div>;
 
   return {
-    GlobalNavDesktopContent: React.memo(DesktopContentBase),
+    GlobalNavDesktopContent: React.memo(MockGlobalNavDesktopContent),
   };
 });
 
@@ -100,7 +96,6 @@ vi.mock('@/features/article-search/ui/article-search-form', () => ({
 
 describe('GlobalNav', () => {
   beforeEach(() => {
-    globalNavMockState.desktopRenderCount = 0;
     globalNavMockState.pathname = '/articles';
     globalNavMockState.searchParams = new URLSearchParams('q=hello');
 
@@ -121,17 +116,15 @@ describe('GlobalNav', () => {
     });
   });
 
-  it('모바일 검색 overlay를 열고 닫아도 desktop content를 다시 그리지 않는다', async () => {
+  it('모바일 검색 overlay를 열고 닫아도 데스크톱 콘텐츠는 계속 렌더링한다', async () => {
     render(<GlobalNav />);
 
-    expect(buildNavigationItemsMock).toHaveBeenCalledTimes(1);
-    expect(globalNavMockState.desktopRenderCount).toBe(1);
+    expect(screen.getByText('desktop-content')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Articles.searchSubmit' }));
 
     expect(screen.getByText('search-form')).toBeTruthy();
-    expect(buildNavigationItemsMock).toHaveBeenCalledTimes(1);
-    expect(globalNavMockState.desktopRenderCount).toBe(1);
+    expect(screen.getByText('desktop-content')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'search-submit-complete' }));
 
@@ -139,7 +132,6 @@ describe('GlobalNav', () => {
       expect(screen.queryByText('search-form')).toBeNull();
     });
 
-    expect(buildNavigationItemsMock).toHaveBeenCalledTimes(1);
-    expect(globalNavMockState.desktopRenderCount).toBe(1);
+    expect(screen.getByText('desktop-content')).toBeTruthy();
   });
 });

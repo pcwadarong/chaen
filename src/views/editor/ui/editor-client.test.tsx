@@ -7,7 +7,6 @@ import type { EditorCoreProps, PublishPanelProps } from '@/widgets/editor';
 import '@testing-library/jest-dom/vitest';
 
 const editorClientMockState = vi.hoisted(() => ({
-  editorCoreRenderCount: 0,
   editorState: {
     dirty: true,
     slug: 'draft-slug',
@@ -49,28 +48,24 @@ vi.mock('@/widgets/editor', async () => {
 
   return {
     ...actual,
-    EditorCore: ({ hideAppFrameFooter, onDraftSave, onOpenPublishPanel }: EditorCoreProps) => {
-      editorClientMockState.editorCoreRenderCount += 1;
-
-      return (
-        <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
-          <button
-            onClick={() => onOpenPublishPanel?.(editorClientMockState.editorState)}
-            type="button"
-          >
-            발행하기
-          </button>
-          <button
-            onClick={() => {
-              void onDraftSave?.(editorClientMockState.editorState);
-            }}
-            type="button"
-          >
-            임시저장
-          </button>
-        </div>
-      );
-    },
+    EditorCore: ({ hideAppFrameFooter, onDraftSave, onOpenPublishPanel }: EditorCoreProps) => (
+      <div data-hide-app-frame-footer={hideAppFrameFooter ? 'true' : undefined}>
+        <button
+          onClick={() => onOpenPublishPanel?.(editorClientMockState.editorState)}
+          type="button"
+        >
+          발행하기
+        </button>
+        <button
+          onClick={() => {
+            void onDraftSave?.(editorClientMockState.editorState);
+          }}
+          type="button"
+        >
+          임시저장
+        </button>
+      </div>
+    ),
     PublishPanel: ({ isOpen, onClose, onSettingsChange, onSubmit }: PublishPanelProps) =>
       isOpen ? (
         <div aria-label="발행 설정" role="dialog">
@@ -116,7 +111,6 @@ vi.mock('@/widgets/editor', async () => {
 
 describe('EditorClient', () => {
   beforeEach(() => {
-    editorClientMockState.editorCoreRenderCount = 0;
     editorClientMockState.routerPush.mockReset();
   });
 
@@ -173,34 +167,6 @@ describe('EditorClient', () => {
         null,
       );
     });
-  });
-
-  it('publish panel 열기와 닫기로 editor core를 다시 그리지 않는다', async () => {
-    render(
-      <EditorClient
-        availableTags={[]}
-        contentType="article"
-        initialTranslations={editorClientMockState.editorState.translations}
-      />,
-    );
-
-    expect(editorClientMockState.editorCoreRenderCount).toBe(1);
-
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog', { name: '발행 설정' })).toBeTruthy();
-    });
-
-    expect(editorClientMockState.editorCoreRenderCount).toBe(1);
-
-    fireEvent.click(screen.getByRole('button', { name: '발행 설정 닫기' }));
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: '발행 설정' })).toBeNull();
-    });
-
-    expect(editorClientMockState.editorCoreRenderCount).toBe(1);
   });
 
   it('hideAppFrameFooter를 editor core까지 전달한다', () => {

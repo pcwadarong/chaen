@@ -184,7 +184,7 @@ describe('getProjects', () => {
     expect(unstable_cacheTag).toHaveBeenCalledWith('projects');
   });
 
-  it('다음 페이지 조회도 동일한 공개 필터를 유지한다', async () => {
+  it('다음 페이지 조회에도 동일한 공개 필터와 정렬 기준을 적용한다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: [],
@@ -216,7 +216,7 @@ describe('getProjects', () => {
     expect(projectsQuery.range).toHaveBeenCalledWith(1, 13);
   });
 
-  it('fallback 후보 전체에 번역이 없으면 명시적 에러를 던진다', async () => {
+  it('fallback 체인 어디에도 번역이 없으면 명시적 에러를 던진다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: [
@@ -266,7 +266,7 @@ describe('getProjects', () => {
     );
   });
 
-  it('base row가 limit + 1개면 번역 결합 뒤에도 다음 cursor를 유지한다', async () => {
+  it('base row가 limit + 1개면 번역을 결합한 뒤에도 다음 cursor를 반환한다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: Array.from({ length: 11 }, (_, index) => ({

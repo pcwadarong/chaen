@@ -66,7 +66,7 @@ describe('prepareCharacterInstance', () => {
     expect(getMaterialColorHex(sourceHair.material)).toBe('ffffff');
   });
 
-  it('contact 인스턴스에서는 heart/laptop 계열을 숨기고 body material 공유는 유지한다', () => {
+  it('contact 인스턴스에서는 heart/laptop 계열을 숨기고 body material은 원본과 공유한다', () => {
     const sourceScene = createCharacterSceneFixture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
