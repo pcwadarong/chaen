@@ -5,9 +5,9 @@ import { useMemo } from 'react';
 import { Box3, type Group } from 'three';
 
 import {
-  applyPropsMaterials,
-  usePropsMaterials,
-} from '@/features/character/model/use-props-materials';
+  applyScenePropMaterials,
+  useScenePropMaterials,
+} from '@/entities/scene/lib/use-scene-prop-materials';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
@@ -27,7 +27,7 @@ export const SceneProp = ({
   scale = [1, 1, 1],
 }: ScenePropProps) => {
   const gltf = useGLTF(path);
-  const ormTextures = usePropsMaterials();
+  const ormTextures = useScenePropMaterials();
   const object = useMemo(() => {
     const clonedScene = gltf.scene.clone(true);
 
@@ -38,7 +38,7 @@ export const SceneProp = ({
       node.receiveShadow = true;
     });
 
-    applyPropsMaterials(clonedScene, ormTextures);
+    applyScenePropMaterials(clonedScene, ormTextures);
     groundSceneProp(clonedScene);
 
     return clonedScene;

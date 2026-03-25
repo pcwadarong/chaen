@@ -1,5 +1,5 @@
 import type { AnimationAction, AnimationClip, AnimationMixer } from 'three';
-import { LoopOnce } from 'three';
+import { LoopOnce, LoopRepeat } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 
 import { CharacterStateMachine } from '@/entities/character/model/character-state-machine';
@@ -7,9 +7,11 @@ import { CharacterStateMachine } from '@/entities/character/model/character-stat
 type FakeAction = Pick<
   AnimationAction,
   | 'clampWhenFinished'
+  | 'crossFadeFrom'
   | 'enabled'
   | 'fadeIn'
   | 'fadeOut'
+  | 'getClip'
   | 'getMixer'
   | 'getRoot'
   | 'isRunning'
@@ -18,16 +20,19 @@ type FakeAction = Pick<
   | 'reset'
   | 'setLoop'
   | 'stop'
+  | 'time'
 >;
 
 /**
  * 상태머신 테스트에서 사용할 최소 AnimationAction 모형을 만듭니다.
  */
-const createFakeAction = (): FakeAction => ({
+const createFakeAction = (duration = 1): FakeAction => ({
   clampWhenFinished: false,
+  crossFadeFrom: vi.fn().mockReturnThis(),
   enabled: true,
   fadeIn: vi.fn().mockReturnThis(),
   fadeOut: vi.fn().mockReturnThis(),
+  getClip: vi.fn(() => ({ duration }) as AnimationClip),
   getMixer: vi.fn(),
   getRoot: vi.fn(),
   isRunning: vi.fn(),
@@ -39,6 +44,7 @@ const createFakeAction = (): FakeAction => ({
     return this;
   }),
   stop: vi.fn().mockReturnThis(),
+  time: 0,
 });
 
 /**
@@ -76,9 +82,10 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.play).toHaveBeenCalledOnce();
   });
 
-  it('다른 state로 전환하면 이전 action은 fadeOut, 다음 action은 reset/fadeIn/play 한다', () => {
-    const idleAction = createFakeAction();
-    const typingAction = createFakeAction();
+  it('1회성 상태로 전환하면 처음 프레임부터 한 번만 재생되게 설정한다', () => {
+    const idleAction = createFakeAction(4);
+    const typingAction = createFakeAction(2);
+    idleAction.time = 3;
     const mixer = createFakeMixer({
       idle: idleAction,
       typing: typingAction,
@@ -93,10 +100,35 @@ describe('CharacterStateMachine', () => {
     machine.transition('typing', 0.35);
 
     expect(machine.getCurrentState()).toBe('typing');
-    expect(idleAction.fadeOut).toHaveBeenCalledWith(0.35);
     expect(typingAction.reset).toHaveBeenCalledOnce();
-    expect(typingAction.fadeIn).toHaveBeenCalledWith(0.35);
+    expect(typingAction.time).toBe(0);
+    expect(typingAction.setLoop).toHaveBeenCalledWith(LoopOnce, 1);
+    expect(typingAction.clampWhenFinished).toBe(true);
+    expect(typingAction.crossFadeFrom).toHaveBeenCalledWith(idleAction, 0.35, false);
     expect(typingAction.play).toHaveBeenCalledOnce();
+  });
+
+  it('루프 상태로 전환하면 이전 progress를 이어받아 cross fade 한다', () => {
+    const typingAction = createFakeAction(2);
+    const idleAction = createFakeAction(4);
+    typingAction.time = 1.5;
+    const mixer = createFakeMixer({
+      idle: idleAction,
+      typing: typingAction,
+    });
+
+    const machine = new CharacterStateMachine({
+      clips: createClips('idle', 'typing'),
+      initialState: 'typing',
+      mixer,
+    });
+
+    machine.transition('idle', 0.2);
+
+    expect(idleAction.time).toBe(3);
+    expect(idleAction.setLoop).toHaveBeenCalledWith(LoopRepeat, Infinity);
+    expect(idleAction.clampWhenFinished).toBe(false);
+    expect(idleAction.crossFadeFrom).toHaveBeenCalledWith(typingAction, 0.2, false);
   });
 
   it('같은 state로 전환하면 아무 것도 하지 않는다', () => {

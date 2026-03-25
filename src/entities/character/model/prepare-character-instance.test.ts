@@ -2,7 +2,9 @@ import { Box3, BoxGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, Textu
 
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
-  characterTintMap,
+  CHARACTER_TINTS,
+} from '@/entities/character/model/character-appearance-config';
+import {
   findCharacterMesh,
   prepareCharacterInstance,
 } from '@/entities/character/model/prepare-character-instance';
@@ -50,7 +52,7 @@ describe('prepareCharacterInstance', () => {
     expect(getMaterialColorHex(clonedRibon.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.ribon),
     );
-    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(characterTintMap.hair));
+    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(CHARACTER_TINTS.hair));
     expect(getSingleMaterial(clonedOuter.material).map).toBe(
       getSingleMaterial(sourceOuter.material).map,
     );
