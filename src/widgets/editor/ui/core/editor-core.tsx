@@ -34,7 +34,9 @@ import {
 import {
   buildEditorStateSnapshot,
   createSaveErrorToast,
+  getEditorSaveStatusLabel,
   resolveSavedAt,
+  shouldScheduleEditorAutosave,
 } from '@/widgets/editor/ui/core/editor-core-state';
 import { rememberTextareaScroll } from '@/widgets/editor/ui/core/editor-core-textarea';
 import { EditorLocalePanel } from '@/widgets/editor/ui/core/editor-locale-panel';
@@ -134,14 +136,16 @@ export const EditorCore = ({
   const validationResult = useMemo(() => validateEditorState(translations), [translations]);
   const activeLocaleHasTitleError =
     validationResult.localeValidation[activeLocale].hasContentWithoutTitle;
-  const saveStatusLabel = useMemo(() => {
-    if (isSaving) return '저장 중...';
-    if (dirty) return '변경사항 있음';
-
-    const formattedSavedAt = formatSavedAtLabel(lastSavedAt);
-
-    return formattedSavedAt ? `저장됨 ${formattedSavedAt}` : '';
-  }, [dirty, isSaving, lastSavedAt]);
+  const saveStatusLabel = useMemo(
+    () =>
+      getEditorSaveStatusLabel({
+        dirty,
+        formatSavedAtLabel,
+        isSaving,
+        lastSavedAt,
+      }),
+    [dirty, isSaving, lastSavedAt],
+  );
 
   /**
    * dirty 상태에서만 페이지 이탈 경고를 연결합니다.
@@ -271,8 +275,16 @@ export const EditorCore = ({
    * autosave 기준을 만족하면 마지막 입력 후 180초 뒤 draft save를 실행합니다.
    */
   useEffect(() => {
-    if (!enableAutosave || !onDraftSave || !dirty) return;
-    if (!validationResult.canSave) return;
+    if (
+      !shouldScheduleEditorAutosave({
+        canSave: validationResult.canSave,
+        dirty,
+        enableAutosave,
+        hasDraftSaveHandler: Boolean(onDraftSave),
+      })
+    ) {
+      return;
+    }
 
     const timeoutId = window.setTimeout(() => {
       void runDraftSave('autosave');

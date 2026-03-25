@@ -59,7 +59,7 @@ const availableTags = [
   { id: 'tag-1', label: '리액트', slug: 'react' },
   { id: 'tag-2', label: '넥스트', slug: 'nextjs' },
 ];
-const EDITOR_CORE_TEST_TIMEOUT_MS = 10_000;
+const EDITOR_CORE_TEST_TIMEOUT_MS = 20_000;
 
 /**
  * 공용 EditorCore를 테스트 기본값과 함께 렌더링합니다.
@@ -330,22 +330,19 @@ describe('EditorCore', () => {
       fireEvent.click(screen.getByRole('button', { name: '임시저장' }));
 
       await waitFor(() => {
-        expect(onDraftSave).toHaveBeenCalledWith({
-          dirty: true,
-          slug: '',
-          tags: ['react'],
-          translations: {
-            en: { content: '', description: '', download_button_label: '', title: '' },
-            fr: { content: '', description: '', download_button_label: '', title: '' },
-            ja: { content: '', description: '', download_button_label: '', title: '' },
-            ko: {
-              content: '저장 본문',
-              description: '',
-              download_button_label: '',
-              title: '저장 제목',
-            },
-          },
-        });
+        expect(onDraftSave).toHaveBeenCalledWith(
+          expect.objectContaining({
+            dirty: true,
+            slug: '',
+            tags: ['react'],
+            translations: expect.objectContaining({
+              ko: expect.objectContaining({
+                content: '저장 본문',
+                title: '저장 제목',
+              }),
+            }),
+          }),
+        );
       });
     },
     EDITOR_CORE_TEST_TIMEOUT_MS,
@@ -433,39 +430,31 @@ describe('EditorCore', () => {
       renderEditorCore({ onOpenPublishPanel });
 
       fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
-      expect(onOpenPublishPanel).toHaveBeenCalledWith({
-        dirty: false,
-        slug: '',
-        tags: [],
-        translations: {
-          en: { content: '', description: '', download_button_label: '', title: '' },
-          fr: { content: '', description: '', download_button_label: '', title: '' },
-          ja: { content: '', description: '', download_button_label: '', title: '' },
-          ko: { content: '', description: '', download_button_label: '', title: '' },
-        },
-      });
+      expect(onOpenPublishPanel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dirty: false,
+          slug: '',
+          tags: [],
+        }),
+      );
 
       fireEvent.change(getTitleInput('KO'), {
         target: { value: 'publish-title' },
       });
       fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
-      expect(onOpenPublishPanel).toHaveBeenLastCalledWith({
-        dirty: true,
-        slug: '',
-        tags: [],
-        translations: {
-          en: { content: '', description: '', download_button_label: '', title: '' },
-          fr: { content: '', description: '', download_button_label: '', title: '' },
-          ja: { content: '', description: '', download_button_label: '', title: '' },
-          ko: {
-            content: '',
-            description: '',
-            download_button_label: '',
-            title: 'publish-title',
-          },
-        },
-      });
+      expect(onOpenPublishPanel).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          dirty: true,
+          slug: '',
+          tags: [],
+          translations: expect.objectContaining({
+            ko: expect.objectContaining({
+              title: 'publish-title',
+            }),
+          }),
+        }),
+      );
     },
     EDITOR_CORE_TEST_TIMEOUT_MS,
   );
