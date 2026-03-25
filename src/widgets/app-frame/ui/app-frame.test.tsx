@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { AppFrame } from '@/widgets/app-frame/ui/app-frame';
 
 import '@testing-library/jest-dom/vitest';
@@ -33,13 +34,16 @@ const createMatchMediaMock = (initialMatches: boolean): MatchMediaMock => {
     dispatchChange: (nextMatches: boolean) => {
       matches = nextMatches;
       listeners.forEach(listener =>
-        listener({ matches: nextMatches, media: '(min-width: 961px)' } as MediaQueryListEvent),
+        listener({
+          matches: nextMatches,
+          media: viewportMediaQuery.desktopUp,
+        } as MediaQueryListEvent),
       );
     },
     get matches() {
       return matches;
     },
-    media: '(min-width: 961px)',
+    media: viewportMediaQuery.desktopUp,
     removeEventListener: vi.fn(
       (_eventName: string, listener: (event: MediaQueryListEvent) => void) => {
         listeners.delete(listener);

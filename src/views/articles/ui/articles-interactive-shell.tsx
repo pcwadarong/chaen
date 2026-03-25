@@ -122,7 +122,7 @@ export const ArticlesInteractiveShell = ({
 const layoutClass = css({
   display: 'grid',
   gap: '6',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     gridTemplateColumns: 'minmax(0, 1fr) 18rem',
     alignItems: 'start',
   },
@@ -131,14 +131,14 @@ const layoutClass = css({
 const feedColumnClass = css({
   minWidth: '0',
   order: '2',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     order: '1',
   },
 });
 
 const sidebarClass = css({
   order: '1',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     position: 'sticky',
     top: '8',
     order: '2',
@@ -152,7 +152,7 @@ const sidebarPanelClass = css({
 
 const desktopSearchFormClass = css({
   display: 'none',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'block',
   },
 });
@@ -222,7 +222,7 @@ const pendingThumbClass = css({
     '[linear-gradient(90deg, rgba(148,163,184,0.10) 0%, rgba(148,163,184,0.22) 48%, rgba(148,163,184,0.10) 100%)]',
   backgroundSize: '[200% 100%]',
   animation: '[route-skeleton-shimmer 1.4s ease-in-out infinite]',
-  '@media (max-width: 640px)': {
+  _mobileLargeDown: {
     display: 'none',
   },
 });

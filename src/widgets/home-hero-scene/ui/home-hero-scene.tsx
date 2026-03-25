@@ -34,7 +34,7 @@ const sectionClass = css({
   height: '[100dvh]',
   overflow: 'clip',
   isolation: 'isolate',
-  '@media (max-width: 960px)': {
+  _tabletDown: {
     width: '[100vw]',
     minHeight: 'svh',
     height: 'svh',

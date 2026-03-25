@@ -53,7 +53,7 @@ const viewportClass = css({
   display: 'grid',
   gap: '3',
   width: '[min(24rem,calc(100vw-1.5rem))]',
-  '@media (max-width: 640px)': {
+  _mobileLargeDown: {
     right: '3',
     bottom: '3',
   },

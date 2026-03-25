@@ -4,11 +4,12 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { Button } from '@/shared/ui/button/button';
 import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 
 // 데스크탑 기준
-const DESKTOP_FRAME_MEDIA_QUERY = '(min-width: 961px)';
+const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 // 스크롤 표시 여부 판단 기준 (픽셀 단위)
 const SCROLL_TOP_BUTTON_THRESHOLD = 240;
 
@@ -179,7 +180,7 @@ const appFrameScrollTopButtonClass = css({
     transform: 'translateY(-2px)',
     borderColor: 'borderStrong',
   },
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     position: 'absolute',
     right: '[1.25rem]',
     bottom: '[calc(1.25rem + 3rem)]',

@@ -271,7 +271,7 @@ const summaryGridClass = css({
   gap: '4',
   alignItems: 'stretch',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  '@media (max-width: 760px)': {
+  _tabletDown: {
     gridTemplateColumns: '1fr',
   },
 });
@@ -299,7 +299,7 @@ const editorGridClass = css({
   minHeight: '0',
   alignItems: 'stretch',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  '@media (max-width: 760px)': {
+  _tabletDown: {
     gridTemplateColumns: '1fr',
   },
 });

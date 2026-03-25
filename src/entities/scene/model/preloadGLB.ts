@@ -3,7 +3,7 @@
  */
 export const sceneModelPaths = [
   '/models/character.glb',
-  '/models/guitar.glb',
+  '/models/bass.glb',
   '/models/table.glb',
   '/models/sofa.glb',
 ] as const;

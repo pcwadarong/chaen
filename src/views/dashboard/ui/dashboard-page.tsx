@@ -57,7 +57,7 @@ const actionGridClass = css({
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: '3',
-  '@media (max-width: 520px)': {
+  _mobileLargeDown: {
     gridTemplateColumns: '1fr',
   },
 });

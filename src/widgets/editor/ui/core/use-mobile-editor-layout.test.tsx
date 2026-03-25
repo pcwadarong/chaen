@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { useIsMobileEditorLayout } from '@/widgets/editor/ui/core/use-mobile-editor-layout';
 
 type MatchMediaListener = (event: MediaQueryListEvent) => void;
@@ -16,7 +17,7 @@ describe('useIsMobileEditorLayout', () => {
           listener = nextListener;
         },
         matches,
-        media: '(max-width: 760px)',
+        media: viewportMediaQuery.tabletDown,
         removeEventListener: vi.fn(),
       })),
     });

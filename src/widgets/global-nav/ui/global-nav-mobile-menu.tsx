@@ -97,7 +97,7 @@ export const GlobalNavMobileMenu = React.memo(GlobalNavMobileMenuBase);
 
 const mobileControlsClass = css({
   display: 'none',
-  '@media (max-width: 960px)': {
+  _tabletDown: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '2',

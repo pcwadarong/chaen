@@ -291,7 +291,7 @@ const tagListClass = css({
   listStyle: 'none',
   p: '0',
   m: '0',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     gap: '3',
   },
 });

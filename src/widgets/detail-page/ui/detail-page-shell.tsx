@@ -191,7 +191,7 @@ export const DetailPageShell = ({
 
 const detailPageShellClass = css({
   display: 'block',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'grid',
     gridTemplateColumns: '[minmax(16rem, 20rem) minmax(0, 1fr)]',
     gap: '0',
@@ -204,7 +204,7 @@ const detailPageShellClass = css({
 
 const detailPageSidebarClass = css({
   display: 'none',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'flex',
     minHeight: '0',
     height: 'full',
@@ -219,7 +219,7 @@ const detailPageContentClass = css({
   overflowX: 'hidden',
   pt: '10',
   pb: '24',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     minWidth: '0',
     minHeight: '0',
     height: 'full',
@@ -235,7 +235,7 @@ const detailPageHeroClass = css({
   alignItems: 'center',
   pb: '10',
   borderBottom: '[1px solid var(--colors-border)]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     pb: '8',
   },
 });
@@ -297,7 +297,7 @@ const detailPageMetaBarSectionClass = css({
   width: 'full',
   pt: '6',
   pb: '10',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     pt: '7',
     pb: '12',
   },
@@ -316,7 +316,7 @@ const detailPageContentSectionClass = css({
   display: 'grid',
   minWidth: '0',
   gap: '4',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     gap: '5',
   },
 });
@@ -361,7 +361,7 @@ const detailPageGuestbookCtaIconClass = css({
 
 const detailPageBottomSectionClass = css({
   mt: '10',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     mt: '12',
   },
 });

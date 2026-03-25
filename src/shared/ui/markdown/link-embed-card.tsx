@@ -222,7 +222,7 @@ const cardClass = cx(
     gap: '4',
     alignItems: 'start',
     padding: '4',
-    '@media (max-width: 640px)': {
+    _mobileLargeDown: {
       gridTemplateColumns: '1fr',
     },
   }),
@@ -274,7 +274,7 @@ const previewImageClass = css({
   borderRadius: 'lg',
   background: 'surfaceMuted',
   flexShrink: '0',
-  '@media (max-width: 640px)': {
+  _mobileLargeDown: {
     width: 'full',
     height: '[10rem]',
   },

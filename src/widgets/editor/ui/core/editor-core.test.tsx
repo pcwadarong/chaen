@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
 import { EditorCore } from '@/widgets/editor';
 
 import '@testing-library/jest-dom/vitest';
@@ -30,7 +31,7 @@ const installMatchMediaMock = (initialMatches: boolean): MatchMediaController =>
       get matches() {
         return matches;
       },
-      media: '(max-width: 760px)',
+      media: viewportMediaQuery.tabletDown,
       removeEventListener: (_eventName: string, listener: (event: MediaQueryListEvent) => void) => {
         listeners.delete(listener);
       },
@@ -41,7 +42,10 @@ const installMatchMediaMock = (initialMatches: boolean): MatchMediaController =>
     setMatches: nextMatches => {
       matches = nextMatches;
       listeners.forEach(listener =>
-        listener({ matches: nextMatches, media: '(max-width: 760px)' } as MediaQueryListEvent),
+        listener({
+          matches: nextMatches,
+          media: viewportMediaQuery.tabletDown,
+        } as MediaQueryListEvent),
       );
     },
   };

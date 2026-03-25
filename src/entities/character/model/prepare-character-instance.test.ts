@@ -2,13 +2,15 @@ import { Box3, BoxGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, Textu
 
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
-  characterTintMap,
+  CHARACTER_TINTS,
+} from '@/entities/character/model/character-appearance-config';
+import {
   findCharacterMesh,
   prepareCharacterInstance,
 } from '@/entities/character/model/prepare-character-instance';
 
 describe('prepareCharacterInstance', () => {
-  it('outer pants ribon hair는 mesh 이름 기준으로 분리된 material 색상을 적용하고 brows 계열은 양면 재질로 복제한다', () => {
+  it('outfit/hair mesh에는 인스턴스별 tint를 적용하고 brows 계열은 양면 재질로 복제한다', () => {
     const sourceScene = createCharacterSceneFixture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
@@ -50,7 +52,7 @@ describe('prepareCharacterInstance', () => {
     expect(getMaterialColorHex(clonedRibon.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.ribon),
     );
-    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(characterTintMap.hair));
+    expect(getMaterialColorHex(clonedHair.material)).toBe(normalizeHex(CHARACTER_TINTS.hair));
     expect(getSingleMaterial(clonedOuter.material).map).toBe(
       getSingleMaterial(sourceOuter.material).map,
     );
@@ -64,7 +66,7 @@ describe('prepareCharacterInstance', () => {
     expect(getMaterialColorHex(sourceHair.material)).toBe('ffffff');
   });
 
-  it('contact 인스턴스에서는 heart와 laptop 계열 노드를 숨기고 body material 공유는 유지한다', () => {
+  it('contact 인스턴스에서는 heart/laptop 계열을 숨기고 body material 공유는 유지한다', () => {
     const sourceScene = createCharacterSceneFixture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {
@@ -86,7 +88,7 @@ describe('prepareCharacterInstance', () => {
     expect(clonedBody.material).toBe(sourceBody.material);
   });
 
-  it('clone한 캐릭터 인스턴스의 최저점을 원점에 맞춰 y 위치만 보정한다', () => {
+  it('clone한 캐릭터 인스턴스는 최저점이 바닥에 닿도록 y 위치만 보정한다', () => {
     const sourceScene = createCharacterSceneFixture();
 
     const clonedScene = prepareCharacterInstance(sourceScene, {

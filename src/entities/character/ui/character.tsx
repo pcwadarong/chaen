@@ -7,19 +7,17 @@ import { AnimationMixer, type Group, type Mesh, type Object3D } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import {
-  CHARACTER_OUTFIT_COLOR_CONFIG,
-  prepareCharacterInstance,
-} from '@/entities/character/model/prepare-character-instance';
-import { useBlinkAnimation } from '@/features/character/model/use-blink-animation';
-import { useCharacterAutoPlay } from '@/features/character/model/use-character-auto-play';
-import {
   applyCharacterMaterials,
   type CharacterOrmTextures,
   useCharacterMaterials,
-} from '@/features/character/model/use-character-materials';
-import { useCharacterState } from '@/features/character/model/use-character-state';
-import { useHeartAnimation } from '@/features/character/model/use-heart-animation';
-import { useShapeKeyController } from '@/features/character/model/use-shape-key-controller';
+} from '@/entities/character/lib/use-character-materials';
+import { CHARACTER_OUTFIT_COLOR_CONFIG } from '@/entities/character/model/character-appearance-config';
+import { resolveCharacterClipDurations } from '@/entities/character/model/character-clip-durations';
+import { prepareCharacterInstance } from '@/entities/character/model/prepare-character-instance';
+import { useBlinkAnimation } from '@/features/character-animation/model/use-blink-animation';
+import { useCharacterAnimation } from '@/features/character-animation/model/use-character-animation';
+import { useHeartAnimation } from '@/features/character-animation/model/use-heart-animation';
+import { useShapeKeyController } from '@/features/character-shape/model/use-shape-key-controller';
 import { analyzeGLB } from '@/shared/lib/analyzeGLB';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
@@ -64,20 +62,19 @@ export const Character = ({ instance, position }: CharacterProps) => {
   const mixer = instance === 'main' ? characterCache.mainMixer : characterCache.contactMixer;
   const object = instance === 'main' ? characterCache.main : characterCache.contact;
   const nodeRefs = useMemo(() => findCharacterNodeRefs(object), [object]);
-  const { currentState, transitionTo } = useCharacterState({
+  const clipDurations = useMemo(
+    () => resolveCharacterClipDurations(gltf.animations),
+    [gltf.animations],
+  );
+  const { currentState } = useCharacterAnimation({
+    clipDurations,
     clips: gltf.animations,
     instance,
     mixer,
   });
-
-  useCharacterAutoPlay({
-    clips: gltf.animations,
-    currentState,
-    instance,
-    transitionTo,
-  });
   useShapeKeyController({
     browMesh: nodeRefs.brow,
+    clipDurations,
     currentState,
     eyebrowMesh: nodeRefs.eyebrow,
     headMesh: nodeRefs.head,
