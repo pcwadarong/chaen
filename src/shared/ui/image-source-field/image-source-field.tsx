@@ -4,6 +4,7 @@ import Image, { type StaticImageData } from 'next/image';
 import React from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { viewportImageSizes } from '@/shared/config/responsive';
 import { normalizeImageUrl } from '@/shared/lib/url/normalize-image-url';
 import { Input } from '@/shared/ui/input/input';
 
@@ -102,7 +103,7 @@ export const ImageSourceField = ({
             alt={previewAlt}
             className={previewImageClass}
             fill
-            sizes="(max-width: 480px) 100vw, 480px"
+            sizes={viewportImageSizes.imageSourceField}
             src={normalizedPreviewUrl}
             unoptimized
           />
@@ -127,7 +128,7 @@ const rowClass = css({
   display: 'flex',
   alignItems: 'stretch',
   gap: '3',
-  '@media (max-width: 480px)': {
+  _mobileSmallDown: {
     flexDirection: 'column',
   },
 });

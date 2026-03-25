@@ -66,7 +66,7 @@ const contentClass = css({
   gap: '4',
   flexWrap: 'wrap',
   flex: '[1 1 40rem]',
-  '@media (max-width: 960px)': {
+  _tabletDown: {
     display: 'none',
   },
 });

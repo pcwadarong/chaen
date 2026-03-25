@@ -1,4 +1,5 @@
 import { defineConfig } from '@pandacss/dev';
+import { viewportMediaQuery } from './src/shared/config/responsive';
 
 export default defineConfig({
   preflight: true,
@@ -16,6 +17,14 @@ export default defineConfig({
   conditions: {
     extend: {
       dark: '[data-theme="dark"] &',
+      desktopDown: `@media ${viewportMediaQuery.desktopDown}`,
+      desktopUp: `@media ${viewportMediaQuery.desktopUp}`,
+      largeDesktopUp: `@media ${viewportMediaQuery.largeDesktopUp}`,
+      mobileLargeDown: `@media ${viewportMediaQuery.mobileLargeDown}`,
+      mobileLargeUp: `@media ${viewportMediaQuery.mobileLargeUp}`,
+      mobileSmallDown: `@media ${viewportMediaQuery.mobileSmallDown}`,
+      tabletDown: `@media ${viewportMediaQuery.tabletDown}`,
+      tabletUp: `@media ${viewportMediaQuery.tabletUp}`,
     },
   },
   theme: {

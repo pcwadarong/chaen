@@ -2,25 +2,10 @@ import type { Group, Material, Mesh, Object3D } from 'three';
 import { Box3, Color, DoubleSide } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-export const CHARACTER_OUTFIT_COLOR_CONFIG = {
-  contact: {
-    outer: '#E7B749',
-    pants: '#929569',
-    ribon: '#B04747',
-  },
-  main: {
-    outer: '#FF6F0F',
-    pants: '#00A05B',
-    ribon: '#B04747',
-  },
-} as const;
-
-const CHARACTER_TINTS = {
-  hair: '#654835',
-} as const;
-
-export type CharacterOutfitColors =
-  (typeof CHARACTER_OUTFIT_COLOR_CONFIG)[keyof typeof CHARACTER_OUTFIT_COLOR_CONFIG];
+import {
+  CHARACTER_TINTS,
+  type CharacterOutfitColors,
+} from '@/entities/character/model/character-appearance-config';
 
 type CharacterMaterialOptions = Readonly<{
   instance: 'contact' | 'main';
@@ -82,11 +67,6 @@ export const prepareCharacterInstance = (
 };
 
 /**
- * outfit ID 맵 셰이더에 사용하는 목표 색상 구성을 노출합니다.
- */
-export const outfitColorConfig = CHARACTER_OUTFIT_COLOR_CONFIG;
-
-/**
  * mesh material을 복제하고 지정한 tint color를 적용합니다.
  */
 const createTintedMaterial = (
@@ -132,11 +112,6 @@ const applyMaterialSide = (material: Material): Material => {
 
   return material;
 };
-
-/**
- * 테스트와 후속 로직에서 사용하는 캐릭터 tint 값을 노출합니다.
- */
-export const characterTintMap = CHARACTER_TINTS;
 
 /**
  * 캐릭터 인스턴스의 최저점을 원점에 맞춰, scene 위치가 곧 바닥 기준이 되게 정렬합니다.

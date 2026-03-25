@@ -345,7 +345,7 @@ const genericLoadingDotClass = css({
 const articlesLayoutClass = css({
   display: 'grid',
   gap: '6',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     gridTemplateColumns: 'minmax(0, 1fr) 18rem',
     alignItems: 'start',
   },
@@ -379,7 +379,7 @@ const articleTextColumnClass = css({
 
 const articleThumbClass = css({
   display: 'none',
-  '@media (min-width: 480px)': {
+  _mobileLargeUp: {
     display: 'block',
     width: '[8.75rem]',
     minWidth: '[8.75rem]',
@@ -391,7 +391,7 @@ const articleThumbClass = css({
 const articlesSidebarClass = css({
   display: 'grid',
   gap: '4',
-  '@media (max-width: 960px)': {
+  _tabletDown: {
     display: 'none',
   },
 });
@@ -417,7 +417,7 @@ const smallTagPillClass = css({
 const projectGridClass = css({
   display: 'grid',
   gap: '6',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   },
 });
@@ -533,7 +533,7 @@ const guestActionGlyphClass = css({
 
 const detailShellClass = css({
   display: 'block',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'grid',
     gridTemplateColumns: '[minmax(16rem, 20rem) minmax(0, 1fr)]',
     height: 'full',
@@ -544,7 +544,7 @@ const detailShellClass = css({
 
 const detailSidebarClass = css({
   display: 'none',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     display: 'flex',
     minHeight: '0',
     height: 'full',
@@ -573,7 +573,7 @@ const detailContentClass = css({
   gap: '0',
   pt: '10',
   pb: '24',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     height: 'full',
     minHeight: '0',
     overflowY: 'hidden',
@@ -588,7 +588,7 @@ const detailHeroClass = css({
   pb: '10',
   px: '4',
   borderBottom: '[1px solid var(--colors-border)]',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     pb: '8',
   },
 });
@@ -639,7 +639,7 @@ const imageBlockTallClass = css({
   width: 'full',
   height: '[24rem]',
   borderRadius: '2xl',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     height: '[34rem]',
   },
 });
@@ -648,7 +648,7 @@ const imageBlockMediumClass = css({
   width: 'full',
   height: '[16rem]',
   borderRadius: '2xl',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     height: '[22rem]',
   },
 });

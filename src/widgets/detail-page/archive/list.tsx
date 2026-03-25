@@ -18,13 +18,13 @@ type DetailArchiveListProps = {
 
 export const detailArchiveSidebarViewportClass = css({
   py: '7',
-  '@media (min-width: 961px)': {
+  _desktopUp: {
     flex: '[1 1 auto]',
     minHeight: '0',
     overflowY: 'auto',
     overscrollBehavior: 'contain',
   },
-  '@media (min-width: 1200px)': {
+  _largeDesktopUp: {
     py: '8',
   },
 });
@@ -86,7 +86,7 @@ const sidebarLinkClass = cva({
       outlineOffset: '[-2px]',
       background: 'surfaceMuted',
     },
-    '@media (min-width: 1200px)': {
+    _largeDesktopUp: {
       px: '5',
       py: '5',
     },

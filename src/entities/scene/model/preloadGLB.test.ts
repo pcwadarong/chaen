@@ -10,13 +10,13 @@ describe('preloadGLB', () => {
 
     expect(sceneModelPaths).toEqual([
       '/models/character.glb',
-      '/models/guitar.glb',
+      '/models/bass.glb',
       '/models/table.glb',
       '/models/sofa.glb',
     ]);
     expect(preload).toHaveBeenCalledTimes(4);
     expect(preload).toHaveBeenNthCalledWith(1, '/models/character.glb');
-    expect(preload).toHaveBeenNthCalledWith(2, '/models/guitar.glb');
+    expect(preload).toHaveBeenNthCalledWith(2, '/models/bass.glb');
     expect(preload).toHaveBeenNthCalledWith(3, '/models/table.glb');
     expect(preload).toHaveBeenNthCalledWith(4, '/models/sofa.glb');
   });

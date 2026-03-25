@@ -3,6 +3,8 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { viewportMediaQuery } from '@/shared/config/responsive';
+
 const MOBILE_LONG_PRESS_MS = 420;
 
 type UseManageGuestbookEntryActionMenuParams = {
@@ -22,7 +24,7 @@ const canUseLongPressActionMenu = () => {
 
   return (
     window.matchMedia('(pointer: coarse)').matches ||
-    window.matchMedia('(max-width: 720px)').matches
+    window.matchMedia(viewportMediaQuery.tabletDown).matches
   );
 };
 

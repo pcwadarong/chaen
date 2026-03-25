@@ -13,15 +13,12 @@ const preloadMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/entities/scene/model/preloadGLB', () => ({
   preloadSceneGlbs: (preload: (path: string) => void) => {
-    [
-      '/models/character.glb',
-      '/models/guitar.glb',
-      '/models/table.glb',
-      '/models/sofa.glb',
-    ].forEach(path => {
-      preload(path);
-      preloadMock(path);
-    });
+    ['/models/character.glb', '/models/bass.glb', '/models/table.glb', '/models/sofa.glb'].forEach(
+      path => {
+        preload(path);
+        preloadMock(path);
+      },
+    );
   },
 }));
 

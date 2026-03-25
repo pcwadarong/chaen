@@ -502,7 +502,7 @@ const mobilePaneTabListClass = css({
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
-  '@media (min-width: 761px)': {
+  _desktopUp: {
     display: 'none',
   },
 });
