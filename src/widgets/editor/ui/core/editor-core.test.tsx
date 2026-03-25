@@ -9,6 +9,11 @@ type MatchMediaController = {
   setMatches: (matches: boolean) => void;
 };
 
+const originalScrollToDescriptor = Object.getOwnPropertyDescriptor(
+  HTMLElement.prototype,
+  'scrollTo',
+);
+
 /**
  * 모바일 media query를 제어할 수 있는 간단한 테스트용 matchMedia mock입니다.
  */
@@ -16,9 +21,9 @@ const installMatchMediaMock = (initialMatches: boolean): MatchMediaController =>
   let matches = initialMatches;
   const listeners = new Set<(event: MediaQueryListEvent) => void>();
 
-  Object.defineProperty(window, 'matchMedia', {
-    configurable: true,
-    value: vi.fn().mockImplementation(() => ({
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockImplementation(() => ({
       addEventListener: (_eventName: string, listener: (event: MediaQueryListEvent) => void) => {
         listeners.add(listener);
       },
@@ -30,7 +35,7 @@ const installMatchMediaMock = (initialMatches: boolean): MatchMediaController =>
         listeners.delete(listener);
       },
     })),
-  });
+  );
 
   return {
     setMatches: nextMatches => {
@@ -100,14 +105,26 @@ const renderEditorCore = (options?: {
 
 describe('EditorCore', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
     vi.useRealTimers();
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: vi.fn(),
+      writable: true,
+    });
     installMatchMediaMock(false);
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
+
+    if (originalScrollToDescriptor) {
+      Object.defineProperty(HTMLElement.prototype, 'scrollTo', originalScrollToDescriptor);
+      return;
+    }
+
+    delete (HTMLElement.prototype as Partial<HTMLElement>).scrollTo;
   });
 
   it('locale 탭 전환 시 제목과 본문 상태가 서로 섞이지 않는다', async () => {

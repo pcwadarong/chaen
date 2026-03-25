@@ -28,8 +28,8 @@ vi.mock('./check-slug-duplicate', () => ({
 
 describe('editor-actions', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('draft 저장 시 publish settings를 drafts payload에 함께 저장한다', async () => {

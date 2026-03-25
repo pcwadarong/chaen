@@ -67,12 +67,12 @@ const renderPublishPanel = (
 
 describe('PublishPanel', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
     vi.mocked(optimizeThumbnailImageFile).mockImplementation(async (file: File) => file);
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('공개 설정은 공개와 비공개만 노출한다', async () => {
