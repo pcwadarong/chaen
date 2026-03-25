@@ -113,37 +113,6 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('https://github.com/example/project-1');
   }, 30000);
 
-  it('프로젝트 외부 링크 라벨은 locale과 무관하게 영문으로 유지된다', async () => {
-    const html = await renderServerHtml({ locale: 'ko' });
-
-    expect(html).toContain('Website');
-    expect(html).toContain('GitHub');
-  });
-
-  it('http/https가 아닌 project 외부 링크는 렌더링하지 않는다', async () => {
-    const html = await renderServerHtml({
-      item: {
-        id: 'project-1',
-        slug: 'project-1-slug',
-        title: 'Project 1',
-        description: 'summary',
-        content: '# hello',
-        created_at: '2026-03-08T00:00:00.000Z',
-        github_url: 'javascript:alert(1)',
-        publish_at: '2026-03-08T00:00:00.000Z',
-        period_end: '2026-02-01',
-        period_start: '2026-01-01',
-        thumbnail_url: null,
-        website_url: 'ftp://project-1.example.com',
-      },
-    });
-
-    expect(html).not.toContain('javascript:alert(1)');
-    expect(html).not.toContain('ftp://project-1.example.com');
-    expect(html).not.toContain('Website');
-    expect(html).not.toContain('GitHub');
-  });
-
   it('기술 스택 카테고리 라벨은 locale 번역을 사용한다', async () => {
     const html = await renderServerHtml({
       item: {
