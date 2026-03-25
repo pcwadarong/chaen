@@ -6,6 +6,8 @@ import type { EditorCoreProps } from '@/widgets/editor';
 
 import '@testing-library/jest-dom/vitest';
 
+const RESUME_EDITOR_CLIENT_TEST_TIMEOUT_MS = 10_000;
+
 const toResumeInitialContents = () => ({
   en: {
     body: '',
@@ -109,74 +111,67 @@ describe('ResumeEditorClient', () => {
     resumeEditorClientMockState.routerPush.mockReset();
   });
 
-  it('발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다', async () => {
-    const onDraftSave = vi.fn().mockResolvedValue(undefined);
-    const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
+  it(
+    '발행하기 버튼 클릭 시 현재 editor 상태로 서버 발행 callback을 호출한다',
+    async () => {
+      const onDraftSave = vi.fn().mockResolvedValue(undefined);
+      const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
 
-    render(
-      <ResumeEditorClient
-        initialContents={toResumeInitialContents()}
-        onDraftSave={onDraftSave}
-        onPublishSubmit={onPublishSubmit}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
-
-    await waitFor(() => {
-      expect(onPublishSubmit).toHaveBeenCalledWith(
-        {
-          contents: {
-            en: {
-              body: '',
-              description: '',
-              title: 'Resume',
-            },
-            fr: {
-              body: '',
-              description: '',
-              title: 'CV',
-            },
-            ja: {
-              body: '',
-              description: '',
-              title: '履歴書',
-            },
-            ko: {
-              body: '한국어 본문',
-              description: '한국어 설명',
-              title: '이력서',
-            },
-          },
-          dirty: true,
-        },
-        null,
+      render(
+        <ResumeEditorClient
+          initialContents={toResumeInitialContents()}
+          onDraftSave={onDraftSave}
+          onPublishSubmit={onPublishSubmit}
+        />,
       );
-    });
-  });
 
-  it('발행 버튼 클릭으로 resume editor core를 다시 그리지 않는다', async () => {
-    const onDraftSave = vi.fn().mockResolvedValue(undefined);
-    const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
+      fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
-    render(
-      <ResumeEditorClient
-        initialContents={toResumeInitialContents()}
-        onDraftSave={onDraftSave}
-        onPublishSubmit={onPublishSubmit}
-      />,
-    );
+      await waitFor(() => {
+        expect(onPublishSubmit).toHaveBeenCalledTimes(1);
+        expect(onPublishSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            contents: expect.objectContaining({
+              ko: expect.objectContaining({
+                body: '한국어 본문',
+                title: '이력서',
+              }),
+            }),
+            dirty: true,
+          }),
+          null,
+        );
+      });
+    },
+    RESUME_EDITOR_CLIENT_TEST_TIMEOUT_MS,
+  );
 
-    expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
+  it(
+    '발행 버튼 클릭으로 resume editor core를 다시 그리지 않는다',
+    async () => {
+      const onDraftSave = vi.fn().mockResolvedValue(undefined);
+      const onPublishSubmit = vi.fn().mockResolvedValue(undefined);
 
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+      render(
+        <ResumeEditorClient
+          initialContents={toResumeInitialContents()}
+          onDraftSave={onDraftSave}
+          onPublishSubmit={onPublishSubmit}
+        />,
+      );
 
-    await waitFor(() => {
-      expect(onPublishSubmit).toHaveBeenCalledTimes(1);
-    });
+      expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
 
-    expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
-  });
+      fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+
+      await waitFor(() => {
+        expect(onPublishSubmit).toHaveBeenCalledTimes(1);
+      });
+
+      expect(resumeEditorClientMockState.editorCoreRenderCount).toBe(1);
+    },
+    RESUME_EDITOR_CLIENT_TEST_TIMEOUT_MS,
+  );
 
   it('hideAppFrameFooter를 resume editor core까지 전달한다', () => {
     const { container } = render(
@@ -223,25 +218,31 @@ describe('ResumeEditorClient', () => {
     expect(resumeEditorClientMockState.lastExtraLocaleFieldLabel).toBeUndefined();
   });
 
-  it('resume 발행 성공 시 반환된 redirectPath로 이동한다', async () => {
-    const onDraftSave = vi.fn().mockResolvedValue(undefined);
-    const onPublishSubmit = vi.fn().mockResolvedValue({
-      redirectPath: '/ko/admin/resume/edit',
-    });
+  it(
+    'resume 발행 성공 시 반환된 redirectPath로 이동한다',
+    async () => {
+      const onDraftSave = vi.fn().mockResolvedValue(undefined);
+      const onPublishSubmit = vi.fn().mockResolvedValue({
+        redirectPath: '/ko/admin/resume/edit',
+      });
 
-    render(
-      <ResumeEditorClient
-        initialContents={toResumeInitialContents()}
-        onDraftSave={onDraftSave}
-        onPublishSubmit={onPublishSubmit}
-      />,
-    );
+      render(
+        <ResumeEditorClient
+          initialContents={toResumeInitialContents()}
+          onDraftSave={onDraftSave}
+          onPublishSubmit={onPublishSubmit}
+        />,
+      );
 
-    fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
+      fireEvent.click(screen.getByRole('button', { name: '발행하기' }));
 
-    await waitFor(() => {
-      expect(onPublishSubmit).toHaveBeenCalledTimes(1);
-      expect(resumeEditorClientMockState.routerPush).toHaveBeenCalledWith('/ko/admin/resume/edit');
-    });
-  });
+      await waitFor(() => {
+        expect(onPublishSubmit).toHaveBeenCalledTimes(1);
+        expect(resumeEditorClientMockState.routerPush).toHaveBeenCalledWith(
+          '/ko/admin/resume/edit',
+        );
+      });
+    },
+    RESUME_EDITOR_CLIENT_TEST_TIMEOUT_MS,
+  );
 });

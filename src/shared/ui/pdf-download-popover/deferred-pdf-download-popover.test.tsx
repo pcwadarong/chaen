@@ -5,13 +5,15 @@ import { vi } from 'vitest';
 import { DeferredPdfDownloadPopover } from '@/shared/ui/pdf-download-popover/deferred-pdf-download-popover';
 
 describe('DeferredPdfDownloadPopover', () => {
-  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     consoleErrorSpy.mockRestore();
   });
 

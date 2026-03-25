@@ -53,3 +53,44 @@ const createTimestamp = () => new Date().toISOString();
  */
 export const resolveSavedAt = (result: DraftSaveResult | void) =>
   result?.savedAt ?? createTimestamp();
+
+type EditorSaveStatusLabelParams = {
+  dirty: boolean;
+  formatSavedAtLabel: (savedAt: string | null) => string | null;
+  isSaving: boolean;
+  lastSavedAt: string | null;
+};
+
+type EditorAutosaveEligibilityParams = {
+  canSave: boolean;
+  dirty: boolean;
+  enableAutosave: boolean;
+  hasDraftSaveHandler: boolean;
+};
+
+/**
+ * 저장 상태 배지에 노출할 문구를 현재 편집 상태 기준으로 계산합니다.
+ */
+export const getEditorSaveStatusLabel = ({
+  dirty,
+  formatSavedAtLabel,
+  isSaving,
+  lastSavedAt,
+}: EditorSaveStatusLabelParams) => {
+  if (isSaving) return '저장 중...';
+  if (dirty) return '변경사항 있음';
+
+  const formattedSavedAt = formatSavedAtLabel(lastSavedAt);
+
+  return formattedSavedAt ? `저장됨 ${formattedSavedAt}` : '';
+};
+
+/**
+ * autosave 타이머를 걸어도 되는 최소 조건을 한곳에서 판단합니다.
+ */
+export const shouldScheduleEditorAutosave = ({
+  canSave,
+  dirty,
+  enableAutosave,
+  hasDraftSaveHandler,
+}: EditorAutosaveEligibilityParams) => enableAutosave && hasDraftSaveHandler && dirty && canSave;

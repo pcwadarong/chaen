@@ -1,14 +1,22 @@
+// @vitest-environment node
+
+import getRequestConfig from '@/i18n/request';
+
 vi.mock('next-intl/server', () => ({
   getRequestConfig: (callback: (...args: never[]) => unknown) => callback,
 }));
 
+/**
+ * 요청 locale 값을 주면 next-intl request config 결과를 반환합니다.
+ */
+const readRequestConfig = (locale?: string) =>
+  getRequestConfig({
+    requestLocale: Promise.resolve(locale),
+  } as never);
+
 describe('request', () => {
   it('유효한 locale 요청이면 해당 locale과 메시지를 반환한다', async () => {
-    const { default: getRequestConfig } = await import('@/i18n/request');
-
-    const result = await getRequestConfig({
-      requestLocale: Promise.resolve('ja'),
-    } as never);
+    const result = await readRequestConfig('ja');
     const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ja');
@@ -16,11 +24,7 @@ describe('request', () => {
   });
 
   it('locale 요청이 없으면 기본 locale과 메시지를 반환한다', async () => {
-    const { default: getRequestConfig } = await import('@/i18n/request');
-
-    const result = await getRequestConfig({
-      requestLocale: Promise.resolve(undefined),
-    } as never);
+    const result = await readRequestConfig();
     const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ko');
@@ -28,11 +32,7 @@ describe('request', () => {
   });
 
   it('지원하지 않는 locale 요청이면 기본 locale로 되돌린다', async () => {
-    const { default: getRequestConfig } = await import('@/i18n/request');
-
-    const result = await getRequestConfig({
-      requestLocale: Promise.resolve('jp'),
-    } as never);
+    const result = await readRequestConfig('jp');
     const messages = result.messages as { Navigation: { home: string } };
 
     expect(result.locale).toBe('ko');

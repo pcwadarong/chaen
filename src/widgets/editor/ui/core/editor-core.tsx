@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { css, cva } from 'styled-system/css';
 
-import { EDITOR_ERROR_MESSAGE, parseEditorError } from '@/entities/editor/model/editor-error';
 import { buildEditorLinkInsertion } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
@@ -33,15 +32,12 @@ import {
 } from '@/widgets/editor/ui/core/editor-core.utils';
 import {
   buildEditorStateSnapshot,
-  createSaveErrorToast,
-  resolveSavedAt,
+  getEditorSaveStatusLabel,
 } from '@/widgets/editor/ui/core/editor-core-state';
-import { rememberTextareaScroll } from '@/widgets/editor/ui/core/editor-core-textarea';
 import { EditorLocalePanel } from '@/widgets/editor/ui/core/editor-locale-panel';
+import { useEditorLocaleState } from '@/widgets/editor/ui/core/use-editor-locale-state';
+import { useEditorSubmitActions } from '@/widgets/editor/ui/core/use-editor-submit-actions';
 import { useIsMobileEditorLayout } from '@/widgets/editor/ui/core/use-mobile-editor-layout';
-
-const AUTOSAVE_DELAY_MS = 180_000;
-type SaveSource = 'autosave' | 'manual';
 
 /**
  * locale별 textarea 편집 상호작용을 구성합니다.
@@ -64,56 +60,34 @@ export const EditorCore = ({
   publishButtonLabel = '발행하기',
   publishPendingLabel = '발행 중...',
 }: EditorCoreProps) => {
-  const [activeLocale, setActiveLocale] = useState<Locale>('ko');
+  const initialSnapshot = useMemo(
+    () =>
+      buildEditorStateSnapshot({
+        dirty: false,
+        slug: initialSlug,
+        tags: initialTags,
+        translations: {
+          ...createEmptyTranslations(),
+          ...initialTranslations,
+        },
+      }),
+    [initialSlug, initialTags, initialTranslations],
+  );
   const [mobileEditorPane, setMobileEditorPane] = useState<MobileEditorPane>('edit');
   const [slug] = useState(initialSlug);
   const [selectedTags, setSelectedTags] = useState(initialTags);
-  const [translations, setTranslations] = useState(
-    buildEditorStateSnapshot({
-      dirty: false,
-      slug: initialSlug,
-      tags: initialTags,
-      translations: {
-        ...createEmptyTranslations(),
-        ...initialTranslations,
-      },
-    }).translations,
-  );
-  const [savedState, setSavedState] = useState<EditorState>(() =>
-    buildEditorStateSnapshot({
-      dirty: false,
-      slug: initialSlug,
-      tags: initialTags,
-      translations: {
-        ...createEmptyTranslations(),
-        ...initialTranslations,
-      },
-    }),
-  );
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishingDirectly, setIsPublishingDirectly] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(initialSavedAt);
-  const [toastItems, setToastItems] = useState<ToastItem[]>([]);
-  const saveRequestIdRef = useRef(0);
-  const scrollTopByLocaleRef = useRef<Record<Locale, number>>({
-    en: 0,
-    fr: 0,
-    ja: 0,
-    ko: 0,
+  const {
+    activeLocale,
+    handleLocaleChange,
+    handleTextareaScroll,
+    textareaRefs,
+    translations,
+    updateTranslationField,
+  } = useEditorLocaleState({
+    initialTranslations: initialSnapshot.translations,
   });
-  const enTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const frTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const jaTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const koTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const textareaRefs = useMemo(
-    () => ({
-      en: enTextareaRef,
-      fr: frTextareaRef,
-      ja: jaTextareaRef,
-      ko: koTextareaRef,
-    }),
-    [],
-  );
+  const [savedState, setSavedState] = useState<EditorState>(initialSnapshot);
+  const [toastItems, setToastItems] = useState<ToastItem[]>([]);
   const isMobileLayout = useIsMobileEditorLayout();
   const markdownOptions = useMemo(() => getMarkdownOptions(), []);
 
@@ -134,14 +108,6 @@ export const EditorCore = ({
   const validationResult = useMemo(() => validateEditorState(translations), [translations]);
   const activeLocaleHasTitleError =
     validationResult.localeValidation[activeLocale].hasContentWithoutTitle;
-  const saveStatusLabel = useMemo(() => {
-    if (isSaving) return '저장 중...';
-    if (dirty) return '변경사항 있음';
-
-    const formattedSavedAt = formatSavedAtLabel(lastSavedAt);
-
-    return formattedSavedAt ? `저장됨 ${formattedSavedAt}` : '';
-  }, [dirty, isSaving, lastSavedAt]);
 
   /**
    * dirty 상태에서만 페이지 이탈 경고를 연결합니다.
@@ -162,17 +128,6 @@ export const EditorCore = ({
   }, [dirty]);
 
   /**
-   * active locale을 다시 열 때 직전 scrollTop을 복원합니다.
-   */
-  useEffect(() => {
-    const textarea = textareaRefs[activeLocale].current;
-
-    if (!textarea) return;
-
-    textarea.scrollTop = scrollTopByLocaleRef.current[activeLocale];
-  }, [activeLocale, textareaRefs]);
-
-  /**
    * 데스크톱으로 돌아오면 모바일 pane 상태를 기본값으로 정리합니다.
    */
   useEffect(() => {
@@ -190,108 +145,33 @@ export const EditorCore = ({
   const closeToast = useCallback((id: string) => {
     setToastItems(previous => previous.filter(item => item.id !== id));
   }, []);
-
-  /**
-   * locale별 번역 필드를 변경하되 값이 같으면 기존 객체를 재사용합니다.
-   */
-  const updateTranslationField = useCallback(
-    (locale: Locale, field: keyof EditorState['translations'][Locale], value: string) => {
-      setTranslations(previous => {
-        if (previous[locale][field] === value) return previous;
-
-        return {
-          ...previous,
-          [locale]: {
-            ...previous[locale],
-            [field]: value,
-          },
-        };
-      });
-    },
-    [],
-  );
-
-  /**
-   * 현재 편집 상태가 저장 가능한지 확인하고, 실패 시 필요한 피드백을 적용합니다.
-   */
-  const ensureSavable = useCallback(
-    (source: SaveSource) => {
-      if (validationResult.canSave) return true;
-
-      if (source === 'manual') {
-        pushToast(
-          createSaveErrorToast(`저장하려면 ${EDITOR_ERROR_MESSAGE.missingCompleteTranslation}`),
-        );
-      }
-
-      return false;
-    },
-    [pushToast, validationResult.canSave],
-  );
-
-  /**
-   * manual/autosave 모두 같은 저장 경로를 사용합니다.
-   */
-  const runDraftSave = useCallback(
-    async (source: SaveSource) => {
-      if (!onDraftSave || !ensureSavable(source)) return;
-
-      const requestId = ++saveRequestIdRef.current;
-      const requestState = buildEditorStateSnapshot({
+  const { handleManualSave, handlePublishAction, isPublishingDirectly, isSaving, lastSavedAt } =
+    useEditorSubmitActions({
+      currentState: {
         dirty,
         slug,
         tags: selectedTags,
         translations,
-      });
-
-      setIsSaving(true);
-
-      try {
-        const result = await onDraftSave(requestState);
-
-        if (saveRequestIdRef.current !== requestId) return;
-
-        setSavedState({ ...requestState, dirty: false });
-        setLastSavedAt(resolveSavedAt(result));
-      } catch (error) {
-        if (saveRequestIdRef.current !== requestId) return;
-
-        const parsedError = parseEditorError(error, 'draftSaveFailed');
-        pushToast(createSaveErrorToast(parsedError.message));
-      } finally {
-        if (saveRequestIdRef.current === requestId) {
-          setIsSaving(false);
-        }
-      }
-    },
-    [dirty, ensureSavable, onDraftSave, pushToast, selectedTags, slug, translations],
-  );
-
-  /**
-   * autosave 기준을 만족하면 마지막 입력 후 180초 뒤 draft save를 실행합니다.
-   */
-  useEffect(() => {
-    if (!enableAutosave || !onDraftSave || !dirty) return;
-    if (!validationResult.canSave) return;
-
-    const timeoutId = window.setTimeout(() => {
-      void runDraftSave('autosave');
-    }, AUTOSAVE_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [dirty, enableAutosave, onDraftSave, runDraftSave, validationResult.canSave]);
-
-  /**
-   * locale 전환 전 현재 textarea scrollTop을 저장합니다.
-   */
-  const handleLocaleChange = useCallback(
-    (nextLocale: Locale) => {
-      rememberTextareaScroll(activeLocale, scrollTopByLocaleRef, textareaRefs);
-      setActiveLocale(nextLocale);
-    },
-    [activeLocale, textareaRefs],
+      },
+      enableAutosave,
+      initialSavedAt,
+      onDirectPublish,
+      onDirectPublishError,
+      onDraftSave,
+      onOpenPublishPanel,
+      onSavedStateChange: setSavedState,
+      pushToast,
+      validationCanSave: validationResult.canSave,
+    });
+  const saveStatusLabel = useMemo(
+    () =>
+      getEditorSaveStatusLabel({
+        dirty,
+        formatSavedAtLabel,
+        isSaving,
+        lastSavedAt,
+      }),
+    [dirty, isSaving, lastSavedAt],
   );
 
   /**
@@ -386,55 +266,6 @@ export const EditorCore = ({
     },
     [handleContentChange],
   );
-  const handleTextareaScroll = useCallback((locale: Locale, scrollTop: number) => {
-    scrollTopByLocaleRef.current[locale] = scrollTop;
-  }, []);
-  const handleManualSave = useCallback(() => {
-    void runDraftSave('manual');
-  }, [runDraftSave]);
-  const handlePublishAction = useCallback(async () => {
-    const snapshot = buildEditorStateSnapshot({
-      dirty,
-      slug,
-      tags: selectedTags,
-      translations,
-    });
-
-    if (onDirectPublish) {
-      if (!ensureSavable('manual')) return;
-
-      setIsPublishingDirectly(true);
-
-      try {
-        await onDirectPublish(snapshot);
-      } catch (error) {
-        pushToast(
-          createSaveErrorToast(
-            onDirectPublishError
-              ? onDirectPublishError(error)
-              : parseEditorError(error, 'publishFailed').message,
-          ),
-        );
-      } finally {
-        setIsPublishingDirectly(false);
-      }
-
-      return;
-    }
-
-    onOpenPublishPanel?.(snapshot);
-  }, [
-    dirty,
-    ensureSavable,
-    onDirectPublish,
-    onDirectPublishError,
-    onOpenPublishPanel,
-    pushToast,
-    selectedTags,
-    slug,
-    translations,
-  ]);
-
   return (
     <section
       className={rootClass}

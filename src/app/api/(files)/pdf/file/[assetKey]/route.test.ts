@@ -13,14 +13,14 @@ vi.mock('@/entities/pdf-file/api/get-pdf-file-url', () => ({
 }));
 
 describe('api/pdf/file/[assetKey] route', () => {
-  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  afterAll(() => {
-    consoleErrorSpy.mockRestore();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('지원하는 자산 키면 signed URL로 리다이렉트한다', async () => {

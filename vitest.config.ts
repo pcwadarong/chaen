@@ -30,6 +30,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    maxWorkers: 1,
+    clearMocks: true,
+    unstubGlobals: true,
+    unstubEnvs: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
