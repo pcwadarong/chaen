@@ -28,7 +28,15 @@ type UseScrollTimelineResult = {
   readonly isScrollDriven: boolean;
 };
 
+type ScrollTimelineUiState = {
+  readonly isCloseupCostumeHidden: boolean;
+  readonly isMonitorOverlayVisible: boolean;
+  readonly isScrollDriven: boolean;
+  readonly isSequenceActive: boolean;
+};
+
 const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
+const DESKTOP_SCROLL_SCRUB_DURATION = 0.2;
 const WEB_UI_INTERACTIVE_THRESHOLD = 0.96;
 
 /**
@@ -86,6 +94,12 @@ export const useScrollTimeline = ({
     }),
   );
   const isScrollDrivenRef = useRef(false);
+  const uiStateRef = useRef<ScrollTimelineUiState>({
+    isCloseupCostumeHidden: false,
+    isMonitorOverlayVisible: false,
+    isScrollDriven: false,
+    isSequenceActive: false,
+  });
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrollDriven, setIsScrollDriven] = useState(false);
   const [isMonitorOverlayVisible, setIsMonitorOverlayVisible] = useState(false);
@@ -97,11 +111,40 @@ export const useScrollTimeline = ({
     const applySnapshot = (nextSnapshot: ScrollTimelineSnapshot) => {
       snapshotRef.current = nextSnapshot;
       syncOverlayState(blackoutOverlayElement, webUiElement, nextSnapshot);
-      setIsCloseupCostumeHidden(nextSnapshot.isCloseupCostumeHidden);
-      setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
+
+      if (uiStateRef.current.isCloseupCostumeHidden !== nextSnapshot.isCloseupCostumeHidden) {
+        uiStateRef.current = {
+          ...uiStateRef.current,
+          isCloseupCostumeHidden: nextSnapshot.isCloseupCostumeHidden,
+        };
+        setIsCloseupCostumeHidden(nextSnapshot.isCloseupCostumeHidden);
+      }
+
+      if (uiStateRef.current.isMonitorOverlayVisible !== nextSnapshot.isMonitorOverlayVisible) {
+        uiStateRef.current = {
+          ...uiStateRef.current,
+          isMonitorOverlayVisible: nextSnapshot.isMonitorOverlayVisible,
+        };
+        setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
+      }
+
       isScrollDrivenRef.current = nextSnapshot.isScrollDriven;
-      setIsScrollDriven(nextSnapshot.isScrollDriven);
-      onScrollStateChange?.(nextSnapshot.isSequenceActive);
+
+      if (uiStateRef.current.isScrollDriven !== nextSnapshot.isScrollDriven) {
+        uiStateRef.current = {
+          ...uiStateRef.current,
+          isScrollDriven: nextSnapshot.isScrollDriven,
+        };
+        setIsScrollDriven(nextSnapshot.isScrollDriven);
+      }
+
+      if (uiStateRef.current.isSequenceActive !== nextSnapshot.isSequenceActive) {
+        uiStateRef.current = {
+          ...uiStateRef.current,
+          isSequenceActive: nextSnapshot.isSequenceActive,
+        };
+        onScrollStateChange?.(nextSnapshot.isSequenceActive);
+      }
     };
 
     if (!enabled || !triggerRef.current) {
@@ -139,10 +182,11 @@ export const useScrollTimeline = ({
 
       gsap.registerPlugin(ScrollTrigger);
       scrollTriggerInstance = ScrollTrigger.create({
+        anticipatePin: 1,
         end: '+=300%',
         invalidateOnRefresh: true,
         pin: triggerRef.current,
-        scrub: 1,
+        scrub: DESKTOP_SCROLL_SCRUB_DURATION,
         scroller,
         start: 'top top',
         trigger: triggerRef.current,
