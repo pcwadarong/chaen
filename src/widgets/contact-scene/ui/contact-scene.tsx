@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
-import { css } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
@@ -15,27 +15,36 @@ const ContactSceneCanvas = dynamic(
   { ssr: false, loading: () => null },
 );
 
-/** 데스크탑에서는 R3F 캔버스와 ContactStrip을 합쳐 렌더링합니다. 모바일에서는 ContactStrip만 표시합니다. */
+/** 데스크탑에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
-  const { sceneMode } = useBreakpoint();
+  const { currentBP, sceneMode } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // SSR과 hydration 시점엔 canvas를 렌더하지 않아 서버/클라이언트 구조를 일치시킨다.
-  const shouldRenderCanvas = isMounted && sceneMode === 'desktop';
+  const shouldRenderDesktopScene = isMounted && sceneMode === 'desktop';
+  const isDesktopSmall = currentBP === 3;
+
+  if (!shouldRenderDesktopScene) {
+    return null;
+  }
 
   return (
     <div className={wrapperClass}>
-      {shouldRenderCanvas ? (
-        <div aria-hidden="true" className={canvasFrameClass}>
-          <ContactSceneCanvas />
-        </div>
-      ) : null}
+      <div aria-hidden="true" className={canvasFrameClass}>
+        <ContactSceneCanvas currentBP={currentBP} />
+      </div>
       <div className={overlayClass}>
-        <ContactStrip />
+        <div
+          className={cx(
+            overlayInnerClass,
+            isDesktopSmall ? overlayInnerDesktopSmallClass : undefined,
+          )}
+        >
+          <ContactStrip className={desktopStripClass} variant="desktop" />
+        </div>
       </div>
     </div>
   );
@@ -44,17 +53,46 @@ export const ContactScene = () => {
 const wrapperClass = css({
   position: 'relative',
   width: 'full',
-  minHeight: '[clamp(22rem, 50svh, 36rem)]',
+  overflow: 'clip',
+  minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
+  _desktopUp: {
+    minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
+  },
 });
 
 const canvasFrameClass = css({
   position: 'absolute',
   inset: '0',
   pointerEvents: 'none',
+  zIndex: '1',
 });
 
 const overlayClass = css({
   position: 'relative',
-  zIndex: '1',
+  zIndex: '2',
   width: 'full',
+  minHeight: '[inherit]',
+});
+
+const overlayInnerClass = css({
+  width: 'full',
+  maxWidth: 'contentWide',
+  mx: 'auto',
+  minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
+  display: 'grid',
+  gridTemplateColumns: '[minmax(26rem, 34rem) minmax(0, 1fr)]',
+  alignItems: 'center',
+  columnGap: '[clamp(2rem, 6vw, 5rem)]',
+  px: '4',
+});
+
+const overlayInnerDesktopSmallClass = css({
+  paddingLeft: '8',
+  paddingRight: '5',
+});
+
+const desktopStripClass = css({
+  gridColumn: '1',
+  justifySelf: 'start',
+  width: 'auto',
 });

@@ -272,14 +272,14 @@
   },
   "Contact": {
     "emailLabel": "Email",
-    "emailValue": "pcwadarong@naver.com",
     "focusLabel": "Focus",
     "focusValue": "Frontend Development",
     "githubLabel": "Github",
-    "githubValue": "https://github.com/pcwadarong",
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
-    "title": "Let's connect and create meaningful experiences."
+    "title": "Let's connect and create meaningful experiences.",
+    "titleLine1": "Let's connect and create",
+    "titleLine2": "meaningful experiences."
   },
   "Switchers": {
     "locale": {

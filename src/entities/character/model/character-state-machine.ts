@@ -144,6 +144,6 @@ const configureActionLoop = (action: AnimationAction, state: CharacterAnimState)
  * contact의 music loop는 조금 더 여유 있게 반복되도록 기본 배속보다 느리게 유지합니다.
  */
 const resolveActionTimeScale = (state: CharacterAnimState): number => {
-  if (state === 'music') return 0.78;
+  if (state === 'music') return 0.4;
   return 1;
 };

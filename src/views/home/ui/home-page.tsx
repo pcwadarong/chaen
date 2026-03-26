@@ -26,4 +26,5 @@ const pageClass = css({
   width: 'full',
   display: 'grid',
   gap: '0',
+  overflowX: 'clip',
 });

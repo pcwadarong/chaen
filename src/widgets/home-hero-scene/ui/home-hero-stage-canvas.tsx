@@ -9,13 +9,17 @@ import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
-import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
 import {
   getHomeHeroSceneLayout,
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
+import {
+  HOME_HERO_STAGE_BACKGROUND,
+  HomeHeroCharacterSeatSet,
+  HomeHeroStageLights,
+} from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
@@ -63,8 +67,8 @@ export const HomeHeroStageCanvas = ({
         setCanvasElement(gl.domElement);
       }}
     >
-      <color args={['#5d5bff']} attach="background" />
-      <HomeHeroLights />
+      <color args={[HOME_HERO_STAGE_BACKGROUND]} attach="background" />
+      <HomeHeroStageLights />
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
@@ -84,23 +88,6 @@ export const HomeHeroStageCanvas = ({
     </Canvas>
   );
 };
-
-/**
- * 홈 히어로 장면의 기본 조명을 역할별로 분리합니다.
- */
-const HomeHeroLights = () => (
-  <>
-    <ambientLight color="#f8f4ff" intensity={1.5} />
-    <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
-    <pointLight
-      color="#fff8e8"
-      decay={1.5}
-      distance={15}
-      intensity={4}
-      position={[1.1, 1.9, 7.2]}
-    />
-  </>
-);
 
 /**
  * breakpoint와 스크롤 상태에 따라 기본 카메라와 Orbit 제어를 전환합니다.
@@ -167,12 +154,7 @@ const HomeHeroSceneObjects = ({
   readonly sceneLayout: HomeHeroSceneLayout;
 }) => (
   <group position={[0, -2.4, 0]}>
-    <HomeHeroCharacter
-      instance="main"
-      isCloseupCostumeHidden={isCloseupCostumeHidden}
-      position={[0, 0, 0]}
-    />
-    <SceneProp path="/models/sofa.glb" position={[0, 0, -1]} />
+    <HomeHeroCharacterSeatSet instance="main" isCloseupCostumeHidden={isCloseupCostumeHidden} />
     <SceneProp
       path="/models/bass.glb"
       position={[...sceneLayout.bassPosition]}

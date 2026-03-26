@@ -1,41 +1,86 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
-import React, { Suspense } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import React, { Suspense, useEffect } from 'react';
 
-import { SceneProp } from '@/entities/scene/ui/scene-prop';
-import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
+import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
+  type Vector3Tuple,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
+import {
+  HomeHeroCharacterSeatSet,
+  HomeHeroStageLights,
+} from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
+
+type ContactCameraPreset = Readonly<{
+  lookAt: Vector3Tuple;
+  position: Vector3Tuple;
+}>;
+
+const CONTACT_CAMERA_PRESETS = {
+  desktopLarge: {
+    lookAt: [-1.3, 0, 0],
+    position: [0, 1, 10],
+  },
+  desktopSmall: {
+    lookAt: [-1.6, 0, 0],
+    position: [0, 1, 13],
+  },
+} as const satisfies Readonly<Record<'desktopLarge' | 'desktopSmall', ContactCameraPreset>>;
+
+/**
+ * 현재 desktop breakpoint에 맞는 contact 카메라 preset을 반환합니다.
+ */
+const getContactCameraPreset = (currentBP: SceneBreakpoint): ContactCameraPreset =>
+  currentBP === 3 ? CONTACT_CAMERA_PRESETS.desktopSmall : CONTACT_CAMERA_PRESETS.desktopLarge;
+
+/** contact scene의 카메라를 좌측으로 옮겨 캐릭터가 우측 프레임에 오도록 정렬합니다. */
+const ContactSceneCameraRig = ({ currentBP }: { readonly currentBP: SceneBreakpoint }) => {
+  const { camera } = useThree();
+  const cameraPreset = getContactCameraPreset(currentBP);
+
+  useEffect(() => {
+    camera.position.set(
+      cameraPreset.position[0],
+      cameraPreset.position[1],
+      cameraPreset.position[2],
+    );
+    camera.lookAt(...cameraPreset.lookAt);
+    camera.updateMatrixWorld();
+  }, [camera, cameraPreset]);
+
+  return null;
+};
 
 /** 데스크탑 contact 영역의 정적 3D 씬입니다. hero 초기 카메라 위치를 그대로 사용합니다. */
-export const ContactSceneCanvas = () => (
-  <Canvas
-    camera={{
-      far: HOME_HERO_CAMERA_FAR,
-      fov: 45,
-      near: HOME_HERO_CAMERA_NEAR,
-      position: [0, 0.75, 8.9],
-    }}
-    dpr={[1, 2]}
-    gl={{ alpha: true, antialias: true }}
-  >
-    <ambientLight color="#f8f4ff" intensity={1.5} />
-    <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
-    <pointLight
-      color="#fff8e8"
-      decay={1.5}
-      distance={15}
-      intensity={4}
-      position={[1.1, 1.9, 7.2]}
-    />
-    <Suspense fallback={null}>
-      <group position={[0, -2.4, 0]}>
-        <HomeHeroCharacter instance="contact" position={[0, 0, 0]} />
-        <SceneProp path="/models/sofa.glb" position={[0, 0, -1]} />
-      </group>
-    </Suspense>
-  </Canvas>
-);
+export const ContactSceneCanvas = ({ currentBP }: { readonly currentBP: SceneBreakpoint }) => {
+  const cameraPreset = getContactCameraPreset(currentBP);
+
+  return (
+    <Canvas
+      camera={{
+        far: HOME_HERO_CAMERA_FAR,
+        fov: 42,
+        near: HOME_HERO_CAMERA_NEAR,
+        position: cameraPreset.position,
+      }}
+      dpr={[1, 2]}
+      gl={{ alpha: true, antialias: true }}
+      shadows
+    >
+      <ContactSceneCameraRig currentBP={currentBP} />
+      <HomeHeroStageLights />
+      <Suspense fallback={null}>
+        <group position={[0, -2.4, 0]}>
+          <HomeHeroCharacterSeatSet instance="contact" />
+          <mesh receiveShadow position={[1.2, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[18, 18]} />
+            <shadowMaterial color={'#7d7362'} opacity={0.18} transparent />
+          </mesh>
+        </group>
+      </Suspense>
+    </Canvas>
+  );
+};

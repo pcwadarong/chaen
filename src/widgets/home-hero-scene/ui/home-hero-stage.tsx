@@ -44,7 +44,7 @@ const stageFrameClass = css({
   overflow: 'hidden',
   backgroundColor: '[#5d5bff]',
   border: '[1px solid var(--colors-border)]',
-  boxShadow: '[inset 0 1px 0 rgb(255 255 255 / 0.3)]',
+  boxShadow: 'floating',
 });
 
 const stageFallbackClass = css({

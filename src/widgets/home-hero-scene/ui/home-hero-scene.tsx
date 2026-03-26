@@ -6,6 +6,7 @@ import { css } from 'styled-system/css';
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
+import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
 import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
@@ -33,6 +34,7 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
           triggerRef={sectionRef}
           webUiRef={webUiRef}
         />
+        <HomeHeroContactButtons />
         <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
       </div>
@@ -49,6 +51,7 @@ const sectionClass = css({
   width: 'full',
   boxSizing: 'border-box',
   height: '[calc(var(--home-hero-viewport-height, 100svh) - var(--global-nav-height, 0px))]',
+  overflowX: 'clip',
   _desktopUp: {
     marginTop: '[calc(-1 * var(--global-nav-height, 0px))]',
     height:
