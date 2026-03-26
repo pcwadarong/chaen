@@ -269,7 +269,9 @@ const skeletonBlockClass = css({
 });
 
 const pageShellClass = css({
-  width: '[min(980px, 100%)]',
+  width: 'full',
+  maxWidth: 'contentDefault',
+  boxSizing: 'border-box',
   mx: 'auto',
   px: '4',
   pt: '12',
@@ -279,7 +281,9 @@ const pageShellClass = css({
 });
 
 const resumeShellClass = css({
-  width: '[min(820px, 100%)]',
+  width: 'full',
+  maxWidth: 'contentCompact',
+  boxSizing: 'border-box',
   mx: 'auto',
   px: '4',
   pt: '12',
@@ -445,7 +449,9 @@ const resumeBodyClass = css({
 });
 
 const guestPageShellClass = css({
-  width: '[min(820px, 100%)]',
+  width: 'full',
+  maxWidth: 'contentCompact',
+  boxSizing: 'border-box',
   mx: 'auto',
   minHeight: '[calc(100vh - 5.5rem)]',
   px: '4',

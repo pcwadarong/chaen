@@ -10,11 +10,10 @@ const buildMaxWidthMediaQuery = (width: number): `(max-width: ${number}px)` =>
  */
 export const VIEWPORT_BREAKPOINTS = {
   mobileSmallMax: 480,
-  mobileLargeMax: 640,
+  mobileLargeMax: 768,
   tabletMax: 960,
   desktopMin: 961,
-  desktopMax: 1200,
-  largeDesktopMin: 1201,
+  desktopMax: 1280,
 } as const;
 
 /**
@@ -28,7 +27,6 @@ export const viewportMediaQuery = {
   tabletDown: buildMaxWidthMediaQuery(VIEWPORT_BREAKPOINTS.tabletMax),
   desktopUp: buildMinWidthMediaQuery(VIEWPORT_BREAKPOINTS.desktopMin),
   desktopDown: buildMaxWidthMediaQuery(VIEWPORT_BREAKPOINTS.desktopMax),
-  largeDesktopUp: buildMinWidthMediaQuery(VIEWPORT_BREAKPOINTS.largeDesktopMin),
 } as const;
 
 /**

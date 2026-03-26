@@ -30,8 +30,11 @@ const ProjectDetailError = ({ error, reset }: ProjectDetailErrorProps) => {
 };
 
 const pageClass = css({
-  width: '[min(1120px, calc(100% - 2rem))]',
+  width: 'full',
+  maxWidth: 'contentWide',
+  boxSizing: 'border-box',
   mx: 'auto',
+  px: '4',
   pt: '12',
   pb: '20',
 });

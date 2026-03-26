@@ -325,8 +325,8 @@ const fixedFormClass = css({
   _desktopUp: {
     left: '[50%]',
     right: '[auto]',
-    width:
-      '[calc(var(--app-frame-width, min(1280px, calc(100vw - 2.5rem))) - var(--app-scrollbar-size, 10px))]',
+    width: '[calc(100vw - 2.5rem - var(--app-scrollbar-size, 10px))]',
+    maxWidth: '[calc(var(--sizes-app-frame-max) - var(--app-scrollbar-size, 10px))]',
     transform: '[translateX(calc(-50% - (var(--app-scrollbar-size, 10px) / 2)))]',
     borderBottomLeftRadius: '[var(--app-frame-radius, 2rem)]',
     borderBottomRightRadius: '[var(--app-frame-radius, 2rem)]',

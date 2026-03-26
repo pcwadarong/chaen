@@ -24,9 +24,6 @@ export const detailArchiveSidebarViewportClass = css({
     overflowY: 'auto',
     overscrollBehavior: 'contain',
   },
-  _largeDesktopUp: {
-    py: '8',
-  },
 });
 
 /**
@@ -85,10 +82,6 @@ const sidebarLinkClass = cva({
       outline: '[2px solid var(--colors-focus-ring)]',
       outlineOffset: '[-2px]',
       background: 'surfaceMuted',
-    },
-    _largeDesktopUp: {
-      px: '5',
-      py: '5',
     },
   },
   variants: {

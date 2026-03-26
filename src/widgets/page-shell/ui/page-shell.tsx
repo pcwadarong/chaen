@@ -71,7 +71,9 @@ export const PageSection = ({ children, title, titleId }: PageSectionProps) => (
 
 const pageShellClass = cva({
   base: {
+    width: 'full',
     mx: 'auto',
+    boxSizing: 'border-box',
     px: '4',
     pt: '12',
     pb: '20',
@@ -81,10 +83,10 @@ const pageShellClass = cva({
   variants: {
     width: {
       compact: {
-        width: '[min(820px, 100%)]',
+        maxWidth: 'contentCompact',
       },
       default: {
-        width: '[min(980px, 100%)]',
+        maxWidth: 'contentDefault',
       },
     },
   },

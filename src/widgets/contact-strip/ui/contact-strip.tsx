@@ -46,7 +46,9 @@ export const ContactStrip = () => {
 };
 
 const sectionClass = css({
-  width: '[min(1120px, 100%)]',
+  width: 'full',
+  maxWidth: 'contentWide',
+  boxSizing: 'border-box',
   mx: 'auto',
   minHeight: '[clamp(22rem, 50svh, 36rem)]',
   display: 'flex',
