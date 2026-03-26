@@ -32,6 +32,7 @@ export const HomeHeroStageCanvas = ({
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
@@ -67,6 +68,7 @@ export const HomeHeroStageCanvas = ({
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
+        onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
         sceneMode={sceneMode}
@@ -74,7 +76,10 @@ export const HomeHeroStageCanvas = ({
         webUiRef={webUiRef}
       />
       <Suspense fallback={null}>
-        <HomeHeroSceneObjects sceneLayout={sceneLayout} />
+        <HomeHeroSceneObjects
+          isCloseupCostumeHidden={isCloseupCostumeHidden}
+          sceneLayout={sceneLayout}
+        />
       </Suspense>
     </Canvas>
   );
@@ -103,6 +108,7 @@ const HomeHeroLights = () => (
 const HomeHeroCameraRig = ({
   blackoutOverlayRef,
   currentBP,
+  onCloseupCostumeHiddenChange,
   onScrollStateChange,
   sceneLayout,
   sceneMode,
@@ -111,13 +117,14 @@ const HomeHeroCameraRig = ({
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
+  readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: 'desktop' | 'mobile';
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { isScrollDriven } = useHomeHeroSceneTransition({
+  const { isCloseupCostumeHidden, isScrollDriven } = useHomeHeroSceneTransition({
     blackoutOverlayRef,
     onScrollStateChange,
     sceneLayout,
@@ -125,6 +132,10 @@ const HomeHeroCameraRig = ({
     triggerRef,
     webUiRef,
   });
+
+  React.useEffect(() => {
+    onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
+  }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
 
   return (
     <OrbitControls
@@ -148,9 +159,19 @@ const HomeHeroCameraRig = ({
 /**
  * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
  */
-const HomeHeroSceneObjects = ({ sceneLayout }: { readonly sceneLayout: HomeHeroSceneLayout }) => (
+const HomeHeroSceneObjects = ({
+  isCloseupCostumeHidden,
+  sceneLayout,
+}: {
+  readonly isCloseupCostumeHidden: boolean;
+  readonly sceneLayout: HomeHeroSceneLayout;
+}) => (
   <group position={[0, -2.4, 0]}>
-    <HomeHeroCharacter instance="main" position={[0, 0, 0]} />
+    <HomeHeroCharacter
+      instance="main"
+      isCloseupCostumeHidden={isCloseupCostumeHidden}
+      position={[0, 0, 0]}
+    />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -1]} />
     <SceneProp
       path="/models/bass.glb"

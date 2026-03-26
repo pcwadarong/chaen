@@ -45,6 +45,7 @@ vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
 
 vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => ({
   useHomeHeroSceneTransition: () => ({
+    isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
     isScrollDriven: false,
   }),

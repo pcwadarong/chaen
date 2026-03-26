@@ -34,7 +34,7 @@ export const useHomeHeroSceneTransition = ({
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
-  const { isMonitorOverlayVisible, isScrollDriven } = useScrollTimeline({
+  const { isCloseupCostumeHidden, isMonitorOverlayVisible, isScrollDriven } = useScrollTimeline({
     blackoutOverlayRef,
     enabled: sceneMode === 'desktop',
     initialPosition: sceneLayout.camera.position,
@@ -58,6 +58,7 @@ export const useHomeHeroSceneTransition = ({
   }, [camera, isScrollDriven, sceneLayout, sceneMode]);
 
   return {
+    isCloseupCostumeHidden,
     isMonitorOverlayVisible,
     isScrollDriven,
   };
