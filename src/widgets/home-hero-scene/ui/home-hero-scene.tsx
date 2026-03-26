@@ -17,12 +17,18 @@ type HomeHeroSceneProps = {
 export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) => {
   const localSectionRef = useRef<HTMLElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
+  const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const sectionRef = triggerRef ?? localSectionRef;
 
   return (
-    <section className={sectionClass} ref={sectionRef}>
-      <HomeHeroStage triggerRef={sectionRef} webUiRef={webUiRef} />
+    <section className={sectionClass} id="scene-scroll-container" ref={sectionRef}>
+      <HomeHeroStage
+        blackoutOverlayRef={blackoutOverlayRef}
+        triggerRef={sectionRef}
+        webUiRef={webUiRef}
+      />
       <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
+      <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
     </section>
   );
 };
@@ -30,14 +36,27 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
 const sectionClass = css({
   position: 'relative',
   width: 'full',
-  minHeight: '[100dvh]',
-  height: '[100dvh]',
+  minHeight: '[calc(100dvh - var(--global-nav-height, 0px))]',
+  height: '[calc(100dvh - var(--global-nav-height, 0px))]',
   overflow: 'clip',
   isolation: 'isolate',
+  _desktopUp: {
+    minHeight: '[calc(100dvh - 2.5rem - var(--global-nav-height, 0px))]',
+    height: '[calc(100dvh - 2.5rem - var(--global-nav-height, 0px))]',
+  },
   _tabletDown: {
     width: '[100vw]',
-    minHeight: 'svh',
-    height: 'svh',
+    minHeight: '[calc(100svh - var(--global-nav-height, 0px))]',
+    height: '[calc(100svh - var(--global-nav-height, 0px))]',
     marginInline: '[calc(50% - 50vw)]',
   },
+});
+
+const blackoutOverlayClass = css({
+  position: 'fixed',
+  inset: '0',
+  zIndex: '3',
+  pointerEvents: 'none',
+  opacity: '0',
+  backgroundColor: 'black',
 });

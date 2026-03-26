@@ -3,7 +3,6 @@ import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { homeHeroWebUiLayout } from '@/widgets/home-hero-scene/ui/home-hero-web-ui-layout';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomeHeroWebUiProps = {
@@ -56,5 +55,8 @@ const gridBridgeClass = css({
 });
 
 const contentClass = css({
-  width: `[${homeHeroWebUiLayout.containerWidth}]`,
+  width: 'full',
+  maxWidth: 'contentWide',
+  boxSizing: 'border-box',
+  px: '4',
 });
