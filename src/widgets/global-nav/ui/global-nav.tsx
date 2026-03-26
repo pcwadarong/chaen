@@ -8,6 +8,10 @@ import { css, cx } from 'styled-system/css';
 import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
 import { viewportMediaQuery } from '@/shared/config/responsive';
+import {
+  HOME_HERO_NAV_LOCK_EVENT,
+  type HomeHeroNavLockDetail,
+} from '@/shared/lib/dom/home-hero-nav-lock';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
@@ -78,6 +82,7 @@ export const GlobalNav = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const isHomeHeroNavLockedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
   const isArticlesRoute = pathname === '/articles' || pathname.startsWith('/articles/');
@@ -140,6 +145,27 @@ export const GlobalNav = () => {
     setIsMobileMenuOpen(previous => !previous);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleHomeHeroNavLockChange = (event: Event) => {
+      const customEvent = event as CustomEvent<HomeHeroNavLockDetail>;
+      const locked = customEvent.detail?.locked ?? false;
+
+      isHomeHeroNavLockedRef.current = locked;
+
+      if (locked) {
+        setIsHidden(false);
+      }
+    };
+
+    window.addEventListener(HOME_HERO_NAV_LOCK_EVENT, handleHomeHeroNavLockChange);
+
+    return () => {
+      window.removeEventListener(HOME_HERO_NAV_LOCK_EVENT, handleHomeHeroNavLockChange);
+    };
+  }, []);
+
   /**
    * 현재 스크롤 컨테이너(window 또는 app-frame viewport)에 이벤트를 연결하고
    * 스크롤 위치 변화를 기준으로 네비게이션 숨김 상태를 동기화합니다.
@@ -174,6 +200,14 @@ export const GlobalNav = () => {
     const updateByDirection = () => {
       const currentScrollY = activeBinding.readScrollTop();
       const headerHeight = headerRef.current?.offsetHeight ?? 0;
+
+      if (isHomeHeroNavLockedRef.current) {
+        setIsHidden(false);
+        lastScrollYRef.current = currentScrollY;
+        rafIdRef.current = null;
+
+        return;
+      }
 
       setIsHidden(previousHidden =>
         resolveGlobalNavHidden({
