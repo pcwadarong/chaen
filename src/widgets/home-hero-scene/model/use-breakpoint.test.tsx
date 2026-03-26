@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useBreakpoint } from '@/widgets/home-hero-scene/model/useBreakpoint';
+import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 
 const originalInnerWidth = window.innerWidth;
 
