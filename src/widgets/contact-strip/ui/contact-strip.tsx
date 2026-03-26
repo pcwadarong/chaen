@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 /** 홈 하단 연락 유도 영역입니다. */
 export const ContactStrip = () => {
@@ -36,10 +36,6 @@ export const ContactStrip = () => {
             </a>
           </li>
         </ul>
-      </div>
-      <div aria-hidden="true" className={motionClass}>
-        <span className={cx(pulseBaseClass, pulseClass)} />
-        <span className={cx(pulseBaseClass, pulseDelayedClass)} />
       </div>
     </section>
   );
@@ -91,35 +87,4 @@ const metaLabelClass = css({
 
 const linkClass = css({
   textDecoration: 'underline',
-});
-
-const motionClass = css({
-  position: 'relative',
-  flex: '[1 1 18rem]',
-  minHeight: '[16rem]',
-  overflow: 'hidden',
-  p: '6',
-  borderRadius: 'lg',
-  border: '[1px solid var(--colors-border)]',
-  background:
-    '[linear-gradient(180deg, var(--colors-surface), var(--colors-surface-muted)), var(--colors-surface)]',
-});
-
-const pulseBaseClass = css({
-  position: 'absolute',
-  borderRadius: 'full',
-});
-
-const pulseClass = css({
-  inset: '[22% auto auto 18%]',
-  width: '[7rem]',
-  height: '[7rem]',
-  background: 'primary',
-});
-
-const pulseDelayedClass = css({
-  inset: '[auto 16% 18% auto]',
-  width: '[4.5rem]',
-  height: '[4.5rem]',
-  background: 'text',
 });

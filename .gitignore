@@ -68,3 +68,4 @@ public/**/*.map
 
 styled-system/
 docs/
+.mcp.json
