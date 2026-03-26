@@ -27,17 +27,17 @@ vi.mock('@/entities/scene/ui/scene-prop', () => ({
   ),
 }));
 
-vi.mock('@/widgets/home-hero-scene/model/useBreakpoint', () => ({
+vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: () => ({
     currentBP: 4,
     sceneMode: 'desktop',
   }),
 }));
 
-vi.mock('@/widgets/home-hero-scene/ui/use-home-hero-scene-transition', () => ({
+vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => ({
   useHomeHeroSceneTransition: () => ({
+    isMonitorOverlayVisible: false,
     isScrollDriven: false,
-    orbitTarget: [0.08, 1.1, 1.1],
   }),
 }));
 

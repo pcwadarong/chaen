@@ -134,8 +134,12 @@ const HomeHeroCameraRig = ({
       enabled={sceneMode === 'mobile' || !isScrollDriven}
       key={`${sceneMode}-${currentBP}`}
       makeDefault
+      maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
       maxDistance={sceneLayout.camera.maxDistance}
+      maxPolarAngle={sceneLayout.camera.maxPolarAngle}
+      minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
       minDistance={sceneLayout.camera.minDistance}
+      minPolarAngle={sceneLayout.camera.minPolarAngle}
       target={sceneLayout.camera.lookAt}
     />
   );

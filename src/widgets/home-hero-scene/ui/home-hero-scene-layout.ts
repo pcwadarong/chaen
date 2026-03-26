@@ -3,12 +3,20 @@ import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 export type Vector3Tuple = readonly [number, number, number];
 
 export type HomeHeroSceneCameraLayout = {
+  /** OrbitControls 최대 방위각 */
+  readonly maxAzimuthAngle: number;
+  /** OrbitControls 최대 세로 각도 */
+  readonly maxPolarAngle: number;
   /** 카메라 시야각 */
   readonly fov: number;
   /** 카메라가 기본으로 바라보는 기준점 */
   readonly lookAt: Vector3Tuple;
+  /** OrbitControls 최소 방위각 */
+  readonly minAzimuthAngle: number;
   /** OrbitControls 최대 거리 */
   readonly maxDistance: number;
+  /** OrbitControls 최소 세로 각도 */
+  readonly minPolarAngle: number;
   /** OrbitControls 최소 거리 */
   readonly minDistance: number;
   /** 카메라 기본 월드 좌표 */
@@ -43,7 +51,11 @@ const MOBILE_SMALL_LAYOUT: HomeHeroSceneLayout = {
   camera: {
     fov: 55,
     lookAt: MOBILE_ORBIT_TARGET,
+    maxAzimuthAngle: 0.25,
     maxDistance: 15,
+    maxPolarAngle: 1.45,
+    minAzimuthAngle: -0.9,
+    minPolarAngle: 1.05,
     minDistance: 9,
     position: [-4.8, 5, 9],
   },
@@ -57,7 +69,11 @@ const MOBILE_LARGE_LAYOUT: HomeHeroSceneLayout = {
   camera: {
     fov: 50,
     lookAt: MOBILE_ORBIT_TARGET,
+    maxAzimuthAngle: 0.35,
     maxDistance: 12,
+    maxPolarAngle: 1.42,
+    minAzimuthAngle: -0.8,
+    minPolarAngle: 1.02,
     minDistance: 6,
     position: [-4.5, 5, 9],
   },
@@ -71,7 +87,11 @@ const DESKTOP_SMALL_LAYOUT: HomeHeroSceneLayout = {
   camera: {
     fov: 50,
     lookAt: DESKTOP_ORBIT_TARGET,
+    maxAzimuthAngle: 0.4,
     maxDistance: 10,
+    maxPolarAngle: 1.52,
+    minAzimuthAngle: -0.4,
+    minPolarAngle: 1.18,
     minDistance: 6,
     position: [0, 1, 9],
   },
@@ -85,7 +105,11 @@ const DESKTOP_LARGE_LAYOUT: HomeHeroSceneLayout = {
   camera: {
     fov: 45,
     lookAt: DESKTOP_ORBIT_TARGET,
+    maxAzimuthAngle: 0.32,
     maxDistance: 10,
+    maxPolarAngle: 1.48,
+    minAzimuthAngle: -0.32,
+    minPolarAngle: 1.12,
     minDistance: 6.5,
     position: [0, 0.75, 8.9],
   },
