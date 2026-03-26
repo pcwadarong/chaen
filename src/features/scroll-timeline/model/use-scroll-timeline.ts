@@ -182,10 +182,20 @@ export const useScrollTimeline = ({
 
       gsap.registerPlugin(ScrollTrigger);
       scrollTriggerInstance = ScrollTrigger.create({
-        anticipatePin: 1,
-        end: '+=300%',
+        end: () => {
+          const el = triggerRef.current;
+
+          if (!el) return '+=0';
+
+          const navH =
+            parseFloat(getComputedStyle(el).getPropertyValue('--global-nav-height')) || 0;
+          const vpH = scroller?.clientHeight ?? window.innerHeight;
+
+          // stickyWrapper height = vpH, sectionClass height = 4*vpH - 3*navH
+          // clip 시작 = section.height - stickyWrapper.height = 3*(vpH - navH)
+          return `+=${3 * (vpH - navH)}px`;
+        },
         invalidateOnRefresh: true,
-        pin: triggerRef.current,
         scrub: DESKTOP_SCROLL_SCRUB_DURATION,
         scroller,
         start: 'top top',
