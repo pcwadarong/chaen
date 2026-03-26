@@ -18,7 +18,14 @@ export const useHomeHeroViewportHeightVar = (sectionRef: RefObject<HTMLElement |
       sectionElement.closest<HTMLElement>('[data-app-scroll-viewport="true"]') ?? null;
 
     const syncViewportHeight = () => {
-      const nextHeight = viewportElement?.clientHeight ?? window.innerHeight;
+      const windowHeight = window.innerHeight;
+      // viewportElement.clientHeight가 window.innerHeight보다 작을 때만 사용
+      // app-frame이 고정 높이가 아닌 경우 clientHeight가 콘텐츠에 따라 늘어나므로, section 높이 → viewport 높이 → section 높이 무한 루프가 발생
+      const viewportClientHeight = viewportElement?.clientHeight ?? null;
+      const nextHeight =
+        viewportClientHeight !== null && viewportClientHeight < windowHeight
+          ? viewportClientHeight
+          : windowHeight;
 
       sectionElement.style.setProperty('--home-hero-viewport-height', `${nextHeight}px`);
     };
