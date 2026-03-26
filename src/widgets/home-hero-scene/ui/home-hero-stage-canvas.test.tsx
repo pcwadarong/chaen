@@ -5,6 +5,11 @@ import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stag
 
 import '@testing-library/jest-dom/vitest';
 
+const homeHeroStageCanvasMockState = vi.hoisted(() => ({
+  orbitControlsProps: null as null | Record<string, unknown>,
+  sceneMode: 'desktop' as 'desktop' | 'mobile',
+}));
+
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="home-hero-stage-canvas">{children}</div>
@@ -12,7 +17,11 @@ vi.mock('@react-three/fiber', () => ({
 }));
 
 vi.mock('@react-three/drei', () => ({
-  OrbitControls: () => <div data-testid="orbit-controls" />,
+  OrbitControls: (props: Record<string, unknown>) => {
+    homeHeroStageCanvasMockState.orbitControlsProps = props;
+
+    return <div data-testid="orbit-controls" />;
+  },
 }));
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-character', () => ({
@@ -30,7 +39,7 @@ vi.mock('@/entities/scene/ui/scene-prop', () => ({
 vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: () => ({
     currentBP: 4,
-    sceneMode: 'desktop',
+    sceneMode: homeHeroStageCanvasMockState.sceneMode,
   }),
 }));
 
@@ -43,6 +52,8 @@ vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => 
 
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
+    homeHeroStageCanvasMockState.orbitControlsProps = null;
+    homeHeroStageCanvasMockState.sceneMode = 'desktop';
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -66,5 +77,31 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/sofa.glb')).toBeTruthy();
     expect(screen.getByTestId('prop-/models/bass.glb')).toBeTruthy();
     expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
+  });
+
+  it('데스크탑 sceneMode에서는 OrbitControls 줌이 비활성화되어야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(false);
+  });
+
+  it('모바일 sceneMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
+    homeHeroStageCanvasMockState.sceneMode = 'mobile';
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
   });
 });

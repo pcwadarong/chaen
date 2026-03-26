@@ -130,7 +130,7 @@ const HomeHeroCameraRig = ({
     <OrbitControls
       enablePan={false}
       enableRotate
-      enableZoom
+      enableZoom={sceneMode === 'mobile'}
       enabled={sceneMode === 'mobile' || !isScrollDriven}
       key={`${sceneMode}-${currentBP}`}
       makeDefault
