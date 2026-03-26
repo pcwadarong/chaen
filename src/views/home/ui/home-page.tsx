@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
@@ -14,7 +15,7 @@ export const HomePage = ({ items }: HomePageProps) => {
   const t = useTranslations('Home');
 
   return (
-    <main className={pageClass}>
+    <main className={pageClass} data-hide-app-frame-footer-mobile="true">
       <HomeHeroScene items={items} title={t('showcaseTitle')} />
       <ContactScene />
     </main>

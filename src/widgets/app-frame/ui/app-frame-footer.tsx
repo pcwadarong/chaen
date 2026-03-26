@@ -15,13 +15,18 @@ const appFrameFooterClass = css({
   px: '4',
   pt: '3',
   pb: '[max(var(--spacing-3), env(safe-area-inset-bottom))]',
+  '.group:has([data-hide-app-frame-footer="true"]) &': {
+    display: 'none',
+  },
   _desktopUp: {
     mt: '8',
     px: '5',
     py: '3',
   },
-  '.group:has([data-hide-app-frame-footer="true"]) &': {
-    display: 'none',
+  _tabletDown: {
+    '.group:has([data-hide-app-frame-footer-mobile="true"]) &': {
+      display: 'none',
+    },
   },
 });
 
