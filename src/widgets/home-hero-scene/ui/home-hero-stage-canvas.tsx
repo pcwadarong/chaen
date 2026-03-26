@@ -6,7 +6,9 @@ import React, { type RefObject, Suspense, useMemo, useState } from 'react';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
-import { useBreakpoint } from '@/widgets/home-hero-scene/model/useBreakpoint';
+import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
+import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
+import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
 import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
 import {
   getHomeHeroSceneLayout,
@@ -14,7 +16,6 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
-import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/ui/use-home-hero-scene-transition';
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
@@ -30,10 +31,12 @@ export const HomeHeroStageCanvas = ({
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
   });
+  useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
       getHomeHeroSceneLayout({
@@ -56,6 +59,7 @@ export const HomeHeroStageCanvas = ({
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
         gl.domElement.style.touchAction = 'none';
+        setCanvasElement(gl.domElement);
       }}
     >
       <color args={['#5d5bff']} attach="background" />

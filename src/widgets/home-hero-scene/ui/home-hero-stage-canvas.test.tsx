@@ -15,8 +15,8 @@ vi.mock('@react-three/drei', () => ({
   OrbitControls: () => <div data-testid="orbit-controls" />,
 }));
 
-vi.mock('@/entities/character/ui/character', () => ({
-  Character: ({ instance }: { instance: 'contact' | 'main' }) => (
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-character', () => ({
+  HomeHeroCharacter: ({ instance }: { instance: 'contact' | 'main' }) => (
     <div data-testid={`character-${instance}`} />
   ),
 }));
@@ -27,11 +27,17 @@ vi.mock('@/entities/scene/ui/scene-prop', () => ({
   ),
 }));
 
+vi.mock('@/widgets/home-hero-scene/model/useBreakpoint', () => ({
+  useBreakpoint: () => ({
+    currentBP: 4,
+    sceneMode: 'desktop',
+  }),
+}));
+
 vi.mock('@/widgets/home-hero-scene/ui/use-home-hero-scene-transition', () => ({
   useHomeHeroSceneTransition: () => ({
-    cameraMountRef: { current: null },
     isScrollDriven: false,
-    pivotRef: { current: null },
+    orbitTarget: [0.08, 1.1, 1.1],
   }),
 }));
 
@@ -45,7 +51,13 @@ describe('HomeHeroStageCanvas', () => {
   });
 
   it('홈 전용 stage 내부에 main 캐릭터와 소품을 배치하고 orbit controls를 렌더링한다', () => {
-    render(<HomeHeroStageCanvas triggerRef={{ current: null }} webUiRef={{ current: null }} />);
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toBeTruthy();
     expect(screen.getByTestId('orbit-controls')).toBeTruthy();
