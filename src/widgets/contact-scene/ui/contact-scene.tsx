@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
@@ -18,7 +18,14 @@ const ContactSceneCanvas = dynamic(
 /** 데스크탑에서는 R3F 캔버스와 ContactStrip을 합쳐 렌더링합니다. 모바일에서는 ContactStrip만 표시합니다. */
 export const ContactScene = () => {
   const { sceneMode } = useBreakpoint();
-  const shouldRenderCanvas = sceneMode === 'desktop';
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // SSR과 hydration 시점엔 canvas를 렌더하지 않아 서버/클라이언트 구조를 일치시킨다.
+  const shouldRenderCanvas = isMounted && sceneMode === 'desktop';
 
   return (
     <div className={wrapperClass}>
