@@ -1,3 +1,5 @@
+/* @vitest-environment jsdom */
+
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
@@ -211,9 +213,10 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
-    expect(homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects).toBe(
-      onBrowseProjects,
-    );
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
+
+    expect(onBrowseProjects).toHaveBeenCalledOnce();
   });
 
   it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {

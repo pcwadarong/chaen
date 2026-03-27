@@ -1,3 +1,5 @@
+/* @vitest-environment node */
+
 import { Group, Mesh, MeshStandardMaterial, NoColorSpace, Texture } from 'three';
 import { describe, expect, it } from 'vitest';
 

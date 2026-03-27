@@ -1,3 +1,7 @@
+/* @vitest-environment node */
+
+import { vi } from 'vitest';
+
 import { deletePhotoFile } from '@/entities/hero-photo/api/delete-photo-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 

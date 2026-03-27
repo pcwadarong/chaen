@@ -1,6 +1,9 @@
+/* @vitest-environment jsdom */
+
 import { act, render } from '@testing-library/react';
 import React from 'react';
 import { Object3D } from 'three';
+import { vi } from 'vitest';
 
 import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
 

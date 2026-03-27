@@ -1,3 +1,5 @@
+/* @vitest-environment jsdom */
+
 import { isValidElement } from 'react';
 
 import AdminPhotoRoute, { metadata } from '@/app/[locale]/admin/photo/page';
@@ -8,7 +10,7 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/entities/photo/api/list-photo-files', () => ({
+vi.mock('@/entities/hero-photo/api/list-photo-files', () => ({
   listPhotoFiles: vi.fn(),
 }));
 

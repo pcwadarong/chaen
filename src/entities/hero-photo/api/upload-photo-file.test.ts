@@ -1,3 +1,5 @@
+/* @vitest-environment node */
+
 import { uploadPhotoFile } from '@/entities/hero-photo/api/upload-photo-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 

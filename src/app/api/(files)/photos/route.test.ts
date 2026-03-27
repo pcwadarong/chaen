@@ -1,3 +1,5 @@
+/* @vitest-environment node */
+
 import { DELETE, POST } from '@/app/api/(files)/photos/route';
 import { deletePhotoFile } from '@/entities/hero-photo/api/delete-photo-file';
 import { uploadPhotoFile } from '@/entities/hero-photo/api/upload-photo-file';
@@ -8,11 +10,11 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/entities/photo/api/upload-photo-file', () => ({
+vi.mock('@/entities/hero-photo/api/upload-photo-file', () => ({
   uploadPhotoFile: vi.fn(),
 }));
 
-vi.mock('@/entities/photo/api/delete-photo-file', () => ({
+vi.mock('@/entities/hero-photo/api/delete-photo-file', () => ({
   deletePhotoFile: vi.fn(),
 }));
 

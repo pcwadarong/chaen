@@ -1,3 +1,5 @@
+/* @vitest-environment node */
+
 import { vi } from 'vitest';
 
 import { listPhotoFiles } from '@/entities/hero-photo/api/list-photo-files';

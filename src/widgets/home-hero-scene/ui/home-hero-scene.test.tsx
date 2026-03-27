@@ -1,3 +1,5 @@
+/* @vitest-environment jsdom */
+
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
@@ -50,6 +52,25 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-stage', () => ({
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-web-ui', () => ({
   HomeHeroWebUi: () => <div data-testid="home-hero-web-ui" />,
+}));
+
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-contact-buttons', () => ({
+  HomeHeroContactButtons: () => <div data-testid="home-hero-contact-buttons" />,
+}));
+
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet', () => ({
+  HomeHeroMobileProjectSheet: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    isOpen ? (
+      <div
+        aria-label="mobileProjectPanelAriaLabel"
+        data-testid="home-hero-mobile-project-sheet"
+        role="dialog"
+      >
+        <button aria-label="mobileProjectPanelCloseLabel" onClick={onClose} type="button" />
+      </div>
+    ) : (
+      <div data-testid="home-hero-mobile-project-sheet" />
+    ),
 }));
 
 vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
