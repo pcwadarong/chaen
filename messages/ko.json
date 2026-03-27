@@ -271,15 +271,10 @@
     "zoomOutAriaLabel": "이미지 축소"
   },
   "Contact": {
-    "emailLabel": "Email",
-    "emailValue": "pcwadarong@naver.com",
-    "focusLabel": "Focus",
-    "focusValue": "Frontend Development",
-    "githubLabel": "Github",
-    "githubValue": "https://github.com/pcwadarong",
-    "locationLabel": "Location",
-    "locationValue": "Seoul, Korea",
-    "title": "의미 있는 경험을 함께 만들어요."
+    "focusValue": "프론트엔드 개발",
+    "locationValue": "서울, 대한민국",
+    "titleLine1": "의미 있는 경험을",
+    "titleLine2": "함께 만들어요."
   },
   "Switchers": {
     "locale": {

@@ -40,7 +40,8 @@ const appFrameClass = css({
   flexDirection: 'column',
   backgroundColor: 'surface',
   _desktopUp: {
-    width: '[min(1280px, calc(100vw - 2.5rem))]',
+    width: 'full',
+    maxWidth: 'appFrameMax',
     height: '[calc(100dvh - 2.5rem)]',
     minHeight: '0',
     overflow: 'hidden',

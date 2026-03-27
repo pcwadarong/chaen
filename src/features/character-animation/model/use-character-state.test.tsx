@@ -14,6 +14,7 @@ type FakeAction = Pick<
   | 'getClip'
   | 'play'
   | 'reset'
+  | 'setEffectiveTimeScale'
   | 'setLoop'
   | 'time'
 >;
@@ -29,6 +30,7 @@ const createFakeAction = (duration = 1): FakeAction => ({
   getClip: vi.fn(() => ({ duration }) as AnimationClip),
   play: vi.fn().mockReturnThis(),
   reset: vi.fn().mockReturnThis(),
+  setEffectiveTimeScale: vi.fn().mockReturnThis(),
   setLoop: vi.fn().mockImplementation(function setLoop(this: FakeAction) {
     return this;
   }),
@@ -108,6 +110,7 @@ describe('useCharacterState', () => {
 
     expect(result.current.currentState).toBe('music');
     expect(musicAction.play).toHaveBeenCalledOnce();
+    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledTimes(1);
     expect(typingAction.play).not.toHaveBeenCalled();
   });
 });

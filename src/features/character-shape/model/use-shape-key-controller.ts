@@ -59,7 +59,7 @@ const STATE_MORPH_TARGETS: Record<
   music: {
     brow: {
       down: 0,
-      up: 1,
+      up: 0,
     },
     eyebrow: {
       eye_close: 1,

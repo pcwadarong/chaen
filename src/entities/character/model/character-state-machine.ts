@@ -130,9 +130,20 @@ const configureActionLoop = (action: AnimationAction, state: CharacterAnimState)
   if (isLoopingCharacterAnimState(state)) {
     action.clampWhenFinished = false;
     action.setLoop(LoopRepeat, Infinity);
+    action.setEffectiveTimeScale(resolveActionTimeScale(state));
     return;
   }
 
   action.clampWhenFinished = true;
   action.setLoop(LoopOnce, 1);
+  action.setEffectiveTimeScale(resolveActionTimeScale(state));
+};
+
+/**
+ * 상태별 clip 재생 속도를 반환합니다.
+ * contact의 music loop는 조금 더 여유 있게 반복되도록 기본 배속보다 느리게 유지합니다.
+ */
+const resolveActionTimeScale = (state: CharacterAnimState): number => {
+  if (state === 'music') return 0.4;
+  return 1;
 };

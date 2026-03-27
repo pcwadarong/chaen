@@ -1,74 +1,99 @@
 import { useTranslations } from 'next-intl';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
-/** 홈 하단 연락 유도 영역입니다. */
+import {
+  CONTACT_EMAIL_ADDRESS,
+  CONTACT_GITHUB_URL,
+  CONTACT_LINKEDIN_URL,
+} from '@/shared/config/contact-links';
+import { Button } from '@/shared/ui/button/button';
+import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
+
+/** 홈 contact 영역의 텍스트와 액션을 렌더링합니다. */
 export const ContactStrip = () => {
   const t = useTranslations('Contact');
 
   return (
     <section className={sectionClass}>
       <div className={copyClass}>
-        <h2 className={titleClass}>{t('title')}</h2>
+        <h2 className={titleClass}>
+          <span>{t('titleLine1')}</span>
+          <span>{t('titleLine2')}</span>
+        </h2>
         <ul className={metaListClass}>
           <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('locationLabel')}</span>
+            <span className={metaLabelClass}>{'Location'}</span>
             <span>{t('locationValue')}</span>
           </li>
           <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('focusLabel')}</span>
+            <span className={metaLabelClass}>{'Focus'}</span>
             <span>{t('focusValue')}</span>
-          </li>
-          <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('githubLabel')}</span>
-            <a
-              className={linkClass}
-              href={t('githubValue')}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {t('githubValue')}
-            </a>
-          </li>
-          <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('emailLabel')}</span>
-            <a className={linkClass} href={`mailto:${t('emailValue')}`}>
-              {t('emailValue')}
-            </a>
           </li>
         </ul>
       </div>
-      <div aria-hidden="true" className={motionClass}>
-        <span className={cx(pulseBaseClass, pulseClass)} />
-        <span className={cx(pulseBaseClass, pulseDelayedClass)} />
+      <div className={actionsClass}>
+        <Button
+          asChild
+          className={actionButtonClass}
+          leadingVisual={<MailSolidIcon aria-hidden color="muted" size="md" />}
+          size="md"
+          tone="white"
+          variant="solid"
+        >
+          <a href={`mailto:${CONTACT_EMAIL_ADDRESS}`}>{'Email'}</a>
+        </Button>
+        <Button
+          asChild
+          className={actionButtonClass}
+          leadingVisual={<GithubIcon aria-hidden color="muted" size="md" />}
+          size="md"
+          tone="white"
+          variant="solid"
+        >
+          <a href={CONTACT_GITHUB_URL} rel="noopener noreferrer" target="_blank">
+            {'Github'}
+          </a>
+        </Button>
+        <Button
+          asChild
+          className={actionButtonClass}
+          leadingVisual={<LinkedInIcon aria-hidden color="muted" size="md" />}
+          size="md"
+          tone="white"
+          variant="solid"
+        >
+          <a href={CONTACT_LINKEDIN_URL} rel="noopener noreferrer" target="_blank">
+            {'LinkedIn'}
+          </a>
+        </Button>
       </div>
     </section>
   );
 };
 
 const sectionClass = css({
-  width: '[min(1120px, 100%)]',
-  mx: 'auto',
-  minHeight: '[clamp(22rem, 50svh, 36rem)]',
+  width: 'full',
+  boxSizing: 'border-box',
   display: 'flex',
-  alignItems: 'stretch',
-  flexWrap: 'wrap',
-  gap: '4',
-  px: '4',
-  pt: '12',
-  pb: '20',
+  flexDirection: 'column',
+  gap: '10',
+  alignContent: 'center',
 });
 
 const copyClass = css({
   display: 'grid',
-  alignContent: 'center',
-  gap: '3',
-  flex: '[1 1 22rem]',
+  gap: '8',
 });
 
 const titleClass = css({
-  fontSize: '[clamp(2.2rem, 5vw, 4.4rem)]',
+  fontSize: '6xl',
   lineHeight: 'none',
   letterSpacing: '[-0.04em]',
+  display: 'grid',
+  gap: '1',
+  '& > span': {
+    whiteSpace: 'nowrap',
+  },
 });
 
 const metaListClass = css({
@@ -87,37 +112,20 @@ const metaLabelClass = css({
   fontWeight: 'bold',
 });
 
-const linkClass = css({
-  textDecoration: 'underline',
+const actionsClass = css({
+  display: 'flex',
+  flexWrap: 'nowrap',
+  gap: '3',
+  width: 'auto',
 });
 
-const motionClass = css({
-  position: 'relative',
-  flex: '[1 1 18rem]',
-  minHeight: '[16rem]',
-  overflow: 'hidden',
-  p: '6',
-  borderRadius: 'lg',
-  border: '[1px solid var(--colors-border)]',
-  background:
-    '[linear-gradient(180deg, var(--colors-surface), var(--colors-surface-muted)), var(--colors-surface)]',
-});
-
-const pulseBaseClass = css({
-  position: 'absolute',
-  borderRadius: 'full',
-});
-
-const pulseClass = css({
-  inset: '[22% auto auto 18%]',
-  width: '[7rem]',
-  height: '[7rem]',
-  background: 'primary',
-});
-
-const pulseDelayedClass = css({
-  inset: '[auto 16% 18% auto]',
-  width: '[4.5rem]',
-  height: '[4.5rem]',
-  background: 'text',
+const actionButtonClass = css({
+  transition: '[transform 180ms ease]',
+  _hover: {
+    transform: 'translateY(-2px)',
+    borderColor: 'borderStrong',
+  },
+  _active: {
+    transform: 'translateY(1px)',
+  },
 });

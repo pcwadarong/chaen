@@ -84,7 +84,7 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 ## 4. Workflow & PR Protocol
 
 1.  **Iterative TDD**: Write one test -> Implement one logic unit -> Repeat.
-2.  **Commit Granularity**: Divide work into meaningful, logical units. Seek user confirmation after each unit.
+2.  **Commit Granularity**: Divide work into meaningful, logical units. Seek user confirmation and suggest [commit message + 1-3 line description] after each unit.
 3.  **PR Documentation**: Maintain markdown files in `docs/pr/`. Focus on "Problems Solved" and "Impact" (UX/SEO/Performance).
     - **Structure**: Goal -> Changes in this branch -> User-facing changes -> Implementation Highlights (Design decisions, tricky logic) -> Verification results.
 4.  **Language**: Commit messages and PR summaries must be in **Korean**.

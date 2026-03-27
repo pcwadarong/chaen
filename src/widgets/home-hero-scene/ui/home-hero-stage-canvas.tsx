@@ -2,95 +2,169 @@
 
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import React, { type RefObject, Suspense } from 'react';
+import React, { type RefObject, Suspense, useMemo, useState } from 'react';
 
+import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
-import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
-import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/ui/use-home-hero-scene-transition';
+import {
+  getHomeHeroSceneLayout,
+  HOME_HERO_CAMERA_FAR,
+  HOME_HERO_CAMERA_NEAR,
+  type HomeHeroSceneLayout,
+} from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
+import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
+import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
+import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
+import {
+  HomeHeroCharacterSeatSet,
+  HomeHeroStageLights,
+} from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
 
 type HomeHeroStageCanvasProps = {
+  readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
 /**
- * 홈 히어로 영역의 정적 3D 스테이지를 구성합니다.
+ * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
  */
-export const HomeHeroStageCanvas = ({ triggerRef, webUiRef }: HomeHeroStageCanvasProps) => (
-  <Canvas
-    camera={cameraSettings}
-    dpr={[1, 5]}
-    gl={{ alpha: false, antialias: true }}
-    shadows
-    onCreated={({ gl }) => {
-      gl.domElement.id = 'three-canvas';
-      gl.domElement.style.touchAction = 'none';
-    }}
-  >
-    <color args={['#5d5bff']} attach="background" />
-    <HomeHeroLights />
-    <HomeHeroCameraRig triggerRef={triggerRef} webUiRef={webUiRef} />
-    <Suspense fallback={null}>
-      <HomeHeroSceneObjects />
-    </Suspense>
-  </Canvas>
-);
-
-/**
- * 홈 히어로 장면의 기본 조명을 역할별로 분리합니다.
- */
-const HomeHeroLights = () => (
-  <>
-    <ambientLight color="#f8f4ff" intensity={1.5} />
-    <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
-    <pointLight
-      color="#fff8e8"
-      decay={1.5}
-      distance={15}
-      intensity={4}
-      position={[1.1, 1.9, 7.2]}
-    />
-  </>
-);
-
-/**
- * 스크롤 진행도에 따라 기본 카메라를 모니터 포커스 시점으로 이동시키는 리그입니다.
- */
-const HomeHeroCameraRig = ({
+export const HomeHeroStageCanvas = ({
+  blackoutOverlayRef,
   triggerRef,
   webUiRef,
-}: {
-  readonly triggerRef: RefObject<HTMLElement | null>;
-  readonly webUiRef: RefObject<HTMLDivElement | null>;
-}) => {
-  const { pivotRef, cameraMountRef, isScrollDriven } = useHomeHeroSceneTransition({
-    triggerRef,
-    webUiRef,
+}: HomeHeroStageCanvasProps) => {
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const { currentBP, sceneMode } = useBreakpoint({
+    isScrolling,
   });
+  useAllowCanvasContextMenu(canvasElement);
+  const sceneLayout = useMemo(
+    () =>
+      getHomeHeroSceneLayout({
+        currentBP,
+      }),
+    [currentBP],
+  );
 
   return (
-    <group ref={pivotRef}>
-      <group ref={cameraMountRef} />
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        enabled={!isScrollDriven}
-        makeDefault
-        target={[0, 1.8, 0]}
+    <Canvas
+      camera={{
+        far: HOME_HERO_CAMERA_FAR,
+        fov: sceneLayout.camera.fov,
+        near: HOME_HERO_CAMERA_NEAR,
+        position: sceneLayout.camera.position,
+      }}
+      dpr={[1, 2]}
+      gl={{ alpha: false, antialias: true }}
+      shadows
+      onCreated={({ gl }) => {
+        gl.domElement.id = 'three-canvas';
+        gl.domElement.style.touchAction = 'none';
+        setCanvasElement(gl.domElement);
+      }}
+    >
+      <color args={[HOME_HERO_STAGE_BACKGROUND]} attach="background" />
+      <HomeHeroStageLights />
+      <HomeHeroCameraRig
+        blackoutOverlayRef={blackoutOverlayRef}
+        currentBP={currentBP}
+        onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
+        onScrollStateChange={setIsScrolling}
+        sceneLayout={sceneLayout}
+        sceneMode={sceneMode}
+        triggerRef={triggerRef}
+        webUiRef={webUiRef}
       />
-    </group>
+      <Suspense fallback={null}>
+        <HomeHeroSceneObjects
+          isCloseupCostumeHidden={isCloseupCostumeHidden}
+          sceneLayout={sceneLayout}
+        />
+      </Suspense>
+    </Canvas>
   );
 };
 
 /**
- * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 렌더링합니다.
+ * breakpoint와 스크롤 상태에 따라 기본 카메라와 Orbit 제어를 전환합니다.
  */
-const HomeHeroSceneObjects = () => (
+const HomeHeroCameraRig = ({
+  blackoutOverlayRef,
+  currentBP,
+  onCloseupCostumeHiddenChange,
+  onScrollStateChange,
+  sceneLayout,
+  sceneMode,
+  triggerRef,
+  webUiRef,
+}: {
+  readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
+  readonly currentBP: SceneBreakpoint;
+  readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
+  readonly onScrollStateChange: (isScrolling: boolean) => void;
+  readonly sceneLayout: HomeHeroSceneLayout;
+  readonly sceneMode: 'desktop' | 'mobile';
+  readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiRef: RefObject<HTMLDivElement | null>;
+}) => {
+  const { isCloseupCostumeHidden, isSequenceActive } = useHomeHeroSceneTransition({
+    blackoutOverlayRef,
+    onScrollStateChange,
+    sceneLayout,
+    sceneMode,
+    triggerRef,
+    webUiRef,
+  });
+
+  React.useEffect(() => {
+    onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
+  }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
+
+  return (
+    <OrbitControls
+      enablePan={false}
+      enableRotate
+      enableZoom={sceneMode === 'mobile'}
+      enabled={sceneMode === 'mobile' || !isSequenceActive}
+      key={`${sceneMode}-${currentBP}`}
+      makeDefault
+      maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
+      maxDistance={sceneLayout.camera.maxDistance}
+      maxPolarAngle={sceneLayout.camera.maxPolarAngle}
+      minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
+      minDistance={sceneLayout.camera.minDistance}
+      minPolarAngle={sceneLayout.camera.minPolarAngle}
+      target={sceneLayout.camera.lookAt}
+    />
+  );
+};
+
+/**
+ * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
+ */
+const HomeHeroSceneObjects = ({
+  isCloseupCostumeHidden,
+  sceneLayout,
+}: {
+  readonly isCloseupCostumeHidden: boolean;
+  readonly sceneLayout: HomeHeroSceneLayout;
+}) => (
   <group position={[0, -2.4, 0]}>
-    <HomeHeroCharacter instance="main" position={[0, 0, 0]} />
-    <SceneProp path="/models/sofa.glb" position={[0, 0, -2]} />
-    <SceneProp path="/models/bass.glb" position={[-3, 0, 0]} />
-    <SceneProp path="/models/table.glb" position={[3, 0, 0]} />
+    <HomeHeroCharacterSeatSet instance="main" isCloseupCostumeHidden={isCloseupCostumeHidden} />
+    <SceneProp
+      path="/models/bass.glb"
+      position={[...sceneLayout.bassPosition]}
+      rotation={[...sceneLayout.bassRotation]}
+    />
+    <SceneProp
+      path="/models/table.glb"
+      position={[...sceneLayout.tablePosition]}
+      rotation={[...sceneLayout.tableRotation]}
+    />
 
     <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[80, 80]} />
@@ -98,10 +172,3 @@ const HomeHeroSceneObjects = () => (
     </mesh>
   </group>
 );
-
-const cameraSettings = {
-  fov: 24,
-  near: 0.1,
-  far: 60,
-  position: [0, 4.4, 18.5],
-} as const;

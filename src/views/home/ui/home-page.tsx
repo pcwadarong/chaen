@@ -1,8 +1,9 @@
 import { useTranslations } from 'next-intl';
+import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
+import { ContactScene } from '@/widgets/contact-scene';
 import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
 
 export type HomePageProps = {
@@ -14,9 +15,9 @@ export const HomePage = ({ items }: HomePageProps) => {
   const t = useTranslations('Home');
 
   return (
-    <main className={pageClass}>
+    <main className={pageClass} data-hide-app-frame-footer="true">
       <HomeHeroScene items={items} title={t('showcaseTitle')} />
-      <ContactStrip />
+      <ContactScene />
     </main>
   );
 };
@@ -25,4 +26,5 @@ const pageClass = css({
   width: 'full',
   display: 'grid',
   gap: '0',
+  overflowX: 'clip',
 });

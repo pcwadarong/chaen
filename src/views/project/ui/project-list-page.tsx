@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import React from 'react';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { DeferredPdfDownloadPopover } from '@/shared/ui/pdf-download-popover/deferred-pdf-download-popover';
@@ -24,7 +25,7 @@ export const ProjectListPage = ({
   const t = useTranslations('Project');
 
   return (
-    <PageShell hideAppFrameFooter>
+    <PageShell>
       <PageHeader
         action={
           <DeferredPdfDownloadPopover

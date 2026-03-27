@@ -8,14 +8,20 @@ import { css, cx } from 'styled-system/css';
 import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
 import { Link, usePathname } from '@/i18n/navigation';
 import { viewportMediaQuery } from '@/shared/config/responsive';
+import {
+  HOME_HERO_NAV_LOCK_EVENT,
+  type HomeHeroNavLockDetail,
+} from '@/shared/lib/dom/home-hero-nav-lock';
 import { useAuth } from '@/shared/providers';
 import { Button } from '@/shared/ui/button/button';
 import { SearchIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { XButton } from '@/shared/ui/x-button/x-button';
+import { useGlobalNavHeightVar } from '@/widgets/global-nav/model/use-global-nav-height-var';
 import { buildGlobalNavigationItems } from '@/widgets/global-nav/ui/build-navigation-items';
 import { GlobalNavDesktopContent } from '@/widgets/global-nav/ui/global-nav-desktop-content';
 import { GlobalNavMobileMenu } from '@/widgets/global-nav/ui/global-nav-mobile-menu';
+import { resolveGlobalNavHidden } from '@/widgets/global-nav/ui/resolve-global-nav-hidden';
 
 const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 
@@ -75,6 +81,8 @@ export const GlobalNav = () => {
   const [isHidden, setIsHidden] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const isHomeHeroNavLockedRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
   const isArticlesRoute = pathname === '/articles' || pathname.startsWith('/articles/');
@@ -137,7 +145,34 @@ export const GlobalNav = () => {
     setIsMobileMenuOpen(previous => !previous);
   }, []);
 
-  // 스크롤 방향과 위치에 따라 헤더의 가시성을 토글하는 효과
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleHomeHeroNavLockChange = (event: Event) => {
+      const customEvent = event as CustomEvent<HomeHeroNavLockDetail>;
+      const locked = customEvent.detail?.locked ?? false;
+
+      isHomeHeroNavLockedRef.current = locked;
+
+      if (locked) {
+        setIsHidden(false);
+      }
+    };
+
+    window.addEventListener(HOME_HERO_NAV_LOCK_EVENT, handleHomeHeroNavLockChange);
+
+    return () => {
+      window.removeEventListener(HOME_HERO_NAV_LOCK_EVENT, handleHomeHeroNavLockChange);
+    };
+  }, []);
+
+  /**
+   * 현재 스크롤 컨테이너(window 또는 app-frame viewport)에 이벤트를 연결하고
+   * 스크롤 위치 변화를 기준으로 네비게이션 숨김 상태를 동기화합니다.
+   *
+   * 데스크톱 프레임 모드에서는 내부 viewport를, 그 외에는 window를 구독해야 하므로
+   * 바인딩 대상 자체를 effect 안에서 관리합니다.
+   */
   useEffect(() => {
     const desktopMedia = window.matchMedia(DESKTOP_FRAME_MEDIA_QUERY);
     const viewportElement = document.querySelector<HTMLElement>(
@@ -158,18 +193,30 @@ export const GlobalNav = () => {
     let activeBinding = getScrollBinding();
     lastScrollYRef.current = activeBinding.readScrollTop();
 
+    /**
+     * 현재 스크롤 위치와 헤더 높이를 읽어 숨김 여부를 계산합니다.
+     * 실제 규칙은 순수 함수로 분리해 DOM 이벤트 처리와 비즈니스 판단을 분리합니다.
+     */
     const updateByDirection = () => {
       const currentScrollY = activeBinding.readScrollTop();
-      const delta = currentScrollY - lastScrollYRef.current;
-      const nearTop = currentScrollY <= 8;
+      const headerHeight = headerRef.current?.offsetHeight ?? 0;
 
-      if (nearTop) {
+      if (isHomeHeroNavLockedRef.current) {
         setIsHidden(false);
-      } else if (delta >= 6) {
-        setIsHidden(true);
-      } else if (delta <= -6) {
-        setIsHidden(false);
+        lastScrollYRef.current = currentScrollY;
+        rafIdRef.current = null;
+
+        return;
       }
+
+      setIsHidden(previousHidden =>
+        resolveGlobalNavHidden({
+          currentScrollY,
+          headerHeight,
+          lastScrollY: lastScrollYRef.current,
+          previousHidden,
+        }),
+      );
 
       lastScrollYRef.current = currentScrollY;
       rafIdRef.current = null;
@@ -232,6 +279,8 @@ export const GlobalNav = () => {
     };
   }, [handleMobileSearchClose, isMobileSearchOpen]);
 
+  useGlobalNavHeightVar(headerRef);
+
   const mobileSearchLeadingAction = useMemo(() => {
     if (!isArticlesRoute) {
       return null;
@@ -255,7 +304,10 @@ export const GlobalNav = () => {
   }, [handleMobileSearchOpen, isArticlesRoute, isMobileSearchOpen, searchSubmitLabel]);
 
   return (
-    <header className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}>
+    <header
+      className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}
+      ref={headerRef}
+    >
       {isArticlesRoute && isMobileSearchOpen ? (
         <GlobalNavMobileSearchOverlay
           clearText={searchClearLabel}
@@ -321,8 +373,11 @@ const hiddenHeaderClass = css({
 
 const innerClass = css({
   position: 'relative',
-  width: '[min(1120px, calc(100% - 2rem))]',
+  width: 'full',
+  maxWidth: 'contentWide',
+  boxSizing: 'border-box',
   mx: 'auto',
+  px: '4',
   py: '4',
   display: 'flex',
   alignItems: 'center',
@@ -354,8 +409,11 @@ const mobileSearchOverlayClass = css({
 });
 
 const mobileSearchOverlayInnerClass = css({
-  width: '[min(1120px, calc(100% - 2rem))]',
+  width: 'full',
+  maxWidth: 'contentWide',
+  boxSizing: 'border-box',
   mx: 'auto',
+  px: '4',
   display: 'grid',
   gridTemplateColumns: '[minmax(0, 1fr) auto]',
   alignItems: 'center',

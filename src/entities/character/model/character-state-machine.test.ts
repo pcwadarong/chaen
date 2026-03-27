@@ -18,6 +18,7 @@ type FakeAction = Pick<
   | 'loop'
   | 'play'
   | 'reset'
+  | 'setEffectiveTimeScale'
   | 'setLoop'
   | 'stop'
   | 'time'
@@ -39,6 +40,7 @@ const createFakeAction = (duration = 1): FakeAction => ({
   loop: LoopOnce,
   play: vi.fn().mockReturnThis(),
   reset: vi.fn().mockReturnThis(),
+  setEffectiveTimeScale: vi.fn().mockReturnThis(),
   setLoop: vi.fn().mockImplementation(function setLoop(this: FakeAction, mode) {
     this.loop = mode;
     return this;
@@ -129,6 +131,23 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.setLoop).toHaveBeenCalledWith(LoopRepeat, Infinity);
     expect(idleAction.clampWhenFinished).toBe(false);
     expect(idleAction.crossFadeFrom).toHaveBeenCalledWith(typingAction, 0.2, false);
+  });
+
+  it('contact 인스턴스가 music loop 상태일 때 캐릭터 플레이어는 더 느린 재생 배속을 적용해야 한다', () => {
+    const musicAction = createFakeAction();
+    const mixer = createFakeMixer({
+      music: musicAction,
+    });
+
+    const machine = new CharacterStateMachine({
+      clips: createClips('music'),
+      initialState: 'music',
+      mixer,
+    });
+
+    expect(machine.getCurrentState()).toBe('music');
+    expect(musicAction.setLoop).toHaveBeenCalledWith(LoopRepeat, Infinity);
+    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledWith(0.4);
   });
 
   it('이미 같은 상태면 action 설정과 재생을 다시 건드리지 않는다', () => {

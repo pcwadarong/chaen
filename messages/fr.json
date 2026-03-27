@@ -271,15 +271,10 @@
     "zoomOutAriaLabel": "Réduire l'image"
   },
   "Contact": {
-    "emailLabel": "Email",
-    "emailValue": "pcwadarong@naver.com",
-    "focusLabel": "Focus",
-    "focusValue": "Frontend Development",
-    "githubLabel": "Github",
-    "githubValue": "https://github.com/pcwadarong",
-    "locationLabel": "Location",
-    "locationValue": "Seoul, Korea",
-    "title": "Créons ensemble des expériences porteuses de sens."
+    "focusValue": "Développement frontend",
+    "locationValue": "Séoul, Corée du Sud",
+    "titleLine1": "Créons ensemble des",
+    "titleLine2": "expériences porteuses de sens."
   },
   "Switchers": {
     "locale": {

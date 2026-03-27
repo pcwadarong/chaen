@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useBreakpoint } from '@/widgets/home-hero-scene/model/useBreakpoint';
+import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 
 const originalInnerWidth = window.innerWidth;
 
@@ -32,7 +32,7 @@ describe('useBreakpoint', () => {
     const { result } = renderHook(() => useBreakpoint());
 
     expect(result.current).toEqual({
-      currentBP: 3,
+      currentBP: 2,
       sceneMode: 'mobile',
     });
   });
@@ -45,11 +45,11 @@ describe('useBreakpoint', () => {
     });
 
     act(() => {
-      resizeViewport(1180);
+      resizeViewport(1040);
     });
 
     expect(result.current).toEqual({
-      currentBP: 4,
+      currentBP: 3,
       sceneMode: 'desktop',
     });
   });
@@ -62,18 +62,18 @@ describe('useBreakpoint', () => {
     });
 
     act(() => {
-      resizeViewport(1180);
+      resizeViewport(1040);
     });
 
     expect(result.current).toEqual({
-      currentBP: 3,
+      currentBP: 2,
       sceneMode: 'mobile',
     });
 
     rerender({ isScrolling: false });
 
     expect(result.current).toEqual({
-      currentBP: 4,
+      currentBP: 3,
       sceneMode: 'desktop',
     });
   });
