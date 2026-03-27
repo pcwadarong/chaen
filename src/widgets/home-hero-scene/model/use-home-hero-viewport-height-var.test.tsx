@@ -36,6 +36,8 @@ describe('useHomeHeroViewportHeightVar', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     document.documentElement.style.removeProperty('--home-hero-viewport-height');
+    document.documentElement.style.removeProperty('--home-hero-available-height');
+    document.documentElement.style.removeProperty('--home-hero-scroll-section-height');
   });
 
   it('app-frame viewport가 있으면 sibling도 읽을 수 있도록 shared viewport scope에 높이 변수를 기록해야 한다', async () => {
@@ -52,12 +54,19 @@ describe('useHomeHeroViewportHeightVar', () => {
       configurable: true,
       value: 720,
     });
+    viewportElement.style.setProperty('--global-nav-height', '72px');
 
     window.dispatchEvent(new Event('resize'));
 
     await waitFor(() => {
       expect(viewportElement.style.getPropertyValue('--home-hero-viewport-height')).toBe('720px');
     });
+    expect(viewportElement.style.getPropertyValue('--home-hero-available-height')).toMatch(
+      /^\d+px$/,
+    );
+    expect(viewportElement.style.getPropertyValue('--home-hero-scroll-section-height')).toMatch(
+      /^\d+px$/,
+    );
     expect(sectionElement.style.getPropertyValue('--home-hero-viewport-height')).toBe('');
   });
 });

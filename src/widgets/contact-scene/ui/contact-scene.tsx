@@ -54,7 +54,7 @@ const wrapperClass = css({
   position: 'relative',
   width: 'full',
   overflow: 'clip',
-  minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
+  minHeight: '[var(--home-hero-available-height, 100dvh)]',
 });
 
 const canvasFrameClass = css({
@@ -75,7 +75,7 @@ const overlayInnerClass = css({
   width: 'full',
   maxWidth: 'contentWide',
   mx: 'auto',
-  minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
+  minHeight: '[var(--home-hero-available-height, 100dvh)]',
   display: 'grid',
   gridTemplateColumns:
     '[minmax(var(--sizes-contact-copy-min), var(--sizes-contact-copy-max)) minmax(0, 1fr)]',

@@ -19,15 +19,22 @@ type HomeHeroSceneProps = {
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
 export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) => {
   const localSectionRef = useRef<HTMLElement>(null);
+  const navLockRef = useRef<HTMLDivElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const sectionRef = triggerRef ?? localSectionRef;
 
-  useHomeHeroNavLock(sectionRef);
+  useHomeHeroNavLock(navLockRef);
   useHomeHeroViewportHeightVar(sectionRef);
 
   return (
     <section className={sectionClass} id="scene-scroll-container" ref={sectionRef}>
+      <div
+        aria-hidden="true"
+        className={navLockSentinelClass}
+        data-testid="home-hero-nav-lock-sentinel"
+        ref={navLockRef}
+      />
       <div className={stickyWrapperClass}>
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
@@ -50,18 +57,25 @@ const sectionClass = css({
   position: 'relative',
   width: 'full',
   boxSizing: 'border-box',
-  height: '[calc(var(--home-hero-viewport-height, 100svh) - var(--global-nav-height, 0px))]',
+  height: '[var(--home-hero-available-height, 100svh)]',
   overflowX: 'clip',
   _desktopUp: {
     marginTop: '[calc(-1 * var(--global-nav-height, 0px))]',
-    height:
-      '[calc(4 * var(--home-hero-viewport-height, 100dvh) - 3 * var(--global-nav-height, 0px))]',
+    height: '[var(--home-hero-scroll-section-height, 100dvh)]',
     overflow: 'clip',
   },
   _tabletDown: {
     width: '[100vw]',
     marginInline: '[calc(50% - 50vw)]',
   },
+});
+
+const navLockSentinelClass = css({
+  position: 'absolute',
+  insetInline: '0',
+  top: '0',
+  height: '[var(--home-hero-available-height, 100svh)]',
+  pointerEvents: 'none',
 });
 
 /**
@@ -71,7 +85,7 @@ const stickyWrapperClass = css({
   position: 'sticky',
   top: '0',
   zIndex: '1',
-  height: '[calc(var(--home-hero-viewport-height, 100svh) - var(--global-nav-height, 0px))]',
+  height: '[var(--home-hero-available-height, 100svh)]',
   overflow: 'clip',
   isolation: 'isolate',
   backgroundColor: '[#5d5bff]',

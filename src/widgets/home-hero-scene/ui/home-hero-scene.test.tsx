@@ -12,7 +12,7 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-web-ui', () => ({
 }));
 
 describe('HomeHeroScene', () => {
-  it('캔버스와 웹 UI 레이어를 함께 렌더링한다', () => {
+  it('첫 화면 안전 구간 sentinel과 함께 캔버스 및 웹 UI 레이어를 렌더링한다', () => {
     render(
       <HomeHeroScene
         items={[
@@ -29,6 +29,7 @@ describe('HomeHeroScene', () => {
       />,
     );
 
+    expect(screen.getByTestId('home-hero-nav-lock-sentinel')).toBeTruthy();
     expect(screen.getByTestId('home-hero-stage')).toBeTruthy();
     expect(screen.getByTestId('home-hero-web-ui')).toBeTruthy();
   });
