@@ -7,6 +7,13 @@ const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 type ScrollContainer = HTMLElement | Window;
 
 /**
+ * 전달된 스크롤 컨테이너가 HTMLElement인지 판별합니다.
+ */
+const isElementScrollContainer = (
+  scrollContainer: ScrollContainer,
+): scrollContainer is HTMLElement => scrollContainer instanceof HTMLElement;
+
+/**
  * 현재 레이아웃에서 홈 hero 자동 스크롤에 사용할 실제 스크롤 컨테이너를 선택합니다.
  */
 const resolveScrollContainer = (): ScrollContainer => {
@@ -30,7 +37,7 @@ export const scrollHomeHeroToProjects = (triggerElement: HTMLElement | null) => 
   const scrollContainer = resolveScrollContainer();
   const triggerRect = triggerElement.getBoundingClientRect();
 
-  if (scrollContainer === window) {
+  if (!isElementScrollContainer(scrollContainer)) {
     window.scrollTo({
       behavior: 'smooth',
       top: window.scrollY + triggerRect.top + Math.max(triggerRect.height - window.innerHeight, 0),
