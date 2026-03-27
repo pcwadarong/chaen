@@ -26,6 +26,7 @@ import {
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly interactionDisabledProgressThreshold?: number;
+  readonly onBrowseProjects?: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
@@ -40,6 +41,7 @@ const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
   interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
+  onBrowseProjects,
   onOpenImageViewer,
   selectedFrameImageSrc,
   triggerRef,
@@ -52,10 +54,13 @@ export const HomeHeroStageCanvas = ({
     isScrolling,
   });
   const handleBrowseProjects = useCallback(() => {
-    if (sceneMode !== 'desktop') return;
+    if (sceneMode === 'mobile') {
+      onBrowseProjects?.();
+      return;
+    }
 
     scrollHomeHeroToProjects(triggerRef.current);
-  }, [sceneMode, triggerRef]);
+  }, [onBrowseProjects, sceneMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -63,7 +68,6 @@ export const HomeHeroStageCanvas = ({
         currentBP,
       }),
     [currentBP],
-    ㅈ,
   );
 
   return (

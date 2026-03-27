@@ -18,6 +18,8 @@
     "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "eyebrow": "ホーム",
+    "mobileProjectPanelAriaLabel": "モバイルプロジェクトパネル",
+    "mobileProjectPanelCloseLabel": "閉じる",
     "showcaseScreenReaderDescription": "ピックアップ作品セクションです。各カードから詳細ページへ移動できます。",
     "showcaseTitle": "ピックアップ作品",
     "title": "モーションを載せられる最初のフレーム。"

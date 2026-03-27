@@ -13,6 +13,7 @@ import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/ho
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
+import { HomeHeroMobileProjectSheet } from '@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
 import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
@@ -42,6 +43,7 @@ export const HomeHeroScene = ({
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const defaultFrameImageSrc = photoItems[0]?.src ?? null;
   const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
+  const [isMobileProjectSheetOpen, setIsMobileProjectSheetOpen] = React.useState(false);
   const [selectedFrameImageSrc, setSelectedFrameImageSrc] = React.useState<string | null>(
     defaultFrameImageSrc,
   );
@@ -101,6 +103,9 @@ export const HomeHeroScene = ({
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+          onBrowseProjects={() => {
+            setIsMobileProjectSheetOpen(true);
+          }}
           onOpenImageViewer={() => {
             setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
           }}
@@ -123,6 +128,14 @@ export const HomeHeroScene = ({
           const nextImageSrc = photoItems[currentIndex]?.src ?? defaultFrameImageSrc;
           setSelectedFrameImageSrc(nextImageSrc);
         }}
+      />
+      <HomeHeroMobileProjectSheet
+        isOpen={isMobileProjectSheetOpen}
+        items={items}
+        onClose={() => {
+          setIsMobileProjectSheetOpen(false);
+        }}
+        title={title}
       />
     </section>
   );

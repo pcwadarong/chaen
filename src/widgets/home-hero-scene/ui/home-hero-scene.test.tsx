@@ -26,18 +26,25 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-stage', () => ({
   HomeHeroStage: ({
+    onBrowseProjects,
     onOpenImageViewer,
     selectedFrameImageSrc,
   }: {
+    onBrowseProjects?: () => void;
     onOpenImageViewer?: () => void;
     selectedFrameImageSrc?: string | null;
   }) => (
-    <button
-      data-frame-screen-src={selectedFrameImageSrc ?? ''}
-      data-testid="home-hero-stage"
-      onClick={onOpenImageViewer}
-      type="button"
-    />
+    <div>
+      <button
+        data-frame-screen-src={selectedFrameImageSrc ?? ''}
+        data-testid="home-hero-stage"
+        onClick={onOpenImageViewer}
+        type="button"
+      />
+      <button onClick={onBrowseProjects} type="button">
+        browse-projects
+      </button>
+    </div>
   ),
 }));
 
@@ -231,5 +238,29 @@ describe('HomeHeroScene', () => {
       'data-frame-screen-src',
       HOME_HERO_PHOTO_ITEMS[2]?.src ?? '',
     );
+  });
+
+  it('browse action이 들어오면 모바일 프로젝트 패널을 열어야 한다', () => {
+    render(
+      <HomeHeroScene
+        items={[
+          {
+            id: 'motion-library',
+            title: 'Motion Library',
+            description: 'description',
+            thumbnail_url: null,
+            publish_at: '2026-01-01T00:00:00.000Z',
+            slug: 'motion-library',
+          },
+        ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
+        title="Selected Projects"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'browse-projects' }));
+
+    expect(screen.getByRole('dialog', { name: 'mobileProjectPanelAriaLabel' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'mobileProjectPanelCloseLabel' })).toBeTruthy();
   });
 });

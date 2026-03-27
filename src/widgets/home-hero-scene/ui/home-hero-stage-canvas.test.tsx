@@ -6,6 +6,7 @@ import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stag
 import '@testing-library/jest-dom/vitest';
 
 const homeHeroStageCanvasMockState = vi.hoisted(() => ({
+  interactionControllerProps: null as null | Record<string, unknown>,
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
   timelineState: {
@@ -68,11 +69,16 @@ vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => 
 }));
 
 vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
-  SceneInteractionController: () => <div data-testid="scene-interaction-controller" />,
+  SceneInteractionController: (props: Record<string, unknown>) => {
+    homeHeroStageCanvasMockState.interactionControllerProps = props;
+
+    return <div data-testid="scene-interaction-controller" />;
+  },
 }));
 
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
+    homeHeroStageCanvasMockState.interactionControllerProps = null;
     homeHeroStageCanvasMockState.orbitControlsProps = null;
     homeHeroStageCanvasMockState.sceneMode = 'desktop';
     homeHeroStageCanvasMockState.timelineState = {
@@ -193,16 +199,21 @@ describe('HomeHeroStageCanvas', () => {
 
   it('모바일 sceneMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
     homeHeroStageCanvasMockState.sceneMode = 'mobile';
+    const onBrowseProjects = vi.fn();
 
     render(
       <HomeHeroStageCanvas
         blackoutOverlayRef={{ current: null }}
+        onBrowseProjects={onBrowseProjects}
         triggerRef={{ current: null }}
         webUiRef={{ current: null }}
       />,
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects).toBe(
+      onBrowseProjects,
+    );
   });
 
   it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {

@@ -18,6 +18,8 @@
     "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
     "eyebrow": "홈",
+    "mobileProjectPanelAriaLabel": "모바일 프로젝트 패널",
+    "mobileProjectPanelCloseLabel": "내리기",
     "showcaseScreenReaderDescription": "선별 프로젝트 섹션입니다. 프로젝트별 상세 페이지로 이동할 수 있습니다.",
     "showcaseTitle": "선별 프로젝트",
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
