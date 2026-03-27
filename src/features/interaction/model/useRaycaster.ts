@@ -79,6 +79,7 @@ export const useRaycaster = ({
   hoveredOutlineMeshes: Object3D[];
   onPointerClick: (event: PointerEvent) => void;
   onPointerMove: (event: PointerEvent) => void;
+  setHoveredMeshDirect: (mesh: Object3D | null) => void;
 } => {
   const { camera, raycaster, scene } = useThree();
   const isTouchDevice = useIsTouchDevice();
@@ -181,6 +182,7 @@ export const useRaycaster = ({
     hoveredOutlineMeshes,
     onPointerClick,
     onPointerMove,
+    setHoveredMeshDirect: setHoveredMesh,
   };
 };
 
