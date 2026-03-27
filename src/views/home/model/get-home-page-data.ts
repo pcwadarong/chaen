@@ -1,3 +1,4 @@
+import { listPhotoFiles } from '@/entities/hero-photo/api/list-photo-files';
 import { getProjects } from '@/entities/project/api/list/get-projects';
 import type { HomePageProps } from '@/views/home/ui/home-page';
 
@@ -17,8 +18,17 @@ export const getHomePageData = async ({ locale }: GetHomePageDataInput): Promise
     items: [],
     nextCursor: null,
   }));
+  const photoItems = await listPhotoFiles()
+    .then(items =>
+      items.map((item, index) => ({
+        alt: item.fileName || `Hero photo ${index + 1}`,
+        src: item.publicUrl,
+      })),
+    )
+    .catch(() => []);
 
   return {
     items: projectsPage.items,
+    photoItems,
   };
 };

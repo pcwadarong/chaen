@@ -1,10 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS } from '@/widgets/home-hero-scene/model/home-hero-temp-image-viewer-items';
 import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
 
 import '@testing-library/jest-dom/vitest';
+
+const HOME_HERO_PHOTO_ITEMS = [
+  {
+    alt: 'Hero photo 1',
+    src: 'https://example.com/photo-1.jpg',
+  },
+  {
+    alt: 'Hero photo 2',
+    src: 'https://example.com/photo-2.jpg',
+  },
+  {
+    alt: 'Hero photo 3',
+    src: 'https://example.com/photo-3.jpg',
+  },
+];
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -71,6 +85,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
@@ -80,7 +95,7 @@ describe('HomeHeroScene', () => {
     expect(screen.getByTestId('home-hero-web-ui')).toBeTruthy();
   });
 
-  it('camera click 임시 연결을 위해 ImageViewerModal은 placeholder 이미지 목록을 사용해야 한다', () => {
+  it('camera click 시 ImageViewerModal은 storage photo 목록을 사용해야 한다', () => {
     render(
       <HomeHeroScene
         items={[
@@ -93,6 +108,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
@@ -101,7 +117,7 @@ describe('HomeHeroScene', () => {
 
     expect(screen.getByTestId('image-viewer-modal').firstElementChild).toHaveAttribute(
       'data-count',
-      String(HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS.length),
+      String(HOME_HERO_PHOTO_ITEMS.length),
     );
     expect(screen.getByTestId('image-viewer-modal').firstElementChild).toHaveAttribute(
       'data-index',
@@ -122,13 +138,14 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
 
     expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
       'data-frame-screen-src',
-      HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[0]?.src ?? '',
+      HOME_HERO_PHOTO_ITEMS[0]?.src ?? '',
     );
   });
 
@@ -145,6 +162,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
@@ -154,7 +172,7 @@ describe('HomeHeroScene', () => {
 
     expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
       'data-frame-screen-src',
-      HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[1]?.src ?? '',
+      HOME_HERO_PHOTO_ITEMS[1]?.src ?? '',
     );
   });
 
@@ -171,6 +189,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
@@ -188,7 +207,7 @@ describe('HomeHeroScene', () => {
   it('저장된 액자 이미지가 있으면 다음 진입 시 localStorage 기준으로 복원해야 한다', () => {
     window.localStorage.setItem(
       'home-hero:selected-frame-image-src',
-      HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[2]?.src ?? '',
+      HOME_HERO_PHOTO_ITEMS[2]?.src ?? '',
     );
 
     render(
@@ -203,13 +222,14 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
         title="Selected Projects"
       />,
     );
 
     expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
       'data-frame-screen-src',
-      HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[2]?.src ?? '',
+      HOME_HERO_PHOTO_ITEMS[2]?.src ?? '',
     );
   });
 });

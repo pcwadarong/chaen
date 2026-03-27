@@ -9,7 +9,7 @@ import {
   type ImageViewerLabels,
   ImageViewerModal,
 } from '@/shared/ui/image-viewer/image-viewer-modal';
-import { HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS } from '@/widgets/home-hero-scene/model/home-hero-temp-image-viewer-items';
+import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/home-hero-image-viewer-item';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
@@ -18,6 +18,7 @@ import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
 type HomeHeroSceneProps = {
   readonly items: ProjectListItem[];
+  readonly photoItems: HomeHeroImageViewerItem[];
   readonly title: string;
   readonly triggerRef?: React.RefObject<HTMLElement | null>;
 };
@@ -25,21 +26,21 @@ type HomeHeroSceneProps = {
 const HOME_HERO_FRAME_IMAGE_STORAGE_KEY = 'home-hero:selected-frame-image-src';
 
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
-export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) => {
+export const HomeHeroScene = ({ items, photoItems, title, triggerRef }: HomeHeroSceneProps) => {
   const imageViewerTranslations = useTranslations('ImageViewer');
   const localSectionRef = useRef<HTMLElement>(null);
   const navLockRef = useRef<HTMLDivElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
-  const defaultFrameImageSrc = HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[0]?.src ?? null;
+  const defaultFrameImageSrc = photoItems[0]?.src ?? null;
   const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
   const [selectedFrameImageSrc, setSelectedFrameImageSrc] = React.useState<string | null>(
     defaultFrameImageSrc,
   );
   const sectionRef = triggerRef ?? localSectionRef;
   const selectedFrameImageIndex = useMemo(
-    () => HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS.findIndex(item => item.src === selectedFrameImageSrc),
-    [selectedFrameImageSrc],
+    () => photoItems.findIndex(item => item.src === selectedFrameImageSrc),
+    [photoItems, selectedFrameImageSrc],
   );
   const imageViewerLabels = React.useMemo<ImageViewerLabels>(
     () => ({
@@ -68,10 +69,10 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
     const storedImageSrc = window.localStorage.getItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY);
 
     if (!storedImageSrc) return;
-    if (!HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS.some(item => item.src === storedImageSrc)) return;
+    if (!photoItems.some(item => item.src === storedImageSrc)) return;
 
     setSelectedFrameImageSrc(storedImageSrc);
-  }, []);
+  }, [photoItems]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -104,14 +105,13 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
       </div>
       <ImageViewerModal
         initialIndex={imageViewerOpenIndex}
-        items={HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS}
+        items={photoItems}
         labels={imageViewerLabels}
         onClose={() => {
           setImageViewerOpenIndex(null);
         }}
         onSelectCurrentImage={currentIndex => {
-          const nextImageSrc =
-            HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[currentIndex]?.src ?? defaultFrameImageSrc;
+          const nextImageSrc = photoItems[currentIndex]?.src ?? defaultFrameImageSrc;
           setSelectedFrameImageSrc(nextImageSrc);
         }}
       />

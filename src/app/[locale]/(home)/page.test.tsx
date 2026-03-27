@@ -16,6 +16,7 @@ vi.mock('next-intl/server', () => ({
 vi.mock('@/views/home', () => ({
   getHomePageData: vi.fn(async () => ({
     items: [],
+    photoItems: [],
   })),
   HomePage: function HomePage() {
     return null;
@@ -44,6 +45,7 @@ describe('HomeRoute', () => {
     expect(element.type.name).toBe('HomePage');
     expect(getHomePageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.items).toEqual([]);
+    expect(element.props.photoItems).toEqual([]);
   });
 
   it('홈 메타데이터에 placeholder OG 이미지와 alternates를 포함한다', async () => {
