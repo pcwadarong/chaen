@@ -15,7 +15,7 @@ export const HomePage = ({ items }: HomePageProps) => {
   const t = useTranslations('Home');
 
   return (
-    <main className={pageClass} data-hide-app-frame-footer-mobile="true">
+    <main className={pageClass} data-hide-app-frame-footer="true">
       <HomeHeroScene items={items} title={t('showcaseTitle')} />
       <ContactScene />
     </main>

@@ -19,10 +19,10 @@ vi.mock('@/widgets/contact-scene', () => ({
 }));
 
 describe('HomePage', () => {
-  it('모바일 footer 숨김 마커와 hero/contact section을 함께 렌더링해야 한다', () => {
+  it('홈 페이지일 때 app-frame footer 숨김 마커와 hero/contact section을 함께 렌더링해야 한다', () => {
     const { container } = render(<HomePage items={[]} />);
 
-    expect(container.querySelector('[data-hide-app-frame-footer-mobile="true"]')).toBeTruthy();
+    expect(container.querySelector('[data-hide-app-frame-footer="true"]')).toBeTruthy();
     expect(screen.getByTestId('home-hero-scene')).toBeTruthy();
     expect(screen.getByTestId('contact-scene')).toBeTruthy();
   });

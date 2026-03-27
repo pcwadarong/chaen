@@ -43,7 +43,7 @@ export const ContactScene = () => {
             isDesktopSmall ? overlayInnerDesktopSmallClass : undefined,
           )}
         >
-          <ContactStrip className={desktopStripClass} />
+          <ContactStrip />
         </div>
       </div>
     </div>
@@ -55,9 +55,6 @@ const wrapperClass = css({
   width: 'full',
   overflow: 'clip',
   minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
-  _desktopUp: {
-    minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
-  },
 });
 
 const canvasFrameClass = css({
@@ -80,7 +77,8 @@ const overlayInnerClass = css({
   mx: 'auto',
   minHeight: '[calc(var(--home-hero-viewport-height, 100dvh) - var(--global-nav-height, 0px))]',
   display: 'grid',
-  gridTemplateColumns: '[minmax(26rem, 34rem) minmax(0, 1fr)]',
+  gridTemplateColumns:
+    '[minmax(var(--sizes-contact-copy-min), var(--sizes-contact-copy-max)) minmax(0, 1fr)]',
   alignItems: 'center',
   columnGap: '[clamp(2rem, 6vw, 5rem)]',
   px: '4',
@@ -89,10 +87,4 @@ const overlayInnerClass = css({
 const overlayInnerDesktopSmallClass = css({
   paddingLeft: '8',
   paddingRight: '5',
-});
-
-const desktopStripClass = css({
-  gridColumn: '1',
-  justifySelf: 'start',
-  width: 'auto',
 });

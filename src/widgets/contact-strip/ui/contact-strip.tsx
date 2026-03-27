@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { css, cx } from 'styled-system/css';
+import { css } from 'styled-system/css';
 
 import {
   CONTACT_EMAIL_ADDRESS,
@@ -9,16 +9,12 @@ import {
 import { Button } from '@/shared/ui/button/button';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
 
-type ContactStripProps = Readonly<{
-  className?: string;
-}>;
-
 /** 홈 contact 영역의 텍스트와 액션을 variant별로 렌더링합니다. */
-export const ContactStrip = ({ className }: ContactStripProps) => {
+export const ContactStrip = () => {
   const t = useTranslations('Contact');
 
   return (
-    <section className={cx(sectionClass, className)}>
+    <section className={sectionClass}>
       <div className={copyClass}>
         <h2 className={titleClass}>
           <span>{t('titleLine1')}</span>

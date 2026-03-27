@@ -23,11 +23,6 @@ const appFrameFooterClass = css({
     px: '5',
     py: '3',
   },
-  _tabletDown: {
-    '.group:has([data-hide-app-frame-footer-mobile="true"]) &': {
-      display: 'none',
-    },
-  },
 });
 
 const appFrameFooterTextClass = css({
