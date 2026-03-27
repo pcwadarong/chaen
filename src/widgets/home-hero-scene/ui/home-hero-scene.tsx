@@ -1,9 +1,15 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React, { useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
+import {
+  type ImageViewerLabels,
+  ImageViewerModal,
+} from '@/shared/ui/image-viewer/image-viewer-modal';
+import { HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS } from '@/widgets/home-hero-scene/model/home-hero-temp-image-viewer-items';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
@@ -18,11 +24,28 @@ type HomeHeroSceneProps = {
 
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
 export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) => {
+  const imageViewerTranslations = useTranslations('ImageViewer');
   const localSectionRef = useRef<HTMLElement>(null);
   const navLockRef = useRef<HTMLDivElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
+  const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
   const sectionRef = triggerRef ?? localSectionRef;
+  const imageViewerLabels = React.useMemo<ImageViewerLabels>(
+    () => ({
+      actionBarAriaLabel: imageViewerTranslations('actionBarAriaLabel'),
+      closeAriaLabel: imageViewerTranslations('closeAriaLabel'),
+      fitToScreenAriaLabel: imageViewerTranslations('fitToScreenAriaLabel'),
+      imageViewerAriaLabel: imageViewerTranslations('imageViewerAriaLabel'),
+      locateSourceAriaLabel: imageViewerTranslations('locateSourceAriaLabel'),
+      nextAriaLabel: imageViewerTranslations('nextAriaLabel'),
+      previousAriaLabel: imageViewerTranslations('previousAriaLabel'),
+      thumbnailListAriaLabel: imageViewerTranslations('thumbnailListAriaLabel'),
+      zoomInAriaLabel: imageViewerTranslations('zoomInAriaLabel'),
+      zoomOutAriaLabel: imageViewerTranslations('zoomOutAriaLabel'),
+    }),
+    [imageViewerTranslations],
+  );
 
   useHomeHeroNavLock(navLockRef);
   useHomeHeroViewportHeightVar(sectionRef);
@@ -38,6 +61,9 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
       <div className={stickyWrapperClass}>
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
+          onOpenImageViewer={() => {
+            setImageViewerOpenIndex(0);
+          }}
           triggerRef={sectionRef}
           webUiRef={webUiRef}
         />
@@ -45,6 +71,14 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
         <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
       </div>
+      <ImageViewerModal
+        initialIndex={imageViewerOpenIndex}
+        items={HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS}
+        labels={imageViewerLabels}
+        onClose={() => {
+          setImageViewerOpenIndex(null);
+        }}
+      />
     </section>
   );
 };
