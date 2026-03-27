@@ -6,6 +6,7 @@ import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { PerspectiveCamera } from 'three';
 
+import { getDisabledScrollTimelineSnapshot } from '@/features/scroll-timeline/model/disabled-scroll-timeline-snapshot';
 import {
   getScrollTimelineSnapshot,
   type ScrollTimelineSnapshot,
@@ -148,16 +149,11 @@ export const useScrollTimeline = ({
     };
 
     if (!enabled || !triggerRef.current) {
-      const initialSnapshot = getScrollTimelineSnapshot({
+      const initialSnapshot = getDisabledScrollTimelineSnapshot({
         initialPosition,
-        progress: 0,
       });
 
-      applySnapshot({
-        ...initialSnapshot,
-        isScrollDriven: false,
-        isSequenceActive: false,
-      });
+      applySnapshot(initialSnapshot);
 
       return;
     }

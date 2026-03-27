@@ -16,6 +16,7 @@ export const useHomeHeroViewportHeightVar = (sectionRef: RefObject<HTMLElement |
     const sectionElement = sectionRef.current;
     const viewportElement =
       sectionElement.closest<HTMLElement>('[data-app-scroll-viewport="true"]') ?? null;
+    const styleScope = viewportElement ?? document.documentElement;
 
     const syncViewportHeight = () => {
       const windowHeight = window.innerHeight;
@@ -27,7 +28,7 @@ export const useHomeHeroViewportHeightVar = (sectionRef: RefObject<HTMLElement |
           ? viewportClientHeight
           : windowHeight;
 
-      sectionElement.style.setProperty('--home-hero-viewport-height', `${nextHeight}px`);
+      styleScope.style.setProperty('--home-hero-viewport-height', `${nextHeight}px`);
     };
 
     syncViewportHeight();
@@ -50,6 +51,7 @@ export const useHomeHeroViewportHeightVar = (sectionRef: RefObject<HTMLElement |
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', syncViewportHeight);
+      styleScope.style.removeProperty('--home-hero-viewport-height');
     };
   }, [sectionRef]);
 };
