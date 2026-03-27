@@ -576,9 +576,9 @@ export const ImageViewerModal = ({
             <Tooltip
               content={labels.selectForFrameAriaLabel}
               contentClassName={actionTooltipClass}
-              contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
               forceOpen={activeActionTooltip === labels.selectForFrameAriaLabel}
               openOnFocus={false}
+              portalStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
             >
               <button
                 aria-label={labels.selectForFrameAriaLabel}
@@ -662,9 +662,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomOutAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.zoomOutAriaLabel}
                   openOnFocus={false}
+                  portalStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                 >
                   <button
                     aria-label={labels.zoomOutAriaLabel}
@@ -688,9 +688,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomInAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.zoomInAriaLabel}
                   openOnFocus={false}
+                  portalStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                 >
                   <button
                     aria-label={labels.zoomInAriaLabel}
@@ -714,9 +714,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.fitToScreenAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.fitToScreenAriaLabel}
                   openOnFocus={false}
+                  portalStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                 >
                   <button
                     aria-label={labels.fitToScreenAriaLabel}
@@ -736,9 +736,9 @@ export const ImageViewerModal = ({
                   <Tooltip
                     content={labels.locateSourceAriaLabel}
                     contentClassName={actionTooltipClass}
-                    contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                     forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
                     openOnFocus={false}
+                    portalStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   >
                     <button
                       aria-label={labels.locateSourceAriaLabel}

@@ -22,6 +22,7 @@ type TooltipProps = {
   contentClassName?: string;
   forceOpen?: boolean;
   openOnFocus?: boolean;
+  portalStyle?: React.CSSProperties;
 };
 
 /**
@@ -35,6 +36,7 @@ export const Tooltip = ({
   contentClassName,
   forceOpen = false,
   openOnFocus = true,
+  portalStyle,
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -54,7 +56,10 @@ export const Tooltip = ({
     .join(' ');
 
   useLayoutEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setTooltipStyle(undefined);
+      return;
+    }
 
     /**
      * 트리거 래퍼 기준으로 tooltip viewport 좌표를 계산합니다.
@@ -108,12 +113,16 @@ export const Tooltip = ({
       {isOpen
         ? createPortal(
             <span
-              className={cx(tooltipClass, contentClassName)}
+              className={tooltipPortalClass}
               id={tooltipId}
               role="tooltip"
-              style={tooltipStyle}
+              style={{
+                ...tooltipStyle,
+                ...portalStyle,
+                visibility: tooltipStyle ? 'visible' : 'hidden',
+              }}
             >
-              {content}
+              <span className={cx(tooltipClass, contentClassName)}>{content}</span>
             </span>,
             document.body,
           )
@@ -137,6 +146,9 @@ const tooltipClass = css({
   lineHeight: 'tight',
   whiteSpace: 'nowrap',
   boxShadow: 'floating',
+});
+
+const tooltipPortalClass = css({
   zIndex: '50',
   pointerEvents: 'none',
 });
