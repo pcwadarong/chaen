@@ -37,7 +37,7 @@ export const HomeHeroStage = ({
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => (
-  <div aria-hidden="true" className={stageFrameClass}>
+  <div className={stageFrameClass}>
     <HomeHeroStageCanvas
       blackoutOverlayRef={blackoutOverlayRef}
       interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}

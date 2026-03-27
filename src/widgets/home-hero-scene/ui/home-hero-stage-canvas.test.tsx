@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stage-canvas';
@@ -10,6 +10,8 @@ import '@testing-library/jest-dom/vitest';
 const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
+    onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
+    onToggleBassTrackPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
@@ -22,6 +24,13 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   },
 }));
 
+const bassAudioMockState = vi.hoisted(() => ({
+  isBassTrackPlaying: false,
+  playBassString: vi.fn(),
+  stopBassTrackPlayback: vi.fn(),
+  toggleBassTrackPlayback: vi.fn(),
+}));
+
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children, dpr }: { children: React.ReactNode; dpr?: unknown }) => (
     <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
@@ -31,6 +40,9 @@ vi.mock('@react-three/fiber', () => ({
 }));
 
 vi.mock('@react-three/drei', () => ({
+  Html: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="three-html">{children}</div>
+  ),
   OrbitControls: (props: Record<string, unknown>) => {
     homeHeroStageCanvasMockState.orbitControlsProps = props;
 
@@ -80,6 +92,10 @@ vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
   },
 }));
 
+vi.mock('@/features/audio/model/use-bass-audio', () => ({
+  useBassAudio: () => bassAudioMockState,
+}));
+
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
     homeHeroStageCanvasMockState.interactionControllerProps = null;
@@ -92,6 +108,10 @@ describe('HomeHeroStageCanvas', () => {
       isScrollDriven: false,
       isSequenceActive: false,
     };
+    bassAudioMockState.isBassTrackPlaying = false;
+    bassAudioMockState.playBassString.mockReset();
+    bassAudioMockState.stopBassTrackPlayback.mockReset();
+    bassAudioMockState.toggleBassTrackPlayback.mockReset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -247,5 +267,51 @@ describe('HomeHeroStageCanvas', () => {
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
     );
+  });
+
+  it('scene interaction controller는 bass 오디오 콜백을 함께 받아야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBassTrackPlayback?.();
+    homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
+
+    expect(bassAudioMockState.toggleBassTrackPlayback).toHaveBeenCalledOnce();
+    expect(bassAudioMockState.playBassString).toHaveBeenCalledWith('line3');
+  });
+
+  it('bass 트랙이 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
+    bassAudioMockState.isBassTrackPlaying = true;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Bass playback stop' })).toBeTruthy();
+  });
+
+  it('정지 버튼 오버레이를 누르면 메인 bass 트랙 정지 콜백을 호출해야 한다', () => {
+    bassAudioMockState.isBassTrackPlaying = true;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bass playback stop' }));
+
+    expect(bassAudioMockState.stopBassTrackPlayback).toHaveBeenCalledOnce();
   });
 });

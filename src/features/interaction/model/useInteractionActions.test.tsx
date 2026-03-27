@@ -58,15 +58,15 @@ describe('useInteractionActions', () => {
     expect(onBrowseProjects).not.toHaveBeenCalled();
   });
 
-  it('bass_body click은 프로젝트 뷰 이동 콜백을 호출해야 한다', () => {
+  it('bass_body click은 메인 bass 트랙 토글 콜백을 호출해야 한다', () => {
     const bassBodyMesh = createMesh('bass_body');
-    const onBrowseProjects = vi.fn();
     const onOpenImageViewer = vi.fn();
+    const onToggleBassTrackPlayback = vi.fn();
 
     const { result } = renderHook(() =>
       useInteractionActions({
-        onBrowseProjects,
         onOpenImageViewer,
+        onToggleBassTrackPlayback,
       }),
     );
 
@@ -74,7 +74,24 @@ describe('useInteractionActions', () => {
       result.current.handleMeshClick(bassBodyMesh);
     });
 
-    expect(onBrowseProjects).toHaveBeenCalledOnce();
+    expect(onToggleBassTrackPlayback).toHaveBeenCalledOnce();
     expect(onOpenImageViewer).not.toHaveBeenCalled();
+  });
+
+  it('line1 click은 첫 번째 bass 줄 음 재생 콜백을 호출해야 한다', () => {
+    const lineMesh = createMesh('line1');
+    const onPlayBassString = vi.fn();
+
+    const { result } = renderHook(() =>
+      useInteractionActions({
+        onPlayBassString,
+      }),
+    );
+
+    act(() => {
+      result.current.handleMeshClick(lineMesh);
+    });
+
+    expect(onPlayBassString).toHaveBeenCalledWith('line1');
   });
 });

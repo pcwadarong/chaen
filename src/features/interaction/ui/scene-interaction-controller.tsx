@@ -11,6 +11,8 @@ import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
 type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
+  onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  onToggleBassTrackPlayback?: () => void | Promise<void>;
 }>;
 
 const KEYBOARD_INTERACTION_TARGET_NAMES = ['laptop', 'bass_body', 'camera'] as const;
@@ -24,11 +26,15 @@ const KEYBOARD_NAVIGATION_KEYS = new Set(['ArrowDown', 'ArrowLeft', 'ArrowRight'
 export const SceneInteractionController = ({
   onBrowseProjects,
   onOpenImageViewer,
+  onPlayBassString,
+  onToggleBassTrackPlayback,
 }: SceneInteractionControllerProps) => {
   const { gl, scene } = useThree();
   const { handleMeshClick } = useInteractionActions({
     onBrowseProjects,
     onOpenImageViewer,
+    onPlayBassString,
+    onToggleBassTrackPlayback,
   });
   const {
     hoveredOutlineMeshes,

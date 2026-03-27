@@ -148,7 +148,7 @@ export const useRaycaster = ({
           y: event.clientY,
         };
         pressedMeshRef.current = pressedMesh;
-        setHoveredMesh(pressedMesh);
+        if (!isTouchDevice) setHoveredMesh(pressedMesh);
 
         return;
       }
@@ -166,10 +166,10 @@ export const useRaycaster = ({
       if (releasedMesh !== pressedMesh) return;
       if (!isClickDeltaWithinThreshold(pressedPointer, event, CLICK_DELTA_THRESHOLD)) return;
 
-      setHoveredMesh(releasedMesh);
+      if (!isTouchDevice) setHoveredMesh(releasedMesh);
       onMeshClick?.(releasedMesh);
     },
-    [onMeshClick, resolveInteractiveMesh],
+    [isTouchDevice, onMeshClick, resolveInteractiveMesh],
   );
 
   const clearHoveredMesh = useCallback(() => {
@@ -304,9 +304,7 @@ const resolveInteractiveAncestor = (object: Object3D | null): Object3D | null =>
   let currentObject = object;
 
   while (currentObject) {
-    if (isInteractiveMeshName(currentObject.name)) {
-      return currentObject;
-    }
+    if (isInteractiveMeshName(currentObject.name)) return currentObject;
 
     currentObject = currentObject.parent;
   }
