@@ -26,13 +26,7 @@ describe('AdminSignOutButton', () => {
       ok: false,
     });
 
-    render(
-      <AdminSignOutButton
-        redirectPath="/ko/admin/login"
-        submitLabel="로그아웃"
-        submitPendingLabel="로그아웃 중"
-      />,
-    );
+    render(<AdminSignOutButton redirectPath="/ko/admin/login" />);
 
     fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
 
@@ -52,13 +46,7 @@ describe('AdminSignOutButton', () => {
       ok: false,
     });
 
-    render(
-      <AdminSignOutButton
-        redirectPath="/ko/admin/login"
-        submitLabel="로그아웃"
-        submitPendingLabel="로그아웃 중"
-      />,
-    );
+    render(<AdminSignOutButton redirectPath="/ko/admin/login" />);
 
     fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
 

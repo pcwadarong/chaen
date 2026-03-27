@@ -2,10 +2,12 @@
 
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import React, { type RefObject, Suspense, useMemo, useState } from 'react';
+import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
+import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import {
   getHomeHeroSceneLayout,
   HOME_HERO_CAMERA_FAR,
@@ -23,15 +25,25 @@ import {
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
+  readonly interactionDisabledProgressThreshold?: number;
+  readonly onBrowseProjects?: () => void;
+  readonly onOpenImageViewer?: () => void;
+  readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
+
+const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
  */
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
+  interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
+  onBrowseProjects,
+  onOpenImageViewer,
+  selectedFrameImageSrc,
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
@@ -41,6 +53,14 @@ export const HomeHeroStageCanvas = ({
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
   });
+  const handleBrowseProjects = useCallback(() => {
+    if (sceneMode === 'mobile') {
+      onBrowseProjects?.();
+      return;
+    }
+
+    scrollHomeHeroToProjects(triggerRef.current);
+  }, [onBrowseProjects, sceneMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -72,6 +92,9 @@ export const HomeHeroStageCanvas = ({
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
+        interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+        onBrowseProjects={handleBrowseProjects}
+        onOpenImageViewer={onOpenImageViewer}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
@@ -82,6 +105,7 @@ export const HomeHeroStageCanvas = ({
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
           isCloseupCostumeHidden={isCloseupCostumeHidden}
+          selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
         />
       </Suspense>
@@ -95,6 +119,9 @@ export const HomeHeroStageCanvas = ({
 const HomeHeroCameraRig = ({
   blackoutOverlayRef,
   currentBP,
+  interactionDisabledProgressThreshold,
+  onBrowseProjects,
+  onOpenImageViewer,
   onCloseupCostumeHiddenChange,
   onScrollStateChange,
   sceneLayout,
@@ -104,6 +131,9 @@ const HomeHeroCameraRig = ({
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
+  readonly interactionDisabledProgressThreshold: number;
+  readonly onBrowseProjects: () => void;
+  readonly onOpenImageViewer?: () => void;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
@@ -111,7 +141,7 @@ const HomeHeroCameraRig = ({
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { isCloseupCostumeHidden, isSequenceActive } = useHomeHeroSceneTransition({
+  const { isCloseupCostumeHidden, isSequenceActive, progress } = useHomeHeroSceneTransition({
     blackoutOverlayRef,
     onScrollStateChange,
     sceneLayout,
@@ -124,22 +154,32 @@ const HomeHeroCameraRig = ({
     onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
   }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
 
+  const isInteractionEnabled = progress < interactionDisabledProgressThreshold;
+
   return (
-    <OrbitControls
-      enablePan={false}
-      enableRotate
-      enableZoom={sceneMode === 'mobile'}
-      enabled={sceneMode === 'mobile' || !isSequenceActive}
-      key={`${sceneMode}-${currentBP}`}
-      makeDefault
-      maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
-      maxDistance={sceneLayout.camera.maxDistance}
-      maxPolarAngle={sceneLayout.camera.maxPolarAngle}
-      minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
-      minDistance={sceneLayout.camera.minDistance}
-      minPolarAngle={sceneLayout.camera.minPolarAngle}
-      target={sceneLayout.camera.lookAt}
-    />
+    <>
+      <OrbitControls
+        enablePan={false}
+        enableRotate
+        enableZoom={sceneMode === 'mobile'}
+        enabled={sceneMode === 'mobile' || !isSequenceActive}
+        key={`${sceneMode}-${currentBP}`}
+        makeDefault
+        maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
+        maxDistance={sceneLayout.camera.maxDistance}
+        maxPolarAngle={sceneLayout.camera.maxPolarAngle}
+        minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
+        minDistance={sceneLayout.camera.minDistance}
+        minPolarAngle={sceneLayout.camera.minPolarAngle}
+        target={sceneLayout.camera.lookAt}
+      />
+      {isInteractionEnabled ? (
+        <SceneInteractionController
+          onBrowseProjects={onBrowseProjects}
+          onOpenImageViewer={onOpenImageViewer}
+        />
+      ) : null}
+    </>
   );
 };
 
@@ -148,9 +188,11 @@ const HomeHeroCameraRig = ({
  */
 const HomeHeroSceneObjects = ({
   isCloseupCostumeHidden,
+  selectedFrameImageSrc,
   sceneLayout,
 }: {
   readonly isCloseupCostumeHidden: boolean;
+  readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
 }) => (
   <group position={[0, -2.4, 0]}>
@@ -161,6 +203,7 @@ const HomeHeroSceneObjects = ({
       rotation={[...sceneLayout.bassRotation]}
     />
     <SceneProp
+      frameScreenImageSrc={selectedFrameImageSrc}
       path="/models/table.glb"
       position={[...sceneLayout.tablePosition]}
       rotation={[...sceneLayout.tableRotation]}

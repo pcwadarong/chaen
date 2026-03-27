@@ -90,6 +90,8 @@ export const MarkdownImage = ({
       locateSourceAriaLabel: t('locateSourceAriaLabel'),
       nextAriaLabel: t('nextAriaLabel'),
       previousAriaLabel: t('previousAriaLabel'),
+      selectForFrameAriaLabel: t('selectForFrameAriaLabel'),
+      selectForFrameLabel: t('selectForFrameLabel'),
       thumbnailListAriaLabel: t('thumbnailListAriaLabel'),
       zoomInAriaLabel: t('zoomInAriaLabel'),
       zoomOutAriaLabel: t('zoomOutAriaLabel'),

@@ -18,6 +18,8 @@
     "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
     "emptyProjects": "Aucun projet n'a encore été publié.",
     "eyebrow": "Accueil",
+    "mobileProjectPanelAriaLabel": "Panneau mobile des projets",
+    "mobileProjectPanelCloseLabel": "Fermer",
     "showcaseScreenReaderDescription": "Section des projets sélectionnés. Chaque carte ouvre une page de détail du projet.",
     "showcaseTitle": "Projets sélectionnés",
     "title": "Une ouverture pensée pour accueillir du mouvement."
@@ -266,6 +268,8 @@
     "nextAriaLabel": "Afficher l'image suivante",
     "openAriaLabel": "Ouvrir la visionneuse d'image",
     "previousAriaLabel": "Afficher l'image précédente",
+    "selectForFrameAriaLabel": "Choisir pour le cadre",
+    "selectForFrameLabel": "Utiliser cette image",
     "thumbnailListAriaLabel": "Liste des miniatures d'images",
     "zoomInAriaLabel": "Agrandir l'image",
     "zoomOutAriaLabel": "Réduire l'image"

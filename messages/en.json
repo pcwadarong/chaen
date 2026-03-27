@@ -18,6 +18,8 @@
     "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
     "emptyProjects": "No projects have been published yet.",
     "eyebrow": "Home",
+    "mobileProjectPanelAriaLabel": "Mobile project panel",
+    "mobileProjectPanelCloseLabel": "Close panel",
     "showcaseScreenReaderDescription": "Selected projects section. Each card links to its detailed case study page.",
     "showcaseTitle": "Selected projects",
     "title": "An opening frame with room for motion."
@@ -266,6 +268,8 @@
     "nextAriaLabel": "View next image",
     "openAriaLabel": "Open image viewer",
     "previousAriaLabel": "View previous image",
+    "selectForFrameAriaLabel": "Select for frame image",
+    "selectForFrameLabel": "Use this image",
     "thumbnailListAriaLabel": "Image thumbnails",
     "zoomInAriaLabel": "Zoom in image",
     "zoomOutAriaLabel": "Zoom out image"

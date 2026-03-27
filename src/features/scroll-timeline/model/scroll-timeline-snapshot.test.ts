@@ -22,6 +22,7 @@ describe('getScrollTimelineSnapshot', () => {
     expect(startSnapshot.webUiOpacity).toBe(0);
     expect(zoomSnapshot.webUiOpacity).toBe(0);
     expect(zoomSnapshot.isScrollDriven).toBe(true);
+    expect(zoomSnapshot.progress).toBe(0.25);
     expect(zoomSnapshot.cameraPosition[2]).toBeGreaterThan(4);
   });
 

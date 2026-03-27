@@ -26,6 +26,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Docs (generated)
+docs/*
+
 # Environment
 .env
 .env.*
@@ -59,13 +62,15 @@ supabase/.temp/
 # Three.js / GSAP assets (generated)
 public/**/*.map
 
-# Codex
+# ai
 .codex/
+.claude/
+.code-review-graph/
+job/
 
 # Misc
 *.pem
 .vercel/
 
+# Panda CSS
 styled-system/
-docs/
-.mcp.json
