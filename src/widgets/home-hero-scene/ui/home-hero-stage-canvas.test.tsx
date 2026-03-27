@@ -11,6 +11,7 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   timelineState: {
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
+    progress: 0,
     isScrollDriven: false,
     isSequenceActive: false,
   },
@@ -77,6 +78,7 @@ describe('HomeHeroStageCanvas', () => {
     homeHeroStageCanvasMockState.timelineState = {
       isCloseupCostumeHidden: false,
       isMonitorOverlayVisible: false,
+      progress: 0,
       isScrollDriven: false,
       isSequenceActive: false,
     };
@@ -152,6 +154,41 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(true);
+  });
+
+  it('스크롤 progress가 0.5 이상이면 scene interaction controller를 비활성화해야 한다', () => {
+    homeHeroStageCanvasMockState.timelineState = {
+      ...homeHeroStageCanvasMockState.timelineState,
+      progress: 0.5,
+    };
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.queryByTestId('scene-interaction-controller')).toBeNull();
+  });
+
+  it('interaction threshold를 올리면 같은 progress에서도 scene interaction controller를 유지해야 한다', () => {
+    homeHeroStageCanvasMockState.timelineState = {
+      ...homeHeroStageCanvasMockState.timelineState,
+      progress: 0.5,
+    };
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        interactionDisabledProgressThreshold={0.6}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
   });
 
   it('모바일 sceneMode에서는 OrbitControls 줌이 유지되어야 한다', () => {

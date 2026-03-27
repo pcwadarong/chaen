@@ -8,6 +8,7 @@ export type ScrollTimelineSnapshot = {
   readonly isScrollDriven: boolean;
   readonly isSequenceActive: boolean;
   readonly lookAt: Vector3Tuple;
+  readonly progress: number;
   readonly webUiOpacity: number;
 };
 
@@ -91,6 +92,7 @@ export const getScrollTimelineSnapshot = ({
       isScrollDriven: normalizedProgress > 0,
       isSequenceActive: normalizedProgress > 0,
       lookAt: preset.focusTarget,
+      progress: normalizedProgress,
       webUiOpacity: 0,
     };
   }
@@ -112,6 +114,7 @@ export const getScrollTimelineSnapshot = ({
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.focusTarget,
+      progress: normalizedProgress,
       webUiOpacity: 0,
     };
   }
@@ -127,6 +130,7 @@ export const getScrollTimelineSnapshot = ({
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.focusTarget,
+      progress: normalizedProgress,
       webUiOpacity: 0,
     };
   }
@@ -142,6 +146,7 @@ export const getScrollTimelineSnapshot = ({
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.closeupLookAt,
+      progress: normalizedProgress,
       webUiOpacity: 0,
     };
   }
@@ -156,6 +161,7 @@ export const getScrollTimelineSnapshot = ({
     isScrollDriven: true,
     isSequenceActive: normalizedProgress < 1,
     lookAt: preset.closeupLookAt,
+    progress: normalizedProgress,
     webUiOpacity: ratio,
   };
 };

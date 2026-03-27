@@ -26,6 +26,7 @@ type UseScrollTimelineParams = {
 type UseScrollTimelineResult = {
   readonly isCloseupCostumeHidden: boolean;
   readonly isMonitorOverlayVisible: boolean;
+  readonly progress: number;
   readonly isSequenceActive: boolean;
   readonly isScrollDriven: boolean;
 };
@@ -33,6 +34,7 @@ type UseScrollTimelineResult = {
 type ScrollTimelineUiState = {
   readonly isCloseupCostumeHidden: boolean;
   readonly isMonitorOverlayVisible: boolean;
+  readonly progress: number;
   readonly isScrollDriven: boolean;
   readonly isSequenceActive: boolean;
 };
@@ -107,12 +109,14 @@ export const useScrollTimeline = ({
   const uiStateRef = useRef<ScrollTimelineUiState>({
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
+    progress: 0,
     isScrollDriven: false,
     isSequenceActive: false,
   });
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrollDriven, setIsScrollDriven] = useState(false);
   const [isMonitorOverlayVisible, setIsMonitorOverlayVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [isSequenceActive, setIsSequenceActive] = useState(false);
 
   useEffect(() => {
@@ -137,6 +141,14 @@ export const useScrollTimeline = ({
           isMonitorOverlayVisible: nextSnapshot.isMonitorOverlayVisible,
         };
         setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
+      }
+
+      if (uiStateRef.current.progress !== nextSnapshot.progress) {
+        uiStateRef.current = {
+          ...uiStateRef.current,
+          progress: nextSnapshot.progress,
+        };
+        setProgress(nextSnapshot.progress);
       }
 
       isScrollDrivenRef.current = nextSnapshot.isScrollDriven;
@@ -271,6 +283,7 @@ export const useScrollTimeline = ({
   return {
     isCloseupCostumeHidden,
     isMonitorOverlayVisible,
+    progress,
     isSequenceActive,
     isScrollDriven,
   };

@@ -34,15 +34,20 @@ export const useHomeHeroSceneTransition = ({
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
-  const { isCloseupCostumeHidden, isMonitorOverlayVisible, isScrollDriven, isSequenceActive } =
-    useScrollTimeline({
-      blackoutOverlayRef,
-      enabled: sceneMode === 'desktop',
-      initialPosition: sceneLayout.camera.position,
-      onScrollStateChange,
-      triggerRef,
-      webUiRef,
-    });
+  const {
+    isCloseupCostumeHidden,
+    isMonitorOverlayVisible,
+    isScrollDriven,
+    isSequenceActive,
+    progress,
+  } = useScrollTimeline({
+    blackoutOverlayRef,
+    enabled: sceneMode === 'desktop',
+    initialPosition: sceneLayout.camera.position,
+    onScrollStateChange,
+    triggerRef,
+    webUiRef,
+  });
 
   useEffect(() => {
     const perspectiveCamera = camera as PerspectiveCamera;
@@ -68,5 +73,6 @@ export const useHomeHeroSceneTransition = ({
     isMonitorOverlayVisible,
     isSequenceActive,
     isScrollDriven,
+    progress,
   };
 };

@@ -14,6 +14,7 @@ describe('getDisabledScrollTimelineSnapshot', () => {
     expect(snapshot.isMonitorOverlayVisible).toBe(false);
     expect(snapshot.isScrollDriven).toBe(false);
     expect(snapshot.isSequenceActive).toBe(false);
+    expect(snapshot.progress).toBe(0);
     expect(snapshot.webUiOpacity).toBe(0);
   });
 });

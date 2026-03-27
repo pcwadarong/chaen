@@ -17,6 +17,7 @@ import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
 import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
 type HomeHeroSceneProps = {
+  readonly interactionDisabledProgressThreshold?: number;
   readonly items: ProjectListItem[];
   readonly photoItems: HomeHeroImageViewerItem[];
   readonly title: string;
@@ -24,9 +25,16 @@ type HomeHeroSceneProps = {
 };
 
 const HOME_HERO_FRAME_IMAGE_STORAGE_KEY = 'home-hero:selected-frame-image-src';
+const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
-export const HomeHeroScene = ({ items, photoItems, title, triggerRef }: HomeHeroSceneProps) => {
+export const HomeHeroScene = ({
+  interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
+  items,
+  photoItems,
+  title,
+  triggerRef,
+}: HomeHeroSceneProps) => {
   const imageViewerTranslations = useTranslations('ImageViewer');
   const localSectionRef = useRef<HTMLElement>(null);
   const navLockRef = useRef<HTMLDivElement>(null);
@@ -92,6 +100,7 @@ export const HomeHeroScene = ({ items, photoItems, title, triggerRef }: HomeHero
       <div className={stickyWrapperClass}>
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
+          interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
           onOpenImageViewer={() => {
             setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
           }}

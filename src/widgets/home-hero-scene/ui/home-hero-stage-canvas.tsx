@@ -24,17 +24,21 @@ import {
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
+  readonly interactionDisabledProgressThreshold?: number;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
+const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
+
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
  */
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
+  interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
   onOpenImageViewer,
   selectedFrameImageSrc,
   triggerRef,
@@ -77,6 +81,8 @@ export const HomeHeroStageCanvas = ({
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
+        interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+        onOpenImageViewer={onOpenImageViewer}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
@@ -91,7 +97,6 @@ export const HomeHeroStageCanvas = ({
           sceneLayout={sceneLayout}
         />
       </Suspense>
-      <SceneInteractionController onOpenImageViewer={onOpenImageViewer} />
     </Canvas>
   );
 };
@@ -102,6 +107,8 @@ export const HomeHeroStageCanvas = ({
 const HomeHeroCameraRig = ({
   blackoutOverlayRef,
   currentBP,
+  interactionDisabledProgressThreshold,
+  onOpenImageViewer,
   onCloseupCostumeHiddenChange,
   onScrollStateChange,
   sceneLayout,
@@ -111,6 +118,8 @@ const HomeHeroCameraRig = ({
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
+  readonly interactionDisabledProgressThreshold: number;
+  readonly onOpenImageViewer?: () => void;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
@@ -118,7 +127,7 @@ const HomeHeroCameraRig = ({
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { isCloseupCostumeHidden, isSequenceActive } = useHomeHeroSceneTransition({
+  const { isCloseupCostumeHidden, isSequenceActive, progress } = useHomeHeroSceneTransition({
     blackoutOverlayRef,
     onScrollStateChange,
     sceneLayout,
@@ -131,22 +140,29 @@ const HomeHeroCameraRig = ({
     onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
   }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
 
+  const isInteractionEnabled = progress < interactionDisabledProgressThreshold;
+
   return (
-    <OrbitControls
-      enablePan={false}
-      enableRotate
-      enableZoom={sceneMode === 'mobile'}
-      enabled={sceneMode === 'mobile' || !isSequenceActive}
-      key={`${sceneMode}-${currentBP}`}
-      makeDefault
-      maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
-      maxDistance={sceneLayout.camera.maxDistance}
-      maxPolarAngle={sceneLayout.camera.maxPolarAngle}
-      minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
-      minDistance={sceneLayout.camera.minDistance}
-      minPolarAngle={sceneLayout.camera.minPolarAngle}
-      target={sceneLayout.camera.lookAt}
-    />
+    <>
+      <OrbitControls
+        enablePan={false}
+        enableRotate
+        enableZoom={sceneMode === 'mobile'}
+        enabled={sceneMode === 'mobile' || !isSequenceActive}
+        key={`${sceneMode}-${currentBP}`}
+        makeDefault
+        maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
+        maxDistance={sceneLayout.camera.maxDistance}
+        maxPolarAngle={sceneLayout.camera.maxPolarAngle}
+        minAzimuthAngle={sceneLayout.camera.minAzimuthAngle}
+        minDistance={sceneLayout.camera.minDistance}
+        minPolarAngle={sceneLayout.camera.minPolarAngle}
+        target={sceneLayout.camera.lookAt}
+      />
+      {isInteractionEnabled ? (
+        <SceneInteractionController onOpenImageViewer={onOpenImageViewer} />
+      ) : null}
+    </>
   );
 };
 
