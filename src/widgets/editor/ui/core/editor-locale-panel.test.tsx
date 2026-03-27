@@ -101,4 +101,42 @@ describe('EditorLocalePanel', () => {
 
     expect(resizeObserverConstructor).toHaveBeenCalledTimes(1);
   });
+
+  it('layoutShiftToken이 바뀌면 editor pane 높이를 다시 계산한다', () => {
+    let top = 220;
+
+    vi.stubGlobal(
+      'ResizeObserver',
+      vi.fn().mockImplementation(() => ({
+        disconnect: vi.fn(),
+        observe: vi.fn(),
+      })),
+    );
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      () =>
+        ({
+          bottom: top + 120,
+          height: 120,
+          left: 0,
+          right: 600,
+          toJSON: () => ({}),
+          top,
+          width: 600,
+          x: 0,
+          y: top,
+        }) as DOMRect,
+    );
+
+    const { rerender } = render(<EditorLocalePanel {...baseProps} layoutShiftToken={0} />);
+    const editRegion = screen.getByRole('region', { name: '본문 편집' });
+    const editorGrid = editRegion.parentElement as HTMLDivElement;
+
+    expect(editorGrid.style.height).toBe(`${window.innerHeight - top - 24}px`);
+
+    top = 140;
+
+    rerender(<EditorLocalePanel {...baseProps} layoutShiftToken={1} />);
+
+    expect(editorGrid.style.height).toBe(`${window.innerHeight - top - 24}px`);
+  });
 });

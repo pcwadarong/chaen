@@ -67,4 +67,23 @@ describe('TagSelector', () => {
 
     expect(container.querySelectorAll('[data-group-separator]').length).toBe(1);
   });
+
+  it('태그 풀 열림 상태가 바뀌면 onExpandedChange로 최신 상태를 전달한다', () => {
+    const onExpandedChange = vi.fn();
+
+    render(
+      <TagSelector
+        availableTags={availableTags}
+        onChange={vi.fn()}
+        onExpandedChange={onExpandedChange}
+        selectedTagSlugs={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '태그 풀 접기' }));
+    fireEvent.click(screen.getByRole('button', { name: '태그 풀 열기' }));
+
+    expect(onExpandedChange).toHaveBeenNthCalledWith(1, false);
+    expect(onExpandedChange).toHaveBeenNthCalledWith(2, true);
+  });
 });

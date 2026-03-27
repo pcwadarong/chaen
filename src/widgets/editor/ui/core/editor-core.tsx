@@ -77,6 +77,7 @@ export const EditorCore = ({
   const [mobileEditorPane, setMobileEditorPane] = useState<MobileEditorPane>('edit');
   const [slug] = useState(initialSlug);
   const [selectedTags, setSelectedTags] = useState(initialTags);
+  const [layoutShiftToken, setLayoutShiftToken] = useState(0);
   const {
     activeLocale,
     handleLocaleChange,
@@ -288,6 +289,9 @@ export const EditorCore = ({
             className={tagSelectorClass}
             emptyText={contentType === 'project' ? '사용 가능한 기술 스택이 없습니다.' : undefined}
             onChange={setSelectedTags}
+            onExpandedChange={() => {
+              setLayoutShiftToken(previous => previous + 1);
+            }}
             poolLabel={contentType === 'project' ? '기술 스택 선택기' : undefined}
             poolTitle={contentType === 'project' ? 'Tech Stack' : undefined}
             selectLabel={contentType === 'project' ? '기술 스택' : undefined}
@@ -355,6 +359,7 @@ export const EditorCore = ({
             isActive={isActive}
             isMobileLayout={isMobileLayout}
             key={locale}
+            layoutShiftToken={layoutShiftToken}
             locale={locale}
             markdownOptions={markdownOptions}
             mobileEditorPane={mobileEditorPane}
