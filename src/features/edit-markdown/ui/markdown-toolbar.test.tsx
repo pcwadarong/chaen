@@ -78,7 +78,7 @@ describe('MarkdownToolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: '삽입' }));
 
     await waitFor(() => {
-      expect(textarea.value).toBe('![이미지 설명](<https://example.com/image.png>)');
+      expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
     });
   });
 

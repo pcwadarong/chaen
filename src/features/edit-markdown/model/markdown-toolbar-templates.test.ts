@@ -9,7 +9,7 @@ import {
 describe('markdown-toolbar template helpers', () => {
   it('이미지 markdown는 선택한 공백을 유지하면서 특수문자를 이스케이프한다', () => {
     expect(createImageEmbedMarkdown('  alt] text  ', 'https://example.com/image).png')).toBe(
-      '![  alt\\] text  ](<https://example.com/image).png>)',
+      '![  alt\\] text  ](https://example.com/image\\).png)',
     );
   });
 

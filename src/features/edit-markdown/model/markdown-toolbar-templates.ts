@@ -1,7 +1,12 @@
 const escapeMarkdownAltText = (value: string) => value.replaceAll(']', '\\]');
 
 const escapeMarkdownLinkDestination = (value: string) =>
-  value.replaceAll('<', '%3C').replaceAll('>', '%3E');
+  value
+    .replaceAll('\\', '\\\\')
+    .replaceAll('(', '\\(')
+    .replaceAll(')', '\\)')
+    .replaceAll('<', '%3C')
+    .replaceAll('>', '%3E');
 
 const escapeJsxAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
@@ -64,7 +69,7 @@ export const extractYoutubeId = (value: string) => {
  * @returns markdown 이미지 문법 문자열을 반환합니다.
  */
 export const createImageEmbedMarkdown = (altText: string, url: string) =>
-  `![${escapeMarkdownAltText(altText)}](<${escapeMarkdownLinkDestination(url)}>)`;
+  `![${escapeMarkdownAltText(altText)}](${escapeMarkdownLinkDestination(url)})`;
 
 /**
  * YouTube embed markdown 문자열을 생성합니다.
