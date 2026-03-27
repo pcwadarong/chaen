@@ -58,7 +58,7 @@ export const HomeHeroStageCanvas = ({
         near: HOME_HERO_CAMERA_NEAR,
         position: sceneLayout.camera.position,
       }}
-      dpr={[1, 5]}
+      dpr={[1, 2]}
       gl={{ alpha: false, antialias: true }}
       shadows
       onCreated={({ gl }) => {
@@ -111,7 +111,7 @@ const HomeHeroCameraRig = ({
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { isCloseupCostumeHidden, isScrollDriven } = useHomeHeroSceneTransition({
+  const { isCloseupCostumeHidden, isSequenceActive } = useHomeHeroSceneTransition({
     blackoutOverlayRef,
     onScrollStateChange,
     sceneLayout,
@@ -129,7 +129,7 @@ const HomeHeroCameraRig = ({
       enablePan={false}
       enableRotate
       enableZoom={sceneMode === 'mobile'}
-      enabled={sceneMode === 'mobile' || !isScrollDriven}
+      enabled={sceneMode === 'mobile' || !isSequenceActive}
       key={`${sceneMode}-${currentBP}`}
       makeDefault
       maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}

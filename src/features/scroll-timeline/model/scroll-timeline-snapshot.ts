@@ -27,8 +27,8 @@ type DesktopScrollPreset = {
   readonly focusTarget: Vector3Tuple;
   /** 스핀 구간에서 캐릭터를 도는 반경 */
   readonly spinRadius: number;
-  /** 스핀 구간에서 유지하는 카메라 높이 */
-  readonly spinY: number;
+  /** 초반 정면 구도와 스핀 시작점이 공유하는 카메라 높이 */
+  readonly focusViewY: number;
   /** 초반 줌 이동이 도착하는 완만한 정면 구도 */
   readonly zoomTargetPosition: Vector3Tuple;
 };
@@ -37,10 +37,10 @@ const DESKTOP_SCROLL_PRESET: DesktopScrollPreset = {
   closeupEndPosition: [0, -0.3, 0.1],
   closeupLookAt: [0, -0.3, 1],
   closeupStartPosition: [0, -0.3, -0.85],
+  focusViewY: 1.8,
   focusTarget: [0, 0, 0],
   spinRadius: 5,
-  spinY: 1.8,
-  zoomTargetPosition: [0, 1, 5],
+  zoomTargetPosition: [0, 1.8, 5],
 };
 
 /**
@@ -76,7 +76,7 @@ export const getScrollTimelineSnapshot = ({
   const preset = DESKTOP_SCROLL_PRESET;
   const spinEndPosition: Vector3Tuple = [
     preset.focusTarget[0],
-    preset.spinY,
+    preset.focusViewY,
     preset.focusTarget[2] - preset.spinRadius,
   ];
 
@@ -100,7 +100,7 @@ export const getScrollTimelineSnapshot = ({
     const angle = Math.PI * ratio;
     const cameraPosition: Vector3Tuple = [
       preset.focusTarget[0] + Math.sin(angle) * preset.spinRadius,
-      preset.spinY,
+      preset.focusViewY,
       preset.focusTarget[2] + Math.cos(angle) * preset.spinRadius,
     ];
 

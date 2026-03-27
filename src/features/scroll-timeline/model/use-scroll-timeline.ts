@@ -26,6 +26,7 @@ type UseScrollTimelineParams = {
 type UseScrollTimelineResult = {
   readonly isCloseupCostumeHidden: boolean;
   readonly isMonitorOverlayVisible: boolean;
+  readonly isSequenceActive: boolean;
   readonly isScrollDriven: boolean;
 };
 
@@ -39,6 +40,13 @@ type ScrollTimelineUiState = {
 const DESKTOP_FRAME_MEDIA_QUERY = viewportMediaQuery.desktopUp;
 const DESKTOP_SCROLL_SCRUB_DURATION = 0.2;
 const WEB_UI_INTERACTIVE_THRESHOLD = 0.96;
+
+/**
+ * monitor overlay가 실제로 상호작용 가능한 상태인지 계산합니다.
+ */
+const isWebUiInteractive = (
+  snapshot: Pick<ScrollTimelineSnapshot, 'isMonitorOverlayVisible' | 'webUiOpacity'>,
+) => snapshot.isMonitorOverlayVisible && snapshot.webUiOpacity >= WEB_UI_INTERACTIVE_THRESHOLD;
 
 /**
  * 스크롤 타임라인 snapshot을 기준으로 실제 카메라 위치와 방향을 동기화합니다.
@@ -70,10 +78,11 @@ const syncOverlayState = (
   if (!webUiElement) return;
 
   webUiElement.style.opacity = snapshot.webUiOpacity.toFixed(3);
-  webUiElement.style.pointerEvents =
-    snapshot.isMonitorOverlayVisible && snapshot.webUiOpacity >= WEB_UI_INTERACTIVE_THRESHOLD
-      ? 'auto'
-      : 'none';
+  const interactive = isWebUiInteractive(snapshot);
+
+  webUiElement.style.pointerEvents = interactive ? 'auto' : 'none';
+  webUiElement.setAttribute('aria-hidden', interactive ? 'false' : 'true');
+  webUiElement.toggleAttribute('inert', !interactive);
 };
 
 /**
@@ -104,6 +113,7 @@ export const useScrollTimeline = ({
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrollDriven, setIsScrollDriven] = useState(false);
   const [isMonitorOverlayVisible, setIsMonitorOverlayVisible] = useState(false);
+  const [isSequenceActive, setIsSequenceActive] = useState(false);
 
   useEffect(() => {
     const perspectiveCamera = camera as PerspectiveCamera;
@@ -144,6 +154,7 @@ export const useScrollTimeline = ({
           ...uiStateRef.current,
           isSequenceActive: nextSnapshot.isSequenceActive,
         };
+        setIsSequenceActive(nextSnapshot.isSequenceActive);
         onScrollStateChange?.(nextSnapshot.isSequenceActive);
       }
     };
@@ -260,6 +271,7 @@ export const useScrollTimeline = ({
   return {
     isCloseupCostumeHidden,
     isMonitorOverlayVisible,
+    isSequenceActive,
     isScrollDriven,
   };
 };

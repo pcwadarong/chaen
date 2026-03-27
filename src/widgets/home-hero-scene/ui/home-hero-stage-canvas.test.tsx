@@ -8,11 +8,19 @@ import '@testing-library/jest-dom/vitest';
 const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
+  timelineState: {
+    isCloseupCostumeHidden: false,
+    isMonitorOverlayVisible: false,
+    isScrollDriven: false,
+    isSequenceActive: false,
+  },
 }));
 
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="home-hero-stage-canvas">{children}</div>
+  Canvas: ({ children, dpr }: { children: React.ReactNode; dpr?: unknown }) => (
+    <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
+      {children}
+    </div>
   ),
 }));
 
@@ -44,17 +52,19 @@ vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
 }));
 
 vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => ({
-  useHomeHeroSceneTransition: () => ({
-    isCloseupCostumeHidden: false,
-    isMonitorOverlayVisible: false,
-    isScrollDriven: false,
-  }),
+  useHomeHeroSceneTransition: () => homeHeroStageCanvasMockState.timelineState,
 }));
 
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
     homeHeroStageCanvasMockState.orbitControlsProps = null;
     homeHeroStageCanvasMockState.sceneMode = 'desktop';
+    homeHeroStageCanvasMockState.timelineState = {
+      isCloseupCostumeHidden: false,
+      isMonitorOverlayVisible: false,
+      isScrollDriven: false,
+      isSequenceActive: false,
+    };
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -92,6 +102,42 @@ describe('HomeHeroStageCanvas', () => {
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(false);
   });
 
+  it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {
+    homeHeroStageCanvasMockState.timelineState = {
+      ...homeHeroStageCanvasMockState.timelineState,
+      isScrollDriven: true,
+      isSequenceActive: true,
+    };
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(false);
+  });
+
+  it('스크롤 시퀀스가 끝나면 데스크탑 OrbitControls는 다시 활성화되어야 한다', () => {
+    homeHeroStageCanvasMockState.timelineState = {
+      ...homeHeroStageCanvasMockState.timelineState,
+      isScrollDriven: true,
+      isSequenceActive: false,
+    };
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(true);
+  });
+
   it('모바일 sceneMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
     homeHeroStageCanvasMockState.sceneMode = 'mobile';
 
@@ -104,5 +150,17 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
+  });
+
+  it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-dpr', '[1,2]');
   });
 });

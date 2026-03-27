@@ -25,6 +25,19 @@ describe('getScrollTimelineSnapshot', () => {
     expect(zoomSnapshot.cameraPosition[2]).toBeGreaterThan(4);
   });
 
+  it('줌 종료 지점과 스핀 시작 지점의 카메라 높이는 이어져야 한다', () => {
+    const zoomEndSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.25,
+    });
+    const spinStartSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.2501,
+    });
+
+    expect(spinStartSnapshot.cameraPosition[1]).toBeCloseTo(zoomEndSnapshot.cameraPosition[1], 3);
+  });
+
   it('블랙아웃 IN 이후 클로즈업 구간에서는 overlay가 걷히고 마지막에 monitor overlay가 보여야 한다', () => {
     const blackoutSnapshot = getScrollTimelineSnapshot({
       initialPosition: DESKTOP_INITIAL_POSITION,

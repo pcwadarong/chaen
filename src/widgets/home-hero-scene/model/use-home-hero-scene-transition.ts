@@ -34,32 +34,39 @@ export const useHomeHeroSceneTransition = ({
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
-  const { isCloseupCostumeHidden, isMonitorOverlayVisible, isScrollDriven } = useScrollTimeline({
-    blackoutOverlayRef,
-    enabled: sceneMode === 'desktop',
-    initialPosition: sceneLayout.camera.position,
-    onScrollStateChange,
-    triggerRef,
-    webUiRef,
-  });
+  const { isCloseupCostumeHidden, isMonitorOverlayVisible, isScrollDriven, isSequenceActive } =
+    useScrollTimeline({
+      blackoutOverlayRef,
+      enabled: sceneMode === 'desktop',
+      initialPosition: sceneLayout.camera.position,
+      onScrollStateChange,
+      triggerRef,
+      webUiRef,
+    });
 
   useEffect(() => {
-    if (sceneMode === 'desktop' && isScrollDriven) return;
-
     const perspectiveCamera = camera as PerspectiveCamera;
 
     perspectiveCamera.fov = sceneLayout.camera.fov;
     perspectiveCamera.near = HOME_HERO_CAMERA_NEAR;
     perspectiveCamera.far = HOME_HERO_CAMERA_FAR;
+    perspectiveCamera.updateProjectionMatrix();
+
+    if (sceneMode === 'desktop' && isScrollDriven) {
+      perspectiveCamera.updateMatrixWorld();
+
+      return;
+    }
+
     perspectiveCamera.position.set(...sceneLayout.camera.position);
     perspectiveCamera.lookAt(...sceneLayout.camera.lookAt);
-    perspectiveCamera.updateProjectionMatrix();
     perspectiveCamera.updateMatrixWorld();
   }, [camera, isScrollDriven, sceneLayout, sceneMode]);
 
   return {
     isCloseupCostumeHidden,
     isMonitorOverlayVisible,
+    isSequenceActive,
     isScrollDriven,
   };
 };
