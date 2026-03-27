@@ -133,7 +133,7 @@ describe('CharacterStateMachine', () => {
     expect(idleAction.crossFadeFrom).toHaveBeenCalledWith(typingAction, 0.2, false);
   });
 
-  it('music 상태는 loop와 함께 더 느린 재생 배속을 적용한다', () => {
+  it('contact 인스턴스가 music loop 상태일 때 캐릭터 플레이어는 더 느린 재생 배속을 적용해야 한다', () => {
     const musicAction = createFakeAction();
     const mixer = createFakeMixer({
       music: musicAction,

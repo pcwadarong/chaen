@@ -81,10 +81,11 @@ const overlayInnerClass = css({
     '[minmax(var(--sizes-contact-copy-min), var(--sizes-contact-copy-max)) minmax(0, 1fr)]',
   alignItems: 'center',
   columnGap: '[clamp(2rem, 6vw, 5rem)]',
-  px: '4',
+  paddingLeft: '12',
+  paddingRight: '4',
 });
 
 const overlayInnerDesktopSmallClass = css({
-  paddingLeft: '8',
+  paddingLeft: '20',
   paddingRight: '5',
 });

@@ -9,7 +9,7 @@ import {
 import { Button } from '@/shared/ui/button/button';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
 
-/** 홈 contact 영역의 텍스트와 액션을 variant별로 렌더링합니다. */
+/** 홈 contact 영역의 텍스트와 액션을 렌더링합니다. */
 export const ContactStrip = () => {
   const t = useTranslations('Contact');
 
@@ -78,7 +78,6 @@ const sectionClass = css({
   flexDirection: 'column',
   gap: '10',
   alignContent: 'center',
-  ml: '[2rem]',
 });
 
 const copyClass = css({
