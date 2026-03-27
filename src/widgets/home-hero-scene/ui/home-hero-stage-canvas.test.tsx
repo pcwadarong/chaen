@@ -11,7 +11,7 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
     onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
-    onToggleBassTrackPlayback?: () => void;
+    onToggleBackgroundMusicPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
@@ -25,10 +25,10 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
 }));
 
 const bassAudioMockState = vi.hoisted(() => ({
-  isBassTrackPlaying: false,
+  isBackgroundMusicPlaying: false,
+  pauseBackgroundMusicPlayback: vi.fn(),
   playBassString: vi.fn(),
-  stopBassTrackPlayback: vi.fn(),
-  toggleBassTrackPlayback: vi.fn(),
+  toggleBackgroundMusicPlayback: vi.fn(),
 }));
 
 vi.mock('@react-three/fiber', () => ({
@@ -108,10 +108,10 @@ describe('HomeHeroStageCanvas', () => {
       isScrollDriven: false,
       isSequenceActive: false,
     };
-    bassAudioMockState.isBassTrackPlaying = false;
+    bassAudioMockState.isBackgroundMusicPlaying = false;
+    bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();
     bassAudioMockState.playBassString.mockReset();
-    bassAudioMockState.stopBassTrackPlayback.mockReset();
-    bassAudioMockState.toggleBassTrackPlayback.mockReset();
+    bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -269,7 +269,7 @@ describe('HomeHeroStageCanvas', () => {
     );
   });
 
-  it('scene interaction controller는 bass 오디오 콜백을 함께 받아야 한다', () => {
+  it('scene interaction controller는 background music 토글과 bass string 콜백을 함께 받아야 한다', () => {
     render(
       <HomeHeroStageCanvas
         blackoutOverlayRef={{ current: null }}
@@ -278,15 +278,15 @@ describe('HomeHeroStageCanvas', () => {
       />,
     );
 
-    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBassTrackPlayback?.();
+    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBackgroundMusicPlayback?.();
     homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
 
-    expect(bassAudioMockState.toggleBassTrackPlayback).toHaveBeenCalledOnce();
+    expect(bassAudioMockState.toggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
     expect(bassAudioMockState.playBassString).toHaveBeenCalledWith('line3');
   });
 
-  it('bass 트랙이 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
-    bassAudioMockState.isBassTrackPlaying = true;
+  it('background music 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
+    bassAudioMockState.isBackgroundMusicPlaying = true;
 
     render(
       <HomeHeroStageCanvas
@@ -299,8 +299,8 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByRole('button', { name: 'Bass playback stop' })).toBeTruthy();
   });
 
-  it('정지 버튼 오버레이를 누르면 메인 bass 트랙 정지 콜백을 호출해야 한다', () => {
-    bassAudioMockState.isBassTrackPlaying = true;
+  it('정지 버튼 오버레이를 누르면 background music 일시정지 콜백을 호출해야 한다', () => {
+    bassAudioMockState.isBackgroundMusicPlaying = true;
 
     render(
       <HomeHeroStageCanvas
@@ -312,6 +312,6 @@ describe('HomeHeroStageCanvas', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Bass playback stop' }));
 
-    expect(bassAudioMockState.stopBassTrackPlayback).toHaveBeenCalledOnce();
+    expect(bassAudioMockState.pauseBackgroundMusicPlayback).toHaveBeenCalledOnce();
   });
 });

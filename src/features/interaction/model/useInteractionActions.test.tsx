@@ -58,15 +58,15 @@ describe('useInteractionActions', () => {
     expect(onBrowseProjects).not.toHaveBeenCalled();
   });
 
-  it('bass_body click은 메인 bass 트랙 토글 콜백을 호출해야 한다', () => {
+  it('bass_body click은 background music 토글 콜백을 호출해야 한다', () => {
     const bassBodyMesh = createMesh('bass_body');
     const onOpenImageViewer = vi.fn();
-    const onToggleBassTrackPlayback = vi.fn();
+    const onToggleBackgroundMusicPlayback = vi.fn();
 
     const { result } = renderHook(() =>
       useInteractionActions({
         onOpenImageViewer,
-        onToggleBassTrackPlayback,
+        onToggleBackgroundMusicPlayback,
       }),
     );
 
@@ -74,7 +74,7 @@ describe('useInteractionActions', () => {
       result.current.handleMeshClick(bassBodyMesh);
     });
 
-    expect(onToggleBassTrackPlayback).toHaveBeenCalledOnce();
+    expect(onToggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
     expect(onOpenImageViewer).not.toHaveBeenCalled();
   });
 

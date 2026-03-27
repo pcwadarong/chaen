@@ -2,9 +2,13 @@
 
 import { act, renderHook } from '@testing-library/react';
 
-import { BASS_STRING_AUDIO_PATHS, useBassAudio } from '@/features/audio/model/use-bass-audio';
+import {
+  __resetBassAudioStoreForTest,
+  BASS_STRING_AUDIO_PATHS,
+  useBassAudio,
+} from '@/features/audio/model/use-bass-audio';
 
-type AudioEventType = 'ended';
+type AudioEventType = 'pause' | 'play';
 
 type FakeAudioElement = {
   currentTime: number;
@@ -37,10 +41,12 @@ const createFakeAudioElement = (src: string): FakeAudioElement => {
     loop: false,
     pause: vi.fn(() => {
       audioElement.paused = true;
+      audioElement.dispatch('pause');
     }),
     paused: true,
     play: vi.fn(async () => {
       audioElement.paused = false;
+      audioElement.dispatch('play');
     }),
     preload: 'auto',
     src,
@@ -62,6 +68,7 @@ const createFakeAudioElement = (src: string): FakeAudioElement => {
 
 describe('useBassAudio', () => {
   beforeEach(() => {
+    __resetBassAudioStoreForTest();
     audioMockState.createdAudios = [];
     vi.stubGlobal(
       'Audio',
@@ -75,27 +82,40 @@ describe('useBassAudio', () => {
   });
 
   afterEach(() => {
+    __resetBassAudioStoreForTest();
     vi.unstubAllGlobals();
   });
 
-  it('메인 bass 트랙 토글을 시작하면 music.mp3를 처음부터 재생 상태로 전환해야 한다', async () => {
+  it('background music 재생을 시작하면 music.mp3를 loop 상태로 재생해야 한다', async () => {
     const { result } = renderHook(() => useBassAudio());
 
     await act(async () => {
-      await result.current.toggleBassTrackPlayback();
+      await result.current.triggerBackgroundMusicPlayback();
     });
 
     expect(audioMockState.createdAudios).toHaveLength(1);
     expect(audioMockState.createdAudios[0]?.src).toBe('/music/music.mp3');
+    expect(audioMockState.createdAudios[0]?.loop).toBe(true);
     expect(audioMockState.createdAudios[0]?.play).toHaveBeenCalledOnce();
-    expect(result.current.isBassTrackPlaying).toBe(true);
+    expect(result.current.isBackgroundMusicPlaying).toBe(true);
   });
 
-  it('재생 중인 메인 bass 트랙을 다시 토글하면 정지하고 재생 위치를 0으로 되돌려야 한다', async () => {
+  it('이미 재생 중일 때 bass trigger를 다시 호출해도 background music을 다시 재생하지 않아야 한다', async () => {
     const { result } = renderHook(() => useBassAudio());
 
     await act(async () => {
-      await result.current.toggleBassTrackPlayback();
+      await result.current.triggerBackgroundMusicPlayback();
+      await result.current.triggerBackgroundMusicPlayback();
+    });
+
+    expect(audioMockState.createdAudios[0]?.play).toHaveBeenCalledTimes(1);
+  });
+
+  it('재생 중인 background music을 다시 토글하면 현재 위치를 유지한 채 일시정지해야 한다', async () => {
+    const { result } = renderHook(() => useBassAudio());
+
+    await act(async () => {
+      await result.current.triggerBackgroundMusicPlayback();
     });
 
     const musicAudioElement = audioMockState.createdAudios[0];
@@ -107,12 +127,37 @@ describe('useBassAudio', () => {
     musicAudioElement.currentTime = 12;
 
     await act(async () => {
-      await result.current.toggleBassTrackPlayback();
+      await result.current.toggleBackgroundMusicPlayback();
     });
 
     expect(musicAudioElement.pause).toHaveBeenCalledOnce();
-    expect(musicAudioElement.currentTime).toBe(0);
-    expect(result.current.isBassTrackPlaying).toBe(false);
+    expect(musicAudioElement.currentTime).toBe(12);
+    expect(result.current.isBackgroundMusicPlaying).toBe(false);
+  });
+
+  it('멈춘 background music을 토글하면 현재 위치에서 다시 재생해야 한다', async () => {
+    const { result } = renderHook(() => useBassAudio());
+
+    await act(async () => {
+      await result.current.triggerBackgroundMusicPlayback();
+      await result.current.toggleBackgroundMusicPlayback();
+    });
+
+    const musicAudioElement = audioMockState.createdAudios[0];
+
+    if (!musicAudioElement) {
+      throw new Error('music audio element must exist');
+    }
+
+    musicAudioElement.currentTime = 18;
+
+    await act(async () => {
+      await result.current.toggleBackgroundMusicPlayback();
+    });
+
+    expect(musicAudioElement.play).toHaveBeenCalledTimes(2);
+    expect(musicAudioElement.currentTime).toBe(18);
+    expect(result.current.isBackgroundMusicPlaying).toBe(true);
   });
 
   it('line2를 재생하면 해당 줄 오디오 파일을 처음부터 다시 재생해야 한다', async () => {
@@ -140,48 +185,14 @@ describe('useBassAudio', () => {
     expect(stringAudioElement.currentTime).toBe(0);
   });
 
-  it('메인 bass 트랙 ended 이벤트가 발생하면 재생 상태를 false로 되돌려야 한다', async () => {
-    const { result } = renderHook(() => useBassAudio());
+  it('서로 다른 훅 인스턴스는 같은 background music 재생 상태를 공유해야 한다', async () => {
+    const firstHook = renderHook(() => useBassAudio());
+    const secondHook = renderHook(() => useBassAudio());
 
     await act(async () => {
-      await result.current.toggleBassTrackPlayback();
+      await firstHook.result.current.triggerBackgroundMusicPlayback();
     });
 
-    const musicAudioElement = audioMockState.createdAudios[0];
-
-    if (!musicAudioElement) {
-      throw new Error('music audio element must exist');
-    }
-
-    act(() => {
-      musicAudioElement.dispatch('ended');
-    });
-
-    expect(result.current.isBassTrackPlaying).toBe(false);
-  });
-
-  it('언마운트되면 생성한 모든 오디오를 정지하고 재생 위치를 초기화해야 한다', async () => {
-    const { result, unmount } = renderHook(() => useBassAudio());
-
-    await act(async () => {
-      await result.current.toggleBassTrackPlayback();
-      await result.current.playBassString('line4');
-    });
-
-    const [musicAudioElement, stringAudioElement] = audioMockState.createdAudios;
-
-    if (!musicAudioElement || !stringAudioElement) {
-      throw new Error('created audios must exist');
-    }
-
-    musicAudioElement.currentTime = 8;
-    stringAudioElement.currentTime = 4;
-
-    unmount();
-
-    expect(musicAudioElement.pause).toHaveBeenCalled();
-    expect(stringAudioElement.pause).toHaveBeenCalled();
-    expect(musicAudioElement.currentTime).toBe(0);
-    expect(stringAudioElement.currentTime).toBe(0);
+    expect(secondHook.result.current.isBackgroundMusicPlaying).toBe(true);
   });
 });

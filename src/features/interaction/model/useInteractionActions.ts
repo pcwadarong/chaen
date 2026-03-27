@@ -14,18 +14,19 @@ type UseInteractionActionsOptions = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
   onPlayBassString?: (stringName: BassStringTarget) => void | Promise<void>;
-  onToggleBassTrackPlayback?: () => void | Promise<void>;
+  onToggleBackgroundMusicPlayback?: () => void | Promise<void>;
 }>;
 
 /**
  * mesh 이름별 click 액션을 현재 홈 씬 요구사항에 맞춰 조합합니다.
- * laptop은 프로젝트 뷰, camera는 이미지 뷰어, bass body는 메인 트랙, line1~4는 줄 샘플 재생으로 연결합니다.
+ * laptop은 프로젝트 뷰, camera는 이미지 뷰어, bass body는 background music 토글,
+ * line1~4는 줄 샘플 재생으로 연결합니다.
  */
 export const useInteractionActions = ({
   onBrowseProjects,
   onOpenImageViewer,
   onPlayBassString,
-  onToggleBassTrackPlayback,
+  onToggleBackgroundMusicPlayback,
 }: UseInteractionActionsOptions): {
   handleMeshClick: (mesh: Object3D) => void;
 } => {
@@ -33,7 +34,7 @@ export const useInteractionActions = ({
     () => ({
       bass: {
         onClick: () => {
-          onToggleBassTrackPlayback?.();
+          onToggleBackgroundMusicPlayback?.();
         },
       },
       camera: {
@@ -67,7 +68,7 @@ export const useInteractionActions = ({
         },
       },
     }),
-    [onBrowseProjects, onOpenImageViewer, onPlayBassString, onToggleBassTrackPlayback],
+    [onBrowseProjects, onOpenImageViewer, onPlayBassString, onToggleBackgroundMusicPlayback],
   );
 
   /**

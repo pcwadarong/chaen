@@ -6,6 +6,8 @@
     "closeMenu": "메뉴 닫기",
     "guest": "방명록",
     "home": "홈",
+    "pauseMusic": "음악 일시정지",
+    "playMusic": "음악 재생",
     "openMenu": "메뉴 열기",
     "resume": "이력",
     "project": "프로젝트"
