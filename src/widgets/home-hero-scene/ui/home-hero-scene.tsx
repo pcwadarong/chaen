@@ -76,7 +76,13 @@ export const HomeHeroScene = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const storedImageSrc = window.localStorage.getItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY);
+    let storedImageSrc: string | null = null;
+
+    try {
+      storedImageSrc = window.localStorage.getItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY);
+    } catch {
+      return;
+    }
 
     if (!storedImageSrc) return;
     if (!photoItems.some(item => item.src === storedImageSrc)) return;
@@ -88,7 +94,11 @@ export const HomeHeroScene = ({
     if (typeof window === 'undefined') return;
     if (!selectedFrameImageSrc) return;
 
-    window.localStorage.setItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY, selectedFrameImageSrc);
+    try {
+      window.localStorage.setItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY, selectedFrameImageSrc);
+    } catch {
+      // storage 접근이 막힌 환경에서는 기본 선택 상태만 유지합니다.
+    }
   }, [selectedFrameImageSrc]);
 
   return (

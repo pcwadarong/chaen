@@ -13,14 +13,20 @@ export const deletePhotoFile = async ({
 }): Promise<{
   filePath: string;
 }> => {
+  const normalizedFilePath = filePath.trim();
+
+  if (!normalizedFilePath) {
+    throw new Error('[photo-file] 유효하지 않은 파일 경로입니다.');
+  }
+
   const supabase = createServiceRoleSupabaseClient();
-  const { error } = await supabase.storage.from(PHOTO_STORAGE_BUCKET).remove([filePath]);
+  const { error } = await supabase.storage.from(PHOTO_STORAGE_BUCKET).remove([normalizedFilePath]);
 
   if (error) {
     throw new Error(`[photo-file] 사진 삭제 실패: ${error.message}`);
   }
 
   return {
-    filePath,
+    filePath: normalizedFilePath,
   };
 };

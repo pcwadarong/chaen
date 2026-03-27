@@ -153,6 +153,26 @@ describe('ImageViewerModal', () => {
     expect(handleSelectCurrentImage).toHaveBeenCalledWith(0);
   });
 
+  it('액자 선택 버튼 클릭은 backdrop 닫기로 이어지지 않는다', () => {
+    const handleClose = vi.fn();
+    const handleSelectCurrentImage = vi.fn();
+
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={items}
+        labels={labels}
+        onClose={handleClose}
+        onSelectCurrentImage={handleSelectCurrentImage}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '액자 이미지로 선택' }));
+
+    expect(handleSelectCurrentImage).toHaveBeenCalledWith(0);
+    expect(handleClose).not.toHaveBeenCalled();
+  });
+
   it('액자 선택 버튼은 눈에 띄는 텍스트 라벨을 함께 렌더링해야 한다', () => {
     render(
       <ImageViewerModal

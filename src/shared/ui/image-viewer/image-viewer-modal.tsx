@@ -289,9 +289,14 @@ export const ImageViewerModal = ({
   /**
    * 현재 보고 있는 이미지를 외부 소비자에게 선택 완료 상태로 전달합니다.
    */
-  const handleSelectCurrentImage = useCallback(() => {
-    onSelectCurrentImage?.(currentIndex);
-  }, [currentIndex, onSelectCurrentImage]);
+  const handleSelectCurrentImage = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onSelectCurrentImage?.(currentIndex);
+    },
+    [currentIndex, onSelectCurrentImage],
+  );
 
   /**
    * 마우스 클릭 시 버튼 포커스가 유지되어 tooltip이 남지 않도록 기본 focus 이동을 막습니다.

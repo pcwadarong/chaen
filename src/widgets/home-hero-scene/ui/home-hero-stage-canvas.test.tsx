@@ -8,7 +8,9 @@ import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stag
 import '@testing-library/jest-dom/vitest';
 
 const homeHeroStageCanvasMockState = vi.hoisted(() => ({
-  interactionControllerProps: null as null | Record<string, unknown>,
+  interactionControllerProps: null as null | {
+    onBrowseProjects?: () => void;
+  },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
   timelineState: {

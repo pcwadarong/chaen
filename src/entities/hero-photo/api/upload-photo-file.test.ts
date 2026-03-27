@@ -17,7 +17,12 @@ describe('uploadPhotoFile', () => {
     upload.mockReset();
     from.mockReset();
 
-    upload.mockResolvedValue({ error: null });
+    upload.mockResolvedValue({
+      data: {
+        created_at: '2026-03-27T09:00:00.000Z',
+      },
+      error: null,
+    });
     getPublicUrl.mockImplementation((filePath: string) => ({
       data: {
         publicUrl: `https://example.com/${filePath}`,
@@ -60,6 +65,7 @@ describe('uploadPhotoFile', () => {
     expect(result.publicUrl).toBe(`https://example.com/${result.fileName}`);
     expect(result.mimeType).toBe('image/jpeg');
     expect(result.size).toBe(file.size);
+    expect(result.createdAt).toBe('2026-03-27T09:00:00.000Z');
   });
 
   it('업로드 실패 시 photo 업로드 실패 에러를 던진다', async () => {

@@ -42,6 +42,15 @@ describe('deletePhotoFile', () => {
     expect(remove).toHaveBeenCalledWith(['first.jpg']);
   });
 
+  it('공백뿐인 filePath가 들어오면 Supabase 삭제 호출 전에 유효성 에러를 던진다', async () => {
+    await expect(deletePhotoFile({ filePath: '   ' })).rejects.toThrow(
+      '[photo-file] 유효하지 않은 파일 경로입니다.',
+    );
+
+    expect(from).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
   it('삭제 실패 시 photo 삭제 실패 에러를 던진다', async () => {
     remove.mockResolvedValue({
       error: {

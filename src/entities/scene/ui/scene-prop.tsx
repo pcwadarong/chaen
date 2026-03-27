@@ -39,8 +39,9 @@ export const SceneProp = ({
   const gltf = useGLTF(path);
   const ormTextures = useScenePropMaterials();
   const [frameScreenTexture, setFrameScreenTexture] = useState<Texture | null>(null);
-  const object = useMemo(() => {
+  const { clonedFrameScreenMaterials, object } = useMemo(() => {
     const clonedScene = gltf.scene.clone(true);
+    const nextClonedFrameScreenMaterials: Material[] = [];
 
     clonedScene.traverse(node => {
       if (!isMeshNode(node)) return;
@@ -50,13 +51,17 @@ export const SceneProp = ({
 
       if (node.name === 'frame_screen') {
         node.material = cloneScenePropMaterial(node.material);
+        nextClonedFrameScreenMaterials.push(...normalizeScenePropMaterials(node.material));
       }
     });
 
     applyScenePropMaterials(clonedScene, ormTextures);
     groundSceneProp(clonedScene);
 
-    return clonedScene;
+    return {
+      clonedFrameScreenMaterials: nextClonedFrameScreenMaterials,
+      object: clonedScene,
+    };
   }, [gltf.scene, ormTextures]);
 
   useEffect(() => {
@@ -104,6 +109,15 @@ export const SceneProp = ({
     applyFrameScreenTexture(object, frameScreenTexture);
   }, [frameScreenTexture, object]);
 
+  useEffect(
+    () => () => {
+      clonedFrameScreenMaterials.forEach(material => {
+        material.dispose();
+      });
+    },
+    [clonedFrameScreenMaterials],
+  );
+
   return (
     <primitive
       dispose={null}
@@ -124,6 +138,17 @@ const cloneScenePropMaterial = (material: Material | Material[]): Material | Mat
   }
 
   return material.clone();
+};
+
+/**
+ * 단일/배열 material 입력을 dispose 가능한 배열 형태로 정규화합니다.
+ */
+const normalizeScenePropMaterials = (material: Material | Material[]): Material[] => {
+  if (Array.isArray(material)) {
+    return material;
+  }
+
+  return [material];
 };
 
 /**

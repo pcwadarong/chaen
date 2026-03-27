@@ -100,6 +100,10 @@ describe('HomeHeroScene', () => {
     window.localStorage.clear();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('첫 화면 안전 구간 sentinel과 함께 캔버스 및 웹 UI 레이어를 렌더링한다', () => {
     render(
       <HomeHeroScene
@@ -258,6 +262,67 @@ describe('HomeHeroScene', () => {
     expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
       'data-frame-screen-src',
       HOME_HERO_PHOTO_ITEMS[2]?.src ?? '',
+    );
+  });
+
+  it('localStorage getItem이 실패해도 기본 액자 이미지를 유지한 채 렌더링해야 한다', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('storage denied');
+    });
+
+    expect(() =>
+      render(
+        <HomeHeroScene
+          items={[
+            {
+              id: 'motion-library',
+              title: 'Motion Library',
+              description: 'description',
+              thumbnail_url: null,
+              publish_at: '2026-01-01T00:00:00.000Z',
+              slug: 'motion-library',
+            },
+          ]}
+          photoItems={HOME_HERO_PHOTO_ITEMS}
+          title="Selected Projects"
+        />,
+      ),
+    ).not.toThrow();
+
+    expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
+      'data-frame-screen-src',
+      HOME_HERO_PHOTO_ITEMS[0]?.src ?? '',
+    );
+  });
+
+  it('localStorage setItem이 실패해도 선택한 액자 이미지는 화면 상태에 반영해야 한다', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage denied');
+    });
+
+    render(
+      <HomeHeroScene
+        items={[
+          {
+            id: 'motion-library',
+            title: 'Motion Library',
+            description: 'description',
+            thumbnail_url: null,
+            publish_at: '2026-01-01T00:00:00.000Z',
+            slug: 'motion-library',
+          },
+        ]}
+        photoItems={HOME_HERO_PHOTO_ITEMS}
+        title="Selected Projects"
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('home-hero-stage'));
+    fireEvent.click(screen.getByRole('button', { name: 'select-image' }));
+
+    expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
+      'data-frame-screen-src',
+      HOME_HERO_PHOTO_ITEMS[1]?.src ?? '',
     );
   });
 
