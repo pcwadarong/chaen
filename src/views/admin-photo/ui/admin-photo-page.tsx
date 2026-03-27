@@ -8,7 +8,6 @@ import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page
 
 type AdminPhotoPageProps = {
   initialItems: PhotoFileItem[];
-  locale: string;
 };
 
 /**

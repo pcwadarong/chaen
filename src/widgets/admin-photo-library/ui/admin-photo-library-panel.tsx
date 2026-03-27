@@ -28,6 +28,18 @@ const PHOTO_FILE_INPUT_ACCEPT = [
   '.png',
 ].join(',');
 
+const PHOTO_FILE_ALLOWED_FORMAT_GUIDE = Array.from(
+  new Set(
+    PHOTO_FILE_INPUT_ACCEPT.split(',').map(token =>
+      token
+        .trim()
+        .replace(/^image\//, '')
+        .replace(/^\./, '')
+        .toUpperCase(),
+    ),
+  ),
+).join(', ');
+
 /**
  * 업로드 응답이 사진 카드 계약과 일치하는지 확인합니다.
  */
@@ -253,7 +265,7 @@ export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelP
         <div className={emptyStateClass}>
           <p className={emptyStateTitleClass}>아직 업로드된 사진이 없습니다.</p>
           <p className={emptyStateDescriptionClass}>
-            PNG, JPEG, HEIC 형식으로 여러 장 업로드할 수 있습니다.
+            {`${PHOTO_FILE_ALLOWED_FORMAT_GUIDE} 형식으로 여러 장 업로드할 수 있습니다.`}
           </p>
         </div>
       ) : (

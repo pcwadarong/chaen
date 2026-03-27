@@ -61,7 +61,6 @@ describe('AdminPhotoRoute', () => {
         size: 120_000,
       },
     ]);
-    expect(element.props.locale).toBe('ko');
   });
 
   it('검색 엔진 색인을 비활성화한다', () => {

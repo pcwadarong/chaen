@@ -5,7 +5,7 @@ import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
 
 const PHOTO_UPLOAD_INVALID_PAYLOAD_ERROR_MESSAGE =
-  'PNG, JPEG, HEIC 형식의 사진 파일만 업로드할 수 있습니다.';
+  'PNG, JPG, JPEG, HEIC, HEIF 형식의 사진 파일만 업로드할 수 있습니다.';
 const PHOTO_DELETE_INVALID_PAYLOAD_ERROR_MESSAGE = '삭제할 사진 경로가 올바르지 않습니다.';
 
 /**
