@@ -6,15 +6,15 @@ import React, { type RefObject, Suspense, useMemo, useState } from 'react';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
-import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
-import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
-import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
 import {
   getHomeHeroSceneLayout,
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
-} from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
+} from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
+import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
+import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
 import {
   HOME_HERO_STAGE_BACKGROUND,
   HomeHeroCharacterSeatSet,

@@ -8,7 +8,7 @@ import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
   type Vector3Tuple,
-} from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
+} from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
 import {
   HomeHeroCharacterSeatSet,
   HomeHeroStageLights,

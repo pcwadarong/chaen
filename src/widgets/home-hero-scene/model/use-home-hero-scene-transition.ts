@@ -11,7 +11,7 @@ import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
-} from '@/widgets/home-hero-scene/ui/home-hero-scene-layout';
+} from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
 
 type UseHomeHeroSceneTransitionParams = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;

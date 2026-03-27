@@ -42,6 +42,7 @@ type GetHomeHeroSceneLayoutParams = {
 
 const MOBILE_ORBIT_TARGET: Vector3Tuple = [1, 0, 0.5];
 const DESKTOP_ORBIT_TARGET: Vector3Tuple = [0, 0, 0];
+
 export const HOME_HERO_CAMERA_NEAR = 0.1;
 export const HOME_HERO_CAMERA_FAR = 100;
 
