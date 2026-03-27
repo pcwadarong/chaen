@@ -14,6 +14,8 @@ import {
   HomeHeroStageLights,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
 
+const CONTACT_SCENE_CAMERA_FOV = 42;
+
 type ContactCameraPreset = Readonly<{
   lookAt: Vector3Tuple;
   position: Vector3Tuple;
@@ -62,7 +64,7 @@ export const ContactSceneCanvas = ({ currentBP }: { readonly currentBP: SceneBre
     <Canvas
       camera={{
         far: HOME_HERO_CAMERA_FAR,
-        fov: 42,
+        fov: CONTACT_SCENE_CAMERA_FOV,
         near: HOME_HERO_CAMERA_NEAR,
         position: cameraPreset.position,
       }}
@@ -72,6 +74,7 @@ export const ContactSceneCanvas = ({ currentBP }: { readonly currentBP: SceneBre
     >
       <ContactSceneCameraRig currentBP={currentBP} />
       <HomeHeroStageLights />
+      {/* 데스크탑 전용 보강 씬이라 기본 wrapper가 먼저 렌더되고, 모델 로딩 중에는 빈 캔버스로 유지합니다. */}
       <Suspense fallback={null}>
         <group position={[0, -2.4, 0]}>
           <HomeHeroCharacterSeatSet instance="contact" />

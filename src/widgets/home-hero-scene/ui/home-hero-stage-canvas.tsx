@@ -12,11 +12,11 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
 import {
-  HOME_HERO_STAGE_BACKGROUND,
   HomeHeroCharacterSeatSet,
   HomeHeroStageLights,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';

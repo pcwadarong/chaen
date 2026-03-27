@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { css } from 'styled-system/css';
 
@@ -10,7 +8,7 @@ import {
 } from '@/shared/config/contact-links';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
-import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
+import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 
 const mobileContactLinks = [
   {

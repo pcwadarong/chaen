@@ -5,8 +5,6 @@ import React from 'react';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
 
-export const HOME_HERO_STAGE_BACKGROUND = '#5d5bff';
-
 type HomeHeroCharacterSeatSetProps = Readonly<{
   instance: 'contact' | 'main';
   isCloseupCostumeHidden?: boolean;
