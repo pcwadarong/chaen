@@ -181,7 +181,7 @@ const backdropClass = css({
   inset: '0',
   zIndex: '40',
   bg: '[rgb(15 23 42 / 0.32)]',
-  backdropFilter: '[blur(10px)]',
+  backdropBlur: 'md',
 });
 
 const panelClass = css({
@@ -195,7 +195,7 @@ const panelClass = css({
   borderTopLeftRadius: '3xl',
   borderTopRightRadius: '3xl',
   bg: 'surface',
-  boxShadow: '[0 -24px 64px rgb(15 23 42 / 0.28)]',
+  boxShadow: 'floating',
   transitionProperty: '[transform, opacity]',
   transitionDuration: '[360ms]',
   transitionTimingFunction: '[cubic-bezier(0.22,1,0.36,1)]',
@@ -231,7 +231,9 @@ const headerClass = css({
   px: '5',
   pt: '3',
   pb: '4',
-  borderBottom: '[1px solid var(--colors-border)]',
+  borderBottomWidth: '1px',
+  borderBottomStyle: 'solid',
+  borderBottomColor: 'border',
 });
 
 const titleClass = css({
