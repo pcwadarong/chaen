@@ -147,7 +147,7 @@ describe('CharacterStateMachine', () => {
 
     expect(machine.getCurrentState()).toBe('music');
     expect(musicAction.setLoop).toHaveBeenCalledWith(LoopRepeat, Infinity);
-    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledWith(0.78);
+    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledWith(0.4);
   });
 
   it('이미 같은 상태면 action 설정과 재생을 다시 건드리지 않는다', () => {

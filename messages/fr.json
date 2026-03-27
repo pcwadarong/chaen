@@ -271,11 +271,7 @@
     "zoomOutAriaLabel": "Réduire l'image"
   },
   "Contact": {
-    "emailLabel": "Email",
-    "focusLabel": "Focus",
     "focusValue": "Développement frontend",
-    "githubLabel": "Github",
-    "locationLabel": "Location",
     "locationValue": "Séoul, Corée du Sud",
     "title": "Créons ensemble des expériences porteuses de sens.",
     "titleLine1": "Créons ensemble des",

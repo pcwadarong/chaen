@@ -271,11 +271,7 @@
     "zoomOutAriaLabel": "이미지 축소"
   },
   "Contact": {
-    "emailLabel": "Email",
-    "focusLabel": "Focus",
     "focusValue": "프론트엔드 개발",
-    "githubLabel": "Github",
-    "locationLabel": "Location",
     "locationValue": "서울, 대한민국",
     "title": "의미 있는 경험을 함께 만들어요.",
     "titleLine1": "의미 있는 경험을",

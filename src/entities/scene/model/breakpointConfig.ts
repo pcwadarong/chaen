@@ -24,7 +24,7 @@ export const getSceneBreakpoint = (width: number): SceneBreakpoint => {
 
 /**
  * 현재 viewport 너비가 모바일 계열 씬인지 데스크탑 계열 씬인지 판별합니다.
- * mobile L까지는 모바일 씬으로 유지하고, BP3부터 데스크탑 씬으로 전환합니다.
+ * 네비 모바일 메뉴가 유지되는 tablet 최대 구간까지는 모바일 씬으로 유지합니다.
  */
 export const getSceneMode = (width: number): SceneMode =>
   width <= VIEWPORT_BREAKPOINTS.tabletMax ? 'mobile' : 'desktop';

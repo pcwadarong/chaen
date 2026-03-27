@@ -1,5 +1,8 @@
+// @vitest-environment jsdom
+
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { vi } from 'vitest';
 
 import { ContactScene } from '@/widgets/contact-scene/ui/contact-scene';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
@@ -15,9 +18,7 @@ vi.mock('next/dynamic', () => ({
 }));
 
 vi.mock('@/widgets/contact-strip/ui/contact-strip', () => ({
-  ContactStrip: ({ variant }: { variant?: string }) => (
-    <section data-testid="contact-strip" data-variant={variant ?? 'desktop'} />
-  ),
+  ContactStrip: () => <section data-testid="contact-strip" data-variant="desktop" />,
 }));
 
 vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({

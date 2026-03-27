@@ -271,11 +271,7 @@
     "zoomOutAriaLabel": "Zoom out image"
   },
   "Contact": {
-    "emailLabel": "Email",
-    "focusLabel": "Focus",
     "focusValue": "Frontend Development",
-    "githubLabel": "Github",
-    "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
     "title": "Let's connect and create meaningful experiences.",
     "titleLine1": "Let's connect and create",

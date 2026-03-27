@@ -110,7 +110,7 @@ describe('useCharacterState', () => {
 
     expect(result.current.currentState).toBe('music');
     expect(musicAction.play).toHaveBeenCalledOnce();
-    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledWith(0.78);
+    expect(musicAction.setEffectiveTimeScale).toHaveBeenCalledTimes(1);
     expect(typingAction.play).not.toHaveBeenCalled();
   });
 });

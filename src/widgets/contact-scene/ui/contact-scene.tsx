@@ -43,7 +43,7 @@ export const ContactScene = () => {
             isDesktopSmall ? overlayInnerDesktopSmallClass : undefined,
           )}
         >
-          <ContactStrip className={desktopStripClass} variant="desktop" />
+          <ContactStrip className={desktopStripClass} />
         </div>
       </div>
     </div>

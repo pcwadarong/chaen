@@ -9,17 +9,13 @@ import {
 import { Button } from '@/shared/ui/button/button';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
 
-type ContactStripVariant = 'desktop';
-
 type ContactStripProps = Readonly<{
   className?: string;
-  variant?: ContactStripVariant;
 }>;
 
 /** 홈 contact 영역의 텍스트와 액션을 variant별로 렌더링합니다. */
-export const ContactStrip = ({ className, variant = 'desktop' }: ContactStripProps) => {
+export const ContactStrip = ({ className }: ContactStripProps) => {
   const t = useTranslations('Contact');
-  void variant;
 
   return (
     <section className={cx(sectionClass, className)}>
@@ -30,11 +26,11 @@ export const ContactStrip = ({ className, variant = 'desktop' }: ContactStripPro
         </h2>
         <ul className={metaListClass}>
           <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('locationLabel')}</span>
+            <span className={metaLabelClass}>{'Location'}</span>
             <span>{t('locationValue')}</span>
           </li>
           <li className={metaItemClass}>
-            <span className={metaLabelClass}>{t('focusLabel')}</span>
+            <span className={metaLabelClass}>{'Focus'}</span>
             <span>{t('focusValue')}</span>
           </li>
         </ul>
@@ -48,7 +44,7 @@ export const ContactStrip = ({ className, variant = 'desktop' }: ContactStripPro
           tone="white"
           variant="solid"
         >
-          <a href={`mailto:${CONTACT_EMAIL_ADDRESS}`}>{t('emailLabel')}</a>
+          <a href={`mailto:${CONTACT_EMAIL_ADDRESS}`}>{'Email'}</a>
         </Button>
         <Button
           asChild
@@ -59,7 +55,7 @@ export const ContactStrip = ({ className, variant = 'desktop' }: ContactStripPro
           variant="solid"
         >
           <a href={CONTACT_GITHUB_URL} rel="noopener noreferrer" target="_blank">
-            {t('githubLabel')}
+            {'Github'}
           </a>
         </Button>
         <Button
@@ -71,7 +67,7 @@ export const ContactStrip = ({ className, variant = 'desktop' }: ContactStripPro
           variant="solid"
         >
           <a href={CONTACT_LINKEDIN_URL} rel="noopener noreferrer" target="_blank">
-            LinkedIn
+            {'LinkedIn'}
           </a>
         </Button>
       </div>

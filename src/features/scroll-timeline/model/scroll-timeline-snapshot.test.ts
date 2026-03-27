@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
 
 import { getScrollTimelineSnapshot } from '@/features/scroll-timeline/model/scroll-timeline-snapshot';
