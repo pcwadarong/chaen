@@ -126,9 +126,9 @@ describe('Tooltip', () => {
     expect(screen.queryByRole('tooltip', { name: '이미지 축소' })).toBeNull();
   });
 
-  it('portalStyle이 전달되면 tooltip 포털 요소의 인라인 스타일에 반영한다', async () => {
+  it('portalClassName이 전달되면 tooltip 포털 요소 클래스에 병합되어야 한다', async () => {
     render(
-      <Tooltip content="링크 복사" portalStyle={{ zIndex: 1300 }}>
+      <Tooltip content="링크 복사" portalClassName="tooltip-portal-test">
         <button type="button">C</button>
       </Tooltip>,
     );
@@ -138,6 +138,6 @@ describe('Tooltip', () => {
 
     const tooltip = await screen.findByRole('tooltip', { name: '링크 복사' });
 
-    expect(tooltip.style.zIndex).toBe('1300');
+    expect(tooltip.className).toContain('tooltip-portal-test');
   });
 });

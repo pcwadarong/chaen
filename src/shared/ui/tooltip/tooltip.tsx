@@ -22,6 +22,12 @@ type TooltipProps = {
   contentClassName?: string;
   forceOpen?: boolean;
   openOnFocus?: boolean;
+  portalClassName?: string;
+  /**
+   * 내부 레이어 보정용 포털 루트 인라인 스타일입니다.
+   * 일반적인 외부 스타일 확장은 `portalClassName`을 우선 사용하고,
+   * 이 prop은 점진적 마이그레이션이 끝나면 제거할 예정입니다.
+   */
   portalStyle?: React.CSSProperties;
 };
 
@@ -36,6 +42,7 @@ export const Tooltip = ({
   contentClassName,
   forceOpen = false,
   openOnFocus = true,
+  portalClassName,
   portalStyle,
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -113,7 +120,7 @@ export const Tooltip = ({
       {isOpen
         ? createPortal(
             <span
-              className={tooltipPortalClass}
+              className={cx(tooltipPortalClass, portalClassName)}
               id={tooltipId}
               role="tooltip"
               style={{
