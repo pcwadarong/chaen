@@ -37,11 +37,12 @@ export const DashboardPage = async ({ locale }: DashboardPageProps) => {
             </Button>
           </nav>
           <AdminPdfUploadPanel initialItems={pdfUploadItems} />
-          <AdminSignOutButton
-            redirectPath={buildAdminPath({ locale, section: 'login' })}
-            submitLabel="로그아웃"
-            submitPendingLabel="로그아웃 중"
-          />
+          <div className={footerActionRowClass}>
+            <Button asChild tone="white" variant="ghost">
+              <Link href="/admin/photo">사진 관리</Link>
+            </Button>
+            <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
+          </div>
         </div>
       </PageSection>
     </PageShell>
@@ -60,4 +61,10 @@ const actionGridClass = css({
   _mobileLargeDown: {
     gridTemplateColumns: '1fr',
   },
+});
+
+const footerActionRowClass = css({
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '3',
 });

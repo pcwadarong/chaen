@@ -82,6 +82,9 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: '이력서 편집' }).getAttribute('href')).toBe(
       '/admin/resume/edit',
     );
+    expect(screen.getByRole('link', { name: '사진 관리' }).getAttribute('href')).toBe(
+      '/admin/photo',
+    );
     expect(screen.getByText('이력서 PDF · 국문')).toBeTruthy();
     expect(screen.getByText('이력서 PDF · 영문')).toBeTruthy();
     expect(screen.getByText('포트폴리오 PDF · 국문')).toBeTruthy();
