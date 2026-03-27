@@ -37,7 +37,7 @@ describe('listPhotoFiles', () => {
     vi.clearAllMocks();
   });
 
-  it('photo 버킷을 created_at 오름차순으로 끝까지 조회해 공개 URL 목록으로 반환한다', async () => {
+  it('단일 storage 페이지가 created_at 오름차순으로 반환될 때, listPhotoFiles는 같은 순서의 공개 URL 목록을 반환해야 한다', async () => {
     list.mockResolvedValueOnce({
       data: [
         {
@@ -95,7 +95,7 @@ describe('listPhotoFiles', () => {
     expect(list).toHaveBeenCalledTimes(1);
   });
 
-  it('목록 조회가 실패하면 photo 목록 조회 실패 에러를 던진다', async () => {
+  it('Storage 목록 조회가 실패할 때, listPhotoFiles는 photo 목록 조회 실패 에러를 던져야 한다', async () => {
     list.mockResolvedValue({
       data: null,
       error: {

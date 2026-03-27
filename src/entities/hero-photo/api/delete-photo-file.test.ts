@@ -33,7 +33,7 @@ describe('deletePhotoFile', () => {
     vi.clearAllMocks();
   });
 
-  it('photo 버킷에서 지정한 파일 경로를 삭제한다', async () => {
+  it('유효한 filePath가 주어질 때, deletePhotoFile은 photo 버킷에서 해당 경로를 삭제해야 한다', async () => {
     await expect(deletePhotoFile({ filePath: 'first.jpg' })).resolves.toEqual({
       filePath: 'first.jpg',
     });
@@ -42,7 +42,7 @@ describe('deletePhotoFile', () => {
     expect(remove).toHaveBeenCalledWith(['first.jpg']);
   });
 
-  it('공백뿐인 filePath가 들어오면 Supabase 삭제 호출 전에 유효성 에러를 던진다', async () => {
+  it('공백만 포함한 filePath가 주어질 때, deletePhotoFile은 삭제 호출 전에 유효성 에러를 던져야 한다', async () => {
     await expect(deletePhotoFile({ filePath: '   ' })).rejects.toThrow(
       '[photo-file] 유효하지 않은 파일 경로입니다.',
     );
@@ -51,7 +51,7 @@ describe('deletePhotoFile', () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
-  it('삭제 실패 시 photo 삭제 실패 에러를 던진다', async () => {
+  it('Storage 삭제가 실패할 때, deletePhotoFile은 photo 삭제 실패 에러를 던져야 한다', async () => {
     remove.mockResolvedValue({
       error: {
         message: 'delete failed',

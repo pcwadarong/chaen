@@ -28,7 +28,7 @@ describe('AdminPhotoLibraryPanel', () => {
     vi.unstubAllGlobals();
   });
 
-  it('초기 이미지 리스트와 삭제 버튼을 함께 렌더링한다', () => {
+  it("초기 렌더링일 때, AdminPhotoLibraryPanel은 heading과 'first.jpg' 카드 및 업로드/삭제 버튼을 렌더링해야 한다", () => {
     vi.stubGlobal('fetch', vi.fn());
 
     render(<AdminPhotoLibraryPanel initialItems={baseItems} />);
@@ -39,7 +39,7 @@ describe('AdminPhotoLibraryPanel', () => {
     expect(screen.getByRole('button', { name: 'first.jpg 삭제' })).toBeTruthy();
   });
 
-  it('여러 장 업로드 시 선택한 순서대로 리스트 뒤에 추가한다', async () => {
+  it('여러 장 업로드가 성공할 때, AdminPhotoLibraryPanel은 선택한 순서대로 새 항목을 리스트 뒤에 추가해야 한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi
@@ -98,7 +98,7 @@ describe('AdminPhotoLibraryPanel', () => {
     expect(orderLabels).toEqual(['업로드 순서 1', '업로드 순서 2', '업로드 순서 3']);
   });
 
-  it('삭제 성공 시 해당 이미지를 목록에서 제거한다', async () => {
+  it('삭제 요청이 성공할 때, AdminPhotoLibraryPanel은 해당 이미지를 목록에서 제거해야 한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -121,7 +121,7 @@ describe('AdminPhotoLibraryPanel', () => {
     expect(screen.getByText('아직 업로드된 사진이 없습니다.')).toBeTruthy();
   });
 
-  it('삭제 실패 시 카드를 유지하고 오류를 보여준다', async () => {
+  it('삭제 요청이 실패할 때, AdminPhotoLibraryPanel은 카드를 유지하고 오류를 표시해야 한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({

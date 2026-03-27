@@ -44,7 +44,7 @@ describe('uploadPhotoFile', () => {
     vi.clearAllMocks();
   });
 
-  it('업로드한 사진을 photo 버킷에 저장하고 공개 URL 정보를 반환한다', async () => {
+  it('유효한 사진 파일이 주어질 때, uploadPhotoFile은 photo 버킷에 저장하고 공개 URL 정보를 반환해야 한다', async () => {
     const file = new File(['binary'], 'sample.jpeg', { type: 'image/jpeg' });
 
     const result = await uploadPhotoFile({
@@ -68,7 +68,7 @@ describe('uploadPhotoFile', () => {
     expect(result.createdAt).toBe('2026-03-27T09:00:00.000Z');
   });
 
-  it('업로드 실패 시 photo 업로드 실패 에러를 던진다', async () => {
+  it('Storage 업로드가 실패할 때, uploadPhotoFile은 photo 업로드 실패 에러를 던져야 한다', async () => {
     upload.mockResolvedValue({
       error: {
         message: 'upload failed',

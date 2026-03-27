@@ -23,7 +23,7 @@ describe('api/photos route', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자가 아니면 사진 업로드 요청에 403을 반환한다', async () => {
+  it('관리자 권한이 없을 때, POST /api/photos는 403을 반환해야 한다', async () => {
     vi.mocked(requireAdmin).mockRejectedValue(new AdminAuthorizationError());
 
     const formData = new FormData();
@@ -37,7 +37,7 @@ describe('api/photos route', () => {
     expect(uploadPhotoFile).not.toHaveBeenCalled();
   });
 
-  it('허용하지 않은 포맷은 400을 반환한다', async () => {
+  it('허용되지 않은 파일 포맷일 때, POST /api/photos는 400을 반환해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -55,7 +55,7 @@ describe('api/photos route', () => {
     expect(response.status).toBe(400);
   });
 
-  it('사진 업로드 성공 시 업로드 결과를 반환한다', async () => {
+  it('유효한 사진 업로드 요청일 때, POST /api/photos는 업로드 결과를 반환해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -94,7 +94,7 @@ describe('api/photos route', () => {
     });
   });
 
-  it('filePath 없이 삭제 요청하면 400을 반환한다', async () => {
+  it('filePath 없이 삭제를 요청할 때, DELETE /api/photos는 400을 반환해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -116,7 +116,7 @@ describe('api/photos route', () => {
     expect(deletePhotoFile).not.toHaveBeenCalled();
   });
 
-  it('삭제 성공 시 삭제된 filePath를 반환한다', async () => {
+  it('유효한 삭제 요청일 때, DELETE /api/photos는 삭제된 filePath를 반환해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,

@@ -13,13 +13,13 @@ describe('optimizeAdminPhotoFile', () => {
     globalThis.Image = originalImage;
   });
 
-  it('HEIC 파일은 그대로 유지한다', async () => {
+  it('입력 파일이 HEIC일 때, optimizeAdminPhotoFile은 원본 파일을 그대로 반환해야 한다', async () => {
     const file = new File(['heic'], 'photo.heic', { type: 'image/heic' });
 
     await expect(optimizeAdminPhotoFile(file)).resolves.toBe(file);
   });
 
-  it('작고 충분히 가벼운 JPEG는 원본을 그대로 유지한다', async () => {
+  it('입력 파일이 작은 JPEG일 때, optimizeAdminPhotoFile은 원본 파일을 그대로 반환해야 한다', async () => {
     URL.createObjectURL = vi.fn().mockReturnValue('blob:small-photo');
     URL.revokeObjectURL = vi.fn();
 
@@ -41,7 +41,7 @@ describe('optimizeAdminPhotoFile', () => {
     await expect(optimizeAdminPhotoFile(file)).resolves.toBe(file);
   });
 
-  it('너무 큰 JPEG는 같은 포맷으로 축소 압축한다', async () => {
+  it('입력 파일이 매우 큰 JPEG일 때, optimizeAdminPhotoFile은 같은 포맷의 축소 이미지를 반환해야 한다', async () => {
     const drawImage = vi.fn();
     const canvas = {
       getContext: vi.fn().mockReturnValue({ drawImage }),

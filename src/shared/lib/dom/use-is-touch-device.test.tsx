@@ -50,7 +50,7 @@ const installMatchMediaMock = (initialMatches: boolean): MatchMediaMockControlle
 };
 
 describe('useIsTouchDevice', () => {
-  it('coarse pointer media query가 true면 터치 디바이스로 판정해야 한다', () => {
+  it('coarse pointer media query가 true일 때, useIsTouchDevice는 true를 반환해야 한다', () => {
     const { query } = installMatchMediaMock(true);
 
     const { result } = renderHook(() => useIsTouchDevice());
@@ -59,7 +59,7 @@ describe('useIsTouchDevice', () => {
     expect(result.current).toBe(true);
   });
 
-  it('coarse pointer media query change를 구독해 입력 장치 상태를 갱신해야 한다', () => {
+  it('coarse pointer media query 값이 바뀔 때, useIsTouchDevice는 상태를 갱신해야 한다', () => {
     const controller = installMatchMediaMock(false);
 
     const { result } = renderHook(() => useIsTouchDevice());
@@ -73,7 +73,7 @@ describe('useIsTouchDevice', () => {
     expect(result.current).toBe(true);
   });
 
-  it('matchMedia를 쓸 수 없으면 false를 반환해야 한다', () => {
+  it('window.matchMedia를 사용할 수 없을 때, useIsTouchDevice는 false를 반환해야 한다', () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: undefined,
