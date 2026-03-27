@@ -80,7 +80,7 @@ export const applyCharacterMaterials = (scene: Group, textures: CharacterOrmText
       return;
     }
 
-    if (HAIR_MESH_NAMES.has(node.name))
-      applyOrmToMaterial(node.material, textures.hair, { useAlphaMap: true });
+    if (HAIR_MESH_NAMES.has(node.name)) applyOrmToMaterial(node.material, textures.hair);
+    //TODO: 알파 정도 조절해서 { useAlphaMap: true } 활성화
   });
 };
