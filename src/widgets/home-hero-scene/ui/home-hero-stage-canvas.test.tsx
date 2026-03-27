@@ -55,6 +55,10 @@ vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => 
   useHomeHeroSceneTransition: () => homeHeroStageCanvasMockState.timelineState,
 }));
 
+vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
+  SceneInteractionController: () => <div data-testid="scene-interaction-controller" />,
+}));
+
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
     homeHeroStageCanvasMockState.orbitControlsProps = null;
@@ -83,6 +87,7 @@ describe('HomeHeroStageCanvas', () => {
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toBeTruthy();
     expect(screen.getByTestId('orbit-controls')).toBeTruthy();
+    expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
     expect(screen.getByTestId('character-main')).toBeTruthy();
     expect(screen.queryByTestId('character-contact')).toBeNull();
     expect(screen.getByTestId('prop-/models/sofa.glb')).toBeTruthy();

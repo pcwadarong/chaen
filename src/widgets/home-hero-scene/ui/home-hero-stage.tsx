@@ -6,6 +6,7 @@ import { css } from 'styled-system/css';
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
+  readonly onOpenImageViewer?: () => void;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -26,12 +27,14 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
  */
 export const HomeHeroStage = ({
   blackoutOverlayRef,
+  onOpenImageViewer,
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => (
   <div aria-hidden="true" className={stageFrameClass}>
     <HomeHeroStageCanvas
       blackoutOverlayRef={blackoutOverlayRef}
+      onOpenImageViewer={onOpenImageViewer}
       triggerRef={triggerRef}
       webUiRef={webUiRef}
     />

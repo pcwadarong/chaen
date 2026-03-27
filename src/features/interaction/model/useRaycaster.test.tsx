@@ -5,16 +5,36 @@ import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 
 const useIsTouchDeviceMock = vi.fn();
 
-const raycasterMockState = vi.hoisted(() => ({
-  camera: { kind: 'camera' },
-  raycaster: {
-    intersectObjects: vi.fn(),
-    setFromCamera: vi.fn(),
-  },
-  scene: {
+const raycasterMockState = vi.hoisted(() => {
+  const scene = {
     children: [] as unknown[],
-  },
-}));
+    traverse(callback: (obj: any) => void) {
+      callback(scene);
+      const visit = (obj: any) => {
+        if (Array.isArray(obj.children)) {
+          for (const child of obj.children) {
+            callback(child);
+            visit(child);
+          }
+        }
+      };
+
+      for (const child of scene.children) {
+        callback(child);
+        visit(child);
+      }
+    },
+  };
+
+  return {
+    camera: { kind: 'camera' },
+    raycaster: {
+      intersectObjects: vi.fn(),
+      setFromCamera: vi.fn(),
+    },
+    scene,
+  };
+});
 
 vi.mock('@react-three/fiber', () => ({
   useThree: () => ({
@@ -80,7 +100,7 @@ describe('useRaycaster', () => {
     raycasterMockState.raycaster.intersectObjects.mockReturnValue([]);
   });
 
-  it('데스크톱 pointermove가 interactive 자식 mesh를 가리키면 hoveredMesh는 상호작용 root mesh여야 한다', () => {
+  it('데스크톱 pointermove가 비대화형 자식 mesh를 가리키면 조상 interactive mesh로 승격되어야 한다', () => {
     const laptopMesh = new Object3D();
     laptopMesh.name = 'laptop';
     const laptopScreenMesh = new Object3D();
@@ -166,13 +186,13 @@ describe('useRaycaster', () => {
   });
 
   it('같은 interactive mesh에서 pointerdown 뒤 5px 미만으로 pointerup 되면 onMeshClick이 호출되어야 한다', () => {
-    const frameMesh = new Object3D();
-    frameMesh.name = 'frame';
+    const cameraMesh = new Object3D();
+    cameraMesh.name = 'camera';
     const onMeshClick = vi.fn();
-    raycasterMockState.scene.children = [frameMesh];
+    raycasterMockState.scene.children = [cameraMesh];
     raycasterMockState.raycaster.intersectObjects.mockReturnValue([
       {
-        object: frameMesh,
+        object: cameraMesh,
       },
     ]);
 
@@ -201,11 +221,11 @@ describe('useRaycaster', () => {
       );
     });
 
-    expect(onMeshClick).toHaveBeenCalledWith(frameMesh);
+    expect(onMeshClick).toHaveBeenCalledWith(cameraMesh);
     expect(onMeshClick).toHaveBeenCalledTimes(1);
   });
 
-  it('bass 계열 자식 mesh를 가리키면 hoveredMesh는 실제 interactive root인 bass_body여야 한다', () => {
+  it('bass 계열 자식 mesh를 가리키면 hoveredMesh는 실제로 교차한 줄 mesh여야 한다', () => {
     const bassBodyMesh = new Object3D();
     bassBodyMesh.name = 'bass_body';
     const lineMesh = new Object3D();
@@ -231,7 +251,7 @@ describe('useRaycaster', () => {
       );
     });
 
-    expect(result.current.hoveredMesh).toBe(bassBodyMesh);
+    expect(result.current.hoveredMesh).toBe(lineMesh);
   });
 
   it('pointer 이동량이 5px 이상이면 onMeshClick은 호출되지 않아야 한다', () => {

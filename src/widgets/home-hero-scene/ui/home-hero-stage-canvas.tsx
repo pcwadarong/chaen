@@ -6,6 +6,7 @@ import React, { type RefObject, Suspense, useMemo, useState } from 'react';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import {
   getHomeHeroSceneLayout,
   HOME_HERO_CAMERA_FAR,
@@ -23,6 +24,7 @@ import {
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
+  readonly onOpenImageViewer?: () => void;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -32,6 +34,7 @@ type HomeHeroStageCanvasProps = {
  */
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
+  onOpenImageViewer,
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
@@ -85,6 +88,7 @@ export const HomeHeroStageCanvas = ({
           sceneLayout={sceneLayout}
         />
       </Suspense>
+      <SceneInteractionController onOpenImageViewer={onOpenImageViewer} />
     </Canvas>
   );
 };
