@@ -2,10 +2,11 @@
 
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import React, { type RefObject, Suspense, useMemo, useState } from 'react';
+import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import {
   getHomeHeroSceneLayout,
@@ -50,6 +51,11 @@ export const HomeHeroStageCanvas = ({
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
   });
+  const handleBrowseProjects = useCallback(() => {
+    if (sceneMode !== 'desktop') return;
+
+    scrollHomeHeroToProjects(triggerRef.current);
+  }, [sceneMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -57,6 +63,7 @@ export const HomeHeroStageCanvas = ({
         currentBP,
       }),
     [currentBP],
+    ㅈ,
   );
 
   return (
@@ -82,6 +89,7 @@ export const HomeHeroStageCanvas = ({
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
         interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+        onBrowseProjects={handleBrowseProjects}
         onOpenImageViewer={onOpenImageViewer}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         onScrollStateChange={setIsScrolling}
@@ -108,6 +116,7 @@ const HomeHeroCameraRig = ({
   blackoutOverlayRef,
   currentBP,
   interactionDisabledProgressThreshold,
+  onBrowseProjects,
   onOpenImageViewer,
   onCloseupCostumeHiddenChange,
   onScrollStateChange,
@@ -119,6 +128,7 @@ const HomeHeroCameraRig = ({
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
   readonly interactionDisabledProgressThreshold: number;
+  readonly onBrowseProjects: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly onScrollStateChange: (isScrolling: boolean) => void;
@@ -160,7 +170,10 @@ const HomeHeroCameraRig = ({
         target={sceneLayout.camera.lookAt}
       />
       {isInteractionEnabled ? (
-        <SceneInteractionController onOpenImageViewer={onOpenImageViewer} />
+        <SceneInteractionController
+          onBrowseProjects={onBrowseProjects}
+          onOpenImageViewer={onOpenImageViewer}
+        />
       ) : null}
     </>
   );

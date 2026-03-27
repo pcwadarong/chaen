@@ -8,6 +8,7 @@ import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
 
 type SceneInteractionControllerProps = Readonly<{
+  onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
 }>;
 
@@ -16,6 +17,7 @@ type SceneInteractionControllerProps = Readonly<{
  * hit test, hover 액션, click 액션, outline 렌더를 한 곳에서 조합합니다.
  */
 export const SceneInteractionController = ({
+  onBrowseProjects,
   onOpenImageViewer,
 }: SceneInteractionControllerProps) => {
   const { gl } = useThree();
@@ -25,6 +27,7 @@ export const SceneInteractionController = ({
     },
   });
   const { handleMeshClick } = useInteractionActions({
+    onBrowseProjects,
     onOpenImageViewer,
   });
 

@@ -10,14 +10,16 @@ type InteractionAction = Readonly<{
 }>;
 
 type UseInteractionActionsOptions = Readonly<{
+  onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
 }>;
 
 /**
  * mesh 이름별 click 액션을 현재 홈 씬 요구사항에 맞춰 조합합니다.
- * 현재 커밋 범위에서는 camera만 임시 이미지 뷰어를 열고, 나머지 mesh는 outline만 담당합니다.
+ * camera는 이미지 뷰어를 열고, laptop/bass는 프로젝트 뷰로 이동시킵니다.
  */
 export const useInteractionActions = ({
+  onBrowseProjects,
   onOpenImageViewer,
 }: UseInteractionActionsOptions): {
   handleMeshClick: (mesh: Object3D) => void;
@@ -25,7 +27,9 @@ export const useInteractionActions = ({
   const interactionActions = useMemo<Record<Exclude<InteractionTarget, null>, InteractionAction>>(
     () => ({
       bass: {
-        onClick: () => {},
+        onClick: () => {
+          onBrowseProjects?.();
+        },
       },
       camera: {
         onClick: () => {
@@ -33,10 +37,12 @@ export const useInteractionActions = ({
         },
       },
       laptop: {
-        onClick: () => {},
+        onClick: () => {
+          onBrowseProjects?.();
+        },
       },
     }),
-    [onOpenImageViewer],
+    [onBrowseProjects, onOpenImageViewer],
   );
 
   /**
