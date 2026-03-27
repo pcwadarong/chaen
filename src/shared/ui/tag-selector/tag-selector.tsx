@@ -80,12 +80,11 @@ const TagSelectorBase = ({
   );
 
   const handleExpandedToggle = useCallback(() => {
-    setIsExpanded(previous => {
-      const nextExpanded = !previous;
-      onExpandedChange?.(nextExpanded);
-      return nextExpanded;
-    });
-  }, [onExpandedChange]);
+    const nextExpanded = !isExpanded;
+
+    setIsExpanded(nextExpanded);
+    onExpandedChange?.(nextExpanded);
+  }, [isExpanded, onExpandedChange]);
 
   return (
     <section aria-label={poolLabel} className={cx(rootClass, className)}>
