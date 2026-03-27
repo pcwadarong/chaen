@@ -25,6 +25,7 @@ import {
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly onOpenImageViewer?: () => void;
+  readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -35,6 +36,7 @@ type HomeHeroStageCanvasProps = {
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
   onOpenImageViewer,
+  selectedFrameImageSrc,
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
@@ -85,6 +87,7 @@ export const HomeHeroStageCanvas = ({
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
           isCloseupCostumeHidden={isCloseupCostumeHidden}
+          selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
         />
       </Suspense>
@@ -152,9 +155,11 @@ const HomeHeroCameraRig = ({
  */
 const HomeHeroSceneObjects = ({
   isCloseupCostumeHidden,
+  selectedFrameImageSrc,
   sceneLayout,
 }: {
   readonly isCloseupCostumeHidden: boolean;
+  readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
 }) => (
   <group position={[0, -2.4, 0]}>
@@ -165,6 +170,7 @@ const HomeHeroSceneObjects = ({
       rotation={[...sceneLayout.bassRotation]}
     />
     <SceneProp
+      frameScreenImageSrc={selectedFrameImageSrc}
       path="/models/table.glb"
       position={[...sceneLayout.tablePosition]}
       rotation={[...sceneLayout.tableRotation]}

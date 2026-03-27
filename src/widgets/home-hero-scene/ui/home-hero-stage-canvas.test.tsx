@@ -39,8 +39,19 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-character', () => ({
 }));
 
 vi.mock('@/entities/scene/ui/scene-prop', () => ({
-  SceneProp: ({ path }: { path: string; position: [number, number, number] }) => (
-    <div data-path={path} data-testid={`prop-${path}`} />
+  SceneProp: ({
+    frameScreenImageSrc,
+    path,
+  }: {
+    frameScreenImageSrc?: string | null;
+    path: string;
+    position: [number, number, number];
+  }) => (
+    <div
+      data-frame-screen-src={frameScreenImageSrc ?? ''}
+      data-path={path}
+      data-testid={`prop-${path}`}
+    />
   ),
 }));
 
@@ -167,5 +178,21 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-dpr', '[1,2]');
+  });
+
+  it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        selectedFrameImageSrc="https://example.com/frame.jpg"
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute(
+      'data-frame-screen-src',
+      'https://example.com/frame.jpg',
+    );
   });
 });

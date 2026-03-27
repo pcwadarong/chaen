@@ -9,6 +9,7 @@ import { Button } from '@/shared/ui/button/button';
 import {
   ChevronRightIcon,
   FitSizeIcon,
+  ImageIcon,
   ImageQuestionIcon,
   ZoomInIcon,
   ZoomOutIcon,
@@ -30,6 +31,8 @@ export type ImageViewerLabels = {
   locateSourceAriaLabel: string;
   nextAriaLabel: string;
   previousAriaLabel: string;
+  selectForFrameAriaLabel: string;
+  selectForFrameLabel: string;
   thumbnailListAriaLabel: string;
   zoomInAriaLabel: string;
   zoomOutAriaLabel: string;
@@ -41,6 +44,7 @@ type ImageViewerModalProps = {
   labels: ImageViewerLabels;
   onClose: () => void;
   onLocateSource?: (currentIndex: number) => void;
+  onSelectCurrentImage?: (currentIndex: number) => void;
 };
 
 const MIN_ZOOM = 0.5;
@@ -48,6 +52,7 @@ const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
 const IMAGE_NAVIGATION_ANIMATION_MS = 360;
 const ACTION_TOOLTIP_HOLD_MS = 1200;
+const ACTION_TOOLTIP_Z_INDEX = 1300;
 const DEFAULT_PAN_OFFSET = { x: 0, y: 0 } as const;
 
 type ImageViewerPanOffset = {
@@ -197,6 +202,7 @@ export const ImageViewerModal = ({
   labels,
   onClose,
   onLocateSource,
+  onSelectCurrentImage,
 }: ImageViewerModalProps) => {
   const [activeActionTooltip, setActiveActionTooltip] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -279,6 +285,13 @@ export const ImageViewerModal = ({
   const handleLocateSource = useCallback(() => {
     onLocateSource?.(currentIndex);
   }, [currentIndex, onLocateSource]);
+
+  /**
+   * 현재 보고 있는 이미지를 외부 소비자에게 선택 완료 상태로 전달합니다.
+   */
+  const handleSelectCurrentImage = useCallback(() => {
+    onSelectCurrentImage?.(currentIndex);
+  }, [currentIndex, onSelectCurrentImage]);
 
   /**
    * 마우스 클릭 시 버튼 포커스가 유지되어 tooltip이 남지 않도록 기본 focus 이동을 막습니다.
@@ -558,14 +571,38 @@ export const ImageViewerModal = ({
         role="dialog"
         tabIndex={-1}
       >
-        <XButton
-          ariaLabel={labels.closeAriaLabel}
-          className={viewerCloseButtonClass}
-          onClick={event => {
-            stopViewerClickPropagation(event);
-            handleModalClose();
-          }}
-        />
+        <div className={viewerTopActionGroupClass}>
+          {onSelectCurrentImage ? (
+            <Tooltip
+              content={labels.selectForFrameAriaLabel}
+              contentClassName={actionTooltipClass}
+              contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
+              forceOpen={activeActionTooltip === labels.selectForFrameAriaLabel}
+              openOnFocus={false}
+            >
+              <button
+                aria-label={labels.selectForFrameAriaLabel}
+                className={viewerTopActionButtonClass}
+                onClick={handleSelectCurrentImage}
+                onMouseDown={preventActionButtonMouseDown}
+                onPointerDown={() => showActionTooltipTemporarily(labels.selectForFrameAriaLabel)}
+                type="button"
+              >
+                <ImageIcon aria-hidden="true" size={18} />
+                <span className={viewerTopActionLabelClass}>{labels.selectForFrameLabel}</span>
+              </button>
+            </Tooltip>
+          ) : null}
+          <XButton
+            ariaLabel={labels.closeAriaLabel}
+            className={viewerCloseButtonClass}
+            onClick={event => {
+              stopViewerClickPropagation(event);
+              handleModalClose();
+            }}
+            tone="white"
+          />
+        </div>
         <ImageViewerSideControls
           nextAriaLabel={labels.nextAriaLabel}
           onNext={handleNextImage}
@@ -625,6 +662,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomOutAriaLabel}
                   contentClassName={actionTooltipClass}
+                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.zoomOutAriaLabel}
                   openOnFocus={false}
                 >
@@ -650,6 +688,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomInAriaLabel}
                   contentClassName={actionTooltipClass}
+                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.zoomInAriaLabel}
                   openOnFocus={false}
                 >
@@ -675,6 +714,7 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.fitToScreenAriaLabel}
                   contentClassName={actionTooltipClass}
+                  contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                   forceOpen={activeActionTooltip === labels.fitToScreenAriaLabel}
                   openOnFocus={false}
                 >
@@ -696,6 +736,7 @@ export const ImageViewerModal = ({
                   <Tooltip
                     content={labels.locateSourceAriaLabel}
                     contentClassName={actionTooltipClass}
+                    contentStyle={{ zIndex: ACTION_TOOLTIP_Z_INDEX }}
                     forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
                     openOnFocus={false}
                   >
@@ -866,11 +907,42 @@ const previousTransitionImageClass = css({
 });
 
 const viewerCloseButtonClass = css({
+  color: 'white',
+});
+
+const viewerTopActionGroupClass = css({
   position: 'fixed',
   top: '4',
   right: '4',
   zIndex: '10',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '2',
+});
+
+const viewerTopActionButtonClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '2',
+  minHeight: '10',
+  px: '4',
   color: 'white',
+  borderRadius: 'full',
+  backgroundColor: '[rgb(15 23 42 / 0.86)]',
+  border: '[1px solid rgb(255 255 255 / 0.24)]',
+  boxShadow: '[0 12px 32px rgb(15 23 42 / 0.28)]',
+  cursor: 'pointer',
+  _hover: {
+    backgroundColor: '[rgb(15 23 42 / 0.94)]',
+  },
+});
+
+const viewerTopActionLabelClass = css({
+  fontSize: 'sm',
+  fontWeight: 'semibold',
+  lineHeight: 'tight',
+  whiteSpace: 'nowrap',
 });
 
 const viewerControlButtonClass = css({
@@ -919,7 +991,7 @@ const actionTooltipClass = css({
   lineHeight: 'tight',
   pointerEvents: 'none',
   zIndex: '1300',
-  animation: '[image-viewer-tooltip-rise 220ms cubic-bezier(0.22, 1, 0.36, 1)]',
+  animation: '[image-viewer-tooltip-fade 180ms ease-out]',
 });
 
 const actionButtonClass = css({

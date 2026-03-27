@@ -266,6 +266,8 @@
     "nextAriaLabel": "Afficher l'image suivante",
     "openAriaLabel": "Ouvrir la visionneuse d'image",
     "previousAriaLabel": "Afficher l'image précédente",
+    "selectForFrameAriaLabel": "Choisir pour le cadre",
+    "selectForFrameLabel": "Utiliser cette image",
     "thumbnailListAriaLabel": "Liste des miniatures d'images",
     "zoomInAriaLabel": "Agrandir l'image",
     "zoomOutAriaLabel": "Réduire l'image"

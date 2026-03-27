@@ -1,16 +1,25 @@
 'use client';
 
 import { useGLTF } from '@react-three/drei';
-import { useMemo } from 'react';
-import { Box3, type Group } from 'three';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Box3,
+  type Group,
+  type Material,
+  SRGBColorSpace,
+  type Texture,
+  TextureLoader,
+} from 'three';
 
 import {
+  applyFrameScreenTexture,
   applyScenePropMaterials,
   useScenePropMaterials,
 } from '@/entities/scene/lib/use-scene-prop-materials';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
+  frameScreenImageSrc?: string | null;
   path: '/models/bass.glb' | '/models/sofa.glb' | '/models/table.glb';
   position: [number, number, number];
   rotation?: [number, number, number];
@@ -21,6 +30,7 @@ type ScenePropProps = Readonly<{
  * 홈 씬에서 사용하는 단일 GLB 소품을 위치/회전/스케일과 함께 렌더링합니다.
  */
 export const SceneProp = ({
+  frameScreenImageSrc = null,
   path,
   position,
   rotation = [0, 0, 0],
@@ -28,6 +38,7 @@ export const SceneProp = ({
 }: ScenePropProps) => {
   const gltf = useGLTF(path);
   const ormTextures = useScenePropMaterials();
+  const [frameScreenTexture, setFrameScreenTexture] = useState<Texture | null>(null);
   const object = useMemo(() => {
     const clonedScene = gltf.scene.clone(true);
 
@@ -36,6 +47,10 @@ export const SceneProp = ({
 
       node.castShadow = true;
       node.receiveShadow = true;
+
+      if (node.name === 'frame_screen') {
+        node.material = cloneScenePropMaterial(node.material);
+      }
     });
 
     applyScenePropMaterials(clonedScene, ormTextures);
@@ -43,6 +58,51 @@ export const SceneProp = ({
 
     return clonedScene;
   }, [gltf.scene, ormTextures]);
+
+  useEffect(() => {
+    setFrameScreenTexture(null);
+
+    if (!frameScreenImageSrc) return;
+
+    let isActive = true;
+    let loadedTexture: Texture | null = null;
+    const textureLoader = new TextureLoader();
+
+    textureLoader.setCrossOrigin('anonymous');
+    textureLoader.load(
+      frameScreenImageSrc,
+      nextTexture => {
+        if (!isActive) {
+          nextTexture.dispose();
+          return;
+        }
+
+        nextTexture.colorSpace = SRGBColorSpace;
+        nextTexture.flipY = false;
+        nextTexture.needsUpdate = true;
+        loadedTexture = nextTexture;
+        setFrameScreenTexture(nextTexture);
+      },
+      undefined,
+      () => {
+        if (!isActive) return;
+
+        setFrameScreenTexture(null);
+      },
+    );
+
+    return () => {
+      isActive = false;
+
+      if (loadedTexture) {
+        loadedTexture.dispose();
+      }
+    };
+  }, [frameScreenImageSrc]);
+
+  useEffect(() => {
+    applyFrameScreenTexture(object, frameScreenTexture);
+  }, [frameScreenTexture, object]);
 
   return (
     <primitive
@@ -53,6 +113,17 @@ export const SceneProp = ({
       scale={scale}
     />
   );
+};
+
+/**
+ * frame_screen처럼 런타임에 map을 교체할 mesh는 material을 복제해 원본 GLTF 재질과 분리합니다.
+ */
+const cloneScenePropMaterial = (material: Material | Material[]): Material | Material[] => {
+  if (Array.isArray(material)) {
+    return material.map(item => item.clone());
+  }
+
+  return material.clone();
 };
 
 /**

@@ -20,6 +20,8 @@ describe('ImageViewerModal', () => {
     locateSourceAriaLabel: '이미지 위치로 글 이동',
     nextAriaLabel: '다음 이미지',
     previousAriaLabel: '이전 이미지',
+    selectForFrameAriaLabel: '액자 이미지로 선택',
+    selectForFrameLabel: '이 이미지 선택하기',
     thumbnailListAriaLabel: '썸네일 목록',
     zoomInAriaLabel: '확대',
     zoomOutAriaLabel: '축소',
@@ -131,6 +133,44 @@ describe('ImageViewerModal', () => {
     render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
 
     expect(screen.queryByRole('button', { name: '이미지 위치로 글 이동' })).toBeNull();
+  });
+
+  it('현재 이미지를 액자용으로 선택하는 버튼으로 선택 인덱스를 외부에 전달한다', () => {
+    const handleSelectCurrentImage = vi.fn();
+
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={items}
+        labels={labels}
+        onClose={vi.fn()}
+        onSelectCurrentImage={handleSelectCurrentImage}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '액자 이미지로 선택' }));
+
+    expect(handleSelectCurrentImage).toHaveBeenCalledWith(0);
+  });
+
+  it('액자 선택 버튼은 눈에 띄는 텍스트 라벨을 함께 렌더링해야 한다', () => {
+    render(
+      <ImageViewerModal
+        initialIndex={0}
+        items={items}
+        labels={labels}
+        onClose={vi.fn()}
+        onSelectCurrentImage={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('이 이미지 선택하기')).toBeTruthy();
+  });
+
+  it('액자 선택 핸들러가 없으면 선택 버튼을 렌더링하지 않는다', () => {
+    render(<ImageViewerModal initialIndex={0} items={items} labels={labels} onClose={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: '액자 이미지로 선택' })).toBeNull();
   });
 
   it('액션 바 버튼 hover 시 상단 tooltip을 표시하고 leave 시 숨긴다', () => {

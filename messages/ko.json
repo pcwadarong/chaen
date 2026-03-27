@@ -266,6 +266,8 @@
     "nextAriaLabel": "다음 이미지 보기",
     "openAriaLabel": "이미지 크게 보기",
     "previousAriaLabel": "이전 이미지 보기",
+    "selectForFrameAriaLabel": "액자 이미지로 선택",
+    "selectForFrameLabel": "이 이미지 선택하기",
     "thumbnailListAriaLabel": "이미지 썸네일 목록",
     "zoomInAriaLabel": "이미지 확대",
     "zoomOutAriaLabel": "이미지 축소"

@@ -2,6 +2,7 @@ import { Group, Mesh, MeshStandardMaterial, NoColorSpace, Texture } from 'three'
 import { describe, expect, it } from 'vitest';
 
 import {
+  applyFrameScreenTexture,
   applyScenePropMaterials,
   type PropsOrmTextures,
 } from '@/entities/scene/lib/use-scene-prop-materials';
@@ -71,5 +72,32 @@ describe('applyScenePropMaterials', () => {
 
     expect(textures.room.colorSpace).toBe(NoColorSpace);
     expect(textures.room.flipY).toBe(false);
+  });
+
+  it('frame_screen에는 선택 이미지를 map으로 연결하고 색상을 흰색으로 맞춰야 한다', () => {
+    const scene = new Group();
+    const frameScreenMesh = createMesh('frame_screen');
+    const texture = new Texture();
+
+    scene.add(frameScreenMesh);
+
+    applyFrameScreenTexture(scene, texture);
+
+    expect(frameScreenMesh.material.map).toBe(texture);
+    expect(frameScreenMesh.material.color.getHexString()).toBe('ffffff');
+  });
+
+  it('선택 이미지가 없으면 frame_screen map을 제거하고 기본 색상으로 되돌려야 한다', () => {
+    const scene = new Group();
+    const frameScreenMesh = createMesh('frame_screen');
+    const texture = new Texture();
+
+    scene.add(frameScreenMesh);
+    frameScreenMesh.material.map = texture;
+
+    applyFrameScreenTexture(scene, null);
+
+    expect(frameScreenMesh.material.map).toBe(null);
+    expect(frameScreenMesh.material.color.getHexString()).toBe('f4f1ff');
   });
 });

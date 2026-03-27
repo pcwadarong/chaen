@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
@@ -22,6 +22,8 @@ type HomeHeroSceneProps = {
   readonly triggerRef?: React.RefObject<HTMLElement | null>;
 };
 
+const HOME_HERO_FRAME_IMAGE_STORAGE_KEY = 'home-hero:selected-frame-image-src';
+
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
 export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) => {
   const imageViewerTranslations = useTranslations('ImageViewer');
@@ -29,8 +31,16 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
   const navLockRef = useRef<HTMLDivElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
+  const defaultFrameImageSrc = HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[0]?.src ?? null;
   const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
+  const [selectedFrameImageSrc, setSelectedFrameImageSrc] = React.useState<string | null>(
+    defaultFrameImageSrc,
+  );
   const sectionRef = triggerRef ?? localSectionRef;
+  const selectedFrameImageIndex = useMemo(
+    () => HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS.findIndex(item => item.src === selectedFrameImageSrc),
+    [selectedFrameImageSrc],
+  );
   const imageViewerLabels = React.useMemo<ImageViewerLabels>(
     () => ({
       actionBarAriaLabel: imageViewerTranslations('actionBarAriaLabel'),
@@ -40,6 +50,8 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
       locateSourceAriaLabel: imageViewerTranslations('locateSourceAriaLabel'),
       nextAriaLabel: imageViewerTranslations('nextAriaLabel'),
       previousAriaLabel: imageViewerTranslations('previousAriaLabel'),
+      selectForFrameAriaLabel: imageViewerTranslations('selectForFrameAriaLabel'),
+      selectForFrameLabel: imageViewerTranslations('selectForFrameLabel'),
       thumbnailListAriaLabel: imageViewerTranslations('thumbnailListAriaLabel'),
       zoomInAriaLabel: imageViewerTranslations('zoomInAriaLabel'),
       zoomOutAriaLabel: imageViewerTranslations('zoomOutAriaLabel'),
@@ -49,6 +61,24 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
 
   useHomeHeroNavLock(navLockRef);
   useHomeHeroViewportHeightVar(sectionRef);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedImageSrc = window.localStorage.getItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY);
+
+    if (!storedImageSrc) return;
+    if (!HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS.some(item => item.src === storedImageSrc)) return;
+
+    setSelectedFrameImageSrc(storedImageSrc);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!selectedFrameImageSrc) return;
+
+    window.localStorage.setItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY, selectedFrameImageSrc);
+  }, [selectedFrameImageSrc]);
 
   return (
     <section className={sectionClass} id="scene-scroll-container" ref={sectionRef}>
@@ -62,8 +92,9 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
           onOpenImageViewer={() => {
-            setImageViewerOpenIndex(0);
+            setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
           }}
+          selectedFrameImageSrc={selectedFrameImageSrc}
           triggerRef={sectionRef}
           webUiRef={webUiRef}
         />
@@ -77,6 +108,11 @@ export const HomeHeroScene = ({ items, title, triggerRef }: HomeHeroSceneProps) 
         labels={imageViewerLabels}
         onClose={() => {
           setImageViewerOpenIndex(null);
+        }}
+        onSelectCurrentImage={currentIndex => {
+          const nextImageSrc =
+            HOME_HERO_TEMP_IMAGE_VIEWER_ITEMS[currentIndex]?.src ?? defaultFrameImageSrc;
+          setSelectedFrameImageSrc(nextImageSrc);
         }}
       />
     </section>
