@@ -110,6 +110,19 @@ export const HomeHeroMobileProjectSheet = ({
     [],
   );
 
+  useEffect(() => {
+    const panel = panelRef.current;
+
+    if (!panel) return;
+
+    if (isVisible) {
+      panel.removeAttribute('inert');
+      return;
+    }
+
+    panel.setAttribute('inert', '');
+  }, [isVisible]);
+
   useDialogFocusManagement({
     containerRef: panelRef,
     initialFocusRef,
@@ -121,7 +134,6 @@ export const HomeHeroMobileProjectSheet = ({
 
   return createPortal(
     <div
-      aria-hidden={!isVisible}
       className={backdropClass}
       onClick={event => {
         if (event.target === event.currentTarget) {
@@ -131,6 +143,7 @@ export const HomeHeroMobileProjectSheet = ({
     >
       <div
         aria-label={t('mobileProjectPanelAriaLabel')}
+        aria-hidden={!isVisible}
         aria-modal="true"
         className={panelClass}
         data-state={isVisible ? 'open' : 'closed'}
