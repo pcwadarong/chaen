@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/ui/is-active-navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
+import { MusicToggleButton } from '@/widgets/global-nav/ui/music-toggle-button';
 import type { GlobalNavItem } from '@/widgets/global-nav/ui/navigation-item';
 import { ThemeSwitcher } from '@/widgets/global-nav/ui/theme-switcher';
 
@@ -47,6 +48,7 @@ const GlobalNavDesktopContentBase = ({
     </nav>
     <hr aria-hidden className={controlsDividerClass} />
     <div className={controlsClass}>
+      <MusicToggleButton />
       <Suspense fallback={<span className={switcherFallbackClass} />}>
         <LocaleSwitcher />
       </Suspense>

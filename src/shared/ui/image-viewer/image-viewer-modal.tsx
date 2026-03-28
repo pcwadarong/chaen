@@ -583,6 +583,7 @@ export const ImageViewerModal = ({
               forceOpen={activeActionTooltip === labels.selectForFrameAriaLabel}
               openOnFocus={false}
               portalClassName={actionTooltipPortalClass}
+              preferredPlacement="bottom"
             >
               <button
                 aria-label={labels.selectForFrameAriaLabel}
@@ -669,6 +670,7 @@ export const ImageViewerModal = ({
                   forceOpen={activeActionTooltip === labels.zoomOutAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
+                  preferredPlacement="top"
                 >
                   <button
                     aria-label={labels.zoomOutAriaLabel}
@@ -695,6 +697,7 @@ export const ImageViewerModal = ({
                   forceOpen={activeActionTooltip === labels.zoomInAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
+                  preferredPlacement="top"
                 >
                   <button
                     aria-label={labels.zoomInAriaLabel}
@@ -721,6 +724,7 @@ export const ImageViewerModal = ({
                   forceOpen={activeActionTooltip === labels.fitToScreenAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
+                  preferredPlacement="top"
                 >
                   <button
                     aria-label={labels.fitToScreenAriaLabel}
@@ -743,6 +747,7 @@ export const ImageViewerModal = ({
                     forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
                     openOnFocus={false}
                     portalClassName={actionTooltipPortalClass}
+                    preferredPlacement="top"
                   >
                     <button
                       aria-label={labels.locateSourceAriaLabel}
@@ -999,7 +1004,7 @@ const actionTooltipClass = css({
 });
 
 const actionTooltipPortalClass = css({
-  zIndex: '1300',
+  zIndex: '[2147483647]',
 });
 
 const actionButtonClass = css({

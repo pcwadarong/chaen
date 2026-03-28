@@ -11,6 +11,8 @@ import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
 type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
+  onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  onToggleBackgroundMusicPlayback?: () => void | Promise<void>;
 }>;
 
 const KEYBOARD_INTERACTION_TARGET_NAMES = ['laptop', 'bass_body', 'camera'] as const;
@@ -24,11 +26,15 @@ const KEYBOARD_NAVIGATION_KEYS = new Set(['ArrowDown', 'ArrowLeft', 'ArrowRight'
 export const SceneInteractionController = ({
   onBrowseProjects,
   onOpenImageViewer,
+  onPlayBassString,
+  onToggleBackgroundMusicPlayback,
 }: SceneInteractionControllerProps) => {
   const { gl, scene } = useThree();
   const { handleMeshClick } = useInteractionActions({
     onBrowseProjects,
     onOpenImageViewer,
+    onPlayBassString,
+    onToggleBackgroundMusicPlayback,
   });
   const {
     hoveredOutlineMeshes,
@@ -145,6 +151,9 @@ export const SceneInteractionController = ({
     setHoveredMeshDirect,
   ]);
 
+  // OutlineEffect는 hover 여부와 무관하게 항상 마운트한다.
+  // composer 경로를 idle/hover 모두 동일하게 유지해 shadowMaterial 등 반투명 오브젝트의
+  // tone mapping 적용 시점(pre-blend vs post-blend)에 따른 색감 차이를 제거한다.
   return <OutlineEffect hoveredMeshes={hoveredOutlineMeshes} />;
 };
 

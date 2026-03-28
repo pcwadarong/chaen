@@ -24,6 +24,7 @@ type EditorLocalePanelProps = {
   extraLocaleFieldLabel?: string;
   isActive: boolean;
   isMobileLayout: boolean;
+  layoutShiftToken?: number;
   locale: Locale;
   mobileEditorPane: MobileEditorPane;
   markdownOptions: ReturnType<typeof getMarkdownOptions>;
@@ -52,6 +53,7 @@ const EditorLocalePanelBase = ({
   extraLocaleFieldLabel,
   isActive,
   isMobileLayout,
+  layoutShiftToken = 0,
   locale,
   mobileEditorPane,
   markdownOptions,
@@ -122,13 +124,20 @@ const EditorLocalePanelBase = ({
       window.removeEventListener('resize', measurePaneHeight);
       window.removeEventListener('scroll', measurePaneHeight);
     };
-  }, [extraLocaleFieldLabel, isActive, isMobileLayout, measurePaneHeight, mobileEditorPane]);
+  }, [
+    extraLocaleFieldLabel,
+    isActive,
+    isMobileLayout,
+    layoutShiftToken,
+    measurePaneHeight,
+    mobileEditorPane,
+  ]);
 
   React.useEffect(() => {
     if (!isActive) return;
 
     measurePaneHeight();
-  }, [isActive, measurePaneHeight, translation.description, translation.title]);
+  }, [isActive, layoutShiftToken, measurePaneHeight, translation.description, translation.title]);
 
   return (
     <section

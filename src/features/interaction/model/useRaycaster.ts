@@ -148,7 +148,7 @@ export const useRaycaster = ({
           y: event.clientY,
         };
         pressedMeshRef.current = pressedMesh;
-        setHoveredMesh(pressedMesh);
+        if (!isTouchDevice) setHoveredMesh(pressedMesh);
 
         return;
       }
@@ -166,10 +166,10 @@ export const useRaycaster = ({
       if (releasedMesh !== pressedMesh) return;
       if (!isClickDeltaWithinThreshold(pressedPointer, event, CLICK_DELTA_THRESHOLD)) return;
 
-      setHoveredMesh(releasedMesh);
+      if (!isTouchDevice) setHoveredMesh(releasedMesh);
       onMeshClick?.(releasedMesh);
     },
-    [onMeshClick, resolveInteractiveMesh],
+    [isTouchDevice, onMeshClick, resolveInteractiveMesh],
   );
 
   const clearHoveredMesh = useCallback(() => {
@@ -210,13 +210,14 @@ const resolveOutlineMeshes = (mesh: Object3D, scene: Object3D): Object3D[] => {
 };
 
 /**
- * 씬을 순회해 names에 포함된 이름의 모든 Object3D를 수집합니다.
+ * 씬을 순회해 names에 포함된 이름의 Mesh를 수집합니다.
+ * Group 등 geometry가 없는 노드는 제외해 outline selection이 예상 범위 밖의 자식을 포함하지 않도록 합니다.
  */
 const collectByNames = (root: Object3D, names: Set<string>): Object3D[] => {
   const result: Object3D[] = [];
 
   root.traverse(obj => {
-    if (names.has(obj.name)) result.push(obj);
+    if (names.has(obj.name) && (obj as { isMesh?: boolean }).isMesh) result.push(obj);
   });
 
   return result;
@@ -304,9 +305,7 @@ const resolveInteractiveAncestor = (object: Object3D | null): Object3D | null =>
   let currentObject = object;
 
   while (currentObject) {
-    if (isInteractiveMeshName(currentObject.name)) {
-      return currentObject;
-    }
+    if (isInteractiveMeshName(currentObject.name)) return currentObject;
 
     currentObject = currentObject.parent;
   }

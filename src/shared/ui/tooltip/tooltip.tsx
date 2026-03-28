@@ -23,12 +23,7 @@ type TooltipProps = {
   forceOpen?: boolean;
   openOnFocus?: boolean;
   portalClassName?: string;
-  /**
-   * 내부 레이어 보정용 포털 루트 인라인 스타일입니다.
-   * 일반적인 외부 스타일 확장은 `portalClassName`을 우선 사용하고,
-   * 이 prop은 점진적 마이그레이션이 끝나면 제거할 예정입니다.
-   */
-  portalStyle?: React.CSSProperties;
+  preferredPlacement?: 'auto' | 'bottom' | 'top';
 };
 
 /**
@@ -43,7 +38,7 @@ export const Tooltip = ({
   forceOpen = false,
   openOnFocus = true,
   portalClassName,
-  portalStyle,
+  preferredPlacement = 'auto',
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -78,7 +73,11 @@ export const Tooltip = ({
       const availableSpaceAbove = triggerRect.top;
       const availableSpaceBelow = window.innerHeight - triggerRect.bottom;
       const shouldPlaceBelow =
-        availableSpaceAbove < 40 && availableSpaceBelow >= availableSpaceAbove;
+        preferredPlacement === 'bottom'
+          ? true
+          : preferredPlacement === 'top'
+            ? false
+            : availableSpaceAbove < 40 && availableSpaceBelow >= availableSpaceAbove;
 
       setTooltipStyle({
         left: triggerRect.left + triggerRect.width / 2,
@@ -97,7 +96,7 @@ export const Tooltip = ({
       window.removeEventListener('resize', updateTooltipPosition);
       window.removeEventListener('scroll', updateTooltipPosition, true);
     };
-  }, [isOpen]);
+  }, [isOpen, preferredPlacement]);
 
   return (
     <span
@@ -125,7 +124,6 @@ export const Tooltip = ({
               role="tooltip"
               style={{
                 ...tooltipStyle,
-                ...portalStyle,
                 visibility: tooltipStyle ? 'visible' : 'hidden',
               }}
             >

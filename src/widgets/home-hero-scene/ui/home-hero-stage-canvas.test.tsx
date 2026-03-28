@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stage-canvas';
@@ -8,8 +8,11 @@ import { HomeHeroStageCanvas } from '@/widgets/home-hero-scene/ui/home-hero-stag
 import '@testing-library/jest-dom/vitest';
 
 const homeHeroStageCanvasMockState = vi.hoisted(() => ({
+  createdCanvasElement: null as HTMLCanvasElement | null,
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
+    onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
+    onToggleBackgroundMusicPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneMode: 'desktop' as 'desktop' | 'mobile',
@@ -22,15 +25,60 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   },
 }));
 
+const bassAudioMockState = vi.hoisted(() => ({
+  isBackgroundMusicPlaying: false,
+  pauseBackgroundMusicPlayback: vi.fn(),
+  playBassString: vi.fn(),
+  toggleBackgroundMusicPlayback: vi.fn(),
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+}));
+
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children, dpr }: { children: React.ReactNode; dpr?: unknown }) => (
-    <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
-      {children}
-    </div>
-  ),
+  Canvas: ({
+    children,
+    dpr,
+    onCreated,
+  }: {
+    children: React.ReactNode;
+    dpr?: unknown;
+    onCreated?: (state: {
+      gl: {
+        domElement: HTMLCanvasElement;
+        setClearColor: ReturnType<typeof vi.fn>;
+      };
+    }) => void;
+  }) => {
+    const hasCreatedRef = React.useRef(false);
+
+    React.useEffect(() => {
+      if (hasCreatedRef.current) return;
+
+      hasCreatedRef.current = true;
+      const domElement = document.createElement('canvas');
+      const gl = {
+        domElement,
+        setClearColor: vi.fn(),
+      };
+
+      homeHeroStageCanvasMockState.createdCanvasElement = domElement;
+      onCreated?.({ gl });
+    }, [onCreated]);
+
+    return (
+      <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
+        {children}
+      </div>
+    );
+  },
 }));
 
 vi.mock('@react-three/drei', () => ({
+  Html: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="three-html">{children}</div>
+  ),
   OrbitControls: (props: Record<string, unknown>) => {
     homeHeroStageCanvasMockState.orbitControlsProps = props;
 
@@ -80,8 +128,13 @@ vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
   },
 }));
 
+vi.mock('@/features/audio/model/use-bass-audio', () => ({
+  useBassAudio: () => bassAudioMockState,
+}));
+
 describe('HomeHeroStageCanvas', () => {
   beforeEach(() => {
+    homeHeroStageCanvasMockState.createdCanvasElement = null;
     homeHeroStageCanvasMockState.interactionControllerProps = null;
     homeHeroStageCanvasMockState.orbitControlsProps = null;
     homeHeroStageCanvasMockState.sceneMode = 'desktop';
@@ -92,6 +145,10 @@ describe('HomeHeroStageCanvas', () => {
       isScrollDriven: false,
       isSequenceActive: false,
     };
+    bassAudioMockState.isBackgroundMusicPlaying = false;
+    bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();
+    bassAudioMockState.playBassString.mockReset();
+    bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -246,6 +303,72 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute(
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
+    );
+  });
+
+  it('scene interaction controller는 background music 토글과 bass string 콜백을 함께 받아야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBackgroundMusicPlayback?.();
+    homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
+
+    expect(bassAudioMockState.toggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
+    expect(bassAudioMockState.playBassString).toHaveBeenCalledWith('line3');
+  });
+
+  it('background music 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
+    bassAudioMockState.isBackgroundMusicPlaying = true;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Navigation.pauseMusic' })).toBeTruthy();
+  });
+
+  it('정지 버튼 오버레이를 누르면 background music 일시정지 콜백을 호출해야 한다', () => {
+    bassAudioMockState.isBackgroundMusicPlaying = true;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Navigation.pauseMusic' }));
+
+    expect(bassAudioMockState.pauseBackgroundMusicPlayback).toHaveBeenCalledOnce();
+  });
+
+  it('실제 three canvas는 접근성 트리에서 숨기고 presentation role을 가져야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(homeHeroStageCanvasMockState.createdCanvasElement).not.toBeNull();
+    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
+      'role',
+      'presentation',
     );
   });
 });

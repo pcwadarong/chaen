@@ -140,4 +140,34 @@ describe('Tooltip', () => {
 
     expect(tooltip.className).toContain('tooltip-portal-test');
   });
+
+  it('preferredPlacement가 top이면 상단 여백이 좁아도 tooltip을 위쪽에 고정한다', async () => {
+    render(
+      <Tooltip content="이미지 액션" preferredPlacement="top">
+        <button type="button">T</button>
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'T' });
+    const root = trigger.parentElement as HTMLSpanElement;
+
+    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue({
+      bottom: 20,
+      height: 16,
+      left: 10,
+      right: 30,
+      toJSON: () => undefined,
+      top: 4,
+      width: 20,
+      x: 10,
+      y: 4,
+    });
+
+    fireEvent.focus(trigger);
+
+    const tooltip = await screen.findByRole('tooltip', { name: '이미지 액션' });
+
+    expect(tooltip.style.top).toBe('-4px');
+    expect(tooltip.style.transform).toBe('translate(-50%, -100%)');
+  });
 });

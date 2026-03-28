@@ -10,6 +10,7 @@ import { SlideOver } from '@/shared/ui/slide-over/slide-over';
 import { XButton } from '@/shared/ui/x-button/x-button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/ui/is-active-navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
+import { MusicToggleButton } from '@/widgets/global-nav/ui/music-toggle-button';
 import type { GlobalNavItem } from '@/widgets/global-nav/ui/navigation-item';
 import { ThemeSwitcher } from '@/widgets/global-nav/ui/theme-switcher';
 
@@ -42,6 +43,7 @@ const GlobalNavMobileMenuBase = ({
   <>
     <div className={mobileControlsClass}>
       {leadingAction}
+      <MusicToggleButton />
       <Suspense fallback={<span className={switcherFallbackClass} />}>
         <LocaleSwitcher />
       </Suspense>

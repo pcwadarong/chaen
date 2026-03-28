@@ -17,6 +17,7 @@ type TagSelectorProps = {
   className?: string;
   emptyText?: string;
   onChange: (slugs: string[]) => void;
+  onExpandedChange?: (isExpanded: boolean) => void;
   poolLabel?: string;
   poolTitle?: string;
   selectLabel?: string;
@@ -38,6 +39,7 @@ const TagSelectorBase = ({
   className,
   emptyText = '사용 가능한 태그가 없습니다.',
   onChange,
+  onExpandedChange,
   poolLabel = '태그 선택기',
   poolTitle = 'Tags',
   selectLabel = '태그',
@@ -78,8 +80,11 @@ const TagSelectorBase = ({
   );
 
   const handleExpandedToggle = useCallback(() => {
-    setIsExpanded(previous => !previous);
-  }, []);
+    const nextExpanded = !isExpanded;
+
+    setIsExpanded(nextExpanded);
+    onExpandedChange?.(nextExpanded);
+  }, [isExpanded, onExpandedChange]);
 
   return (
     <section aria-label={poolLabel} className={cx(rootClass, className)}>

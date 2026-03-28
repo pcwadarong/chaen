@@ -1,20 +1,24 @@
 'use client';
 
-import { OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { useTranslations } from 'next-intl';
 import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
+import { css, cx } from 'styled-system/css';
 
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
+import { PauseIcon } from '@/shared/ui/icons/app-icons';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
   getHomeHeroSceneLayout,
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
-import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
@@ -50,6 +54,13 @@ export const HomeHeroStageCanvas = ({
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const t = useTranslations('Navigation');
+  const {
+    isBackgroundMusicPlaying,
+    playBassString,
+    pauseBackgroundMusicPlayback,
+    toggleBackgroundMusicPlayback,
+  } = useBassAudio();
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
   });
@@ -79,32 +90,40 @@ export const HomeHeroStageCanvas = ({
         position: sceneLayout.camera.position,
       }}
       dpr={[1, 2]}
-      gl={{ alpha: false, antialias: true }}
+      gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
       shadows
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
+        gl.domElement.setAttribute('aria-hidden', 'true');
+        gl.domElement.setAttribute('role', 'presentation');
         gl.domElement.style.touchAction = 'none';
+        gl.setClearColor(0x000000, 0);
         setCanvasElement(gl.domElement);
       }}
     >
-      <color args={[HOME_HERO_STAGE_BACKGROUND]} attach="background" />
       <HomeHeroStageLights />
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
+        isBackgroundMusicPlaying={isBackgroundMusicPlaying}
         interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
         onBrowseProjects={handleBrowseProjects}
         onOpenImageViewer={onOpenImageViewer}
+        onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
         sceneMode={sceneMode}
+        onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
         webUiRef={webUiRef}
       />
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
+          isBackgroundMusicPlaying={isBackgroundMusicPlaying}
           isCloseupCostumeHidden={isCloseupCostumeHidden}
+          pauseMusicLabel={t('pauseMusic')}
+          onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
         />
@@ -122,22 +141,29 @@ const HomeHeroCameraRig = ({
   interactionDisabledProgressThreshold,
   onBrowseProjects,
   onOpenImageViewer,
+  onPlayBassString,
   onCloseupCostumeHiddenChange,
   onScrollStateChange,
   sceneLayout,
   sceneMode,
+  onToggleBackgroundMusicPlayback,
   triggerRef,
   webUiRef,
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
+  readonly isBackgroundMusicPlaying: boolean;
   readonly interactionDisabledProgressThreshold: number;
   readonly onBrowseProjects: () => void;
   readonly onOpenImageViewer?: () => void;
+  readonly onPlayBassString: (
+    stringName: 'line1' | 'line2' | 'line3' | 'line4',
+  ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: 'desktop' | 'mobile';
+  readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
@@ -177,6 +203,8 @@ const HomeHeroCameraRig = ({
         <SceneInteractionController
           onBrowseProjects={onBrowseProjects}
           onOpenImageViewer={onOpenImageViewer}
+          onPlayBassString={onPlayBassString}
+          onToggleBackgroundMusicPlayback={onToggleBackgroundMusicPlayback}
         />
       ) : null}
     </>
@@ -187,21 +215,38 @@ const HomeHeroCameraRig = ({
  * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
  */
 const HomeHeroSceneObjects = ({
+  isBackgroundMusicPlaying,
   isCloseupCostumeHidden,
+  pauseMusicLabel,
+  onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
 }: {
+  readonly isBackgroundMusicPlaying: boolean;
   readonly isCloseupCostumeHidden: boolean;
+  readonly pauseMusicLabel: string;
+  readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
 }) => (
   <group position={[0, -2.4, 0]}>
     <HomeHeroCharacterSeatSet instance="main" isCloseupCostumeHidden={isCloseupCostumeHidden} />
-    <SceneProp
-      path="/models/bass.glb"
-      position={[...sceneLayout.bassPosition]}
-      rotation={[...sceneLayout.bassRotation]}
-    />
+    <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
+      <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
+      {isBackgroundMusicPlaying ? (
+        <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
+          <button
+            aria-label={pauseMusicLabel}
+            className={bassStopButtonClass}
+            onClick={onStopBassTrackPlayback}
+            type="button"
+          >
+            <PauseIcon aria-hidden color="white" size={12} />
+            <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
+          </button>
+        </Html>
+      ) : null}
+    </group>
     <SceneProp
       frameScreenImageSrc={selectedFrameImageSrc}
       path="/models/table.glb"
@@ -215,3 +260,35 @@ const HomeHeroSceneObjects = ({
     </mesh>
   </group>
 );
+
+const bassStopButtonClass = css({
+  width: '[1.75rem]',
+  height: '[1.75rem]',
+  minWidth: '[1.75rem]',
+  minHeight: '[1.75rem]',
+  padding: '0',
+  lineHeight: '[0]',
+  borderRadius: 'full',
+  borderWidth: '0',
+  borderStyle: 'none',
+  background: '[rgba(9, 12, 26, 0.42)]',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '[0 6px 18px rgba(0,0,0,0.22)]',
+  backdropFilter: '[blur(8px)]',
+  cursor: 'pointer',
+  transition: 'common',
+  _hover: {
+    background: '[rgba(9, 12, 26, 0.58)]',
+    transform: 'scale(1.04)',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[3px]',
+  },
+});
+
+const bassStopButtonLabelClass = css({
+  color: 'transparent',
+});
