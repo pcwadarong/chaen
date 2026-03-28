@@ -23,12 +23,12 @@ type ContactCameraPreset = Readonly<{
 
 const CONTACT_CAMERA_PRESETS = {
   desktopLarge: {
-    lookAt: [-1.3, 0, 0],
+    lookAt: [-3.5, 0, 0],
     position: [0, 1, 10],
   },
   desktopSmall: {
-    lookAt: [-1.6, 0, 0],
-    position: [0, 1, 13],
+    lookAt: [-3.5, 0, 0],
+    position: [0, 1, 12],
   },
 } as const satisfies Readonly<Record<'desktopLarge' | 'desktopSmall', ContactCameraPreset>>;
 

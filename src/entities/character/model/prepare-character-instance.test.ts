@@ -30,6 +30,8 @@ describe('prepareCharacterInstance', () => {
     const clonedBrows = getRequiredMesh(clonedScene, 'brows');
     const sourceEyebrow = getRequiredMesh(sourceScene, 'eyebrow');
     const clonedEyebrow = getRequiredMesh(clonedScene, 'eyebrow');
+    const sourceLaptopScreen = getRequiredMesh(sourceScene, 'laptop_screen');
+    const clonedLaptopScreen = getRequiredMesh(clonedScene, 'laptop_screen');
 
     expect(clonedOuter).not.toBe(sourceOuter);
     expect(clonedPants).not.toBe(sourcePants);
@@ -43,6 +45,7 @@ describe('prepareCharacterInstance', () => {
     expect(clonedHair.material).not.toBe(sourceHair.material);
     expect(clonedBrows.material).not.toBe(sourceBrows.material);
     expect(clonedEyebrow.material).not.toBe(sourceEyebrow.material);
+    expect(clonedLaptopScreen.material).not.toBe(sourceLaptopScreen.material);
     expect(getMaterialColorHex(clonedOuter.material)).toBe(
       normalizeHex(CHARACTER_OUTFIT_COLOR_CONFIG.main.outer),
     );

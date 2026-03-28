@@ -19,9 +19,10 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   timelineState: {
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
-    progress: 0,
+    monitorOverlayOpacity: 0,
     isScrollDriven: false,
     isSequenceActive: false,
+    progress: 0,
   },
 }));
 
@@ -33,6 +34,7 @@ const bassAudioMockState = vi.hoisted(() => ({
 }));
 
 vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
   useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
 }));
 
@@ -120,6 +122,10 @@ vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-transition', () => 
   useHomeHeroSceneTransition: () => homeHeroStageCanvasMockState.timelineState,
 }));
 
+vi.mock('@/features/monitor-overlay/model/use-monitor-overlay-texture', () => ({
+  useMonitorOverlayTexture: () => null,
+}));
+
 vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
   SceneInteractionController: (props: Record<string, unknown>) => {
     homeHeroStageCanvasMockState.interactionControllerProps = props;
@@ -141,9 +147,10 @@ describe('HomeHeroStageCanvas', () => {
     homeHeroStageCanvasMockState.timelineState = {
       isCloseupCostumeHidden: false,
       isMonitorOverlayVisible: false,
-      progress: 0,
+      monitorOverlayOpacity: 0,
       isScrollDriven: false,
       isSequenceActive: false,
+      progress: 0,
     };
     bassAudioMockState.isBackgroundMusicPlaying = false;
     bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();

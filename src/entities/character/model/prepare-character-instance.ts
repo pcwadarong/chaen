@@ -13,6 +13,7 @@ type CharacterMaterialOptions = Readonly<{
 }>;
 const CONTACT_HIDDEN_NODE_NAMES = new Set(['laptop', 'laptop_screen', 'monitor']);
 const DOUBLE_SIDED_MESH_NAMES = new Set(['brows', 'eyebrow']);
+const RUNTIME_SCREEN_MESH_NAMES = new Set(['laptop_screen']);
 const OUTFIT_MESH_COLOR_KEYS = {
   outer: 'outer',
   pants: 'pants',
@@ -37,6 +38,11 @@ export const prepareCharacterInstance = (
     if (!isMeshNode(node)) return;
 
     node.castShadow = true;
+
+    if (RUNTIME_SCREEN_MESH_NAMES.has(node.name)) {
+      node.material = cloneMaterial(node.material);
+      return;
+    }
 
     if (node.name === 'heart') {
       node.visible = false;
@@ -78,6 +84,17 @@ const createTintedMaterial = (
   }
 
   return applyMaterialColor(material.clone(), color);
+};
+
+/**
+ * 런타임에 화면 map을 교체할 mesh material을 원본과 분리하기 위해 복제합니다.
+ */
+const cloneMaterial = (material: Material | Material[]): Material | Material[] => {
+  if (Array.isArray(material)) {
+    return material.map(item => item.clone());
+  }
+
+  return material.clone();
 };
 
 /**

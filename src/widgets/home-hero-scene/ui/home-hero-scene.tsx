@@ -113,6 +113,7 @@ export const HomeHeroScene = ({
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+          items={items}
           onBrowseProjects={() => {
             setIsMobileProjectSheetOpen(true);
           }}
@@ -120,6 +121,7 @@ export const HomeHeroScene = ({
             setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
           }}
           selectedFrameImageSrc={selectedFrameImageSrc}
+          title={title}
           triggerRef={sectionRef}
           webUiRef={webUiRef}
         />

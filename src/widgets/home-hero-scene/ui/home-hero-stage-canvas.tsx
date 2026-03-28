@@ -2,15 +2,17 @@
 
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { ProjectListItem } from '@/entities/project/model/types';
 import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
+import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -30,9 +32,11 @@ import {
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly interactionDisabledProgressThreshold?: number;
+  readonly items?: ProjectListItem[];
   readonly onBrowseProjects?: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
+  readonly title?: string;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -45,20 +49,25 @@ const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 export const HomeHeroStageCanvas = ({
   blackoutOverlayRef,
   interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
+  items = [],
   onBrowseProjects,
   onOpenImageViewer,
   selectedFrameImageSrc,
+  title = '',
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
+  const [monitorScreenOpacity, setMonitorScreenOpacity] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const locale = useLocale();
   const t = useTranslations('Navigation');
+  const projectDetailTranslations = useTranslations('ProjectDetail');
   const {
     isBackgroundMusicPlaying,
-    playBassString,
     pauseBackgroundMusicPlayback,
+    playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
   const { currentBP, sceneMode } = useBreakpoint({
@@ -105,9 +114,9 @@ export const HomeHeroStageCanvas = ({
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
-        isBackgroundMusicPlaying={isBackgroundMusicPlaying}
         interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
         onBrowseProjects={handleBrowseProjects}
+        onMonitorOverlayOpacityChange={setMonitorScreenOpacity}
         onOpenImageViewer={onOpenImageViewer}
         onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
@@ -120,12 +129,17 @@ export const HomeHeroStageCanvas = ({
       />
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
+          items={items}
           isBackgroundMusicPlaying={isBackgroundMusicPlaying}
           isCloseupCostumeHidden={isCloseupCostumeHidden}
+          locale={locale}
+          monitorScreenOpacity={monitorScreenOpacity}
+          ongoingLabel={projectDetailTranslations('ongoing')}
           pauseMusicLabel={t('pauseMusic')}
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
+          title={title}
         />
       </Suspense>
     </Canvas>
@@ -140,6 +154,7 @@ const HomeHeroCameraRig = ({
   currentBP,
   interactionDisabledProgressThreshold,
   onBrowseProjects,
+  onMonitorOverlayOpacityChange,
   onOpenImageViewer,
   onPlayBassString,
   onCloseupCostumeHiddenChange,
@@ -152,9 +167,9 @@ const HomeHeroCameraRig = ({
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
-  readonly isBackgroundMusicPlaying: boolean;
   readonly interactionDisabledProgressThreshold: number;
   readonly onBrowseProjects: () => void;
+  readonly onMonitorOverlayOpacityChange: (opacity: number) => void;
   readonly onOpenImageViewer?: () => void;
   readonly onPlayBassString: (
     stringName: 'line1' | 'line2' | 'line3' | 'line4',
@@ -167,18 +182,23 @@ const HomeHeroCameraRig = ({
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
-  const { isCloseupCostumeHidden, isSequenceActive, progress } = useHomeHeroSceneTransition({
-    blackoutOverlayRef,
-    onScrollStateChange,
-    sceneLayout,
-    sceneMode,
-    triggerRef,
-    webUiRef,
-  });
+  const { isCloseupCostumeHidden, isSequenceActive, monitorOverlayOpacity, progress } =
+    useHomeHeroSceneTransition({
+      blackoutOverlayRef,
+      onScrollStateChange,
+      sceneLayout,
+      sceneMode,
+      triggerRef,
+      webUiRef,
+    });
 
   React.useEffect(() => {
     onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
   }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
+
+  React.useEffect(() => {
+    onMonitorOverlayOpacityChange(monitorOverlayOpacity);
+  }, [monitorOverlayOpacity, onMonitorOverlayOpacityChange]);
 
   const isInteractionEnabled = progress < interactionDisabledProgressThreshold;
 
@@ -215,51 +235,75 @@ const HomeHeroCameraRig = ({
  * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
  */
 const HomeHeroSceneObjects = ({
+  items,
   isBackgroundMusicPlaying,
   isCloseupCostumeHidden,
+  locale,
+  monitorScreenOpacity,
+  ongoingLabel,
   pauseMusicLabel,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
+  title,
 }: {
+  readonly items: ProjectListItem[];
   readonly isBackgroundMusicPlaying: boolean;
   readonly isCloseupCostumeHidden: boolean;
+  readonly locale: string;
+  readonly monitorScreenOpacity: number;
+  readonly ongoingLabel: string;
   readonly pauseMusicLabel: string;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
-}) => (
-  <group position={[0, -2.4, 0]}>
-    <HomeHeroCharacterSeatSet instance="main" isCloseupCostumeHidden={isCloseupCostumeHidden} />
-    <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
-      <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
-      {isBackgroundMusicPlaying ? (
-        <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
-          <button
-            aria-label={pauseMusicLabel}
-            className={bassStopButtonClass}
-            onClick={onStopBassTrackPlayback}
-            type="button"
-          >
-            <PauseIcon aria-hidden color="white" size={12} />
-            <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
-          </button>
-        </Html>
-      ) : null}
-    </group>
-    <SceneProp
-      frameScreenImageSrc={selectedFrameImageSrc}
-      path="/models/table.glb"
-      position={[...sceneLayout.tablePosition]}
-      rotation={[...sceneLayout.tableRotation]}
-    />
+  readonly title: string;
+}) => {
+  const monitorScreenTexture = useMonitorOverlayTexture({
+    items,
+    locale,
+    ongoingLabel,
+    title,
+  });
 
-    <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[80, 80]} />
-      <shadowMaterial color={'#322ea5'} opacity={0.42} transparent />
-    </mesh>
-  </group>
-);
+  return (
+    <group position={[0, -2.4, 0]}>
+      <HomeHeroCharacterSeatSet
+        instance="main"
+        isCloseupCostumeHidden={isCloseupCostumeHidden}
+        monitorScreenOpacity={monitorScreenOpacity}
+        monitorScreenTexture={monitorScreenTexture}
+      />
+      <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
+        <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
+        {isBackgroundMusicPlaying ? (
+          <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
+            <button
+              aria-label={pauseMusicLabel}
+              className={bassStopButtonClass}
+              onClick={onStopBassTrackPlayback}
+              type="button"
+            >
+              <PauseIcon aria-hidden color="white" size={12} />
+              <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
+            </button>
+          </Html>
+        ) : null}
+      </group>
+      <SceneProp
+        frameScreenImageSrc={selectedFrameImageSrc}
+        path="/models/table.glb"
+        position={[...sceneLayout.tablePosition]}
+        rotation={[...sceneLayout.tableRotation]}
+      />
+
+      <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[80, 80]} />
+        <shadowMaterial color={'#322ea5'} opacity={0.42} transparent />
+      </mesh>
+    </group>
+  );
+};
 
 const bassStopButtonClass = css({
   width: '[1.75rem]',

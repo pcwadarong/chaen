@@ -37,6 +37,7 @@ export const useHomeHeroSceneTransition = ({
   const {
     isCloseupCostumeHidden,
     isMonitorOverlayVisible,
+    monitorOverlayOpacity,
     isScrollDriven,
     isSequenceActive,
     progress,
@@ -71,6 +72,7 @@ export const useHomeHeroSceneTransition = ({
   return {
     isCloseupCostumeHidden,
     isMonitorOverlayVisible,
+    monitorOverlayOpacity,
     isSequenceActive,
     isScrollDriven,
     progress,
