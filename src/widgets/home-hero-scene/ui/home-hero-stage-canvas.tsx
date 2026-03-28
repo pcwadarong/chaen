@@ -2,6 +2,7 @@
 
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { useTranslations } from 'next-intl';
 import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
@@ -53,6 +54,7 @@ export const HomeHeroStageCanvas = ({
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const t = useTranslations('Navigation');
   const {
     isBackgroundMusicPlaying,
     playBassString,
@@ -92,6 +94,8 @@ export const HomeHeroStageCanvas = ({
       shadows
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
+        gl.domElement.setAttribute('aria-hidden', 'true');
+        gl.domElement.setAttribute('role', 'presentation');
         gl.domElement.style.touchAction = 'none';
         gl.setClearColor(0x000000, 0);
         setCanvasElement(gl.domElement);
@@ -118,6 +122,7 @@ export const HomeHeroStageCanvas = ({
         <HomeHeroSceneObjects
           isBackgroundMusicPlaying={isBackgroundMusicPlaying}
           isCloseupCostumeHidden={isCloseupCostumeHidden}
+          pauseMusicLabel={t('pauseMusic')}
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
@@ -212,12 +217,14 @@ const HomeHeroCameraRig = ({
 const HomeHeroSceneObjects = ({
   isBackgroundMusicPlaying,
   isCloseupCostumeHidden,
+  pauseMusicLabel,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
 }: {
   readonly isBackgroundMusicPlaying: boolean;
   readonly isCloseupCostumeHidden: boolean;
+  readonly pauseMusicLabel: string;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
@@ -228,9 +235,14 @@ const HomeHeroSceneObjects = ({
       <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
       {isBackgroundMusicPlaying ? (
         <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
-          <button className={bassStopButtonClass} onClick={onStopBassTrackPlayback} type="button">
+          <button
+            aria-label={pauseMusicLabel}
+            className={bassStopButtonClass}
+            onClick={onStopBassTrackPlayback}
+            type="button"
+          >
             <PauseIcon aria-hidden color="white" size={12} />
-            <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>Bass playback stop</span>
+            <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
           </button>
         </Html>
       ) : null}

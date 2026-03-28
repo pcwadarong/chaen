@@ -20,17 +20,10 @@ type TooltipProps = {
   content: string;
   className?: string;
   contentClassName?: string;
-  contentStyle?: React.CSSProperties;
   forceOpen?: boolean;
   openOnFocus?: boolean;
   portalClassName?: string;
   preferredPlacement?: 'auto' | 'bottom' | 'top';
-  /**
-   * 내부 레이어 보정용 포털 루트 인라인 스타일입니다.
-   * 일반적인 외부 스타일 확장은 `portalClassName`을 우선 사용하고,
-   * 이 prop은 점진적 마이그레이션이 끝나면 제거할 예정입니다.
-   */
-  portalStyle?: React.CSSProperties;
 };
 
 /**
@@ -42,12 +35,10 @@ export const Tooltip = ({
   className,
   content,
   contentClassName,
-  contentStyle,
   forceOpen = false,
   openOnFocus = true,
   portalClassName,
   preferredPlacement = 'auto',
-  portalStyle,
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -133,13 +124,10 @@ export const Tooltip = ({
               role="tooltip"
               style={{
                 ...tooltipStyle,
-                ...portalStyle,
                 visibility: tooltipStyle ? 'visible' : 'hidden',
               }}
             >
-              <span className={cx(tooltipClass, contentClassName)} style={contentStyle}>
-                {content}
-              </span>
+              <span className={cx(tooltipClass, contentClassName)}>{content}</span>
             </span>,
             document.body,
           )

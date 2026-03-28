@@ -1,5 +1,16 @@
 const escapeMarkdownAltText = (value: string) => value.replaceAll(']', '\\]');
 
+/**
+ * escapeMarkdownLinkDestination
+ *
+ * 마크다운 링크 목적지에서 문자열을 안전하게 사용하기 위해 특수 문자를 이스케이프하거나 인코딩합니다.
+ * `\`는 escape 구문과 충돌하지 않도록 `\\\\`로 이스케이프하고, `(`와 `)`는 링크 목적지 구문이
+ * 조기 종료되지 않도록 각각 `\(`, `\)`로 변환합니다. `<`와 `>`는 자동 링크 또는 HTML 태그로
+ * 해석되는 것을 막기 위해 각각 `%3C`, `%3E`로 인코딩합니다.
+ *
+ * @param value 마크다운 링크 목적지에 삽입할 원본 문자열입니다.
+ * @returns 마크다운 링크 목적지에서 안전하게 사용할 수 있도록 정규화한 문자열입니다.
+ */
 const escapeMarkdownLinkDestination = (value: string) =>
   value
     .replaceAll('\\', '\\\\')

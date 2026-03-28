@@ -580,11 +580,9 @@ export const ImageViewerModal = ({
             <Tooltip
               content={labels.selectForFrameAriaLabel}
               contentClassName={actionTooltipClass}
-              contentStyle={actionTooltipInlineStyle}
               forceOpen={activeActionTooltip === labels.selectForFrameAriaLabel}
               openOnFocus={false}
               portalClassName={actionTooltipPortalClass}
-              portalStyle={actionTooltipPortalStyle}
               preferredPlacement="bottom"
             >
               <button
@@ -669,11 +667,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomOutAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={actionTooltipInlineStyle}
                   forceOpen={activeActionTooltip === labels.zoomOutAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
-                  portalStyle={actionTooltipPortalStyle}
                   preferredPlacement="top"
                 >
                   <button
@@ -698,11 +694,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.zoomInAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={actionTooltipInlineStyle}
                   forceOpen={activeActionTooltip === labels.zoomInAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
-                  portalStyle={actionTooltipPortalStyle}
                   preferredPlacement="top"
                 >
                   <button
@@ -727,11 +721,9 @@ export const ImageViewerModal = ({
                 <Tooltip
                   content={labels.fitToScreenAriaLabel}
                   contentClassName={actionTooltipClass}
-                  contentStyle={actionTooltipInlineStyle}
                   forceOpen={activeActionTooltip === labels.fitToScreenAriaLabel}
                   openOnFocus={false}
                   portalClassName={actionTooltipPortalClass}
-                  portalStyle={actionTooltipPortalStyle}
                   preferredPlacement="top"
                 >
                   <button
@@ -752,11 +744,9 @@ export const ImageViewerModal = ({
                   <Tooltip
                     content={labels.locateSourceAriaLabel}
                     contentClassName={actionTooltipClass}
-                    contentStyle={actionTooltipInlineStyle}
                     forceOpen={activeActionTooltip === labels.locateSourceAriaLabel}
                     openOnFocus={false}
                     portalClassName={actionTooltipPortalClass}
-                    portalStyle={actionTooltipPortalStyle}
                     preferredPlacement="top"
                   >
                     <button
@@ -1014,17 +1004,8 @@ const actionTooltipClass = css({
 });
 
 const actionTooltipPortalClass = css({
-  zIndex: '1300',
+  zIndex: '[2147483647]',
 });
-
-const actionTooltipInlineStyle: React.CSSProperties = {
-  backgroundColor: 'rgb(15 23 42 / 0.92)',
-  color: '#ffffff',
-};
-
-const actionTooltipPortalStyle: React.CSSProperties = {
-  zIndex: 2147483647,
-};
 
 const actionButtonClass = css({
   width: '8',

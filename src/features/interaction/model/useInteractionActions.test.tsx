@@ -80,11 +80,15 @@ describe('useInteractionActions', () => {
 
   it('line1 click은 첫 번째 bass 줄 음 재생 콜백을 호출해야 한다', () => {
     const lineMesh = createMesh('line1');
+    const onOpenImageViewer = vi.fn();
     const onPlayBassString = vi.fn();
+    const onToggleBackgroundMusicPlayback = vi.fn();
 
     const { result } = renderHook(() =>
       useInteractionActions({
+        onOpenImageViewer,
         onPlayBassString,
+        onToggleBackgroundMusicPlayback,
       }),
     );
 
@@ -93,5 +97,7 @@ describe('useInteractionActions', () => {
     });
 
     expect(onPlayBassString).toHaveBeenCalledWith('line1');
+    expect(onOpenImageViewer).not.toHaveBeenCalled();
+    expect(onToggleBackgroundMusicPlayback).not.toHaveBeenCalled();
   });
 });

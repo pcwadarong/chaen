@@ -126,6 +126,9 @@ describe('OutlineEffect', () => {
 
     expect(outlineEffectInstanceMock.dispose).toHaveBeenCalled();
     expect(composerInstanceMock.dispose).toHaveBeenCalled();
+    expect(outlineEffectInstanceMock.dispose.mock.invocationCallOrder[0]).toBeLessThan(
+      composerInstanceMock.dispose.mock.invocationCallOrder[0],
+    );
     expect(fiberMock.gl.toneMapping).toBe(4);
   });
 });
