@@ -18,7 +18,6 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
-import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
@@ -89,15 +88,15 @@ export const HomeHeroStageCanvas = ({
         position: sceneLayout.camera.position,
       }}
       dpr={[1, 2]}
-      gl={{ alpha: false, antialias: true }}
+      gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
       shadows
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
         gl.domElement.style.touchAction = 'none';
+        gl.setClearColor(0x000000, 0);
         setCanvasElement(gl.domElement);
       }}
     >
-      <color args={[HOME_HERO_STAGE_BACKGROUND]} attach="background" />
       <HomeHeroStageLights />
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
