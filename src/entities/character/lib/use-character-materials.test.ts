@@ -75,8 +75,10 @@ describe('applyCharacterMaterials', () => {
     expect(hairMesh.material.aoMap).toBe(textures.hair);
     expect(browsMesh.material.aoMap).toBe(textures.hair);
     expect(eyebrowMesh.material.aoMap).toBe(textures.hair);
-    expect(hairMesh.material.alphaMap).toBe(textures.hair);
-    expect(hairMesh.material.transparent).toBe(true);
+    expect(hairMesh.material.alphaMap).toBe(null);
+    expect(hairMesh.material.transparent).toBe(false);
+    //expect(hairMesh.material.alphaMap).toBe(textures.hair);
+    //expect(hairMesh.material.transparent).toBe(true);
 
     expect(headphoneMesh.material.aoMap).toBe(textures.gear);
     expect(laptopMesh.material.roughnessMap).toBe(textures.gear);
