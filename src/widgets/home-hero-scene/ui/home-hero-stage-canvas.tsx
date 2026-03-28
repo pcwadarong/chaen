@@ -54,8 +54,12 @@ export const HomeHeroStageCanvas = ({
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
-  const { isBassTrackPlaying, playBassString, stopBassTrackPlayback, toggleBassTrackPlayback } =
-    useBassAudio();
+  const {
+    isBackgroundMusicPlaying,
+    playBassString,
+    pauseBackgroundMusicPlayback,
+    toggleBackgroundMusicPlayback,
+  } = useBassAudio();
   const { currentBP, sceneMode } = useBreakpoint({
     isScrolling,
   });
@@ -98,7 +102,7 @@ export const HomeHeroStageCanvas = ({
       <HomeHeroCameraRig
         blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
-        isBassTrackPlaying={isBassTrackPlaying}
+        isBackgroundMusicPlaying={isBackgroundMusicPlaying}
         interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
         onBrowseProjects={handleBrowseProjects}
         onOpenImageViewer={onOpenImageViewer}
@@ -107,15 +111,15 @@ export const HomeHeroStageCanvas = ({
         onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
         sceneMode={sceneMode}
-        onToggleBassTrackPlayback={toggleBassTrackPlayback}
+        onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
         webUiRef={webUiRef}
       />
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
-          isBassTrackPlaying={isBassTrackPlaying}
+          isBackgroundMusicPlaying={isBackgroundMusicPlaying}
           isCloseupCostumeHidden={isCloseupCostumeHidden}
-          onStopBassTrackPlayback={stopBassTrackPlayback}
+          onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
         />
@@ -138,13 +142,13 @@ const HomeHeroCameraRig = ({
   onScrollStateChange,
   sceneLayout,
   sceneMode,
-  onToggleBassTrackPlayback,
+  onToggleBackgroundMusicPlayback,
   triggerRef,
   webUiRef,
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
-  readonly isBassTrackPlaying: boolean;
+  readonly isBackgroundMusicPlaying: boolean;
   readonly interactionDisabledProgressThreshold: number;
   readonly onBrowseProjects: () => void;
   readonly onOpenImageViewer?: () => void;
@@ -155,7 +159,7 @@ const HomeHeroCameraRig = ({
   readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: 'desktop' | 'mobile';
-  readonly onToggleBassTrackPlayback: () => void | Promise<void>;
+  readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
@@ -196,7 +200,7 @@ const HomeHeroCameraRig = ({
           onBrowseProjects={onBrowseProjects}
           onOpenImageViewer={onOpenImageViewer}
           onPlayBassString={onPlayBassString}
-          onToggleBassTrackPlayback={onToggleBassTrackPlayback}
+          onToggleBackgroundMusicPlayback={onToggleBackgroundMusicPlayback}
         />
       ) : null}
     </>
@@ -207,13 +211,13 @@ const HomeHeroCameraRig = ({
  * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
  */
 const HomeHeroSceneObjects = ({
-  isBassTrackPlaying,
+  isBackgroundMusicPlaying,
   isCloseupCostumeHidden,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
 }: {
-  readonly isBassTrackPlaying: boolean;
+  readonly isBackgroundMusicPlaying: boolean;
   readonly isCloseupCostumeHidden: boolean;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
@@ -223,7 +227,7 @@ const HomeHeroSceneObjects = ({
     <HomeHeroCharacterSeatSet instance="main" isCloseupCostumeHidden={isCloseupCostumeHidden} />
     <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
       <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
-      {isBassTrackPlaying ? (
+      {isBackgroundMusicPlaying ? (
         <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
           <button className={bassStopButtonClass} onClick={onStopBassTrackPlayback} type="button">
             <PauseIcon aria-hidden color="white" size={12} />
