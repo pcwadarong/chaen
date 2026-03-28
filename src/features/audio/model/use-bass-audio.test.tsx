@@ -185,6 +185,39 @@ describe('useBassAudio', () => {
     expect(stringAudioElement.currentTime).toBe(0);
   });
 
+  it('bass string 원샷 재생이 실패해도 이미 재생 중인 background music 상태는 false로 바뀌지 않아야 한다', async () => {
+    vi.stubGlobal(
+      'Audio',
+      vi.fn((src: string) => {
+        const audioElement = createFakeAudioElement(src);
+
+        if (src === BASS_STRING_AUDIO_PATHS.line1) {
+          audioElement.play = vi.fn(async () => {
+            throw new Error('decode failure');
+          });
+        }
+
+        audioMockState.createdAudios.push(audioElement);
+
+        return audioElement;
+      }),
+    );
+
+    const { result } = renderHook(() => useBassAudio());
+
+    await act(async () => {
+      await result.current.triggerBackgroundMusicPlayback();
+    });
+
+    expect(result.current.isBackgroundMusicPlaying).toBe(true);
+
+    await act(async () => {
+      await result.current.playBassString('line1');
+    });
+
+    expect(result.current.isBackgroundMusicPlaying).toBe(true);
+  });
+
   it('서로 다른 훅 인스턴스는 같은 background music 재생 상태를 공유해야 한다', async () => {
     const firstHook = renderHook(() => useBassAudio());
     const secondHook = renderHook(() => useBassAudio());

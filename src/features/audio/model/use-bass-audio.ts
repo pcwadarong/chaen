@@ -17,6 +17,10 @@ type BassAudioSnapshot = {
   readonly isBackgroundMusicPlaying: boolean;
 };
 
+type PlayAudioOptions = Readonly<{
+  syncBackgroundStateOnFailure?: boolean;
+}>;
+
 const bassAudioStore = {
   backgroundMusicAudio: null as HTMLAudioElement | null,
   bassStringAudios: {} as Partial<Record<BassStringName, HTMLAudioElement>>,
@@ -141,7 +145,9 @@ const triggerBackgroundMusicPlayback = async () => {
 
   if (!backgroundMusicAudio.paused) return;
 
-  await playAudio(backgroundMusicAudio);
+  await playAudio(backgroundMusicAudio, {
+    syncBackgroundStateOnFailure: true,
+  });
 };
 
 /**
@@ -156,7 +162,9 @@ const toggleBackgroundMusicPlayback = async () => {
     return;
   }
 
-  await playAudio(backgroundMusicAudio);
+  await playAudio(backgroundMusicAudio, {
+    syncBackgroundStateOnFailure: true,
+  });
 };
 
 /**
@@ -203,12 +211,18 @@ const stopAudioPlayback = (audioElement: HTMLAudioElement): void => {
 /**
  * 현재 위치에서 오디오 재생을 시도하고, 성공 여부를 반환합니다.
  */
-const playAudio = async (audioElement: HTMLAudioElement): Promise<boolean> => {
+const playAudio = async (
+  audioElement: HTMLAudioElement,
+  { syncBackgroundStateOnFailure = false }: PlayAudioOptions = {},
+): Promise<boolean> => {
   try {
     await audioElement.play();
     return true;
   } catch {
-    setBackgroundMusicPlaying(false);
+    if (syncBackgroundStateOnFailure) {
+      setBackgroundMusicPlaying(false);
+    }
+
     return false;
   }
 };
