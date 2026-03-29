@@ -9,6 +9,15 @@ type ProjectShowcaseHeader = Readonly<{
   readonly title: string;
 }>;
 
+/**
+ * 프로젝트 카드 그리드 위젯의 입력 계약입니다.
+ *
+ * @property emptyText - 카드가 하나도 없을 때 대신 노출할 안내 문구입니다.
+ * @property header - 화면에 실제로 보이는 제목/설명 헤더입니다. 없으면 헤더를 렌더하지 않습니다.
+ * @property items - 카드로 렌더할 프로젝트 목록입니다.
+ * @property srOnlyHeader - 시각적으로는 숨기되 스크린리더에는 남겨둘 제목/설명입니다.
+ *   `title`은 필수이며, `description`은 선택값입니다.
+ */
 type ProjectShowcaseProps = {
   emptyText: string;
   header?: ProjectShowcaseHeader;

@@ -41,6 +41,9 @@ type HomeHeroStageCanvasProps = {
 };
 
 const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
+const BASS_STOP_BUTTON_SIZE = '7';
+const BASS_STOP_BUTTON_FOCUS_OUTLINE = '[2px solid var(--colors-focus-ring)]';
+const BASS_STOP_BUTTON_FOCUS_OUTLINE_OFFSET = '[2px]';
 
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
@@ -291,10 +294,10 @@ const HomeHeroSceneObjects = ({
 );
 
 const bassStopButtonClass = css({
-  width: '[1.75rem]',
-  height: '[1.75rem]',
-  minWidth: '[1.75rem]',
-  minHeight: '[1.75rem]',
+  width: BASS_STOP_BUTTON_SIZE,
+  height: BASS_STOP_BUTTON_SIZE,
+  minWidth: BASS_STOP_BUTTON_SIZE,
+  minHeight: BASS_STOP_BUTTON_SIZE,
   padding: '0',
   lineHeight: '[0]',
   borderRadius: 'full',
@@ -304,8 +307,8 @@ const bassStopButtonClass = css({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  boxShadow: '[0 6px 18px rgba(0,0,0,0.22)]',
-  backdropFilter: '[blur(8px)]',
+  boxShadow: 'floating',
+  backdropBlur: 'md',
   cursor: 'pointer',
   transition: 'common',
   _hover: {
@@ -313,8 +316,8 @@ const bassStopButtonClass = css({
     transform: 'scale(1.04)',
   },
   _focusVisible: {
-    outline: '[2px solid var(--colors-focus-ring)]',
-    outlineOffset: '[3px]',
+    outline: BASS_STOP_BUTTON_FOCUS_OUTLINE,
+    outlineOffset: BASS_STOP_BUTTON_FOCUS_OUTLINE_OFFSET,
   },
 });
 

@@ -15,6 +15,7 @@ import {
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
 
 const CONTACT_SCENE_CAMERA_FOV = 42;
+const CONTACT_SCENE_LOOK_AT: Vector3Tuple = [-3.5, 0, 0];
 
 type ContactCameraPreset = Readonly<{
   lookAt: Vector3Tuple;
@@ -23,11 +24,11 @@ type ContactCameraPreset = Readonly<{
 
 const CONTACT_CAMERA_PRESETS = {
   desktopLarge: {
-    lookAt: [-3.5, 0, 0],
+    lookAt: CONTACT_SCENE_LOOK_AT,
     position: [0, 1, 10],
   },
   desktopSmall: {
-    lookAt: [-3.5, 0, 0],
+    lookAt: CONTACT_SCENE_LOOK_AT,
     position: [0, 1, 12],
   },
 } as const satisfies Readonly<Record<'desktopLarge' | 'desktopSmall', ContactCameraPreset>>;
