@@ -35,7 +35,7 @@ type DesktopScrollPreset = {
 };
 
 const DESKTOP_SCROLL_PRESET: DesktopScrollPreset = {
-  closeupEndPosition: [0, -0.3, 0.1],
+  closeupEndPosition: [0, -0.3, -0.4],
   closeupLookAt: [0, -0.3, 1],
   closeupStartPosition: [0, -0.3, -0.85],
   focusViewY: 1.8,
@@ -43,6 +43,12 @@ const DESKTOP_SCROLL_PRESET: DesktopScrollPreset = {
   spinRadius: 5,
   zoomTargetPosition: [0, 1.8, 5],
 };
+
+/** 최종 HTML web UI가 보이기 시작하는 progress. 값을 올리면 등장 타이밍이 더 늦어진다. */
+const WEB_UI_FADE_START_PROGRESS = 0.88;
+
+/** 최종 HTML web UI가 opacity 1에 도달하는 progress. start와 간격이 좁을수록 더 빠르게 올라온다. */
+const WEB_UI_FADE_END_PROGRESS = 0.96;
 
 /**
  * 스크롤 타임라인 progress를 0~1 구간으로 제한합니다.
@@ -88,7 +94,7 @@ export const getScrollTimelineSnapshot = ({
       blackoutOpacity: 0,
       cameraPosition: lerpVector(initialPosition, preset.zoomTargetPosition, ratio),
       isCloseupCostumeHidden: false,
-      isMonitorOverlayVisible: false,
+      isMonitorOverlayVisible: true,
       isScrollDriven: normalizedProgress > 0,
       isSequenceActive: normalizedProgress > 0,
       lookAt: preset.focusTarget,
@@ -110,7 +116,7 @@ export const getScrollTimelineSnapshot = ({
       blackoutOpacity: 0,
       cameraPosition,
       isCloseupCostumeHidden: false,
-      isMonitorOverlayVisible: false,
+      isMonitorOverlayVisible: true,
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.focusTarget,
@@ -126,7 +132,7 @@ export const getScrollTimelineSnapshot = ({
       blackoutOpacity: ratio,
       cameraPosition: spinEndPosition,
       isCloseupCostumeHidden: false,
-      isMonitorOverlayVisible: false,
+      isMonitorOverlayVisible: true,
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.focusTarget,
@@ -142,7 +148,7 @@ export const getScrollTimelineSnapshot = ({
       blackoutOpacity: 1 - ratio,
       cameraPosition: lerpVector(preset.closeupStartPosition, preset.closeupEndPosition, ratio),
       isCloseupCostumeHidden: true,
-      isMonitorOverlayVisible: false,
+      isMonitorOverlayVisible: true,
       isScrollDriven: true,
       isSequenceActive: true,
       lookAt: preset.closeupLookAt,
@@ -151,7 +157,25 @@ export const getScrollTimelineSnapshot = ({
     };
   }
 
-  const ratio = getSegmentRatio(normalizedProgress, 0.82, 1);
+  if (normalizedProgress <= WEB_UI_FADE_START_PROGRESS) {
+    return {
+      blackoutOpacity: 0,
+      cameraPosition: preset.closeupEndPosition,
+      isCloseupCostumeHidden: true,
+      isMonitorOverlayVisible: true,
+      isScrollDriven: true,
+      isSequenceActive: true,
+      lookAt: preset.closeupLookAt,
+      progress: normalizedProgress,
+      webUiOpacity: 0,
+    };
+  }
+
+  const ratio = getSegmentRatio(
+    normalizedProgress,
+    WEB_UI_FADE_START_PROGRESS,
+    WEB_UI_FADE_END_PROGRESS,
+  );
 
   return {
     blackoutOpacity: 0,

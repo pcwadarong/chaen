@@ -38,7 +38,7 @@ export const Tooltip = ({
   forceOpen = false,
   openOnFocus = true,
   portalClassName,
-  preferredPlacement = 'auto',
+  preferredPlacement = 'top',
 }: TooltipProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -146,7 +146,7 @@ const tooltipClass = css({
   py: '1',
   borderRadius: 'md',
   backgroundColor: 'text',
-  color: 'surface',
+  color: 'white',
   fontSize: 'xs',
   lineHeight: 'tight',
   whiteSpace: 'nowrap',
@@ -154,6 +154,6 @@ const tooltipClass = css({
 });
 
 const tooltipPortalClass = css({
-  zIndex: '50',
+  zIndex: '[9999]',
   pointerEvents: 'none',
 });

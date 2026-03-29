@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
@@ -48,6 +48,9 @@ export const HomeHeroScene = ({
     defaultFrameImageSrc,
   );
   const sectionRef = triggerRef ?? localSectionRef;
+  const handleCloseMobileProjectSheet = useCallback(() => {
+    setIsMobileProjectSheetOpen(false);
+  }, []);
   const selectedFrameImageIndex = useMemo(
     () => photoItems.findIndex(item => item.src === selectedFrameImageSrc),
     [photoItems, selectedFrameImageSrc],
@@ -113,6 +116,7 @@ export const HomeHeroScene = ({
         <HomeHeroStage
           blackoutOverlayRef={blackoutOverlayRef}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+          items={items}
           onBrowseProjects={() => {
             setIsMobileProjectSheetOpen(true);
           }}
@@ -142,9 +146,7 @@ export const HomeHeroScene = ({
       <HomeHeroMobileProjectSheet
         isOpen={isMobileProjectSheetOpen}
         items={items}
-        onClose={() => {
-          setIsMobileProjectSheetOpen(false);
-        }}
+        onClose={handleCloseMobileProjectSheet}
         title={title}
       />
     </section>

@@ -166,9 +166,37 @@ describe('AuthProvider', () => {
       '[auth] syncAuthState failed',
       expect.objectContaining({
         adminIdentity: { adminUserId: 'admin-user-id' },
-        error: expect.any(Error),
+        errorMessage: 'auth failed',
+        errorName: 'Error',
       }),
     );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('세션 누락 에러는 비로그인 정상 상태로 처리하고 콘솔 에러를 남기지 않는다', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { client } = createSupabaseClientMock({
+      data: {
+        user: null,
+      },
+      error: new Error('Auth session missing!'),
+    });
+    vi.mocked(createBrowserSupabaseClient).mockReturnValue(client);
+
+    render(
+      <AuthProvider adminUserId="admin-user-id">
+        <AuthStateReader />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('is-authenticated')).toHaveTextContent('false');
+      expect(screen.getByTestId('is-admin')).toHaveTextContent('false');
+      expect(screen.getByTestId('user-id')).toHaveTextContent('');
+    });
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
   });

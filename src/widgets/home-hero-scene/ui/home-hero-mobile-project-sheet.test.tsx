@@ -73,4 +73,34 @@ describe('HomeHeroMobileProjectSheet', () => {
     expect(dialog.hasAttribute('inert')).toBe(true);
     expect(dialog.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('열린 상태에서 desktop scene mode로 전환되면 패널을 닫아야 한다', async () => {
+    const onClose = vi.fn();
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 768,
+      writable: true,
+    });
+
+    render(
+      <HomeHeroMobileProjectSheet isOpen items={[]} onClose={onClose} title="Selected Projects" />,
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(32);
+    });
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1600,
+      writable: true,
+    });
+
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

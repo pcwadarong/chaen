@@ -11,6 +11,7 @@ import React, {
 
 import type { AuthState } from '@/shared/lib/auth/get-server-auth-state';
 import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
+import { isAuthSessionMissingError } from '@/shared/lib/auth/is-auth-session-missing-error';
 import { createBrowserSupabaseClient } from '@/shared/lib/supabase/client';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 
@@ -56,11 +57,15 @@ export const AuthProvider = ({ adminUserId = null, children }: AuthProviderProps
         data: { user },
         error,
       } = await supabase.auth.getUser();
+      const isMissingSession = isAuthSessionMissingError(error?.message);
 
-      if (error) {
+      if (error && !isMissingSession) {
         console.error('[auth] syncAuthState failed', {
           adminIdentity,
-          error,
+          errorCode: 'code' in error ? error.code : null,
+          errorMessage: error.message,
+          errorName: error.name,
+          errorStatus: 'status' in error ? error.status : null,
         });
       }
 

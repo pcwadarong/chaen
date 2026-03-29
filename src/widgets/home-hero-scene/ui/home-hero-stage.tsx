@@ -4,9 +4,12 @@ import dynamic from 'next/dynamic';
 import type { RefObject } from 'react';
 import { css } from 'styled-system/css';
 
+import type { ProjectListItem } from '@/entities/project/model/types';
+
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly interactionDisabledProgressThreshold?: number;
+  readonly items?: ProjectListItem[];
   readonly onBrowseProjects?: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
@@ -31,6 +34,7 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
 export const HomeHeroStage = ({
   blackoutOverlayRef,
   interactionDisabledProgressThreshold,
+  items,
   onBrowseProjects,
   onOpenImageViewer,
   selectedFrameImageSrc,
@@ -41,6 +45,7 @@ export const HomeHeroStage = ({
     <HomeHeroStageCanvas
       blackoutOverlayRef={blackoutOverlayRef}
       interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+      items={items}
       onBrowseProjects={onBrowseProjects}
       onOpenImageViewer={onOpenImageViewer}
       selectedFrameImageSrc={selectedFrameImageSrc}

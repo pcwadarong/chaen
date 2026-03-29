@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import type { Texture } from 'three';
 
+import { applyCharacterScreenTexture } from '@/entities/character/lib/use-character-materials';
 import {
   type CharacterInstanceType,
   useCharacterInstance,
@@ -16,6 +18,8 @@ import { setHomeHeroCostumeVisibility } from '@/widgets/home-hero-scene/model/se
 type HomeHeroCharacterProps = Readonly<{
   isCloseupCostumeHidden?: boolean;
   instance: CharacterInstanceType;
+  monitorScreenOpacity?: number;
+  monitorScreenTexture?: Texture | null;
   position: [number, number, number];
 }>;
 
@@ -26,6 +30,8 @@ type HomeHeroCharacterProps = Readonly<{
 export const HomeHeroCharacter = ({
   instance,
   isCloseupCostumeHidden = false,
+  monitorScreenOpacity = 0,
+  monitorScreenTexture = null,
   position,
 }: HomeHeroCharacterProps) => {
   const { clipDurations, clips, mixer, nodeRefs, object } = useCharacterInstance({ instance });
@@ -61,6 +67,27 @@ export const HomeHeroCharacter = ({
       setHomeHeroCostumeVisibility(object, true);
     };
   }, [isCloseupCostumeHidden, object]);
+
+  useEffect(() => {
+    if (instance !== 'main') return;
+
+    applyCharacterScreenTexture(object, {
+      opacity: monitorScreenOpacity,
+      texture: monitorScreenTexture,
+    });
+  }, [instance, monitorScreenOpacity, monitorScreenTexture, object]);
+
+  useEffect(
+    () => () => {
+      if (instance !== 'main') return;
+
+      applyCharacterScreenTexture(object, {
+        opacity: 0,
+        texture: null,
+      });
+    },
+    [instance, object],
+  );
 
   return <Character object={object} position={position} />;
 };

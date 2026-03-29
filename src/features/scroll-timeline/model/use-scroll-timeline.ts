@@ -25,15 +25,15 @@ type UseScrollTimelineParams = {
 
 type UseScrollTimelineResult = {
   readonly isCloseupCostumeHidden: boolean;
-  readonly isMonitorOverlayVisible: boolean;
-  readonly progress: number;
+  readonly monitorOverlayOpacity: number;
   readonly isSequenceActive: boolean;
   readonly isScrollDriven: boolean;
+  readonly progress: number;
 };
 
 type ScrollTimelineUiState = {
   readonly isCloseupCostumeHidden: boolean;
-  readonly isMonitorOverlayVisible: boolean;
+  readonly monitorOverlayOpacity: number;
   readonly progress: number;
   readonly isScrollDriven: boolean;
   readonly isSequenceActive: boolean;
@@ -44,7 +44,7 @@ const DESKTOP_SCROLL_SCRUB_DURATION = 0.2;
 const WEB_UI_INTERACTIVE_THRESHOLD = 0.96;
 
 /**
- * monitor overlay가 실제로 상호작용 가능한 상태인지 계산합니다.
+ * web UI가 실제로 상호작용 가능한 상태인지 계산합니다.
  */
 const isWebUiInteractive = (
   snapshot: Pick<ScrollTimelineSnapshot, 'isMonitorOverlayVisible' | 'webUiOpacity'>,
@@ -63,7 +63,7 @@ const syncCameraSnapshot = (
 };
 
 /**
- * blackout overlay와 monitor overlay의 opacity 및 상호작용 상태를 동기화합니다.
+ * blackout overlay와 최종 web UI의 opacity 및 상호작용 상태를 동기화합니다.
  */
 const syncOverlayState = (
   blackoutOverlayElement: HTMLDivElement | null,
@@ -108,14 +108,14 @@ export const useScrollTimeline = ({
   const isScrollDrivenRef = useRef(false);
   const uiStateRef = useRef<ScrollTimelineUiState>({
     isCloseupCostumeHidden: false,
-    isMonitorOverlayVisible: false,
+    monitorOverlayOpacity: 0,
     progress: 0,
     isScrollDriven: false,
     isSequenceActive: false,
   });
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrollDriven, setIsScrollDriven] = useState(false);
-  const [isMonitorOverlayVisible, setIsMonitorOverlayVisible] = useState(false);
+  const [monitorOverlayOpacity, setMonitorOverlayOpacity] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isSequenceActive, setIsSequenceActive] = useState(false);
 
@@ -135,12 +135,14 @@ export const useScrollTimeline = ({
         setIsCloseupCostumeHidden(nextSnapshot.isCloseupCostumeHidden);
       }
 
-      if (uiStateRef.current.isMonitorOverlayVisible !== nextSnapshot.isMonitorOverlayVisible) {
+      const nextMonitorOverlayOpacity = nextSnapshot.isMonitorOverlayVisible ? 1 : 0;
+
+      if (uiStateRef.current.monitorOverlayOpacity !== nextMonitorOverlayOpacity) {
         uiStateRef.current = {
           ...uiStateRef.current,
-          isMonitorOverlayVisible: nextSnapshot.isMonitorOverlayVisible,
+          monitorOverlayOpacity: nextMonitorOverlayOpacity,
         };
-        setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
+        setMonitorOverlayOpacity(nextMonitorOverlayOpacity);
       }
 
       if (uiStateRef.current.progress !== nextSnapshot.progress) {
@@ -282,7 +284,7 @@ export const useScrollTimeline = ({
 
   return {
     isCloseupCostumeHidden,
-    isMonitorOverlayVisible,
+    monitorOverlayOpacity,
     progress,
     isSequenceActive,
     isScrollDriven,

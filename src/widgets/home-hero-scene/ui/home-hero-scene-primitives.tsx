@@ -1,6 +1,5 @@
-'use client';
-
 import React from 'react';
+import type { Texture } from 'three';
 
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
@@ -8,6 +7,8 @@ import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-charac
 type HomeHeroCharacterSeatSetProps = Readonly<{
   instance: 'contact' | 'main';
   isCloseupCostumeHidden?: boolean;
+  monitorScreenOpacity?: number;
+  monitorScreenTexture?: Texture | null;
   position?: [number, number, number];
 }>;
 
@@ -30,12 +31,16 @@ export const HomeHeroStageLights = () => (
 export const HomeHeroCharacterSeatSet = ({
   instance,
   isCloseupCostumeHidden = false,
+  monitorScreenOpacity = 0,
+  monitorScreenTexture = null,
   position = [0, 0, 0],
 }: HomeHeroCharacterSeatSetProps) => (
   <>
     <HomeHeroCharacter
       instance={instance}
       isCloseupCostumeHidden={isCloseupCostumeHidden}
+      monitorScreenOpacity={monitorScreenOpacity}
+      monitorScreenTexture={monitorScreenTexture}
       position={position}
     />
     <SceneProp path="/models/sofa.glb" position={[0, 0, -1]} />

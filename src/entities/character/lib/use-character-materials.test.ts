@@ -1,8 +1,11 @@
+/* @vitest-environment node */
+
 import { Group, Mesh, MeshStandardMaterial, NoColorSpace, Texture } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
   applyCharacterMaterials,
+  applyCharacterScreenTexture,
   type CharacterOrmTextures,
 } from '@/entities/character/lib/use-character-materials';
 import { prepareOrmTexture } from '@/shared/lib/three/orm-material';
@@ -111,5 +114,62 @@ describe('applyCharacterMaterials', () => {
     expect(textures.skin.flipY).toBe(false);
     expect(textures.outfit.flipY).toBe(false);
     expect(textures.hair.flipY).toBe(false);
+  });
+
+  it('monitor texture가 있을 때 laptop_screen material은 불투명 상태를 유지한 채 texture 강도만 반영해야 한다', () => {
+    const scene = new Group();
+    const laptopScreenMesh = createMesh('laptop_screen');
+    const texture = new Texture();
+
+    scene.add(laptopScreenMesh);
+
+    applyCharacterScreenTexture(scene, {
+      opacity: 0.35,
+      texture,
+    });
+
+    expect(laptopScreenMesh.material.map).toBe(texture);
+    expect(laptopScreenMesh.material.opacity).toBe(1);
+    expect(laptopScreenMesh.material.transparent).toBe(false);
+    expect(laptopScreenMesh.material.color.getHexString()).not.toBe('03060d');
+    expect(laptopScreenMesh.material.color.getHexString()).not.toBe('ffffff');
+  });
+
+  it('monitor texture가 없을 때 laptop_screen material은 fallback 색과 빈 map으로 돌아가야 한다', () => {
+    const scene = new Group();
+    const laptopScreenMesh = createMesh('laptop_screen');
+    const texture = new Texture();
+
+    scene.add(laptopScreenMesh);
+    applyCharacterScreenTexture(scene, {
+      opacity: 1,
+      texture,
+    });
+
+    applyCharacterScreenTexture(scene, {
+      opacity: 0,
+      texture: null,
+    });
+
+    expect(laptopScreenMesh.material.map).toBe(null);
+    expect(laptopScreenMesh.material.opacity).toBe(1);
+    expect(laptopScreenMesh.material.transparent).toBe(false);
+    expect(laptopScreenMesh.material.color.getHexString()).toBe('03060d');
+  });
+
+  it('monitor texture가 있어도 표시 강도가 0이면 laptop_screen은 어두운 액정 색을 유지해야 한다', () => {
+    const scene = new Group();
+    const laptopScreenMesh = createMesh('laptop_screen');
+    const texture = new Texture();
+
+    scene.add(laptopScreenMesh);
+
+    applyCharacterScreenTexture(scene, {
+      opacity: 0,
+      texture,
+    });
+
+    expect(laptopScreenMesh.material.map).toBe(texture);
+    expect(laptopScreenMesh.material.color.getHexString()).toBe('03060d');
   });
 });

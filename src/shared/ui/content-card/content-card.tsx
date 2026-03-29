@@ -16,18 +16,17 @@ type ContentCardProps = {
 
 const thumbnailWrapClass = css({
   position: 'relative',
+  aspectRatio: '[16 / 9]',
   borderTopLeftRadius: '3xl',
   borderTopRightRadius: '3xl',
   overflow: 'hidden',
   borderBottom: '[1px solid var(--colors-border)]',
-  minHeight: '[13rem]',
   backgroundColor: 'surfaceStrong',
 });
 
 const thumbnailClass = css({
   width: 'full',
   height: 'full',
-  minHeight: '[13rem]',
   objectFit: 'cover',
   transition: 'transform',
   '[data-content-card="true"]:hover &': {
@@ -39,7 +38,8 @@ const thumbnailClass = css({
 });
 
 const thumbnailPlaceholderClass = css({
-  minHeight: '[13rem]',
+  width: 'full',
+  height: 'full',
   backgroundColor: 'surfaceStrong',
   opacity: '0.65',
 });
