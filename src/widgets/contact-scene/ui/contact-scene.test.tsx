@@ -55,5 +55,12 @@ describe('ContactScene', () => {
       expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'desktop');
     });
     expect(await screen.findByTestId('contact-scene-canvas')).toBeTruthy();
+    expect(screen.getByTestId('contact-scene-layout')).toBeTruthy();
+    expect(screen.getByTestId('contact-scene-copy')).toContainElement(
+      screen.getByTestId('contact-strip'),
+    );
+    expect(screen.getByTestId('contact-scene-media')).toContainElement(
+      screen.getByTestId('contact-scene-canvas'),
+    );
   });
 });
