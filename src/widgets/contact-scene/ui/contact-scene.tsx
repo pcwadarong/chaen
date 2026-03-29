@@ -17,11 +17,30 @@ const ContactSceneCanvas = dynamic(
   { ssr: false, loading: () => null },
 );
 
+/**
+ * 현재 viewport와 nav 높이로 contact scene의 실제 가용 높이를 읽습니다.
+ */
+const readContactAvailableHeight = () => {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  const navHeight =
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--global-nav-height'),
+    ) || 0;
+
+  return getHomeHeroViewportMetrics({
+    navHeight,
+    viewportHeight: window.innerHeight,
+  }).availableHeight;
+};
+
 /** 데스크탑에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
   const { sceneMode } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
-  const [availableHeight, setAvailableHeight] = useState(0);
+  const [availableHeight, setAvailableHeight] = useState(() => readContactAvailableHeight());
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,16 +48,7 @@ export const ContactScene = () => {
     if (typeof window === 'undefined') return;
 
     const syncAvailableHeight = () => {
-      const navHeight =
-        parseFloat(
-          getComputedStyle(document.documentElement).getPropertyValue('--global-nav-height'),
-        ) || 0;
-      const nextMetrics = getHomeHeroViewportMetrics({
-        navHeight,
-        viewportHeight: window.innerHeight,
-      });
-
-      setAvailableHeight(nextMetrics.availableHeight);
+      setAvailableHeight(readContactAvailableHeight());
     };
 
     syncAvailableHeight();
@@ -102,6 +112,10 @@ const wrapperClass = css({
   width: 'full',
   overflow: 'clip',
   minHeight: '[var(--home-hero-available-height, 100dvh)]',
+  _desktopUp: {
+    marginTop: '[calc(-1 * var(--global-nav-height, 0px))]',
+    minHeight: '[var(--home-hero-viewport-height, 100dvh)]',
+  },
 });
 
 const layoutClass = css({
@@ -116,6 +130,9 @@ const layoutClass = css({
   gap: '[clamp(2rem, 6vw, 5rem)]',
   paddingLeft: '12',
   paddingRight: '4',
+  _desktopUp: {
+    minHeight: '[var(--home-hero-viewport-height, 100dvh)]',
+  },
 });
 
 const compactLayoutClass = css({
@@ -130,6 +147,9 @@ const compactLayoutClass = css({
   justifyContent: 'center',
   paddingLeft: '6',
   paddingRight: '6',
+  _desktopUp: {
+    minHeight: '[var(--home-hero-viewport-height, 100dvh)]',
+  },
 });
 
 const copyColumnClass = css({
@@ -156,6 +176,9 @@ const mediaColumnClass = css({
   alignItems: 'stretch',
   justifyContent: 'flex-end',
   pointerEvents: 'none',
+  _desktopUp: {
+    height: '[var(--home-hero-viewport-height, 100dvh)]',
+  },
 });
 
 const canvasFrameClass = css({
@@ -177,6 +200,9 @@ const backgroundInnerClass = css({
   minHeight: '[var(--home-hero-available-height, 100dvh)]',
   paddingLeft: '12',
   paddingRight: '4',
+  _desktopUp: {
+    minHeight: '[var(--home-hero-viewport-height, 100dvh)]',
+  },
 });
 
 const backgroundGradientClass = css({
