@@ -19,12 +19,13 @@ export const HomeHeroWebUi = ({ items, title, wrapperRef }: HomeHeroWebUiProps) 
       <div className={gridBridgeClass}>
         <div className={contentClass}>
           <ProjectShowcase
-            description={t('showcaseScreenReaderDescription')}
-            descriptionVisibility="sr-only"
             emptyText={t('emptyProjects')}
             items={items}
             hideHeader
-            title={title}
+            srOnlyHeader={{
+              description: t('showcaseScreenReaderDescription'),
+              title,
+            }}
           />
         </div>
       </div>
