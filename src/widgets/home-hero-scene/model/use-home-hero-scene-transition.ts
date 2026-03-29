@@ -36,7 +36,6 @@ export const useHomeHeroSceneTransition = ({
   const { camera } = useThree();
   const {
     isCloseupCostumeHidden,
-    isMonitorOverlayVisible,
     monitorOverlayOpacity,
     isScrollDriven,
     isSequenceActive,
@@ -71,7 +70,6 @@ export const useHomeHeroSceneTransition = ({
 
   return {
     isCloseupCostumeHidden,
-    isMonitorOverlayVisible,
     monitorOverlayOpacity,
     isSequenceActive,
     isScrollDriven,

@@ -180,7 +180,7 @@ export const HomeHeroMobileProjectSheet = ({
           </Button>
         </div>
         <div className={contentClass}>
-          <ProjectShowcase emptyText={t('emptyProjects')} items={items} hideHeader />
+          <ProjectShowcase emptyText={t('emptyProjects')} items={items} />
         </div>
       </div>
     </div>,

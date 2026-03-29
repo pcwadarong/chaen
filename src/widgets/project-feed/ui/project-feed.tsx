@@ -36,7 +36,7 @@ type ProjectFeedErrorPanelProps = {
  * 프로젝트 쇼케이스와 빈 상태만 담당하는 본문 블록입니다.
  */
 const ProjectFeedContentBase = ({ emptyText, items }: ProjectFeedContentProps) => (
-  <ProjectShowcase emptyText={emptyText} hideHeader items={items} />
+  <ProjectShowcase emptyText={emptyText} items={items} />
 );
 
 ProjectFeedContentBase.displayName = 'ProjectFeedContent';

@@ -87,6 +87,11 @@ export const HomeHeroStageCanvas = ({
       }),
     [currentBP],
   );
+  const monitorScreenTexture = useMonitorOverlayTexture({
+    items,
+    locale,
+    ongoingLabel: projectDetailTranslations('ongoing'),
+  });
 
   return (
     <Canvas
@@ -127,12 +132,10 @@ export const HomeHeroStageCanvas = ({
       />
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
-          items={items}
           isBackgroundMusicPlaying={isBackgroundMusicPlaying}
           isCloseupCostumeHidden={isCloseupCostumeHidden}
-          locale={locale}
           monitorScreenOpacity={monitorScreenOpacity}
-          ongoingLabel={projectDetailTranslations('ongoing')}
+          monitorScreenTexture={monitorScreenTexture}
           pauseMusicLabel={t('pauseMusic')}
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
@@ -232,72 +235,60 @@ const HomeHeroCameraRig = ({
  * 캐릭터와 핵심 소품을 포함한 홈 전용 스테이지 구성을 breakpoint 기준으로 렌더링합니다.
  */
 const HomeHeroSceneObjects = ({
-  items,
   isBackgroundMusicPlaying,
   isCloseupCostumeHidden,
-  locale,
   monitorScreenOpacity,
-  ongoingLabel,
+  monitorScreenTexture,
   pauseMusicLabel,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
 }: {
-  readonly items: ProjectListItem[];
   readonly isBackgroundMusicPlaying: boolean;
   readonly isCloseupCostumeHidden: boolean;
-  readonly locale: string;
   readonly monitorScreenOpacity: number;
-  readonly ongoingLabel: string;
+  readonly monitorScreenTexture: ReturnType<typeof useMonitorOverlayTexture>;
   readonly pauseMusicLabel: string;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
-}) => {
-  const monitorScreenTexture = useMonitorOverlayTexture({
-    items,
-    locale,
-    ongoingLabel,
-  });
-
-  return (
-    <group position={[0, -2.4, 0]}>
-      <HomeHeroCharacterSeatSet
-        instance="main"
-        isCloseupCostumeHidden={isCloseupCostumeHidden}
-        monitorScreenOpacity={monitorScreenOpacity}
-        monitorScreenTexture={monitorScreenTexture}
-      />
-      <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
-        <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
-        {isBackgroundMusicPlaying ? (
-          <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
-            <button
-              aria-label={pauseMusicLabel}
-              className={bassStopButtonClass}
-              onClick={onStopBassTrackPlayback}
-              type="button"
-            >
-              <PauseIcon aria-hidden color="white" size={12} />
-              <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
-            </button>
-          </Html>
-        ) : null}
-      </group>
-      <SceneProp
-        frameScreenImageSrc={selectedFrameImageSrc}
-        path="/models/table.glb"
-        position={[...sceneLayout.tablePosition]}
-        rotation={[...sceneLayout.tableRotation]}
-      />
-
-      <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[80, 80]} />
-        <shadowMaterial color={'#322ea5'} opacity={0.42} transparent />
-      </mesh>
+}) => (
+  <group position={[0, -2.4, 0]}>
+    <HomeHeroCharacterSeatSet
+      instance="main"
+      isCloseupCostumeHidden={isCloseupCostumeHidden}
+      monitorScreenOpacity={monitorScreenOpacity}
+      monitorScreenTexture={monitorScreenTexture}
+    />
+    <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
+      <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
+      {isBackgroundMusicPlaying ? (
+        <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
+          <button
+            aria-label={pauseMusicLabel}
+            className={bassStopButtonClass}
+            onClick={onStopBassTrackPlayback}
+            type="button"
+          >
+            <PauseIcon aria-hidden color="white" size={12} />
+            <span className={cx(srOnlyClass, bassStopButtonLabelClass)}>{pauseMusicLabel}</span>
+          </button>
+        </Html>
+      ) : null}
     </group>
-  );
-};
+    <SceneProp
+      frameScreenImageSrc={selectedFrameImageSrc}
+      path="/models/table.glb"
+      position={[...sceneLayout.tablePosition]}
+      rotation={[...sceneLayout.tableRotation]}
+    />
+
+    <mesh receiveShadow position={[0, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[80, 80]} />
+      <shadowMaterial color={'#322ea5'} opacity={0.42} transparent />
+    </mesh>
+  </group>
+);
 
 const bassStopButtonClass = css({
   width: '[1.75rem]',

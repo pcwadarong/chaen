@@ -4,35 +4,33 @@ import type { ProjectListItem } from '@/entities/project/model/types';
 import { ProjectCard } from '@/entities/project/ui/project-card';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
+type ProjectShowcaseHeader = Readonly<{
+  readonly description?: string;
+  readonly title: string;
+}>;
+
 type ProjectShowcaseProps = {
-  description?: string;
   emptyText: string;
+  header?: ProjectShowcaseHeader;
   items: ProjectListItem[];
-  hideHeader?: boolean;
-  srOnlyHeader?: {
-    readonly description?: string;
-    readonly title: string;
-  };
-  title?: string;
+  srOnlyHeader?: ProjectShowcaseHeader;
 };
 
 /** 프로젝트 카드 묶음을 노출하는 위젯입니다. */
 export const ProjectShowcase = ({
-  description = '',
   emptyText,
-  hideHeader = false,
+  header,
   items,
   srOnlyHeader,
-  title = '',
 }: ProjectShowcaseProps) => (
   <section className={sectionClass}>
-    {hideHeader ? null : (
+    {header ? (
       <div className={headerClass}>
-        <h2 className={titleClass}>{title}</h2>
-        <p className={descriptionClass}>{description}</p>
+        <h2 className={titleClass}>{header.title}</h2>
+        {header.description ? <p className={descriptionClass}>{header.description}</p> : null}
       </div>
-    )}
-    {hideHeader && srOnlyHeader ? (
+    ) : null}
+    {srOnlyHeader ? (
       <div className={srOnlyClass}>
         <h2>{srOnlyHeader.title}</h2>
         {srOnlyHeader.description ? <p>{srOnlyHeader.description}</p> : null}

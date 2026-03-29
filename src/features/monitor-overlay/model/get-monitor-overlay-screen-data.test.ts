@@ -38,7 +38,7 @@ describe('getMonitorOverlayScreenData', () => {
     expect(screenData.projects.map(p => p.title)).toEqual(['One', 'Two', 'Three']);
     expect(screenData.projects[0].description).toBe('first');
     expect(screenData.projects[0].thumbnailSrc).toBe('https://example.com/thumb.png');
-    expect(screenData.projects[0].techStackNames).toEqual(['React']);
+    expect(screenData.projects[0].periodLabel).toBe('January 2025 - Ongoing');
   });
 
   it('프로젝트가 없을 때 overlay screen data는 기본 문구로 채운 3개 카드를 반환해야 한다', () => {

@@ -110,7 +110,7 @@ const DESCRIPTION_LINE_HEIGHT = 22;
 
 /**
  * 노트북 화면에 붙일 CanvasTexture를 생성합니다.
- * 흰 배경 위에 ContentCard 디자인(zinc 팔레트, 썸네일 + period + title + description)을
+ * 현재 theme에 맞는 palette 위에 ContentCard 디자인(썸네일 + period + title + description)을
  * 3개 가로 나열합니다.
  */
 export const useMonitorOverlayTexture = ({
@@ -205,7 +205,7 @@ export const useMonitorOverlayTexture = ({
 };
 
 /**
- * 흰 배경에 ContentCard 스타일 프로젝트 카드 3개를 가로 나열합니다.
+ * 현재 theme palette에 맞춰 프로젝트 카드 3개를 가로 나열합니다.
  */
 const drawMonitorOverlayTexture = (
   context: CanvasRenderingContext2D,
@@ -236,7 +236,7 @@ const drawMonitorOverlayTexture = (
 
 /**
  * ContentCard(썸네일 영역 + period + title + description)를 캔버스에 그립니다.
- * zinc 팔레트 light 테마를 기준으로 합니다.
+ * 현재 monitor palette를 기준으로 합니다.
  */
 const drawContentCard = (
   context: CanvasRenderingContext2D,
@@ -307,7 +307,7 @@ const drawContentCard = (
 };
 
 /**
- * 카드 상단 썸네일 영역을 그립니다. 이미지가 없으면 surfaceStrong 플레이스홀더를 표시합니다.
+ * 카드 상단 썸네일 영역을 그립니다. 이미지가 없으면 theme별 neutral 배경만 채웁니다.
  */
 const drawThumbnailArea = (
   context: CanvasRenderingContext2D,

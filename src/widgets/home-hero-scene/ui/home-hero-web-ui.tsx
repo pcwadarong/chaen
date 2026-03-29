@@ -21,7 +21,6 @@ export const HomeHeroWebUi = ({ items, title, wrapperRef }: HomeHeroWebUiProps) 
           <ProjectShowcase
             emptyText={t('emptyProjects')}
             items={items}
-            hideHeader
             srOnlyHeader={{
               description: t('showcaseScreenReaderDescription'),
               title,

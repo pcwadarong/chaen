@@ -25,7 +25,6 @@ type UseScrollTimelineParams = {
 
 type UseScrollTimelineResult = {
   readonly isCloseupCostumeHidden: boolean;
-  readonly isMonitorOverlayVisible: boolean;
   readonly monitorOverlayOpacity: number;
   readonly isSequenceActive: boolean;
   readonly isScrollDriven: boolean;
@@ -34,7 +33,6 @@ type UseScrollTimelineResult = {
 
 type ScrollTimelineUiState = {
   readonly isCloseupCostumeHidden: boolean;
-  readonly isMonitorOverlayVisible: boolean;
   readonly monitorOverlayOpacity: number;
   readonly progress: number;
   readonly isScrollDriven: boolean;
@@ -110,7 +108,6 @@ export const useScrollTimeline = ({
   const isScrollDrivenRef = useRef(false);
   const uiStateRef = useRef<ScrollTimelineUiState>({
     isCloseupCostumeHidden: false,
-    isMonitorOverlayVisible: false,
     monitorOverlayOpacity: 0,
     progress: 0,
     isScrollDriven: false,
@@ -118,7 +115,6 @@ export const useScrollTimeline = ({
   });
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [isScrollDriven, setIsScrollDriven] = useState(false);
-  const [isMonitorOverlayVisible, setIsMonitorOverlayVisible] = useState(false);
   const [monitorOverlayOpacity, setMonitorOverlayOpacity] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isSequenceActive, setIsSequenceActive] = useState(false);
@@ -137,14 +133,6 @@ export const useScrollTimeline = ({
           isCloseupCostumeHidden: nextSnapshot.isCloseupCostumeHidden,
         };
         setIsCloseupCostumeHidden(nextSnapshot.isCloseupCostumeHidden);
-      }
-
-      if (uiStateRef.current.isMonitorOverlayVisible !== nextSnapshot.isMonitorOverlayVisible) {
-        uiStateRef.current = {
-          ...uiStateRef.current,
-          isMonitorOverlayVisible: nextSnapshot.isMonitorOverlayVisible,
-        };
-        setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
       }
 
       const nextMonitorOverlayOpacity = nextSnapshot.isMonitorOverlayVisible ? 1 : 0;
@@ -296,7 +284,6 @@ export const useScrollTimeline = ({
 
   return {
     isCloseupCostumeHidden,
-    isMonitorOverlayVisible,
     monitorOverlayOpacity,
     progress,
     isSequenceActive,

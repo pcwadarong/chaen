@@ -6,7 +6,6 @@ import { createImageViewerUrl } from '@/shared/ui/image-viewer/model/create-imag
 export type MonitorOverlayProjectCard = Readonly<{
   description: string | null;
   periodLabel: string;
-  techStackNames: string[];
   thumbnailSrc: string | null;
   title: string;
 }>;
@@ -34,7 +33,6 @@ const getProjectCardData = (
     return {
       description: null,
       periodLabel: DEFAULT_PERIOD_LABEL,
-      techStackNames: [],
       thumbnailSrc: null,
       title: DEFAULT_TITLE,
     };
@@ -45,7 +43,6 @@ const getProjectCardData = (
   return {
     description: item.description ?? null,
     periodLabel: formatProjectPeriod(item, locale, ongoingLabel),
-    techStackNames: (item.tech_stacks ?? []).slice(0, 3).map(techStack => techStack.name),
     thumbnailSrc: normalizedThumbnailUrl ? createImageViewerUrl(normalizedThumbnailUrl) : null,
     title: item.title,
   };
