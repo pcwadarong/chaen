@@ -8,7 +8,7 @@ import {
 } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 
 describe('getHomeHeroSceneViewportMode', () => {
-  it('세로 비율이 큰 큰 화면에서는 홈 히어로 씬을 stacked로 유지해야 한다', () => {
+  it('세로 비율이 큰 화면에서는 홈 히어로 씬을 stacked로 유지해야 한다', () => {
     expect(
       getHomeHeroSceneViewportMode({
         height: 1600,
