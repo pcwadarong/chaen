@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
+import { getSceneMode } from '@/entities/scene/model/breakpointConfig';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
@@ -111,6 +112,24 @@ export const HomeHeroMobileProjectSheet = ({
   );
 
   useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === 'undefined') return;
+
+    const closeOnDesktopMode = () => {
+      if (getSceneMode(window.innerWidth) === 'desktop') {
+        onClose();
+      }
+    };
+
+    closeOnDesktopMode();
+    window.addEventListener('resize', closeOnDesktopMode);
+
+    return () => {
+      window.removeEventListener('resize', closeOnDesktopMode);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     const panel = panelRef.current;
 
     if (!panel) return;
@@ -161,14 +180,7 @@ export const HomeHeroMobileProjectSheet = ({
           </Button>
         </div>
         <div className={contentClass}>
-          <ProjectShowcase
-            description={t('showcaseScreenReaderDescription')}
-            descriptionVisibility="sr-only"
-            emptyText={t('emptyProjects')}
-            items={items}
-            hideHeader
-            title={title}
-          />
+          <ProjectShowcase emptyText={t('emptyProjects')} items={items} hideHeader />
         </div>
       </div>
     </div>,
