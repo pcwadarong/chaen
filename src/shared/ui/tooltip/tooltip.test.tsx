@@ -76,7 +76,7 @@ describe('Tooltip', () => {
 
   it('트리거가 viewport 상단에 가까우면 tooltip을 아래에 배치한다', async () => {
     render(
-      <Tooltip content="유튜브">
+      <Tooltip content="유튜브" preferredPlacement="auto">
         <button type="button">Y</button>
       </Tooltip>,
     );

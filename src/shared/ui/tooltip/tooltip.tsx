@@ -145,7 +145,7 @@ const tooltipClass = css({
   px: '2',
   py: '1',
   borderRadius: 'md',
-  backgroundColor: 'text',
+  backgroundColor: 'gray.900',
   color: 'white',
   fontSize: 'xs',
   lineHeight: 'tight',
