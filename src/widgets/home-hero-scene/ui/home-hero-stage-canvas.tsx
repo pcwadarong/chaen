@@ -72,15 +72,15 @@ export const HomeHeroStageCanvas = ({
     playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
-  const { currentBP, sceneMode } = useBreakpoint();
+  const { currentBP, sceneViewportMode } = useBreakpoint();
   const handleBrowseProjects = useCallback(() => {
-    if (sceneMode === 'mobile') {
+    if (sceneViewportMode === 'stacked') {
       onBrowseProjects?.();
       return;
     }
 
     scrollHomeHeroToProjects(triggerRef.current);
-  }, [onBrowseProjects, sceneMode, triggerRef]);
+  }, [onBrowseProjects, sceneViewportMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -126,7 +126,7 @@ export const HomeHeroStageCanvas = ({
         onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         sceneLayout={sceneLayout}
-        sceneMode={sceneMode}
+        sceneViewportMode={sceneViewportMode}
         onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
         webUiContentRef={webUiContentRef}
@@ -161,7 +161,7 @@ const HomeHeroCameraRig = ({
   onPlayBassString,
   onCloseupCostumeHiddenChange,
   sceneLayout,
-  sceneMode,
+  sceneViewportMode,
   onToggleBackgroundMusicPlayback,
   triggerRef,
   webUiContentRef,
@@ -178,7 +178,7 @@ const HomeHeroCameraRig = ({
   ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
-  readonly sceneMode: 'desktop' | 'mobile';
+  readonly sceneViewportMode: 'stacked' | 'wide';
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
@@ -188,7 +188,7 @@ const HomeHeroCameraRig = ({
     useHomeHeroSceneTransition({
       blackoutOverlayRef,
       sceneLayout,
-      sceneMode,
+      sceneViewportMode,
       triggerRef,
       webUiContentRef,
       webUiRef,
@@ -209,9 +209,9 @@ const HomeHeroCameraRig = ({
       <OrbitControls
         enablePan={false}
         enableRotate
-        enableZoom={sceneMode === 'mobile'}
-        enabled={sceneMode === 'mobile' || !isSequenceActive}
-        key={`${sceneMode}-${currentBP}`}
+        enableZoom={sceneViewportMode === 'stacked'}
+        enabled={sceneViewportMode === 'stacked' || !isSequenceActive}
+        key={`${sceneViewportMode}-${currentBP}`}
         makeDefault
         maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
         maxDistance={sceneLayout.camera.maxDistance}

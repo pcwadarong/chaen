@@ -74,7 +74,7 @@ describe('HomeHeroMobileProjectSheet', () => {
     expect(dialog.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('열린 상태에서 desktop scene mode로 전환되면 패널을 닫아야 한다', async () => {
+  it('열린 상태에서 wide scene viewport로 전환되면 패널을 닫아야 한다', async () => {
     const onClose = vi.fn();
 
     Object.defineProperty(window, 'innerWidth', {

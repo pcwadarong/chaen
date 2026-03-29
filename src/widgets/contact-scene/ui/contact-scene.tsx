@@ -4,7 +4,10 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
-import { getContactSceneLayoutMode } from '@/widgets/contact-scene/model/contact-scene-layout-mode';
+import {
+  CONTACT_SCENE_LAYOUT_MODE,
+  getContactSceneLayoutMode,
+} from '@/widgets/contact-scene/model/contact-scene-layout-mode';
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
 import { getHomeHeroViewportMetrics } from '@/widgets/home-hero-scene/model/home-hero-viewport-metrics';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
@@ -21,9 +24,7 @@ const ContactSceneCanvas = dynamic(
  * 현재 viewport와 nav 높이로 contact scene의 실제 가용 높이를 읽습니다.
  */
 const readContactAvailableHeight = () => {
-  if (typeof window === 'undefined') {
-    return 0;
-  }
+  if (typeof window === 'undefined') return 0;
 
   const navHeight =
     parseFloat(
@@ -36,9 +37,9 @@ const readContactAvailableHeight = () => {
   }).availableHeight;
 };
 
-/** 데스크탑에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
+/** wide viewport에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
-  const { sceneMode } = useBreakpoint();
+  const { sceneViewportMode } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
   const [availableHeight, setAvailableHeight] = useState(() => readContactAvailableHeight());
 
@@ -61,20 +62,18 @@ export const ContactScene = () => {
 
   const layoutMode = getContactSceneLayoutMode({
     availableHeight,
-    sceneMode,
+    sceneViewportMode,
   });
-  const shouldRenderScene = isMounted && layoutMode !== 'hidden';
+  const shouldRenderScene = isMounted && layoutMode !== CONTACT_SCENE_LAYOUT_MODE.hidden;
 
-  if (!shouldRenderScene) {
-    return null;
-  }
+  if (!shouldRenderScene) return null;
 
-  if (layoutMode === 'compact') {
+  if (layoutMode === CONTACT_SCENE_LAYOUT_MODE.centeredCopy) {
     return (
       <div className={wrapperClass}>
         <div className={compactLayoutClass} data-testid="contact-scene-layout">
           <div className={compactCopyClass} data-testid="contact-scene-copy">
-            <ContactStrip layout="compact" />
+            <ContactStrip layout="centered" />
           </div>
         </div>
         <div className={backgroundClass}>
@@ -90,7 +89,7 @@ export const ContactScene = () => {
     <div className={wrapperClass}>
       <div className={layoutClass} data-testid="contact-scene-layout">
         <div className={copyColumnClass} data-testid="contact-scene-copy">
-          <ContactStrip layout="default" />
+          <ContactStrip layout="split" />
         </div>
         <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
           <div className={canvasFrameClass}>
@@ -128,8 +127,7 @@ const layoutClass = css({
   display: 'flex',
   alignItems: 'center',
   gap: '[clamp(2rem, 6vw, 5rem)]',
-  paddingLeft: '12',
-  paddingRight: '4',
+  paddingLeft: '8',
   _desktopUp: {
     minHeight: '[var(--home-hero-viewport-height, 100dvh)]',
   },

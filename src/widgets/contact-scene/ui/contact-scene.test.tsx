@@ -18,7 +18,7 @@ vi.mock('next/dynamic', () => ({
 }));
 
 vi.mock('@/widgets/contact-strip/ui/contact-strip', () => ({
-  ContactStrip: ({ layout = 'default' }: { layout?: 'compact' | 'default' }) => (
+  ContactStrip: ({ layout = 'split' }: { layout?: 'centered' | 'split' }) => (
     <section data-testid="contact-strip" data-variant={layout} />
   ),
 }));
@@ -42,7 +42,7 @@ describe('ContactScene', () => {
   it('모바일에서는 contact scene 자체를 렌더링하지 않아야 한다', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 2,
-      sceneMode: 'mobile',
+      sceneViewportMode: 'stacked',
     });
 
     const { container } = render(<ContactScene />);
@@ -52,10 +52,10 @@ describe('ContactScene', () => {
     expect(screen.queryByTestId('contact-strip')).toBeNull();
   });
 
-  it('데스크탑에서는 mount 이후 canvas와 desktop ContactStrip을 함께 렌더링해야 한다', async () => {
+  it('wide scene에서는 mount 이후 canvas와 split ContactStrip을 함께 렌더링해야 한다', async () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
-      sceneMode: 'desktop',
+      sceneViewportMode: 'wide',
     });
 
     const { container } = render(<ContactScene />);
@@ -63,7 +63,7 @@ describe('ContactScene', () => {
     expect(container.firstElementChild?.tagName).toBe('DIV');
     expect(screen.getByTestId('contact-strip')).toBeTruthy();
     await waitFor(() => {
-      expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'default');
+      expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'split');
     });
     expect(await screen.findByTestId('contact-scene-canvas')).toBeTruthy();
     expect(screen.getByTestId('contact-scene-layout')).toBeTruthy();
@@ -75,10 +75,10 @@ describe('ContactScene', () => {
     );
   });
 
-  it('desktop이지만 availableHeight가 800 미만이면 compact ContactStrip만 렌더링해야 한다', async () => {
+  it('wide scene이지만 availableHeight가 800 미만이면 centered ContactStrip만 렌더링해야 한다', async () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
-      sceneMode: 'desktop',
+      sceneViewportMode: 'wide',
     });
 
     Object.defineProperty(window, 'innerHeight', {
@@ -90,7 +90,7 @@ describe('ContactScene', () => {
     render(<ContactScene />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'compact');
+      expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'centered');
     });
 
     expect(screen.queryByTestId('contact-scene-canvas')).toBeNull();

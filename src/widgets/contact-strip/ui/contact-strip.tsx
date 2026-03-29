@@ -11,13 +11,13 @@ import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-i
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ContactStripProps = Readonly<{
-  layout?: 'compact' | 'default';
+  layout?: 'centered' | 'split';
 }>;
 
 /** 홈 contact 영역의 텍스트와 액션을 렌더링합니다. */
-export const ContactStrip = ({ layout = 'default' }: ContactStripProps) => {
+export const ContactStrip = ({ layout = 'split' }: ContactStripProps) => {
   const t = useTranslations('Contact');
-  const isCompact = layout === 'compact';
+  const isCentered = layout === 'centered';
   const title = t('title');
   const titleLines = title
     .split('\n')
@@ -26,9 +26,9 @@ export const ContactStrip = ({ layout = 'default' }: ContactStripProps) => {
   const accessibleTitle = titleLines.join(' ');
 
   return (
-    <section className={cx(sectionClass, isCompact && compactSectionClass)}>
-      <div className={cx(copyClass, isCompact && compactCopyClass)}>
-        <h2 className={cx(titleClass, isCompact && compactTitleClass)}>
+    <section className={cx(sectionClass, isCentered && centeredSectionClass)}>
+      <div className={cx(copyClass, isCentered && centeredCopyClass)}>
+        <h2 className={cx(titleClass, isCentered && centeredTitleClass)}>
           <span className={srOnlyClass}>{accessibleTitle}</span>
           <span aria-hidden="true" className={titleVisualLinesClass}>
             {titleLines.map(line => (
@@ -36,18 +36,18 @@ export const ContactStrip = ({ layout = 'default' }: ContactStripProps) => {
             ))}
           </span>
         </h2>
-        <ul className={cx(metaListClass, isCompact && compactMetaListClass)}>
-          <li className={cx(metaItemClass, isCompact && compactMetaItemClass)}>
+        <ul className={cx(metaListClass, isCentered && centeredMetaListClass)}>
+          <li className={cx(metaItemClass, isCentered && centeredMetaItemClass)}>
             <span className={metaLabelClass}>{'Location'}</span>
             <span>{t('locationValue')}</span>
           </li>
-          <li className={cx(metaItemClass, isCompact && compactMetaItemClass)}>
+          <li className={cx(metaItemClass, isCentered && centeredMetaItemClass)}>
             <span className={metaLabelClass}>{'Focus'}</span>
             <span>{t('focusValue')}</span>
           </li>
         </ul>
       </div>
-      <div className={cx(actionsClass, isCompact && compactActionsClass)}>
+      <div className={cx(actionsClass, isCentered && centeredActionsClass)}>
         <Button
           asChild
           className={actionButtonClass}
@@ -96,7 +96,7 @@ const sectionClass = css({
   alignContent: 'center',
 });
 
-const compactSectionClass = css({
+const centeredSectionClass = css({
   alignItems: 'center',
   justifyContent: 'center',
   textAlign: 'center',
@@ -108,7 +108,7 @@ const copyClass = css({
   gap: '8',
 });
 
-const compactCopyClass = css({
+const centeredCopyClass = css({
   justifyItems: 'center',
   gap: '5',
 });
@@ -127,7 +127,7 @@ const titleVisualLinesClass = css({
   },
 });
 
-const compactTitleClass = css({
+const centeredTitleClass = css({
   fontSize: '5xl',
   textAlign: 'center',
   '& [aria-hidden="true"]': {
@@ -144,7 +144,7 @@ const metaListClass = css({
   color: 'muted',
 });
 
-const compactMetaListClass = css({
+const centeredMetaListClass = css({
   display: 'flex',
   flexWrap: 'wrap',
   justifyContent: 'center',
@@ -158,7 +158,7 @@ const metaItemClass = css({
   gap: '2',
 });
 
-const compactMetaItemClass = css({
+const centeredMetaItemClass = css({
   whiteSpace: 'nowrap',
 });
 
@@ -173,7 +173,7 @@ const actionsClass = css({
   width: 'auto',
 });
 
-const compactActionsClass = css({
+const centeredActionsClass = css({
   justifyContent: 'center',
   flexWrap: 'wrap',
 });

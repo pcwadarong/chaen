@@ -15,7 +15,7 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
     onToggleBackgroundMusicPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
-  sceneMode: 'desktop' as 'desktop' | 'mobile',
+  sceneViewportMode: 'wide' as 'stacked' | 'wide',
   timelineState: {
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
@@ -114,7 +114,7 @@ vi.mock('@/entities/scene/ui/scene-prop', () => ({
 vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: () => ({
     currentBP: 4,
-    sceneMode: homeHeroStageCanvasMockState.sceneMode,
+    sceneViewportMode: homeHeroStageCanvasMockState.sceneViewportMode,
   }),
 }));
 
@@ -143,7 +143,7 @@ describe('HomeHeroStageCanvas', () => {
     homeHeroStageCanvasMockState.createdCanvasElement = null;
     homeHeroStageCanvasMockState.interactionControllerProps = null;
     homeHeroStageCanvasMockState.orbitControlsProps = null;
-    homeHeroStageCanvasMockState.sceneMode = 'desktop';
+    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
     homeHeroStageCanvasMockState.timelineState = {
       isCloseupCostumeHidden: false,
       isMonitorOverlayVisible: false,
@@ -182,7 +182,7 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
   });
 
-  it('데스크탑 sceneMode에서는 OrbitControls 줌이 비활성화되어야 한다', () => {
+  it('wide sceneViewportMode에서는 OrbitControls 줌이 비활성화되어야 한다', () => {
     render(
       <HomeHeroStageCanvas
         blackoutOverlayRef={{ current: null }}
@@ -265,8 +265,8 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
   });
 
-  it('모바일 sceneMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
-    homeHeroStageCanvasMockState.sceneMode = 'mobile';
+  it('stacked sceneViewportMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
     const onBrowseProjects = vi.fn();
 
     render(

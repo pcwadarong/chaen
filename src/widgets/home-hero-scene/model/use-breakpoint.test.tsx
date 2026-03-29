@@ -39,7 +39,7 @@ describe('useBreakpoint', () => {
     });
   });
 
-  it('세로 비율이 큰 viewport에서는 mobile scene과 breakpoint를 반환해야 한다', () => {
+  it('세로 비율이 큰 viewport에서는 stacked scene과 breakpoint를 반환해야 한다', () => {
     resizeViewport({
       height: 1024,
       width: 768,
@@ -49,11 +49,11 @@ describe('useBreakpoint', () => {
 
     expect(result.current).toEqual({
       currentBP: 2,
-      sceneMode: 'mobile',
+      sceneViewportMode: 'stacked',
     });
   });
 
-  it('가로 비율이 충분한 작은 viewport에서는 desktop scene으로 전환해야 한다', () => {
+  it('가로 비율이 충분한 작은 viewport에서는 wide scene으로 전환해야 한다', () => {
     resizeViewport({
       height: 375,
       width: 812,
@@ -63,7 +63,7 @@ describe('useBreakpoint', () => {
 
     expect(result.current).toEqual({
       currentBP: 3,
-      sceneMode: 'desktop',
+      sceneViewportMode: 'wide',
     });
   });
 
@@ -84,7 +84,7 @@ describe('useBreakpoint', () => {
 
     expect(result.current).toEqual({
       currentBP: 3,
-      sceneMode: 'desktop',
+      sceneViewportMode: 'wide',
     });
   });
 });

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 
-import type { SceneBreakpoint, SceneMode } from '@/entities/scene/model/breakpointConfig';
+import type { SceneBreakpoint, SceneViewportMode } from '@/entities/scene/model/breakpointConfig';
 import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { getHomeHeroBreakpointState } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 
 type UseBreakpointResult = {
   readonly currentBP: SceneBreakpoint;
-  readonly sceneMode: SceneMode;
+  readonly sceneViewportMode: SceneViewportMode;
 };
 
 /**

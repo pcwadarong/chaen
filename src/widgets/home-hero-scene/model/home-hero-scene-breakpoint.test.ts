@@ -4,31 +4,31 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getHomeHeroBreakpointState,
-  getHomeHeroSceneMode,
+  getHomeHeroSceneViewportMode,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 
-describe('getHomeHeroSceneMode', () => {
-  it('세로 비율이 큰 큰 화면에서는 홈 히어로 씬을 mobile로 유지해야 한다', () => {
+describe('getHomeHeroSceneViewportMode', () => {
+  it('세로 비율이 큰 큰 화면에서는 홈 히어로 씬을 stacked로 유지해야 한다', () => {
     expect(
-      getHomeHeroSceneMode({
+      getHomeHeroSceneViewportMode({
         height: 1600,
         width: 1400,
       }),
-    ).toBe('mobile');
+    ).toBe('stacked');
   });
 
-  it('가로 비율이 충분한 작은 화면에서는 홈 히어로 씬을 desktop으로 전환해야 한다', () => {
+  it('가로 비율이 충분한 작은 화면에서는 홈 히어로 씬을 wide로 전환해야 한다', () => {
     expect(
-      getHomeHeroSceneMode({
+      getHomeHeroSceneViewportMode({
         height: 375,
         width: 812,
       }),
-    ).toBe('desktop');
+    ).toBe('wide');
   });
 });
 
 describe('getHomeHeroBreakpointState', () => {
-  it('mobile scene에서는 width 기준으로 mobile breakpoint를 선택해야 한다', () => {
+  it('stacked scene에서는 width 기준으로 stacked breakpoint를 선택해야 한다', () => {
     expect(
       getHomeHeroBreakpointState({
         height: 1200,
@@ -36,11 +36,11 @@ describe('getHomeHeroBreakpointState', () => {
       }),
     ).toEqual({
       currentBP: 1,
-      sceneMode: 'mobile',
+      sceneViewportMode: 'stacked',
     });
   });
 
-  it('desktop scene에서는 width 기준으로 desktop breakpoint를 선택해야 한다', () => {
+  it('wide scene에서는 width 기준으로 wide breakpoint를 선택해야 한다', () => {
     expect(
       getHomeHeroBreakpointState({
         height: 768,
@@ -48,7 +48,7 @@ describe('getHomeHeroBreakpointState', () => {
       }),
     ).toEqual({
       currentBP: 3,
-      sceneMode: 'desktop',
+      sceneViewportMode: 'wide',
     });
   });
 });
