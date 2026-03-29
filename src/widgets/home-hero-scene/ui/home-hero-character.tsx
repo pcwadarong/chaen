@@ -75,14 +75,19 @@ export const HomeHeroCharacter = ({
       opacity: monitorScreenOpacity,
       texture: monitorScreenTexture,
     });
+  }, [instance, monitorScreenOpacity, monitorScreenTexture, object]);
 
-    return () => {
+  useEffect(
+    () => () => {
+      if (instance !== 'main') return;
+
       applyCharacterScreenTexture(object, {
         opacity: 0,
         texture: null,
       });
-    };
-  }, [instance, monitorScreenOpacity, monitorScreenTexture, object]);
+    },
+    [instance, object],
+  );
 
   return <Character object={object} position={position} />;
 };

@@ -157,6 +157,20 @@ export const getScrollTimelineSnapshot = ({
     };
   }
 
+  if (normalizedProgress <= WEB_UI_FADE_START_PROGRESS) {
+    return {
+      blackoutOpacity: 0,
+      cameraPosition: preset.closeupEndPosition,
+      isCloseupCostumeHidden: true,
+      isMonitorOverlayVisible: true,
+      isScrollDriven: true,
+      isSequenceActive: true,
+      lookAt: preset.closeupLookAt,
+      progress: normalizedProgress,
+      webUiOpacity: 0,
+    };
+  }
+
   const ratio = getSegmentRatio(
     normalizedProgress,
     WEB_UI_FADE_START_PROGRESS,

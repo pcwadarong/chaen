@@ -1,6 +1,17 @@
+/* @vitest-environment node */
+
 import type { ProjectListItem } from '@/entities/project/model/types';
 import { getMonitorOverlayScreenData } from '@/features/monitor-overlay/model/get-monitor-overlay-screen-data';
 
+/**
+ * `getMonitorOverlayScreenData` 순수 함수 테스트에 사용할 기본 프로젝트 fixture를 생성합니다.
+ *
+ * `overrides`에 `Partial<ProjectListItem>`를 넘기면 기본 샘플 값을 같은 키로 덮어씁니다.
+ * 예: `createItem({ title: 'Only One' })`
+ *
+ * @param overrides - 기본 프로젝트 필드를 부분적으로 덮어쓸 값입니다.
+ * @returns monitor overlay 계산에 바로 사용할 `ProjectListItem` fixture를 반환합니다.
+ */
 const createItem = (overrides?: Partial<ProjectListItem>): ProjectListItem => ({
   description: '설명',
   id: 'project-1',
@@ -50,6 +61,7 @@ describe('getMonitorOverlayScreenData', () => {
 
     expect(screenData.projects).toHaveLength(3);
     expect(screenData.projects.every(p => p.title === 'No project')).toBe(true);
+    expect(screenData.projects.every(p => p.periodLabel === 'Ongoing')).toBe(true);
     expect(screenData.projects.every(p => p.thumbnailSrc === null)).toBe(true);
   });
 

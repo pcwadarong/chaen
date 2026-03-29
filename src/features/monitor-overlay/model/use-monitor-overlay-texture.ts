@@ -11,6 +11,10 @@ import {
   type MonitorOverlayScreenData,
 } from '@/features/monitor-overlay/model/get-monitor-overlay-screen-data';
 
+/**
+ * 홈 hero의 `laptop_screen`에 붙일 monitor texture를 생성하는 canvas 렌더러 모듈입니다.
+ * 실제 프로젝트 데이터를 받아 theme/locale과 동기화된 카드 레이아웃을 그립니다.
+ */
 type UseMonitorOverlayTextureParams = Readonly<{
   items: ProjectListItem[];
   locale: string;
@@ -112,6 +116,11 @@ const DESCRIPTION_LINE_HEIGHT = 22;
  * 노트북 화면에 붙일 CanvasTexture를 생성합니다.
  * 현재 theme에 맞는 palette 위에 ContentCard 디자인(썸네일 + period + title + description)을
  * 3개 가로 나열합니다.
+ *
+ * @param items - 액정 안에 요약해 그릴 프로젝트 목록입니다. 최대 3개 카드까지 사용합니다.
+ * @param locale - 기간 및 문구 계산에 사용할 로케일 문자열입니다.
+ * @param ongoingLabel - 진행 중 상태와 빈 카드 placeholder에 사용할 진행 상태 문구입니다.
+ * @returns 브라우저 환경이면 `CanvasTexture`, SSR 등 canvas를 만들 수 없으면 `null`을 반환합니다.
  */
 export const useMonitorOverlayTexture = ({
   items,
@@ -180,6 +189,17 @@ export const useMonitorOverlayTexture = ({
         if (!isActive) return;
 
         thumbnailImagesRef.current[i] = image;
+        redraw();
+      };
+      image.onerror = error => {
+        if (!isActive) return;
+
+        thumbnailImagesRef.current[i] = null;
+        console.error('Monitor overlay thumbnail load failed', {
+          error,
+          index: i,
+          src: project.thumbnailSrc,
+        });
         redraw();
       };
       image.src = project.thumbnailSrc;
@@ -334,6 +354,17 @@ const drawThumbnailArea = (
   context.restore();
 };
 
+/**
+ * 이미지를 카드 영역에 cover 방식으로 맞춰 잘라 그립니다.
+ *
+ * @param context - 이미지를 그릴 canvas context입니다.
+ * @param image - 이미 로드가 끝난 HTML 이미지입니다.
+ * @param x - 그리기 시작 X 좌표입니다.
+ * @param y - 그리기 시작 Y 좌표입니다.
+ * @param width - 목표 영역 폭입니다.
+ * @param height - 목표 영역 높이입니다.
+ * @returns `void`
+ */
 const drawCoverImage = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
@@ -363,6 +394,13 @@ type DrawTextParams = Readonly<{
   y: number;
 }>;
 
+/**
+ * 단일 행 텍스트를 지정한 폭 안에 맞춰 그리고, 필요하면 말줄임표를 적용합니다.
+ *
+ * @param context - 그리기 대상 `CanvasRenderingContext2D`입니다.
+ * @param params - 색상, 폰트, 좌표와 최대 폭을 포함한 텍스트 옵션입니다.
+ * @returns `void`
+ */
 const drawText = (context: CanvasRenderingContext2D, params: DrawTextParams) => {
   context.save();
   context.fillStyle = params.color;
@@ -382,6 +420,13 @@ type DrawMultilineTextParams = Readonly<{
   y: number;
 }>;
 
+/**
+ * 여러 단어로 된 문장을 지정한 폭과 줄 수 안에서 줄바꿈해 그립니다.
+ *
+ * @param context - 줄 수 계산과 텍스트 렌더에 사용할 canvas context입니다.
+ * @param params - 색상, 폰트, 줄간격, 최대 줄 수, 좌표를 포함한 옵션입니다.
+ * @returns `void`
+ */
 const drawMultilineText = (
   context: CanvasRenderingContext2D,
   { color, font, lineHeight, maxLines, maxWidth, text, x, y }: DrawMultilineTextParams,
@@ -419,6 +464,14 @@ const drawMultilineText = (
   context.restore();
 };
 
+/**
+ * 주어진 폭을 넘는 텍스트를 말줄임표(`...`)가 포함된 문자열로 잘라냅니다.
+ *
+ * @param context - 실제 측정에 사용할 canvas context입니다.
+ * @param text - 원본 텍스트입니다.
+ * @param maxWidth - 허용할 최대 폭입니다. 없으면 원본 텍스트를 그대로 반환합니다.
+ * @returns 최대 폭 안에 들어오는 텍스트 문자열입니다.
+ */
 const truncateTextToWidth = (
   context: CanvasRenderingContext2D,
   text: string,
@@ -435,6 +488,18 @@ const truncateTextToWidth = (
   return `${nextText}...`;
 };
 
+/**
+ * 채워진 모서리 둥근 사각형을 그립니다.
+ *
+ * @param context - 그리기 대상 canvas context입니다.
+ * @param x - 시작 X 좌표입니다.
+ * @param y - 시작 Y 좌표입니다.
+ * @param width - 사각형 폭입니다.
+ * @param height - 사각형 높이입니다.
+ * @param radius - 둥근 모서리 반경입니다.
+ * @param fillStyle - 채움 색상입니다.
+ * @returns `void`
+ */
 const fillRoundedRect = (
   context: CanvasRenderingContext2D,
   x: number,
@@ -452,6 +517,19 @@ const fillRoundedRect = (
   context.restore();
 };
 
+/**
+ * 선만 있는 모서리 둥근 사각형을 그립니다.
+ *
+ * @param context - 그리기 대상 canvas context입니다.
+ * @param x - 시작 X 좌표입니다.
+ * @param y - 시작 Y 좌표입니다.
+ * @param width - 사각형 폭입니다.
+ * @param height - 사각형 높이입니다.
+ * @param radius - 둥근 모서리 반경입니다.
+ * @param strokeStyle - 선 색상입니다.
+ * @param lineWidth - 선 두께입니다.
+ * @returns `void`
+ */
 const strokeRoundedRect = (
   context: CanvasRenderingContext2D,
   x: number,
