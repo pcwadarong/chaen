@@ -147,9 +147,7 @@ export const useScrollTimeline = ({
         setIsMonitorOverlayVisible(nextSnapshot.isMonitorOverlayVisible);
       }
 
-      const nextMonitorOverlayOpacity = nextSnapshot.isMonitorOverlayVisible
-        ? 1 - nextSnapshot.webUiOpacity
-        : 0;
+      const nextMonitorOverlayOpacity = nextSnapshot.isMonitorOverlayVisible ? 1 : 0;
 
       if (uiStateRef.current.monitorOverlayOpacity !== nextMonitorOverlayOpacity) {
         uiStateRef.current = {

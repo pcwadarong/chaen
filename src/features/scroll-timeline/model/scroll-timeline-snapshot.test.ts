@@ -39,7 +39,15 @@ describe('getScrollTimelineSnapshot', () => {
     expect(spinStartSnapshot.cameraPosition[1]).toBeCloseTo(zoomEndSnapshot.cameraPosition[1], 3);
   });
 
-  it('블랙아웃 IN 이후 클로즈업 구간에서는 overlay가 걷히고 마지막에 monitor overlay가 보여야 한다', () => {
+  it('monitor overlay는 hero 전 구간에서 항상 켜진 상태여야 한다', () => {
+    const startSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0,
+    });
+    const spinSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.35,
+    });
     const blackoutSnapshot = getScrollTimelineSnapshot({
       initialPosition: DESKTOP_INITIAL_POSITION,
       progress: 0.54,
@@ -48,7 +56,28 @@ describe('getScrollTimelineSnapshot', () => {
       initialPosition: DESKTOP_INITIAL_POSITION,
       progress: 0.72,
     });
-    const overlaySnapshot = getScrollTimelineSnapshot({
+    const webUiSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.92,
+    });
+
+    expect(startSnapshot.isMonitorOverlayVisible).toBe(true);
+    expect(spinSnapshot.isMonitorOverlayVisible).toBe(true);
+    expect(blackoutSnapshot.isMonitorOverlayVisible).toBe(true);
+    expect(closeupSnapshot.isMonitorOverlayVisible).toBe(true);
+    expect(webUiSnapshot.isMonitorOverlayVisible).toBe(true);
+  });
+
+  it('블랙아웃 IN 이후 클로즈업 구간에서는 blackout overlay가 걷히고 web UI가 등장해야 한다', () => {
+    const blackoutSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.54,
+    });
+    const closeupSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.72,
+    });
+    const webUiSnapshot = getScrollTimelineSnapshot({
       initialPosition: DESKTOP_INITIAL_POSITION,
       progress: 0.92,
     });
@@ -57,8 +86,7 @@ describe('getScrollTimelineSnapshot', () => {
     expect(blackoutSnapshot.isCloseupCostumeHidden).toBe(false);
     expect(closeupSnapshot.blackoutOpacity).toBeLessThan(blackoutSnapshot.blackoutOpacity);
     expect(closeupSnapshot.isCloseupCostumeHidden).toBe(true);
-    expect(overlaySnapshot.isMonitorOverlayVisible).toBe(true);
-    expect(overlaySnapshot.isCloseupCostumeHidden).toBe(true);
-    expect(overlaySnapshot.webUiOpacity).toBeGreaterThan(0);
+    expect(webUiSnapshot.isCloseupCostumeHidden).toBe(true);
+    expect(webUiSnapshot.webUiOpacity).toBeGreaterThan(0);
   });
 });
