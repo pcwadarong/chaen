@@ -14,6 +14,7 @@ type HomeHeroStageCanvasProps = {
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -39,6 +40,7 @@ export const HomeHeroStage = ({
   onOpenImageViewer,
   selectedFrameImageSrc,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => (
   <div className={stageFrameClass}>
@@ -50,6 +52,7 @@ export const HomeHeroStage = ({
       onOpenImageViewer={onOpenImageViewer}
       selectedFrameImageSrc={selectedFrameImageSrc}
       triggerRef={triggerRef}
+      webUiContentRef={webUiContentRef}
       webUiRef={webUiRef}
     />
   </div>

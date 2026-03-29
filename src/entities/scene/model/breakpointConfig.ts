@@ -7,7 +7,16 @@ export const BREAKPOINTS = {
   BP3: LAYOUT_WIDTHS.contentWide - 1,
 } as const;
 
-export type SceneMode = 'mobile' | 'desktop';
+/**
+ * 씬이 취할 수 있는 viewport 배치 계열입니다.
+ * `stacked`는 세로 적층형, `wide`는 가로 확장형 구도를 뜻합니다.
+ */
+export const SCENE_VIEWPORT_MODE = {
+  stacked: 'stacked',
+  wide: 'wide',
+} as const;
+
+export type SceneViewportMode = (typeof SCENE_VIEWPORT_MODE)[keyof typeof SCENE_VIEWPORT_MODE];
 
 export type SceneBreakpoint = 1 | 2 | 3 | 4;
 
@@ -23,8 +32,8 @@ export const getSceneBreakpoint = (width: number): SceneBreakpoint => {
 };
 
 /**
- * 현재 viewport 너비가 모바일 계열 씬인지 데스크탑 계열 씬인지 판별합니다.
- * 네비 모바일 메뉴가 유지되는 tablet 최대 구간까지는 모바일 씬으로 유지합니다.
+ * 현재 viewport 너비가 적층형 씬인지 가로 확장형 씬인지 판별합니다.
+ * 네비 모바일 메뉴가 유지되는 tablet 최대 구간까지는 적층형 씬으로 유지합니다.
  */
-export const getSceneMode = (width: number): SceneMode =>
-  width <= VIEWPORT_BREAKPOINTS.tabletMax ? 'mobile' : 'desktop';
+export const getSceneViewportMode = (width: number): SceneViewportMode =>
+  width <= VIEWPORT_BREAKPOINTS.tabletMax ? SCENE_VIEWPORT_MODE.stacked : SCENE_VIEWPORT_MODE.wide;

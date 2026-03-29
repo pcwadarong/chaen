@@ -74,12 +74,17 @@ describe('HomeHeroMobileProjectSheet', () => {
     expect(dialog.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('열린 상태에서 desktop scene mode로 전환되면 패널을 닫아야 한다', async () => {
+  it('열린 상태에서 wide scene viewport로 전환되면 패널을 닫아야 한다', async () => {
     const onClose = vi.fn();
 
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
       value: 768,
+      writable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 1024,
       writable: true,
     });
 
@@ -94,6 +99,11 @@ describe('HomeHeroMobileProjectSheet', () => {
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
       value: 1600,
+      writable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 900,
       writable: true,
     });
 

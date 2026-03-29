@@ -2,51 +2,60 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-  getSceneBreakpoint,
-  getSceneMode,
-  type SceneBreakpoint,
-  type SceneMode,
-} from '@/entities/scene/model/breakpointConfig';
+import type { SceneBreakpoint, SceneViewportMode } from '@/entities/scene/model/breakpointConfig';
 import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
-
-type UseBreakpointParams = {
-  readonly isScrolling?: boolean;
-};
+import { getHomeHeroBreakpointState } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 
 type UseBreakpointResult = {
   readonly currentBP: SceneBreakpoint;
-  readonly sceneMode: SceneMode;
+  readonly sceneViewportMode: SceneViewportMode;
 };
 
 /**
  * 홈 히어로 씬에서 현재 viewport 기준 breakpoint와 씬 모드를 추적합니다.
- *
- * 스크롤 시퀀스가 진행 중일 때는 resize로 sceneMode를 바꾸지 않고,
- * 시퀀스가 끝난 뒤 현재 너비를 한 번 더 읽어 동기화합니다.
  */
-export const useBreakpoint = ({
-  isScrolling = false,
-}: UseBreakpointParams = {}): UseBreakpointResult => {
+export const useBreakpoint = (): UseBreakpointResult => {
   const [state, setState] = useState<UseBreakpointResult>(() =>
-    getBreakpointState(readViewportWidth()),
+    getBreakpointState(readViewportSize()),
   );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const syncBreakpoint = () => {
-      if (isScrolling) return;
-      setState(getBreakpointState(window.innerWidth));
+      setState(
+        getBreakpointState({
+          height: window.innerHeight,
+          width: window.innerWidth,
+        }),
+      );
+    };
+
+    let frameId: number | null = null;
+
+    /**
+     * resize 폭주를 한 프레임당 한 번으로 묶어 불필요한 재계산과 렌더를 줄입니다.
+     */
+    const scheduleBreakpointSync = () => {
+      if (frameId !== null) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        syncBreakpoint();
+      });
     };
 
     syncBreakpoint();
-    window.addEventListener('resize', syncBreakpoint);
+    window.addEventListener('resize', scheduleBreakpointSync);
 
     return () => {
-      window.removeEventListener('resize', syncBreakpoint);
+      window.removeEventListener('resize', scheduleBreakpointSync);
+
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
     };
-  }, [isScrolling]);
+  }, []);
 
   return state;
 };
@@ -54,18 +63,27 @@ export const useBreakpoint = ({
 /**
  * 현재 viewport 너비로부터 hook 반환값 모양을 계산합니다.
  */
-const getBreakpointState = (width: number): UseBreakpointResult => ({
-  currentBP: getSceneBreakpoint(width),
-  sceneMode: getSceneMode(width),
-});
+const getBreakpointState = ({
+  height,
+  width,
+}: {
+  height: number;
+  width: number;
+}): UseBreakpointResult => getHomeHeroBreakpointState({ height, width });
 
 /**
- * SSR과 CSR 모두에서 사용할 현재 viewport 너비를 읽습니다.
+ * SSR과 CSR 모두에서 사용할 현재 viewport 크기를 읽습니다.
  */
-const readViewportWidth = (): number => {
+const readViewportSize = (): { height: number; width: number } => {
   if (typeof window === 'undefined') {
-    return VIEWPORT_BREAKPOINTS.desktopMax;
+    return {
+      height: VIEWPORT_BREAKPOINTS.mobileLargeMax,
+      width: VIEWPORT_BREAKPOINTS.desktopMax,
+    };
   }
 
-  return window.innerWidth;
+  return {
+    height: window.innerHeight,
+    width: window.innerWidth,
+  };
 };

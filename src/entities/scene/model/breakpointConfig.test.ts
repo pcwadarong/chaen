@@ -5,11 +5,12 @@ import { describe, expect, it } from 'vitest';
 import {
   BREAKPOINTS,
   getSceneBreakpoint,
-  getSceneMode,
+  getSceneViewportMode,
+  SCENE_VIEWPORT_MODE,
 } from '@/entities/scene/model/breakpointConfig';
 
 describe('breakpointConfig', () => {
-  it('홈 씬이 mobile S, mobile L, desktop S 최대 너비를 순서대로 노출한다', () => {
+  it('홈 씬이 stacked S, stacked L, wide S 최대 너비를 순서대로 노출한다', () => {
     expect(BREAKPOINTS).toEqual({
       BP1: 480,
       BP2: 960,
@@ -28,11 +29,11 @@ describe('breakpointConfig', () => {
     expect(getSceneBreakpoint(1440)).toBe(4);
   });
 
-  it('네비 모바일 메뉴가 보이는 tablet 구간까지는 모바일 모드로 판별한다', () => {
-    expect(getSceneMode(375)).toBe('mobile');
-    expect(getSceneMode(768)).toBe('mobile');
-    expect(getSceneMode(960)).toBe('mobile');
-    expect(getSceneMode(961)).toBe('desktop');
-    expect(getSceneMode(1440)).toBe('desktop');
+  it('네비 모바일 메뉴가 보이는 tablet 구간까지는 stacked 모드로 판별한다', () => {
+    expect(getSceneViewportMode(375)).toBe(SCENE_VIEWPORT_MODE.stacked);
+    expect(getSceneViewportMode(768)).toBe(SCENE_VIEWPORT_MODE.stacked);
+    expect(getSceneViewportMode(960)).toBe(SCENE_VIEWPORT_MODE.stacked);
+    expect(getSceneViewportMode(961)).toBe(SCENE_VIEWPORT_MODE.wide);
+    expect(getSceneViewportMode(1440)).toBe(SCENE_VIEWPORT_MODE.wide);
   });
 });

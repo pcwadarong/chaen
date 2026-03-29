@@ -6,18 +6,19 @@ import type { ProjectListItem } from '@/entities/project/model/types';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomeHeroWebUiProps = {
+  readonly contentRef?: React.RefObject<HTMLDivElement | null>;
   readonly items: ProjectListItem[];
   readonly title: string;
   readonly wrapperRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 /** 3D 캔버스 위에서 페이드 인되는 실제 HTML UI 레이어입니다. */
-export const HomeHeroWebUi = ({ items, title, wrapperRef }: HomeHeroWebUiProps) => {
+export const HomeHeroWebUi = ({ contentRef, items, title, wrapperRef }: HomeHeroWebUiProps) => {
   const t = useTranslations('Home');
   return (
     <div className={wrapperClass} id="web-ui" ref={wrapperRef}>
       <div className={gridBridgeClass}>
-        <div className={contentClass}>
+        <div className={contentClass} ref={contentRef}>
           <ProjectShowcase
             emptyText={t('emptyProjects')}
             items={items}

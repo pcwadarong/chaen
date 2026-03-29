@@ -5,7 +5,10 @@ import type { RefObject } from 'react';
 import { useEffect } from 'react';
 import type { PerspectiveCamera } from 'three';
 
-import type { SceneMode } from '@/entities/scene/model/breakpointConfig';
+import {
+  SCENE_VIEWPORT_MODE,
+  type SceneViewportMode,
+} from '@/entities/scene/model/breakpointConfig';
 import { useScrollTimeline } from '@/features/scroll-timeline/model/use-scroll-timeline';
 import {
   HOME_HERO_CAMERA_FAR,
@@ -15,22 +18,22 @@ import {
 
 type UseHomeHeroSceneTransitionParams = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
-  readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
-  readonly sceneMode: SceneMode;
+  readonly sceneViewportMode: SceneViewportMode;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
 /**
- * 홈 히어로 씬의 기본 카메라 상태와 데스크탑 스크롤 타임라인 연결을 함께 관리합니다.
+ * 홈 히어로 씬의 기본 카메라 상태와 wide 구도 스크롤 타임라인 연결을 함께 관리합니다.
  */
 export const useHomeHeroSceneTransition = ({
   blackoutOverlayRef,
-  onScrollStateChange,
   sceneLayout,
-  sceneMode,
+  sceneViewportMode,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
@@ -42,10 +45,10 @@ export const useHomeHeroSceneTransition = ({
     progress,
   } = useScrollTimeline({
     blackoutOverlayRef,
-    enabled: sceneMode === 'desktop',
+    enabled: sceneViewportMode === SCENE_VIEWPORT_MODE.wide,
     initialPosition: sceneLayout.camera.position,
-    onScrollStateChange,
     triggerRef,
+    webUiContentRef,
     webUiRef,
   });
 
@@ -57,7 +60,7 @@ export const useHomeHeroSceneTransition = ({
     perspectiveCamera.far = HOME_HERO_CAMERA_FAR;
     perspectiveCamera.updateProjectionMatrix();
 
-    if (sceneMode === 'desktop' && isScrollDriven) {
+    if (sceneViewportMode === SCENE_VIEWPORT_MODE.wide && isScrollDriven) {
       perspectiveCamera.updateMatrixWorld();
 
       return;
@@ -66,7 +69,7 @@ export const useHomeHeroSceneTransition = ({
     perspectiveCamera.position.set(...sceneLayout.camera.position);
     perspectiveCamera.lookAt(...sceneLayout.camera.lookAt);
     perspectiveCamera.updateMatrixWorld();
-  }, [camera, isScrollDriven, sceneLayout, sceneMode]);
+  }, [camera, isScrollDriven, sceneLayout, sceneViewportMode]);
 
   return {
     isCloseupCostumeHidden,

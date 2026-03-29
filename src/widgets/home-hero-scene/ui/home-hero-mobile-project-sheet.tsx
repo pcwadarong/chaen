@@ -6,9 +6,10 @@ import { createPortal } from 'react-dom';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { getSceneMode } from '@/entities/scene/model/breakpointConfig';
+import { SCENE_VIEWPORT_MODE } from '@/entities/scene/model/breakpointConfig';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
+import { getHomeHeroSceneViewportMode } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase';
 
 type HomeHeroMobileProjectSheetProps = {
@@ -115,17 +116,22 @@ export const HomeHeroMobileProjectSheet = ({
     if (!isOpen) return;
     if (typeof window === 'undefined') return;
 
-    const closeOnDesktopMode = () => {
-      if (getSceneMode(window.innerWidth) === 'desktop') {
+    const closeOnWideMode = () => {
+      if (
+        getHomeHeroSceneViewportMode({
+          height: window.innerHeight,
+          width: window.innerWidth,
+        }) === SCENE_VIEWPORT_MODE.wide
+      ) {
         onClose();
       }
     };
 
-    closeOnDesktopMode();
-    window.addEventListener('resize', closeOnDesktopMode);
+    closeOnWideMode();
+    window.addEventListener('resize', closeOnWideMode);
 
     return () => {
-      window.removeEventListener('resize', closeOnDesktopMode);
+      window.removeEventListener('resize', closeOnWideMode);
     };
   }, [isOpen, onClose]);
 

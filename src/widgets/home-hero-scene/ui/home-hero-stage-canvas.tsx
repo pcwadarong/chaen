@@ -7,12 +7,17 @@ import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 
 import { css, cx } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
+import {
+  SCENE_VIEWPORT_MODE,
+  type SceneBreakpoint,
+  type SceneViewportMode,
+} from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
+import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -37,6 +42,7 @@ type HomeHeroStageCanvasProps = {
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -56,12 +62,12 @@ export const HomeHeroStageCanvas = ({
   onOpenImageViewer,
   selectedFrameImageSrc,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [monitorScreenOpacity, setMonitorScreenOpacity] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
   const locale = useLocale();
   const t = useTranslations('Navigation');
   const projectDetailTranslations = useTranslations('ProjectDetail');
@@ -71,17 +77,19 @@ export const HomeHeroStageCanvas = ({
     playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
-  const { currentBP, sceneMode } = useBreakpoint({
-    isScrolling,
-  });
+  const { currentBP, sceneViewportMode } = useBreakpoint();
   const handleBrowseProjects = useCallback(() => {
-    if (sceneMode === 'mobile') {
+    const shouldUseBottomSheet =
+      sceneViewportMode === SCENE_VIEWPORT_MODE.stacked ||
+      (typeof window !== 'undefined' && window.innerWidth < VIEWPORT_BREAKPOINTS.desktopMin);
+
+    if (shouldUseBottomSheet) {
       onBrowseProjects?.();
       return;
     }
 
     scrollHomeHeroToProjects(triggerRef.current);
-  }, [onBrowseProjects, sceneMode, triggerRef]);
+  }, [onBrowseProjects, sceneViewportMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -126,11 +134,11 @@ export const HomeHeroStageCanvas = ({
         onOpenImageViewer={onOpenImageViewer}
         onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
-        onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
-        sceneMode={sceneMode}
+        sceneViewportMode={sceneViewportMode}
         onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
+        webUiContentRef={webUiContentRef}
         webUiRef={webUiRef}
       />
       <Suspense fallback={null}>
@@ -161,11 +169,11 @@ const HomeHeroCameraRig = ({
   onOpenImageViewer,
   onPlayBassString,
   onCloseupCostumeHiddenChange,
-  onScrollStateChange,
   sceneLayout,
-  sceneMode,
+  sceneViewportMode,
   onToggleBackgroundMusicPlayback,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
@@ -178,20 +186,20 @@ const HomeHeroCameraRig = ({
     stringName: 'line1' | 'line2' | 'line3' | 'line4',
   ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
-  readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
-  readonly sceneMode: 'desktop' | 'mobile';
+  readonly sceneViewportMode: SceneViewportMode;
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
   const { isCloseupCostumeHidden, isSequenceActive, monitorOverlayOpacity, progress } =
     useHomeHeroSceneTransition({
       blackoutOverlayRef,
-      onScrollStateChange,
       sceneLayout,
-      sceneMode,
+      sceneViewportMode,
       triggerRef,
+      webUiContentRef,
       webUiRef,
     });
 
@@ -210,9 +218,9 @@ const HomeHeroCameraRig = ({
       <OrbitControls
         enablePan={false}
         enableRotate
-        enableZoom={sceneMode === 'mobile'}
-        enabled={sceneMode === 'mobile' || !isSequenceActive}
-        key={`${sceneMode}-${currentBP}`}
+        enableZoom={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked}
+        enabled={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked || !isSequenceActive}
+        key={`${sceneViewportMode}-${currentBP}`}
         makeDefault
         maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
         maxDistance={sceneLayout.camera.maxDistance}
@@ -303,7 +311,7 @@ const bassStopButtonClass = css({
   borderRadius: 'full',
   borderWidth: '0',
   borderStyle: 'none',
-  background: '[rgba(9, 12, 26, 0.42)]',
+  backgroundColor: '[color-mix(in srgb, var(--colors-gray-950) 42%, transparent)]',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -312,7 +320,7 @@ const bassStopButtonClass = css({
   cursor: 'pointer',
   transition: 'common',
   _hover: {
-    background: '[rgba(9, 12, 26, 0.58)]',
+    backgroundColor: '[color-mix(in srgb, var(--colors-gray-950) 58%, transparent)]',
     transform: 'scale(1.04)',
   },
   _focusVisible: {

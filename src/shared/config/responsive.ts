@@ -35,3 +35,11 @@ export const viewportMediaQuery = {
 export const viewportImageSizes = {
   imageSourceField: `${viewportMediaQuery.mobileSmallDown} 100vw, ${VIEWPORT_BREAKPOINTS.mobileSmallMax}px`,
 } as const;
+
+/**
+ * 씬 전용 레이아웃이 참조하는 세로 높이 기준값입니다.
+ * 특히 desktop이지만 높이가 짧은 경우 별도 compact 레이아웃으로 전환할 때 사용합니다.
+ */
+export const SCENE_LAYOUT_HEIGHT_THRESHOLDS = {
+  contactCompactDesktopMax: 800,
+} as const;

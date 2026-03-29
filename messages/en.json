@@ -277,10 +277,11 @@
     "zoomOutAriaLabel": "Zoom out image"
   },
   "Contact": {
+    "focusLabel": "Focus",
     "focusValue": "Frontend Development",
+    "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
-    "titleLine1": "Let's connect and create",
-    "titleLine2": "meaningful experiences."
+    "title": "Let's connect and\ncreate meaningful\nexperiences."
   },
   "Switchers": {
     "locale": {

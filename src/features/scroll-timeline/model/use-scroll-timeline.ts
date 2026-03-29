@@ -20,6 +20,7 @@ type UseScrollTimelineParams = {
   readonly initialPosition: Vector3Tuple;
   readonly onScrollStateChange?: (isScrolling: boolean) => void;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -96,6 +97,7 @@ export const useScrollTimeline = ({
   initialPosition,
   onScrollStateChange,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: UseScrollTimelineParams): UseScrollTimelineResult => {
   const { camera } = useThree();
@@ -123,6 +125,9 @@ export const useScrollTimeline = ({
     const perspectiveCamera = camera as PerspectiveCamera;
     const blackoutOverlayElement = blackoutOverlayRef.current;
     const webUiElement = webUiRef.current;
+    const getViewportHeight = (scroller?: HTMLElement) =>
+      scroller?.clientHeight ?? window.innerHeight;
+    const getWebUiHeight = () => webUiContentRef?.current?.clientHeight ?? 0;
     const applySnapshot = (nextSnapshot: ScrollTimelineSnapshot) => {
       snapshotRef.current = nextSnapshot;
       syncOverlayState(blackoutOverlayElement, webUiElement, nextSnapshot);
@@ -191,6 +196,8 @@ export const useScrollTimeline = ({
     const initialSnapshot = getScrollTimelineSnapshot({
       initialPosition,
       progress: 0,
+      viewportHeight: getViewportHeight(scroller),
+      webUiHeight: getWebUiHeight(),
     });
 
     applySnapshot(initialSnapshot);
@@ -231,6 +238,8 @@ export const useScrollTimeline = ({
           const nextSnapshot = getScrollTimelineSnapshot({
             initialPosition,
             progress: self.progress,
+            viewportHeight: getViewportHeight(scroller),
+            webUiHeight: getWebUiHeight(),
           });
 
           applySnapshot(nextSnapshot);
@@ -244,6 +253,8 @@ export const useScrollTimeline = ({
             getScrollTimelineSnapshot({
               initialPosition,
               progress: self.progress,
+              viewportHeight: getViewportHeight(scroller),
+              webUiHeight: getWebUiHeight(),
             }),
           );
         },
@@ -274,6 +285,7 @@ export const useScrollTimeline = ({
     onScrollStateChange,
     triggerRef,
     webUiRef,
+    webUiContentRef,
   ]);
 
   useFrame(() => {
