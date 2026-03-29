@@ -1,4 +1,5 @@
 import { isAdminSupabaseUser } from '@/shared/lib/auth/is-admin-supabase-user';
+import { isAuthSessionMissingError } from '@/shared/lib/auth/is-auth-session-missing-error';
 import { getSupabaseAdminEnvOptional, hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createServerSupabaseClient } from '@/shared/lib/supabase/server';
 
@@ -19,22 +20,6 @@ const EMPTY_AUTH_STATE: AuthState = {
 };
 
 /**
- * 에러 메시지가 세션 누락 또는 무효한 refresh token 상황인지 판별합니다.
- *
- * @param message 검사할 인증 에러 메시지입니다. 내부에서 소문자로 정규화한 뒤 세션 누락/리프레시 토큰 관련 문구 포함 여부를 확인합니다.
- * @returns 메시지가 `auth session missing`, `invalid refresh token`, `refresh token not found` 조건 중 하나에 맞으면 `true`를 반환합니다.
- */
-const isMissingSessionError = (message: string | null | undefined) => {
-  const normalizedMessage = message?.toLowerCase() ?? '';
-
-  return (
-    normalizedMessage.includes('auth session missing') ||
-    normalizedMessage.includes('invalid refresh token') ||
-    normalizedMessage.includes('refresh token not found')
-  );
-};
-
-/**
  * 현재 요청의 Supabase 세션을 읽어 관리자 여부를 포함한 인증 상태를 반환합니다.
  */
 export const getServerAuthState = async (): Promise<AuthState> => {
@@ -46,7 +31,7 @@ export const getServerAuthState = async (): Promise<AuthState> => {
     error,
   } = await supabase.auth.getUser();
 
-  if (error && !isMissingSessionError(error.message)) {
+  if (error && !isAuthSessionMissingError(error.message)) {
     throw new Error(`[auth] 사용자 조회 실패: ${error.message}`);
   }
   if (!user) return EMPTY_AUTH_STATE;
