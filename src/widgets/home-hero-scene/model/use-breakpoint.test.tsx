@@ -67,15 +67,13 @@ describe('useBreakpoint', () => {
     });
   });
 
-  it('resize 시 스크롤 시퀀스가 아닐 때만 현재 비율 기준 scene 상태를 갱신해야 한다', () => {
+  it('resize 시 현재 비율 기준 scene 상태를 즉시 갱신해야 한다', () => {
     resizeViewport({
       height: 1024,
       width: 768,
     });
 
-    const { result } = renderHook(({ isScrolling }) => useBreakpoint({ isScrolling }), {
-      initialProps: { isScrolling: false },
-    });
+    const { result } = renderHook(() => useBreakpoint());
 
     act(() => {
       resizeViewport({
@@ -83,36 +81,6 @@ describe('useBreakpoint', () => {
         width: 1040,
       });
     });
-
-    expect(result.current).toEqual({
-      currentBP: 3,
-      sceneMode: 'desktop',
-    });
-  });
-
-  it('스크롤 시퀀스 중에는 resize를 무시하고 종료 후 현재 비율로 동기화해야 한다', () => {
-    resizeViewport({
-      height: 1024,
-      width: 768,
-    });
-
-    const { result, rerender } = renderHook(({ isScrolling }) => useBreakpoint({ isScrolling }), {
-      initialProps: { isScrolling: true },
-    });
-
-    act(() => {
-      resizeViewport({
-        height: 800,
-        width: 1040,
-      });
-    });
-
-    expect(result.current).toEqual({
-      currentBP: 2,
-      sceneMode: 'mobile',
-    });
-
-    rerender({ isScrolling: false });
 
     expect(result.current).toEqual({
       currentBP: 3,

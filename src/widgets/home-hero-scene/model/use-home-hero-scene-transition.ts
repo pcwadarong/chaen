@@ -15,7 +15,6 @@ import {
 
 type UseHomeHeroSceneTransitionParams = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
-  readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: SceneMode;
   readonly triggerRef: RefObject<HTMLElement | null>;
@@ -28,7 +27,6 @@ type UseHomeHeroSceneTransitionParams = {
  */
 export const useHomeHeroSceneTransition = ({
   blackoutOverlayRef,
-  onScrollStateChange,
   sceneLayout,
   sceneMode,
   triggerRef,
@@ -46,7 +44,6 @@ export const useHomeHeroSceneTransition = ({
     blackoutOverlayRef,
     enabled: sceneMode === 'desktop',
     initialPosition: sceneLayout.camera.position,
-    onScrollStateChange,
     triggerRef,
     webUiContentRef,
     webUiRef,

@@ -63,7 +63,6 @@ export const HomeHeroStageCanvas = ({
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [monitorScreenOpacity, setMonitorScreenOpacity] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
   const locale = useLocale();
   const t = useTranslations('Navigation');
   const projectDetailTranslations = useTranslations('ProjectDetail');
@@ -73,9 +72,7 @@ export const HomeHeroStageCanvas = ({
     playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
-  const { currentBP, sceneMode } = useBreakpoint({
-    isScrolling,
-  });
+  const { currentBP, sceneMode } = useBreakpoint();
   const handleBrowseProjects = useCallback(() => {
     if (sceneMode === 'mobile') {
       onBrowseProjects?.();
@@ -128,7 +125,6 @@ export const HomeHeroStageCanvas = ({
         onOpenImageViewer={onOpenImageViewer}
         onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
-        onScrollStateChange={setIsScrolling}
         sceneLayout={sceneLayout}
         sceneMode={sceneMode}
         onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
@@ -164,7 +160,6 @@ const HomeHeroCameraRig = ({
   onOpenImageViewer,
   onPlayBassString,
   onCloseupCostumeHiddenChange,
-  onScrollStateChange,
   sceneLayout,
   sceneMode,
   onToggleBackgroundMusicPlayback,
@@ -182,7 +177,6 @@ const HomeHeroCameraRig = ({
     stringName: 'line1' | 'line2' | 'line3' | 'line4',
   ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
-  readonly onScrollStateChange: (isScrolling: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: 'desktop' | 'mobile';
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
@@ -193,7 +187,6 @@ const HomeHeroCameraRig = ({
   const { isCloseupCostumeHidden, isSequenceActive, monitorOverlayOpacity, progress } =
     useHomeHeroSceneTransition({
       blackoutOverlayRef,
-      onScrollStateChange,
       sceneLayout,
       sceneMode,
       triggerRef,

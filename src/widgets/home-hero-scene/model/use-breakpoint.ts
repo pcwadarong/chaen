@@ -6,10 +6,6 @@ import type { SceneBreakpoint, SceneMode } from '@/entities/scene/model/breakpoi
 import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { getHomeHeroBreakpointState } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
 
-type UseBreakpointParams = {
-  readonly isScrolling?: boolean;
-};
-
 type UseBreakpointResult = {
   readonly currentBP: SceneBreakpoint;
   readonly sceneMode: SceneMode;
@@ -17,13 +13,8 @@ type UseBreakpointResult = {
 
 /**
  * 홈 히어로 씬에서 현재 viewport 기준 breakpoint와 씬 모드를 추적합니다.
- *
- * 스크롤 시퀀스가 진행 중일 때는 resize로 sceneMode를 바꾸지 않고,
- * 시퀀스가 끝난 뒤 현재 너비를 한 번 더 읽어 동기화합니다.
  */
-export const useBreakpoint = ({
-  isScrolling = false,
-}: UseBreakpointParams = {}): UseBreakpointResult => {
+export const useBreakpoint = (): UseBreakpointResult => {
   const [state, setState] = useState<UseBreakpointResult>(() =>
     getBreakpointState(readViewportSize()),
   );
@@ -32,7 +23,6 @@ export const useBreakpoint = ({
     if (typeof window === 'undefined') return;
 
     const syncBreakpoint = () => {
-      if (isScrolling) return;
       setState(
         getBreakpointState({
           height: window.innerHeight,
@@ -47,7 +37,7 @@ export const useBreakpoint = ({
     return () => {
       window.removeEventListener('resize', syncBreakpoint);
     };
-  }, [isScrolling]);
+  }, []);
 
   return state;
 };
