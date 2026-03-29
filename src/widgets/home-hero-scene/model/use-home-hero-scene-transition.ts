@@ -19,6 +19,7 @@ type UseHomeHeroSceneTransitionParams = {
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneMode: SceneMode;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -31,6 +32,7 @@ export const useHomeHeroSceneTransition = ({
   sceneLayout,
   sceneMode,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
@@ -46,6 +48,7 @@ export const useHomeHeroSceneTransition = ({
     initialPosition: sceneLayout.camera.position,
     onScrollStateChange,
     triggerRef,
+    webUiContentRef,
     webUiRef,
   });
 

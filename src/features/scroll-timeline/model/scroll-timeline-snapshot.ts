@@ -15,6 +15,8 @@ export type ScrollTimelineSnapshot = {
 type GetScrollTimelineSnapshotParams = {
   readonly initialPosition: Vector3Tuple;
   readonly progress: number;
+  readonly viewportHeight?: number;
+  readonly webUiHeight?: number;
 };
 
 type DesktopScrollPreset = {
@@ -50,6 +52,15 @@ const WEB_UI_FADE_START_PROGRESS = 0.88;
 /** 최종 HTML web UI가 opacity 1에 도달하는 progress. start와 간격이 좁을수록 더 빠르게 올라온다. */
 const WEB_UI_FADE_END_PROGRESS = 0.96;
 
+/** web UI 높이 비율이 이 값보다 커질 때부터 closeup 카메라를 앞으로 당깁니다. */
+const CLOSEUP_UI_HEIGHT_BASE_RATIO = 0.34;
+
+/** web UI 높이 비율 보정이 최대치에 도달하는 지점입니다. */
+const CLOSEUP_UI_HEIGHT_MAX_RATIO = 0.72;
+
+/** closeupEnd 기준으로 카메라를 앞으로 당길 수 있는 최대 Z 보정량입니다. */
+const CLOSEUP_UI_HEIGHT_MAX_Z_OFFSET = 0.78;
+
 /**
  * 스크롤 타임라인 progress를 0~1 구간으로 제한합니다.
  */
@@ -67,6 +78,32 @@ const lerpVector = (start: Vector3Tuple, end: Vector3Tuple, t: number): Vector3T
   [lerp(start[0], end[0], t), lerp(start[1], end[1], t), lerp(start[2], end[2], t)] as const;
 
 /**
+ * 주어진 벡터의 z값만 이동시킨 새 좌표를 반환합니다.
+ */
+const offsetVectorZ = (vector: Vector3Tuple, offset: number): Vector3Tuple =>
+  [vector[0], vector[1], vector[2] + offset] as const;
+
+/**
+ * 실제 web UI 콘텐츠 높이를 기준으로 closeup 카메라의 전진 보정량을 계산합니다.
+ * UI가 높아질수록 같은 구도라도 피사체가 더 멀게 느껴져, closeup z값을 조금 앞으로 당깁니다.
+ */
+const getCloseupUiHeightCompensation = ({
+  viewportHeight,
+  webUiHeight,
+}: Pick<GetScrollTimelineSnapshotParams, 'viewportHeight' | 'webUiHeight'>) => {
+  if (!viewportHeight || !webUiHeight) return 0;
+
+  const heightRatio = clampProgress(webUiHeight / viewportHeight);
+  const normalizedRatio = getSegmentRatio(
+    heightRatio,
+    CLOSEUP_UI_HEIGHT_BASE_RATIO,
+    CLOSEUP_UI_HEIGHT_MAX_RATIO,
+  );
+
+  return normalizedRatio * CLOSEUP_UI_HEIGHT_MAX_Z_OFFSET;
+};
+
+/**
  * 주어진 progress가 특정 segment 안에서 몇 퍼센트 진행됐는지 계산합니다.
  */
 const getSegmentRatio = (progress: number, start: number, end: number) =>
@@ -78,9 +115,20 @@ const getSegmentRatio = (progress: number, start: number, end: number) =>
 export const getScrollTimelineSnapshot = ({
   initialPosition,
   progress,
+  viewportHeight,
+  webUiHeight,
 }: GetScrollTimelineSnapshotParams): ScrollTimelineSnapshot => {
   const normalizedProgress = clampProgress(progress);
   const preset = DESKTOP_SCROLL_PRESET;
+  const closeupUiHeightCompensation = getCloseupUiHeightCompensation({
+    viewportHeight,
+    webUiHeight,
+  });
+  const closeupStartPosition = offsetVectorZ(
+    preset.closeupStartPosition,
+    closeupUiHeightCompensation * 0.72,
+  );
+  const closeupEndPosition = offsetVectorZ(preset.closeupEndPosition, closeupUiHeightCompensation);
   const spinEndPosition: Vector3Tuple = [
     preset.focusTarget[0],
     preset.focusViewY,
@@ -146,7 +194,7 @@ export const getScrollTimelineSnapshot = ({
 
     return {
       blackoutOpacity: 1 - ratio,
-      cameraPosition: lerpVector(preset.closeupStartPosition, preset.closeupEndPosition, ratio),
+      cameraPosition: lerpVector(closeupStartPosition, closeupEndPosition, ratio),
       isCloseupCostumeHidden: true,
       isMonitorOverlayVisible: true,
       isScrollDriven: true,
@@ -160,7 +208,7 @@ export const getScrollTimelineSnapshot = ({
   if (normalizedProgress <= WEB_UI_FADE_START_PROGRESS) {
     return {
       blackoutOpacity: 0,
-      cameraPosition: preset.closeupEndPosition,
+      cameraPosition: closeupEndPosition,
       isCloseupCostumeHidden: true,
       isMonitorOverlayVisible: true,
       isScrollDriven: true,
@@ -179,7 +227,7 @@ export const getScrollTimelineSnapshot = ({
 
   return {
     blackoutOpacity: 0,
-    cameraPosition: preset.closeupEndPosition,
+    cameraPosition: closeupEndPosition,
     isCloseupCostumeHidden: true,
     isMonitorOverlayVisible: true,
     isScrollDriven: true,

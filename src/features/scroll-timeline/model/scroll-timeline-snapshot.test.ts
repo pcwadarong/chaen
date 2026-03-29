@@ -89,4 +89,21 @@ describe('getScrollTimelineSnapshot', () => {
     expect(webUiSnapshot.isCloseupCostumeHidden).toBe(true);
     expect(webUiSnapshot.webUiOpacity).toBeGreaterThan(0);
   });
+
+  it('web UI 콘텐츠 높이가 커질수록 closeup 카메라는 더 앞으로 보정되어야 한다', () => {
+    const compactUiSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.82,
+      viewportHeight: 1000,
+      webUiHeight: 360,
+    });
+    const tallUiSnapshot = getScrollTimelineSnapshot({
+      initialPosition: DESKTOP_INITIAL_POSITION,
+      progress: 0.82,
+      viewportHeight: 1000,
+      webUiHeight: 760,
+    });
+
+    expect(tallUiSnapshot.cameraPosition[2]).toBeGreaterThan(compactUiSnapshot.cameraPosition[2]);
+  });
 });

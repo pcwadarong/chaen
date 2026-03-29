@@ -37,6 +37,7 @@ type HomeHeroStageCanvasProps = {
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -56,6 +57,7 @@ export const HomeHeroStageCanvas = ({
   onOpenImageViewer,
   selectedFrameImageSrc,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
@@ -131,6 +133,7 @@ export const HomeHeroStageCanvas = ({
         sceneMode={sceneMode}
         onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
+        webUiContentRef={webUiContentRef}
         webUiRef={webUiRef}
       />
       <Suspense fallback={null}>
@@ -166,6 +169,7 @@ const HomeHeroCameraRig = ({
   sceneMode,
   onToggleBackgroundMusicPlayback,
   triggerRef,
+  webUiContentRef,
   webUiRef,
 }: {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
@@ -183,6 +187,7 @@ const HomeHeroCameraRig = ({
   readonly sceneMode: 'desktop' | 'mobile';
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
+  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 }) => {
   const { isCloseupCostumeHidden, isSequenceActive, monitorOverlayOpacity, progress } =
@@ -192,6 +197,7 @@ const HomeHeroCameraRig = ({
       sceneLayout,
       sceneMode,
       triggerRef,
+      webUiContentRef,
       webUiRef,
     });
 

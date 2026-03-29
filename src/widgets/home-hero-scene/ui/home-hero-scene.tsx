@@ -40,6 +40,7 @@ export const HomeHeroScene = ({
   const localSectionRef = useRef<HTMLElement>(null);
   const navLockRef = useRef<HTMLDivElement>(null);
   const webUiRef = useRef<HTMLDivElement>(null);
+  const webUiContentRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const defaultFrameImageSrc = photoItems[0]?.src ?? null;
   const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
@@ -125,10 +126,16 @@ export const HomeHeroScene = ({
           }}
           selectedFrameImageSrc={selectedFrameImageSrc}
           triggerRef={sectionRef}
+          webUiContentRef={webUiContentRef}
           webUiRef={webUiRef}
         />
         <HomeHeroContactButtons />
-        <HomeHeroWebUi items={items} title={title} wrapperRef={webUiRef} />
+        <HomeHeroWebUi
+          contentRef={webUiContentRef}
+          items={items}
+          title={title}
+          wrapperRef={webUiRef}
+        />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
       </div>
       <ImageViewerModal
