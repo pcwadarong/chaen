@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { css } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import {
   CONTACT_EMAIL_ADDRESS,
@@ -9,29 +9,34 @@ import {
 import { Button } from '@/shared/ui/button/button';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
 
+type ContactStripProps = Readonly<{
+  layout?: 'compact' | 'default';
+}>;
+
 /** 홈 contact 영역의 텍스트와 액션을 렌더링합니다. */
-export const ContactStrip = () => {
+export const ContactStrip = ({ layout = 'default' }: ContactStripProps) => {
   const t = useTranslations('Contact');
+  const isCompact = layout === 'compact';
 
   return (
-    <section className={sectionClass}>
-      <div className={copyClass}>
-        <h2 className={titleClass}>
+    <section className={cx(sectionClass, isCompact && compactSectionClass)}>
+      <div className={cx(copyClass, isCompact && compactCopyClass)}>
+        <h2 className={cx(titleClass, isCompact && compactTitleClass)}>
           <span>{t('titleLine1')}</span>
           <span>{t('titleLine2')}</span>
         </h2>
-        <ul className={metaListClass}>
-          <li className={metaItemClass}>
+        <ul className={cx(metaListClass, isCompact && compactMetaListClass)}>
+          <li className={cx(metaItemClass, isCompact && compactMetaItemClass)}>
             <span className={metaLabelClass}>{'Location'}</span>
             <span>{t('locationValue')}</span>
           </li>
-          <li className={metaItemClass}>
+          <li className={cx(metaItemClass, isCompact && compactMetaItemClass)}>
             <span className={metaLabelClass}>{'Focus'}</span>
             <span>{t('focusValue')}</span>
           </li>
         </ul>
       </div>
-      <div className={actionsClass}>
+      <div className={cx(actionsClass, isCompact && compactActionsClass)}>
         <Button
           asChild
           className={actionButtonClass}
@@ -80,9 +85,21 @@ const sectionClass = css({
   alignContent: 'center',
 });
 
+const compactSectionClass = css({
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center',
+  gap: '7',
+});
+
 const copyClass = css({
   display: 'grid',
   gap: '8',
+});
+
+const compactCopyClass = css({
+  justifyItems: 'center',
+  gap: '5',
 });
 
 const titleClass = css({
@@ -96,16 +113,36 @@ const titleClass = css({
   },
 });
 
+const compactTitleClass = css({
+  fontSize: '5xl',
+  justifyItems: 'center',
+  '& > span': {
+    whiteSpace: 'normal',
+  },
+});
+
 const metaListClass = css({
   display: 'grid',
   gap: '2',
   color: 'muted',
 });
 
+const compactMetaListClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  columnGap: '5',
+  rowGap: '2',
+});
+
 const metaItemClass = css({
   display: 'flex',
   flexWrap: 'wrap',
   gap: '2',
+});
+
+const compactMetaItemClass = css({
+  whiteSpace: 'nowrap',
 });
 
 const metaLabelClass = css({
@@ -117,6 +154,11 @@ const actionsClass = css({
   flexWrap: 'nowrap',
   gap: '3',
   width: 'auto',
+});
+
+const compactActionsClass = css({
+  justifyContent: 'center',
+  flexWrap: 'wrap',
 });
 
 const actionButtonClass = css({

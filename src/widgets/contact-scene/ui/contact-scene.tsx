@@ -4,7 +4,9 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { getContactSceneLayoutMode } from '@/widgets/contact-scene/model/contact-scene-layout-mode';
 import { ContactStrip } from '@/widgets/contact-strip/ui/contact-strip';
+import { getHomeHeroViewportMetrics } from '@/widgets/home-hero-scene/model/home-hero-viewport-metrics';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 
 const ContactSceneCanvas = dynamic(
@@ -19,22 +21,66 @@ const ContactSceneCanvas = dynamic(
 export const ContactScene = () => {
   const { sceneMode } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
+  const [availableHeight, setAvailableHeight] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
+
+    if (typeof window === 'undefined') return;
+
+    const syncAvailableHeight = () => {
+      const navHeight =
+        parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--global-nav-height'),
+        ) || 0;
+      const nextMetrics = getHomeHeroViewportMetrics({
+        navHeight,
+        viewportHeight: window.innerHeight,
+      });
+
+      setAvailableHeight(nextMetrics.availableHeight);
+    };
+
+    syncAvailableHeight();
+    window.addEventListener('resize', syncAvailableHeight);
+
+    return () => {
+      window.removeEventListener('resize', syncAvailableHeight);
+    };
   }, []);
 
-  const shouldRenderDesktopScene = isMounted && sceneMode === 'desktop';
+  const layoutMode = getContactSceneLayoutMode({
+    availableHeight,
+    sceneMode,
+  });
+  const shouldRenderScene = isMounted && layoutMode !== 'hidden';
 
-  if (!shouldRenderDesktopScene) {
+  if (!shouldRenderScene) {
     return null;
+  }
+
+  if (layoutMode === 'compact') {
+    return (
+      <div className={wrapperClass}>
+        <div className={compactLayoutClass} data-testid="contact-scene-layout">
+          <div className={compactCopyClass} data-testid="contact-scene-copy">
+            <ContactStrip layout="compact" />
+          </div>
+        </div>
+        <div className={backgroundClass}>
+          <div className={backgroundInnerClass}>
+            <div aria-hidden="true" className={backgroundGradientClass} />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={wrapperClass}>
       <div className={layoutClass} data-testid="contact-scene-layout">
         <div className={copyColumnClass} data-testid="contact-scene-copy">
-          <ContactStrip />
+          <ContactStrip layout="default" />
         </div>
         <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
           <div className={canvasFrameClass}>
@@ -72,10 +118,32 @@ const layoutClass = css({
   paddingRight: '4',
 });
 
+const compactLayoutClass = css({
+  position: 'relative',
+  zIndex: '2',
+  width: 'full',
+  maxWidth: 'contentWide',
+  mx: 'auto',
+  minHeight: '[var(--home-hero-available-height, 100dvh)]',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingLeft: '6',
+  paddingRight: '6',
+});
+
 const copyColumnClass = css({
   position: 'relative',
   zIndex: '2',
   flex: '[0 1 clamp(var(--sizes-contact-copy-min), 34vw, var(--sizes-contact-copy-max))]',
+});
+
+const compactCopyClass = css({
+  position: 'relative',
+  zIndex: '2',
+  width: 'full',
+  display: 'flex',
+  justifyContent: 'center',
 });
 
 const mediaColumnClass = css({
