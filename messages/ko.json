@@ -277,7 +277,9 @@
     "zoomOutAriaLabel": "이미지 축소"
   },
   "Contact": {
+    "focusLabel": "Focus",
     "focusValue": "프론트엔드 개발",
+    "locationLabel": "Location",
     "locationValue": "서울, 대한민국",
     "title": "의미 있는 경험을\n함께 만들어요."
   },

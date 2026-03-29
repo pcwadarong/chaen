@@ -31,18 +31,18 @@ export const ContactStrip = ({ layout = 'split' }: ContactStripProps) => {
         <h2 className={cx(titleClass, isCentered && centeredTitleClass)}>
           <span className={srOnlyClass}>{accessibleTitle}</span>
           <span aria-hidden="true" className={titleVisualLinesClass}>
-            {titleLines.map(line => (
-              <span key={line}>{line}</span>
+            {titleLines.map((line, index) => (
+              <span key={`${line}-${index}`}>{line}</span>
             ))}
           </span>
         </h2>
         <ul className={cx(metaListClass, isCentered && centeredMetaListClass)}>
           <li className={cx(metaItemClass, isCentered && centeredMetaItemClass)}>
-            <span className={metaLabelClass}>{'Location'}</span>
+            <span className={metaLabelClass}>{t('locationLabel')}</span>
             <span>{t('locationValue')}</span>
           </li>
           <li className={cx(metaItemClass, isCentered && centeredMetaItemClass)}>
-            <span className={metaLabelClass}>{'Focus'}</span>
+            <span className={metaLabelClass}>{t('focusLabel')}</span>
             <span>{t('focusValue')}</span>
           </li>
         </ul>
@@ -178,6 +178,8 @@ const centeredActionsClass = css({
   flexWrap: 'wrap',
 });
 
+// 미세한 버튼 반동은 토큰보다 실제 px 이동이 더 안정적으로 느껴져 예외적으로 유지합니다.
+// 추후 interaction spacing token이 생기면 그때 토큰 기반으로 옮깁니다.
 const actionButtonClass = css({
   transition: '[transform 180ms ease]',
   _hover: {

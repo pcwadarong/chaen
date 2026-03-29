@@ -277,7 +277,9 @@
     "zoomOutAriaLabel": "画像を縮小"
   },
   "Contact": {
+    "focusLabel": "フォーカス",
     "focusValue": "フロントエンド開発",
+    "locationLabel": "所在地",
     "locationValue": "韓国・ソウル",
     "title": "意味のある体験を\n一緒につくりましょう。"
   },

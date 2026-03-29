@@ -277,7 +277,9 @@
     "zoomOutAriaLabel": "Réduire l'image"
   },
   "Contact": {
+    "focusLabel": "Focus",
     "focusValue": "Développement frontend",
+    "locationLabel": "Lieu",
     "locationValue": "Séoul, Corée du Sud",
     "title": "Créons ensemble\ndes expériences\nporteuses de sens."
   },
