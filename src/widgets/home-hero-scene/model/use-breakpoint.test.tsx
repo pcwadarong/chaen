@@ -67,7 +67,7 @@ describe('useBreakpoint', () => {
     });
   });
 
-  it('resize 시 현재 비율 기준 scene 상태를 즉시 갱신해야 한다', () => {
+  it('resize 시 현재 비율 기준 scene 상태를 즉시 갱신해야 한다', async () => {
     resizeViewport({
       height: 1024,
       width: 768,
@@ -79,6 +79,14 @@ describe('useBreakpoint', () => {
       resizeViewport({
         height: 800,
         width: 1040,
+      });
+    });
+
+    await act(async () => {
+      await new Promise(resolve => {
+        window.requestAnimationFrame(() => {
+          resolve(undefined);
+        });
       });
     });
 

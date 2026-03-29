@@ -82,6 +82,11 @@ describe('HomeHeroMobileProjectSheet', () => {
       value: 768,
       writable: true,
     });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 1024,
+      writable: true,
+    });
 
     render(
       <HomeHeroMobileProjectSheet isOpen items={[]} onClose={onClose} title="Selected Projects" />,
@@ -94,6 +99,11 @@ describe('HomeHeroMobileProjectSheet', () => {
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
       value: 1600,
+      writable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 900,
       writable: true,
     });
 

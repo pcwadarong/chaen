@@ -156,6 +156,11 @@ describe('HomeHeroStageCanvas', () => {
     bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();
     bassAudioMockState.playBassString.mockReset();
     bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1280,
+      writable: true,
+    });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
@@ -279,6 +284,30 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
+
+    expect(onBrowseProjects).toHaveBeenCalledOnce();
+  });
+
+  it('wide sceneViewportMode여도 desktop 미만 너비에서는 프로젝트 바텀 시트를 열어야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    const onBrowseProjects = vi.fn();
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 812,
+      writable: true,
+    });
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        onBrowseProjects={onBrowseProjects}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
 
     homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
 

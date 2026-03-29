@@ -31,11 +31,29 @@ export const useBreakpoint = (): UseBreakpointResult => {
       );
     };
 
+    let frameId: number | null = null;
+
+    /**
+     * resize 폭주를 한 프레임당 한 번으로 묶어 불필요한 재계산과 렌더를 줄입니다.
+     */
+    const scheduleBreakpointSync = () => {
+      if (frameId !== null) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        syncBreakpoint();
+      });
+    };
+
     syncBreakpoint();
-    window.addEventListener('resize', syncBreakpoint);
+    window.addEventListener('resize', scheduleBreakpointSync);
 
     return () => {
-      window.removeEventListener('resize', syncBreakpoint);
+      window.removeEventListener('resize', scheduleBreakpointSync);
+
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
     };
   }, []);
 

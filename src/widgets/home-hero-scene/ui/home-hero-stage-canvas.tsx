@@ -7,12 +7,17 @@ import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 
 import { css, cx } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import type { SceneBreakpoint } from '@/entities/scene/model/breakpointConfig';
+import {
+  SCENE_VIEWPORT_MODE,
+  type SceneBreakpoint,
+  type SceneViewportMode,
+} from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
+import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -74,7 +79,11 @@ export const HomeHeroStageCanvas = ({
   } = useBassAudio();
   const { currentBP, sceneViewportMode } = useBreakpoint();
   const handleBrowseProjects = useCallback(() => {
-    if (sceneViewportMode === 'stacked') {
+    const shouldUseBottomSheet =
+      sceneViewportMode === SCENE_VIEWPORT_MODE.stacked ||
+      (typeof window !== 'undefined' && window.innerWidth < VIEWPORT_BREAKPOINTS.desktopMin);
+
+    if (shouldUseBottomSheet) {
       onBrowseProjects?.();
       return;
     }
@@ -178,7 +187,7 @@ const HomeHeroCameraRig = ({
   ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
-  readonly sceneViewportMode: 'stacked' | 'wide';
+  readonly sceneViewportMode: SceneViewportMode;
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
@@ -209,8 +218,8 @@ const HomeHeroCameraRig = ({
       <OrbitControls
         enablePan={false}
         enableRotate
-        enableZoom={sceneViewportMode === 'stacked'}
-        enabled={sceneViewportMode === 'stacked' || !isSequenceActive}
+        enableZoom={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked}
+        enabled={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked || !isSequenceActive}
         key={`${sceneViewportMode}-${currentBP}`}
         makeDefault
         maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
@@ -302,7 +311,7 @@ const bassStopButtonClass = css({
   borderRadius: 'full',
   borderWidth: '0',
   borderStyle: 'none',
-  background: '[rgba(9, 12, 26, 0.42)]',
+  backgroundColor: '[color-mix(in srgb, var(--colors-gray-950) 42%, transparent)]',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -311,7 +320,7 @@ const bassStopButtonClass = css({
   cursor: 'pointer',
   transition: 'common',
   _hover: {
-    background: '[rgba(9, 12, 26, 0.58)]',
+    backgroundColor: '[color-mix(in srgb, var(--colors-gray-950) 58%, transparent)]',
     transform: 'scale(1.04)',
   },
   _focusVisible: {

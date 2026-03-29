@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
+import { SCENE_VIEWPORT_MODE } from '@/entities/scene/model/breakpointConfig';
 import { useDialogFocusManagement } from '@/shared/lib/react/use-dialog-focus-management';
 import { Button } from '@/shared/ui/button/button';
 import { getHomeHeroSceneViewportMode } from '@/widgets/home-hero-scene/model/home-hero-scene-breakpoint';
@@ -120,7 +121,7 @@ export const HomeHeroMobileProjectSheet = ({
         getHomeHeroSceneViewportMode({
           height: window.innerHeight,
           width: window.innerWidth,
-        }) === 'wide'
+        }) === SCENE_VIEWPORT_MODE.wide
       ) {
         onClose();
       }
