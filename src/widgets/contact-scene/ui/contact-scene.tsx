@@ -20,20 +20,32 @@ const ContactSceneCanvas = dynamic(
   { ssr: false, loading: () => null },
 );
 
+const APP_SCROLL_VIEWPORT_SELECTOR = '[data-app-scroll-viewport="true"]';
+
 /**
- * 현재 viewport와 nav 높이로 contact scene의 실제 가용 높이를 읽습니다.
+ * contact가 속한 실제 scroll viewport 기준으로 contact scene의 가용 높이를 읽습니다.
+ * home hero가 이미 동기화한 CSS 변수가 있으면 우선 사용하고, 없을 때만 동일 계산을 다시 수행합니다.
  */
 const readContactAvailableHeight = () => {
   if (typeof window === 'undefined') return 0;
 
+  const viewportElement = document.querySelector<HTMLElement>(APP_SCROLL_VIEWPORT_SELECTOR);
+  const styleScope = viewportElement ?? document.documentElement;
+  const syncedAvailableHeight =
+    parseFloat(getComputedStyle(styleScope).getPropertyValue('--home-hero-available-height')) || 0;
+
+  if (syncedAvailableHeight > 0) return syncedAvailableHeight;
+
   const navHeight =
-    parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--global-nav-height'),
-    ) || 0;
+    parseFloat(getComputedStyle(styleScope).getPropertyValue('--global-nav-height')) || 0;
+  const viewportHeight =
+    viewportElement?.clientHeight && viewportElement.clientHeight > 0
+      ? viewportElement.clientHeight
+      : window.innerHeight;
 
   return getHomeHeroViewportMetrics({
     navHeight,
-    viewportHeight: window.innerHeight,
+    viewportHeight,
   }).availableHeight;
 };
 

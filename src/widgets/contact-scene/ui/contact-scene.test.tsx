@@ -99,4 +99,24 @@ describe('ContactScene', () => {
       screen.getByTestId('contact-strip'),
     );
   });
+
+  it('app-frame viewport의 동기화된 가용 높이가 짧으면 centered ContactStrip로 전환해야 한다', async () => {
+    mockedUseBreakpoint.mockReturnValue({
+      currentBP: 4,
+      sceneViewportMode: 'wide',
+    });
+
+    const viewport = document.createElement('div');
+    viewport.setAttribute('data-app-scroll-viewport', 'true');
+    viewport.style.setProperty('--home-hero-available-height', '780px');
+    document.body.appendChild(viewport);
+
+    render(<ContactScene />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('contact-strip')).toHaveAttribute('data-variant', 'centered');
+    });
+
+    viewport.remove();
+  });
 });
