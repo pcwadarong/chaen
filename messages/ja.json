@@ -279,8 +279,7 @@
   "Contact": {
     "focusValue": "フロントエンド開発",
     "locationValue": "韓国・ソウル",
-    "titleLine1": "意味のある体験を",
-    "titleLine2": "一緒につくりましょう。"
+    "title": "意味のある体験を\n一緒につくりましょう。"
   },
   "Switchers": {
     "locale": {

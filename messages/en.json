@@ -279,8 +279,7 @@
   "Contact": {
     "focusValue": "Frontend Development",
     "locationValue": "Seoul, Korea",
-    "titleLine1": "Let's connect and create",
-    "titleLine2": "meaningful experiences."
+    "title": "Let's connect and\ncreate meaningful\nexperiences."
   },
   "Switchers": {
     "locale": {

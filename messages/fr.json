@@ -279,8 +279,7 @@
   "Contact": {
     "focusValue": "Développement frontend",
     "locationValue": "Séoul, Corée du Sud",
-    "titleLine1": "Créons ensemble des",
-    "titleLine2": "expériences porteuses de sens."
+    "title": "Créons ensemble\ndes expériences\nporteuses de sens."
   },
   "Switchers": {
     "locale": {

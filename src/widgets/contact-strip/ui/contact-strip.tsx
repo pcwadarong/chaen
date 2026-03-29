@@ -8,6 +8,7 @@ import {
 } from '@/shared/config/contact-links';
 import { Button } from '@/shared/ui/button/button';
 import { GithubIcon, LinkedInIcon, MailSolidIcon } from '@/shared/ui/icons/app-icons';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type ContactStripProps = Readonly<{
   layout?: 'compact' | 'default';
@@ -17,13 +18,23 @@ type ContactStripProps = Readonly<{
 export const ContactStrip = ({ layout = 'default' }: ContactStripProps) => {
   const t = useTranslations('Contact');
   const isCompact = layout === 'compact';
+  const title = t('title');
+  const titleLines = title
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+  const accessibleTitle = titleLines.join(' ');
 
   return (
     <section className={cx(sectionClass, isCompact && compactSectionClass)}>
       <div className={cx(copyClass, isCompact && compactCopyClass)}>
         <h2 className={cx(titleClass, isCompact && compactTitleClass)}>
-          <span>{t('titleLine1')}</span>
-          <span>{t('titleLine2')}</span>
+          <span className={srOnlyClass}>{accessibleTitle}</span>
+          <span aria-hidden="true" className={titleVisualLinesClass}>
+            {titleLines.map(line => (
+              <span key={line}>{line}</span>
+            ))}
+          </span>
         </h2>
         <ul className={cx(metaListClass, isCompact && compactMetaListClass)}>
           <li className={cx(metaItemClass, isCompact && compactMetaItemClass)}>
@@ -106,6 +117,9 @@ const titleClass = css({
   fontSize: '6xl',
   lineHeight: 'none',
   letterSpacing: '[-0.04em]',
+});
+
+const titleVisualLinesClass = css({
   display: 'grid',
   gap: '1',
   '& > span': {
@@ -115,8 +129,11 @@ const titleClass = css({
 
 const compactTitleClass = css({
   fontSize: '5xl',
-  justifyItems: 'center',
-  '& > span': {
+  textAlign: 'center',
+  '& [aria-hidden="true"]': {
+    justifyItems: 'center',
+  },
+  '& [aria-hidden="true"] > span': {
     whiteSpace: 'normal',
   },
 });
