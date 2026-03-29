@@ -36,7 +36,6 @@ type HomeHeroStageCanvasProps = {
   readonly onBrowseProjects?: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
-  readonly title?: string;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -53,7 +52,6 @@ export const HomeHeroStageCanvas = ({
   onBrowseProjects,
   onOpenImageViewer,
   selectedFrameImageSrc,
-  title = '',
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => {
@@ -139,7 +137,6 @@ export const HomeHeroStageCanvas = ({
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
-          title={title}
         />
       </Suspense>
     </Canvas>
@@ -245,7 +242,6 @@ const HomeHeroSceneObjects = ({
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
-  title,
 }: {
   readonly items: ProjectListItem[];
   readonly isBackgroundMusicPlaying: boolean;
@@ -257,13 +253,11 @@ const HomeHeroSceneObjects = ({
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
-  readonly title: string;
 }) => {
   const monitorScreenTexture = useMonitorOverlayTexture({
     items,
     locale,
     ongoingLabel,
-    title,
   });
 
   return (

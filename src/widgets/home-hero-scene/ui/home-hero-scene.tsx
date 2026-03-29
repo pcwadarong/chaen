@@ -121,7 +121,6 @@ export const HomeHeroScene = ({
             setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
           }}
           selectedFrameImageSrc={selectedFrameImageSrc}
-          title={title}
           triggerRef={sectionRef}
           webUiRef={webUiRef}
         />

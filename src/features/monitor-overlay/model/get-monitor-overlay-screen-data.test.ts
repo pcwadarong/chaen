@@ -22,7 +22,7 @@ const createItem = (overrides?: Partial<ProjectListItem>): ProjectListItem => ({
 });
 
 describe('getMonitorOverlayScreenData', () => {
-  it('프로젝트가 있을 때 overlay screen data는 최대 3개 제목과 대표 프로젝트 정보를 반환해야 한다', () => {
+  it('프로젝트가 있을 때 overlay screen data는 항상 3개 카드를 반환해야 한다', () => {
     const screenData = getMonitorOverlayScreenData({
       items: [
         createItem({ id: '1', title: 'One', description: 'first' }),
@@ -32,30 +32,37 @@ describe('getMonitorOverlayScreenData', () => {
       ],
       locale: 'en',
       ongoingLabel: 'Ongoing',
-      title: 'Selected Projects',
     });
 
-    expect(screenData.overlayTitle).toBe('Selected Projects');
-    expect(screenData.primaryProject.title).toBe('One');
-    expect(screenData.primaryProject.description).toBe('first');
-    expect(screenData.primaryProject.thumbnailSrc).toBe('https://example.com/thumb.png');
-    expect(screenData.primaryProject.techStackNames).toEqual(['React']);
-    expect(screenData.secondaryProjects.map(item => item.title)).toEqual(['Two', 'Three']);
-    expect(screenData.projectCountLabel).toBe('3 projects');
+    expect(screenData.projects).toHaveLength(3);
+    expect(screenData.projects.map(p => p.title)).toEqual(['One', 'Two', 'Three']);
+    expect(screenData.projects[0].description).toBe('first');
+    expect(screenData.projects[0].thumbnailSrc).toBe('https://example.com/thumb.png');
+    expect(screenData.projects[0].techStackNames).toEqual(['React']);
   });
 
-  it('프로젝트가 없을 때 overlay screen data는 기본 문구를 반환해야 한다', () => {
+  it('프로젝트가 없을 때 overlay screen data는 기본 문구로 채운 3개 카드를 반환해야 한다', () => {
     const screenData = getMonitorOverlayScreenData({
       items: [],
       locale: 'en',
       ongoingLabel: 'Ongoing',
-      title: '',
     });
 
-    expect(screenData.overlayTitle).toBe('Project Archive');
-    expect(screenData.primaryProject.title).toBe('No project selected');
-    expect(screenData.primaryProject.description).toBe('Overlay texture mount is active.');
-    expect(screenData.secondaryProjects).toEqual([]);
-    expect(screenData.projectCountLabel).toBe('0 projects');
+    expect(screenData.projects).toHaveLength(3);
+    expect(screenData.projects.every(p => p.title === 'No project')).toBe(true);
+    expect(screenData.projects.every(p => p.thumbnailSrc === null)).toBe(true);
+  });
+
+  it('프로젝트가 1개뿐일 때 나머지는 기본값으로 채워야 한다', () => {
+    const screenData = getMonitorOverlayScreenData({
+      items: [createItem({ title: 'Only One' })],
+      locale: 'en',
+      ongoingLabel: 'Ongoing',
+    });
+
+    expect(screenData.projects).toHaveLength(3);
+    expect(screenData.projects[0].title).toBe('Only One');
+    expect(screenData.projects[1].title).toBe('No project');
+    expect(screenData.projects[2].title).toBe('No project');
   });
 });

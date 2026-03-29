@@ -35,7 +35,7 @@ type DesktopScrollPreset = {
 };
 
 const DESKTOP_SCROLL_PRESET: DesktopScrollPreset = {
-  closeupEndPosition: [0, -0.3, 0.1],
+  closeupEndPosition: [0, -0.3, -0.4],
   closeupLookAt: [0, -0.3, 1],
   closeupStartPosition: [0, -0.3, -0.85],
   focusViewY: 1.8,
@@ -43,6 +43,12 @@ const DESKTOP_SCROLL_PRESET: DesktopScrollPreset = {
   spinRadius: 5,
   zoomTargetPosition: [0, 1.8, 5],
 };
+
+/** 최종 HTML web UI가 보이기 시작하는 progress. 값을 올리면 등장 타이밍이 더 늦어진다. */
+const WEB_UI_FADE_START_PROGRESS = 0.88;
+
+/** 최종 HTML web UI가 opacity 1에 도달하는 progress. start와 간격이 좁을수록 더 빠르게 올라온다. */
+const WEB_UI_FADE_END_PROGRESS = 0.96;
 
 /**
  * 스크롤 타임라인 progress를 0~1 구간으로 제한합니다.
@@ -151,7 +157,11 @@ export const getScrollTimelineSnapshot = ({
     };
   }
 
-  const ratio = getSegmentRatio(normalizedProgress, 0.82, 1);
+  const ratio = getSegmentRatio(
+    normalizedProgress,
+    WEB_UI_FADE_START_PROGRESS,
+    WEB_UI_FADE_END_PROGRESS,
+  );
 
   return {
     blackoutOpacity: 0,

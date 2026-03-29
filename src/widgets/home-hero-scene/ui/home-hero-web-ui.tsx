@@ -41,6 +41,7 @@ const wrapperClass = css({
   justifyContent: 'center',
   padding:
     '[clamp(var(--spacing-18), 8vh, var(--spacing-24)) var(--spacing-0) clamp(var(--spacing-8), 5vh, var(--spacing-12))]',
+  backgroundColor: 'surface',
   opacity: '0',
   pointerEvents: 'none',
   willChange: 'opacity, transform',

@@ -13,7 +13,6 @@ type HomeHeroStageCanvasProps = {
   readonly onBrowseProjects?: () => void;
   readonly onOpenImageViewer?: () => void;
   readonly selectedFrameImageSrc?: string | null;
-  readonly title?: string;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiRef: RefObject<HTMLDivElement | null>;
 };
@@ -39,7 +38,6 @@ export const HomeHeroStage = ({
   onBrowseProjects,
   onOpenImageViewer,
   selectedFrameImageSrc,
-  title,
   triggerRef,
   webUiRef,
 }: HomeHeroStageCanvasProps) => (
@@ -51,7 +49,6 @@ export const HomeHeroStage = ({
       onBrowseProjects={onBrowseProjects}
       onOpenImageViewer={onOpenImageViewer}
       selectedFrameImageSrc={selectedFrameImageSrc}
-      title={title}
       triggerRef={triggerRef}
       webUiRef={webUiRef}
     />
