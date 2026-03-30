@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { Button } from '@/shared/ui/button/button';
@@ -13,33 +13,65 @@ type MathEmbedPopoverProps = {
   triggerClassName?: string;
 };
 
+type MathTemplate = {
+  formula: string;
+  key: string;
+  label: string;
+  selection: {
+    end: number;
+    start: number;
+  };
+};
+
 const mathTemplates = [
   {
     formula: '\\frac{a}{b}',
     key: 'fraction',
     label: '분수',
+    selection: {
+      end: '\\frac{'.length + 1,
+      start: '\\frac{'.length,
+    },
   },
   {
     formula: '\\sqrt{x}',
     key: 'sqrt',
     label: '루트',
+    selection: {
+      end: '\\sqrt{x}'.indexOf('x') + 1,
+      start: '\\sqrt{x}'.indexOf('x'),
+    },
   },
   {
     formula: '\\sum_{i=1}^{n} i',
     key: 'sum',
     label: '합',
+    selection: {
+      end: '\\sum_{i=1}^{n} i'.indexOf('i=1') + 'i=1'.length,
+      start: '\\sum_{i=1}^{n} i'.indexOf('i=1'),
+    },
   },
   {
     formula: '\\int_{a}^{b} f(x) \\, dx',
     key: 'integral',
     label: '적분',
+    selection: {
+      end: '\\int_{a}^{b} f(x) \\, dx'.indexOf('f(x)') + 'f(x)'.length,
+      start: '\\int_{a}^{b} f(x) \\, dx'.indexOf('f(x)'),
+    },
   },
   {
     formula: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}',
     key: 'cases',
     label: 'cases',
+    selection: {
+      end: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}'.indexOf(' \\end{cases}'),
+      start: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}'.indexOf(
+        ' x, &x \\ge 0 \\\\ -x, &x < 0 ',
+      ),
+    },
   },
-] as const;
+] satisfies ReadonlyArray<MathTemplate>;
 
 /**
  * toolbar 내부에서 LaTeX 수식을 입력받아 inline/block 문법으로 삽입하는 팝오버입니다.
@@ -50,12 +82,23 @@ export const MathEmbedPopover = ({
   triggerClassName,
 }: MathEmbedPopoverProps) => {
   const [mathInput, setMathInput] = useState('');
+  const [selectionRange, setSelectionRange] = useState<MathTemplate['selection'] | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (!selectionRange || !textareaRef.current) return;
+
+    textareaRef.current.focus();
+    textareaRef.current.setSelectionRange(selectionRange.start, selectionRange.end);
+    setSelectionRange(null);
+  }, [selectionRange]);
 
   /**
    * 자주 쓰는 수식 템플릿을 textarea에 채웁니다.
    */
-  const handleTemplateSelect = (formula: string) => {
-    setMathInput(formula);
+  const handleTemplateSelect = (template: MathTemplate) => {
+    setMathInput(template.formula);
+    setSelectionRange(template.selection);
   };
 
   const handleApply = (isBlock: boolean, closePopover?: ClosePopover) => {
@@ -83,7 +126,7 @@ export const MathEmbedPopover = ({
             {mathTemplates.map(template => (
               <Button
                 key={template.key}
-                onClick={() => handleTemplateSelect(template.formula)}
+                onClick={() => handleTemplateSelect(template)}
                 size="xs"
                 tone="white"
                 variant="ghost"
@@ -100,6 +143,7 @@ export const MathEmbedPopover = ({
             placeholder={
               '\\frac{a}{b} 또는 \\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}'
             }
+            ref={textareaRef}
             rows={4}
             value={mathInput}
           />

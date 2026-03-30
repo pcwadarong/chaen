@@ -26,9 +26,12 @@ describe('MathEmbedPopover', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '분수' }));
 
-    expect((screen.getByRole('textbox', { name: 'LaTeX 수식' }) as HTMLTextAreaElement).value).toBe(
-      '\\frac{a}{b}',
-    );
+    const textbox = screen.getByRole('textbox', { name: 'LaTeX 수식' }) as HTMLTextAreaElement;
+
+    expect(textbox.value).toBe('\\frac{a}{b}');
+    expect(document.activeElement).toBe(textbox);
+    expect(textbox.selectionStart).toBe('\\frac{'.length);
+    expect(textbox.selectionEnd).toBe('\\frac{'.length + 1);
   });
 
   it('수식 입력값을 inline 수식으로 onApply에 전달한다', () => {
@@ -69,6 +72,18 @@ describe('MathEmbedPopover', () => {
       '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}',
       true,
       expect.any(Function),
+    );
+  });
+
+  it('cases 템플릿 버튼을 누르면 본문 영역이 바로 선택된다', () => {
+    render(<MathEmbedPopover onApply={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'cases' }));
+
+    const textbox = screen.getByRole('textbox', { name: 'LaTeX 수식' }) as HTMLTextAreaElement;
+
+    expect(textbox.value.slice(textbox.selectionStart, textbox.selectionEnd)).toBe(
+      ' x, &x \\ge 0 \\\\ -x, &x < 0',
     );
   });
 });
