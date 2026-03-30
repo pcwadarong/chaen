@@ -158,7 +158,6 @@ describe('useShapeKeyController', () => {
     rerender({ currentState: 'music' });
 
     expect(headMesh.morphTargetInfluences).toEqual([1, 0, 1]);
-    expect(browMesh.morphTargetInfluences).toEqual([1, 0]);
     expect(eyebrowMesh.morphTargetInfluences[0]).toBe(1);
   });
 

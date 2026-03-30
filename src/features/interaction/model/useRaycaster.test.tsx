@@ -5,12 +5,16 @@ import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 
 const useIsTouchDeviceMock = vi.fn();
 
+type TraversableSceneNode = {
+  children?: TraversableSceneNode[];
+};
+
 const raycasterMockState = vi.hoisted(() => {
   const scene = {
-    children: [] as unknown[],
-    traverse(callback: (obj: any) => void) {
+    children: [] as TraversableSceneNode[],
+    traverse(callback: (obj: TraversableSceneNode) => void) {
       callback(scene);
-      const visit = (obj: any) => {
+      const visit = (obj: TraversableSceneNode) => {
         if (Array.isArray(obj.children)) {
           for (const child of obj.children) {
             callback(child);
