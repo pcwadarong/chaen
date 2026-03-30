@@ -88,6 +88,10 @@ const AdminProjectEditRoute = async ({
 
   return (
     <EditorPage
+      adminChrome={{
+        locale,
+        title: '프로젝트 수정',
+      }}
       availableTags={availableTags}
       hideAppFrameFooter
       onDraftSave={handleDraftSave}

@@ -87,6 +87,10 @@ const AdminArticleNewRoute = async ({
 
   return (
     <EditorPage
+      adminChrome={{
+        locale,
+        title: '새 글',
+      }}
       availableTags={availableTags}
       hideAppFrameFooter
       onDraftSave={handleDraftSave}
