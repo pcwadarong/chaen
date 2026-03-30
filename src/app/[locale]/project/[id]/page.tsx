@@ -100,14 +100,14 @@ const ProjectDetailRoute = async ({ params }: ProjectDetailRouteProps) => {
   if (!item) notFound();
   const effectiveLocale = resolvedLocale ?? locale;
 
-  const initialArchivePage = await getProjectDetailArchivePageData({
+  const initialArchivePagePromise = getProjectDetailArchivePageData({
     item,
     locale: effectiveLocale,
   });
 
   return (
     <ProjectDetailPage
-      initialArchivePage={initialArchivePage}
+      initialArchivePagePromise={initialArchivePagePromise}
       item={item}
       locale={locale as AppLocale}
     />

@@ -118,11 +118,10 @@ const ArticleDetailRoute = async ({ params }: ArticleDetailRouteProps) => {
     item,
     locale,
   });
-  const initialArchivePage = await initialArchivePagePromise;
 
   return (
     <ArticleDetailPage
-      initialArchivePage={initialArchivePage}
+      initialArchivePagePromise={initialArchivePagePromise}
       item={item}
       locale={locale as AppLocale}
       relatedArticlesPromise={relatedArticlesPromise}

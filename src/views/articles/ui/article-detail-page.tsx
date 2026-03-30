@@ -24,13 +24,14 @@ import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
+  DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
   DetailTagListSkeleton,
 } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
-  initialArchivePage: ArticleArchivePage;
+  initialArchivePagePromise: Promise<ArticleArchivePage>;
   item: Article;
   locale: AppLocale;
   relatedArticlesPromise: Promise<ArticleListItemModel[]>;
@@ -57,6 +58,10 @@ type ArticleArchiveSidebarProps = {
 type ArticleTagListProps = {
   ariaLabel: string;
   tagLabelsPromise: Promise<string[]>;
+};
+
+type DeferredArticleArchiveSidebarProps = Omit<ArticleArchiveSidebarProps, 'initialPage'> & {
+  initialArchivePagePromise: Promise<ArticleArchivePage>;
 };
 
 type DeferredRelatedArticlesSectionProps = {
@@ -137,6 +142,18 @@ const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListPro
 };
 
 /**
+ * 아티클 상세 좌측 아카이브를 Suspense 경계 안에서 비동기로 렌더링합니다.
+ */
+const DeferredArticleArchiveSidebar = async ({
+  initialArchivePagePromise,
+  ...props
+}: DeferredArticleArchiveSidebarProps) => {
+  const initialPage = await initialArchivePagePromise;
+
+  return <ArticleArchiveSidebar {...props} initialPage={initialPage} />;
+};
+
+/**
  * 아티클 상세 하단 관련 글 섹션을 비동기 경계 안에서 렌더링합니다.
  */
 const DeferredRelatedArticlesSection = async ({
@@ -161,7 +178,7 @@ const DeferredRelatedArticlesSection = async ({
  * @returns 아티클 상세 전체 JSX 엘리먼트를 반환합니다.
  */
 export const ArticleDetailPage = ({
-  initialArchivePage,
+  initialArchivePagePromise,
   item,
   locale,
   relatedArticlesPromise,
@@ -246,17 +263,19 @@ export const ArticleDetailPage = ({
           />
         }
         sidebarContent={
-          <ArticleArchiveSidebar
-            currentItem={item}
-            emptyText={detailUi('emptyArchive')}
-            initialPage={initialArchivePage}
-            loadErrorText={articlesT('loadError')}
-            loadMoreEndText={articlesT('loadMoreEnd')}
-            loadingText={articlesT('loading')}
-            locale={locale}
-            retryText={articlesT('retry')}
-            selectedPathSegment={articlePathSegment}
-          />
+          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
+            <DeferredArticleArchiveSidebar
+              currentItem={item}
+              emptyText={detailUi('emptyArchive')}
+              initialArchivePagePromise={initialArchivePagePromise}
+              loadErrorText={articlesT('loadError')}
+              loadMoreEndText={articlesT('loadMoreEnd')}
+              loadingText={articlesT('loading')}
+              locale={locale}
+              retryText={articlesT('retry')}
+              selectedPathSegment={articlePathSegment}
+            />
+          </Suspense>
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={

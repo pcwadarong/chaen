@@ -51,7 +51,7 @@ const renderServerHtml = async ({
 } = {}) => {
   const { ProjectDetailPage } = await import('@/views/project/ui/project-detail-page');
   const element = ProjectDetailPage({
-    initialArchivePage: {
+    initialArchivePagePromise: Promise.resolve({
       items: [
         {
           id: 'project-1',
@@ -62,7 +62,7 @@ const renderServerHtml = async ({
         },
       ],
       nextCursor: null,
-    },
+    }),
     item: item ?? {
       id: 'project-1',
       slug: 'project-1-slug',

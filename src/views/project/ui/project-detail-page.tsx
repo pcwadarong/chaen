@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
 import {
@@ -27,10 +27,11 @@ import {
 import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
+import { DetailArchiveSidebarSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ProjectDetailPageProps = {
-  initialArchivePage: ProjectArchivePage;
+  initialArchivePagePromise: Promise<ProjectArchivePage>;
   item: Project;
   locale: AppLocale;
 };
@@ -45,6 +46,10 @@ type ProjectArchiveSidebarProps = {
   locale: AppLocale;
   retryText: string;
   selectedPathSegment: string;
+};
+
+type DeferredProjectArchiveSidebarProps = Omit<ProjectArchiveSidebarProps, 'initialPage'> & {
+  initialArchivePagePromise: Promise<ProjectArchivePage>;
 };
 
 type ProjectTechStackListProps = {
@@ -107,6 +112,18 @@ const ProjectArchiveSidebar = ({
 );
 
 /**
+ * 프로젝트 상세 좌측 아카이브를 Suspense 경계 안에서 비동기로 렌더링합니다.
+ */
+const DeferredProjectArchiveSidebar = async ({
+  initialArchivePagePromise,
+  ...props
+}: DeferredProjectArchiveSidebarProps) => {
+  const initialPage = await initialArchivePagePromise;
+
+  return <ProjectArchiveSidebar {...props} initialPage={initialPage} />;
+};
+
+/**
  * 프로젝트 상세 기술 스택 목록을 카테고리별 행으로 렌더링합니다.
  */
 const ProjectTechStackList = ({ ariaLabel, groups }: ProjectTechStackListProps) => {
@@ -165,7 +182,11 @@ const ProjectExternalLinkList = ({ githubUrl, websiteUrl }: ProjectExternalLinkL
 /**
  * 프로젝트 상세 페이지의 본문/메타/좌측 아카이브 조합을 렌더링합니다.
  */
-export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectDetailPageProps) => {
+export const ProjectDetailPage = ({
+  initialArchivePagePromise,
+  item,
+  locale,
+}: ProjectDetailPageProps) => {
   const t = useTranslations('ProjectDetail');
   const projectT = useTranslations('Project');
   const detailUi = useTranslations('DetailUi');
@@ -256,17 +277,19 @@ export const ProjectDetailPage = ({ initialArchivePage, item, locale }: ProjectD
           />
         }
         sidebarContent={
-          <ProjectArchiveSidebar
-            currentItem={item}
-            emptyText={detailUi('emptyArchive')}
-            initialPage={initialArchivePage}
-            loadErrorText={projectT('loadError')}
-            loadMoreEndText={projectT('loadMoreEnd')}
-            loadingText={projectT('loading')}
-            locale={locale}
-            retryText={projectT('retry')}
-            selectedPathSegment={projectPathSegment}
-          />
+          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
+            <DeferredProjectArchiveSidebar
+              currentItem={item}
+              emptyText={detailUi('emptyArchive')}
+              initialArchivePagePromise={initialArchivePagePromise}
+              loadErrorText={projectT('loadError')}
+              loadMoreEndText={projectT('loadMoreEnd')}
+              loadingText={projectT('loading')}
+              locale={locale}
+              retryText={projectT('retry')}
+              selectedPathSegment={projectPathSegment}
+            />
+          </Suspense>
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={
