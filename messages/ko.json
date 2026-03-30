@@ -17,7 +17,7 @@
     "scrollToTopAriaLabel": "맨 위로 이동"
   },
   "Home": {
-    "description": "첫 화면은 Three.js 애니메이션이 주도하고, 그 아래에서 프로젝트와 연락 섹션이 이어지는 구조를 염두에 둔 홈 컨테이너입니다.",
+    "description": "프론트엔드 개발자로서 만든 인터랙티브 웹 프로젝트, UI 구현 사례, 아티클을 함께 아카이빙한 개인 포트폴리오 사이트입니다.",
     "emptyProjects": "아직 등록된 프로젝트가 없습니다.",
     "eyebrow": "홈",
     "mobileProjectPanelAriaLabel": "모바일 프로젝트 패널",
@@ -25,6 +25,12 @@
     "showcaseScreenReaderDescription": "선별 프로젝트 섹션입니다. 프로젝트별 상세 페이지로 이동할 수 있습니다.",
     "showcaseTitle": "선별 프로젝트",
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
+  },
+  "HomeHeroHint": {
+    "ariaLabel": "홈 장면 상호작용 안내",
+    "closeAriaLabel": "안내 닫기",
+    "stackedText": "노트북, 기타, 카메라를 눌러보고 드래그해서 둘러보세요",
+    "wideText": "스크롤을 내리거나 기타, 카메라를 눌러보세요"
   },
   "Guest": {
     "title": "안부게시판",
@@ -282,6 +288,18 @@
     "locationLabel": "Location",
     "locationValue": "서울, 대한민국",
     "title": "의미 있는 경험을\n함께 만들어요."
+  },
+  "SceneFallback": {
+    "webglDescription": "현재 브라우저에서는 3D 장면을 바로 렌더링할 수 없습니다. 아래 콘텐츠와 링크는 그대로 사용할 수 있습니다.",
+    "webglTitle": "이 브라우저에서는 3D 장면이 비활성화됩니다."
+  },
+  "SceneInteraction": {
+    "canvasAriaLabel": "홈 씬 상호작용 캔버스",
+    "canvasHelpText": "화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.",
+    "keyboardTargetStatus": "현재 선택: {target}",
+    "targetBass": "기타",
+    "targetCamera": "카메라",
+    "targetLaptop": "노트북"
   },
   "Switchers": {
     "locale": {

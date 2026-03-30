@@ -1,9 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { getContactSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
+import { SceneBrowserFallback } from '@/entities/scene/ui/scene-browser-fallback';
+import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
+import { useSceneWebglAvailability } from '@/shared/lib/dom/use-scene-webgl-availability';
 import {
   CONTACT_SCENE_LAYOUT_MODE,
   getContactSceneLayoutMode,
@@ -17,7 +22,7 @@ const ContactSceneCanvas = dynamic(
     import('@/widgets/contact-scene/ui/contact-scene-canvas').then(
       module => module.ContactSceneCanvas,
     ),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <SceneLoadingShell className={contactCanvasLoadingClass} /> },
 );
 
 const APP_SCROLL_VIEWPORT_SELECTOR = '[data-app-scroll-viewport="true"]';
@@ -51,9 +56,18 @@ const readContactAvailableHeight = () => {
 
 /** wide viewport에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
-  const { sceneViewportMode } = useBreakpoint();
+  const t = useTranslations('SceneFallback');
+  const { sceneViewportMode, viewportWidth } = useBreakpoint();
+  const isWebglAvailable = useSceneWebglAvailability();
   const [isMounted, setIsMounted] = useState(false);
   const [availableHeight, setAvailableHeight] = useState(() => readContactAvailableHeight());
+  const renderQuality = React.useMemo(
+    () =>
+      getContactSceneRenderQuality({
+        viewportWidth,
+      }),
+    [viewportWidth],
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -103,9 +117,23 @@ export const ContactScene = () => {
         <div className={copyColumnClass} data-testid="contact-scene-copy">
           <ContactStrip layout="split" />
         </div>
-        <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
+        <div
+          aria-hidden={isWebglAvailable === false ? undefined : true}
+          className={mediaColumnClass}
+          data-testid="contact-scene-media"
+        >
           <div className={canvasFrameClass}>
-            <ContactSceneCanvas />
+            {isWebglAvailable === false ? (
+              <SceneBrowserFallback
+                className={contactCanvasLoadingClass}
+                description={t('webglDescription')}
+                title={t('webglTitle')}
+              />
+            ) : isWebglAvailable === null ? (
+              <SceneLoadingShell className={contactCanvasLoadingClass} />
+            ) : (
+              <ContactSceneCanvas renderQuality={renderQuality} />
+            )}
           </div>
         </div>
       </div>
@@ -194,6 +222,11 @@ const mediaColumnClass = css({
 const canvasFrameClass = css({
   width: 'full',
   height: 'full',
+});
+
+const contactCanvasLoadingClass = css({
+  background:
+    '[radial-gradient(circle_at_70%_45%, rgba(255,245,232,0.32), transparent 52%), radial-gradient(circle_at_88%_86%, rgba(255,255,255,0.28), transparent 24%)]',
 });
 
 const backgroundClass = css({

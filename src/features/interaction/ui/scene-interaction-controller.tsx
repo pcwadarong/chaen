@@ -1,17 +1,22 @@
 'use client';
 
 import { useThree } from '@react-three/fiber';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { Object3D } from 'three';
 
 import { useInteractionActions } from '@/features/interaction/model/useInteractionActions';
 import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
+import { useIsTouchDevice } from '@/shared/lib/dom/use-is-touch-device';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
   onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  onPrepareAudioPlayback?: () => void;
+  showOutlineEffect?: boolean;
   onToggleBackgroundMusicPlayback?: () => void | Promise<void>;
 }>;
 
@@ -27,9 +32,13 @@ export const SceneInteractionController = ({
   onBrowseProjects,
   onOpenImageViewer,
   onPlayBassString,
+  onPrepareAudioPlayback,
+  showOutlineEffect = true,
   onToggleBackgroundMusicPlayback,
 }: SceneInteractionControllerProps) => {
+  const t = useTranslations('SceneInteraction');
   const { gl, scene } = useThree();
+  const isTouchDevice = useIsTouchDevice();
   const { handleMeshClick } = useInteractionActions({
     onBrowseProjects,
     onOpenImageViewer,
@@ -53,18 +62,41 @@ export const SceneInteractionController = ({
   useEffect(() => {
     const canvasElement = gl.domElement;
     const previousAriaLabel = canvasElement.getAttribute('aria-label');
+    const previousAriaDescribedBy = canvasElement.getAttribute('aria-describedby');
     const previousTabIndex = canvasElement.tabIndex;
+    const helpTextElement = document.createElement('p');
+    const statusElement = document.createElement('p');
+
+    helpTextElement.id = 'scene-interaction-help-text';
+    helpTextElement.className = srOnlyClass;
+    helpTextElement.textContent = t('canvasHelpText');
+
+    statusElement.id = 'scene-interaction-status';
+    statusElement.className = srOnlyClass;
+    statusElement.setAttribute('aria-live', 'polite');
+    statusElement.setAttribute('role', 'status');
+    statusElement.textContent = '';
+
+    document.body.append(helpTextElement, statusElement);
 
     canvasElement.tabIndex = 0;
+    canvasElement.setAttribute(
+      'aria-describedby',
+      [previousAriaDescribedBy, helpTextElement.id].filter(Boolean).join(' '),
+    );
 
     if (previousAriaLabel === null) {
-      canvasElement.setAttribute('aria-label', '홈 씬 상호작용 캔버스');
+      canvasElement.setAttribute('aria-label', t('canvasAriaLabel'));
     }
 
     const handlePointerMove = (event: PointerEvent) => {
       onPointerMove(event);
     };
     const handlePointerDownOrUp = (event: PointerEvent) => {
+      if (event.type === 'pointerdown') {
+        onPrepareAudioPlayback?.();
+      }
+
       onPointerClick(event);
     };
     const handlePointerLeave = () => {
@@ -75,6 +107,12 @@ export const SceneInteractionController = ({
 
       keyboardTargetIndexRef.current = nextTarget ? nextIndex : -1;
       setHoveredMeshDirect(nextTarget);
+
+      statusElement.textContent = nextTarget
+        ? t('keyboardTargetStatus', {
+            target: resolveKeyboardTargetLabel(nextTarget.name, t),
+          })
+        : '';
     };
     const handleFocus = () => {
       if (keyboardTargets.length === 0) return;
@@ -85,6 +123,7 @@ export const SceneInteractionController = ({
     };
     const handleBlur = () => {
       keyboardTargetIndexRef.current = -1;
+      statusElement.textContent = '';
       clearHoveredMesh();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -112,6 +151,7 @@ export const SceneInteractionController = ({
 
       if (!target) return;
 
+      onPrepareAudioPlayback?.();
       syncKeyboardTargetByIndex(targetIndex);
       handleMeshClick(target);
     };
@@ -139,22 +179,33 @@ export const SceneInteractionController = ({
         canvasElement.setAttribute('aria-label', previousAriaLabel);
       }
 
+      if (previousAriaDescribedBy === null) {
+        canvasElement.removeAttribute('aria-describedby');
+      } else {
+        canvasElement.setAttribute('aria-describedby', previousAriaDescribedBy);
+      }
+
       canvasElement.tabIndex = previousTabIndex;
+      helpTextElement.remove();
+      statusElement.remove();
     };
   }, [
     clearHoveredMesh,
     gl,
     handleMeshClick,
     keyboardTargets,
+    onPrepareAudioPlayback,
     onPointerClick,
     onPointerMove,
     setHoveredMeshDirect,
+    t,
   ]);
 
-  // OutlineEffect는 hover 여부와 무관하게 항상 마운트한다.
-  // composer 경로를 idle/hover 모두 동일하게 유지해 shadowMaterial 등 반투명 오브젝트의
-  // tone mapping 적용 시점(pre-blend vs post-blend)에 따른 색감 차이를 제거한다.
-  return <OutlineEffect hoveredMeshes={hoveredOutlineMeshes} />;
+  // stacked / narrow-wide / coarse pointer에서는 outline composer 비용 대비 체감이 낮다.
+  // wide desktop + fine pointer에서만 후처리 outline을 유지하고, 나머지는 이벤트 경로만 살린다.
+  return showOutlineEffect && !isTouchDevice ? (
+    <OutlineEffect hoveredMeshes={hoveredOutlineMeshes} />
+  ) : null;
 };
 
 /**
@@ -164,3 +215,13 @@ const resolveKeyboardInteractionTargets = (scene: Object3D): Object3D[] =>
   KEYBOARD_INTERACTION_TARGET_NAMES.map(name => scene.getObjectByName(name)).filter(
     (target): target is Object3D => target !== undefined,
   );
+
+/**
+ * 키보드 순회 대상의 내부 mesh 이름을 사용자가 이해할 수 있는 라벨로 변환합니다.
+ */
+const resolveKeyboardTargetLabel = (targetName: string, t: ReturnType<typeof useTranslations>) => {
+  if (targetName === 'laptop') return t('targetLaptop');
+  if (targetName === 'bass_body') return t('targetBass');
+
+  return t('targetCamera');
+};

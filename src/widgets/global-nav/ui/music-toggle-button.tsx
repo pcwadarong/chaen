@@ -8,6 +8,8 @@ import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
+const AUDIO_PREPARE_KEYBOARD_KEYS = new Set(['Enter', ' ']);
+
 /**
  * 현재 background music 재생 상태를 dash 또는 wave 아이콘으로 표현합니다.
  */
@@ -74,7 +76,13 @@ const MusicPlaybackIndicator = ({ isPlaying }: { readonly isPlaying: boolean }) 
  */
 export const MusicToggleButton = () => {
   const t = useTranslations('Navigation');
-  const { isBackgroundMusicPlaying, toggleBackgroundMusicPlayback } = useBassAudio();
+  const { isBackgroundMusicPlaying, prepareBassAudioPlayback, toggleBackgroundMusicPlayback } =
+    useBassAudio();
+  const handlePrepareAudioPlaybackByKeyboard = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!AUDIO_PREPARE_KEYBOARD_KEYS.has(event.key)) return;
+
+    prepareBassAudioPlayback();
+  };
 
   return (
     <Button
@@ -84,6 +92,8 @@ export const MusicToggleButton = () => {
       onClick={() => {
         void toggleBackgroundMusicPlayback();
       }}
+      onKeyDown={handlePrepareAudioPlaybackByKeyboard}
+      onPointerDownCapture={prepareBassAudioPlayback}
       size="sm"
       tone="white"
       type="button"

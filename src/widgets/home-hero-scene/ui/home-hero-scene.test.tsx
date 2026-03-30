@@ -28,22 +28,25 @@ vi.mock('next-intl', () => ({
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-stage', () => ({
   HomeHeroStage: ({
-    onBrowseProjects,
-    onOpenImageViewer,
-    selectedFrameImageSrc,
+    content,
+    interaction,
   }: {
-    onBrowseProjects?: () => void;
-    onOpenImageViewer?: () => void;
-    selectedFrameImageSrc?: string | null;
+    content?: {
+      selectedFrameImageSrc?: string | null;
+    };
+    interaction?: {
+      onBrowseProjects?: () => void;
+      onOpenImageViewer?: () => void;
+    };
   }) => (
     <div>
       <button
-        data-frame-screen-src={selectedFrameImageSrc ?? ''}
+        data-frame-screen-src={content?.selectedFrameImageSrc ?? ''}
         data-testid="home-hero-stage"
-        onClick={onOpenImageViewer}
+        onClick={interaction?.onOpenImageViewer}
         type="button"
       />
-      <button onClick={onBrowseProjects} type="button">
+      <button onClick={interaction?.onBrowseProjects} type="button">
         browse-projects
       </button>
     </div>
@@ -71,6 +74,12 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet', () => ({
     ) : (
       <div data-testid="home-hero-mobile-project-sheet" />
     ),
+}));
+
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-interaction-hint', () => ({
+  HomeHeroInteractionHint: ({ hidden = false }: { hidden?: boolean }) => (
+    <div data-hidden={String(hidden)} data-testid="home-hero-interaction-hint" />
+  ),
 }));
 
 vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({

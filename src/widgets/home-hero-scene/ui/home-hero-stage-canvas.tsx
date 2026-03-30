@@ -3,21 +3,20 @@
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useLocale, useTranslations } from 'next-intl';
-import React, { type RefObject, Suspense, useCallback, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import type { ProjectListItem } from '@/entities/project/model/types';
 import {
   SCENE_VIEWPORT_MODE,
   type SceneBreakpoint,
   type SceneViewportMode,
 } from '@/entities/scene/model/breakpointConfig';
+import { getHomeHeroSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
-import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -26,6 +25,10 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import type {
+  HomeHeroStageProps,
+  HomeHeroStageSceneRefs,
+} from '@/widgets/home-hero-scene/model/home-hero-stage-contract';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import { useHomeHeroSceneTransition } from '@/widgets/home-hero-scene/model/use-home-hero-scene-transition';
@@ -34,37 +37,29 @@ import {
   HomeHeroStageLights,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
 
-type HomeHeroStageCanvasProps = {
-  readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
-  readonly interactionDisabledProgressThreshold?: number;
-  readonly items?: ProjectListItem[];
-  readonly onBrowseProjects?: () => void;
-  readonly onOpenImageViewer?: () => void;
-  readonly selectedFrameImageSrc?: string | null;
-  readonly triggerRef: RefObject<HTMLElement | null>;
-  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
-  readonly webUiRef: RefObject<HTMLDivElement | null>;
-};
+type HomeHeroCanvasInteractionHandlers = Readonly<{
+  onBrowseProjects: () => void;
+  onOpenImageViewer?: () => void;
+  onPlayBassString: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  onPrepareAudioPlayback: () => void;
+  onToggleBackgroundMusicPlayback: () => void | Promise<void>;
+}>;
 
 const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 const BASS_STOP_BUTTON_SIZE = '7';
 const BASS_STOP_BUTTON_FOCUS_OUTLINE = '[2px solid var(--colors-focus-ring)]';
 const BASS_STOP_BUTTON_FOCUS_OUTLINE_OFFSET = '[2px]';
+const AUDIO_PREPARE_KEYBOARD_KEYS = new Set(['Enter', ' ']);
 
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
  */
-export const HomeHeroStageCanvas = ({
-  blackoutOverlayRef,
-  interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
-  items = [],
-  onBrowseProjects,
-  onOpenImageViewer,
-  selectedFrameImageSrc,
-  triggerRef,
-  webUiContentRef,
-  webUiRef,
-}: HomeHeroStageCanvasProps) => {
+export const HomeHeroStageCanvas = ({ content, interaction, sceneRefs }: HomeHeroStageProps) => {
+  const items = content?.items ?? [];
+  const selectedFrameImageSrc = content?.selectedFrameImageSrc;
+  const interactionDisabledProgressThreshold =
+    interaction?.interactionDisabledProgressThreshold ??
+    DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD;
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [monitorScreenOpacity, setMonitorScreenOpacity] = useState(0);
@@ -75,21 +70,27 @@ export const HomeHeroStageCanvas = ({
     isBackgroundMusicPlaying,
     pauseBackgroundMusicPlayback,
     playBassString,
+    prepareBassAudioPlayback,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
   const { currentBP, sceneViewportMode } = useBreakpoint();
+  const renderQuality = useMemo(
+    () =>
+      getHomeHeroSceneRenderQuality({
+        sceneViewportMode,
+      }),
+    [sceneViewportMode],
+  );
   const handleBrowseProjects = useCallback(() => {
-    const shouldUseBottomSheet =
-      sceneViewportMode === SCENE_VIEWPORT_MODE.stacked ||
-      (typeof window !== 'undefined' && window.innerWidth < VIEWPORT_BREAKPOINTS.desktopMin);
+    const shouldUseBottomSheet = sceneViewportMode === SCENE_VIEWPORT_MODE.stacked;
 
     if (shouldUseBottomSheet) {
-      onBrowseProjects?.();
+      interaction?.onBrowseProjects?.();
       return;
     }
 
-    scrollHomeHeroToProjects(triggerRef.current);
-  }, [onBrowseProjects, sceneViewportMode, triggerRef]);
+    scrollHomeHeroToProjects(sceneRefs.triggerRef.current);
+  }, [interaction, sceneViewportMode, sceneRefs]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -112,9 +113,9 @@ export const HomeHeroStageCanvas = ({
         near: HOME_HERO_CAMERA_NEAR,
         position: sceneLayout.camera.position,
       }}
-      dpr={[1, 2]}
+      dpr={renderQuality.dpr}
       gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
-      shadows
+      shadows={renderQuality.shadows}
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
         gl.domElement.setAttribute('aria-hidden', 'true');
@@ -126,20 +127,21 @@ export const HomeHeroStageCanvas = ({
     >
       <HomeHeroStageLights />
       <HomeHeroCameraRig
-        blackoutOverlayRef={blackoutOverlayRef}
         currentBP={currentBP}
         interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
-        onBrowseProjects={handleBrowseProjects}
         onMonitorOverlayOpacityChange={setMonitorScreenOpacity}
-        onOpenImageViewer={onOpenImageViewer}
-        onPlayBassString={playBassString}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         sceneLayout={sceneLayout}
+        sceneRefs={sceneRefs}
         sceneViewportMode={sceneViewportMode}
-        onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
-        triggerRef={triggerRef}
-        webUiContentRef={webUiContentRef}
-        webUiRef={webUiRef}
+        showOutlineEffect={renderQuality.enableOutlineComposer}
+        interactionHandlers={{
+          onBrowseProjects: handleBrowseProjects,
+          onOpenImageViewer: interaction?.onOpenImageViewer,
+          onPlayBassString: playBassString,
+          onPrepareAudioPlayback: prepareBassAudioPlayback,
+          onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
+        }}
       />
       <Suspense fallback={null}>
         <HomeHeroSceneObjects
@@ -148,6 +150,7 @@ export const HomeHeroStageCanvas = ({
           monitorScreenOpacity={monitorScreenOpacity}
           monitorScreenTexture={monitorScreenTexture}
           pauseMusicLabel={t('pauseMusic')}
+          onPrepareAudioPlayback={prepareBassAudioPlayback}
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
@@ -161,46 +164,34 @@ export const HomeHeroStageCanvas = ({
  * breakpoint와 스크롤 상태에 따라 기본 카메라와 Orbit 제어를 전환합니다.
  */
 const HomeHeroCameraRig = ({
-  blackoutOverlayRef,
   currentBP,
   interactionDisabledProgressThreshold,
-  onBrowseProjects,
   onMonitorOverlayOpacityChange,
-  onOpenImageViewer,
-  onPlayBassString,
   onCloseupCostumeHiddenChange,
   sceneLayout,
+  sceneRefs,
   sceneViewportMode,
-  onToggleBackgroundMusicPlayback,
-  triggerRef,
-  webUiContentRef,
-  webUiRef,
+  showOutlineEffect,
+  interactionHandlers,
 }: {
-  readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
   readonly currentBP: SceneBreakpoint;
   readonly interactionDisabledProgressThreshold: number;
-  readonly onBrowseProjects: () => void;
   readonly onMonitorOverlayOpacityChange: (opacity: number) => void;
-  readonly onOpenImageViewer?: () => void;
-  readonly onPlayBassString: (
-    stringName: 'line1' | 'line2' | 'line3' | 'line4',
-  ) => void | Promise<void>;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
+  readonly sceneRefs: HomeHeroStageSceneRefs;
   readonly sceneViewportMode: SceneViewportMode;
-  readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
-  readonly triggerRef: RefObject<HTMLElement | null>;
-  readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
-  readonly webUiRef: RefObject<HTMLDivElement | null>;
+  readonly showOutlineEffect: boolean;
+  readonly interactionHandlers: HomeHeroCanvasInteractionHandlers;
 }) => {
   const { isCloseupCostumeHidden, isSequenceActive, monitorOverlayOpacity, progress } =
     useHomeHeroSceneTransition({
-      blackoutOverlayRef,
+      blackoutOverlayRef: sceneRefs.blackoutOverlayRef,
       sceneLayout,
       sceneViewportMode,
-      triggerRef,
-      webUiContentRef,
-      webUiRef,
+      triggerRef: sceneRefs.triggerRef,
+      webUiContentRef: sceneRefs.webUiContentRef,
+      webUiRef: sceneRefs.webUiRef,
     });
 
   React.useEffect(() => {
@@ -232,10 +223,12 @@ const HomeHeroCameraRig = ({
       />
       {isInteractionEnabled ? (
         <SceneInteractionController
-          onBrowseProjects={onBrowseProjects}
-          onOpenImageViewer={onOpenImageViewer}
-          onPlayBassString={onPlayBassString}
-          onToggleBackgroundMusicPlayback={onToggleBackgroundMusicPlayback}
+          onBrowseProjects={interactionHandlers.onBrowseProjects}
+          onOpenImageViewer={interactionHandlers.onOpenImageViewer}
+          onPlayBassString={interactionHandlers.onPlayBassString}
+          onPrepareAudioPlayback={interactionHandlers.onPrepareAudioPlayback}
+          showOutlineEffect={showOutlineEffect}
+          onToggleBackgroundMusicPlayback={interactionHandlers.onToggleBackgroundMusicPlayback}
         />
       ) : null}
     </>
@@ -251,6 +244,7 @@ const HomeHeroSceneObjects = ({
   monitorScreenOpacity,
   monitorScreenTexture,
   pauseMusicLabel,
+  onPrepareAudioPlayback,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
@@ -260,6 +254,7 @@ const HomeHeroSceneObjects = ({
   readonly monitorScreenOpacity: number;
   readonly monitorScreenTexture: ReturnType<typeof useMonitorOverlayTexture>;
   readonly pauseMusicLabel: string;
+  readonly onPrepareAudioPlayback: () => void;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
@@ -279,6 +274,12 @@ const HomeHeroSceneObjects = ({
             aria-label={pauseMusicLabel}
             className={bassStopButtonClass}
             onClick={onStopBassTrackPlayback}
+            onKeyDown={event => {
+              if (!AUDIO_PREPARE_KEYBOARD_KEYS.has(event.key)) return;
+
+              onPrepareAudioPlayback();
+            }}
+            onPointerDownCapture={onPrepareAudioPlayback}
             type="button"
           >
             <PauseIcon aria-hidden color="white" size={12} />

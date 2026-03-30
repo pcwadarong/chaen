@@ -4,10 +4,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
+import { useSceneWebglAvailability } from '@/shared/lib/dom/use-scene-webgl-availability';
 import { ContactScene } from '@/widgets/contact-scene/ui/contact-scene';
 import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 
 import '@testing-library/jest-dom/vitest';
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) =>
+    ({
+      webglDescription: '브라우저 fallback 설명',
+      webglTitle: '브라우저 fallback 제목',
+    })[key] ?? key,
+}));
 
 vi.mock('next/dynamic', () => ({
   default: () => {
@@ -27,7 +36,12 @@ vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: vi.fn(),
 }));
 
+vi.mock('@/shared/lib/dom/use-scene-webgl-availability', () => ({
+  useSceneWebglAvailability: vi.fn(),
+}));
+
 const mockedUseBreakpoint = vi.mocked(useBreakpoint);
+const mockedUseSceneWebglAvailability = vi.mocked(useSceneWebglAvailability);
 
 describe('ContactScene', () => {
   beforeEach(() => {
@@ -37,12 +51,15 @@ describe('ContactScene', () => {
       writable: true,
     });
     document.documentElement.style.setProperty('--global-nav-height', '0px');
+    mockedUseSceneWebglAvailability.mockReturnValue(true);
   });
 
   it('모바일에서는 contact scene 자체를 렌더링하지 않아야 한다', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 2,
       sceneViewportMode: 'stacked',
+      viewportHeight: 920,
+      viewportWidth: 768,
     });
 
     const { container } = render(<ContactScene />);
@@ -56,6 +73,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 920,
+      viewportWidth: 1280,
     });
 
     const { container } = render(<ContactScene />);
@@ -79,6 +98,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 780,
+      viewportWidth: 1280,
     });
 
     Object.defineProperty(window, 'innerHeight', {
@@ -104,6 +125,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 920,
+      viewportWidth: 1280,
     });
 
     const viewport = document.createElement('div');
@@ -118,5 +141,23 @@ describe('ContactScene', () => {
     });
 
     viewport.remove();
+  });
+
+  it('wide scene에서 WebGL을 사용할 수 없을 때, ContactScene은 브라우저 fallback을 렌더링해야 한다', async () => {
+    mockedUseBreakpoint.mockReturnValue({
+      currentBP: 4,
+      sceneViewportMode: 'wide',
+      viewportHeight: 920,
+      viewportWidth: 1280,
+    });
+    mockedUseSceneWebglAvailability.mockReturnValue(false);
+
+    render(<ContactScene />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('region', { name: '브라우저 fallback 제목' })).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId('contact-scene-canvas')).toBeNull();
   });
 });

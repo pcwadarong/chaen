@@ -12,10 +12,13 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
     onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
+    onPrepareAudioPlayback?: () => void;
+    showOutlineEffect?: boolean;
     onToggleBackgroundMusicPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneViewportMode: 'wide' as 'stacked' | 'wide',
+  viewportWidth: 1280,
   timelineState: {
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
@@ -30,6 +33,7 @@ const bassAudioMockState = vi.hoisted(() => ({
   isBackgroundMusicPlaying: false,
   pauseBackgroundMusicPlayback: vi.fn(),
   playBassString: vi.fn(),
+  prepareBassAudioPlayback: vi.fn(),
   toggleBackgroundMusicPlayback: vi.fn(),
 }));
 
@@ -42,10 +46,12 @@ vi.mock('@react-three/fiber', () => ({
   Canvas: ({
     children,
     dpr,
+    shadows,
     onCreated,
   }: {
     children: React.ReactNode;
     dpr?: unknown;
+    shadows?: boolean;
     onCreated?: (state: {
       gl: {
         domElement: HTMLCanvasElement;
@@ -70,7 +76,11 @@ vi.mock('@react-three/fiber', () => ({
     }, [onCreated]);
 
     return (
-      <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
+      <div
+        data-dpr={JSON.stringify(dpr)}
+        data-shadows={String(Boolean(shadows))}
+        data-testid="home-hero-stage-canvas"
+      >
         {children}
       </div>
     );
@@ -115,6 +125,8 @@ vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: () => ({
     currentBP: 4,
     sceneViewportMode: homeHeroStageCanvasMockState.sceneViewportMode,
+    viewportHeight: 800,
+    viewportWidth: homeHeroStageCanvasMockState.viewportWidth,
   }),
 }));
 
@@ -139,11 +151,33 @@ vi.mock('@/features/audio/model/use-bass-audio', () => ({
 }));
 
 describe('HomeHeroStageCanvas', () => {
+  const createStageCanvasProps = (
+    overrides?: Partial<{
+      interaction: {
+        interactionDisabledProgressThreshold?: number;
+        onBrowseProjects?: () => void;
+        onOpenImageViewer?: () => void;
+      };
+      content: {
+        selectedFrameImageSrc?: string | null;
+      };
+    }>,
+  ) => ({
+    content: overrides?.content,
+    interaction: overrides?.interaction,
+    sceneRefs: {
+      blackoutOverlayRef: { current: null },
+      triggerRef: { current: null },
+      webUiRef: { current: null },
+    },
+  });
+
   beforeEach(() => {
     homeHeroStageCanvasMockState.createdCanvasElement = null;
     homeHeroStageCanvasMockState.interactionControllerProps = null;
     homeHeroStageCanvasMockState.orbitControlsProps = null;
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 1280;
     homeHeroStageCanvasMockState.timelineState = {
       isCloseupCostumeHidden: false,
       isMonitorOverlayVisible: false,
@@ -155,6 +189,7 @@ describe('HomeHeroStageCanvas', () => {
     bassAudioMockState.isBackgroundMusicPlaying = false;
     bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();
     bassAudioMockState.playBassString.mockReset();
+    bassAudioMockState.prepareBassAudioPlayback.mockReset();
     bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -169,13 +204,7 @@ describe('HomeHeroStageCanvas', () => {
   });
 
   it('홈 전용 stage 내부에 main 캐릭터와 소품을 배치하고 orbit controls를 렌더링한다', () => {
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toBeTruthy();
     expect(screen.getByTestId('orbit-controls')).toBeTruthy();
@@ -188,15 +217,45 @@ describe('HomeHeroStageCanvas', () => {
   });
 
   it('wide sceneViewportMode에서는 OrbitControls 줌이 비활성화되어야 한다', () => {
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(false);
+  });
+
+  it('stacked viewport에서는 낮은 DPR과 shadow 비활성 preset을 사용해야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
+    homeHeroStageCanvasMockState.viewportWidth = 768;
+
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
+
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
+      'data-dpr',
+      JSON.stringify([1, 1.25]),
+    );
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'false');
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
+  });
+
+  it('wide viewport에서는 viewport 폭과 무관하게 full wide 품질 preset을 사용해야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 812;
+
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
+
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
+      'data-dpr',
+      JSON.stringify([1, 2]),
+    );
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'true');
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(true);
+  });
+
+  it('캔버스 interaction controller에는 오디오 prewarm 콜백이 연결되어야 한다', () => {
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onPrepareAudioPlayback?.();
+
+    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
   });
 
   it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {
@@ -206,13 +265,7 @@ describe('HomeHeroStageCanvas', () => {
       isSequenceActive: true,
     };
 
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(false);
   });
@@ -224,13 +277,7 @@ describe('HomeHeroStageCanvas', () => {
       isSequenceActive: false,
     };
 
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(true);
   });
@@ -241,13 +288,7 @@ describe('HomeHeroStageCanvas', () => {
       progress: 0.5,
     };
 
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(screen.queryByTestId('scene-interaction-controller')).toBeNull();
   });
@@ -260,10 +301,11 @@ describe('HomeHeroStageCanvas', () => {
 
     render(
       <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        interactionDisabledProgressThreshold={0.6}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        {...createStageCanvasProps({
+          interaction: {
+            interactionDisabledProgressThreshold: 0.6,
+          },
+        })}
       />,
     );
 
@@ -276,10 +318,11 @@ describe('HomeHeroStageCanvas', () => {
 
     render(
       <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        onBrowseProjects={onBrowseProjects}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        {...createStageCanvasProps({
+          interaction: {
+            onBrowseProjects,
+          },
+        })}
       />,
     );
 
@@ -290,8 +333,9 @@ describe('HomeHeroStageCanvas', () => {
     expect(onBrowseProjects).toHaveBeenCalledOnce();
   });
 
-  it('wide sceneViewportMode여도 desktop 미만 너비에서는 프로젝트 바텀 시트를 열어야 한다', () => {
+  it('wide sceneViewportMode에서는 viewport 폭과 무관하게 프로젝트 스크롤 이동을 사용해야 한다', () => {
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 812;
     const onBrowseProjects = vi.fn();
 
     Object.defineProperty(window, 'innerWidth', {
@@ -302,26 +346,21 @@ describe('HomeHeroStageCanvas', () => {
 
     render(
       <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        onBrowseProjects={onBrowseProjects}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        {...createStageCanvasProps({
+          interaction: {
+            onBrowseProjects,
+          },
+        })}
       />,
     );
 
     homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
 
-    expect(onBrowseProjects).toHaveBeenCalledOnce();
+    expect(onBrowseProjects).not.toHaveBeenCalled();
   });
 
   it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-dpr', '[1,2]');
   });
@@ -329,10 +368,11 @@ describe('HomeHeroStageCanvas', () => {
   it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
     render(
       <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        selectedFrameImageSrc="https://example.com/frame.jpg"
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        {...createStageCanvasProps({
+          content: {
+            selectedFrameImageSrc: 'https://example.com/frame.jpg',
+          },
+        })}
       />,
     );
 
@@ -343,13 +383,7 @@ describe('HomeHeroStageCanvas', () => {
   });
 
   it('scene interaction controller는 background music 토글과 bass string 콜백을 함께 받아야 한다', () => {
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBackgroundMusicPlayback?.();
     homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
@@ -361,13 +395,7 @@ describe('HomeHeroStageCanvas', () => {
   it('background music 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
     bassAudioMockState.isBackgroundMusicPlaying = true;
 
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(screen.getByRole('button', { name: 'Navigation.pauseMusic' })).toBeTruthy();
   });
@@ -375,13 +403,7 @@ describe('HomeHeroStageCanvas', () => {
   it('정지 버튼 오버레이를 누르면 background music 일시정지 콜백을 호출해야 한다', () => {
     bassAudioMockState.isBackgroundMusicPlaying = true;
 
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Navigation.pauseMusic' }));
 
@@ -389,13 +411,7 @@ describe('HomeHeroStageCanvas', () => {
   });
 
   it('실제 three canvas는 접근성 트리에서 숨기고 presentation role을 가져야 한다', () => {
-    render(
-      <HomeHeroStageCanvas
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
-      />,
-    );
+    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
 
     expect(homeHeroStageCanvasMockState.createdCanvasElement).not.toBeNull();
     expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(

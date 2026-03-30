@@ -17,7 +17,7 @@
     "scrollToTopAriaLabel": "Back to top"
   },
   "Home": {
-    "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
+    "description": "A personal portfolio site archiving interactive frontend projects, UI implementation case studies, and technical articles.",
     "emptyProjects": "No projects have been published yet.",
     "eyebrow": "Home",
     "mobileProjectPanelAriaLabel": "Mobile project panel",
@@ -25,6 +25,12 @@
     "showcaseScreenReaderDescription": "Selected projects section. Each card links to its detailed case study page.",
     "showcaseTitle": "Selected projects",
     "title": "An opening frame with room for motion."
+  },
+  "HomeHeroHint": {
+    "ariaLabel": "Home scene interaction hint",
+    "closeAriaLabel": "Close hint",
+    "stackedText": "Tap the laptop, bass, or camera, then drag to look around.",
+    "wideText": "Scroll down or press the bass and camera."
   },
   "Guest": {
     "title": "Guestbook",
@@ -282,6 +288,18 @@
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
     "title": "Let's connect and\ncreate meaningful\nexperiences."
+  },
+  "SceneFallback": {
+    "webglDescription": "This browser cannot render the 3D scene directly. The rest of the content and links remain available below.",
+    "webglTitle": "3D scene is unavailable in this browser."
+  },
+  "SceneInteraction": {
+    "canvasAriaLabel": "Home scene interaction canvas",
+    "canvasHelpText": "Use the arrow keys to move between objects, then press Enter or Space to activate the current selection.",
+    "keyboardTargetStatus": "Current selection: {target}",
+    "targetBass": "Bass",
+    "targetCamera": "Camera",
+    "targetLaptop": "Laptop"
   },
   "Switchers": {
     "locale": {

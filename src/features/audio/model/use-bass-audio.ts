@@ -24,6 +24,7 @@ type PlayAudioOptions = Readonly<{
 const bassAudioStore = {
   backgroundMusicAudio: null as HTMLAudioElement | null,
   bassStringAudios: {} as Partial<Record<BassStringName, HTMLAudioElement>>,
+  hasPreparedAudioElements: false,
   listeners: new Set<() => void>(),
   snapshot: {
     isBackgroundMusicPlaying: false,
@@ -118,6 +119,7 @@ export const useBassAudio = (): {
   isBackgroundMusicPlaying: boolean;
   pauseBackgroundMusicPlayback: () => void;
   playBassString: (stringName: BassStringName) => Promise<void>;
+  prepareBassAudioPlayback: () => void;
   toggleBackgroundMusicPlayback: () => Promise<void>;
   triggerBackgroundMusicPlayback: () => Promise<void>;
 } => {
@@ -131,9 +133,27 @@ export const useBassAudio = (): {
     isBackgroundMusicPlaying: snapshot.isBackgroundMusicPlaying,
     pauseBackgroundMusicPlayback,
     playBassString,
+    prepareBassAudioPlayback,
     toggleBackgroundMusicPlayback,
     triggerBackgroundMusicPlayback,
   };
+};
+
+/**
+ * Safari처럼 첫 사용자 제스처 이후에야 재생이 안정화되는 브라우저를 위해
+ * background music과 bass string 오디오 엘리먼트를 미리 생성하고 `load()`를 호출합니다.
+ *
+ * 실제 재생을 강제로 시작하지는 않고, 첫 pointer/keyboard 입력 안에서 오디오 객체를 준비해
+ * 이후 `play()` 호출이 지연 생성 때문에 거절될 가능성을 줄이는 역할만 담당합니다.
+ */
+const prepareBassAudioPlayback = () => {
+  if (bassAudioStore.hasPreparedAudioElements) return;
+
+  getAllManagedAudioElements().forEach(audioElement => {
+    audioElement.load();
+  });
+
+  bassAudioStore.hasPreparedAudioElements = true;
 };
 
 /**
@@ -188,11 +208,23 @@ const playBassString = async (stringName: BassStringName) => {
 };
 
 /**
+ * 현재 훅이 관리하는 모든 오디오 엘리먼트를 생성 순서대로 반환합니다.
+ */
+const getAllManagedAudioElements = (): HTMLAudioElement[] => [
+  getBackgroundMusicAudio(),
+  getBassStringAudio('line1'),
+  getBassStringAudio('line2'),
+  getBassStringAudio('line3'),
+  getBassStringAudio('line4'),
+];
+
+/**
  * 경로 기반 HTMLAudioElement를 생성하고 공통 preload 정책을 적용합니다.
  */
 const createAudioElement = (src: string): HTMLAudioElement => {
   const audioElement = new Audio(src);
   audioElement.preload = 'auto';
+  (audioElement as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
 
   return audioElement;
 };
@@ -256,6 +288,7 @@ export const __resetBassAudioStoreForTest = () => {
 
   bassAudioStore.backgroundMusicAudio = null;
   bassAudioStore.bassStringAudios = {};
+  bassAudioStore.hasPreparedAudioElements = false;
   bassAudioStore.snapshot = {
     isBackgroundMusicPlaying: false,
   };
