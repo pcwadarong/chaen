@@ -48,8 +48,19 @@ vi.mock('@/i18n/navigation', () => ({
   ),
 }));
 
-vi.mock('@/features/admin-session/ui/admin-sign-out-button', () => ({
-  AdminSignOutButton: ({ submitLabel }: { submitLabel: string }) => <button>{submitLabel}</button>,
+vi.mock('@/widgets/admin-console', () => ({
+  AdminConsoleShell: ({
+    children,
+    summary,
+  }: {
+    children: React.ReactNode;
+    summary?: React.ReactNode;
+  }) => (
+    <div>
+      {summary}
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock('@/widgets/admin-pdf-upload', () => ({
@@ -73,6 +84,9 @@ describe('DashboardPage', () => {
     render(await DashboardPage({ locale: 'ko' }));
 
     expect(screen.getByRole('navigation', { name: '관리자 작업' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '콘텐츠 관리' }).getAttribute('href')).toBe(
+      '/admin/content',
+    );
     expect(screen.getByRole('link', { name: '새 기록' }).getAttribute('href')).toBe(
       '/admin/articles/new',
     );
@@ -81,6 +95,9 @@ describe('DashboardPage', () => {
     );
     expect(screen.getByRole('link', { name: '이력서 편집' }).getAttribute('href')).toBe(
       '/admin/resume/edit',
+    );
+    expect(screen.getByRole('link', { name: '임시저장 목록' }).getAttribute('href')).toBe(
+      '/admin/drafts',
     );
     expect(screen.getByRole('link', { name: '사진 관리' }).getAttribute('href')).toBe(
       '/admin/photo',
