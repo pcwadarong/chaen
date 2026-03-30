@@ -81,6 +81,21 @@ export const cacheArticleCommentsPage = (pageData: ArticleCommentPage, articleId
 };
 
 /**
+ * 특정 article의 모든 댓글 페이지 캐시를 삭제합니다.
+ *
+ * 댓글 작성/수정/삭제 성공 직후 호출해 stale 데이터가 재사용되지 않도록 합니다.
+ */
+export const invalidateArticleCommentsCache = (articleId: string) => {
+  if (typeof window === 'undefined') return;
+
+  const prefix = `${articleId}:`;
+
+  for (const key of articleCommentsPageCache.keys()) {
+    if (key.startsWith(prefix)) articleCommentsPageCache.delete(key);
+  }
+};
+
+/**
  * 테스트에서 댓글 페이지 메모리 캐시를 초기화합니다.
  */
 export const resetArticleCommentsPageCacheForTest = () => {

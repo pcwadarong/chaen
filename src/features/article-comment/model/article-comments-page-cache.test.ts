@@ -3,6 +3,7 @@ import {
   cacheArticleCommentsPage,
   DEFAULT_INITIAL_PAGE,
   getCachedArticleCommentsPage,
+  invalidateArticleCommentsCache,
   resetArticleCommentsPageCacheForTest,
 } from '@/features/article-comment/model/article-comments-page-cache';
 
@@ -91,6 +92,24 @@ describe('article comments page cache', () => {
         sort: 'latest',
       }),
     ).toEqual(pageData);
+  });
+
+  it('invalidateArticleCommentsCache는 해당 articleId의 모든 캐시를 삭제하고 다른 article은 유지한다', () => {
+    cacheArticleCommentsPage({ ...pageData, page: 1, sort: 'latest' }, 'article-1');
+    cacheArticleCommentsPage({ ...pageData, page: 1, sort: 'oldest' }, 'article-1');
+    cacheArticleCommentsPage({ ...pageData, page: 1, sort: 'latest' }, 'article-2');
+
+    invalidateArticleCommentsCache('article-1');
+
+    expect(
+      getCachedArticleCommentsPage({ articleId: 'article-1', page: 1, sort: 'latest' }),
+    ).toBeNull();
+    expect(
+      getCachedArticleCommentsPage({ articleId: 'article-1', page: 1, sort: 'oldest' }),
+    ).toBeNull();
+    expect(
+      getCachedArticleCommentsPage({ articleId: 'article-2', page: 1, sort: 'latest' }),
+    ).not.toBeNull();
   });
 
   it('TTL이 지난 캐시를 조회한 뒤 새로 저장하면 새 데이터를 반환한다', () => {
