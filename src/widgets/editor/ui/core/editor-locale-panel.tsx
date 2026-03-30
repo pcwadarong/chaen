@@ -139,6 +139,59 @@ const EditorLocalePanelBase = ({
     measurePaneHeight();
   }, [isActive, layoutShiftToken, measurePaneHeight, translation.description, translation.title]);
 
+  const summaryFields = (
+    <div className={summaryGridClass}>
+      <div className={summaryFieldClass}>
+        <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
+          제목
+        </label>
+        <Textarea
+          aria-describedby={activeLocaleHasTitleError ? `editor-title-error-${locale}` : undefined}
+          aria-invalid={activeLocaleHasTitleError ? true : undefined}
+          className={textareaInfoClass}
+          id={`editor-title-${locale}`}
+          onChange={event => onTitleChange(locale, event.target.value)}
+          placeholder={`${localeLabel} 제목`}
+          ref={titleTextareaRef}
+          value={translation.title}
+        />
+        {activeLocaleHasTitleError ? (
+          <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
+            제목을 입력해주세요
+          </p>
+        ) : null}
+      </div>
+
+      <div className={summaryFieldClass}>
+        <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
+          설명
+        </label>
+        <Textarea
+          className={textareaInfoClass}
+          id={`editor-description-${locale}`}
+          onChange={event => onDescriptionChange(locale, event.target.value)}
+          placeholder={`${localeLabel} 설명`}
+          ref={descriptionTextareaRef}
+          value={translation.description}
+        />
+      </div>
+      {extraLocaleFieldLabel && onExtraLocaleFieldChange ? (
+        <div className={summaryFieldClass}>
+          <label className={fieldLabelClass} htmlFor={`editor-extra-${locale}`}>
+            {extraLocaleFieldLabel}
+          </label>
+          <Input
+            aria-label={extraLocaleFieldLabel}
+            id={`editor-extra-${locale}`}
+            onChange={event => onExtraLocaleFieldChange(locale, event.target.value)}
+            placeholder={`${localeLabel} ${extraLocaleFieldLabel}`}
+            value={translation.download_button_label ?? ''}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     <section
       aria-labelledby={`editor-tab-${locale}`}
@@ -147,58 +200,7 @@ const EditorLocalePanelBase = ({
       id={`editor-panel-${locale}`}
       role="tabpanel"
     >
-      <div className={summaryGridClass}>
-        <div className={summaryFieldClass}>
-          <label className={fieldLabelClass} htmlFor={`editor-title-${locale}`}>
-            제목
-          </label>
-          <Textarea
-            aria-describedby={
-              activeLocaleHasTitleError ? `editor-title-error-${locale}` : undefined
-            }
-            aria-invalid={activeLocaleHasTitleError ? true : undefined}
-            className={textareaInfoClass}
-            id={`editor-title-${locale}`}
-            onChange={event => onTitleChange(locale, event.target.value)}
-            placeholder={`${localeLabel} 제목`}
-            ref={titleTextareaRef}
-            value={translation.title}
-          />
-          {activeLocaleHasTitleError ? (
-            <p className={titleErrorClass} id={`editor-title-error-${locale}`} role="alert">
-              제목을 입력해주세요
-            </p>
-          ) : null}
-        </div>
-
-        <div className={summaryFieldClass}>
-          <label className={fieldLabelClass} htmlFor={`editor-description-${locale}`}>
-            설명
-          </label>
-          <Textarea
-            className={textareaInfoClass}
-            id={`editor-description-${locale}`}
-            onChange={event => onDescriptionChange(locale, event.target.value)}
-            placeholder={`${localeLabel} 설명`}
-            ref={descriptionTextareaRef}
-            value={translation.description}
-          />
-        </div>
-        {extraLocaleFieldLabel && onExtraLocaleFieldChange ? (
-          <div className={summaryFieldClass}>
-            <label className={fieldLabelClass} htmlFor={`editor-extra-${locale}`}>
-              {extraLocaleFieldLabel}
-            </label>
-            <Input
-              aria-label={extraLocaleFieldLabel}
-              id={`editor-extra-${locale}`}
-              onChange={event => onExtraLocaleFieldChange(locale, event.target.value)}
-              placeholder={`${localeLabel} ${extraLocaleFieldLabel}`}
-              value={translation.download_button_label ?? ''}
-            />
-          </div>
-        ) : null}
-      </div>
+      {isMobileLayout ? summaryFields : null}
 
       <div
         className={editorGridClass}
@@ -235,27 +237,30 @@ const EditorLocalePanelBase = ({
           </div>
         </section>
 
-        <section
-          aria-label="본문 미리보기"
-          className={previewPaneClass}
-          hidden={isMobileLayout && mobileEditorPane !== 'preview'}
-          id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
-        >
-          {shouldRenderPreview && translation.content.trim().length > 0 ? (
-            <div className={markdownBodyClass}>
-              {renderRichMarkdown({
-                markdown: translation.content,
-                renderMarkdownFragment: (fragmentMarkdown, key) => (
-                  <MarkdownHooks key={key} {...markdownOptions}>
-                    {fragmentMarkdown}
-                  </MarkdownHooks>
-                ),
-              })}
-            </div>
-          ) : (
-            <p className={emptyPreviewClass}>미리보기 내용이 없습니다.</p>
-          )}
-        </section>
+        <div className={previewStackClass}>
+          {!isMobileLayout ? summaryFields : null}
+          <section
+            aria-label="본문 미리보기"
+            className={previewPaneClass}
+            hidden={isMobileLayout && mobileEditorPane !== 'preview'}
+            id={isMobileLayout ? `editor-pane-preview-${locale}` : undefined}
+          >
+            {shouldRenderPreview && translation.content.trim().length > 0 ? (
+              <div className={markdownBodyClass}>
+                {renderRichMarkdown({
+                  markdown: translation.content,
+                  renderMarkdownFragment: (fragmentMarkdown, key) => (
+                    <MarkdownHooks key={key} {...markdownOptions}>
+                      {fragmentMarkdown}
+                    </MarkdownHooks>
+                  ),
+                })}
+              </div>
+            ) : (
+              <p className={emptyPreviewClass}>미리보기 내용이 없습니다.</p>
+            )}
+          </section>
+        </div>
       </div>
     </section>
   );
@@ -311,6 +316,14 @@ const editorGridClass = css({
   _tabletDown: {
     gridTemplateColumns: '1fr',
   },
+});
+
+const previewStackClass = css({
+  display: 'grid',
+  gap: '4',
+  minWidth: '0',
+  minHeight: '0',
+  alignContent: 'start',
 });
 
 const editorPaneClass = css({

@@ -5,11 +5,14 @@ import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { parseEditorError } from '@/entities/editor/model/editor-error';
+import { AdminTable } from '@/shared/ui/admin-table';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { DraftTableRow } from '@/views/editor-drafts/ui/editor-drafts-row';
+import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type EditorDraftsPageProps = {
   items: EditorDraftSummary[];
+  locale?: string;
   onDeleteDraft?: (
     draftId: string,
     contentType: EditorDraftSummary['contentType'],
@@ -19,7 +22,7 @@ type EditorDraftsPageProps = {
 /**
  * 관리자 임시저장 목록을 표 형태로 렌더링합니다.
  */
-export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps) => {
+export const EditorDraftsPage = ({ items, locale, onDeleteDraft }: EditorDraftsPageProps) => {
   const [draftItems, setDraftItems] = React.useState(items);
   const [pendingDraftId, setPendingDraftId] = React.useState<string | null>(null);
   const [toastItems, setToastItems] = React.useState<ToastItem[]>([]);
@@ -78,105 +81,65 @@ export const EditorDraftsPage = ({ items, onDeleteDraft }: EditorDraftsPageProps
     [onDeleteDraft, pushToast],
   );
 
-  return (
-    <main className={pageClass}>
+  const content = (
+    <>
       <section className={panelClass}>
-        <div className={headerClass}>
-          <h1 className={titleClass}>임시저장 목록</h1>
-          <p className={descriptionClass}>최근 수정 순서로 이어쓰기 가능한 draft를 보여줍니다.</p>
-        </div>
         {draftItems.length > 0 ? (
-          <div className={tableFrameClass}>
-            <table className={tableClass}>
-              <thead>
-                <tr>
-                  <th>타입</th>
-                  <th>제목 (KO)</th>
-                  <th>수정일</th>
-                  <th aria-label="동작" />
-                </tr>
-              </thead>
-              <tbody>
-                {draftItems.map(item => (
-                  <DraftTableRow
-                    isPending={pendingDraftId === item.id}
-                    item={item}
-                    key={item.id}
-                    onDeleteDraft={onDeleteDraft ? handleDeleteDraft : undefined}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminTable>
+            <thead>
+              <tr>
+                <th>타입</th>
+                <th>제목 (KO)</th>
+                <th>수정일</th>
+                <th aria-label="동작" />
+              </tr>
+            </thead>
+            <tbody>
+              {draftItems.map(item => (
+                <DraftTableRow
+                  isPending={pendingDraftId === item.id}
+                  item={item}
+                  key={item.id}
+                  onDeleteDraft={onDeleteDraft ? handleDeleteDraft : undefined}
+                />
+              ))}
+            </tbody>
+          </AdminTable>
         ) : (
           <div className={emptyStateClass}>저장된 draft가 없습니다.</div>
         )}
       </section>
 
       <ToastViewport items={toastItems} onClose={handleToastClose} />
-    </main>
+    </>
+  );
+
+  if (!locale) {
+    return <main className={pageClass}>{content}</main>;
+  }
+
+  return (
+    <AdminConsoleShell activeSection="drafts" locale={locale} title="Drafts">
+      <div className={pageClass}>{content}</div>
+    </AdminConsoleShell>
   );
 };
 
 const pageClass = css({
   width: 'full',
-  px: '4',
-  py: '8',
+  py: '0',
 });
 
 const panelClass = css({
   width: 'full',
-  maxWidth: '[72rem]',
-  mx: 'auto',
   display: 'grid',
-  gap: '6',
-});
-
-const headerClass = css({
-  display: 'grid',
-  gap: '2',
-});
-
-const titleClass = css({
-  m: '0',
-  fontSize: '3xl',
-  lineHeight: 'tight',
-});
-
-const descriptionClass = css({
-  m: '0',
-  color: 'muted',
-});
-
-const tableFrameClass = css({
-  width: 'full',
-  overflowX: 'auto',
-  border: '[1px solid var(--colors-border)]',
-  borderRadius: '2xl',
-  bg: 'surface',
-});
-
-const tableClass = css({
-  width: 'full',
-  borderCollapse: 'collapse',
-  '& th, & td': {
-    px: '4',
-    py: '4',
-    borderBottom: '[1px solid var(--colors-border-subtle)]',
-    textAlign: 'left',
-    verticalAlign: 'middle',
-  },
-  '& th': {
-    color: 'muted',
-    fontWeight: 'semibold',
-  },
-  '& tbody tr:last-child td': {
-    borderBottom: 'none',
-  },
+  gap: '3',
 });
 
 const emptyStateClass = css({
-  border: '[1px solid var(--colors-border)]',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'border',
   borderRadius: '2xl',
   px: '5',
   py: '8',

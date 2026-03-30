@@ -69,6 +69,10 @@ const AdminResumeEditRoute = async ({
 
   return (
     <ResumeEditorPage
+      adminChrome={{
+        locale,
+        title: 'Resume',
+      }}
       hideAppFrameFooter
       initialDraftId={initialDraftId}
       initialContents={initialContents}

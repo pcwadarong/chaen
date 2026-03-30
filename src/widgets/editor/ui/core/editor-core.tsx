@@ -390,13 +390,11 @@ export const EditorCore = ({
 
 const rootClass = css({
   width: 'full',
-  maxWidth: '[88rem]',
   minWidth: '0',
-  mx: 'auto',
   display: 'grid',
-  gap: '5',
-  px: '4',
-  py: '8',
+  gap: '4',
+  px: { base: '0', lg: '1' },
+  py: '1',
 });
 
 const metaStackClass = css({
@@ -424,7 +422,7 @@ const actionRowClass = css({
 });
 
 const saveStatusClass = css({
-  minHeight: '[1.5rem]',
+  minHeight: '6',
   fontSize: 'sm',
   color: 'muted',
 });
@@ -451,7 +449,7 @@ const localeTabRecipe = cva({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '[2.875rem]',
+    minHeight: '11',
     px: '2',
     pb: '3',
     fontSize: 'sm',
@@ -460,8 +458,10 @@ const localeTabRecipe = cva({
     textAlign: 'center',
     transition: 'colors',
     _focusVisible: {
-      outline: '[2px solid var(--colors-focus-ring)]',
-      outlineOffset: '[2px]',
+      outlineWidth: '0.5',
+      outlineStyle: 'solid',
+      outlineColor: 'focusRing',
+      outlineOffset: '0.5',
     },
   },
   variants: {
@@ -476,8 +476,8 @@ const localeTabRecipe = cva({
           position: 'absolute',
           left: '0',
           right: '0',
-          bottom: '[-1px]',
-          height: '[2px]',
+          bottom: '-0.5',
+          height: '0.5',
           background: 'primary',
         },
       },
@@ -503,15 +503,17 @@ const mobilePaneTabRecipe = cva({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '1',
-    minHeight: '[2.875rem]',
+    minHeight: '11',
     px: '1',
     pb: '3',
     fontSize: 'sm',
     fontWeight: 'semibold',
     transition: 'colors',
     _focusVisible: {
-      outline: '[2px solid var(--colors-focus-ring)]',
-      outlineOffset: '[2px]',
+      outlineWidth: '0.5',
+      outlineStyle: 'solid',
+      outlineColor: 'focusRing',
+      outlineOffset: '0.5',
     },
   },
   variants: {
@@ -526,8 +528,8 @@ const mobilePaneTabRecipe = cva({
           position: 'absolute',
           left: '0',
           right: '0',
-          bottom: '[-1px]',
-          height: '[2px]',
+          bottom: '-0.5',
+          height: '0.5',
           background: 'primary',
         },
       },

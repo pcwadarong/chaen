@@ -28,7 +28,7 @@ const AdminPhotoRoute = async ({
 
   const initialItems = await listPhotoFiles();
 
-  return <AdminPhotoPage initialItems={initialItems} />;
+  return <AdminPhotoPage initialItems={initialItems} locale={locale} />;
 };
 
 export default AdminPhotoRoute;

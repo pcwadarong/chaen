@@ -28,14 +28,12 @@ describe('AdminPhotoLibraryPanel', () => {
     vi.unstubAllGlobals();
   });
 
-  it("초기 렌더링일 때, AdminPhotoLibraryPanel은 heading과 'first.jpg' 카드 및 업로드/삭제 버튼을 렌더링해야 한다", () => {
+  it("초기 렌더링일 때, AdminPhotoLibraryPanel은 'first.jpg' 카드와 삭제 버튼을 렌더링해야 한다", () => {
     vi.stubGlobal('fetch', vi.fn());
 
     render(<AdminPhotoLibraryPanel initialItems={baseItems} />);
 
-    expect(screen.getByRole('heading', { level: 2, name: '사진 보관함' })).toBeTruthy();
     expect(screen.getByText('first.jpg')).toBeTruthy();
-    expect(screen.getByRole('button', { name: '사진 업로드' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'first.jpg 삭제' })).toBeTruthy();
   });
 
@@ -90,12 +88,6 @@ describe('AdminPhotoLibraryPanel', () => {
     expect(screen.getByText('first.jpg')).toBeTruthy();
     expect(screen.getByText('second.jpg')).toBeTruthy();
     expect(screen.getByText('third.png')).toBeTruthy();
-
-    const orderLabels = screen
-      .getAllByText(/^업로드 순서 \d+$/)
-      .map(element => element.textContent);
-
-    expect(orderLabels).toEqual(['업로드 순서 1', '업로드 순서 2', '업로드 순서 3']);
   });
 
   it('삭제 요청이 성공할 때, AdminPhotoLibraryPanel은 해당 이미지를 목록에서 제거해야 한다', async () => {

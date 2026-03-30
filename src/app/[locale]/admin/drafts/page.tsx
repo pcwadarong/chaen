@@ -42,7 +42,7 @@ const AdminDraftsRoute = async ({
     });
   };
 
-  return <EditorDraftsPage items={items} onDeleteDraft={handleDeleteDraft} />;
+  return <EditorDraftsPage items={items} locale={locale} onDeleteDraft={handleDeleteDraft} />;
 };
 
 export default AdminDraftsRoute;
