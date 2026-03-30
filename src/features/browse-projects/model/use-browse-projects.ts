@@ -3,9 +3,8 @@
 import { useCallback } from 'react';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import { getProjectsPageAction } from '@/features/browse-projects/api/get-projects-page';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
+import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 
 type UseBrowseProjectsOptions = {
   initialCursor: string | null;
@@ -14,6 +13,26 @@ type UseBrowseProjectsOptions = {
 };
 
 const PROJECT_FEED_LOAD_ERROR_CODE = 'projectFeed.loadFailed';
+
+/**
+ * 프로젝트 페이지 응답을 JSON으로 읽고 실패 시 메시지를 정규화합니다.
+ */
+const readProjectsFeedPage = async (requestUrl: string) => {
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    throw new Error(errorPayload?.error ?? PROJECT_FEED_LOAD_ERROR_CODE);
+  }
+
+  return response.json() as Promise<{
+    items: ProjectListItem[];
+    nextCursor: string | null;
+  }>;
+};
 
 /**
  * 프로젝트 목록 무한 스크롤 상태를 관리합니다.
@@ -33,29 +52,28 @@ export const useBrowseProjects = ({
       limit: number;
       locale: string;
     }) => {
-      const result = await getProjectsPageAction({
+      const searchParams = new URLSearchParams({
         cursor,
-        limit,
+        limit: String(limit),
         locale: nextLocale,
       });
 
-      if (!result.ok || !result.data) {
-        throw new Error(result.errorCode ?? result.errorMessage ?? PROJECT_FEED_LOAD_ERROR_CODE);
-      }
+      const result = await readProjectsFeedPage(`/api/projects?${searchParams.toString()}`);
 
       return {
-        items: result.data.items,
-        nextCursor: result.data.nextCursor,
+        items: result.items,
+        nextCursor: result.nextCursor,
       };
     },
     [],
   );
 
-  return useOffsetPaginationFeed<ProjectListItem>({
+  return useCursorPaginationFeed<ProjectListItem>({
     initialCursor,
     initialItems,
     locale,
     loadPage,
     mergeItems: (previousItems, incomingItems) => dedupeById([...previousItems, ...incomingItems]),
+    resetKey: locale,
   });
 };
