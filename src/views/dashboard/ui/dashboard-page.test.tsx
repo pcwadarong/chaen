@@ -56,10 +56,10 @@ vi.mock('@/widgets/admin-console', () => ({
     children: React.ReactNode;
     summary?: React.ReactNode;
   }) => (
-    <div>
+    <>
       {summary}
       {children}
-    </div>
+    </>
   ),
 }));
 

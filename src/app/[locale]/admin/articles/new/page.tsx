@@ -8,6 +8,7 @@ import {
 } from '@/entities/editor/api/editor-actions';
 import { createEditorSeed, getEditorDraftSeed } from '@/entities/editor/api/editor-read';
 import { getTagOptionsByLocale } from '@/entities/tag/api/query-tags';
+import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorPage } from '@/views/editor';
 
@@ -88,8 +89,7 @@ const AdminArticleNewRoute = async ({
   return (
     <EditorPage
       adminChrome={{
-        locale,
-        title: '새 글',
+        signOutRedirectPath: buildAdminPath({ locale, section: 'login' }),
       }}
       availableTags={availableTags}
       hideAppFrameFooter

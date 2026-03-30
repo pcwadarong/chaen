@@ -15,8 +15,7 @@ import type {
 
 type EditorPageProps = {
   adminChrome?: {
-    locale: string;
-    title: string;
+    signOutRedirectPath: string;
   };
   availableTags: {
     id: string;
@@ -90,7 +89,11 @@ export const EditorPage = ({
   }
 
   return (
-    <AdminConsoleShell activeSection="content" locale={adminChrome.locale} title={null}>
+    <AdminConsoleShell
+      activeSection="content"
+      signOutRedirectPath={adminChrome.signOutRedirectPath}
+      title={null}
+    >
       {content}
     </AdminConsoleShell>
   );

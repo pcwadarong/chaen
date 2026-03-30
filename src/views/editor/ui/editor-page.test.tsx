@@ -1,10 +1,10 @@
-import { isValidElement } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 
 import { EditorPage } from '@/views/editor/ui/editor-page';
 import { createEmptyTranslations } from '@/widgets/editor/ui/core/editor-core.utils';
 
 vi.mock('@/widgets/admin-console', () => ({
-  AdminConsoleShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AdminConsoleShell: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 describe('EditorPage', () => {

@@ -12,17 +12,21 @@ import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type EditorDraftsPageProps = {
   items: EditorDraftSummary[];
-  locale?: string;
   onDeleteDraft?: (
     draftId: string,
     contentType: EditorDraftSummary['contentType'],
   ) => Promise<void>;
+  signOutRedirectPath?: string;
 };
 
 /**
  * 관리자 임시저장 목록을 표 형태로 렌더링합니다.
  */
-export const EditorDraftsPage = ({ items, locale, onDeleteDraft }: EditorDraftsPageProps) => {
+export const EditorDraftsPage = ({
+  items,
+  onDeleteDraft,
+  signOutRedirectPath,
+}: EditorDraftsPageProps) => {
   const [draftItems, setDraftItems] = React.useState(items);
   const [pendingDraftId, setPendingDraftId] = React.useState<string | null>(null);
   const [toastItems, setToastItems] = React.useState<ToastItem[]>([]);
@@ -114,12 +118,16 @@ export const EditorDraftsPage = ({ items, locale, onDeleteDraft }: EditorDraftsP
     </>
   );
 
-  if (!locale) {
+  if (!signOutRedirectPath) {
     return <main className={pageClass}>{content}</main>;
   }
 
   return (
-    <AdminConsoleShell activeSection="drafts" locale={locale} title="Drafts">
+    <AdminConsoleShell
+      activeSection="drafts"
+      signOutRedirectPath={signOutRedirectPath}
+      title="Drafts"
+    >
       <div className={pageClass}>{content}</div>
     </AdminConsoleShell>
   );

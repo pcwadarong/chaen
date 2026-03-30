@@ -1,6 +1,7 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
+import { buildAdminPath } from '@/features/admin-session';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import { getDashboardPageData } from '@/views/dashboard/model/get-dashboard-page-data';
@@ -20,7 +21,7 @@ export const DashboardPage = async ({ locale }: DashboardPageProps) => {
   return (
     <AdminConsoleShell
       activeSection="dashboard"
-      locale={locale}
+      signOutRedirectPath={buildAdminPath({ locale, section: 'login' })}
       summary={
         <nav aria-label="관리자 작업" className={actionGridClass}>
           <Button asChild fullWidth tone="primary" variant="solid">
@@ -45,9 +46,9 @@ export const DashboardPage = async ({ locale }: DashboardPageProps) => {
       }
       title="Dashboard"
     >
-      <div className={dashboardContentClass}>
+      <section aria-label="PDF 업로드" className={dashboardContentClass}>
         <AdminPdfUploadPanel initialItems={pdfUploadItems} />
-      </div>
+      </section>
     </AdminConsoleShell>
   );
 };

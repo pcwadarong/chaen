@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react';
 import { css, cva } from 'styled-system/css';
 
-import { AdminSignOutButton, buildAdminPath } from '@/features/admin-session';
+import { AdminSignOutButton } from '@/features/admin-session';
 import { Link } from '@/i18n/navigation';
 import {
   buildGlobalNavDockedPaddingTopValue,
@@ -17,7 +17,7 @@ type AdminConsoleShellProps = {
   activeSection: AdminConsoleSection;
   children: ReactNode;
   description?: ReactNode;
-  locale: string;
+  signOutRedirectPath: string;
   summary?: ReactNode;
   title: ReactNode;
 };
@@ -30,7 +30,7 @@ export const AdminConsoleShell = ({
   activeSection,
   children,
   description,
-  locale,
+  signOutRedirectPath,
   summary,
   title,
 }: AdminConsoleShellProps) => {
@@ -50,7 +50,7 @@ export const AdminConsoleShell = ({
               {item.label}
             </Link>
           ))}
-          <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
+          <AdminSignOutButton redirectPath={signOutRedirectPath} />
         </nav>
       </div>
       <aside className={sidebarClass}>
@@ -67,14 +67,14 @@ export const AdminConsoleShell = ({
           ))}
         </nav>
         <div className={sidebarFooterClass}>
-          <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
+          <AdminSignOutButton redirectPath={signOutRedirectPath} />
         </div>
       </aside>
       <section className={workspaceClass({ condensedTop: !hasHeaderContent })}>
         {hasHeaderContent ? (
           <header className={workspaceHeaderClass}>
             <div className={workspaceHeadlineClass}>
-              {title ? <h2 className={workspaceTitleClass}>{title}</h2> : null}
+              {title ? <h1 className={workspaceTitleClass}>{title}</h1> : null}
               {description ? <p className={workspaceDescriptionClass}>{description}</p> : null}
             </div>
             {action ? <div className={workspaceActionClass}>{action}</div> : null}

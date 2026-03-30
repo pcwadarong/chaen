@@ -9,6 +9,7 @@ import {
 import { createEditorSeed, getEditorDraftSeed } from '@/entities/editor/api/editor-read';
 import { getAllTechStacks } from '@/entities/tech-stack/api/query-tech-stacks';
 import { mapTechStacksToAvailableTags } from '@/entities/tech-stack/model/map-tech-stacks-to-available-tags';
+import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorPage } from '@/views/editor';
 
@@ -89,8 +90,7 @@ const AdminProjectNewRoute = async ({
   return (
     <EditorPage
       adminChrome={{
-        locale,
-        title: '새 프로젝트',
+        signOutRedirectPath: buildAdminPath({ locale, section: 'login' }),
       }}
       availableTags={availableTags}
       hideAppFrameFooter

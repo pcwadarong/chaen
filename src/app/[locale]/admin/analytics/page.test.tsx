@@ -1,4 +1,4 @@
-/* @vitest-environment jsdom */
+/* @vitest-environment node */
 
 import { redirect } from 'next/navigation';
 import { isValidElement } from 'react';
@@ -19,7 +19,7 @@ describe('AdminAnalyticsRoute', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자 분석 구형 경로는 메인 대시보드로 리다이렉트한다', async () => {
+  it('유효한 관리자 인증 상태에서, AdminAnalyticsRoute는 /ko/admin으로 리다이렉트해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -37,7 +37,7 @@ describe('AdminAnalyticsRoute', () => {
     expect(redirect).toHaveBeenCalledWith('/ko/admin');
   });
 
-  it('검색 엔진 색인을 비활성화한다', () => {
+  it('어떤 조건에서도, metadata는 robots.index와 robots.follow를 false로 제공해야 한다', () => {
     expect(metadata.robots).toMatchObject({
       follow: false,
       index: false,

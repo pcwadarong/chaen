@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { PHOTO_FILE_ALLOWED_MIME_TYPES } from '@/entities/hero-photo/model/config';
@@ -10,6 +10,8 @@ import { optimizeAdminPhotoFile } from '@/shared/lib/image/optimize-admin-photo-
 import { XButton } from '@/shared/ui/x-button/x-button';
 
 type AdminPhotoLibraryPanelProps = {
+  fileInputId?: string;
+  fileInputRef?: React.RefObject<HTMLInputElement | null>;
   initialItems: PhotoFileItem[];
 };
 
@@ -96,8 +98,15 @@ const formatPhotoFileSize = (size: number) => {
 /**
  * 관리자 전용 사진 보관함에서 다중 업로드, 삭제, 미리보기를 제공합니다.
  */
-export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelProps) => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+export const AdminPhotoLibraryPanel = ({
+  fileInputId,
+  fileInputRef,
+  initialItems,
+}: AdminPhotoLibraryPanelProps) => {
+  const generatedFileInputId = useId();
+  const internalInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = fileInputRef ?? internalInputRef;
+  const resolvedFileInputId = fileInputId ?? generatedFileInputId;
   const [feedback, setFeedback] = useState<PanelFeedback | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [items, setItems] = useState(initialItems);
@@ -217,6 +226,7 @@ export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelP
         aria-label="사진 파일 선택"
         className={hiddenInputClass}
         disabled={isUploading}
+        id={resolvedFileInputId}
         multiple
         onChange={handleFileChange}
         ref={inputRef}

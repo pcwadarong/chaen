@@ -10,8 +10,7 @@ import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type ResumeEditorPageProps = {
   adminChrome?: {
-    locale: string;
-    title: string;
+    signOutRedirectPath: string;
   };
   hideAppFrameFooter?: boolean;
   initialDraftId?: string | null;
@@ -55,7 +54,11 @@ export const ResumeEditorPage = ({
   }
 
   return (
-    <AdminConsoleShell activeSection="resume" locale={adminChrome.locale} title={null}>
+    <AdminConsoleShell
+      activeSection="resume"
+      signOutRedirectPath={adminChrome.signOutRedirectPath}
+      title={null}
+    >
       {content}
     </AdminConsoleShell>
   );

@@ -9,19 +9,22 @@ import { AdminPhotoLibraryPanel } from '@/widgets/admin-photo-library';
 
 type AdminPhotoPageProps = {
   initialItems: PhotoFileItem[];
-  locale?: string;
+  signOutRedirectPath?: string;
 };
 
 /**
  * 관리자 사진 업로드/삭제 페이지를 렌더링합니다.
  */
-export const AdminPhotoPage = ({ initialItems, locale }: AdminPhotoPageProps) => {
-  const content = <AdminPhotoLibraryPanel initialItems={initialItems} />;
+export const AdminPhotoPage = ({ initialItems, signOutRedirectPath }: AdminPhotoPageProps) => {
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const content = (
+    <AdminPhotoLibraryPanel fileInputRef={fileInputRef} initialItems={initialItems} />
+  );
   const handleUploadTrigger = React.useCallback(() => {
-    document.querySelector<HTMLInputElement>('input[aria-label="사진 파일 선택"]')?.click();
+    fileInputRef.current?.click();
   }, []);
 
-  if (!locale) {
+  if (!signOutRedirectPath) {
     return content;
   }
 
@@ -33,7 +36,7 @@ export const AdminPhotoPage = ({ initialItems, locale }: AdminPhotoPageProps) =>
         </Button>
       }
       activeSection="photo"
-      locale={locale}
+      signOutRedirectPath={signOutRedirectPath}
       title="Photo"
     >
       {content}

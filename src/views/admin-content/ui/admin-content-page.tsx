@@ -19,11 +19,11 @@ import { AdminConsoleShell } from '@/widgets/admin-console';
  */
 export const AdminContentPage = ({
   articles,
-  locale = 'ko',
   onSaveProjectOrder,
   onToggleArticleVisibility,
   onToggleProjectVisibility,
   projects,
+  signOutRedirectPath = '/ko/admin/login',
 }: AdminContentPageProps) => {
   const {
     activeTab,
@@ -61,7 +61,7 @@ export const AdminContentPage = ({
         />
       }
       activeSection="content"
-      locale={locale}
+      signOutRedirectPath={signOutRedirectPath}
       title="Content"
     >
       <div className={toolbarClass}>

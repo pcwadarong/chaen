@@ -6,6 +6,7 @@ import {
   saveResumeDraftAction,
 } from '@/entities/resume/api/resume-editor-actions';
 import { getResumeEditorSeed } from '@/entities/resume/api/resume-editor-read';
+import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { ResumeEditorPage } from '@/views/resume-editor';
 
@@ -70,8 +71,7 @@ const AdminResumeEditRoute = async ({
   return (
     <ResumeEditorPage
       adminChrome={{
-        locale,
-        title: 'Resume',
+        signOutRedirectPath: buildAdminPath({ locale, section: 'login' }),
       }}
       hideAppFrameFooter
       initialDraftId={initialDraftId}
