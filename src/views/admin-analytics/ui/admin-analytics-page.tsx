@@ -11,7 +11,7 @@ import type { PdfFileDownloadLog } from '@/entities/pdf-file/model/types';
 import { Link } from '@/i18n/navigation';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { AdminTable } from '@/shared/ui/admin-table';
-import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
+import { CollapsiblePanelHeader } from '@/shared/ui/collapsible-panel-header';
 import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type AdminAnalyticsPageProps = {
@@ -22,41 +22,6 @@ type AdminAnalyticsPageProps = {
   title?: string;
   topArticles: AdminArticleListItem[];
 };
-
-type CollapsiblePanelHeaderProps = {
-  isCollapsed: boolean;
-  onToggle: () => void;
-  title: React.ReactNode;
-  titleClassName?: string;
-};
-
-/**
- * 관리자 대시보드 패널에서 공통으로 사용하는 접기/펼치기 헤더입니다.
- */
-const CollapsiblePanelHeader = ({
-  isCollapsed,
-  onToggle,
-  title,
-  titleClassName,
-}: CollapsiblePanelHeaderProps) => (
-  <header className={panelHeaderClass}>
-    <h3 className={titleClassName ?? panelTitleClass}>{title}</h3>
-    <button
-      aria-expanded={!isCollapsed}
-      className={panelToggleButtonClass}
-      onClick={onToggle}
-      type="button"
-    >
-      <span>{isCollapsed ? '열기' : '닫기'}</span>
-      <ArrowUpIcon
-        aria-hidden
-        className={isCollapsed ? panelToggleIconCollapsedClass : panelToggleIconClass}
-        color="muted"
-        size="sm"
-      />
-    </button>
-  </header>
-);
 
 /**
  * 관리자 대시보드에서 내부 지표와 로그를 요약해 보여줍니다.
@@ -310,39 +275,6 @@ const panelClass = css({
   borderRadius: '3xl',
   border: '[1px solid var(--colors-border)]',
   background: 'surface',
-});
-
-const panelHeaderClass = css({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-});
-
-const panelTitleClass = css({
-  margin: '0',
-  fontSize: 'lg',
-  lineHeight: 'tight',
-});
-
-const panelToggleButtonClass = css({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '1.5',
-  fontSize: 'sm',
-  color: 'muted',
-  _focusVisible: {
-    outline: '[2px solid var(--colors-focus-ring)]',
-    outlineOffset: '[2px]',
-  },
-});
-
-const panelToggleIconClass = css({
-  transition: 'transform',
-});
-
-const panelToggleIconCollapsedClass = css({
-  transition: 'transform',
-  transform: 'rotate(180deg)',
 });
 
 const rankListClass = css({

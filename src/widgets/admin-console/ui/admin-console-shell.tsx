@@ -7,8 +7,10 @@ import {
   buildGlobalNavDockedPaddingTopValue,
   buildGlobalNavDockedTopValue,
 } from '@/shared/lib/dom/global-nav-layout-vars';
-
-type AdminConsoleSection = 'content' | 'dashboard' | 'drafts' | 'photo' | 'resume';
+import {
+  adminConsoleNavigationItems,
+  type AdminConsoleSection,
+} from '@/widgets/admin-console/model/navigation-config';
 
 type AdminConsoleShellProps = {
   action?: ReactNode;
@@ -19,18 +21,6 @@ type AdminConsoleShellProps = {
   summary?: ReactNode;
   title: ReactNode;
 };
-
-const adminNavItems: Array<{
-  href: string;
-  label: string;
-  section: AdminConsoleSection;
-}> = [
-  { href: '/admin', label: 'Dashboard', section: 'dashboard' },
-  { href: '/admin/content', label: 'Content', section: 'content' },
-  { href: '/admin/photo', label: 'Photo', section: 'photo' },
-  { href: '/admin/resume/edit', label: 'Resume', section: 'resume' },
-  { href: '/admin/drafts', label: 'Drafts', section: 'drafts' },
-];
 
 /**
  * 관리자 전용 풀폭 작업 레이아웃과 좌측 사이드바를 제공합니다.
@@ -50,7 +40,7 @@ export const AdminConsoleShell = ({
     <main className={shellClass}>
       <div className={mobileNavShellClass}>
         <nav aria-label="관리자 섹션" className={mobileNavClass}>
-          {adminNavItems.map(item => (
+          {adminConsoleNavigationItems.map(item => (
             <Link
               aria-current={item.section === activeSection ? 'page' : undefined}
               className={mobileNavItemClass({ active: item.section === activeSection })}
@@ -65,7 +55,7 @@ export const AdminConsoleShell = ({
       </div>
       <aside className={sidebarClass}>
         <nav aria-label="관리자 섹션" className={navClass}>
-          {adminNavItems.map(item => (
+          {adminConsoleNavigationItems.map(item => (
             <Link
               aria-current={item.section === activeSection ? 'page' : undefined}
               className={navItemClass({ active: item.section === activeSection })}
