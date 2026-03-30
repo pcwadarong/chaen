@@ -60,8 +60,28 @@ export const updateProjectDisplayOrderAction = async (input: {
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw new Error('project.orderUpdateFailed');
 
+  if (new Set(orderedProjectIds).size !== orderedProjectIds.length) {
+    throw new Error('project.invalidOrderRequest');
+  }
+
+  const { data: existingProjects, error: fetchError } = await supabase
+    .from('projects')
+    .select('id')
+    .in('id', orderedProjectIds);
+
+  if (fetchError) throw new Error('project.orderUpdateFailed');
+
+  const existingProjectIdSet = new Set((existingProjects ?? []).map(project => project.id));
+  const validatedProjectIds = orderedProjectIds.filter(projectId =>
+    existingProjectIdSet.has(projectId),
+  );
+
+  if (validatedProjectIds.length !== orderedProjectIds.length) {
+    throw new Error('project.invalidOrderRequest');
+  }
+
   const { error } = await supabase.from('projects').upsert(
-    orderedProjectIds.map((id, index) => ({
+    validatedProjectIds.map((id, index) => ({
       id,
       display_order: index + 1,
     })),
@@ -71,7 +91,7 @@ export const updateProjectDisplayOrderAction = async (input: {
   if (error) throw new Error('project.orderUpdateFailed');
 
   revalidateTag(PROJECTS_CACHE_TAG);
-  orderedProjectIds.forEach(projectId => {
+  validatedProjectIds.forEach(projectId => {
     revalidateTag(createProjectCacheTag(projectId));
   });
   revalidateProjectOrderPaths(locale);

@@ -4,6 +4,7 @@ import type {
   AdminGoogleArticleTraffic,
   AdminGoogleArticleTrafficItem,
 } from '@/entities/article/model/types';
+import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
 import { getGoogleSearchConsoleConfigOptional } from '@/shared/lib/google-search-console/config';
 
 import 'server-only';
@@ -64,9 +65,20 @@ export const getAdminGoogleArticleTraffic = async ({
     };
   }
 
-  const endDate = today.toISOString().slice(0, 10);
+  const endDate = formatYearMonthDay(today);
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 27);
+  const formattedStartDate = formatYearMonthDay(startDate);
+
+  if (!endDate || !formattedStartDate) {
+    return {
+      items: [],
+      message: '유효한 날짜 범위를 만들지 못했습니다.',
+      siteUrl: config.siteUrl,
+      status: 'error',
+      totalClicks: 0,
+    };
+  }
 
   try {
     const auth = new google.auth.GoogleAuth({
@@ -99,7 +111,7 @@ export const getAdminGoogleArticleTraffic = async ({
         endDate,
         rowLimit: limit,
         searchType: 'web',
-        startDate: startDate.toISOString().slice(0, 10),
+        startDate: formattedStartDate,
       },
       siteUrl: config.siteUrl,
     });

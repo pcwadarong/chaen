@@ -30,13 +30,25 @@ describe('updateProjectDisplayOrderAction', () => {
     });
   });
 
-  it('전달된 순서대로 display_order를 다시 저장하고 공개 경로를 재검증한다', async () => {
+  it('정렬 요청이 주어졌을 때, updateProjectDisplayOrderAction은 display_order를 다시 저장하고 공개 경로를 재검증해야 한다', async () => {
+    const inMock = vi.fn().mockResolvedValue({
+      data: [{ id: 'project-2' }, { id: 'project-1' }],
+      error: null,
+    });
+    const select = vi.fn(() => ({ in: inMock }));
     const upsert = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
-      from: vi.fn(() => ({
-        upsert,
-      })),
+      from: vi.fn((table: string) => {
+        if (table === 'projects') {
+          return {
+            select,
+            upsert,
+          };
+        }
+
+        throw new Error(`unexpected table: ${table}`);
+      }),
     } as never);
 
     await updateProjectDisplayOrderAction({
@@ -56,6 +68,8 @@ describe('updateProjectDisplayOrderAction', () => {
     expect(revalidateTag).toHaveBeenCalledWith('project:project-1');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/content');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko');
+    expect(revalidatePath).toHaveBeenCalledWith('/en');
   });
 });

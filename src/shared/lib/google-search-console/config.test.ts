@@ -12,9 +12,23 @@ describe('getGoogleSearchConsoleConfigOptional', () => {
   const originalSiteUrl = process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL;
 
   afterEach(() => {
-    process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL = originalClientEmail;
-    process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY = originalPrivateKey;
-    process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL = originalSiteUrl;
+    if (originalClientEmail === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL = originalClientEmail;
+    }
+
+    if (originalPrivateKey === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY = originalPrivateKey;
+    }
+
+    if (originalSiteUrl === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL = originalSiteUrl;
+    }
   });
 
   it('필수 설정이 모두 있으면 private key 개행을 복원해 반환해야 한다', () => {

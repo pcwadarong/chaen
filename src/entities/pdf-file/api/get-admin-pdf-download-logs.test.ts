@@ -12,7 +12,7 @@ describe('getAdminPdfDownloadLogs', () => {
     vi.clearAllMocks();
   });
 
-  it('최근 PDF 다운로드 로그를 최신순으로 제한 조회한다', async () => {
+  it('limit이 주어졌을 때, getAdminPdfDownloadLogs는 최근 PDF 로그를 최신순으로 제한 조회해야 한다', async () => {
     const limit = vi.fn().mockResolvedValue({
       data: [
         {
@@ -49,5 +49,30 @@ describe('getAdminPdfDownloadLogs', () => {
     expect(limit).toHaveBeenCalledWith(20);
     expect(result).toHaveLength(1);
     expect(result[0]?.utm_source).toBe('linkedin');
+  });
+
+  it('서비스 롤 클라이언트를 만들 수 없을 때, getAdminPdfDownloadLogs는 빈 배열을 반환해야 한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+
+    await expect(getAdminPdfDownloadLogs({ limit: 10 })).resolves.toEqual([]);
+  });
+
+  it('데이터베이스 조회가 실패할 때, getAdminPdfDownloadLogs는 예외를 던져야 한다', async () => {
+    const limit = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error('some'),
+    });
+    const order = vi.fn().mockReturnValue({ limit });
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn(() => ({
+        order,
+        select: vi.fn().mockReturnThis(),
+      })),
+    } as never);
+
+    await expect(getAdminPdfDownloadLogs({ limit: 10 })).rejects.toThrow(
+      '[admin-pdf-logs] 로그 조회 실패: some',
+    );
   });
 });

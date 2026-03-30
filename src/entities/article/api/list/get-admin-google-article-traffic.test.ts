@@ -26,9 +26,23 @@ describe('getAdminGoogleArticleTraffic', () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL = originalClientEmail;
-    process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY = originalPrivateKey;
-    process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL = originalSiteUrl;
+    if (originalClientEmail === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL = originalClientEmail;
+    }
+
+    if (originalPrivateKey === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY = originalPrivateKey;
+    }
+
+    if (originalSiteUrl === undefined) {
+      delete process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL;
+    } else {
+      process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL = originalSiteUrl;
+    }
 
     mockGoogleAuth.mockImplementation(() => ({
       getClient: vi.fn().mockResolvedValue({
@@ -141,5 +155,30 @@ describe('getAdminGoogleArticleTraffic', () => {
       status: 'error',
       totalClicks: 0,
     });
+  });
+
+  it('로컬 기준 today가 주어졌을 때, getAdminGoogleArticleTraffic은 로컬 날짜 범위로 요청해야 한다', async () => {
+    process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL = 'bot@example.iam.gserviceaccount.com';
+    process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY = 'private-key';
+    process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL = 'sc-domain:chaen.dev';
+    mockQuery.mockResolvedValue({
+      data: {
+        rows: [],
+      },
+    });
+
+    const { getAdminGoogleArticleTraffic } =
+      await import('@/entities/article/api/list/get-admin-google-article-traffic');
+
+    await getAdminGoogleArticleTraffic({ today: new Date('2026-03-31T00:30:00+09:00') });
+
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestBody: expect.objectContaining({
+          endDate: '2026-03-31',
+          startDate: '2026-03-04',
+        }),
+      }),
+    );
   });
 });

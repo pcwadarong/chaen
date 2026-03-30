@@ -51,7 +51,9 @@ describe('updateArticleVisibilityAction', () => {
     expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/content');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
+    expect(revalidatePath).toHaveBeenCalledWith('/en/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles/article-1-slug');
     expect(revalidatePath).toHaveBeenCalledWith('/ko');
+    expect(revalidatePath).toHaveBeenCalledWith('/en');
   });
 });

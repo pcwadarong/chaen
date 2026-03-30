@@ -10,10 +10,21 @@ import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
+const localeSchema = z.enum(locales, {
+  error: () => ({ message: '지원되지 않는 로케일입니다.' }),
+});
+const projectSlugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(200)
+  .regex(/^[a-z0-9-]+$/)
+  .optional();
+
 const updateProjectVisibilitySchema = z.object({
-  locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
+  locale: localeSchema,
   projectId: z.string().trim().min(1, '대상 프로젝트를 확인할 수 없습니다.'),
-  projectSlug: z.string().trim().optional(),
+  projectSlug: projectSlugSchema,
   visibility: z.enum(['private', 'public']),
 });
 
