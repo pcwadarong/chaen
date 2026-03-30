@@ -19,14 +19,6 @@ const createItem = (overrides?: Partial<ProjectListItem>): ProjectListItem => ({
   period_start: '2025-01-01',
   publish_at: '2025-02-01',
   slug: 'project-1',
-  tech_stacks: [
-    {
-      category: 'frontend',
-      id: 'react',
-      name: 'React',
-      slug: 'react',
-    },
-  ],
   thumbnail_url: 'https://example.com/thumb.png?download=1',
   title: 'Over the Rainbow',
   ...overrides,

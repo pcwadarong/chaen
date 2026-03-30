@@ -2,7 +2,6 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { ProjectListItem, ProjectListPage } from '@/entities/project/model/types';
-import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
 import {
   buildContentLocaleFallbackChain,
@@ -166,17 +165,6 @@ const resolveProjectItemsWithLocaleFallback = async (
     localeFallbackChain,
   );
   if (translationsResult.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
-
-  const techStacksByProjectId = await getProjectTechStackMap(baseRows.map(row => row.id)).catch(
-    error => {
-      console.error('[projects] Failed to fetch tech stacks for project IDs', {
-        error,
-        projectIds: baseRows.map(row => row.id),
-      });
-
-      return new Map();
-    },
-  );
   const translationsByProjectId = new Map<string, ProjectListTranslationSummaryRow[]>();
 
   translationsResult.data.forEach(row => {
@@ -206,7 +194,6 @@ const resolveProjectItemsWithLocaleFallback = async (
       period_start: baseRow.period_start,
       publish_at: baseRow.publish_at,
       slug: baseRow.slug,
-      tech_stacks: techStacksByProjectId.get(baseRow.id) ?? [],
       thumbnail_url: baseRow.thumbnail_url,
       title: preferredTranslation.title,
     };

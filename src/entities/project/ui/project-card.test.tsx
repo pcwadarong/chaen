@@ -43,7 +43,6 @@ describe('ProjectCard', () => {
           period_start: '2025-12-01T00:00:00.000Z',
           publish_at: '2026-03-01T00:00:00.000Z',
           slug: 'project-slug',
-          tech_stacks: [],
           thumbnail_url: null,
           title: '프로젝트',
         }}

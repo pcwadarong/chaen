@@ -70,7 +70,6 @@ export const mapProjectListItem = (row: ProjectTranslationRow): ProjectListItem 
     period_start: null,
     publish_at: projectBase.publish_at,
     slug: projectBase.slug,
-    tech_stacks: [],
     thumbnail_url: projectBase.thumbnail_url,
     title: row.title,
   };

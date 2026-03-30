@@ -49,7 +49,6 @@ export type ProjectListItem = Pick<
   | 'period_start'
   | 'publish_at'
   | 'slug'
-  | 'tech_stacks'
   | 'thumbnail_url'
   | 'title'
 >;

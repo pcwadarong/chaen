@@ -124,18 +124,10 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
-    const projectTechStacksQuery = createQueryMock({
-      result: {
-        data: [],
-        error: null,
-      },
-      terminalMethod: 'in',
-    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
-        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -155,7 +147,6 @@ describe('getProjects', () => {
         thumbnail_url: null,
         publish_at: '2026-03-02T09:07:50.797695+00:00',
         slug: 'project-ja',
-        tech_stacks: [],
       },
       {
         id: 'project-ko-only',
@@ -166,7 +157,6 @@ describe('getProjects', () => {
         thumbnail_url: null,
         publish_at: '2026-03-01T09:07:50.797695+00:00',
         slug: 'project-ko-only',
-        tech_stacks: [],
       },
     ]);
     expect(projectsQuery.lte).toHaveBeenCalledWith('publish_at', '2026-03-11T12:00:00.000Z');
@@ -192,17 +182,9 @@ describe('getProjects', () => {
       },
       terminalMethod: 'range',
     });
-    const projectTechStacksQuery = createQueryMock({
-      result: {
-        data: [],
-        error: null,
-      },
-      terminalMethod: 'in',
-    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
-        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -242,18 +224,10 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
-    const projectTechStacksQuery = createQueryMock({
-      result: {
-        data: [],
-        error: null,
-      },
-      terminalMethod: 'in',
-    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
-        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
@@ -295,18 +269,10 @@ describe('getProjects', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
-    const projectTechStacksQuery = createQueryMock({
-      result: {
-        data: [],
-        error: null,
-      },
-      terminalMethod: 'in',
-    });
     const supabaseClient = {
       from: vi.fn((table: string) => {
         if (table === 'projects') return projectsQuery;
         if (table === 'project_translations') return translationsQuery;
-        if (table === 'project_tech_stacks') return projectTechStacksQuery;
         throw new Error(`unexpected table: ${table}`);
       }),
     };
