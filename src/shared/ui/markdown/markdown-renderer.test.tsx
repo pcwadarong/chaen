@@ -159,6 +159,28 @@ describe('MarkdownRenderer', () => {
     expect(inlineMathNode?.querySelector('.katex')).toBeTruthy();
   });
 
+  it('잘못된 inline 수식은 원문과 오류 힌트를 함께 fallback으로 렌더링한다', async () => {
+    const document = await renderServerDocument('합은 <Math>\\fra{a}{b}</Math> 입니다');
+    const inlineMathNode = document.querySelector('[data-markdown-math="inline"]');
+
+    expect(inlineMathNode).toBeTruthy();
+    expect(inlineMathNode?.getAttribute('data-markdown-math-error')).toBe('true');
+    expect(inlineMathNode?.textContent).toContain('\\fra{a}{b}');
+    expect(inlineMathNode?.textContent).toContain('수식 오류');
+    expect(inlineMathNode?.querySelector('.katex')).toBeNull();
+  });
+
+  it('잘못된 block 수식은 원문과 상세 오류 메시지를 fallback으로 렌더링한다', async () => {
+    const document = await renderServerDocument('<Math block="true">\\begin{cases} x </Math>');
+    const blockMathNode = document.querySelector('[data-markdown-math="block"]');
+
+    expect(blockMathNode).toBeTruthy();
+    expect(blockMathNode?.getAttribute('data-markdown-math-error')).toBe('true');
+    expect(blockMathNode?.textContent).toContain('\\begin{cases} x');
+    expect(blockMathNode?.textContent).toContain('수식 오류');
+    expect(blockMathNode?.querySelector('.katex')).toBeNull();
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',
