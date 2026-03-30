@@ -3,6 +3,10 @@ import { css, cva } from 'styled-system/css';
 
 import { AdminSignOutButton, buildAdminPath } from '@/features/admin-session';
 import { Link } from '@/i18n/navigation';
+import {
+  buildGlobalNavDockedPaddingTopValue,
+  buildGlobalNavDockedTopValue,
+} from '@/shared/lib/dom/global-nav-layout-vars';
 
 type AdminConsoleSection = 'content' | 'dashboard' | 'drafts' | 'photo' | 'resume';
 
@@ -107,7 +111,7 @@ const shellClass = css({
     px: '4',
     py: '0',
     gridTemplateColumns: '1fr',
-    paddingTop: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px) + 0.1rem)]',
+    paddingTop: `[${buildGlobalNavDockedPaddingTopValue('0.1rem')}]`,
     paddingBottom: '8',
   },
 });
@@ -115,7 +119,7 @@ const shellClass = css({
 const mobileNavShellClass = css({
   display: 'none',
   position: 'fixed',
-  top: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px))]',
+  top: `[${buildGlobalNavDockedTopValue()}]`,
   left: '0',
   right: '0',
   zIndex: '9',
