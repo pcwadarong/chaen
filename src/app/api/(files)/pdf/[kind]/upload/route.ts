@@ -22,6 +22,21 @@ type PdfUploadRouteContext = {
   }>;
 };
 
+const PDF_FILE_SIGNATURE = '%PDF-';
+
+/**
+ * multipart form-data에서 전달된 파일 객체가 PDF 업로드 처리에 필요한 형태인지 확인합니다.
+ */
+const isPdfUploadFile = (value: FormDataEntryValue | null): value is File =>
+  typeof value === 'object' &&
+  value !== null &&
+  'arrayBuffer' in value &&
+  typeof value.arrayBuffer === 'function' &&
+  'name' in value &&
+  typeof value.name === 'string' &&
+  'type' in value &&
+  typeof value.type === 'string';
+
 /**
  * 관리자 편집 화면에서 kind 기본 PDF 경로를 교체 업로드합니다.
  */
@@ -38,7 +53,21 @@ export const POST = async (request: Request, { params }: PdfUploadRouteContext) 
       const formData = await request.formData();
       const file = formData.get('file');
 
-      if (!(file instanceof File) || file.type !== 'application/pdf') {
+      if (!isPdfUploadFile(file)) {
+        return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
+      }
+
+      let fileHeader = '';
+
+      try {
+        fileHeader = new TextDecoder('utf-8').decode(
+          new Uint8Array(await file.arrayBuffer()).subarray(0, PDF_FILE_SIGNATURE.length),
+        );
+      } catch {
+        return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
+      }
+
+      if (fileHeader !== PDF_FILE_SIGNATURE) {
         return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
       }
 

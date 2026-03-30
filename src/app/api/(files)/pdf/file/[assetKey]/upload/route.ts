@@ -50,7 +50,7 @@ export const POST = async (request: Request, { params }: PdfAssetUploadRouteCont
       const formData = await request.formData();
       const file = formData.get('file');
 
-      if (!isPdfUploadFile(file) || file.type !== 'application/pdf') {
+      if (!isPdfUploadFile(file)) {
         return createApiErrorResponse(PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload, 400);
       }
 

@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { POST } from '@/app/api/(files)/pdf/[kind]/upload/route';
+import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
@@ -18,6 +19,13 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
 vi.mock('@/features/upload-pdf-file', () => ({
   uploadPdfFile: vi.fn(),
 }));
+
+const createPdfUploadFile = (contents: string, type = 'application/pdf') =>
+  ({
+    arrayBuffer: async () => new TextEncoder().encode(contents).buffer,
+    name: 'resume.pdf',
+    type,
+  }) as File;
 
 describe('api/pdf/[kind]/upload route', () => {
   afterEach(() => {
@@ -54,8 +62,9 @@ describe('api/pdf/[kind]/upload route', () => {
     });
     vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-en.pdf');
 
-    const formData = new FormData();
-    formData.set('file', new File(['pdf'], 'resume.pdf', { type: 'application/pdf' }));
+    const formData = {
+      get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body')),
+    } as unknown as FormData;
 
     const response = await POST(
       {
@@ -71,7 +80,10 @@ describe('api/pdf/[kind]/upload route', () => {
     expect(response.status).toBe(200);
     expect(uploadPdfFile).toHaveBeenCalledWith({
       bucket: 'pdf',
-      file: expect.any(File),
+      file: expect.objectContaining({
+        name: 'resume.pdf',
+        type: 'application/pdf',
+      }),
       filePath: 'ParkChaewon-Resume-en.pdf',
       upsert: true,
     });
@@ -87,5 +99,71 @@ describe('api/pdf/[kind]/upload route', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/resume');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/resume');
+  });
+
+  it('mime type이 비어 있어도 실제 시그니처가 pdf면 업로드를 진행해야 한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-en.pdf');
+
+    const formData = {
+      get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body', '')),
+    } as unknown as FormData;
+
+    const response = await POST(
+      {
+        formData: async () => formData,
+      } as Request,
+      {
+        params: Promise.resolve({
+          kind: 'resume',
+        }),
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(uploadPdfFile).toHaveBeenCalledWith({
+      bucket: 'pdf',
+      file: expect.objectContaining({
+        name: 'resume.pdf',
+        type: '',
+      }),
+      filePath: 'ParkChaewon-Resume-en.pdf',
+      upsert: true,
+    });
+  });
+
+  it('mime type이 pdf여도 실제 시그니처가 아니면 400을 반환한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const formData = {
+      get: vi.fn().mockReturnValue(createPdfUploadFile('not-a-real-pdf')),
+    } as unknown as FormData;
+
+    const response = await POST(
+      {
+        formData: async () => formData,
+      } as Request,
+      {
+        params: Promise.resolve({
+          kind: 'resume',
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    expect(uploadPdfFile).not.toHaveBeenCalled();
+    expect(await response.json()).toEqual({
+      error: PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload,
+    });
   });
 });

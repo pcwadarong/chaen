@@ -132,4 +132,40 @@ describe('api/pdf/file/[assetKey]/upload route', () => {
       error: PDF_FILE_API_ERROR_MESSAGE.invalidUploadPayload,
     });
   });
+
+  it('mime type이 비어 있어도 실제 시그니처가 pdf면 업로드를 진행해야 한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-kr.pdf');
+
+    const formData = {
+      get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body', '')),
+    } as unknown as FormData;
+
+    const response = await POST(
+      {
+        formData: async () => formData,
+      } as Request,
+      {
+        params: Promise.resolve({
+          assetKey: 'resume-ko',
+        }),
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(uploadPdfFile).toHaveBeenCalledWith({
+      bucket: 'pdf',
+      file: expect.objectContaining({
+        name: 'resume-ko.pdf',
+        type: '',
+      }),
+      filePath: 'ParkChaewon-Resume-kr.pdf',
+      upsert: true,
+    });
+  });
 });
