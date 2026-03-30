@@ -18,7 +18,6 @@ import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
-import { VIEWPORT_BREAKPOINTS } from '@/shared/config/responsive';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -78,19 +77,16 @@ export const HomeHeroStageCanvas = ({
     playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
-  const { currentBP, sceneViewportMode, viewportWidth } = useBreakpoint();
+  const { currentBP, sceneViewportMode } = useBreakpoint();
   const renderQuality = useMemo(
     () =>
       getHomeHeroSceneRenderQuality({
         sceneViewportMode,
-        viewportWidth,
       }),
-    [sceneViewportMode, viewportWidth],
+    [sceneViewportMode],
   );
   const handleBrowseProjects = useCallback(() => {
-    const shouldUseBottomSheet =
-      sceneViewportMode === SCENE_VIEWPORT_MODE.stacked ||
-      viewportWidth < VIEWPORT_BREAKPOINTS.desktopMin;
+    const shouldUseBottomSheet = sceneViewportMode === SCENE_VIEWPORT_MODE.stacked;
 
     if (shouldUseBottomSheet) {
       onBrowseProjects?.();
@@ -98,7 +94,7 @@ export const HomeHeroStageCanvas = ({
     }
 
     scrollHomeHeroToProjects(triggerRef.current);
-  }, [onBrowseProjects, sceneViewportMode, triggerRef, viewportWidth]);
+  }, [onBrowseProjects, sceneViewportMode, triggerRef]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>

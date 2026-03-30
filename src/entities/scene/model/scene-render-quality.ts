@@ -14,7 +14,6 @@ export type SceneRenderQuality = Readonly<{
 
 type GetHomeHeroSceneRenderQualityParams = Readonly<{
   sceneViewportMode: SceneViewportMode;
-  viewportWidth: number;
 }>;
 
 type GetContactSceneRenderQualityParams = Readonly<{
@@ -22,40 +21,21 @@ type GetContactSceneRenderQualityParams = Readonly<{
 }>;
 
 const STACKED_SCENE_DPR_RANGE: DprRange = [1, 1.25];
-const NARROW_WIDE_SCENE_DPR_RANGE: DprRange = [1, 1.5];
 const FULL_WIDE_SCENE_DPR_RANGE: DprRange = [1, 2];
 const CONTACT_SCENE_COMPACT_DPR_RANGE: DprRange = [1, 1.35];
 const CONTACT_SCENE_FULL_DPR_RANGE: DprRange = [1, 1.5];
 
 /**
- * 홈 히어로의 wide 구도 중에서도 실제 폭이 desktop 최소값보다 좁은 구간인지 판별합니다.
- * 이 구간은 카메라 배치는 wide를 유지하지만, UX는 bottom sheet 중심이라 풀 데스크탑 품질이 불필요합니다.
- */
-const isNarrowWideViewport = ({
-  sceneViewportMode,
-  viewportWidth,
-}: GetHomeHeroSceneRenderQualityParams) =>
-  sceneViewportMode === SCENE_VIEWPORT_MODE.wide && viewportWidth < VIEWPORT_BREAKPOINTS.desktopMin;
-
-/**
  * 홈 히어로 씬의 viewport 성격에 맞는 렌더 품질 프리셋을 계산합니다.
- * stacked와 narrow-wide는 mobile 계열 UX를 따르므로 DPR, shadow, outline composer 비용을 낮춥니다.
+ * 홈은 stacked와 wide 두 계열만 유지하고, quality도 같은 기준으로 나눕니다.
+ * 극단적으로 세로가 짧은 wide 화면은 contact 쪽 compact 분기에서만 별도 처리합니다.
  */
 export const getHomeHeroSceneRenderQuality = ({
   sceneViewportMode,
-  viewportWidth,
 }: GetHomeHeroSceneRenderQualityParams): SceneRenderQuality => {
   if (sceneViewportMode === SCENE_VIEWPORT_MODE.stacked) {
     return {
       dpr: STACKED_SCENE_DPR_RANGE,
-      enableOutlineComposer: false,
-      shadows: false,
-    };
-  }
-
-  if (isNarrowWideViewport({ sceneViewportMode, viewportWidth })) {
-    return {
-      dpr: NARROW_WIDE_SCENE_DPR_RANGE,
       enableOutlineComposer: false,
       shadows: false,
     };

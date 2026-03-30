@@ -11,7 +11,6 @@ describe('getHomeHeroSceneRenderQuality', () => {
     expect(
       getHomeHeroSceneRenderQuality({
         sceneViewportMode: SCENE_VIEWPORT_MODE.stacked,
-        viewportWidth: 768,
       }),
     ).toEqual({
       dpr: [1, 1.25],
@@ -20,24 +19,10 @@ describe('getHomeHeroSceneRenderQuality', () => {
     });
   });
 
-  it('wide이지만 desktop 최소 폭보다 좁을 때, 홈 히어로는 narrow-wide 품질 프리셋을 반환해야 한다', () => {
+  it('wide viewport에서는 홈 히어로 풀 품질을 유지해야 한다', () => {
     expect(
       getHomeHeroSceneRenderQuality({
         sceneViewportMode: SCENE_VIEWPORT_MODE.wide,
-        viewportWidth: 812,
-      }),
-    ).toEqual({
-      dpr: [1, 1.5],
-      enableOutlineComposer: false,
-      shadows: false,
-    });
-  });
-
-  it('desktop 폭 이상의 wide viewport에서는 홈 히어로 풀 품질을 유지해야 한다', () => {
-    expect(
-      getHomeHeroSceneRenderQuality({
-        sceneViewportMode: SCENE_VIEWPORT_MODE.wide,
-        viewportWidth: 1280,
       }),
     ).toEqual({
       dpr: [1, 2],

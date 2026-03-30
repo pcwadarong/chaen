@@ -230,7 +230,7 @@ describe('HomeHeroStageCanvas', () => {
     expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
   });
 
-  it('desktop 폭 미만 wide viewport에서는 narrow-wide 품질 preset을 사용해야 한다', () => {
+  it('wide viewport에서는 viewport 폭과 무관하게 full wide 품질 preset을 사용해야 한다', () => {
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
     homeHeroStageCanvasMockState.viewportWidth = 812;
 
@@ -244,10 +244,10 @@ describe('HomeHeroStageCanvas', () => {
 
     expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
       'data-dpr',
-      JSON.stringify([1, 1.5]),
+      JSON.stringify([1, 2]),
     );
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'false');
-    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'true');
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(true);
   });
 
   it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {
@@ -341,7 +341,7 @@ describe('HomeHeroStageCanvas', () => {
     expect(onBrowseProjects).toHaveBeenCalledOnce();
   });
 
-  it('wide sceneViewportMode여도 desktop 미만 너비에서는 프로젝트 바텀 시트를 열어야 한다', () => {
+  it('wide sceneViewportMode에서는 viewport 폭과 무관하게 프로젝트 스크롤 이동을 사용해야 한다', () => {
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
     homeHeroStageCanvasMockState.viewportWidth = 812;
     const onBrowseProjects = vi.fn();
@@ -363,7 +363,7 @@ describe('HomeHeroStageCanvas', () => {
 
     homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
 
-    expect(onBrowseProjects).toHaveBeenCalledOnce();
+    expect(onBrowseProjects).not.toHaveBeenCalled();
   });
 
   it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {
