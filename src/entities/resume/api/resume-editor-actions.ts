@@ -71,6 +71,26 @@ type ResumeServiceRoleSupabase = NonNullable<
 >;
 
 /**
+ * resume 관리자 저장/발행에서 Supabase 쓰기 오류를 서버 로그로 남깁니다.
+ *
+ * 사용자에게는 도메인 에러 코드만 노출하고, 실제 원인은 서버 로그에서 추적할 수 있게 합니다.
+ *
+ * @param scope 실패가 발생한 쓰기 단계 식별자
+ * @param error 원본 Supabase 오류 또는 예외
+ * @param context 디버깅에 필요한 최소 문맥 정보
+ */
+const logResumeEditorActionFailure = (
+  scope: 'draft-insert' | 'draft-update' | 'draft-delete' | 'publish-upsert',
+  error: unknown,
+  context: Record<string, unknown>,
+) => {
+  console.error(`[resume-editor] ${scope} failed`, {
+    context,
+    error,
+  });
+};
+
+/**
  * resume 전용 draft를 upsert하고 마지막 저장 시각을 반환합니다.
  */
 export const saveResumeDraftAction = async ({
@@ -108,6 +128,10 @@ export const saveResumeDraftAction = async ({
       .single<ResumeDraftRow>();
 
     if (error) {
+      logResumeEditorActionFailure('draft-update', error, {
+        draftId: resolvedDraftId,
+        locale: normalizedLocale,
+      });
       throw createResumeEditorError('draftSaveFailed');
     }
 
@@ -126,6 +150,9 @@ export const saveResumeDraftAction = async ({
     .single<ResumeDraftRow>();
 
   if (error) {
+    logResumeEditorActionFailure('draft-insert', error, {
+      locale: normalizedLocale,
+    });
     throw createResumeEditorError('draftSaveFailed');
   }
 
@@ -182,6 +209,11 @@ export const publishResumeContentAction = async ({
   });
 
   if (error) {
+    logResumeEditorActionFailure('publish-upsert', error, {
+      draftId: draftId ?? null,
+      locale: resolveActionLocale(locale),
+      tableName,
+    });
     throw createResumeEditorError('publishFailed');
   }
 
@@ -218,18 +250,27 @@ const buildResumeContentRows = ({
   }));
 
 /**
- * 기존 resume draft id가 있으면 그 draft를, 없으면 resume draft 전체를 정리합니다.
+ * 현재 편집 세션에서 실제로 참조한 resume draft만 정리합니다.
+ *
+ * resume는 article/project처럼 콘텐츠 id와 draft를 안전하게 매핑할 기준이 없으므로,
+ * draftId가 없는 발행에서는 전역 draft 정리를 시도하지 않습니다.
+ *
+ * @param supabase service-role 기반 Supabase 클라이언트
+ * @param draftId 현재 편집 세션이 참조 중인 resume draft id
  */
 const deleteResumeDrafts = async (supabase: ResumeServiceRoleSupabase, draftId?: string | null) => {
-  let query = supabase.from('resume_drafts').delete();
-
-  if (draftId) {
-    query = query.eq('id', draftId);
+  if (!draftId) {
+    return;
   }
+
+  const query = supabase.from('resume_drafts').delete().eq('id', draftId);
 
   const { error } = await query;
 
   if (error) {
+    logResumeEditorActionFailure('draft-delete', error, {
+      draftId: draftId ?? null,
+    });
     throw createResumeEditorError('publishFailed');
   }
 };

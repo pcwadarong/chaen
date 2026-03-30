@@ -195,6 +195,67 @@ describe('resume-editor-actions', () => {
     expect(result).toEqual({ redirectPath: '/ko/resume' });
   });
 
+  it('draftId가 없을 때 resume publish는 공개 콘텐츠만 저장하고 draft 전체 삭제를 시도하지 않아야 한다', async () => {
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+
+    const upsertQuery = {
+      upsert: vi.fn().mockResolvedValue({
+        error: null,
+      }),
+    };
+    const deleteDraftQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+    };
+    const from = vi
+      .fn()
+      .mockImplementation((table: string) =>
+        table === 'resume_contents' ? upsertQuery : deleteDraftQuery,
+      );
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from,
+    } as never);
+
+    const result = await publishResumeContentAction({
+      locale: 'ko',
+      state: {
+        contents: {
+          en: {
+            body: '',
+            description: '',
+            title: 'Resume',
+          },
+          fr: {
+            body: '',
+            description: '',
+            title: 'CV',
+          },
+          ja: {
+            body: '',
+            description: '',
+            title: '履歴書',
+          },
+          ko: {
+            body: '한국어 본문',
+            description: '한국어 설명',
+            title: '이력서',
+          },
+        },
+        dirty: true,
+      },
+    });
+
+    expect(upsertQuery.upsert).toHaveBeenCalledTimes(1);
+    expect(deleteDraftQuery.delete).not.toHaveBeenCalled();
+    expect(result).toEqual({ redirectPath: '/ko/resume' });
+  });
+
   it('service role이 없으면 resume draft 저장을 중단한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
