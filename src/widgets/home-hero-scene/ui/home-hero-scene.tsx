@@ -1,20 +1,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
-import {
-  type ImageViewerLabels,
-  ImageViewerModal,
-} from '@/shared/ui/image-viewer/image-viewer-modal';
+import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-modal';
 import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/home-hero-image-viewer-item';
+import { useHomeHeroFrameSelection } from '@/widgets/home-hero-scene/model/use-home-hero-frame-selection';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
-import { HomeHeroInteractionHint } from '@/widgets/home-hero-scene/ui/home-hero-interaction-hint';
-import { HomeHeroMobileProjectSheet } from '@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet';
+import { HomeHeroOverlays } from '@/widgets/home-hero-scene/ui/home-hero-overlays';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
 import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
@@ -26,7 +23,6 @@ type HomeHeroSceneProps = {
   readonly triggerRef?: React.RefObject<HTMLElement | null>;
 };
 
-const HOME_HERO_FRAME_IMAGE_STORAGE_KEY = 'home-hero:selected-frame-image-src';
 const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 
 /** 홈 첫 화면의 모션 히어로 영역입니다. */
@@ -43,20 +39,20 @@ export const HomeHeroScene = ({
   const webUiRef = useRef<HTMLDivElement>(null);
   const webUiContentRef = useRef<HTMLDivElement>(null);
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
-  const defaultFrameImageSrc = photoItems[0]?.src ?? null;
-  const [imageViewerOpenIndex, setImageViewerOpenIndex] = React.useState<number | null>(null);
   const [isMobileProjectSheetOpen, setIsMobileProjectSheetOpen] = React.useState(false);
-  const [selectedFrameImageSrc, setSelectedFrameImageSrc] = React.useState<string | null>(
-    defaultFrameImageSrc,
-  );
   const sectionRef = triggerRef ?? localSectionRef;
+  const {
+    closeImageViewer,
+    imageViewerOpenIndex,
+    openImageViewer,
+    selectFrameImageByIndex,
+    selectedFrameImageSrc,
+  } = useHomeHeroFrameSelection({
+    photoItems,
+  });
   const handleCloseMobileProjectSheet = useCallback(() => {
     setIsMobileProjectSheetOpen(false);
   }, []);
-  const selectedFrameImageIndex = useMemo(
-    () => photoItems.findIndex(item => item.src === selectedFrameImageSrc),
-    [photoItems, selectedFrameImageSrc],
-  );
   const imageViewerLabels = React.useMemo<ImageViewerLabels>(
     () => ({
       actionBarAriaLabel: imageViewerTranslations('actionBarAriaLabel'),
@@ -78,34 +74,6 @@ export const HomeHeroScene = ({
   useHomeHeroNavLock(navLockRef);
   useHomeHeroViewportHeightVar(sectionRef);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    let storedImageSrc: string | null = null;
-
-    try {
-      storedImageSrc = window.localStorage.getItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY);
-    } catch {
-      return;
-    }
-
-    if (!storedImageSrc) return;
-    if (!photoItems.some(item => item.src === storedImageSrc)) return;
-
-    setSelectedFrameImageSrc(storedImageSrc);
-  }, [photoItems]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!selectedFrameImageSrc) return;
-
-    try {
-      window.localStorage.setItem(HOME_HERO_FRAME_IMAGE_STORAGE_KEY, selectedFrameImageSrc);
-    } catch {
-      // storage 접근이 막힌 환경에서는 기본 선택 상태만 유지합니다.
-    }
-  }, [selectedFrameImageSrc]);
-
   return (
     <section className={sectionClass} id="scene-scroll-container" ref={sectionRef}>
       <div
@@ -122,9 +90,7 @@ export const HomeHeroScene = ({
           onBrowseProjects={() => {
             setIsMobileProjectSheetOpen(true);
           }}
-          onOpenImageViewer={() => {
-            setImageViewerOpenIndex(selectedFrameImageIndex >= 0 ? selectedFrameImageIndex : 0);
-          }}
+          onOpenImageViewer={openImageViewer}
           selectedFrameImageSrc={selectedFrameImageSrc}
           triggerRef={sectionRef}
           webUiContentRef={webUiContentRef}
@@ -137,27 +103,17 @@ export const HomeHeroScene = ({
           title={title}
           wrapperRef={webUiRef}
         />
-        <HomeHeroInteractionHint
-          hidden={imageViewerOpenIndex !== null || isMobileProjectSheetOpen}
-        />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
       </div>
-      <ImageViewerModal
-        initialIndex={imageViewerOpenIndex}
-        items={photoItems}
-        labels={imageViewerLabels}
-        onClose={() => {
-          setImageViewerOpenIndex(null);
-        }}
-        onSelectCurrentImage={currentIndex => {
-          const nextImageSrc = photoItems[currentIndex]?.src ?? defaultFrameImageSrc;
-          setSelectedFrameImageSrc(nextImageSrc);
-        }}
-      />
-      <HomeHeroMobileProjectSheet
-        isOpen={isMobileProjectSheetOpen}
+      <HomeHeroOverlays
+        imageViewerOpenIndex={imageViewerOpenIndex}
+        imageViewerLabels={imageViewerLabels}
+        isMobileProjectSheetOpen={isMobileProjectSheetOpen}
         items={items}
-        onClose={handleCloseMobileProjectSheet}
+        onCloseImageViewer={closeImageViewer}
+        onCloseMobileProjectSheet={handleCloseMobileProjectSheet}
+        onSelectCurrentImage={selectFrameImageByIndex}
+        photoItems={photoItems}
         title={title}
       />
     </section>
