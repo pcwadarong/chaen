@@ -620,17 +620,14 @@ const reorderListClass = css({
 });
 
 const reorderItemClass = css({
-  display: 'grid',
-  gridTemplateColumns: '[minmax(0,1fr) auto]',
+  display: 'flex',
+  justifyContent: 'space-between',
   gap: '3',
   alignItems: 'center',
   padding: '3',
   borderRadius: '2xl',
   border: '[1px solid var(--colors-border)]',
   background: 'surface',
-  _mobileLargeDown: {
-    gridTemplateColumns: '1fr',
-  },
 });
 
 const reorderMetaClass = css({

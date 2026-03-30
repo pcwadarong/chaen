@@ -39,52 +39,59 @@ export const AdminConsoleShell = ({
   locale,
   summary,
   title,
-}: AdminConsoleShellProps) => (
-  <main className={shellClass}>
-    <div className={mobileNavShellClass}>
-      <nav aria-label="관리자 섹션" className={mobileNavClass}>
-        {adminNavItems.map(item => (
-          <Link
-            aria-current={item.section === activeSection ? 'page' : undefined}
-            className={mobileNavItemClass({ active: item.section === activeSection })}
-            href={item.href}
-            key={`mobile-${item.href}`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-    </div>
-    <aside className={sidebarClass}>
-      <nav aria-label="관리자 섹션" className={navClass}>
-        {adminNavItems.map(item => (
-          <Link
-            aria-current={item.section === activeSection ? 'page' : undefined}
-            className={navItemClass({ active: item.section === activeSection })}
-            href={item.href}
-            key={item.href}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-      <div className={sidebarFooterClass}>
-        <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
+}: AdminConsoleShellProps) => {
+  const hasHeaderContent = Boolean(title || description || action);
+
+  return (
+    <main className={shellClass}>
+      <div className={mobileNavShellClass}>
+        <nav aria-label="관리자 섹션" className={mobileNavClass}>
+          {adminNavItems.map(item => (
+            <Link
+              aria-current={item.section === activeSection ? 'page' : undefined}
+              className={mobileNavItemClass({ active: item.section === activeSection })}
+              href={item.href}
+              key={`mobile-${item.href}`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
+        </nav>
       </div>
-    </aside>
-    <section className={workspaceClass}>
-      <header className={workspaceHeaderClass}>
-        <div className={workspaceHeadlineClass}>
-          <h2 className={workspaceTitleClass}>{title}</h2>
-          {description ? <p className={workspaceDescriptionClass}>{description}</p> : null}
+      <aside className={sidebarClass}>
+        <nav aria-label="관리자 섹션" className={navClass}>
+          {adminNavItems.map(item => (
+            <Link
+              aria-current={item.section === activeSection ? 'page' : undefined}
+              className={navItemClass({ active: item.section === activeSection })}
+              href={item.href}
+              key={item.href}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div className={sidebarFooterClass}>
+          <AdminSignOutButton redirectPath={buildAdminPath({ locale, section: 'login' })} />
         </div>
-        {action ? <div className={workspaceActionClass}>{action}</div> : null}
-      </header>
-      {summary ? <section className={summaryWrapClass}>{summary}</section> : null}
-      <section className={contentWrapClass}>{children}</section>
-    </section>
-  </main>
-);
+      </aside>
+      <section className={workspaceClass({ condensedTop: !hasHeaderContent })}>
+        {hasHeaderContent ? (
+          <header className={workspaceHeaderClass}>
+            <div className={workspaceHeadlineClass}>
+              {title ? <h2 className={workspaceTitleClass}>{title}</h2> : null}
+              {description ? <p className={workspaceDescriptionClass}>{description}</p> : null}
+            </div>
+            {action ? <div className={workspaceActionClass}>{action}</div> : null}
+          </header>
+        ) : null}
+        {summary ? <section className={summaryWrapClass}>{summary}</section> : null}
+        <section className={contentWrapClass}>{children}</section>
+      </section>
+    </main>
+  );
+};
 
 const shellClass = css({
   display: 'grid',
@@ -92,19 +99,23 @@ const shellClass = css({
   width: 'full',
   minHeight: '[calc(100dvh - 5.5625rem)]',
   alignItems: 'stretch',
-  px: { base: '4', md: '4', lg: '5' },
-  py: { base: '0', md: '4' },
+  px: { base: '4', md: '5' },
+  py: { base: '0', md: '5' },
   gridTemplateColumns: { base: '1fr', md: '[16rem minmax(0, 1fr)]' },
-  paddingTop: { base: '14', md: '0' },
+  paddingTop: {
+    base: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px) + 0.1rem)]',
+    md: '0',
+  },
+  paddingBottom: { base: '8', md: '0' },
 });
 
 const mobileNavShellClass = css({
   display: { base: 'block', md: 'none' },
   position: 'fixed',
-  top: '0',
+  top: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px))]',
   left: '0',
   right: '0',
-  zIndex: '20',
+  zIndex: '9',
   borderBottom: '[1px solid var(--colors-border)]',
   background: '[rgba(255,255,255,0.92)]',
   backdropFilter: '[blur(14px)]',
@@ -115,6 +126,8 @@ const mobileNavClass = css({
   display: 'flex',
   gap: '5',
   overflowX: 'auto',
+  overscrollBehaviorX: 'contain',
+  whiteSpace: 'nowrap',
   px: '4',
   py: '3',
   '&::-webkit-scrollbar': {
@@ -155,8 +168,8 @@ const sidebarClass = css({
   alignContent: 'start',
   gap: '5',
   py: '5',
-  pr: { base: '0', lg: '5' },
-  mr: { base: '0', lg: '6' },
+  pr: { base: '0', md: '5' },
+  mr: { base: '0', md: '5' },
   borderRight: '[1px solid var(--colors-border)]',
   position: 'sticky',
   top: '0',
@@ -205,11 +218,21 @@ const sidebarFooterClass = css({
   paddingTop: '6',
 });
 
-const workspaceClass = css({
-  display: 'grid',
-  alignContent: 'start',
-  gap: '4',
-  minWidth: '0',
+const workspaceClass = cva({
+  base: {
+    display: 'grid',
+    alignContent: 'start',
+    gap: '4',
+    minWidth: '0',
+  },
+  variants: {
+    condensedTop: {
+      false: {},
+      true: {
+        paddingTop: { base: '4', md: '5' },
+      },
+    },
+  },
 });
 
 const workspaceHeaderClass = css({
@@ -217,8 +240,8 @@ const workspaceHeaderClass = css({
   gridTemplateColumns: '[minmax(0,1fr) auto]',
   gap: '4',
   alignItems: 'start',
-  paddingTop: { base: '5', lg: '6' },
-  paddingBottom: { base: '3', lg: '4' },
+  paddingTop: { base: '5', md: '6', lg: '6' },
+  paddingBottom: { base: '3', md: '4', lg: '4' },
 });
 
 const workspaceHeadlineClass = css({
@@ -244,7 +267,7 @@ const workspaceActionClass = css({
   justifyContent: 'flex-end',
   gap: '2',
   minWidth: '0',
-  flexWrap: { base: 'nowrap', md: 'wrap' },
+  flexWrap: { base: 'nowrap', md: 'nowrap', lg: 'wrap' },
 });
 
 const summaryWrapClass = css({

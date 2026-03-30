@@ -90,11 +90,7 @@ export const EditorPage = ({
   }
 
   return (
-    <AdminConsoleShell
-      activeSection="content"
-      locale={adminChrome.locale}
-      title={adminChrome.title}
-    >
+    <AdminConsoleShell activeSection="content" locale={adminChrome.locale} title={null}>
       {content}
     </AdminConsoleShell>
   );

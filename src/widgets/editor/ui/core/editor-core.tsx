@@ -393,7 +393,7 @@ const rootClass = css({
   minWidth: '0',
   display: 'grid',
   gap: '4',
-  px: { base: '0', lg: '1' },
+  px: { base: '0', md: '0', lg: '1' },
   py: '1',
 });
 
@@ -486,15 +486,12 @@ const localeTabRecipe = cva({
 });
 
 const mobilePaneTabListClass = css({
-  display: 'grid',
+  display: { base: 'grid', md: 'none' },
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   minWidth: '0',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
-  _desktopUp: {
-    display: 'none',
-  },
 });
 
 const mobilePaneTabRecipe = cva({

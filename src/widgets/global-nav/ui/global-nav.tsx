@@ -264,6 +264,23 @@ export const GlobalNav = () => {
   }, [currentSearchQuery, handleMobileSearchClose, pathname]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const styleScope =
+      document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ??
+      document.documentElement;
+
+    styleScope.style.setProperty(
+      '--global-nav-offset',
+      isHidden ? 'calc(-1 * var(--global-nav-height, 0px))' : '0px',
+    );
+
+    return () => {
+      styleScope.style.setProperty('--global-nav-offset', '0px');
+    };
+  }, [isHidden]);
+
+  useEffect(() => {
     if (!isMobileSearchOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {

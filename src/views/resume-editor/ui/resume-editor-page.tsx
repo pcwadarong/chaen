@@ -55,7 +55,7 @@ export const ResumeEditorPage = ({
   }
 
   return (
-    <AdminConsoleShell activeSection="resume" locale={adminChrome.locale} title={adminChrome.title}>
+    <AdminConsoleShell activeSection="resume" locale={adminChrome.locale} title={null}>
       {content}
     </AdminConsoleShell>
   );

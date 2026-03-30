@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 import { getAdminTopArticles } from '@/entities/article/api/list/get-admin-articles';
+import { getAdminGoogleArticleTraffic } from '@/entities/article/api/list/get-admin-google-article-traffic';
 import { getAdminPdfDownloadLogs } from '@/entities/pdf-file/api/get-admin-pdf-download-logs';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { AdminAnalyticsPage } from '@/views/admin-analytics';
@@ -26,14 +27,16 @@ const AdminRoute = async ({
   const { locale } = await params;
   await requireAdmin({ locale });
 
-  const [topArticles, pdfLogs] = await Promise.all([
+  const [topArticles, pdfLogs, googleArticleTraffic] = await Promise.all([
     getAdminTopArticles({ limit: 5, locale }),
     getAdminPdfDownloadLogs({ limit: 20 }),
+    getAdminGoogleArticleTraffic({ limit: 5 }),
   ]);
 
   return (
     <AdminAnalyticsPage
       activeSection="dashboard"
+      googleArticleTraffic={googleArticleTraffic}
       locale={locale}
       pdfLogs={pdfLogs}
       title="Dashboard"
