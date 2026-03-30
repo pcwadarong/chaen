@@ -357,7 +357,6 @@ const headerClass = css({
   transition: '[transform 240ms ease, opacity 240ms ease]',
   _desktopUp: {
     borderTopLeftRadius: '[calc(2rem - 1px)]',
-    borderTopRightRadius: '[calc(2rem - 1px)]',
   },
 });
 
