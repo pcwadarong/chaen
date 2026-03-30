@@ -37,9 +37,11 @@ describe('HomeHeroStage', () => {
 
     render(
       <HomeHeroStage
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        sceneRefs={{
+          blackoutOverlayRef: { current: null },
+          triggerRef: { current: null },
+          webUiRef: { current: null },
+        }}
       />,
     );
 
@@ -52,9 +54,11 @@ describe('HomeHeroStage', () => {
 
     render(
       <HomeHeroStage
-        blackoutOverlayRef={{ current: null }}
-        triggerRef={{ current: null }}
-        webUiRef={{ current: null }}
+        sceneRefs={{
+          blackoutOverlayRef: { current: null },
+          triggerRef: { current: null },
+          webUiRef: { current: null },
+        }}
       />,
     );
 

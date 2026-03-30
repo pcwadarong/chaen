@@ -84,17 +84,23 @@ export const HomeHeroScene = ({
       />
       <div className={stickyWrapperClass}>
         <HomeHeroStage
-          blackoutOverlayRef={blackoutOverlayRef}
-          interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
-          items={items}
-          onBrowseProjects={() => {
-            setIsMobileProjectSheetOpen(true);
+          content={{
+            items,
+            selectedFrameImageSrc,
           }}
-          onOpenImageViewer={openImageViewer}
-          selectedFrameImageSrc={selectedFrameImageSrc}
-          triggerRef={sectionRef}
-          webUiContentRef={webUiContentRef}
-          webUiRef={webUiRef}
+          interaction={{
+            interactionDisabledProgressThreshold,
+            onBrowseProjects: () => {
+              setIsMobileProjectSheetOpen(true);
+            },
+            onOpenImageViewer: openImageViewer,
+          }}
+          sceneRefs={{
+            blackoutOverlayRef,
+            triggerRef: sectionRef,
+            webUiContentRef,
+            webUiRef,
+          }}
         />
         <HomeHeroContactButtons />
         <HomeHeroWebUi
