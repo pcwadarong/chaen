@@ -38,6 +38,20 @@ describe('AdminAnalyticsPage', () => {
   it('Top 5 아티클과 PDF 로그를 함께 렌더링한다', () => {
     render(
       <AdminAnalyticsPage
+        googleArticleTraffic={{
+          items: [
+            {
+              clicks: 18,
+              ctr: 0.36,
+              impressions: 50,
+              path: '/ko/articles/google-search-console',
+              position: 2.8,
+              url: 'https://chaen.dev/ko/articles/google-search-console',
+            },
+          ],
+          status: 'configured',
+          totalClicks: 18,
+        }}
         locale="ko"
         pdfLogs={[
           {
@@ -80,5 +94,7 @@ describe('AdminAnalyticsPage', () => {
     expect(screen.getByText('PDF 로그')).toBeTruthy();
     expect(screen.getByText('resume-page')).toBeTruthy();
     expect(screen.getByText('Google 아티클 검색 유입')).toBeTruthy();
+    expect(screen.getByText('/ko/articles/google-search-console')).toBeTruthy();
+    expect(screen.getAllByText('18')).toHaveLength(2);
   });
 });

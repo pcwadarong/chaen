@@ -68,6 +68,29 @@ export type AdminArticleListItem = Pick<
 };
 
 /**
+ * 관리자 대시보드에서 Google Search Console 기준 아티클 유입 행을 표현합니다.
+ */
+export type AdminGoogleArticleTrafficItem = {
+  clicks: number;
+  ctr: number;
+  impressions: number;
+  path: string;
+  position: number;
+  url: string;
+};
+
+/**
+ * 관리자 대시보드에서 Google Search Console 아티클 유입 패널이 사용하는 상태입니다.
+ */
+export type AdminGoogleArticleTraffic = {
+  items: AdminGoogleArticleTrafficItem[];
+  message?: string;
+  siteUrl?: string;
+  status: 'configured' | 'error' | 'not_configured';
+  totalClicks: number;
+};
+
+/**
  * 아티클 목록 우측 패널에서 사용하는 인기 태그 집계 타입입니다.
  */
 export type ArticleTagStat = {

@@ -3,7 +3,10 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import type { AdminArticleListItem } from '@/entities/article/model/types';
+import type {
+  AdminArticleListItem,
+  AdminGoogleArticleTraffic,
+} from '@/entities/article/model/types';
 import type { PdfFileDownloadLog } from '@/entities/pdf-file/model/types';
 import { Link } from '@/i18n/navigation';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
@@ -13,6 +16,7 @@ import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type AdminAnalyticsPageProps = {
   activeSection?: 'dashboard';
+  googleArticleTraffic: AdminGoogleArticleTraffic;
   locale: string;
   pdfLogs: PdfFileDownloadLog[];
   title?: string;
@@ -24,6 +28,7 @@ type AdminAnalyticsPageProps = {
  */
 export const AdminAnalyticsPage = ({
   activeSection = 'dashboard',
+  googleArticleTraffic,
   locale,
   pdfLogs,
   title = 'Dashboard',
@@ -32,6 +37,12 @@ export const AdminAnalyticsPage = ({
   const [isSummaryCollapsed, setIsSummaryCollapsed] = React.useState(false);
   const latestArticleViewCount = topArticles[0]?.view_count ?? 0;
   const latestPdfSourceCount = pdfLogs.length;
+  const googleClicksLabel =
+    googleArticleTraffic.status === 'configured'
+      ? String(googleArticleTraffic.totalClicks)
+      : googleArticleTraffic.status === 'error'
+        ? '오류'
+        : '연결 필요';
 
   return (
     <AdminConsoleShell activeSection={activeSection} locale={locale} title={title}>
@@ -62,7 +73,7 @@ export const AdminAnalyticsPage = ({
             </article>
             <article className={metricCardClass}>
               <span className={metricLabelClass}>Google article clicks</span>
-              <strong className={metricValueClass}>연결 예정</strong>
+              <strong className={metricValueClass}>{googleClicksLabel}</strong>
             </article>
           </div>
         ) : null}
@@ -98,10 +109,45 @@ export const AdminAnalyticsPage = ({
             <header className={panelHeaderClass}>
               <h3 className={panelTitleClass}>Google 아티클 검색 유입</h3>
             </header>
-            <p className={placeholderTextClass}>
-              Search Console 또는 GA4 연결 후 아티클 경로 기준 클릭, 노출, CTR, 평균 순위를 이
-              영역에 표시합니다.
-            </p>
+            {googleArticleTraffic.status === 'configured' ? (
+              <AdminTable className={tableInsetClass}>
+                <thead>
+                  <tr>
+                    <th>페이지</th>
+                    <th>클릭</th>
+                    <th>노출</th>
+                    <th>CTR</th>
+                    <th>평균 순위</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {googleArticleTraffic.items.map(item => (
+                    <tr key={item.url}>
+                      <td>
+                        <a
+                          className={externalArticleLinkClass}
+                          href={item.url}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          {item.path}
+                        </a>
+                      </td>
+                      <td>{item.clicks}</td>
+                      <td>{item.impressions}</td>
+                      <td>{`${(item.ctr * 100).toFixed(1)}%`}</td>
+                      <td>{item.position.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </AdminTable>
+            ) : (
+              <p className={placeholderTextClass}>
+                {googleArticleTraffic.status === 'error'
+                  ? `Search Console 조회 중 오류가 발생했습니다. ${googleArticleTraffic.message ?? ''}`.trim()
+                  : 'Search Console 서비스 계정과 사이트 속성 설정이 필요합니다.'}
+              </p>
+            )}
           </section>
 
           <section className={panelClass}>
@@ -300,6 +346,17 @@ const rankValueClass = css({
 
 const tableInsetClass = css({
   borderRadius: 'xl',
+});
+
+const externalArticleLinkClass = css({
+  color: 'text',
+  display: 'block',
+  lineClamp: '2',
+  textDecoration: 'none',
+  _hover: {
+    color: 'primary',
+    textDecoration: 'underline',
+  },
 });
 
 const pdfTableClass = css({
