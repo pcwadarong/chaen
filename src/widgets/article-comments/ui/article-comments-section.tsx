@@ -365,6 +365,7 @@ export const ArticleCommentsSection = ({
     });
     pushToast(text.toastCreateSuccess, 'success');
   }, [
+    articleId,
     loadPage,
     pageData.sort,
     pushToast,
@@ -391,6 +392,7 @@ export const ArticleCommentsSection = ({
     });
     pushToast(text.toastReplySuccess, 'success');
   }, [
+    articleId,
     loadPage,
     pageData.page,
     pageData.sort,

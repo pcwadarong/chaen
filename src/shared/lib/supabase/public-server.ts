@@ -36,7 +36,9 @@ export const createOptionalPublicServerSupabaseClient = () => {
 };
 
 // undefined: 미초기화, null: env 없음
-let _optionalClientInstance: ReturnType<typeof createClient> | null | undefined = undefined;
+let _optionalClientInstance:
+  | ReturnType<typeof createOptionalPublicServerSupabaseClient>
+  | undefined = undefined;
 
 /**
  * 서버리스 인스턴스 내에서 Supabase 클라이언트를 재사용합니다.
