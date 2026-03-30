@@ -52,6 +52,12 @@ vi.mock('@/features/interaction/model/useInteractionActions', () => ({
   useInteractionActions: () => interactionActionsMockState,
 }));
 
+const isTouchDeviceMock = vi.fn(() => false);
+
+vi.mock('@/shared/lib/dom/use-is-touch-device', () => ({
+  useIsTouchDevice: () => isTouchDeviceMock(),
+}));
+
 const outlineEffectMockState = vi.hoisted(() => ({
   hoveredMeshes: [] as Object3D[],
 }));
@@ -67,6 +73,7 @@ vi.mock('@/features/interaction/ui/outline-effect', () => ({
 describe('SceneInteractionController', () => {
   beforeEach(() => {
     document.body.append(canvasElement);
+    isTouchDeviceMock.mockReturnValue(false);
     raycasterMockState.clearHoveredMesh.mockReset();
     raycasterMockState.hoveredOutlineMeshes = [];
     raycasterMockState.onPointerClick.mockReset();
@@ -91,11 +98,31 @@ describe('SceneInteractionController', () => {
     expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.laptop);
   });
 
-  it('outline effect는 hover 여부와 무관하게 항상 렌더해야 한다', () => {
+  it('fine pointer 환경에서 outline이 허용되면, SceneInteractionController는 outline effect를 렌더해야 한다', () => {
     render(<SceneInteractionController onBrowseProjects={vi.fn()} onOpenImageViewer={vi.fn()} />);
 
     expect(screen.getByTestId('outline-effect')).toBeTruthy();
     expect(outlineEffectMockState.hoveredMeshes).toHaveLength(0);
+  });
+
+  it('showOutlineEffect가 false일 때, SceneInteractionController는 outline effect를 렌더하지 않아야 한다', () => {
+    render(
+      <SceneInteractionController
+        onBrowseProjects={vi.fn()}
+        onOpenImageViewer={vi.fn()}
+        showOutlineEffect={false}
+      />,
+    );
+
+    expect(screen.queryByTestId('outline-effect')).toBeNull();
+  });
+
+  it('coarse pointer 환경일 때, SceneInteractionController는 outline effect를 렌더하지 않아야 한다', () => {
+    isTouchDeviceMock.mockReturnValue(true);
+
+    render(<SceneInteractionController onBrowseProjects={vi.fn()} onOpenImageViewer={vi.fn()} />);
+
+    expect(screen.queryByTestId('outline-effect')).toBeNull();
   });
 
   it('hovered outline mesh가 있으면 outline effect에 전달해야 한다', () => {

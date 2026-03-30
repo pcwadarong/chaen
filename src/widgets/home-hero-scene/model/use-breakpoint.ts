@@ -9,6 +9,8 @@ import { getHomeHeroBreakpointState } from '@/widgets/home-hero-scene/model/home
 type UseBreakpointResult = {
   readonly currentBP: SceneBreakpoint;
   readonly sceneViewportMode: SceneViewportMode;
+  readonly viewportHeight: number;
+  readonly viewportWidth: number;
 };
 
 /**
@@ -69,7 +71,11 @@ const getBreakpointState = ({
 }: {
   height: number;
   width: number;
-}): UseBreakpointResult => getHomeHeroBreakpointState({ height, width });
+}): UseBreakpointResult => ({
+  ...getHomeHeroBreakpointState({ height, width }),
+  viewportHeight: height,
+  viewportWidth: width,
+});
 
 /**
  * SSR과 CSR 모두에서 사용할 현재 viewport 크기를 읽습니다.

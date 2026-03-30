@@ -17,17 +17,25 @@ const contactSceneCanvasMockState = vi.hoisted(() => ({
     updateMatrixWorld: vi.fn(),
   },
   canvasCameraProps: null as null | Record<string, unknown>,
+  canvasDpr: null as null | unknown,
+  canvasShadows: null as null | boolean,
 }));
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({
     camera,
     children,
+    dpr,
+    shadows,
   }: {
     camera?: Record<string, unknown>;
     children: React.ReactNode;
+    dpr?: unknown;
+    shadows?: boolean;
   }) => {
     contactSceneCanvasMockState.canvasCameraProps = camera ?? null;
+    contactSceneCanvasMockState.canvasDpr = dpr ?? null;
+    contactSceneCanvasMockState.canvasShadows = shadows ?? null;
 
     return <div data-testid="contact-scene-canvas">{children}</div>;
   },
@@ -46,6 +54,8 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-scene-primitives', () => ({
 describe('ContactSceneCanvas', () => {
   beforeEach(() => {
     contactSceneCanvasMockState.canvasCameraProps = null;
+    contactSceneCanvasMockState.canvasDpr = null;
+    contactSceneCanvasMockState.canvasShadows = null;
     contactSceneCanvasMockState.camera.lookAt.mockReset();
     contactSceneCanvasMockState.camera.position.set.mockReset();
     contactSceneCanvasMockState.camera.updateMatrixWorld.mockReset();
@@ -57,7 +67,7 @@ describe('ContactSceneCanvas', () => {
   });
 
   it('desktop large에서는 중앙 타깃을 유지한 채 contact 캐릭터 씬을 렌더링해야 한다', () => {
-    render(<ContactSceneCanvas />);
+    render(<ContactSceneCanvas renderQuality={{ dpr: [1, 1.5], shadows: true }} />);
 
     expect(screen.getByTestId('contact-scene-canvas')).toBeTruthy();
     expect(screen.getByTestId('stage-lights')).toBeTruthy();
@@ -66,6 +76,8 @@ describe('ContactSceneCanvas', () => {
       fov: 42,
       position: [0, 1, 10],
     });
+    expect(contactSceneCanvasMockState.canvasDpr).toEqual([1, 1.5]);
+    expect(contactSceneCanvasMockState.canvasShadows).toBe(true);
     expect(contactSceneCanvasMockState.camera.position.set).toHaveBeenCalledWith(0, 1, 10);
     expect(contactSceneCanvasMockState.camera.lookAt).toHaveBeenCalledWith(0, 0, 0);
     expect(contactSceneCanvasMockState.camera.updateMatrixWorld).toHaveBeenCalled();

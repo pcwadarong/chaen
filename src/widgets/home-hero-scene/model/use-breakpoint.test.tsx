@@ -50,6 +50,8 @@ describe('useBreakpoint', () => {
     expect(result.current).toEqual({
       currentBP: 2,
       sceneViewportMode: 'stacked',
+      viewportHeight: 1024,
+      viewportWidth: 768,
     });
   });
 
@@ -64,6 +66,8 @@ describe('useBreakpoint', () => {
     expect(result.current).toEqual({
       currentBP: 3,
       sceneViewportMode: 'wide',
+      viewportHeight: 375,
+      viewportWidth: 812,
     });
   });
 
@@ -93,6 +97,8 @@ describe('useBreakpoint', () => {
     expect(result.current).toEqual({
       currentBP: 3,
       sceneViewportMode: 'wide',
+      viewportHeight: 800,
+      viewportWidth: 1040,
     });
   });
 });

@@ -7,11 +7,13 @@ import type { Object3D } from 'three';
 import { useInteractionActions } from '@/features/interaction/model/useInteractionActions';
 import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
+import { useIsTouchDevice } from '@/shared/lib/dom/use-is-touch-device';
 
 type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
   onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  showOutlineEffect?: boolean;
   onToggleBackgroundMusicPlayback?: () => void | Promise<void>;
 }>;
 
@@ -27,9 +29,11 @@ export const SceneInteractionController = ({
   onBrowseProjects,
   onOpenImageViewer,
   onPlayBassString,
+  showOutlineEffect = true,
   onToggleBackgroundMusicPlayback,
 }: SceneInteractionControllerProps) => {
   const { gl, scene } = useThree();
+  const isTouchDevice = useIsTouchDevice();
   const { handleMeshClick } = useInteractionActions({
     onBrowseProjects,
     onOpenImageViewer,
@@ -151,10 +155,11 @@ export const SceneInteractionController = ({
     setHoveredMeshDirect,
   ]);
 
-  // OutlineEffect는 hover 여부와 무관하게 항상 마운트한다.
-  // composer 경로를 idle/hover 모두 동일하게 유지해 shadowMaterial 등 반투명 오브젝트의
-  // tone mapping 적용 시점(pre-blend vs post-blend)에 따른 색감 차이를 제거한다.
-  return <OutlineEffect hoveredMeshes={hoveredOutlineMeshes} />;
+  // stacked / narrow-wide / coarse pointer에서는 outline composer 비용 대비 체감이 낮다.
+  // wide desktop + fine pointer에서만 후처리 outline을 유지하고, 나머지는 이벤트 경로만 살린다.
+  return showOutlineEffect && !isTouchDevice ? (
+    <OutlineEffect hoveredMeshes={hoveredOutlineMeshes} />
+  ) : null;
 };
 
 /**

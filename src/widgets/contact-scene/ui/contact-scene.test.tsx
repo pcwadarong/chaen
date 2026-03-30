@@ -43,6 +43,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 2,
       sceneViewportMode: 'stacked',
+      viewportHeight: 920,
+      viewportWidth: 768,
     });
 
     const { container } = render(<ContactScene />);
@@ -56,6 +58,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 920,
+      viewportWidth: 1280,
     });
 
     const { container } = render(<ContactScene />);
@@ -79,6 +83,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 780,
+      viewportWidth: 1280,
     });
 
     Object.defineProperty(window, 'innerHeight', {
@@ -104,6 +110,8 @@ describe('ContactScene', () => {
     mockedUseBreakpoint.mockReturnValue({
       currentBP: 4,
       sceneViewportMode: 'wide',
+      viewportHeight: 920,
+      viewportWidth: 1280,
     });
 
     const viewport = document.createElement('div');

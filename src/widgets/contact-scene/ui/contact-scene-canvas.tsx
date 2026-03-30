@@ -3,6 +3,7 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import React, { Suspense, useEffect } from 'react';
 
+import type { SceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
 import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
@@ -35,7 +36,11 @@ const ContactSceneCameraRig = () => {
 };
 
 /** 데스크탑 contact 영역의 정적 3D 씬입니다. */
-export const ContactSceneCanvas = () => (
+export const ContactSceneCanvas = ({
+  renderQuality,
+}: {
+  readonly renderQuality: Pick<SceneRenderQuality, 'dpr' | 'shadows'>;
+}) => (
   <Canvas
     camera={{
       far: HOME_HERO_CAMERA_FAR,
@@ -43,9 +48,9 @@ export const ContactSceneCanvas = () => (
       near: HOME_HERO_CAMERA_NEAR,
       position: CONTACT_SCENE_CAMERA_POSITION,
     }}
-    dpr={[1, 2]}
+    dpr={renderQuality.dpr}
     gl={{ alpha: true, antialias: true }}
-    shadows
+    shadows={renderQuality.shadows}
   >
     <ContactSceneCameraRig />
     <HomeHeroStageLights />

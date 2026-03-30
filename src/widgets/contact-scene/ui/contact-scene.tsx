@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { getContactSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
 import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
 import {
   CONTACT_SCENE_LAYOUT_MODE,
@@ -52,9 +53,16 @@ const readContactAvailableHeight = () => {
 
 /** wide viewport에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
-  const { sceneViewportMode } = useBreakpoint();
+  const { sceneViewportMode, viewportWidth } = useBreakpoint();
   const [isMounted, setIsMounted] = useState(false);
   const [availableHeight, setAvailableHeight] = useState(() => readContactAvailableHeight());
+  const renderQuality = React.useMemo(
+    () =>
+      getContactSceneRenderQuality({
+        viewportWidth,
+      }),
+    [viewportWidth],
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -106,7 +114,7 @@ export const ContactScene = () => {
         </div>
         <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
           <div className={canvasFrameClass}>
-            <ContactSceneCanvas />
+            <ContactSceneCanvas renderQuality={renderQuality} />
           </div>
         </div>
       </div>

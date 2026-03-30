@@ -12,10 +12,12 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
     onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
+    showOutlineEffect?: boolean;
     onToggleBackgroundMusicPlayback?: () => void;
   },
   orbitControlsProps: null as null | Record<string, unknown>,
   sceneViewportMode: 'wide' as 'stacked' | 'wide',
+  viewportWidth: 1280,
   timelineState: {
     isCloseupCostumeHidden: false,
     isMonitorOverlayVisible: false,
@@ -42,10 +44,12 @@ vi.mock('@react-three/fiber', () => ({
   Canvas: ({
     children,
     dpr,
+    shadows,
     onCreated,
   }: {
     children: React.ReactNode;
     dpr?: unknown;
+    shadows?: boolean;
     onCreated?: (state: {
       gl: {
         domElement: HTMLCanvasElement;
@@ -70,7 +74,11 @@ vi.mock('@react-three/fiber', () => ({
     }, [onCreated]);
 
     return (
-      <div data-dpr={JSON.stringify(dpr)} data-testid="home-hero-stage-canvas">
+      <div
+        data-dpr={JSON.stringify(dpr)}
+        data-shadows={String(Boolean(shadows))}
+        data-testid="home-hero-stage-canvas"
+      >
         {children}
       </div>
     );
@@ -115,6 +123,8 @@ vi.mock('@/widgets/home-hero-scene/model/use-breakpoint', () => ({
   useBreakpoint: () => ({
     currentBP: 4,
     sceneViewportMode: homeHeroStageCanvasMockState.sceneViewportMode,
+    viewportHeight: 800,
+    viewportWidth: homeHeroStageCanvasMockState.viewportWidth,
   }),
 }));
 
@@ -144,6 +154,7 @@ describe('HomeHeroStageCanvas', () => {
     homeHeroStageCanvasMockState.interactionControllerProps = null;
     homeHeroStageCanvasMockState.orbitControlsProps = null;
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 1280;
     homeHeroStageCanvasMockState.timelineState = {
       isCloseupCostumeHidden: false,
       isMonitorOverlayVisible: false,
@@ -197,6 +208,46 @@ describe('HomeHeroStageCanvas', () => {
     );
 
     expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(false);
+  });
+
+  it('stacked viewport에서는 낮은 DPR과 shadow 비활성 preset을 사용해야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
+    homeHeroStageCanvasMockState.viewportWidth = 768;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
+      'data-dpr',
+      JSON.stringify([1, 1.25]),
+    );
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'false');
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
+  });
+
+  it('desktop 폭 미만 wide viewport에서는 narrow-wide 품질 preset을 사용해야 한다', () => {
+    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 812;
+
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
+      'data-dpr',
+      JSON.stringify([1, 1.5]),
+    );
+    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'false');
+    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
   });
 
   it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {
@@ -292,6 +343,7 @@ describe('HomeHeroStageCanvas', () => {
 
   it('wide sceneViewportMode여도 desktop 미만 너비에서는 프로젝트 바텀 시트를 열어야 한다', () => {
     homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
+    homeHeroStageCanvasMockState.viewportWidth = 812;
     const onBrowseProjects = vi.fn();
 
     Object.defineProperty(window, 'innerWidth', {

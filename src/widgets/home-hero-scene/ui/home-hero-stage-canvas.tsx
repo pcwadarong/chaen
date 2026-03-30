@@ -12,6 +12,7 @@ import {
   type SceneBreakpoint,
   type SceneViewportMode,
 } from '@/entities/scene/model/breakpointConfig';
+import { getHomeHeroSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
@@ -77,11 +78,19 @@ export const HomeHeroStageCanvas = ({
     playBassString,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
-  const { currentBP, sceneViewportMode } = useBreakpoint();
+  const { currentBP, sceneViewportMode, viewportWidth } = useBreakpoint();
+  const renderQuality = useMemo(
+    () =>
+      getHomeHeroSceneRenderQuality({
+        sceneViewportMode,
+        viewportWidth,
+      }),
+    [sceneViewportMode, viewportWidth],
+  );
   const handleBrowseProjects = useCallback(() => {
     const shouldUseBottomSheet =
       sceneViewportMode === SCENE_VIEWPORT_MODE.stacked ||
-      (typeof window !== 'undefined' && window.innerWidth < VIEWPORT_BREAKPOINTS.desktopMin);
+      viewportWidth < VIEWPORT_BREAKPOINTS.desktopMin;
 
     if (shouldUseBottomSheet) {
       onBrowseProjects?.();
@@ -89,7 +98,7 @@ export const HomeHeroStageCanvas = ({
     }
 
     scrollHomeHeroToProjects(triggerRef.current);
-  }, [onBrowseProjects, sceneViewportMode, triggerRef]);
+  }, [onBrowseProjects, sceneViewportMode, triggerRef, viewportWidth]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -112,9 +121,9 @@ export const HomeHeroStageCanvas = ({
         near: HOME_HERO_CAMERA_NEAR,
         position: sceneLayout.camera.position,
       }}
-      dpr={[1, 2]}
+      dpr={renderQuality.dpr}
       gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
-      shadows
+      shadows={renderQuality.shadows}
       onCreated={({ gl }) => {
         gl.domElement.id = 'three-canvas';
         gl.domElement.setAttribute('aria-hidden', 'true');
@@ -136,6 +145,7 @@ export const HomeHeroStageCanvas = ({
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         sceneLayout={sceneLayout}
         sceneViewportMode={sceneViewportMode}
+        showOutlineEffect={renderQuality.enableOutlineComposer}
         onToggleBackgroundMusicPlayback={toggleBackgroundMusicPlayback}
         triggerRef={triggerRef}
         webUiContentRef={webUiContentRef}
@@ -171,6 +181,7 @@ const HomeHeroCameraRig = ({
   onCloseupCostumeHiddenChange,
   sceneLayout,
   sceneViewportMode,
+  showOutlineEffect,
   onToggleBackgroundMusicPlayback,
   triggerRef,
   webUiContentRef,
@@ -188,6 +199,7 @@ const HomeHeroCameraRig = ({
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneViewportMode: SceneViewportMode;
+  readonly showOutlineEffect: boolean;
   readonly onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   readonly triggerRef: RefObject<HTMLElement | null>;
   readonly webUiContentRef?: RefObject<HTMLDivElement | null>;
@@ -235,6 +247,7 @@ const HomeHeroCameraRig = ({
           onBrowseProjects={onBrowseProjects}
           onOpenImageViewer={onOpenImageViewer}
           onPlayBassString={onPlayBassString}
+          showOutlineEffect={showOutlineEffect}
           onToggleBackgroundMusicPlayback={onToggleBackgroundMusicPlayback}
         />
       ) : null}
