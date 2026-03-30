@@ -367,25 +367,27 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
       </p>
     ),
     pre: ({ children, className, ...props }) => (
-      <div className={markdownCodeBlockFrameClass}>
-        <div className={markdownCodeBlockHeaderClass}>
-          <div aria-hidden className={markdownTrafficLightRowClass}>
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+      <div className={markdownCodeBlockShellClass}>
+        <div className={markdownCodeBlockFrameClass}>
+          <div className={markdownCodeBlockHeaderClass}>
+            <div aria-hidden className={markdownTrafficLightRowClass}>
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+            </div>
+            <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
           </div>
-          <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
+          <pre
+            aria-label={getCodeBlockAriaLabel(children)}
+            className={
+              className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
+            }
+            tabIndex={0}
+            {...props}
+          >
+            {children}
+          </pre>
         </div>
-        <pre
-          aria-label={getCodeBlockAriaLabel(children)}
-          className={
-            className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
-          }
-          tabIndex={0}
-          {...props}
-        >
-          {children}
-        </pre>
       </div>
     ),
     table: ({ children }) => (
@@ -598,6 +600,11 @@ const markdownHighlightedTextClass = css({
   py: '[0.08rem]',
   borderRadius: '[0.35rem]',
   fontWeight: 'medium',
+});
+
+const markdownCodeBlockShellClass = css({
+  px: '1',
+  py: '1',
 });
 
 const markdownCodeBlockFrameClass = css({
