@@ -45,7 +45,7 @@ describe('getAdminProjects', () => {
     vi.clearAllMocks();
   });
 
-  it('locale fallback 번역을 결합한 관리자 프로젝트 목록을 현재 정렬 기준으로 반환한다', async () => {
+  it('관리자 목록 조회 시, getAdminProjects는 한국어 우선 제목을 현재 정렬 기준으로 반환해야 한다', async () => {
     const projectsQuery = createQueryMock({
       result: {
         data: [
@@ -90,7 +90,6 @@ describe('getAdminProjects', () => {
         ],
         error: null,
       },
-      terminalCall: 2,
       terminalMethod: 'in',
     });
 
@@ -103,7 +102,7 @@ describe('getAdminProjects', () => {
       }),
     } as never);
 
-    const result = await getAdminProjects({ locale: 'ja' });
+    const result = await getAdminProjects();
 
     expect(result).toEqual([
       {
@@ -138,6 +137,5 @@ describe('getAdminProjects', () => {
       nullsFirst: false,
     });
     expect(projectsQuery.order).toHaveBeenNthCalledWith(3, 'created_at', { ascending: false });
-    expect(translationsQuery.in).toHaveBeenNthCalledWith(2, 'locale', ['ja', 'ko', 'en', 'fr']);
   });
 });

@@ -1,8 +1,4 @@
 import type { AdminArticleListItem } from '@/entities/article/model/types';
-import {
-  buildContentLocaleFallbackChain,
-  pickPreferredLocaleValue,
-} from '@/shared/lib/i18n/content-locale-fallback';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
@@ -15,19 +11,22 @@ type AdminArticleTranslationRow = {
   title: string;
 };
 
+type AdminArticleSupabaseClient = NonNullable<
+  ReturnType<typeof createOptionalServiceRoleSupabaseClient>
+>;
+
 /**
  * 관리자 아티클 목록/지표용 base row를 정렬 기준에 맞춰 조회합니다.
  */
 const fetchAdminArticleBaseRows = async ({
   limit,
   sortBy,
+  supabase,
 }: {
   limit: number;
   sortBy: 'publish_at' | 'view_count';
+  supabase: AdminArticleSupabaseClient;
 }): Promise<AdminArticleBaseRow[]> => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) return [];
-
   const query = supabase
     .from('articles')
     .select('id,slug,visibility,publish_at,thumbnail_url,created_at,updated_at,view_count')
@@ -55,22 +54,24 @@ const fetchAdminArticleBaseRows = async ({
 };
 
 /**
+ * 관리자 제목은 한국어를 우선으로 사용하고, 없으면 조회된 첫 번역을 사용합니다.
+ */
+const pickAdminArticleTranslation = (rows: AdminArticleTranslationRow[]) =>
+  rows.find(row => row.locale === 'ko') ?? rows[0] ?? null;
+
+/**
  * 관리자 아티클 id 집합에 대해 locale fallback 후보 번역 제목을 조회합니다.
  */
 const fetchAdminArticleTranslations = async (
   articleIds: string[],
-  localeFallbackChain: string[],
+  supabase: AdminArticleSupabaseClient,
 ): Promise<AdminArticleTranslationRow[]> => {
   if (articleIds.length === 0) return [];
-
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('article_translations')
     .select('article_id,locale,title')
-    .in('article_id', articleIds)
-    .in('locale', localeFallbackChain);
+    .in('article_id', articleIds);
 
   if (error) {
     throw new Error(`[admin-articles] 번역 조회 실패: ${error.message}`);
@@ -84,14 +85,13 @@ const fetchAdminArticleTranslations = async (
  */
 const resolveAdminArticleItems = async (
   baseRows: AdminArticleBaseRow[],
-  locale: string,
+  supabase: AdminArticleSupabaseClient,
 ): Promise<AdminArticleListItem[]> => {
   if (baseRows.length === 0) return [];
 
-  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
   const translationRows = await fetchAdminArticleTranslations(
     baseRows.map(row => row.id),
-    localeFallbackChain,
+    supabase,
   );
   const translationsByArticleId = new Map<string, AdminArticleTranslationRow[]>();
 
@@ -102,16 +102,12 @@ const resolveAdminArticleItems = async (
   });
 
   return baseRows.map(baseRow => {
-    const preferredTranslation = pickPreferredLocaleValue({
-      locales: localeFallbackChain,
-      resolveLocale: row => row.locale,
-      rows: translationsByArticleId.get(baseRow.id) ?? [],
-    });
+    const preferredTranslation = pickAdminArticleTranslation(
+      translationsByArticleId.get(baseRow.id) ?? [],
+    );
 
     if (!preferredTranslation) {
-      throw new Error(
-        `[admin-articles] 조회 가능한 번역이 없습니다. articleId=${baseRow.id} locales=${localeFallbackChain.join('>')}`,
-      );
+      throw new Error(`[admin-articles] 조회 가능한 번역이 없습니다. articleId=${baseRow.id}`);
     }
 
     return {
@@ -126,33 +122,39 @@ const resolveAdminArticleItems = async (
  */
 export const getAdminArticles = async ({
   limit = 50,
-  locale,
 }: {
   limit?: number;
-  locale: string;
-}): Promise<AdminArticleListItem[]> =>
-  resolveAdminArticleItems(
+} = {}): Promise<AdminArticleListItem[]> => {
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) return [];
+
+  return resolveAdminArticleItems(
     await fetchAdminArticleBaseRows({
       limit,
       sortBy: 'publish_at',
+      supabase,
     }),
-    locale,
+    supabase,
   );
+};
 
 /**
  * 관리자 분석 화면에 사용할 인기 아티클 Top N을 조회합니다.
  */
 export const getAdminTopArticles = async ({
   limit = 5,
-  locale,
 }: {
   limit?: number;
-  locale: string;
-}): Promise<AdminArticleListItem[]> =>
-  resolveAdminArticleItems(
+} = {}): Promise<AdminArticleListItem[]> => {
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) return [];
+
+  return resolveAdminArticleItems(
     await fetchAdminArticleBaseRows({
       limit,
       sortBy: 'view_count',
+      supabase,
     }),
-    locale,
+    supabase,
   );
+};

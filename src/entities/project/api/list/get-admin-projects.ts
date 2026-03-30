@@ -1,8 +1,4 @@
 import type { AdminProjectListItem } from '@/entities/project/model/types';
-import {
-  buildContentLocaleFallbackChain,
-  pickPreferredLocaleValue,
-} from '@/shared/lib/i18n/content-locale-fallback';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
@@ -15,17 +11,26 @@ type AdminProjectTranslationRow = {
   title: string;
 };
 
+type AdminProjectSupabaseClient = NonNullable<
+  ReturnType<typeof createOptionalServiceRoleSupabaseClient>
+>;
+
+/**
+ * 관리자 프로젝트 제목은 한국어를 우선으로 사용하고, 없으면 조회된 첫 번역을 사용합니다.
+ */
+const pickAdminProjectTranslation = (rows: AdminProjectTranslationRow[]) =>
+  rows.find(row => row.locale === 'ko') ?? rows[0] ?? null;
+
 /**
  * 관리자 프로젝트 목록용 base row를 현재 공개 정렬 규칙과 동일한 우선순위로 조회합니다.
  */
 const fetchAdminProjectBaseRows = async ({
   limit,
+  supabase,
 }: {
   limit: number;
+  supabase: AdminProjectSupabaseClient;
 }): Promise<AdminProjectBaseRow[]> => {
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) return [];
-
   const { data, error } = await supabase
     .from('projects')
     .select('id,slug,visibility,publish_at,display_order,thumbnail_url,created_at,updated_at')
@@ -52,18 +57,14 @@ const fetchAdminProjectBaseRows = async ({
  */
 const fetchAdminProjectTranslations = async (
   projectIds: string[],
-  localeFallbackChain: string[],
+  supabase: AdminProjectSupabaseClient,
 ): Promise<AdminProjectTranslationRow[]> => {
   if (projectIds.length === 0) return [];
-
-  const supabase = createOptionalServiceRoleSupabaseClient();
-  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('project_translations')
     .select('project_id,locale,title')
-    .in('project_id', projectIds)
-    .in('locale', localeFallbackChain);
+    .in('project_id', projectIds);
 
   if (error) {
     throw new Error(`[admin-projects] 번역 조회 실패: ${error.message}`);
@@ -77,14 +78,13 @@ const fetchAdminProjectTranslations = async (
  */
 const resolveAdminProjectItems = async (
   baseRows: AdminProjectBaseRow[],
-  locale: string,
+  supabase: AdminProjectSupabaseClient,
 ): Promise<AdminProjectListItem[]> => {
   if (baseRows.length === 0) return [];
 
-  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
   const translationRows = await fetchAdminProjectTranslations(
     baseRows.map(row => row.id),
-    localeFallbackChain,
+    supabase,
   );
   const translationsByProjectId = new Map<string, AdminProjectTranslationRow[]>();
 
@@ -95,16 +95,12 @@ const resolveAdminProjectItems = async (
   });
 
   return baseRows.map(baseRow => {
-    const preferredTranslation = pickPreferredLocaleValue({
-      locales: localeFallbackChain,
-      resolveLocale: row => row.locale,
-      rows: translationsByProjectId.get(baseRow.id) ?? [],
-    });
+    const preferredTranslation = pickAdminProjectTranslation(
+      translationsByProjectId.get(baseRow.id) ?? [],
+    );
 
     if (!preferredTranslation) {
-      throw new Error(
-        `[admin-projects] 조회 가능한 번역이 없습니다. projectId=${baseRow.id} locales=${localeFallbackChain.join('>')}`,
-      );
+      throw new Error(`[admin-projects] 조회 가능한 번역이 없습니다. projectId=${baseRow.id}`);
     }
 
     return {
@@ -119,14 +115,17 @@ const resolveAdminProjectItems = async (
  */
 export const getAdminProjects = async ({
   limit = 50,
-  locale,
 }: {
   limit?: number;
-  locale: string;
-}): Promise<AdminProjectListItem[]> =>
-  resolveAdminProjectItems(
+} = {}): Promise<AdminProjectListItem[]> => {
+  const supabase = createOptionalServiceRoleSupabaseClient();
+  if (!supabase) return [];
+
+  return resolveAdminProjectItems(
     await fetchAdminProjectBaseRows({
       limit,
+      supabase,
     }),
-    locale,
+    supabase,
   );
+};

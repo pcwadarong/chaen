@@ -65,7 +65,7 @@ describe('AdminRoute', () => {
     expect(element.props.googleArticleTraffic).toMatchObject({
       status: 'not_configured',
     });
-    expect(element.props.locale).toBe('ko');
+    expect(element.props.signOutRedirectPath).toBe('/ko/admin/login');
   });
 
   it('관리자 세션이 없으면 로그인 페이지로 리다이렉트한다', async () => {

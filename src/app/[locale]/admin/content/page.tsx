@@ -3,6 +3,7 @@ import React from 'react';
 
 import { getAdminArticles } from '@/entities/article/api/list/get-admin-articles';
 import { getAdminProjects } from '@/entities/project/api/list/get-admin-projects';
+import { buildAdminPath } from '@/features/admin-session';
 import { updateArticleVisibilityAction } from '@/features/manage-article/api/update-article-visibility';
 import { updateProjectDisplayOrderAction } from '@/features/manage-project/api/update-project-display-order';
 import { updateProjectVisibilityAction } from '@/features/manage-project/api/update-project-visibility';
@@ -30,10 +31,7 @@ const AdminContentRoute = async ({
 
   await requireAdmin({ locale });
 
-  const [articles, projects] = await Promise.all([
-    getAdminArticles({ locale }),
-    getAdminProjects({ locale }),
-  ]);
+  const [articles, projects] = await Promise.all([getAdminArticles(), getAdminProjects()]);
 
   const handleSaveProjectOrder = async (orderedProjectIds: string[]) => {
     'use server';
@@ -77,11 +75,11 @@ const AdminContentRoute = async ({
   return (
     <AdminContentPage
       articles={articles}
-      locale={locale}
       onToggleArticleVisibility={handleToggleArticleVisibility}
       onToggleProjectVisibility={handleToggleProjectVisibility}
       onSaveProjectOrder={handleSaveProjectOrder}
       projects={projects}
+      signOutRedirectPath={buildAdminPath({ locale, section: 'login' })}
     />
   );
 };

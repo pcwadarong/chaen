@@ -1,4 +1,4 @@
-/* @vitest-environment jsdom */
+/* @vitest-environment node */
 
 import { isValidElement } from 'react';
 
@@ -34,7 +34,7 @@ describe('AdminContentRoute', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자 콘텐츠 관리 페이지를 렌더링한다', async () => {
+  it('유효한 관리자 인증 상태일 때, AdminContentRoute는 관리자 콘텐츠 관리 페이지를 렌더링해야 한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -51,12 +51,12 @@ describe('AdminContentRoute', () => {
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(getAdminArticles).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(getAdminProjects).toHaveBeenCalledWith({ locale: 'ko' });
+    expect(getAdminArticles).toHaveBeenCalledWith();
+    expect(getAdminProjects).toHaveBeenCalledWith();
     expect(typeof element.props.onSaveProjectOrder).toBe('function');
   });
 
-  it('검색 엔진 색인을 비활성화한다', () => {
+  it('어떤 조건에서도, metadata는 robots.index와 robots.follow를 false로 제공해야 한다', () => {
     expect(metadata.robots).toMatchObject({
       follow: false,
       index: false,

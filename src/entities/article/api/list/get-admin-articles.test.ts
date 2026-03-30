@@ -48,7 +48,7 @@ describe('getAdminArticles', () => {
     vi.clearAllMocks();
   });
 
-  it('관리자 아티클 목록에 locale fallback 번역과 조회수를 결합한다', async () => {
+  it('관리자 목록 조회 시, getAdminArticles는 한국어 우선 제목과 조회수가 결합된 목록을 반환해야 한다', async () => {
     const articlesQuery = createQueryMock({
       result: {
         data: [
@@ -78,7 +78,6 @@ describe('getAdminArticles', () => {
         ],
         error: null,
       },
-      terminalCall: 2,
       terminalMethod: 'in',
     });
 
@@ -91,7 +90,7 @@ describe('getAdminArticles', () => {
       }),
     } as never);
 
-    const result = await getAdminArticles({ locale: 'ko' });
+    const result = await getAdminArticles();
 
     expect(result).toEqual([
       {
@@ -113,7 +112,7 @@ describe('getAdminArticles', () => {
     expect(articlesQuery.order).toHaveBeenNthCalledWith(2, 'created_at', { ascending: false });
   });
 
-  it('Top 5 아티클은 조회수 내림차순으로 제한 조회한다', async () => {
+  it('인기 아티클 조회 시, getAdminTopArticles는 조회수 내림차순으로 제한 조회해야 한다', async () => {
     const articlesQuery = createQueryMock({
       result: {
         data: [
@@ -143,7 +142,6 @@ describe('getAdminArticles', () => {
         ],
         error: null,
       },
-      terminalCall: 2,
       terminalMethod: 'in',
     });
 
@@ -156,7 +154,7 @@ describe('getAdminArticles', () => {
       }),
     } as never);
 
-    await getAdminTopArticles({ locale: 'ko' });
+    await getAdminTopArticles();
 
     expect(articlesQuery.order).toHaveBeenNthCalledWith(1, 'view_count', {
       ascending: false,
