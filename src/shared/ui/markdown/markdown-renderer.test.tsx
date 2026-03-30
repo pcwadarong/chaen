@@ -20,6 +20,10 @@ vi.mock('next-intl', () => ({
     )[key] ?? key,
 }));
 
+vi.mock('@/shared/lib/storage/attachment-download-path', () => ({
+  resolveAttachmentDownloadHref: vi.fn(({ href }: { href: string }) => href),
+}));
+
 /**
  * 서버 컴포넌트 결과를 HTML 문자열로 수집합니다.
  */
@@ -122,12 +126,15 @@ describe('MarkdownRenderer', () => {
     const document = await renderServerDocument(
       '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',
     );
-    const attachmentLink = document.querySelector('a[data-markdown-attachment="true"]');
+    const attachmentCard = document.querySelector('[data-markdown-attachment="true"]');
+    const downloadLink = attachmentCard?.querySelector('a[download="resume.pdf"]');
 
-    expect(attachmentLink).toBeTruthy();
-    expect(attachmentLink?.getAttribute('href')).toBe('https://example.com/resume.pdf');
-    expect(attachmentLink?.textContent).toContain('resume.pdf');
-    expect(attachmentLink?.textContent).toContain('2 KB');
+    expect(attachmentCard).toBeTruthy();
+    expect(downloadLink).toBeTruthy();
+    expect(downloadLink?.getAttribute('href')).toBe('https://example.com/resume.pdf');
+    expect(attachmentCard?.textContent).toContain('resume.pdf');
+    expect(attachmentCard?.textContent).toContain('2 KB');
+    expect(downloadLink?.textContent).toContain('다운로드');
   });
 
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {

@@ -1,6 +1,8 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
+import { resolveAttachmentDownloadHref } from '@/shared/lib/storage/attachment-download-path';
+import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 import { FileIcon } from '@/shared/ui/icons/app-icons';
 
 type MarkdownAttachmentProps = {
@@ -38,16 +40,13 @@ export const MarkdownAttachment = ({
   href,
 }: MarkdownAttachmentProps) => {
   const attachmentSize = formatAttachmentSize(fileSize);
+  const downloadHref = resolveAttachmentDownloadHref({
+    fileName,
+    href,
+  });
 
   return (
-    <a
-      className={attachmentLinkClass}
-      data-markdown-attachment="true"
-      download={fileName}
-      href={href}
-      rel="noreferrer noopener"
-      target="_blank"
-    >
+    <section className={attachmentCardClass} data-markdown-attachment="true">
       <span className={iconWrapClass}>
         <FileIcon aria-hidden color="text" size="md" />
       </span>
@@ -57,11 +56,19 @@ export const MarkdownAttachment = ({
           {[contentType, attachmentSize].filter(Boolean).join(' · ')}
         </span>
       </span>
-    </a>
+      <div className={actionWrapClass}>
+        <DownloadFileButton
+          fileName={fileName}
+          href={downloadHref}
+          label="다운로드"
+          mode="download"
+        />
+      </div>
+    </section>
   );
 };
 
-const attachmentLinkClass = css({
+const attachmentCardClass = css({
   display: 'flex',
   alignItems: 'center',
   gap: '3',
@@ -73,16 +80,10 @@ const attachmentLinkClass = css({
   borderStyle: 'solid',
   borderColor: 'border',
   background: 'surfaceMuted',
-  textDecoration: 'none',
   color: 'text',
-  transition: 'common',
-  _hover: {
-    borderColor: 'borderStrong',
-    transform: 'translateY(-1px)',
-  },
-  _focusVisible: {
-    outline: '[2px solid var(--colors-focus-ring)]',
-    outlineOffset: '[2px]',
+  _tabletDown: {
+    alignItems: 'stretch',
+    flexWrap: 'wrap',
   },
 });
 
@@ -103,6 +104,7 @@ const iconWrapClass = css({
 const contentWrapClass = css({
   display: 'grid',
   minWidth: '0',
+  flexGrow: '1',
 });
 
 const fileNameClass = css({
@@ -114,4 +116,12 @@ const fileNameClass = css({
 const metaTextClass = css({
   fontSize: 'xs',
   color: 'muted',
+});
+
+const actionWrapClass = css({
+  flex: 'none',
+  marginLeft: 'auto',
+  _tabletDown: {
+    width: 'full',
+  },
 });
