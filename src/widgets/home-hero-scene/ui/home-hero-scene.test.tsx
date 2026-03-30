@@ -73,6 +73,12 @@ vi.mock('@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet', () => ({
     ),
 }));
 
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-interaction-hint', () => ({
+  HomeHeroInteractionHint: ({ hidden = false }: { hidden?: boolean }) => (
+    <div data-hidden={String(hidden)} data-testid="home-hero-interaction-hint" />
+  ),
+}));
+
 vi.mock('@/shared/ui/image-viewer/image-viewer-modal', () => ({
   ImageViewerModal: ({
     initialIndex,

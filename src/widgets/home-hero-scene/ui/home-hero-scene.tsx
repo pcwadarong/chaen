@@ -13,6 +13,7 @@ import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/ho
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
+import { HomeHeroInteractionHint } from '@/widgets/home-hero-scene/ui/home-hero-interaction-hint';
 import { HomeHeroMobileProjectSheet } from '@/widgets/home-hero-scene/ui/home-hero-mobile-project-sheet';
 import { HomeHeroStage } from '@/widgets/home-hero-scene/ui/home-hero-stage';
 import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
@@ -135,6 +136,9 @@ export const HomeHeroScene = ({
           items={items}
           title={title}
           wrapperRef={webUiRef}
+        />
+        <HomeHeroInteractionHint
+          hidden={imageViewerOpenIndex !== null || isMobileProjectSheetOpen}
         />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
       </div>
