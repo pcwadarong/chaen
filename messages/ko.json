@@ -192,7 +192,6 @@
     "loading": "댓글을 불러오는 중입니다.",
     "loadError": "댓글을 불러오지 못했습니다.",
     "retry": "다시 시도",
-    "emptyItems": "아직 등록된 댓글이 없습니다.",
     "sortLabel": "댓글 정렬",
     "sortLatest": "최신순",
     "sortOldest": "오래된 순",

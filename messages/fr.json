@@ -192,7 +192,6 @@
     "loading": "Chargement des commentaires.",
     "loadError": "Impossible de charger les commentaires.",
     "retry": "Réessayer",
-    "emptyItems": "Aucun commentaire pour le moment.",
     "sortLabel": "Tri des commentaires",
     "sortLatest": "Plus récents",
     "sortOldest": "Plus anciens",

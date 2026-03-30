@@ -192,7 +192,6 @@
     "loading": "Loading comments.",
     "loadError": "Failed to load comments.",
     "retry": "Retry",
-    "emptyItems": "No comments yet.",
     "sortLabel": "Comment sorting",
     "sortLatest": "Latest",
     "sortOldest": "Oldest",

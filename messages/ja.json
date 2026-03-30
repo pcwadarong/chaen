@@ -192,7 +192,6 @@
     "loading": "コメントを読み込み中です。",
     "loadError": "コメントを読み込めませんでした。",
     "retry": "再試行",
-    "emptyItems": "まだコメントがありません。",
     "sortLabel": "コメント並び替え",
     "sortLatest": "新着順",
     "sortOldest": "古い順",

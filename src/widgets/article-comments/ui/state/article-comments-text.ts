@@ -32,7 +32,6 @@ export const createArticleCommentsText = (t: ArticleCommentsTranslator) => ({
   editConfirm: t('editConfirm'),
   editContentUnchanged: t('editContentUnchanged'),
   editModalTitle: t('editModalTitle'),
-  emptyItems: t('emptyItems'),
   loading: t('loading'),
   modalCloseAriaLabel: t('modalCloseAriaLabel'),
   paginationLabel: t('paginationLabel'),

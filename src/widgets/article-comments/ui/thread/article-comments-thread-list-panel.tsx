@@ -65,7 +65,6 @@ const CommentsThreadListPanelBase = ({
   const hasItems = pageData.items.length > 0;
   const isInitialLoading = !errorMessage && isLoading && !hasItems;
   const isRefreshingList = isLoading && hasItems;
-  const shouldShowEmptyState = !isLoading && !errorMessage && !hasItems;
   const shouldShowErrorState = Boolean(errorMessage) && !hasItems;
   const shouldShowThreadList = !isLoading && hasItems;
   const shouldShowPagination = shouldShowThreadList && pageData.totalPages > 1;
@@ -84,13 +83,6 @@ const CommentsThreadListPanelBase = ({
       {isInitialLoading ? <CommentsLoadingSkeleton loadingText={text.loading} /> : null}
 
       {isRefreshingList ? <CommentsLoadingSkeleton loadingText={text.loading} /> : null}
-
-      {shouldShowEmptyState ? (
-        <div className={stateCardClass}>
-          <p className={stateTextClass}>{text.emptyItems}</p>
-        </div>
-      ) : null}
-
       {shouldShowThreadList ? (
         <ol className={threadListClass}>
           {pageData.items.map(thread => (

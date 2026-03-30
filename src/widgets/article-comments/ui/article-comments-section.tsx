@@ -428,6 +428,9 @@ export const ArticleCommentsSection = ({
   const handleToastClose = useCallback((id: string) => {
     setToasts(previous => previous.filter(item => item.id !== id));
   }, []);
+  const hasRenderableComments = pageData.totalCount > 0;
+  const shouldRenderSortTabs = hasRenderableComments;
+  const shouldRenderThreadPanel = hasRenderableComments || isLoading || Boolean(errorMessage);
 
   return (
     <section aria-labelledby={titleId} className={sectionClass}>
@@ -469,35 +472,39 @@ export const ArticleCommentsSection = ({
         textPlaceholder={text.composePlaceholder}
       />
 
-      <SortOrderTabs
-        currentSort={queryState.sort}
-        labels={{
-          group: text.sortLabel,
-          latest: text.sortLatest,
-          oldest: text.sortOldest,
-        }}
-        onChangeSort={handleChangeSort}
-      />
+      {shouldRenderSortTabs ? (
+        <SortOrderTabs
+          currentSort={queryState.sort}
+          labels={{
+            group: text.sortLabel,
+            latest: text.sortLatest,
+            oldest: text.sortOldest,
+          }}
+          onChangeSort={handleChangeSort}
+        />
+      ) : null}
 
-      <CommentsThreadListPanel
-        activeReplyPlaceholder={activeReplyPlaceholder}
-        articleId={articleId}
-        errorMessage={errorMessage}
-        isLoading={isLoading}
-        isReplySubmitting={isReplySubmitting}
-        locale={locale}
-        onDelete={openDeleteModal}
-        onEdit={openEditModal}
-        onPageChange={handlePaginationChange}
-        onReply={handleReply}
-        onRetryLoad={handleRetryLoad}
-        pageData={pageData}
-        queryState={queryState}
-        replySubmitState={replySubmitState}
-        replyTarget={replyTarget}
-        submitReplyCommentAction={submitReplyCommentAction}
-        text={text}
-      />
+      {shouldRenderThreadPanel ? (
+        <CommentsThreadListPanel
+          activeReplyPlaceholder={activeReplyPlaceholder}
+          articleId={articleId}
+          errorMessage={errorMessage}
+          isLoading={isLoading}
+          isReplySubmitting={isReplySubmitting}
+          locale={locale}
+          onDelete={openDeleteModal}
+          onEdit={openEditModal}
+          onPageChange={handlePaginationChange}
+          onReply={handleReply}
+          onRetryLoad={handleRetryLoad}
+          pageData={pageData}
+          queryState={queryState}
+          replySubmitState={replySubmitState}
+          replyTarget={replyTarget}
+          submitReplyCommentAction={submitReplyCommentAction}
+          text={text}
+        />
+      ) : null}
 
       <Modal
         ariaDescribedBy={modalState?.mode === 'delete' ? modalDescriptionId : undefined}

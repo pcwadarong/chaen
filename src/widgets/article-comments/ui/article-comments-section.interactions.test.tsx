@@ -116,4 +116,19 @@ describe('ArticleCommentsSection interactions', () => {
 
     expect(sortButtonRenderCount.value).toBe(2);
   });
+
+  it('댓글이 없으면 정렬 탭과 목록 패널을 렌더하지 않아야 한다', () => {
+    renderArticleCommentsSection({
+      initialPage: {
+        ...initialPage,
+        items: [],
+        totalCount: 0,
+        totalPages: 0,
+      },
+    });
+
+    expect(screen.queryByRole('tab', { name: 'sortLatest' })).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'sortOldest' })).toBeNull();
+    expect(screen.queryByRole('list')).toBeNull();
+  });
 });

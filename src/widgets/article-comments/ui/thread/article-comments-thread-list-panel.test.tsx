@@ -16,7 +16,6 @@ vi.mock('@/widgets/article-comments/ui/thread/article-comments-thread-list-skele
 
 const text = {
   ...createArticleCommentsText(key => key),
-  emptyItems: '댓글 없음',
   loading: '불러오는 중',
   paginationLabel: '댓글 페이지 이동',
   retry: '다시 시도',
@@ -58,7 +57,7 @@ describe('CommentsThreadListPanel', () => {
     expect(screen.getByTestId('comments-loading-skeleton').textContent).toBe('불러오는 중');
   });
 
-  it('목록이 비어 있고 로딩이 끝났으면 empty state를 보여준다', () => {
+  it('목록이 비어 있고 로딩이 끝났으면 목록 패널을 렌더하지 않아야 한다', () => {
     render(
       <CommentsThreadListPanel
         activeReplyPlaceholder={null}
@@ -81,6 +80,7 @@ describe('CommentsThreadListPanel', () => {
       />,
     );
 
-    expect(screen.getByText('댓글 없음')).toBeTruthy();
+    expect(screen.queryByText('댓글 없음')).toBeNull();
+    expect(screen.queryByRole('list')).toBeNull();
   });
 });
