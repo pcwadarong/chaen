@@ -64,11 +64,16 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
   lastOnDraftSave: undefined as EditorCoreProps['onDraftSave'] | undefined,
   lastOnDirectPublish: undefined as EditorCoreProps['onDirectPublish'] | undefined,
   routerPush: vi.fn(),
+  routerRefresh: vi.fn(),
+  routerReplace: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
+  usePathname: () => '/ko/admin/resume/edit',
   useRouter: () => ({
     push: resumeEditorClientMockState.routerPush,
+    refresh: resumeEditorClientMockState.routerRefresh,
+    replace: resumeEditorClientMockState.routerReplace,
   }),
 }));
 
@@ -109,6 +114,8 @@ describe('ResumeEditorClient', () => {
     resumeEditorClientMockState.lastOnDraftSave = undefined;
     resumeEditorClientMockState.lastOnDirectPublish = undefined;
     resumeEditorClientMockState.routerPush.mockReset();
+    resumeEditorClientMockState.routerRefresh.mockReset();
+    resumeEditorClientMockState.routerReplace.mockReset();
   });
 
   it(
@@ -219,11 +226,11 @@ describe('ResumeEditorClient', () => {
   });
 
   it(
-    'resume 발행 성공 시 반환된 redirectPath로 이동한다',
+    'resume 발행 redirect 경로가 공개 resume 화면이면 push로 이동한다',
     async () => {
       const onDraftSave = vi.fn().mockResolvedValue(undefined);
       const onPublishSubmit = vi.fn().mockResolvedValue({
-        redirectPath: '/ko/admin/resume/edit',
+        redirectPath: '/ko/resume',
       });
 
       render(
@@ -238,9 +245,9 @@ describe('ResumeEditorClient', () => {
 
       await waitFor(() => {
         expect(onPublishSubmit).toHaveBeenCalledTimes(1);
-        expect(resumeEditorClientMockState.routerPush).toHaveBeenCalledWith(
-          '/ko/admin/resume/edit',
-        );
+        expect(resumeEditorClientMockState.routerPush).toHaveBeenCalledWith('/ko/resume');
+        expect(resumeEditorClientMockState.routerReplace).not.toHaveBeenCalled();
+        expect(resumeEditorClientMockState.routerRefresh).not.toHaveBeenCalled();
       });
     },
     RESUME_EDITOR_CLIENT_TEST_TIMEOUT_MS,

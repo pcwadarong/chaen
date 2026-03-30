@@ -105,7 +105,7 @@ describe('resume-editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
   });
 
-  it('resume publish 시 resume_contents를 upsert하고 draft를 정리한 뒤 편집 화면으로 redirect한다', async () => {
+  it('resume publish 시 resume_contents를 upsert하고 draft를 정리한 뒤 공개 resume 화면으로 redirect한다', async () => {
     vi.mocked(requireAdmin).mockResolvedValue({
       isAdmin: true,
       isAuthenticated: true,
@@ -192,7 +192,7 @@ describe('resume-editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
-    expect(result).toEqual({ redirectPath: '/ko/admin/resume/edit' });
+    expect(result).toEqual({ redirectPath: '/ko/resume' });
   });
 
   it('service role이 없으면 resume draft 저장을 중단한다', async () => {

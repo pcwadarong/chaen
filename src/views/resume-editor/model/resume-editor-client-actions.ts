@@ -34,6 +34,8 @@ type ResumePublishActionResult = {
   result: PublishActionResult | void;
 };
 
+export type ResumePublishNavigationMode = 'push' | 'replace-refresh';
+
 /**
  * 공용 editor 상태를 resume draft 저장 액션 입력으로 변환하고 다음 draftId를 계산합니다.
  *
@@ -74,4 +76,28 @@ export const submitResumePublish = async ({
     redirectPath: result?.redirectPath ?? null,
     result,
   };
+};
+
+/**
+ * resume 발행 완료 후 어떤 클라이언트 내비게이션을 써야 하는지 계산합니다.
+ *
+ * resume는 발행 성공 후 현재 편집 화면(`/admin/resume/edit`)으로 다시 돌아오는 경우가 많습니다.
+ * 이때 `router.push()`만 호출하면 같은 경로 이동이 no-op처럼 보일 수 있으므로
+ * 현재 경로와 동일하면 `replace + refresh` 조합을 사용합니다.
+ *
+ * @param currentPathname 현재 브라우저 pathname입니다.
+ * @param redirectPath 서버 액션이 반환한 이동 경로입니다.
+ * @returns redirectPath가 현재 경로와 같으면 `replace-refresh`, 아니면 `push`
+ */
+export const resolveResumePublishNavigationMode = ({
+  currentPathname,
+  redirectPath,
+}: {
+  currentPathname: string;
+  redirectPath: string;
+}): ResumePublishNavigationMode => {
+  const normalizedCurrentPathname = currentPathname.split('?')[0] ?? currentPathname;
+  const normalizedRedirectPath = redirectPath.split('?')[0] ?? redirectPath;
+
+  return normalizedCurrentPathname === normalizedRedirectPath ? 'replace-refresh' : 'push';
 };

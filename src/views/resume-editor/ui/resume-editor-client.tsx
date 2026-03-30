@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useState } from 'react';
 
 import type {
@@ -12,6 +12,7 @@ import type { ResumeEditorState } from '@/entities/resume/model/resume-editor.ty
 import { resumeContentMapToEditorTranslations } from '@/entities/resume/model/resume-editor.utils';
 import { parseResumeEditorError } from '@/entities/resume/model/resume-editor-error';
 import {
+  resolveResumePublishNavigationMode,
   submitResumeDraft,
   submitResumePublish,
 } from '@/views/resume-editor/model/resume-editor-client-actions';
@@ -45,6 +46,7 @@ export const ResumeEditorClient = ({
   onDraftSave,
   onPublishSubmit,
 }: ResumeEditorClientProps) => {
+  const pathname = usePathname();
   const router = useRouter();
   const [draftId, setDraftId] = useState<string | null>(initialDraftId);
 
@@ -81,10 +83,21 @@ export const ResumeEditorClient = ({
       });
 
       if (redirectPath) {
+        const navigationMode = resolveResumePublishNavigationMode({
+          currentPathname: pathname,
+          redirectPath,
+        });
+
+        if (navigationMode === 'replace-refresh') {
+          router.replace(redirectPath);
+          router.refresh();
+          return;
+        }
+
         router.push(redirectPath);
       }
     },
-    [draftId, onPublishSubmit, router],
+    [draftId, onPublishSubmit, pathname, router],
   );
 
   return (

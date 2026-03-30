@@ -194,7 +194,7 @@ export const publishResumeContentAction = async ({
   return {
     redirectPath: buildLocalizedPathname({
       locale: resolveActionLocale(locale),
-      pathname: '/admin/resume/edit',
+      pathname: '/resume',
     }),
   };
 };

@@ -1,5 +1,6 @@
 import type { EditorState } from '@/entities/editor/model/editor-types';
 import {
+  resolveResumePublishNavigationMode,
   submitResumeDraft,
   submitResumePublish,
 } from '@/views/resume-editor/model/resume-editor-client-actions';
@@ -133,5 +134,23 @@ describe('resume-editor-client-actions', () => {
         state: createEditorState(),
       }),
     ).rejects.toThrow('발행 실패');
+  });
+
+  it('현재 경로와 발행 redirect 경로가 같으면 replace-refresh 모드를 반환한다', () => {
+    expect(
+      resolveResumePublishNavigationMode({
+        currentPathname: '/ko/admin/resume/edit',
+        redirectPath: '/ko/admin/resume/edit',
+      }),
+    ).toBe('replace-refresh');
+  });
+
+  it('현재 경로와 발행 redirect 경로가 다르면 push 모드를 반환한다', () => {
+    expect(
+      resolveResumePublishNavigationMode({
+        currentPathname: '/ko/admin/resume/edit',
+        redirectPath: '/ko/admin',
+      }),
+    ).toBe('push');
   });
 });
