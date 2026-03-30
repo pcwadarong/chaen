@@ -1,6 +1,4 @@
 // @vitest-environment node
-import { unstable_cacheTag } from 'next/cache';
-
 import { getArticle } from '@/entities/article/api/detail/get-article';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import {
@@ -9,8 +7,10 @@ import {
 } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
-  unstable_cacheLife: vi.fn(),
-  unstable_cacheTag: vi.fn(),
+  unstable_cache:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]) =>
+      fn(...args),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -44,7 +44,6 @@ describe('getArticle', () => {
     const result = await getArticle('frontend-performance', 'ko');
 
     expect(result).toBeNull();
-    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('fallback RPC를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
@@ -110,7 +109,6 @@ describe('getArticle', () => {
       target_article_id: 'frontend-performance',
     });
     expect(articleSlugQuery.lte).not.toHaveBeenCalled();
-    expect(unstable_cacheTag).toHaveBeenCalledWith('articles', 'article:frontend-performance');
   });
 
   it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {

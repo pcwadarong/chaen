@@ -1,8 +1,8 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 
-import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
+import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 
-describe('useOffsetPaginationFeed', () => {
+describe('useCursorPaginationFeed', () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -32,7 +32,7 @@ describe('useOffsetPaginationFeed', () => {
 
     const { result, rerender, unmount } = renderHook(
       ({ initialCursor, initialItems }: HookProps) =>
-        useOffsetPaginationFeed<{ id: string }>({
+        useCursorPaginationFeed<{ id: string }>({
           initialCursor,
           initialItems,
           loadPage,
@@ -71,7 +71,7 @@ describe('useOffsetPaginationFeed', () => {
 
     const { result, rerender, unmount } = renderHook(
       ({ initialCursor, initialItems }: HookProps) =>
-        useOffsetPaginationFeed<{ id: string }>({
+        useCursorPaginationFeed<{ id: string }>({
           initialCursor,
           initialItems,
           loadPage,
@@ -98,6 +98,54 @@ describe('useOffsetPaginationFeed', () => {
       });
       expect(result.current.hasMore).toBe(false);
       expect(loadPage).toHaveBeenCalledTimes(1);
+    } finally {
+      unmount();
+    }
+  });
+
+  it('resetKey가 바뀌면 같은 seed여도 cursor와 items를 명시적으로 초기화한다', async () => {
+    type HookProps = {
+      initialCursor: string | null;
+      initialItems: { id: string }[];
+      resetKey: string;
+    };
+    const seededItem = { id: 'a' };
+    const loadPage = vi.fn().mockResolvedValue({
+      items: [{ id: 'b' }],
+      nextCursor: null,
+    });
+
+    const { result, rerender, unmount } = renderHook(
+      ({ initialCursor, initialItems, resetKey }: HookProps) =>
+        useCursorPaginationFeed<{ id: string }>({
+          initialCursor,
+          initialItems,
+          loadPage,
+          locale: 'ko',
+          resetKey,
+        }),
+      {
+        initialProps: {
+          initialCursor: '1',
+          initialItems: [seededItem],
+          resetKey: 'ko::react',
+        },
+      },
+    );
+
+    try {
+      await triggerLoadMore(result.current.loadMore);
+
+      rerender({
+        initialCursor: '1',
+        initialItems: [seededItem],
+        resetKey: 'ko::nextjs',
+      });
+
+      await waitFor(() => {
+        expect(result.current.items).toEqual([{ id: 'a' }]);
+      });
+      expect(result.current.hasMore).toBe(true);
     } finally {
       unmount();
     }

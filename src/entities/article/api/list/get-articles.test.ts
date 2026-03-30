@@ -348,9 +348,9 @@ describe('getArticles', () => {
       cursor_id: null,
       cursor_publish_at: null,
       cursor_rank: null,
+      fallback_locales: ['ko', 'en', 'ja', 'fr'],
       page_limit: 1,
       search_query: 'react',
-      target_locale: 'ko',
     });
   });
 

@@ -1,6 +1,4 @@
 // @vitest-environment node
-import { unstable_cacheTag } from 'next/cache';
-
 import { getProject, getResolvedProject } from '@/entities/project/api/detail/get-project';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import {
@@ -9,8 +7,10 @@ import {
 } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
-  unstable_cacheLife: vi.fn(),
-  unstable_cacheTag: vi.fn(),
+  unstable_cache:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]) =>
+      fn(...args),
 }));
 
 vi.mock('@/shared/lib/supabase/config', () => ({
@@ -44,7 +44,6 @@ describe('getProject', () => {
     const result = await getProject('funda-project', 'ko');
 
     expect(result).toBeNull();
-    expect(unstable_cacheTag).not.toHaveBeenCalled();
   });
 
   it('fallback RPC를 우선 사용하면서 캐시 키에 scope를 포함한다', async () => {
@@ -118,7 +117,6 @@ describe('getProject', () => {
       target_project_id: 'funda-project',
     });
     expect(projectSlugQuery.lte).not.toHaveBeenCalled();
-    expect(unstable_cacheTag).toHaveBeenCalledWith('projects', 'project:funda-project');
   });
 
   it('fallback RPC가 없으면 명시적 에러를 던진다', async () => {
@@ -342,7 +340,7 @@ describe('getProject', () => {
     });
   });
 
-  it('fallback 전체에 번역이 없어도 project 단위 miss cache 태그를 남긴다', async () => {
+  it('fallback 전체에 번역이 없으면 null을 반환한다', async () => {
     const projectSlugQuery = createProjectSlugLookupQuery();
     const supabaseClient = {
       from: vi.fn().mockReturnValueOnce(projectSlugQuery),
@@ -357,7 +355,6 @@ describe('getProject', () => {
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'fr')).resolves.toBeNull();
-    expect(unstable_cacheTag).toHaveBeenCalledWith('projects', 'project:funda-project');
   });
 
   it('태그 relation schema가 없으면 태그 없이 본문을 반환한다', async () => {

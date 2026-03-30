@@ -18,8 +18,6 @@ import {
   getArticleTagLabels,
 } from '@/views/articles';
 
-export const revalidate = 3600;
-
 /**
  * 상세 slug는 대표 경로를 일부만 빌드하고 나머지는 첫 요청 시 정적으로 생성합니다.
  */

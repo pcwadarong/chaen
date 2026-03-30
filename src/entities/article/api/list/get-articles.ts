@@ -377,13 +377,14 @@ const fetchSearchArticles = async (
   if (!supabase) return { items: [], nextCursor: null, totalCount: null };
 
   const parsedCursor = parseArticleSearchCursor(cursor);
+  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
   const { data, error } = await supabase.rpc('search_article_translations', {
     cursor_id: parsedCursor?.id ?? null,
     cursor_publish_at: parsedCursor?.publishedAt ?? null,
     cursor_rank: parsedCursor?.rank ?? null,
+    fallback_locales: localeFallbackChain,
     page_limit: pageSize,
     search_query: query,
-    target_locale: locale,
   });
 
   if (error) throw new Error(`[articles] 검색 조회 실패: ${error.message}`);

@@ -8,8 +8,6 @@ import { buildDefaultOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { getProjectListPageData, ProjectListPage } from '@/views/project';
 
-export const revalidate = 3600;
-
 type ProjectRouteProps = {
   params: Promise<{
     locale: string;

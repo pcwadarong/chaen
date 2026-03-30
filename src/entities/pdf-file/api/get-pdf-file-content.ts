@@ -7,8 +7,8 @@ import {
 } from '@/entities/pdf-file/model/cache-tags';
 import { getPdfFileContentConfig } from '@/entities/pdf-file/model/config';
 import type { PdfFileContent, PdfFileKind } from '@/entities/pdf-file/model/types';
+import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import { resolveLocaleAwareData } from '@/shared/lib/supabase/resolve-locale-aware-data';
 
 import 'server-only';
 
@@ -22,14 +22,12 @@ type GetPdfFileContentOptions = {
 };
 
 /**
- * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale별 소개 텍스트를 cached read로 조회합니다.
- * locale 데이터가 없으면 fallback locale(`ko`)을 한 번 더 조회합니다.
+ * 종류(`resume`, `portfolio`)에 맞는 Supabase 콘텐츠 테이블에서 locale fallback 체인 순서대로 소개 텍스트를 조회합니다.
  */
 const readCachedPdfFileContent = async ({
-  fallbackLocale,
   kind,
   locale,
-}: Required<GetPdfFileContentOptions>): Promise<PdfFileContent | null> => {
+}: Omit<Required<GetPdfFileContentOptions>, 'fallbackLocale'>): Promise<PdfFileContent | null> => {
   'use cache';
 
   cacheTag(PDF_FILES_CACHE_TAG, PDF_FILE_CONTENT_CACHE_TAG, createPdfFileContentCacheTag(kind));
@@ -39,32 +37,25 @@ const readCachedPdfFileContent = async ({
 
   if (!supabase) return null;
 
-  return resolveLocaleAwareData<PdfFileContent | null>({
-    emptyData: null,
-    fallbackLocale,
-    fetchByLocale: async targetLocale => {
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('locale', targetLocale)
-        .maybeSingle<PdfFileContent>();
+  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
 
-      if (error) {
-        return {
-          data: null,
-          localeColumnMissing: false,
-        };
-      }
+  for (const targetLocale of localeFallbackChain) {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('locale', targetLocale)
+      .maybeSingle<PdfFileContent>();
 
-      return {
-        data,
-        localeColumnMissing: false,
-      };
-    },
-    fetchLegacy: async () => null,
-    isEmptyData: item => item === null,
-    targetLocale: locale,
-  });
+    if (error) {
+      return null;
+    }
+
+    if (data) {
+      return data;
+    }
+  }
+
+  return null;
 };
 
 /**
@@ -74,13 +65,11 @@ const readCachedPdfFileContent = async ({
 export const getPdfFileContent = async ({
   locale,
   kind = 'resume',
-  fallbackLocale = 'ko',
+  fallbackLocale: _fallbackLocale = 'ko',
 }: GetPdfFileContentOptions): Promise<PdfFileContent | null> => {
   const normalizedLocale = locale.toLowerCase().split('-')[0] ?? 'en';
-  const normalizedFallbackLocale = fallbackLocale.toLowerCase().split('-')[0] ?? 'ko';
 
   return readCachedPdfFileContent({
-    fallbackLocale: normalizedFallbackLocale,
     kind,
     locale: normalizedLocale,
   });

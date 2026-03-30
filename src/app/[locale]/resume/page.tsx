@@ -7,8 +7,6 @@ import { buildDefaultOgImageUrl } from '@/shared/lib/seo/og-image';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { getResumePageData, ResumePage } from '@/views/resume';
 
-export const revalidate = 3600;
-
 type ResumeRouteProps = {
   params: Promise<{
     locale: string;

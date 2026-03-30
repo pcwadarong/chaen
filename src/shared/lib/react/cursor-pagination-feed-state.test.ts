@@ -1,15 +1,15 @@
 // @vitest-environment node
 
-import { resolveOffsetPaginationLoadMore } from '@/shared/lib/react/offset-pagination-feed-state';
+import { resolveCursorPaginationLoadMore } from '@/shared/lib/react/cursor-pagination-feed-state';
 
-describe('resolveOffsetPaginationLoadMore', () => {
+describe('resolveCursorPaginationLoadMore', () => {
   it('loadMore 성공 시 목록을 이어붙이고 nextCursor를 갱신한다', async () => {
     const loadPage = vi.fn().mockResolvedValue({
       items: [{ id: 'b' }],
       nextCursor: null,
     });
 
-    const result = await resolveOffsetPaginationLoadMore({
+    const result = await resolveCursorPaginationLoadMore({
       currentCursor: '1',
       currentItems: [{ id: 'a' }],
       limit: 10,
@@ -33,7 +33,7 @@ describe('resolveOffsetPaginationLoadMore', () => {
   it('요청 실패 시 기존 목록과 cursor를 유지하고 errorMessage를 반환한다', async () => {
     const loadPage = vi.fn().mockRejectedValue(new Error('load failed'));
 
-    const result = await resolveOffsetPaginationLoadMore({
+    const result = await resolveCursorPaginationLoadMore({
       currentCursor: '1',
       currentItems: [{ id: 'a' }],
       limit: 10,
@@ -54,7 +54,7 @@ describe('resolveOffsetPaginationLoadMore', () => {
       nextCursor: null,
     });
 
-    await resolveOffsetPaginationLoadMore({
+    await resolveCursorPaginationLoadMore({
       currentCursor: '3',
       currentItems: [{ id: 'a' }],
       limit: 10,

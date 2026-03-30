@@ -3,9 +3,8 @@
 import { useCallback } from 'react';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
-import { getArticlesPageAction } from '@/features/browse-articles/api/get-articles-page';
 import { dedupeById } from '@/shared/lib/array/dedupe-by-id';
-import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
+import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 
 type UseBrowseArticlesOptions = {
   activeTag: string;
@@ -16,6 +15,27 @@ type UseBrowseArticlesOptions = {
 };
 
 const ARTICLE_FEED_LOAD_ERROR_CODE = 'articleFeed.loadFailed';
+
+/**
+ * 아티클 페이지 응답을 JSON으로 읽고 실패 시 메시지를 정규화합니다.
+ */
+const readArticlesFeedPage = async (requestUrl: string) => {
+  const response = await fetch(requestUrl, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    throw new Error(errorPayload?.error ?? ARTICLE_FEED_LOAD_ERROR_CODE);
+  }
+
+  return response.json() as Promise<{
+    items: ArticleListItem[];
+    nextCursor: string | null;
+    totalCount?: number | null;
+  }>;
+};
 
 /**
  * 아티클 목록 무한 스크롤 상태를 관리합니다.
@@ -39,28 +59,32 @@ export const useBrowseArticles = ({
       locale: string;
       queryParams?: Record<string, string | null | undefined>;
     }) => {
-      const result = await getArticlesPageAction({
+      const searchParams = new URLSearchParams({
         cursor,
-        limit,
+        limit: String(limit),
         locale: nextLocale,
-        query: queryParams?.q,
-        tag: queryParams?.tag,
       });
 
-      if (!result.ok || !result.data) {
-        throw new Error(result.errorCode ?? result.errorMessage ?? ARTICLE_FEED_LOAD_ERROR_CODE);
+      if (queryParams?.q) {
+        searchParams.set('q', queryParams.q);
       }
 
+      if (queryParams?.tag) {
+        searchParams.set('tag', queryParams.tag);
+      }
+
+      const result = await readArticlesFeedPage(`/api/articles?${searchParams.toString()}`);
+
       return {
-        items: result.data.items,
-        nextCursor: result.data.nextCursor,
-        totalCount: result.data.totalCount,
+        items: result.items,
+        nextCursor: result.nextCursor,
+        totalCount: result.totalCount,
       };
     },
     [],
   );
 
-  return useOffsetPaginationFeed<ArticleListItem>({
+  return useCursorPaginationFeed<ArticleListItem>({
     initialCursor,
     initialItems,
     locale,
@@ -70,5 +94,6 @@ export const useBrowseArticles = ({
       q: query,
       tag: activeTag,
     },
+    resetKey: `${locale}::${query}::${activeTag}`,
   });
 };

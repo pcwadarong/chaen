@@ -1,14 +1,14 @@
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 
-export type OffsetPaginationFeedQueryParams = Record<string, string | null | undefined>;
+export type CursorPaginationFeedQueryParams = Record<string, string | null | undefined>;
 
-export type OffsetPaginationFeedPage<T> = {
+export type CursorPaginationFeedPage<T> = {
   items: T[];
   nextCursor: string | null;
   totalCount?: number | null;
 };
 
-type ResolveOffsetPaginationLoadMoreOptions<T> = {
+type ResolveCursorPaginationLoadMoreOptions<T> = {
   currentCursor: string | null;
   currentItems: T[];
   limit: number;
@@ -16,14 +16,14 @@ type ResolveOffsetPaginationLoadMoreOptions<T> = {
     cursor: string;
     limit: number;
     locale: string;
-    queryParams?: OffsetPaginationFeedQueryParams;
-  }) => Promise<OffsetPaginationFeedPage<T>>;
+    queryParams?: CursorPaginationFeedQueryParams;
+  }) => Promise<CursorPaginationFeedPage<T>>;
   locale: string;
   mergeItems?: (previousItems: T[], incomingItems: T[]) => T[];
-  queryParams?: OffsetPaginationFeedQueryParams;
+  queryParams?: CursorPaginationFeedQueryParams;
 };
 
-type ResolveOffsetPaginationLoadMoreResult<T> = {
+type ResolveCursorPaginationLoadMoreResult<T> = {
   errorMessage: string | null;
   items: T[];
   nextCursor: string | null;
@@ -37,7 +37,7 @@ type ResolveOffsetPaginationLoadMoreResult<T> = {
  * @param options 현재 cursor, 기존 items, loader, 병합 규칙 등 로딩에 필요한 옵션입니다.
  * @returns append/merge가 반영된 items, 다음 cursor, 사용자용 errorMessage를 반환합니다.
  */
-export const resolveOffsetPaginationLoadMore = async <T>({
+export const resolveCursorPaginationLoadMore = async <T>({
   currentCursor,
   currentItems,
   limit,
@@ -45,8 +45,8 @@ export const resolveOffsetPaginationLoadMore = async <T>({
   locale,
   mergeItems,
   queryParams,
-}: ResolveOffsetPaginationLoadMoreOptions<T>): Promise<
-  ResolveOffsetPaginationLoadMoreResult<T>
+}: ResolveCursorPaginationLoadMoreOptions<T>): Promise<
+  ResolveCursorPaginationLoadMoreResult<T>
 > => {
   if (!currentCursor) {
     return {
