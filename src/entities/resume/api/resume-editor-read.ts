@@ -30,6 +30,19 @@ type ResumeDraftLocaleContent = {
 };
 
 /**
+ * service role 연결 문제나 조회 오류가 있어도 resume 편집 화면은 기본 seed로 열릴 수 있도록
+ * 읽기 실패를 로깅하고 안전한 fallback을 반환합니다.
+ *
+ * @param scope 실패가 발생한 읽기 단계 식별자
+ * @param error 원본 예외
+ */
+const logResumeEditorReadFailure = (scope: 'contents' | 'draft', error: unknown) => {
+  console.error(`[resume-editor] ${scope} read failed`, {
+    error,
+  });
+};
+
+/**
  * resume 편집 화면에서 사용할 locale별 콘텐츠 레코드를 반환합니다.
  */
 export const getResumeEditorContentMap = async (): Promise<ResumeEditorContentMap> => {
@@ -57,8 +70,8 @@ export const getResumeEditorSeed = async ({
 }: {
   draftId?: string;
 } = {}): Promise<ResumeEditorSeed> => {
-  const rows = await getResumeEditorRows();
   const contentMap = createDefaultResumeEditorContentMap();
+  const rows = await getResumeEditorRows();
 
   rows.forEach(row => {
     const normalizedLocale = row.locale.toLowerCase();
@@ -89,13 +102,15 @@ export const getResumeEditorSeed = async ({
 const getResumeEditorRows = async (): Promise<PdfFileContent[]> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) {
-    throw new Error('[resume-editor] service role env is not configured');
+    logResumeEditorReadFailure('contents', new Error('service role env is not configured'));
+    return [];
   }
   const { tableName } = getPdfFileContentConfig('resume');
   const { data, error } = await supabase.from(tableName).select('*');
 
   if (error) {
-    throw new Error(`[resume-editor] 콘텐츠 조회 실패: ${error.message}`);
+    logResumeEditorReadFailure('contents', new Error(error.message));
+    return [];
   }
 
   return ((data ?? []) as PdfFileContent[]).filter(row => isResumeLocale(row.locale.toLowerCase()));
@@ -111,7 +126,8 @@ const getResumeDraftSeed = async ({
 }): Promise<ResumeDraftSeed | null> => {
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) {
-    throw new Error('[resume-editor] service role env is not configured');
+    logResumeEditorReadFailure('draft', new Error('service role env is not configured'));
+    return null;
   }
   let query = supabase
     .from('resume_drafts')
@@ -126,7 +142,8 @@ const getResumeDraftSeed = async ({
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(`[resume-editor] draft 조회 실패: ${error.message}`);
+    logResumeEditorReadFailure('draft', new Error(error.message));
+    return null;
   }
 
   const draftRow = ((data ?? []) as ResumeDraftRow[])[0];
