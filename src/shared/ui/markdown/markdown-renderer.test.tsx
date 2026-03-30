@@ -148,6 +148,17 @@ describe('MarkdownRenderer', () => {
     expect(mathNode?.textContent).toContain('c');
   });
 
+  it('문장 중간의 inline 수학 공식도 공백과 함께 KaTeX로 렌더링한다', async () => {
+    const document = await renderServerDocument('합은 <Math>a^2 + b^2</Math> 입니다');
+    const wrapper = document.querySelector('div');
+    const inlineMathNode = document.querySelector('[data-markdown-math="inline"]');
+
+    expect(wrapper?.textContent).toContain('합은');
+    expect(wrapper?.textContent).toContain('입니다');
+    expect(inlineMathNode).toBeTruthy();
+    expect(inlineMathNode?.querySelector('.katex')).toBeTruthy();
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',

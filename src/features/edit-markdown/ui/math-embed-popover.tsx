@@ -13,6 +13,34 @@ type MathEmbedPopoverProps = {
   triggerClassName?: string;
 };
 
+const mathTemplates = [
+  {
+    formula: '\\frac{a}{b}',
+    key: 'fraction',
+    label: '분수',
+  },
+  {
+    formula: '\\sqrt{x}',
+    key: 'sqrt',
+    label: '루트',
+  },
+  {
+    formula: '\\sum_{i=1}^{n} i',
+    key: 'sum',
+    label: '합',
+  },
+  {
+    formula: '\\int_{a}^{b} f(x) \\, dx',
+    key: 'integral',
+    label: '적분',
+  },
+  {
+    formula: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}',
+    key: 'cases',
+    label: 'cases',
+  },
+] as const;
+
 /**
  * toolbar 내부에서 LaTeX 수식을 입력받아 inline/block 문법으로 삽입하는 팝오버입니다.
  */
@@ -22,6 +50,13 @@ export const MathEmbedPopover = ({
   triggerClassName,
 }: MathEmbedPopoverProps) => {
   const [mathInput, setMathInput] = useState('');
+
+  /**
+   * 자주 쓰는 수식 템플릿을 textarea에 채웁니다.
+   */
+  const handleTemplateSelect = (formula: string) => {
+    setMathInput(formula);
+  };
 
   const handleApply = (isBlock: boolean, closePopover?: ClosePopover) => {
     const normalizedInput = mathInput.trim();
@@ -44,6 +79,19 @@ export const MathEmbedPopover = ({
     >
       {({ closePopover }) => (
         <div className={popoverContentClass}>
+          <div className={templateGridClass}>
+            {mathTemplates.map(template => (
+              <Button
+                key={template.key}
+                onClick={() => handleTemplateSelect(template.formula)}
+                size="xs"
+                tone="white"
+                variant="ghost"
+              >
+                {template.label}
+              </Button>
+            ))}
+          </div>
           <Textarea
             aria-label="LaTeX 수식"
             autoResize={false}
@@ -69,6 +117,12 @@ const popoverContentClass = css({
   display: 'grid',
   gap: '3',
   minWidth: '[20rem]',
+});
+
+const templateGridClass = css({
+  display: 'flex',
+  gap: '2',
+  flexWrap: 'wrap',
 });
 
 const actionRowClass = css({

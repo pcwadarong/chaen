@@ -21,6 +21,16 @@ vi.mock('@/shared/ui/popover/popover', () => ({
 }));
 
 describe('MathEmbedPopover', () => {
+  it('분수 템플릿 버튼을 누르면 기본 분수 수식이 입력된다', () => {
+    render(<MathEmbedPopover onApply={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '분수' }));
+
+    expect((screen.getByRole('textbox', { name: 'LaTeX 수식' }) as HTMLTextAreaElement).value).toBe(
+      '\\frac{a}{b}',
+    );
+  });
+
   it('수식 입력값을 inline 수식으로 onApply에 전달한다', () => {
     const onApply = vi.fn();
 
@@ -45,5 +55,20 @@ describe('MathEmbedPopover', () => {
     fireEvent.click(screen.getByRole('button', { name: '블록' }));
 
     expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it('cases 템플릿을 선택한 뒤 블록 수식으로 삽입할 수 있다', () => {
+    const onApply = vi.fn();
+
+    render(<MathEmbedPopover onApply={onApply} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'cases' }));
+    fireEvent.click(screen.getByRole('button', { name: '블록' }));
+
+    expect(onApply).toHaveBeenCalledWith(
+      '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}',
+      true,
+      expect.any(Function),
+    );
   });
 });

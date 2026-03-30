@@ -66,6 +66,7 @@ const markdownHorizontalRulePlaceholder = '__MD_HORIZONTAL_RULE__';
 const inlineStyledSpanPattern = /<span style="([^"]+)">([\s\S]*?)<\/span>/g;
 const inlineUnderlinePattern = /<u>([\s\S]*?)<\/u>/g;
 const inlineSpoilerPattern = /\|\|([^|]+?)\|\|/g;
+const inlineMathPattern = /<Math>([\s\S]*?)<\/Math>/g;
 const fenceBoundaryPattern = /^\s*(`{3,}|~{3,})/;
 
 type FenceState = {
@@ -226,6 +227,13 @@ export const preprocessMarkdownInlineSyntax = (markdown: string) =>
         const escapedText = escapeMarkdownLinkLabel(text.trim() || '스포일러');
 
         return `[${escapedText}](#md-spoiler:)`;
+      })
+      .replace(inlineMathPattern, (_, formula: string) => {
+        const normalizedFormula = formula.trim();
+        const encodedFormula = encodeURIComponent(normalizedFormula);
+        const escapedLabel = escapeMarkdownLinkLabel(normalizedFormula || 'math');
+
+        return `[${escapedLabel}](#md-math:${encodedFormula})`;
       }),
   );
 
