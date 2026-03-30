@@ -15,6 +15,7 @@ type HomeHeroOverlaysProps = Readonly<{
   imageViewerLabels: ImageViewerLabels;
   imageViewerOpenIndex: number | null;
   isMobileProjectSheetOpen: boolean;
+  isProjectLoading?: boolean;
   items: ProjectListItem[];
   onCloseImageViewer: () => void;
   onCloseMobileProjectSheet: () => void;
@@ -40,6 +41,7 @@ export const HomeHeroOverlays = ({
   imageViewerLabels,
   imageViewerOpenIndex,
   isMobileProjectSheetOpen,
+  isProjectLoading = false,
   items,
   onCloseImageViewer,
   onCloseMobileProjectSheet,
@@ -72,6 +74,7 @@ export const HomeHeroOverlays = ({
       />
       <HomeHeroMobileProjectSheet
         isOpen={isMobileProjectSheetOpen}
+        isProjectLoading={isProjectLoading}
         items={items}
         onClose={onCloseMobileProjectSheet}
         title={title}

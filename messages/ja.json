@@ -20,6 +20,7 @@
     "description": "フロントエンド開発者として制作したインタラクティブなWebプロジェクト、UI実装事例、技術記事をまとめた個人ポートフォリオサイトです。",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "eyebrow": "ホーム",
+    "loadingProjects": "プロジェクトを読み込んでいます。",
     "mobileProjectPanelAriaLabel": "モバイルプロジェクトパネル",
     "mobileProjectPanelCloseLabel": "閉じる",
     "showcaseScreenReaderDescription": "ピックアップ作品セクションです。各カードから詳細ページへ移動できます。",

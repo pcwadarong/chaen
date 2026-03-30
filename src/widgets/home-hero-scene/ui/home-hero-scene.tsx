@@ -9,6 +9,7 @@ import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-mo
 import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/home-hero-image-viewer-item';
 import { useHomeHeroFrameSelection } from '@/widgets/home-hero-scene/model/use-home-hero-frame-selection';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
+import { useHomeHeroProjectPreview } from '@/widgets/home-hero-scene/model/use-home-hero-project-preview';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
 import { HomeHeroOverlays } from '@/widgets/home-hero-scene/ui/home-hero-overlays';
@@ -17,7 +18,8 @@ import { HomeHeroWebUi } from '@/widgets/home-hero-scene/ui/home-hero-web-ui';
 
 type HomeHeroSceneProps = {
   readonly interactionDisabledProgressThreshold?: number;
-  readonly items: ProjectListItem[];
+  readonly items?: ProjectListItem[];
+  readonly locale?: string;
   readonly photoItems: HomeHeroImageViewerItem[];
   readonly title: string;
   readonly triggerRef?: React.RefObject<HTMLElement | null>;
@@ -29,6 +31,7 @@ const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 export const HomeHeroScene = ({
   interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
   items,
+  locale = 'ko',
   photoItems,
   title,
   triggerRef,
@@ -41,6 +44,10 @@ export const HomeHeroScene = ({
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const [isMobileProjectSheetOpen, setIsMobileProjectSheetOpen] = React.useState(false);
   const sectionRef = triggerRef ?? localSectionRef;
+  const { isLoading: isProjectPreviewLoading, items: projectItems } = useHomeHeroProjectPreview({
+    initialItems: items,
+    locale,
+  });
   const {
     closeImageViewer,
     imageViewerOpenIndex,
@@ -85,7 +92,7 @@ export const HomeHeroScene = ({
       <div className={stickyWrapperClass}>
         <HomeHeroStage
           content={{
-            items,
+            items: projectItems,
             selectedFrameImageSrc,
           }}
           interaction={{
@@ -105,7 +112,8 @@ export const HomeHeroScene = ({
         <HomeHeroContactButtons />
         <HomeHeroWebUi
           contentRef={webUiContentRef}
-          items={items}
+          isLoading={isProjectPreviewLoading}
+          items={projectItems}
           title={title}
           wrapperRef={webUiRef}
         />
@@ -114,7 +122,8 @@ export const HomeHeroScene = ({
           imageViewerOpenIndex={imageViewerOpenIndex}
           imageViewerLabels={imageViewerLabels}
           isMobileProjectSheetOpen={isMobileProjectSheetOpen}
-          items={items}
+          isProjectLoading={isProjectPreviewLoading}
+          items={projectItems}
           onCloseImageViewer={closeImageViewer}
           onCloseMobileProjectSheet={handleCloseMobileProjectSheet}
           onSelectCurrentImage={selectFrameImageByIndex}

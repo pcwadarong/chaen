@@ -15,7 +15,7 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/views/home', () => ({
   getHomePageData: vi.fn(async () => ({
-    items: [],
+    locale: 'ko',
     photoItems: [],
   })),
   HomePage: function HomePage() {
@@ -34,7 +34,7 @@ describe('HomeRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it("locale이 'ko'일 때, HomeRoute는 홈 뷰 엔트리와 프로젝트 미리보기 데이터를 반환해야 한다", async () => {
+  it("locale이 'ko'일 때, HomeRoute는 홈 뷰 엔트리와 hero photo 데이터를 반환해야 한다", async () => {
     const element = await HomeRoute({
       params: Promise.resolve({
         locale: 'ko',
@@ -44,7 +44,7 @@ describe('HomeRoute', () => {
     expect(isValidElement(element)).toBe(true);
     expect(element.type.name).toBe('HomePage');
     expect(getHomePageData).toHaveBeenCalledWith({ locale: 'ko' });
-    expect(element.props.items).toEqual([]);
+    expect(element.props.locale).toBe('ko');
     expect(element.props.photoItems).toEqual([]);
   });
 

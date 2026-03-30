@@ -21,7 +21,9 @@ type ProjectShowcaseHeader = Readonly<{
 type ProjectShowcaseProps = {
   emptyText: string;
   header?: ProjectShowcaseHeader;
+  isLoading?: boolean;
   items: ProjectListItem[];
+  loadingText?: string;
   srOnlyHeader?: ProjectShowcaseHeader;
 };
 
@@ -29,7 +31,9 @@ type ProjectShowcaseProps = {
 export const ProjectShowcase = ({
   emptyText,
   header,
+  isLoading = false,
   items,
+  loadingText,
   srOnlyHeader,
 }: ProjectShowcaseProps) => (
   <section className={sectionClass}>
@@ -51,6 +55,8 @@ export const ProjectShowcase = ({
           <ProjectCard item={item} key={item.id} />
         ))}
       </div>
+    ) : isLoading ? (
+      <p className={emptyClass}>{loadingText ?? emptyText}</p>
     ) : (
       <p className={emptyClass}>{emptyText}</p>
     )}

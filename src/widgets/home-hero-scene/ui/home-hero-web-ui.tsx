@@ -7,13 +7,20 @@ import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase'
 
 type HomeHeroWebUiProps = {
   readonly contentRef?: React.RefObject<HTMLDivElement | null>;
+  readonly isLoading?: boolean;
   readonly items: ProjectListItem[];
   readonly title: string;
   readonly wrapperRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 /** 3D 캔버스 위에서 페이드 인되는 실제 HTML UI 레이어입니다. */
-export const HomeHeroWebUi = ({ contentRef, items, title, wrapperRef }: HomeHeroWebUiProps) => {
+export const HomeHeroWebUi = ({
+  contentRef,
+  isLoading = false,
+  items,
+  title,
+  wrapperRef,
+}: HomeHeroWebUiProps) => {
   const t = useTranslations('Home');
   return (
     <div className={wrapperClass} id="web-ui" ref={wrapperRef}>
@@ -21,7 +28,9 @@ export const HomeHeroWebUi = ({ contentRef, items, title, wrapperRef }: HomeHero
         <div className={contentClass} ref={contentRef}>
           <ProjectShowcase
             emptyText={t('emptyProjects')}
+            isLoading={isLoading}
             items={items}
+            loadingText={t('loadingProjects')}
             srOnlyHeader={{
               description: t('showcaseScreenReaderDescription'),
               title,

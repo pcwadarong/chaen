@@ -20,6 +20,7 @@
     "description": "Un portfolio personnel qui archive des projets web frontend interactifs, des cas d’implémentation UI et des articles techniques.",
     "emptyProjects": "Aucun projet n'a encore été publié.",
     "eyebrow": "Accueil",
+    "loadingProjects": "Chargement des projets.",
     "mobileProjectPanelAriaLabel": "Panneau mobile des projets",
     "mobileProjectPanelCloseLabel": "Fermer",
     "showcaseScreenReaderDescription": "Section des projets sélectionnés. Chaque carte ouvre une page de détail du projet.",

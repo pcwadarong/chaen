@@ -15,6 +15,7 @@ import { ProjectShowcase } from '@/widgets/project-showcase/ui/project-showcase'
 type HomeHeroMobileProjectSheetProps = {
   initialFocusRef?: RefObject<HTMLElement | null>;
   isOpen: boolean;
+  isProjectLoading?: boolean;
   items: ProjectListItem[];
   onClose: () => void;
   title: string;
@@ -28,6 +29,7 @@ const MOBILE_PROJECT_SHEET_ANIMATION_MS = 360;
 export const HomeHeroMobileProjectSheet = ({
   initialFocusRef,
   isOpen,
+  isProjectLoading = false,
   items,
   onClose,
   title,
@@ -186,7 +188,12 @@ export const HomeHeroMobileProjectSheet = ({
           </Button>
         </div>
         <div className={contentClass}>
-          <ProjectShowcase emptyText={t('emptyProjects')} items={items} />
+          <ProjectShowcase
+            emptyText={t('emptyProjects')}
+            isLoading={isProjectLoading}
+            items={items}
+            loadingText={t('loadingProjects')}
+          />
         </div>
       </div>
     </div>,

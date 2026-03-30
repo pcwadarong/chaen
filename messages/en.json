@@ -20,6 +20,7 @@
     "description": "A personal portfolio site archiving interactive frontend projects, UI implementation case studies, and technical articles.",
     "emptyProjects": "No projects have been published yet.",
     "eyebrow": "Home",
+    "loadingProjects": "Loading projects.",
     "mobileProjectPanelAriaLabel": "Mobile project panel",
     "mobileProjectPanelCloseLabel": "Close panel",
     "showcaseScreenReaderDescription": "Selected projects section. Each card links to its detailed case study page.",
