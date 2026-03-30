@@ -12,13 +12,14 @@ import { Link } from '@/i18n/navigation';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { AdminTable } from '@/shared/ui/admin-table';
 import { CollapsiblePanelHeader } from '@/shared/ui/collapsible-panel-header';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type AdminAnalyticsPageProps = {
   activeSection?: 'dashboard';
   googleArticleTraffic: AdminGoogleArticleTraffic;
-  locale: string;
   pdfLogs: PdfFileDownloadLog[];
+  signOutRedirectPath?: string;
   title?: string;
   topArticles: AdminArticleListItem[];
 };
@@ -29,11 +30,15 @@ type AdminAnalyticsPageProps = {
 export const AdminAnalyticsPage = ({
   activeSection = 'dashboard',
   googleArticleTraffic,
-  locale,
   pdfLogs,
+  signOutRedirectPath = '/ko/admin/login',
   title = 'Dashboard',
   topArticles,
 }: AdminAnalyticsPageProps) => {
+  const summaryTitleId = React.useId();
+  const topArticlesTitleId = React.useId();
+  const googleTrafficTitleId = React.useId();
+  const pdfLogsTitleId = React.useId();
   const [isSummaryCollapsed, setIsSummaryCollapsed] = React.useState(false);
   const [isTopArticlesCollapsed, setIsTopArticlesCollapsed] = React.useState(false);
   const [isGoogleTrafficCollapsed, setIsGoogleTrafficCollapsed] = React.useState(false);
@@ -48,13 +53,18 @@ export const AdminAnalyticsPage = ({
         : '연결 필요';
 
   return (
-    <AdminConsoleShell activeSection={activeSection} locale={locale} title={title}>
-      <section className={summaryPanelClass}>
+    <AdminConsoleShell
+      activeSection={activeSection}
+      signOutRedirectPath={signOutRedirectPath}
+      title={title}
+    >
+      <section aria-labelledby={summaryTitleId} className={summaryPanelClass}>
         <CollapsiblePanelHeader
+          className={summaryTitleClass}
           isCollapsed={isSummaryCollapsed}
           onToggle={() => setIsSummaryCollapsed(previous => !previous)}
           title={<span className={summaryEyebrowClass}>Overview</span>}
-          titleClassName={summaryTitleClass}
+          titleId={summaryTitleId}
         />
         {!isSummaryCollapsed ? (
           <div className={summaryMetricGridClass}>
@@ -75,23 +85,28 @@ export const AdminAnalyticsPage = ({
       </section>
 
       <section className={detailGridClass}>
-        <section className={panelClass}>
+        <section aria-labelledby={topArticlesTitleId} className={panelClass}>
           <CollapsiblePanelHeader
             isCollapsed={isTopArticlesCollapsed}
             onToggle={() => setIsTopArticlesCollapsed(previous => !previous)}
             title="Top 5 아티클"
+            titleId={topArticlesTitleId}
           />
           {!isTopArticlesCollapsed ? (
             <ol className={rankListClass}>
               {topArticles.map(article => (
                 <li className={rankListItemClass} key={article.id}>
                   <div className={rankMetaClass}>
-                    <Link
-                      className={articleLinkClass}
-                      href={`/articles/${resolvePublicContentPathSegment(article)}`}
-                    >
-                      {article.title}
-                    </Link>
+                    {article.slug ? (
+                      <Link
+                        className={articleLinkClass}
+                        href={`/articles/${resolvePublicContentPathSegment(article)}`}
+                      >
+                        {article.title}
+                      </Link>
+                    ) : (
+                      <strong className={articleTitleFallbackClass}>{article.title}</strong>
+                    )}
                     <span className={rankMetaSubClass}>
                       {article.publish_at?.slice(0, 10) ?? '-'}
                     </span>
@@ -104,11 +119,12 @@ export const AdminAnalyticsPage = ({
         </section>
 
         <div className={rightPanelStackClass}>
-          <section className={panelClass}>
+          <section aria-labelledby={googleTrafficTitleId} className={panelClass}>
             <CollapsiblePanelHeader
               isCollapsed={isGoogleTrafficCollapsed}
               onToggle={() => setIsGoogleTrafficCollapsed(previous => !previous)}
               title="Google 아티클 검색 유입"
+              titleId={googleTrafficTitleId}
             />
             {!isGoogleTrafficCollapsed ? (
               googleArticleTraffic.status === 'configured' ? (
@@ -128,11 +144,13 @@ export const AdminAnalyticsPage = ({
                         <td>
                           <a
                             className={externalArticleLinkClass}
+                            aria-label={`${item.path} (새 창에서 열림)`}
                             href={item.url}
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             target="_blank"
                           >
                             {item.path}
+                            <span className={srOnlyClass}> (새 창에서 열림)</span>
                           </a>
                         </td>
                         <td>{item.clicks}</td>
@@ -153,11 +171,12 @@ export const AdminAnalyticsPage = ({
             ) : null}
           </section>
 
-          <section className={panelClass}>
+          <section aria-labelledby={pdfLogsTitleId} className={panelClass}>
             <CollapsiblePanelHeader
               isCollapsed={isPdfLogsCollapsed}
               onToggle={() => setIsPdfLogsCollapsed(previous => !previous)}
               title="PDF 로그"
+              titleId={pdfLogsTitleId}
             />
             {!isPdfLogsCollapsed ? (
               <AdminTable className={tableInsetClass} tableClassName={pdfTableClass}>
@@ -314,6 +333,12 @@ const articleLinkClass = css({
   },
 });
 
+const articleTitleFallbackClass = css({
+  display: 'block',
+  fontWeight: 'semibold',
+  lineClamp: '3',
+});
+
 const rankMetaSubClass = css({
   color: 'muted',
   fontSize: 'xs',
@@ -333,7 +358,9 @@ const tableInsetClass = css({
 
 const externalArticleLinkClass = css({
   color: 'text',
-  display: 'block',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
   lineClamp: '2',
   textDecoration: 'none',
   _hover: {

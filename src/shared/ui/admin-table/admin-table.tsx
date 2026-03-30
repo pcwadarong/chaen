@@ -19,7 +19,9 @@ export const AdminTable = ({ children, className, tableClassName }: AdminTablePr
 const frameClass = css({
   width: 'full',
   overflowX: 'auto',
-  border: '[1px solid var(--colors-border)]',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'border',
   borderRadius: '2xl',
   background: 'surface',
 });
@@ -30,7 +32,9 @@ const tableClass = css({
   '& th, & td': {
     px: '3',
     py: '3',
-    borderBottom: '[1px solid var(--colors-border-subtle)]',
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: 'border',
     textAlign: 'left',
     verticalAlign: 'middle',
   },

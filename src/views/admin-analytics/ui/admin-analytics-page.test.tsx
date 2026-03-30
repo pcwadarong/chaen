@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import React, { type AnchorHTMLAttributes, type ReactNode } from 'react';
 
 import type { AdminArticleListItem } from '@/entities/article/model/types';
@@ -87,7 +87,6 @@ describe('AdminAnalyticsPage', () => {
     render(
       <AdminAnalyticsPage
         googleArticleTraffic={googleArticleTraffic}
-        locale="ko"
         pdfLogs={pdfLogs}
         topArticles={topArticles}
       />,
@@ -110,16 +109,35 @@ describe('AdminAnalyticsPage', () => {
     render(
       <AdminAnalyticsPage
         googleArticleTraffic={googleArticleTraffic}
-        locale="ko"
         pdfLogs={pdfLogs}
         topArticles={topArticles}
       />,
     );
 
-    fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[1]);
-    fireEvent.click(screen.getAllByRole('button', { name: '닫기' })[1]);
+    const topArticlesPanel = screen.getByRole('region', { name: 'Top 5 아티클' });
+
+    expect(topArticlesPanel).toBeInTheDocument();
+    fireEvent.click(within(topArticlesPanel).getByRole('button', { name: '닫기' }));
 
     expect(screen.queryByRole('link', { name: '글 1' })).toBeNull();
     expect(screen.queryByText('2026-03-20')).toBeNull();
+  });
+
+  it('slug가 없는 인기 아티클이 있을 때, 대시보드는 링크 대신 텍스트를 렌더링해야 한다', () => {
+    render(
+      <AdminAnalyticsPage
+        googleArticleTraffic={googleArticleTraffic}
+        pdfLogs={pdfLogs}
+        topArticles={[
+          {
+            ...topArticles[0],
+            slug: null,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('글 1')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '글 1' })).not.toBeInTheDocument();
   });
 });

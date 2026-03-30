@@ -72,22 +72,26 @@ const formatDate = (value?: string | null) => {
  * 관리자 리스트에서 공개/비공개 상태를 즉시 전환하는 segmented toggle입니다.
  */
 const VisibilitySwitch = ({ onChange, pending = false, value }: VisibilitySwitchProps) => (
-  <div aria-label="공개 상태" className={visibilitySwitchGroupClass} role="group">
+  <div aria-label="공개 상태" className={visibilitySwitchGroupClass} role="radiogroup">
     <button
-      aria-pressed={value === 'public'}
+      aria-checked={value === 'public'}
       className={visibilitySwitchButtonClass({ active: value === 'public' })}
       disabled={pending}
       onClick={() => onChange('public')}
+      role="radio"
+      tabIndex={value === 'public' ? 0 : -1}
       type="button"
     >
       <LockOpenIcon aria-hidden color="current" size="sm" />
       <span className={mobileActionLabelClass}>공개</span>
     </button>
     <button
-      aria-pressed={value === 'private'}
+      aria-checked={value === 'private'}
       className={visibilitySwitchButtonClass({ active: value === 'private' })}
       disabled={pending}
       onClick={() => onChange('private')}
+      role="radio"
+      tabIndex={value === 'private' ? 0 : -1}
       type="button"
     >
       <LockIcon aria-hidden color="current" size="sm" />
@@ -270,12 +274,7 @@ export const AdminProjectOrderingList = ({
             tone="white"
             variant="ghost"
           >
-            <ArrowUpIcon
-              aria-hidden
-              color="current"
-              size="sm"
-              style={{ transform: 'rotate(180deg)' }}
-            />
+            <ArrowUpIcon aria-hidden className={arrowDownIconClass} color="current" size="sm" />
           </Button>
         </div>
       </li>
@@ -537,4 +536,8 @@ const reorderButtonRowClass = css({
 const iconButtonClass = css({
   minWidth: '9',
   paddingX: '0',
+});
+
+const arrowDownIconClass = css({
+  transform: 'rotate(180deg)',
 });

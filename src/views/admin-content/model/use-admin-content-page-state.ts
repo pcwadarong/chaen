@@ -20,6 +20,42 @@ type UseAdminContentPageStateParams = Pick<
 >;
 
 /**
+ * 아티클 리스트가 같은 순서와 핵심 표시값을 유지하는지 얕게 비교합니다.
+ */
+const areArticleItemsEqual = (left: AdminArticleListItem[], right: AdminArticleListItem[]) =>
+  left.length === right.length &&
+  left.every((item, index) => {
+    const target = right[index];
+
+    return (
+      item.id === target?.id &&
+      item.slug === target.slug &&
+      item.title === target.title &&
+      item.visibility === target.visibility &&
+      item.publish_at === target.publish_at &&
+      item.view_count === target.view_count
+    );
+  });
+
+/**
+ * 프로젝트 리스트가 같은 순서와 핵심 표시값을 유지하는지 얕게 비교합니다.
+ */
+const areProjectItemsEqual = (left: AdminProjectListItem[], right: AdminProjectListItem[]) =>
+  left.length === right.length &&
+  left.every((item, index) => {
+    const target = right[index];
+
+    return (
+      item.id === target?.id &&
+      item.slug === target.slug &&
+      item.title === target.title &&
+      item.visibility === target.visibility &&
+      item.publish_at === target.publish_at &&
+      item.display_order === target.display_order
+    );
+  });
+
+/**
  * 관리자 콘텐츠 화면의 탭, 프로젝트 정렬, 공개 상태 변경을 한 곳에서 관리합니다.
  */
 export const useAdminContentPageState = ({
@@ -38,11 +74,15 @@ export const useAdminContentPageState = ({
   const [projectPendingId, setProjectPendingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setArticleItems(articles);
+    setArticleItems(currentItems =>
+      areArticleItemsEqual(currentItems, articles) ? currentItems : articles,
+    );
   }, [articles]);
 
   React.useEffect(() => {
-    setOrderedProjects(projects);
+    setOrderedProjects(currentItems =>
+      areProjectItemsEqual(currentItems, projects) ? currentItems : projects,
+    );
   }, [projects]);
 
   /**

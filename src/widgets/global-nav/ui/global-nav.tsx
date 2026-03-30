@@ -268,8 +268,6 @@ export const GlobalNav = () => {
   }, [currentSearchQuery, handleMobileSearchClose, pathname]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
     const styleScope =
       document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ??
       document.documentElement;
