@@ -1,11 +1,11 @@
-import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 
 import {
   type ArticleTranslationFallbackRpcRow,
   mapArticle,
   mapArticleFallbackRpcRow,
 } from '@/entities/article/api/shared/map-article-translation';
-import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
+import { ARTICLES_CACHE_TAG } from '@/entities/article/model/cache-tags';
 import type { Article } from '@/entities/article/model/types';
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
@@ -176,27 +176,22 @@ const fetchArticleByLocaleFallbackChain = async (
 };
 
 /**
- * 단일 아티클 조회 결과를 `use cache`로 캐시합니다.
+ * 단일 아티클 조회 결과를 `unstable_cache`로 캐시합니다.
+ *
+ * `revalidateTag('articles')`로 전체 아티클 캐시를 무효화할 수 있습니다.
  */
-const readCachedArticle = async (
-  articleSlug: string,
-  normalizedLocale: string,
-): Promise<ResolvedArticle> => {
-  'use cache';
-  cacheLife('hours');
-
-  const article = await fetchArticleByLocaleFallbackChain(
-    articleSlug,
-    buildContentLocaleFallbackChain(normalizedLocale),
-  );
-  if (article.item) {
-    cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(article.item.id));
-  } else {
-    cacheTag(ARTICLES_CACHE_TAG);
-  }
-
-  return article;
-};
+const fetchCachedArticle = unstable_cache(
+  async (articleSlug: string, normalizedLocale: string): Promise<ResolvedArticle> =>
+    fetchArticleByLocaleFallbackChain(
+      articleSlug,
+      buildContentLocaleFallbackChain(normalizedLocale),
+    ),
+  ['article'],
+  {
+    revalidate: 3600,
+    tags: [ARTICLES_CACHE_TAG],
+  },
+);
 
 /**
  * 아티클과 실제 선택된 locale을 함께 반환합니다.
@@ -214,7 +209,7 @@ export const getResolvedArticle = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
 
-  return readCachedArticle(articleSlug, normalizedLocale);
+  return fetchCachedArticle(articleSlug, normalizedLocale);
 };
 
 /**

@@ -1,4 +1,4 @@
-import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 
 import {
   mapProject,
@@ -6,7 +6,7 @@ import {
   type ProjectTranslationFallbackRpcRow,
   type ProjectTranslationRow,
 } from '@/entities/project/api/shared/map-project-translation';
-import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { Project } from '@/entities/project/model/types';
 import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
 import {
@@ -267,39 +267,38 @@ const fetchProjectByLocaleFallbackChain = async (
 };
 
 /**
- * 단일 프로젝트 조회 결과를 `use cache`로 캐시합니다.
+ * 단일 프로젝트 조회 결과를 `unstable_cache`로 캐시합니다.
+ *
+ * `revalidateTag('projects')`로 전체 프로젝트 캐시를 무효화할 수 있습니다.
  */
-const readCachedProject = async (
-  projectSlug: string,
-  normalizedLocale: string,
-): Promise<ResolvedProject> => {
-  'use cache';
-  cacheLife('hours');
+const fetchCachedProject = unstable_cache(
+  async (projectSlug: string, normalizedLocale: string): Promise<ResolvedProject> => {
+    const projectLookup = await resolveProjectLookup(projectSlug);
+    if (projectLookup.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
+    if (!projectLookup.data) {
+      return {
+        item: null,
+        resolvedLocale: null,
+      };
+    }
 
-  const projectLookup = await resolveProjectLookup(projectSlug);
-  if (projectLookup.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
-  if (!projectLookup.data) {
-    cacheTag(PROJECTS_CACHE_TAG);
+    const resolvedProjectId = projectLookup.data.id;
+    const resolvedProject = await fetchProjectByLocaleFallbackChain(
+      resolvedProjectId,
+      buildContentLocaleFallbackChain(normalizedLocale),
+    );
 
     return {
-      item: null,
-      resolvedLocale: null,
+      item: resolvedProject.item,
+      resolvedLocale: resolvedProject.resolvedLocale,
     };
-  }
-
-  const resolvedProjectId = projectLookup.data.id;
-  const resolvedProject = await fetchProjectByLocaleFallbackChain(
-    resolvedProjectId,
-    buildContentLocaleFallbackChain(normalizedLocale),
-  );
-
-  cacheTag(PROJECTS_CACHE_TAG, createProjectCacheTag(resolvedProjectId));
-
-  return {
-    item: resolvedProject.item,
-    resolvedLocale: resolvedProject.resolvedLocale,
-  };
-};
+  },
+  ['project'],
+  {
+    revalidate: 3600,
+    tags: [PROJECTS_CACHE_TAG],
+  },
+);
 
 /**
  * 프로젝트와 실제 선택된 locale을 함께 반환합니다.
@@ -317,7 +316,7 @@ export const getResolvedProject = async (
 
   const normalizedLocale = targetLocale.toLowerCase();
 
-  return readCachedProject(projectSlug, normalizedLocale);
+  return fetchCachedProject(projectSlug, normalizedLocale);
 };
 
 /**
