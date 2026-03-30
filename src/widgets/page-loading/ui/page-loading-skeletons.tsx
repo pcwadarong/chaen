@@ -1,6 +1,7 @@
 import React from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { LoadingDots } from '@/shared/ui/loading/loading-dots';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type RouteLoadingSkeletonProps = {
@@ -116,17 +117,7 @@ export const ArticlesPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeleto
 export const GenericPageLoadingSkeleton = ({ loadingText }: RouteLoadingSkeletonProps) => (
   <main aria-busy="true" className={genericLoadingShellClass} role="status">
     <span className={srOnlyClass}>{loadingText}</span>
-    <div aria-hidden className={genericLoadingDotsClass}>
-      {Array.from({ length: 3 }).map((_, index) => (
-        <span
-          className={genericLoadingDotClass}
-          key={index}
-          style={{
-            animationDelay: `${index * 140}ms`,
-          }}
-        />
-      ))}
-    </div>
+    <LoadingDots className={genericLoadingDotsClass} dotClassName={genericLoadingDotClass} />
   </main>
 );
 
@@ -333,17 +324,10 @@ const genericLoadingShellClass = css({
 
 const genericLoadingDotsClass = css({
   display: 'inline-flex',
-  alignItems: 'center',
-  gap: '3',
 });
 
 const genericLoadingDotClass = css({
-  display: 'inline-block',
-  width: '[0.8rem]',
-  height: '[0.8rem]',
-  borderRadius: 'full',
   backgroundColor: 'textSubtle',
-  animation: '[global-route-loading-dot 880ms ease-in-out infinite]',
 });
 
 const articlesLayoutClass = css({

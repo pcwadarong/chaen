@@ -5,6 +5,8 @@ import type { RefObject } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
+import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
+import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 
 type HomeHeroStageCanvasProps = {
   readonly blackoutOverlayRef: RefObject<HTMLDivElement | null>;
@@ -25,7 +27,7 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
     ),
   {
     ssr: false,
-    loading: () => <div aria-hidden="true" className={stageFallbackClass} />,
+    loading: () => <SceneLoadingShell className={stageFallbackClass} />,
   },
 );
 
@@ -62,7 +64,7 @@ const stageFrameClass = css({
   position: 'absolute',
   inset: '0',
   overflow: 'hidden',
-  backgroundColor: '[#5d5bff]',
+  backgroundColor: `[${HOME_HERO_STAGE_BACKGROUND}]`,
   border: '[1px solid var(--colors-border)]',
   boxShadow: 'floating',
 });
@@ -70,4 +72,5 @@ const stageFrameClass = css({
 const stageFallbackClass = css({
   width: 'full',
   height: 'full',
+  backgroundColor: `[${HOME_HERO_STAGE_BACKGROUND}]`,
 });

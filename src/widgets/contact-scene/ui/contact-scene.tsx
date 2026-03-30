@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
+import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
 import {
   CONTACT_SCENE_LAYOUT_MODE,
   getContactSceneLayoutMode,
@@ -17,7 +18,7 @@ const ContactSceneCanvas = dynamic(
     import('@/widgets/contact-scene/ui/contact-scene-canvas').then(
       module => module.ContactSceneCanvas,
     ),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => <SceneLoadingShell className={contactCanvasLoadingClass} /> },
 );
 
 const APP_SCROLL_VIEWPORT_SELECTOR = '[data-app-scroll-viewport="true"]';
@@ -194,6 +195,11 @@ const mediaColumnClass = css({
 const canvasFrameClass = css({
   width: 'full',
   height: 'full',
+});
+
+const contactCanvasLoadingClass = css({
+  background:
+    '[radial-gradient(circle_at_70%_45%, rgba(255,245,232,0.32), transparent 52%), radial-gradient(circle_at_88%_86%, rgba(255,255,255,0.28), transparent 24%)]',
 });
 
 const backgroundClass = css({
