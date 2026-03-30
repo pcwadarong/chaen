@@ -26,6 +26,11 @@
     "showcaseTitle": "Projets sélectionnés",
     "title": "Une ouverture pensée pour accueillir du mouvement."
   },
+  "HomeHeroHint": {
+    "closeAriaLabel": "Fermer l'aide",
+    "stackedText": "Touchez l'ordinateur portable, la basse ou l'appareil photo, puis faites glisser pour explorer.",
+    "wideText": "Faites défiler ou appuyez sur la basse et l'appareil photo."
+  },
   "Guest": {
     "title": "Livre d'or",
     "description": "Le mot de passe saisi sert a consulter, modifier et supprimer les messages secrets, ainsi qu'aux reponses secretes de l'administrateur.",
@@ -282,6 +287,10 @@
     "locationLabel": "Lieu",
     "locationValue": "Séoul, Corée du Sud",
     "title": "Créons ensemble\ndes expériences\nporteuses de sens."
+  },
+  "SceneFallback": {
+    "webglDescription": "Ce navigateur ne peut pas afficher la scène 3D directement. Le reste du contenu et les liens restent disponibles ci-dessous.",
+    "webglTitle": "La scène 3D n'est pas disponible dans ce navigateur."
   },
   "Switchers": {
     "locale": {

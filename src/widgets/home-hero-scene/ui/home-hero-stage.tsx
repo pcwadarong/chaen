@@ -1,11 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import type { RefObject } from 'react';
+import { useTranslations } from 'next-intl';
+import React, { type RefObject } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
+import { SceneBrowserFallback } from '@/entities/scene/ui/scene-browser-fallback';
 import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
+import { useSceneWebglAvailability } from '@/shared/lib/dom/use-scene-webgl-availability';
 import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
 
 type HomeHeroStageCanvasProps = {
@@ -44,21 +47,36 @@ export const HomeHeroStage = ({
   triggerRef,
   webUiContentRef,
   webUiRef,
-}: HomeHeroStageCanvasProps) => (
-  <div className={stageFrameClass}>
-    <HomeHeroStageCanvas
-      blackoutOverlayRef={blackoutOverlayRef}
-      interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
-      items={items}
-      onBrowseProjects={onBrowseProjects}
-      onOpenImageViewer={onOpenImageViewer}
-      selectedFrameImageSrc={selectedFrameImageSrc}
-      triggerRef={triggerRef}
-      webUiContentRef={webUiContentRef}
-      webUiRef={webUiRef}
-    />
-  </div>
-);
+}: HomeHeroStageCanvasProps) => {
+  const t = useTranslations('SceneFallback');
+  const isWebglAvailable = useSceneWebglAvailability();
+
+  return (
+    <div className={stageFrameClass}>
+      {isWebglAvailable === false ? (
+        <SceneBrowserFallback
+          className={stageFallbackClass}
+          description={t('webglDescription')}
+          title={t('webglTitle')}
+        />
+      ) : isWebglAvailable === null ? (
+        <SceneLoadingShell className={stageFallbackClass} />
+      ) : (
+        <HomeHeroStageCanvas
+          blackoutOverlayRef={blackoutOverlayRef}
+          interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+          items={items}
+          onBrowseProjects={onBrowseProjects}
+          onOpenImageViewer={onOpenImageViewer}
+          selectedFrameImageSrc={selectedFrameImageSrc}
+          triggerRef={triggerRef}
+          webUiContentRef={webUiContentRef}
+          webUiRef={webUiRef}
+        />
+      )}
+    </div>
+  );
+};
 
 const stageFrameClass = css({
   position: 'absolute',

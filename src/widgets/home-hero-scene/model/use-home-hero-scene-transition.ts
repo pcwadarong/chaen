@@ -10,6 +10,7 @@ import {
   type SceneViewportMode,
 } from '@/entities/scene/model/breakpointConfig';
 import { useScrollTimeline } from '@/features/scroll-timeline/model/use-scroll-timeline';
+import { usePrefersReducedMotion } from '@/shared/lib/dom/use-prefers-reduced-motion';
 import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
@@ -37,6 +38,7 @@ export const useHomeHeroSceneTransition = ({
   webUiRef,
 }: UseHomeHeroSceneTransitionParams) => {
   const { camera } = useThree();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     isCloseupCostumeHidden,
     monitorOverlayOpacity,
@@ -45,7 +47,7 @@ export const useHomeHeroSceneTransition = ({
     progress,
   } = useScrollTimeline({
     blackoutOverlayRef,
-    enabled: sceneViewportMode === SCENE_VIEWPORT_MODE.wide,
+    enabled: sceneViewportMode === SCENE_VIEWPORT_MODE.wide && !prefersReducedMotion,
     initialPosition: sceneLayout.camera.position,
     triggerRef,
     webUiContentRef,

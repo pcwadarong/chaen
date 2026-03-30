@@ -1,11 +1,14 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { getContactSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
+import { SceneBrowserFallback } from '@/entities/scene/ui/scene-browser-fallback';
 import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
+import { useSceneWebglAvailability } from '@/shared/lib/dom/use-scene-webgl-availability';
 import {
   CONTACT_SCENE_LAYOUT_MODE,
   getContactSceneLayoutMode,
@@ -53,7 +56,9 @@ const readContactAvailableHeight = () => {
 
 /** wide viewport에서는 좌측 contact copy와 우측 캐릭터 씬을 함께 렌더링합니다. */
 export const ContactScene = () => {
+  const t = useTranslations('SceneFallback');
   const { sceneViewportMode, viewportWidth } = useBreakpoint();
+  const isWebglAvailable = useSceneWebglAvailability();
   const [isMounted, setIsMounted] = useState(false);
   const [availableHeight, setAvailableHeight] = useState(() => readContactAvailableHeight());
   const renderQuality = React.useMemo(
@@ -114,7 +119,17 @@ export const ContactScene = () => {
         </div>
         <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
           <div className={canvasFrameClass}>
-            <ContactSceneCanvas renderQuality={renderQuality} />
+            {isWebglAvailable === false ? (
+              <SceneBrowserFallback
+                className={contactCanvasLoadingClass}
+                description={t('webglDescription')}
+                title={t('webglTitle')}
+              />
+            ) : isWebglAvailable === null ? (
+              <SceneLoadingShell className={contactCanvasLoadingClass} />
+            ) : (
+              <ContactSceneCanvas renderQuality={renderQuality} />
+            )}
           </div>
         </div>
       </div>

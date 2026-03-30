@@ -26,6 +26,11 @@
     "showcaseTitle": "Selected projects",
     "title": "An opening frame with room for motion."
   },
+  "HomeHeroHint": {
+    "closeAriaLabel": "Close hint",
+    "stackedText": "Tap the laptop, bass, or camera, then drag to look around.",
+    "wideText": "Scroll down or press the bass and camera."
+  },
   "Guest": {
     "title": "Guestbook",
     "description": "The password you enter is used to view, edit, and delete secret posts, and for secret admin replies.",
@@ -282,6 +287,10 @@
     "locationLabel": "Location",
     "locationValue": "Seoul, Korea",
     "title": "Let's connect and\ncreate meaningful\nexperiences."
+  },
+  "SceneFallback": {
+    "webglDescription": "This browser cannot render the 3D scene directly. The rest of the content and links remain available below.",
+    "webglTitle": "3D scene is unavailable in this browser."
   },
   "Switchers": {
     "locale": {

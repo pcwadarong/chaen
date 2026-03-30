@@ -26,6 +26,11 @@
     "showcaseTitle": "ピックアップ作品",
     "title": "モーションを載せられる最初のフレーム。"
   },
+  "HomeHeroHint": {
+    "closeAriaLabel": "案内を閉じる",
+    "stackedText": "ノートPC、ベース、カメラをタップし、ドラッグしてシーンを見回してください。",
+    "wideText": "スクロールするか、ベースとカメラを押してみてください。"
+  },
   "Guest": {
     "title": "ゲストブック",
     "description": "入力したパスワードは、秘密投稿の閲覧・編集・削除と管理者の秘密返信に使用されます。",
@@ -282,6 +287,10 @@
     "locationLabel": "所在地",
     "locationValue": "韓国・ソウル",
     "title": "意味のある体験を\n一緒につくりましょう。"
+  },
+  "SceneFallback": {
+    "webglDescription": "現在のブラウザでは 3D シーンを直接描画できません。下のコンテンツとリンクはそのまま利用できます。",
+    "webglTitle": "このブラウザでは 3D シーンを利用できません。"
   },
   "Switchers": {
     "locale": {
