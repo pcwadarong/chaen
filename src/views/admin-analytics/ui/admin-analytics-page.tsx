@@ -11,7 +11,7 @@ import type { PdfFileDownloadLog } from '@/entities/pdf-file/model/types';
 import { Link } from '@/i18n/navigation';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { AdminTable } from '@/shared/ui/admin-table';
-import { Button } from '@/shared/ui/button/button';
+import { ArrowUpIcon } from '@/shared/ui/icons/app-icons';
 import { AdminConsoleShell } from '@/widgets/admin-console';
 
 type AdminAnalyticsPageProps = {
@@ -22,6 +22,41 @@ type AdminAnalyticsPageProps = {
   title?: string;
   topArticles: AdminArticleListItem[];
 };
+
+type CollapsiblePanelHeaderProps = {
+  isCollapsed: boolean;
+  onToggle: () => void;
+  title: React.ReactNode;
+  titleClassName?: string;
+};
+
+/**
+ * 관리자 대시보드 패널에서 공통으로 사용하는 접기/펼치기 헤더입니다.
+ */
+const CollapsiblePanelHeader = ({
+  isCollapsed,
+  onToggle,
+  title,
+  titleClassName,
+}: CollapsiblePanelHeaderProps) => (
+  <header className={panelHeaderClass}>
+    <h3 className={titleClassName ?? panelTitleClass}>{title}</h3>
+    <button
+      aria-expanded={!isCollapsed}
+      className={panelToggleButtonClass}
+      onClick={onToggle}
+      type="button"
+    >
+      <span>{isCollapsed ? '열기' : '닫기'}</span>
+      <ArrowUpIcon
+        aria-hidden
+        className={isCollapsed ? panelToggleIconCollapsedClass : panelToggleIconClass}
+        color="muted"
+        size="sm"
+      />
+    </button>
+  </header>
+);
 
 /**
  * 관리자 대시보드에서 내부 지표와 로그를 요약해 보여줍니다.
@@ -35,6 +70,9 @@ export const AdminAnalyticsPage = ({
   topArticles,
 }: AdminAnalyticsPageProps) => {
   const [isSummaryCollapsed, setIsSummaryCollapsed] = React.useState(false);
+  const [isTopArticlesCollapsed, setIsTopArticlesCollapsed] = React.useState(false);
+  const [isGoogleTrafficCollapsed, setIsGoogleTrafficCollapsed] = React.useState(false);
+  const [isPdfLogsCollapsed, setIsPdfLogsCollapsed] = React.useState(false);
   const latestArticleViewCount = topArticles[0]?.view_count ?? 0;
   const latestPdfSourceCount = pdfLogs.length;
   const googleClicksLabel =
@@ -47,20 +85,12 @@ export const AdminAnalyticsPage = ({
   return (
     <AdminConsoleShell activeSection={activeSection} locale={locale} title={title}>
       <section className={summaryPanelClass}>
-        <header className={summaryHeaderClass}>
-          <div className={summaryCopyClass}>
-            <span className={summaryEyebrowClass}>Overview</span>
-          </div>
-          <Button
-            className={summaryToggleButtonClass}
-            onClick={() => setIsSummaryCollapsed(previous => !previous)}
-            size="sm"
-            tone="white"
-            variant="ghost"
-          >
-            {isSummaryCollapsed ? '펼치기' : '닫기'}
-          </Button>
-        </header>
+        <CollapsiblePanelHeader
+          isCollapsed={isSummaryCollapsed}
+          onToggle={() => setIsSummaryCollapsed(previous => !previous)}
+          title={<span className={summaryEyebrowClass}>Overview</span>}
+          titleClassName={summaryTitleClass}
+        />
         {!isSummaryCollapsed ? (
           <div className={summaryMetricGridClass}>
             <article className={metricCardClass}>
@@ -81,101 +111,113 @@ export const AdminAnalyticsPage = ({
 
       <section className={detailGridClass}>
         <section className={panelClass}>
-          <header className={panelHeaderClass}>
-            <h3 className={panelTitleClass}>Top 5 아티클</h3>
-          </header>
-          <ol className={rankListClass}>
-            {topArticles.map(article => (
-              <li className={rankListItemClass} key={article.id}>
-                <div className={rankMetaClass}>
-                  <Link
-                    className={articleLinkClass}
-                    href={`/articles/${resolvePublicContentPathSegment(article)}`}
-                  >
-                    {article.title}
-                  </Link>
-                  <span className={rankMetaSubClass}>
-                    {article.publish_at?.slice(0, 10) ?? '-'}
-                  </span>
-                </div>
-                <span className={rankValueClass}>{article.view_count ?? 0}</span>
-              </li>
-            ))}
-          </ol>
+          <CollapsiblePanelHeader
+            isCollapsed={isTopArticlesCollapsed}
+            onToggle={() => setIsTopArticlesCollapsed(previous => !previous)}
+            title="Top 5 아티클"
+          />
+          {!isTopArticlesCollapsed ? (
+            <ol className={rankListClass}>
+              {topArticles.map(article => (
+                <li className={rankListItemClass} key={article.id}>
+                  <div className={rankMetaClass}>
+                    <Link
+                      className={articleLinkClass}
+                      href={`/articles/${resolvePublicContentPathSegment(article)}`}
+                    >
+                      {article.title}
+                    </Link>
+                    <span className={rankMetaSubClass}>
+                      {article.publish_at?.slice(0, 10) ?? '-'}
+                    </span>
+                  </div>
+                  <span className={rankValueClass}>{article.view_count ?? 0}</span>
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </section>
 
         <div className={rightPanelStackClass}>
           <section className={panelClass}>
-            <header className={panelHeaderClass}>
-              <h3 className={panelTitleClass}>Google 아티클 검색 유입</h3>
-            </header>
-            {googleArticleTraffic.status === 'configured' ? (
-              <AdminTable className={tableInsetClass}>
+            <CollapsiblePanelHeader
+              isCollapsed={isGoogleTrafficCollapsed}
+              onToggle={() => setIsGoogleTrafficCollapsed(previous => !previous)}
+              title="Google 아티클 검색 유입"
+            />
+            {!isGoogleTrafficCollapsed ? (
+              googleArticleTraffic.status === 'configured' ? (
+                <AdminTable className={tableInsetClass}>
+                  <thead>
+                    <tr>
+                      <th>페이지</th>
+                      <th>클릭</th>
+                      <th>노출</th>
+                      <th>CTR</th>
+                      <th>평균 순위</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {googleArticleTraffic.items.map(item => (
+                      <tr key={item.url}>
+                        <td>
+                          <a
+                            className={externalArticleLinkClass}
+                            href={item.url}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            {item.path}
+                          </a>
+                        </td>
+                        <td>{item.clicks}</td>
+                        <td>{item.impressions}</td>
+                        <td>{`${(item.ctr * 100).toFixed(1)}%`}</td>
+                        <td>{item.position.toFixed(1)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </AdminTable>
+              ) : (
+                <p className={placeholderTextClass}>
+                  {googleArticleTraffic.status === 'error'
+                    ? `Search Console 조회 중 오류가 발생했습니다. ${googleArticleTraffic.message ?? ''}`.trim()
+                    : 'Search Console 서비스 계정과 사이트 속성 설정이 필요합니다.'}
+                </p>
+              )
+            ) : null}
+          </section>
+
+          <section className={panelClass}>
+            <CollapsiblePanelHeader
+              isCollapsed={isPdfLogsCollapsed}
+              onToggle={() => setIsPdfLogsCollapsed(previous => !previous)}
+              title="PDF 로그"
+            />
+            {!isPdfLogsCollapsed ? (
+              <AdminTable className={tableInsetClass} tableClassName={pdfTableClass}>
                 <thead>
                   <tr>
-                    <th>페이지</th>
-                    <th>클릭</th>
-                    <th>노출</th>
-                    <th>CTR</th>
-                    <th>평균 순위</th>
+                    <th>시각</th>
+                    <th>source</th>
+                    <th>utm_source</th>
+                    <th>referer</th>
+                    <th>파일</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {googleArticleTraffic.items.map(item => (
-                    <tr key={item.url}>
-                      <td>
-                        <a
-                          className={externalArticleLinkClass}
-                          href={item.url}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {item.path}
-                        </a>
-                      </td>
-                      <td>{item.clicks}</td>
-                      <td>{item.impressions}</td>
-                      <td>{`${(item.ctr * 100).toFixed(1)}%`}</td>
-                      <td>{item.position.toFixed(1)}</td>
+                  {pdfLogs.map(log => (
+                    <tr key={log.id}>
+                      <td>{log.created_at.slice(0, 16).replace('T', ' ')}</td>
+                      <td>{log.source}</td>
+                      <td>{log.utm_source ?? '-'}</td>
+                      <td>{log.referer_path ?? log.referer ?? '-'}</td>
+                      <td>{log.asset_key}</td>
                     </tr>
                   ))}
                 </tbody>
               </AdminTable>
-            ) : (
-              <p className={placeholderTextClass}>
-                {googleArticleTraffic.status === 'error'
-                  ? `Search Console 조회 중 오류가 발생했습니다. ${googleArticleTraffic.message ?? ''}`.trim()
-                  : 'Search Console 서비스 계정과 사이트 속성 설정이 필요합니다.'}
-              </p>
-            )}
-          </section>
-
-          <section className={panelClass}>
-            <header className={panelHeaderClass}>
-              <h3 className={panelTitleClass}>PDF 로그</h3>
-            </header>
-            <AdminTable className={tableInsetClass} tableClassName={pdfTableClass}>
-              <thead>
-                <tr>
-                  <th>시각</th>
-                  <th>source</th>
-                  <th>utm_source</th>
-                  <th>referer</th>
-                  <th>파일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pdfLogs.map(log => (
-                  <tr key={log.id}>
-                    <td>{log.created_at.slice(0, 16).replace('T', ' ')}</td>
-                    <td>{log.source}</td>
-                    <td>{log.utm_source ?? '-'}</td>
-                    <td>{log.referer_path ?? log.referer ?? '-'}</td>
-                    <td>{log.asset_key}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </AdminTable>
+            ) : null}
           </section>
         </div>
       </section>
@@ -192,18 +234,6 @@ const summaryPanelClass = css({
   background: 'surface',
 });
 
-const summaryHeaderClass = css({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '3',
-});
-
-const summaryCopyClass = css({
-  display: 'grid',
-  gap: '1',
-});
-
 const summaryEyebrowClass = css({
   color: 'muted',
   fontSize: 'xs',
@@ -211,8 +241,8 @@ const summaryEyebrowClass = css({
   textTransform: 'uppercase',
 });
 
-const summaryToggleButtonClass = css({
-  display: { base: 'inline-flex', md: 'none' },
+const summaryTitleClass = css({
+  margin: '0',
 });
 
 const summaryMetricGridClass = css({
@@ -292,6 +322,27 @@ const panelTitleClass = css({
   margin: '0',
   fontSize: 'lg',
   lineHeight: 'tight',
+});
+
+const panelToggleButtonClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1.5',
+  fontSize: 'sm',
+  color: 'muted',
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
+});
+
+const panelToggleIconClass = css({
+  transition: 'transform',
+});
+
+const panelToggleIconCollapsedClass = css({
+  transition: 'transform',
+  transform: 'rotate(180deg)',
 });
 
 const rankListClass = css({
