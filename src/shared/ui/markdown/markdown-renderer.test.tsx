@@ -137,6 +137,17 @@ describe('MarkdownRenderer', () => {
     expect(downloadLink?.textContent).toContain('다운로드');
   });
 
+  it('수학 공식 커스텀 태그를 KaTeX 수식으로 렌더링한다', async () => {
+    const document = await renderServerDocument('<Math block="true">a^2 + b^2 = c^2</Math>');
+    const mathNode = document.querySelector('[data-markdown-math="block"]');
+
+    expect(mathNode).toBeTruthy();
+    expect(mathNode?.querySelector('.katex')).toBeTruthy();
+    expect(mathNode?.textContent).toContain('a');
+    expect(mathNode?.textContent).toContain('b');
+    expect(mathNode?.textContent).toContain('c');
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',

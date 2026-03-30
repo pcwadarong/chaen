@@ -5,6 +5,7 @@ import { d2Coding, pretendard, pretendardJp } from '@/app/fonts';
 import { SceneAssetPreloader } from '@/entities/scene/ui/scene-asset-preloader';
 
 import './globals.css';
+import 'katex/dist/katex.min.css';
 
 export const metadata: Metadata = {
   verification: {

@@ -9,6 +9,7 @@ import {
 } from '@/shared/lib/markdown/markdown-config';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
+import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
@@ -42,6 +43,11 @@ type MarkdownSegment =
       type: 'attachment';
     }
   | {
+      formula: string;
+      isBlock: boolean;
+      type: 'math';
+    }
+  | {
       type: 'youtube';
       videoId: string;
     };
@@ -51,6 +57,7 @@ const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
 const attachmentPattern =
   /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
+const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+)<\/Math>$/;
 const subtextPrefix = '-# ';
 const htmlLineBreakPattern = /<br\s*\/?>/gi;
 const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
@@ -374,6 +381,18 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
+    const mathMatch = line.match(mathPattern);
+
+    if (mathMatch) {
+      flushMarkdown();
+      segments.push({
+        formula: mathMatch[2],
+        isBlock: mathMatch[1] === 'true',
+        type: 'math',
+      });
+      continue;
+    }
+
     if (line.startsWith(subtextPrefix)) {
       flushMarkdown();
 
@@ -448,6 +467,10 @@ export const renderRichMarkdown = ({
           key={key}
         />
       );
+    }
+
+    if (segment.type === 'math') {
+      return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
     }
 
     if (segment.type === 'subtext') {
