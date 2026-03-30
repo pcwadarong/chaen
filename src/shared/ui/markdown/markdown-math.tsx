@@ -21,29 +21,41 @@ const renderMathHtml = ({ formula, isBlock = false }: MarkdownMathProps) =>
 /**
  * markdown 커스텀 Math 구문을 KaTeX 수식으로 렌더링합니다.
  */
-export const MarkdownMath = ({ formula, isBlock = false }: MarkdownMathProps) => (
-  <div
-    className={isBlock ? mathBlockClass : mathInlineClass}
-    data-markdown-math={isBlock ? 'block' : 'inline'}
-    dangerouslySetInnerHTML={{
-      __html: renderMathHtml({
-        formula,
-        isBlock,
-      }),
-    }}
-  />
-);
+export const MarkdownMath = ({ formula, isBlock = false }: MarkdownMathProps) => {
+  const html = renderMathHtml({
+    formula,
+    isBlock,
+  });
+
+  if (isBlock) {
+    return (
+      <div
+        className={mathBlockClass}
+        data-markdown-math="block"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+
+  return (
+    <span
+      className={mathInlineClass}
+      data-markdown-math="inline"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+};
 
 const mathInlineClass = css({
-  display: 'inline-block',
+  display: 'inline',
   verticalAlign: 'middle',
   maxWidth: 'full',
-  overflowX: 'auto',
+  overflow: 'visible',
 });
 
 const mathBlockClass = css({
   display: 'block',
   width: 'full',
-  overflowX: 'auto',
+  overflow: 'visible',
   py: '2',
 });
