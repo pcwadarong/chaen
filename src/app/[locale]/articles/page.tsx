@@ -18,8 +18,6 @@ import {
   normalizeTagParams,
 } from '@/views/articles';
 
-export const revalidate = 3600;
-
 type ArticlesRouteSearchParams = {
   cursor?: string | string[];
   cursorHistory?: string | string[];
