@@ -46,21 +46,36 @@ export const HomeHeroOverlays = ({
   onSelectCurrentImage,
   photoItems,
   title,
-}: HomeHeroOverlaysProps) => (
-  <>
-    <HomeHeroInteractionHint hidden={imageViewerOpenIndex !== null || isMobileProjectSheetOpen} />
-    <ImageViewerModal
-      initialIndex={imageViewerOpenIndex}
-      items={photoItems}
-      labels={imageViewerLabels}
-      onClose={onCloseImageViewer}
-      onSelectCurrentImage={onSelectCurrentImage}
-    />
-    <HomeHeroMobileProjectSheet
-      isOpen={isMobileProjectSheetOpen}
-      items={items}
-      onClose={onCloseMobileProjectSheet}
-      title={title}
-    />
-  </>
-);
+}: HomeHeroOverlaysProps) => {
+  /**
+   * 이미지 뷰어에서 현재 이미지를 액자에 반영한 뒤 모달을 닫습니다.
+   *
+   * 홈 히어로에서는 "선택"이 확정 동작이므로, 선택 이후에도 뷰어를 열어둘 이유가 없습니다.
+   * 따라서 반영과 닫힘을 overlay 조립 계층에서 하나의 UX 흐름으로 묶습니다.
+   *
+   * @param currentIndex 현재 이미지 뷰어가 가리키는 인덱스
+   */
+  const handleSelectCurrentImage = (currentIndex: number) => {
+    onSelectCurrentImage(currentIndex);
+    onCloseImageViewer();
+  };
+
+  return (
+    <>
+      <HomeHeroInteractionHint hidden={imageViewerOpenIndex !== null || isMobileProjectSheetOpen} />
+      <ImageViewerModal
+        initialIndex={imageViewerOpenIndex}
+        items={photoItems}
+        labels={imageViewerLabels}
+        onClose={onCloseImageViewer}
+        onSelectCurrentImage={handleSelectCurrentImage}
+      />
+      <HomeHeroMobileProjectSheet
+        isOpen={isMobileProjectSheetOpen}
+        items={items}
+        onClose={onCloseMobileProjectSheet}
+        title={title}
+      />
+    </>
+  );
+};

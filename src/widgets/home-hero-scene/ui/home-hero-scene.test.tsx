@@ -215,6 +215,10 @@ describe('HomeHeroScene', () => {
       'data-frame-screen-src',
       HOME_HERO_PHOTO_ITEMS[1]?.src ?? '',
     );
+    expect(screen.getByTestId('image-viewer-modal').firstElementChild).toHaveAttribute(
+      'data-index',
+      'closed',
+    );
   });
 
   it('선택된 액자 이미지가 있으면 image viewer는 그 인덱스로 열려야 한다', () => {
