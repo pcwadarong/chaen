@@ -406,7 +406,7 @@ const projectGridClass = css({
   display: 'grid',
   gap: '6',
   _desktopUp: {
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   },
 });
 
