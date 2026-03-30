@@ -11,7 +11,7 @@ import {
 import { formatYear } from '@/shared/lib/date/format-year';
 import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
-import { useOffsetPaginationFeed } from '@/shared/lib/react/use-offset-pagination-feed';
+import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -175,7 +175,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     };
   }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale, pinCurrentItemToTop]);
 
-  const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useOffsetPaginationFeed<TItem>({
+  const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useCursorPaginationFeed<TItem>({
     initialCursor: resolvedInitialPage.nextCursor,
     initialItems: resolvedInitialPage.items,
     loadPage,

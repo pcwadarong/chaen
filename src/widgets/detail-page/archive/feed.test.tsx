@@ -6,8 +6,8 @@ import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 
 import '@testing-library/jest-dom/vitest';
 
-vi.mock('@/shared/lib/react/use-offset-pagination-feed', () => ({
-  useOffsetPaginationFeed: vi.fn(),
+vi.mock('@/shared/lib/react/use-cursor-pagination-feed', () => ({
+  useCursorPaginationFeed: vi.fn(),
 }));
 
 vi.mock('@/i18n/navigation', () => ({
@@ -35,10 +35,10 @@ type TestArchiveItem = {
 /**
  * 상세 아카이브 피드 훅 목을 반환합니다.
  */
-const getUseOffsetPaginationFeedMock = async () => {
-  const feedModule = await import('@/shared/lib/react/use-offset-pagination-feed');
+const getUseCursorPaginationFeedMock = async () => {
+  const feedModule = await import('@/shared/lib/react/use-cursor-pagination-feed');
 
-  return vi.mocked(feedModule.useOffsetPaginationFeed);
+  return vi.mocked(feedModule.useCursorPaginationFeed);
 };
 
 const loadPageActionMock = vi.fn();
@@ -77,9 +77,9 @@ describe('DetailArchiveFeed', () => {
   });
 
   it('sidebar viewport를 observer root로 연결하고 스크롤 이후 sentinel 감지 시 추가 로드를 호출한다', async () => {
-    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
+    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
     const loadMore = vi.fn();
-    useOffsetPaginationFeed.mockReturnValue({
+    useCursorPaginationFeed.mockReturnValue({
       errorMessage: null,
       hasMore: true,
       isLoadingMore: false,
@@ -135,9 +135,9 @@ describe('DetailArchiveFeed', () => {
   });
 
   it('추가 로드 에러가 나면 자동 재시도를 멈추고 retry 버튼으로만 다시 요청한다', async () => {
-    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
+    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
     const loadMore = vi.fn();
-    useOffsetPaginationFeed.mockReturnValue({
+    useCursorPaginationFeed.mockReturnValue({
       errorMessage: 'load failed',
       hasMore: true,
       isLoadingMore: false,
@@ -182,8 +182,8 @@ describe('DetailArchiveFeed', () => {
   });
 
   it('현재 상세 항목이 초기 아카이브 페이지에 없어도 목록 맨 앞에 삽입한다', async () => {
-    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
-    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
+    useCursorPaginationFeed.mockImplementation(({ initialItems }) => ({
       errorMessage: null,
       hasMore: false,
       isLoadingMore: false,
@@ -234,8 +234,8 @@ describe('DetailArchiveFeed', () => {
   });
 
   it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice 순서에 맞는 위치에 둔다', async () => {
-    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
-    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
+    useCursorPaginationFeed.mockImplementation(({ initialItems }) => ({
       errorMessage: null,
       hasMore: false,
       isLoadingMore: false,
@@ -296,8 +296,8 @@ describe('DetailArchiveFeed', () => {
   });
 
   it('활성 항목을 viewport 상단 쪽 기준으로 한 번만 스크롤 정렬한다', async () => {
-    const useOffsetPaginationFeed = await getUseOffsetPaginationFeedMock();
-    useOffsetPaginationFeed.mockImplementation(({ initialItems }) => ({
+    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
+    useCursorPaginationFeed.mockImplementation(({ initialItems }) => ({
       errorMessage: null,
       hasMore: false,
       isLoadingMore: false,

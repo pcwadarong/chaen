@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  type OffsetPaginationFeedPage,
-  type OffsetPaginationFeedQueryParams,
-  resolveOffsetPaginationLoadMore,
-} from '@/shared/lib/react/offset-pagination-feed-state';
+  type CursorPaginationFeedPage,
+  type CursorPaginationFeedQueryParams,
+  resolveCursorPaginationLoadMore,
+} from '@/shared/lib/react/cursor-pagination-feed-state';
 
-type UseOffsetPaginationFeedOptions<T> = {
+type UseCursorPaginationFeedOptions<T> = {
   initialCursor: string | null;
   initialItems: T[];
   limit?: number;
@@ -16,14 +16,15 @@ type UseOffsetPaginationFeedOptions<T> = {
     cursor: string;
     limit: number;
     locale: string;
-    queryParams?: OffsetPaginationFeedQueryParams;
-  }) => Promise<OffsetPaginationFeedPage<T>>;
+    queryParams?: CursorPaginationFeedQueryParams;
+  }) => Promise<CursorPaginationFeedPage<T>>;
   locale: string;
   mergeItems?: (previousItems: T[], incomingItems: T[]) => T[];
-  queryParams?: OffsetPaginationFeedQueryParams;
+  queryParams?: CursorPaginationFeedQueryParams;
+  resetKey?: string;
 };
 
-type UseOffsetPaginationFeedResult<T> = {
+type UseCursorPaginationFeedResult<T> = {
   errorMessage: string | null;
   hasMore: boolean;
   isLoadingMore: boolean;
@@ -56,9 +57,9 @@ const areShallowEqualItems = <T>(left: T[], right: T[]) => {
 };
 
 /**
- * offset(cursor) 기반 API를 사용하는 무한 스크롤 리스트 상태를 공통 관리합니다.
+ * cursor 기반 API를 사용하는 무한 스크롤 리스트 상태를 공통 관리합니다.
  */
-export const useOffsetPaginationFeed = <T>({
+export const useCursorPaginationFeed = <T>({
   initialCursor,
   initialItems,
   limit = DEFAULT_LIMIT,
@@ -66,30 +67,34 @@ export const useOffsetPaginationFeed = <T>({
   locale,
   mergeItems,
   queryParams,
-}: UseOffsetPaginationFeedOptions<T>): UseOffsetPaginationFeedResult<T> => {
+  resetKey,
+}: UseCursorPaginationFeedOptions<T>): UseCursorPaginationFeedResult<T> => {
   const [items, setItems] = useState<T[]>(initialItems);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastSeedCursorRef = useRef(initialCursor);
   const lastSeedItemsRef = useRef(initialItems);
+  const lastResetKeyRef = useRef(resetKey);
   const itemsRef = useRef(initialItems);
 
   useEffect(() => {
+    const didResetKeyChange = !Object.is(lastResetKeyRef.current, resetKey);
     const isSameSeed =
       Object.is(lastSeedCursorRef.current, initialCursor) &&
       areShallowEqualItems(lastSeedItemsRef.current, initialItems);
 
-    if (isSameSeed) return;
+    if (!didResetKeyChange && isSameSeed) return;
 
     lastSeedCursorRef.current = initialCursor;
     lastSeedItemsRef.current = initialItems;
+    lastResetKeyRef.current = resetKey;
     itemsRef.current = initialItems;
     setItems(initialItems);
     setNextCursor(initialCursor);
     setIsLoadingMore(false);
     setErrorMessage(null);
-  }, [initialCursor, initialItems]);
+  }, [initialCursor, initialItems, resetKey]);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || isLoadingMore) return;
@@ -98,7 +103,7 @@ export const useOffsetPaginationFeed = <T>({
     setErrorMessage(null);
 
     try {
-      const resolved = await resolveOffsetPaginationLoadMore({
+      const resolved = await resolveCursorPaginationLoadMore({
         currentCursor: nextCursor,
         currentItems: itemsRef.current,
         limit,
