@@ -37,6 +37,10 @@ const interactionActionsMockState = vi.hoisted(() => ({
   handleMeshClick: vi.fn(),
 }));
 
+const audioPreparationMockState = vi.hoisted(() => ({
+  prepareAudioPlayback: vi.fn(),
+}));
+
 const keyboardTargets = {
   bass: Object.assign(new Object3D(), { name: 'bass_body' }),
   camera: Object.assign(new Object3D(), { name: 'camera' }),
@@ -96,6 +100,7 @@ describe('SceneInteractionController', () => {
     raycasterMockState.onPointerMove.mockReset();
     raycasterMockState.setHoveredMeshDirect.mockReset();
     interactionActionsMockState.handleMeshClick.mockReset();
+    audioPreparationMockState.prepareAudioPlayback.mockReset();
     canvasElement.removeAttribute('aria-label');
     canvasElement.tabIndex = -1;
   });
@@ -153,13 +158,35 @@ describe('SceneInteractionController', () => {
     expect(outlineEffectMockState.hoveredMeshes).toContain(keyboardTargets.bass);
   });
 
+  it('pointerdown이 들어올 때, SceneInteractionController는 오디오 prewarm 콜백을 먼저 호출해야 한다', () => {
+    render(
+      <SceneInteractionController
+        onBrowseProjects={vi.fn()}
+        onOpenImageViewer={vi.fn()}
+        onPrepareAudioPlayback={audioPreparationMockState.prepareAudioPlayback}
+      />,
+    );
+
+    fireEvent.pointerDown(canvasElement);
+
+    expect(audioPreparationMockState.prepareAudioPlayback).toHaveBeenCalledOnce();
+    expect(raycasterMockState.onPointerClick).toHaveBeenCalledOnce();
+  });
+
   it('화살표 키와 Enter 입력이 들어올 때, SceneInteractionController는 keyboard target을 순환하고 현재 타겟 click을 실행해야 한다', () => {
-    render(<SceneInteractionController onBrowseProjects={vi.fn()} onOpenImageViewer={vi.fn()} />);
+    render(
+      <SceneInteractionController
+        onBrowseProjects={vi.fn()}
+        onOpenImageViewer={vi.fn()}
+        onPrepareAudioPlayback={audioPreparationMockState.prepareAudioPlayback}
+      />,
+    );
 
     fireEvent.focus(canvasElement);
     fireEvent.keyDown(canvasElement, { key: 'ArrowRight' });
     fireEvent.keyDown(canvasElement, { key: 'Enter' });
 
+    expect(audioPreparationMockState.prepareAudioPlayback).toHaveBeenCalledOnce();
     expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.bass);
     expect(interactionActionsMockState.handleMeshClick).toHaveBeenCalledWith(keyboardTargets.bass);
     expect(document.body.textContent).toContain('현재 선택: 기타');

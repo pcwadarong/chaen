@@ -15,6 +15,7 @@ type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
   onOpenImageViewer?: () => void;
   onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void | Promise<void>;
+  onPrepareAudioPlayback?: () => void;
   showOutlineEffect?: boolean;
   onToggleBackgroundMusicPlayback?: () => void | Promise<void>;
 }>;
@@ -31,6 +32,7 @@ export const SceneInteractionController = ({
   onBrowseProjects,
   onOpenImageViewer,
   onPlayBassString,
+  onPrepareAudioPlayback,
   showOutlineEffect = true,
   onToggleBackgroundMusicPlayback,
 }: SceneInteractionControllerProps) => {
@@ -91,6 +93,10 @@ export const SceneInteractionController = ({
       onPointerMove(event);
     };
     const handlePointerDownOrUp = (event: PointerEvent) => {
+      if (event.type === 'pointerdown') {
+        onPrepareAudioPlayback?.();
+      }
+
       onPointerClick(event);
     };
     const handlePointerLeave = () => {
@@ -145,6 +151,7 @@ export const SceneInteractionController = ({
 
       if (!target) return;
 
+      onPrepareAudioPlayback?.();
       syncKeyboardTargetByIndex(targetIndex);
       handleMeshClick(target);
     };
@@ -187,6 +194,7 @@ export const SceneInteractionController = ({
     gl,
     handleMeshClick,
     keyboardTargets,
+    onPrepareAudioPlayback,
     onPointerClick,
     onPointerMove,
     setHoveredMeshDirect,

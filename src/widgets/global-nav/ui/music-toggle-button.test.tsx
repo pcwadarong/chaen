@@ -9,6 +9,7 @@ import '@testing-library/jest-dom/vitest';
 
 const bassAudioMockState = vi.hoisted(() => ({
   isBackgroundMusicPlaying: false,
+  prepareBassAudioPlayback: vi.fn(),
   toggleBackgroundMusicPlayback: vi.fn(),
 }));
 
@@ -23,6 +24,7 @@ vi.mock('@/features/audio/model/use-bass-audio', () => ({
 describe('MusicToggleButton', () => {
   beforeEach(() => {
     bassAudioMockState.isBackgroundMusicPlaying = false;
+    bassAudioMockState.prepareBassAudioPlayback.mockReset();
     bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
   });
 
@@ -45,5 +47,23 @@ describe('MusicToggleButton', () => {
 
     expect(button).toHaveAttribute('aria-pressed', 'true');
     expect(bassAudioMockState.toggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
+  });
+
+  it('버튼을 누르기 시작할 때, MusicToggleButton은 오디오 prewarm을 먼저 호출해야 한다', () => {
+    render(<MusicToggleButton />);
+
+    const button = screen.getByRole('button', { name: 'Navigation.playMusic' });
+    fireEvent.pointerDown(button);
+
+    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
+  });
+
+  it('Enter 키로 버튼을 활성화할 때, MusicToggleButton은 오디오 prewarm을 먼저 호출해야 한다', () => {
+    render(<MusicToggleButton />);
+
+    const button = screen.getByRole('button', { name: 'Navigation.playMusic' });
+    fireEvent.keyDown(button, { key: 'Enter' });
+
+    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
   });
 });

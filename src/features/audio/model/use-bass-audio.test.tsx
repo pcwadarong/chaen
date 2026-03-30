@@ -13,6 +13,7 @@ type AudioEventType = 'pause' | 'play';
 type FakeAudioElement = {
   currentTime: number;
   dispatch: (type: AudioEventType) => void;
+  load: ReturnType<typeof vi.fn>;
   loop: boolean;
   pause: ReturnType<typeof vi.fn>;
   paused: boolean;
@@ -38,6 +39,7 @@ const createFakeAudioElement = (src: string): FakeAudioElement => {
         listener();
       });
     },
+    load: vi.fn(),
     loop: false,
     pause: vi.fn(() => {
       audioElement.paused = true;
@@ -98,6 +100,26 @@ describe('useBassAudio', () => {
     expect(audioMockState.createdAudios[0]?.loop).toBe(true);
     expect(audioMockState.createdAudios[0]?.play).toHaveBeenCalledOnce();
     expect(result.current.isBackgroundMusicPlaying).toBe(true);
+  });
+
+  it('첫 사용자 입력 전에 prepareBassAudioPlayback을 호출하면 모든 관리 오디오를 미리 생성하고 load를 호출해야 한다', () => {
+    const { result } = renderHook(() => useBassAudio());
+
+    act(() => {
+      result.current.prepareBassAudioPlayback();
+    });
+
+    expect(audioMockState.createdAudios).toHaveLength(5);
+    expect(audioMockState.createdAudios.map(audioElement => audioElement.src)).toEqual([
+      '/music/music.mp3',
+      BASS_STRING_AUDIO_PATHS.line1,
+      BASS_STRING_AUDIO_PATHS.line2,
+      BASS_STRING_AUDIO_PATHS.line3,
+      BASS_STRING_AUDIO_PATHS.line4,
+    ]);
+    expect(
+      audioMockState.createdAudios.every(audioElement => audioElement.load.mock.calls.length === 1),
+    ).toBe(true);
   });
 
   it('이미 재생 중일 때 bass trigger를 다시 호출해도 background music을 다시 재생하지 않아야 한다', async () => {

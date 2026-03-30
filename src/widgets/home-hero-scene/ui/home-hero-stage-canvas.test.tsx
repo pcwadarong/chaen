@@ -12,6 +12,7 @@ const homeHeroStageCanvasMockState = vi.hoisted(() => ({
   interactionControllerProps: null as null | {
     onBrowseProjects?: () => void;
     onPlayBassString?: (stringName: 'line1' | 'line2' | 'line3' | 'line4') => void;
+    onPrepareAudioPlayback?: () => void;
     showOutlineEffect?: boolean;
     onToggleBackgroundMusicPlayback?: () => void;
   },
@@ -32,6 +33,7 @@ const bassAudioMockState = vi.hoisted(() => ({
   isBackgroundMusicPlaying: false,
   pauseBackgroundMusicPlayback: vi.fn(),
   playBassString: vi.fn(),
+  prepareBassAudioPlayback: vi.fn(),
   toggleBackgroundMusicPlayback: vi.fn(),
 }));
 
@@ -166,6 +168,7 @@ describe('HomeHeroStageCanvas', () => {
     bassAudioMockState.isBackgroundMusicPlaying = false;
     bassAudioMockState.pauseBackgroundMusicPlayback.mockReset();
     bassAudioMockState.playBassString.mockReset();
+    bassAudioMockState.prepareBassAudioPlayback.mockReset();
     bassAudioMockState.toggleBackgroundMusicPlayback.mockReset();
     Object.defineProperty(window, 'innerWidth', {
       configurable: true,
@@ -248,6 +251,20 @@ describe('HomeHeroStageCanvas', () => {
     );
     expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'true');
     expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(true);
+  });
+
+  it('캔버스 interaction controller에는 오디오 prewarm 콜백이 연결되어야 한다', () => {
+    render(
+      <HomeHeroStageCanvas
+        blackoutOverlayRef={{ current: null }}
+        triggerRef={{ current: null }}
+        webUiRef={{ current: null }}
+      />,
+    );
+
+    homeHeroStageCanvasMockState.interactionControllerProps?.onPrepareAudioPlayback?.();
+
+    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
   });
 
   it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {

@@ -50,6 +50,7 @@ const DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD = 0.5;
 const BASS_STOP_BUTTON_SIZE = '7';
 const BASS_STOP_BUTTON_FOCUS_OUTLINE = '[2px solid var(--colors-focus-ring)]';
 const BASS_STOP_BUTTON_FOCUS_OUTLINE_OFFSET = '[2px]';
+const AUDIO_PREPARE_KEYBOARD_KEYS = new Set(['Enter', ' ']);
 
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
@@ -75,6 +76,7 @@ export const HomeHeroStageCanvas = ({
     isBackgroundMusicPlaying,
     pauseBackgroundMusicPlayback,
     playBassString,
+    prepareBassAudioPlayback,
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
   const { currentBP, sceneViewportMode } = useBreakpoint();
@@ -138,6 +140,7 @@ export const HomeHeroStageCanvas = ({
         onMonitorOverlayOpacityChange={setMonitorScreenOpacity}
         onOpenImageViewer={onOpenImageViewer}
         onPlayBassString={playBassString}
+        onPrepareAudioPlayback={prepareBassAudioPlayback}
         onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
         sceneLayout={sceneLayout}
         sceneViewportMode={sceneViewportMode}
@@ -154,6 +157,7 @@ export const HomeHeroStageCanvas = ({
           monitorScreenOpacity={monitorScreenOpacity}
           monitorScreenTexture={monitorScreenTexture}
           pauseMusicLabel={t('pauseMusic')}
+          onPrepareAudioPlayback={prepareBassAudioPlayback}
           onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
           selectedFrameImageSrc={selectedFrameImageSrc}
           sceneLayout={sceneLayout}
@@ -174,6 +178,7 @@ const HomeHeroCameraRig = ({
   onMonitorOverlayOpacityChange,
   onOpenImageViewer,
   onPlayBassString,
+  onPrepareAudioPlayback,
   onCloseupCostumeHiddenChange,
   sceneLayout,
   sceneViewportMode,
@@ -192,6 +197,7 @@ const HomeHeroCameraRig = ({
   readonly onPlayBassString: (
     stringName: 'line1' | 'line2' | 'line3' | 'line4',
   ) => void | Promise<void>;
+  readonly onPrepareAudioPlayback: () => void;
   readonly onCloseupCostumeHiddenChange: (isCloseupCostumeHidden: boolean) => void;
   readonly sceneLayout: HomeHeroSceneLayout;
   readonly sceneViewportMode: SceneViewportMode;
@@ -243,6 +249,7 @@ const HomeHeroCameraRig = ({
           onBrowseProjects={onBrowseProjects}
           onOpenImageViewer={onOpenImageViewer}
           onPlayBassString={onPlayBassString}
+          onPrepareAudioPlayback={onPrepareAudioPlayback}
           showOutlineEffect={showOutlineEffect}
           onToggleBackgroundMusicPlayback={onToggleBackgroundMusicPlayback}
         />
@@ -260,6 +267,7 @@ const HomeHeroSceneObjects = ({
   monitorScreenOpacity,
   monitorScreenTexture,
   pauseMusicLabel,
+  onPrepareAudioPlayback,
   onStopBassTrackPlayback,
   selectedFrameImageSrc,
   sceneLayout,
@@ -269,6 +277,7 @@ const HomeHeroSceneObjects = ({
   readonly monitorScreenOpacity: number;
   readonly monitorScreenTexture: ReturnType<typeof useMonitorOverlayTexture>;
   readonly pauseMusicLabel: string;
+  readonly onPrepareAudioPlayback: () => void;
   readonly onStopBassTrackPlayback: () => void;
   readonly selectedFrameImageSrc?: string | null;
   readonly sceneLayout: HomeHeroSceneLayout;
@@ -288,6 +297,12 @@ const HomeHeroSceneObjects = ({
             aria-label={pauseMusicLabel}
             className={bassStopButtonClass}
             onClick={onStopBassTrackPlayback}
+            onKeyDown={event => {
+              if (!AUDIO_PREPARE_KEYBOARD_KEYS.has(event.key)) return;
+
+              onPrepareAudioPlayback();
+            }}
+            onPointerDownCapture={onPrepareAudioPlayback}
             type="button"
           >
             <PauseIcon aria-hidden color="white" size={12} />
