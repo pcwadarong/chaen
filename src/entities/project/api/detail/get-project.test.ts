@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { unstable_cacheTag } from 'next/cache';
 
 import { getProject, getResolvedProject } from '@/entities/project/api/detail/get-project';

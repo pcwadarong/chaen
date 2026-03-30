@@ -143,6 +143,16 @@ const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListPro
 
 /**
  * 아티클 상세 좌측 아카이브를 Suspense 경계 안에서 비동기로 렌더링합니다.
+ *
+ * `initialArchivePagePromise`가 resolve되면 `ArticleArchiveSidebar`에 `initialPage`로 전달합니다.
+ * Promise가 reject되면 가장 가까운 Error Boundary로 전파됩니다.
+ * 나머지 props는 `ArticleArchiveSidebarProps`에서 `initialPage`를 제외한 값이 그대로 전달됩니다.
+ *
+ * @param props - `DeferredArticleArchiveSidebarProps` 참조.
+ * @param props.initialArchivePagePromise - resolve 시 아카이브 초기 페이지를 반환하는 Promise입니다.
+ * Suspense 경계 내에서 소비되므로 컴포넌트 외부에서 미리 시작해야 합니다.
+ * @param props - 나머지 `ArticleArchiveSidebarProps` (currentItem, locale 등)가 전달됩니다.
+ * @returns Suspense 경계 안에서 렌더링되는 `ArticleArchiveSidebar` React 노드를 반환합니다.
  */
 const DeferredArticleArchiveSidebar = async ({
   initialArchivePagePromise,
@@ -169,8 +179,8 @@ const DeferredRelatedArticlesSection = async ({
  * 아티클 상세 페이지를 렌더링합니다.
  *
  * @param props - 상세 페이지 전체 구성에 필요한 데이터 묶음입니다.
- * @param props.initialArchivePage - 현재 아티클을 포함한 좌측 아카이브 초기 window입니다.
- * `DetailArchiveFeed`의 첫 seed로 사용됩니다.
+ * @param props.initialArchivePagePromise - 현재 아티클 중심의 아카이브 초기 window를 반환하는 Promise입니다.
+ * `DeferredArticleArchiveSidebar`가 Suspense 경계 안에서 소비합니다.
  * @param props.item - 본문, 메타데이터, 액션 영역에 사용할 현재 아티클입니다.
  * @param props.locale - 경로, 구조화 데이터, 번역 문자열에 사용할 locale입니다.
  * @param props.relatedArticlesPromise - 하단 관련 글 섹션이 `Suspense` 경계 안에서 소비할 promise입니다.

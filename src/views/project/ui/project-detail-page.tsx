@@ -113,6 +113,16 @@ const ProjectArchiveSidebar = ({
 
 /**
  * 프로젝트 상세 좌측 아카이브를 Suspense 경계 안에서 비동기로 렌더링합니다.
+ *
+ * `initialArchivePagePromise`가 resolve되면 `ProjectArchiveSidebar`에 `initialPage`로 전달합니다.
+ * Promise가 reject되면 가장 가까운 Error Boundary로 전파됩니다.
+ * 나머지 props는 `ProjectArchiveSidebarProps`에서 `initialPage`를 제외한 값이 그대로 전달됩니다.
+ *
+ * @param props - `DeferredProjectArchiveSidebarProps` 참조.
+ * @param props.initialArchivePagePromise - resolve 시 아카이브 초기 페이지를 반환하는 Promise입니다.
+ * Suspense 경계 내에서 소비되므로 컴포넌트 외부에서 미리 시작해야 합니다.
+ * @param props - 나머지 `ProjectArchiveSidebarProps` (currentItem, locale 등)가 전달됩니다.
+ * @returns Suspense 경계 안에서 렌더링되는 `ProjectArchiveSidebar` React 노드를 반환합니다.
  */
 const DeferredProjectArchiveSidebar = async ({
   initialArchivePagePromise,

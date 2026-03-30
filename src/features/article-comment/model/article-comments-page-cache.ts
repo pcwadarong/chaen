@@ -90,7 +90,7 @@ export const invalidateArticleCommentsCache = (articleId: string) => {
 
   const prefix = `${articleId}:`;
 
-  for (const key of articleCommentsPageCache.keys()) {
+  for (const key of Array.from(articleCommentsPageCache.keys())) {
     if (key.startsWith(prefix)) articleCommentsPageCache.delete(key);
   }
 };
