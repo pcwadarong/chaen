@@ -27,6 +27,7 @@ import {
   cacheArticleCommentsPage,
   DEFAULT_INITIAL_PAGE,
   getCachedArticleCommentsPage,
+  invalidateArticleCommentsCache,
   resetArticleCommentsPageCacheForTest,
 } from '@/features/article-comment/model/article-comments-page-cache';
 import { initialSubmitArticleCommentState } from '@/features/article-comment/model/submit-article-comment.state';
@@ -310,6 +311,7 @@ export const ArticleCommentsSection = ({
         pushToast(text.toastDeleteSuccess, 'success');
       }
 
+      invalidateArticleCommentsCache(articleId);
       closeModal();
       await loadPage(pageData.page, pageData.sort, {
         fresh: true,
@@ -357,11 +359,13 @@ export const ArticleCommentsSection = ({
       return;
     }
 
+    invalidateArticleCommentsCache(articleId);
     void loadPage(pageData.sort === 'latest' ? 1 : LOAD_LAST_PAGE, pageData.sort, {
       fresh: true,
     });
     pushToast(text.toastCreateSuccess, 'success');
   }, [
+    articleId,
     loadPage,
     pageData.sort,
     pushToast,
@@ -382,11 +386,13 @@ export const ArticleCommentsSection = ({
     }
 
     setReplyTarget(null);
+    invalidateArticleCommentsCache(articleId);
     void loadPage(pageData.page, pageData.sort, {
       fresh: true,
     });
     pushToast(text.toastReplySuccess, 'success');
   }, [
+    articleId,
     loadPage,
     pageData.page,
     pageData.sort,

@@ -1,10 +1,15 @@
+// @vitest-environment node
 import { unstable_cacheTag } from 'next/cache';
 
 import { getArticle } from '@/entities/article/api/detail/get-article';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import {
+  createOptionalPublicServerSupabaseClient,
+  getOptionalPublicServerSupabaseClient,
+} from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
@@ -14,6 +19,7 @@ vi.mock('@/shared/lib/supabase/config', () => ({
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
+  getOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
 const createArticleSlugLookupQuery = (id = 'frontend-performance') => ({
@@ -89,6 +95,7 @@ describe('getArticle', () => {
       .mockReturnValueOnce(tagsQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getArticle('frontend-performance', 'ko');
@@ -121,6 +128,7 @@ describe('getArticle', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
@@ -142,6 +150,7 @@ describe('getArticle', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
@@ -163,6 +172,7 @@ describe('getArticle', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'ko')).rejects.toThrow(
@@ -207,6 +217,7 @@ describe('getArticle', () => {
       .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getArticle('frontend-performance', 'fr');
@@ -255,6 +266,7 @@ describe('getArticle', () => {
       .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getArticle('frontend-performance', 'fr');
@@ -286,6 +298,7 @@ describe('getArticle', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'fr')).resolves.toBeNull();
@@ -324,6 +337,7 @@ describe('getArticle', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getArticle('frontend-performance', 'ko');
@@ -372,6 +386,7 @@ describe('getArticle', () => {
       .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getArticle('frontend-performance', 'en');
@@ -422,6 +437,7 @@ describe('getArticle', () => {
       .mockReturnValueOnce(articleTagsV2Query);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getArticle('frontend-performance', 'ko')).resolves.toMatchObject({

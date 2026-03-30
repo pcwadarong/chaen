@@ -24,13 +24,14 @@ import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
 import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
+  DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
   DetailTagListSkeleton,
 } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 import { DetailPageShell } from '@/widgets/detail-page/ui/detail-page-shell';
 
 type ArticleDetailPageProps = {
-  initialArchivePage: ArticleArchivePage;
+  initialArchivePagePromise: Promise<ArticleArchivePage>;
   item: Article;
   locale: AppLocale;
   relatedArticlesPromise: Promise<ArticleListItemModel[]>;
@@ -57,6 +58,10 @@ type ArticleArchiveSidebarProps = {
 type ArticleTagListProps = {
   ariaLabel: string;
   tagLabelsPromise: Promise<string[]>;
+};
+
+type DeferredArticleArchiveSidebarProps = Omit<ArticleArchiveSidebarProps, 'initialPage'> & {
+  initialArchivePagePromise: Promise<ArticleArchivePage>;
 };
 
 type DeferredRelatedArticlesSectionProps = {
@@ -137,6 +142,28 @@ const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListPro
 };
 
 /**
+ * 아티클 상세 좌측 아카이브를 Suspense 경계 안에서 비동기로 렌더링합니다.
+ *
+ * `initialArchivePagePromise`가 resolve되면 `ArticleArchiveSidebar`에 `initialPage`로 전달합니다.
+ * Promise가 reject되면 가장 가까운 Error Boundary로 전파됩니다.
+ * 나머지 props는 `ArticleArchiveSidebarProps`에서 `initialPage`를 제외한 값이 그대로 전달됩니다.
+ *
+ * @param props - `DeferredArticleArchiveSidebarProps` 참조.
+ * @param props.initialArchivePagePromise - resolve 시 아카이브 초기 페이지를 반환하는 Promise입니다.
+ * Suspense 경계 내에서 소비되므로 컴포넌트 외부에서 미리 시작해야 합니다.
+ * @param props - 나머지 `ArticleArchiveSidebarProps` (currentItem, locale 등)가 전달됩니다.
+ * @returns Suspense 경계 안에서 렌더링되는 `ArticleArchiveSidebar` React 노드를 반환합니다.
+ */
+const DeferredArticleArchiveSidebar = async ({
+  initialArchivePagePromise,
+  ...props
+}: DeferredArticleArchiveSidebarProps) => {
+  const initialPage = await initialArchivePagePromise;
+
+  return <ArticleArchiveSidebar {...props} initialPage={initialPage} />;
+};
+
+/**
  * 아티클 상세 하단 관련 글 섹션을 비동기 경계 안에서 렌더링합니다.
  */
 const DeferredRelatedArticlesSection = async ({
@@ -152,8 +179,8 @@ const DeferredRelatedArticlesSection = async ({
  * 아티클 상세 페이지를 렌더링합니다.
  *
  * @param props - 상세 페이지 전체 구성에 필요한 데이터 묶음입니다.
- * @param props.initialArchivePage - 현재 아티클을 포함한 좌측 아카이브 초기 window입니다.
- * `DetailArchiveFeed`의 첫 seed로 사용됩니다.
+ * @param props.initialArchivePagePromise - 현재 아티클 중심의 아카이브 초기 window를 반환하는 Promise입니다.
+ * `DeferredArticleArchiveSidebar`가 Suspense 경계 안에서 소비합니다.
  * @param props.item - 본문, 메타데이터, 액션 영역에 사용할 현재 아티클입니다.
  * @param props.locale - 경로, 구조화 데이터, 번역 문자열에 사용할 locale입니다.
  * @param props.relatedArticlesPromise - 하단 관련 글 섹션이 `Suspense` 경계 안에서 소비할 promise입니다.
@@ -161,7 +188,7 @@ const DeferredRelatedArticlesSection = async ({
  * @returns 아티클 상세 전체 JSX 엘리먼트를 반환합니다.
  */
 export const ArticleDetailPage = ({
-  initialArchivePage,
+  initialArchivePagePromise,
   item,
   locale,
   relatedArticlesPromise,
@@ -246,17 +273,19 @@ export const ArticleDetailPage = ({
           />
         }
         sidebarContent={
-          <ArticleArchiveSidebar
-            currentItem={item}
-            emptyText={detailUi('emptyArchive')}
-            initialPage={initialArchivePage}
-            loadErrorText={articlesT('loadError')}
-            loadMoreEndText={articlesT('loadMoreEnd')}
-            loadingText={articlesT('loading')}
-            locale={locale}
-            retryText={articlesT('retry')}
-            selectedPathSegment={articlePathSegment}
-          />
+          <Suspense fallback={<DetailArchiveSidebarSkeleton />}>
+            <DeferredArticleArchiveSidebar
+              currentItem={item}
+              emptyText={detailUi('emptyArchive')}
+              initialArchivePagePromise={initialArchivePagePromise}
+              loadErrorText={articlesT('loadError')}
+              loadMoreEndText={articlesT('loadMoreEnd')}
+              loadingText={articlesT('loading')}
+              locale={locale}
+              retryText={articlesT('retry')}
+              selectedPathSegment={articlePathSegment}
+            />
+          </Suspense>
         }
         sidebarLabel={t('archiveLabel')}
         tagContent={

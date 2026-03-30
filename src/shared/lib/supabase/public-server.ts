@@ -34,3 +34,37 @@ export const createOptionalPublicServerSupabaseClient = () => {
     },
   });
 };
+
+// undefined: 미초기화, null: env 없음
+let _optionalClientInstance:
+  | ReturnType<typeof createOptionalPublicServerSupabaseClient>
+  | undefined = undefined;
+
+/**
+ * 서버리스 인스턴스 내에서 Supabase 클라이언트를 재사용합니다.
+ *
+ * `createOptionalPublicServerSupabaseClient()`는 호출마다 새 인스턴스를 만들어
+ * 같은 요청에서도 HTTP 연결을 공유하지 못합니다.
+ * 이 함수는 모듈 초기화 시 한 번만 인스턴스를 생성하고 이후 호출에서는 같은 객체를 반환합니다.
+ *
+ * 단순 read 전용 entity 함수(get-article, get-project 등)에서 사용합니다.
+ */
+export const getOptionalPublicServerSupabaseClient = () => {
+  if (_optionalClientInstance !== undefined) return _optionalClientInstance;
+
+  const env = getSupabaseEnvOptional();
+
+  if (!env) {
+    _optionalClientInstance = null;
+    return null;
+  }
+
+  _optionalClientInstance = createClient(env.supabaseUrl, env.supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return _optionalClientInstance;
+};
