@@ -7,7 +7,7 @@ import { type ReactNode, Suspense } from 'react';
 import { isValidLocale, routing } from '@/i18n/routing';
 import { getSupabaseAdminEnvOptional } from '@/shared/lib/supabase/config';
 import { AuthProvider, ThemeProvider } from '@/shared/providers';
-import { AppFrame } from '@/widgets/app-frame/ui/app-frame';
+import { RouteAwareAppFrame } from '@/widgets/app-frame/ui/route-aware-app-frame';
 import { GlobalNav } from '@/widgets/global-nav/ui/global-nav';
 
 export const metadata: Metadata = {
@@ -53,12 +53,15 @@ const LocaleLayout = async ({ children, params }: LocaleLayoutProps) => {
       <ThemeProvider>
         <AuthProvider adminUserId={adminUserId}>
           <div lang={locale}>
-            <AppFrame>
-              <Suspense fallback={<div aria-hidden style={navFallbackStyle} />}>
-                <GlobalNav />
-              </Suspense>
+            <RouteAwareAppFrame
+              nav={
+                <Suspense fallback={<div aria-hidden style={navFallbackStyle} />}>
+                  <GlobalNav />
+                </Suspense>
+              }
+            >
               {children}
-            </AppFrame>
+            </RouteAwareAppFrame>
           </div>
         </AuthProvider>
       </ThemeProvider>

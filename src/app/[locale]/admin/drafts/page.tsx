@@ -4,6 +4,7 @@ import React from 'react';
 import { deleteEditorDraftAction } from '@/entities/editor';
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
+import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorDraftsPage } from '@/views/editor-drafts';
 
@@ -42,7 +43,13 @@ const AdminDraftsRoute = async ({
     });
   };
 
-  return <EditorDraftsPage items={items} onDeleteDraft={handleDeleteDraft} />;
+  return (
+    <EditorDraftsPage
+      items={items}
+      onDeleteDraft={handleDeleteDraft}
+      signOutRedirectPath={buildAdminPath({ locale, section: 'login' })}
+    />
+  );
 };
 
 export default AdminDraftsRoute;

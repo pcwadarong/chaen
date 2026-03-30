@@ -1,7 +1,11 @@
-import { isValidElement } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 
 import { createDefaultResumeEditorContentMap } from '@/entities/resume/model/resume-editor.utils';
 import { ResumeEditorPage } from '@/views/resume-editor/ui/resume-editor-page';
+
+vi.mock('@/widgets/admin-console', () => ({
+  AdminConsoleShell: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
 
 describe('ResumeEditorPage', () => {
   it('client wrapper에 resume editor 초기 props를 전달한다', () => {

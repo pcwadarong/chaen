@@ -18,6 +18,7 @@ export type Project = {
   tech_stacks?: TechStack[] | null;
   thumbnail_url: string | null;
   title: string;
+  updated_at?: string | null;
   visibility?: 'public' | 'private' | null;
   website_url?: string | null;
 };
@@ -59,4 +60,21 @@ export type ProjectListItem = Pick<
 export type ProjectListPage = {
   items: ProjectListItem[];
   nextCursor: string | null;
+};
+
+/**
+ * 관리자 콘텐츠 리스트에서 사용하는 프로젝트 요약 타입입니다.
+ */
+export type AdminProjectListItem = Pick<
+  Project,
+  | 'created_at'
+  | 'display_order'
+  | 'id'
+  | 'publish_at'
+  | 'slug'
+  | 'thumbnail_url'
+  | 'updated_at'
+  | 'visibility'
+> & {
+  title: string;
 };

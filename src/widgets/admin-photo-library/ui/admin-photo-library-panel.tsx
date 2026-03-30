@@ -1,16 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import { PHOTO_FILE_ALLOWED_MIME_TYPES } from '@/entities/hero-photo/model/config';
 import type { PhotoFileItem } from '@/entities/hero-photo/model/types';
 import { optimizeAdminPhotoFile } from '@/shared/lib/image/optimize-admin-photo-file';
-import { Button } from '@/shared/ui/button/button';
 import { XButton } from '@/shared/ui/x-button/x-button';
 
 type AdminPhotoLibraryPanelProps = {
+  fileInputId?: string;
+  fileInputRef?: React.RefObject<HTMLInputElement | null>;
   initialItems: PhotoFileItem[];
 };
 
@@ -97,19 +98,19 @@ const formatPhotoFileSize = (size: number) => {
 /**
  * 관리자 전용 사진 보관함에서 다중 업로드, 삭제, 미리보기를 제공합니다.
  */
-export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelProps) => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+export const AdminPhotoLibraryPanel = ({
+  fileInputId,
+  fileInputRef,
+  initialItems,
+}: AdminPhotoLibraryPanelProps) => {
+  const generatedFileInputId = useId();
+  const internalInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = fileInputRef ?? internalInputRef;
+  const resolvedFileInputId = fileInputId ?? generatedFileInputId;
   const [feedback, setFeedback] = useState<PanelFeedback | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [items, setItems] = useState(initialItems);
   const [deletingFilePath, setDeletingFilePath] = useState<string | null>(null);
-
-  /**
-   * 숨겨진 파일 input을 열어 여러 장 선택을 시작합니다.
-   */
-  const handleUploadButtonClick = () => {
-    inputRef.current?.click();
-  };
 
   /**
    * 선택한 사진들을 순서대로 업로드해 현재 리스트 뒤에 붙입니다.
@@ -219,37 +220,18 @@ export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelP
   };
 
   return (
-    <section aria-labelledby="admin-photo-library-title" className={sectionClass}>
-      <div className={panelHeaderClass}>
-        <div className={panelCopyClass}>
-          <h2 className={panelTitleClass} id="admin-photo-library-title">
-            사진 보관함
-          </h2>
-          <p className={panelDescriptionClass}>
-            뷰어에 사용할 사진을 업로드하고 업로드 순서대로 관리합니다.
-          </p>
-        </div>
-        <Button
-          className={uploadButtonClass}
-          disabled={isUploading}
-          onClick={handleUploadButtonClick}
-          tone="primary"
-          type="button"
-          variant="solid"
-        >
-          {isUploading ? '업로드 중...' : '사진 업로드'}
-        </Button>
-        <input
-          accept={PHOTO_FILE_INPUT_ACCEPT}
-          aria-label="사진 파일 선택"
-          className={hiddenInputClass}
-          disabled={isUploading}
-          multiple
-          onChange={handleFileChange}
-          ref={inputRef}
-          type="file"
-        />
-      </div>
+    <section aria-label="사진 보관함" className={sectionClass}>
+      <input
+        accept={PHOTO_FILE_INPUT_ACCEPT}
+        aria-label="사진 파일 선택"
+        className={hiddenInputClass}
+        disabled={isUploading}
+        id={resolvedFileInputId}
+        multiple
+        onChange={handleFileChange}
+        ref={inputRef}
+        type="file"
+      />
 
       {feedback ? (
         <p
@@ -270,12 +252,11 @@ export const AdminPhotoLibraryPanel = ({ initialItems }: AdminPhotoLibraryPanelP
         </div>
       ) : (
         <div className={photoGridClass}>
-          {items.map((item, index) => (
+          {items.map(item => (
             <AdminPhotoCard
               isDeleting={deletingFilePath === item.filePath}
               item={item}
               key={item.filePath}
-              order={index + 1}
               onDelete={handleDeleteClick}
             />
           ))}
@@ -289,13 +270,12 @@ type AdminPhotoCardProps = {
   isDeleting: boolean;
   item: PhotoFileItem;
   onDelete: (item: PhotoFileItem) => void;
-  order: number;
 };
 
 /**
  * 업로드된 사진 하나를 미리보기 카드로 표시합니다.
  */
-const AdminPhotoCard = ({ isDeleting, item, onDelete, order }: AdminPhotoCardProps) => {
+const AdminPhotoCard = ({ isDeleting, item, onDelete }: AdminPhotoCardProps) => {
   const [isPreviewFailed, setIsPreviewFailed] = useState(false);
 
   return (
@@ -328,7 +308,6 @@ const AdminPhotoCard = ({ isDeleting, item, onDelete, order }: AdminPhotoCardPro
         )}
       </div>
       <figcaption className={photoMetaClass}>
-        <p className={photoOrderClass}>{`업로드 순서 ${order}`}</p>
         <p className={photoFileNameClass}>{item.fileName}</p>
         <p className={photoInfoClass}>
           {formatPhotoFileSize(item.size)} · {item.mimeType}
@@ -340,35 +319,7 @@ const AdminPhotoCard = ({ isDeleting, item, onDelete, order }: AdminPhotoCardPro
 
 const sectionClass = css({
   display: 'grid',
-  gap: '4',
-});
-
-const panelHeaderClass = css({
-  display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'space-between',
-  gap: '4',
-  flexWrap: 'wrap',
-});
-
-const panelCopyClass = css({
-  display: 'grid',
-  gap: '1',
-});
-
-const panelTitleClass = css({
-  fontSize: 'xl',
-  lineHeight: 'tight',
-  letterSpacing: '[-0.02em]',
-});
-
-const panelDescriptionClass = css({
-  color: 'muted',
-  fontSize: 'sm',
-});
-
-const uploadButtonClass = css({
-  flexShrink: '0',
+  gap: '3',
 });
 
 const hiddenInputClass = css({
@@ -381,14 +332,16 @@ const feedbackClass = css({
 });
 
 const feedbackErrorClass = css({
-  color: '[rgb(190 24 93)]',
+  color: 'error',
 });
 
 const emptyStateClass = css({
   display: 'grid',
   gap: '2',
   borderRadius: '3xl',
-  border: '[1px dashed var(--colors-border)]',
+  borderWidth: '1px',
+  borderStyle: 'dashed',
+  borderColor: 'border',
   background: 'surfaceMuted',
   px: '6',
   py: '8',
@@ -407,28 +360,30 @@ const emptyStateDescriptionClass = css({
 
 const photoGridClass = css({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(15rem, 1fr))',
-  gap: '4',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))',
+  gap: '3',
 });
 
 const photoCardClass = css({
   display: 'grid',
-  gap: '3',
-  borderRadius: '3xl',
-  border: '[1px solid var(--colors-border)]',
-  background: 'surfaceMuted',
-  p: '4',
-  boxShadow: '[0 14px 32px rgba(15, 23, 42, 0.06)]',
+  gap: '2.5',
+  borderRadius: '2xl',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'border',
+  background: 'surface',
+  p: '3',
 });
 
 const photoPreviewFrameClass = css({
   position: 'relative',
-  aspectRatio: 'square',
+  aspectRatio: '[16 / 9]',
   overflow: 'hidden',
-  borderRadius: '2xl',
-  background:
-    '[radial-gradient(circle_at_top,_rgba(99,102,241,0.12),_transparent_48%),_linear-gradient(180deg,_rgba(255,255,255,0.95),_rgba(241,245,249,0.92))]',
-  border: '[1px solid rgba(148, 163, 184, 0.28)]',
+  borderRadius: 'xl',
+  background: 'surfaceMuted',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'border',
 });
 
 const deleteButtonClass = css({
@@ -436,7 +391,7 @@ const deleteButtonClass = css({
   top: '3',
   right: '3',
   zIndex: '1',
-  boxShadow: '[0 10px 24px rgba(15, 23, 42, 0.12)]',
+  boxShadow: 'floating',
 });
 
 const photoImageClass = css({
@@ -448,30 +403,24 @@ const photoFallbackClass = css({
   height: 'full',
   display: 'grid',
   placeItems: 'center',
-  background: '[linear-gradient(135deg,_rgba(226,232,240,0.96),_rgba(248,250,252,0.98))]',
+  background: 'surfaceMuted',
 });
 
 const photoFallbackExtensionClass = css({
   fontSize: '2xl',
   fontWeight: 'bold',
-  letterSpacing: '[0.16em]',
+  letterSpacing: 'widest',
   color: 'muted',
 });
 
 const photoMetaClass = css({
   display: 'grid',
-  gap: '1',
+  gap: '0.5',
   minWidth: '0',
 });
 
-const photoOrderClass = css({
-  fontSize: 'xs',
-  color: 'primary',
-  letterSpacing: '[0.08em]',
-});
-
 const photoFileNameClass = css({
-  lineClamp: '1',
+  lineClamp: '2',
   fontSize: 'sm',
   fontWeight: 'semibold',
 });

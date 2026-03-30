@@ -9,6 +9,10 @@ import { ArticleSearchForm } from '@/features/article-search/ui/article-search-f
 import { Link, usePathname } from '@/i18n/navigation';
 import { viewportMediaQuery } from '@/shared/config/responsive';
 import {
+  buildHiddenGlobalNavOffsetValue,
+  GLOBAL_NAV_OFFSET_CSS_VAR,
+} from '@/shared/lib/dom/global-nav-layout-vars';
+import {
   HOME_HERO_NAV_LOCK_EVENT,
   type HomeHeroNavLockDetail,
 } from '@/shared/lib/dom/home-hero-nav-lock';
@@ -262,6 +266,21 @@ export const GlobalNav = () => {
   useEffect(() => {
     handleMobileSearchClose();
   }, [currentSearchQuery, handleMobileSearchClose, pathname]);
+
+  useEffect(() => {
+    const styleScope =
+      document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ??
+      document.documentElement;
+
+    styleScope.style.setProperty(
+      GLOBAL_NAV_OFFSET_CSS_VAR,
+      isHidden ? buildHiddenGlobalNavOffsetValue() : '0px',
+    );
+
+    return () => {
+      styleScope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, '0px');
+    };
+  }, [isHidden]);
 
   useEffect(() => {
     if (!isMobileSearchOpen) return;

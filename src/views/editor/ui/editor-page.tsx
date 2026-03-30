@@ -2,6 +2,7 @@ import React from 'react';
 
 import type { PublishActionResult } from '@/entities/editor/model/editor-types';
 import { EditorClient } from '@/views/editor/ui/editor-client';
+import { AdminConsoleShell } from '@/widgets/admin-console';
 import type {
   DraftSaveResult,
   EditorContentType,
@@ -13,6 +14,9 @@ import type {
 } from '@/widgets/editor';
 
 type EditorPageProps = {
+  adminChrome?: {
+    signOutRedirectPath: string;
+  };
   availableTags: {
     id: string;
     label: string;
@@ -45,6 +49,7 @@ type EditorPageProps = {
  * 관리자 전용 article/project 공용 에디터 페이지입니다.
  */
 export const EditorPage = ({
+  adminChrome,
   availableTags,
   contentId,
   contentType,
@@ -59,21 +64,37 @@ export const EditorPage = ({
   initialTranslations,
   onDraftSave,
   onPublishSubmit,
-}: EditorPageProps) => (
-  <EditorClient
-    availableTags={availableTags}
-    contentId={contentId}
-    contentType={contentType}
-    hideAppFrameFooter={hideAppFrameFooter}
-    initialDraftId={initialDraftId}
-    initialPublicationState={initialPublicationState}
-    initialPublished={initialPublished}
-    initialSavedAt={initialSavedAt}
-    initialSettings={initialSettings}
-    initialSlug={initialSlug}
-    initialTags={initialTags}
-    initialTranslations={initialTranslations}
-    onDraftSave={onDraftSave}
-    onPublishSubmit={onPublishSubmit}
-  />
-);
+}: EditorPageProps) => {
+  const content = (
+    <EditorClient
+      availableTags={availableTags}
+      contentId={contentId}
+      contentType={contentType}
+      hideAppFrameFooter={hideAppFrameFooter}
+      initialDraftId={initialDraftId}
+      initialPublicationState={initialPublicationState}
+      initialPublished={initialPublished}
+      initialSavedAt={initialSavedAt}
+      initialSettings={initialSettings}
+      initialSlug={initialSlug}
+      initialTags={initialTags}
+      initialTranslations={initialTranslations}
+      onDraftSave={onDraftSave}
+      onPublishSubmit={onPublishSubmit}
+    />
+  );
+
+  if (!adminChrome) {
+    return content;
+  }
+
+  return (
+    <AdminConsoleShell
+      activeSection="content"
+      signOutRedirectPath={adminChrome.signOutRedirectPath}
+      title={null}
+    >
+      {content}
+    </AdminConsoleShell>
+  );
+};

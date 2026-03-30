@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 import { listPhotoFiles } from '@/entities/hero-photo/api/list-photo-files';
+import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { AdminPhotoPage } from '@/views/admin-photo';
 
@@ -28,7 +29,12 @@ const AdminPhotoRoute = async ({
 
   const initialItems = await listPhotoFiles();
 
-  return <AdminPhotoPage initialItems={initialItems} />;
+  return (
+    <AdminPhotoPage
+      initialItems={initialItems}
+      signOutRedirectPath={buildAdminPath({ locale, section: 'login' })}
+    />
+  );
 };
 
 export default AdminPhotoRoute;

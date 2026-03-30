@@ -1,31 +1,45 @@
+'use client';
+
 import React from 'react';
 
 import type { PhotoFileItem } from '@/entities/hero-photo/model/types';
-import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
+import { AdminConsoleShell } from '@/widgets/admin-console';
 import { AdminPhotoLibraryPanel } from '@/widgets/admin-photo-library';
-import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 type AdminPhotoPageProps = {
   initialItems: PhotoFileItem[];
+  signOutRedirectPath?: string;
 };
 
 /**
  * 관리자 사진 업로드/삭제 페이지를 렌더링합니다.
  */
-export const AdminPhotoPage = ({ initialItems }: AdminPhotoPageProps) => (
-  <PageShell width="default" hideAppFrameFooter>
-    <PageHeader
+export const AdminPhotoPage = ({ initialItems, signOutRedirectPath }: AdminPhotoPageProps) => {
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const content = (
+    <AdminPhotoLibraryPanel fileInputRef={fileInputRef} initialItems={initialItems} />
+  );
+  const handleUploadTrigger = React.useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  if (!signOutRedirectPath) {
+    return content;
+  }
+
+  return (
+    <AdminConsoleShell
       action={
-        <Button asChild tone="white" variant="solid">
-          <Link href="/admin">관리자 홈으로</Link>
+        <Button onClick={handleUploadTrigger} tone="primary" variant="solid">
+          사진 업로드
         </Button>
       }
-      description="다른 페이지 이미지 뷰어에서 사용할 사진을 업로드 순서대로 정리합니다."
-      title="사진 관리"
-    />
-    <PageSection>
-      <AdminPhotoLibraryPanel initialItems={initialItems} />
-    </PageSection>
-  </PageShell>
-);
+      activeSection="photo"
+      signOutRedirectPath={signOutRedirectPath}
+      title="Photo"
+    >
+      {content}
+    </AdminConsoleShell>
+  );
+};
