@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   mapProject,
@@ -14,7 +14,7 @@ import {
   pickPreferredLocaleValue,
 } from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import { getOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
@@ -75,7 +75,7 @@ const isRecoverableProjectFallbackRpcError = ({ code, message }: ProjectContentS
 const resolveProjectLookup = async (
   projectSlug: string,
 ): Promise<{ data: ProjectLookup | null; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase = getOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: null, schemaMissing: false };
 
   const projectSlugQuery = supabase
@@ -108,7 +108,7 @@ const fetchProjectFromContentSchema = async (
   projectId: string,
   localeFallbackChain: string[],
 ): Promise<{ data: ResolvedProject; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase = getOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
       data: {
@@ -184,7 +184,7 @@ const fetchProjectFromTranslationRows = async (
   projectId: string,
   localeFallbackChain: string[],
 ): Promise<{ data: ResolvedProject; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase = getOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
       data: {
@@ -268,12 +268,18 @@ const fetchProjectByLocaleFallbackChain = async (
 
 /**
  * 단일 프로젝트 조회 결과를 `use cache`로 캐시합니다.
+ *
+ * 이 함수 본문은 캐시 miss 시에만 실행됩니다.
+ * `console.log`가 출력되면 DB 쿼리가 발생한 것이고, 출력이 없으면 캐시 hit입니다.
  */
 const readCachedProject = async (
   projectSlug: string,
   normalizedLocale: string,
 ): Promise<ResolvedProject> => {
   'use cache';
+  cacheLife('hours');
+
+  console.log(`[cache-miss:project] slug="${projectSlug}" locale="${normalizedLocale}"`);
 
   const projectLookup = await resolveProjectLookup(projectSlug);
   if (projectLookup.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
@@ -302,6 +308,10 @@ const readCachedProject = async (
 
 /**
  * 프로젝트와 실제 선택된 locale을 함께 반환합니다.
+ *
+ * 실행 시간을 서버 로그로 출력합니다.
+ * - 캐시 hit: 수 ms 이내 (DB 쿼리 없음)
+ * - 캐시 miss: 수십~수백 ms (cold start 포함 시 더 길어질 수 있음)
  */
 export const getResolvedProject = async (
   projectSlug: string,
@@ -315,8 +325,13 @@ export const getResolvedProject = async (
   }
 
   const normalizedLocale = targetLocale.toLowerCase();
+  const start = performance.now();
+  const result = await readCachedProject(projectSlug, normalizedLocale);
+  const elapsed = (performance.now() - start).toFixed(1);
 
-  return readCachedProject(projectSlug, normalizedLocale);
+  console.log(`[perf:project] slug="${projectSlug}" locale="${normalizedLocale}" ms=${elapsed}`);
+
+  return result;
 };
 
 /**

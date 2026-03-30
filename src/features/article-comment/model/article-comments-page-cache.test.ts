@@ -1,4 +1,5 @@
 import {
+  ARTICLE_COMMENTS_CACHE_TTL_MS,
   cacheArticleCommentsPage,
   DEFAULT_INITIAL_PAGE,
   getCachedArticleCommentsPage,
@@ -28,6 +29,7 @@ const pageData = {
 describe('article comments page cache', () => {
   beforeEach(() => {
     resetArticleCommentsPageCacheForTest();
+    vi.useRealTimers();
   });
 
   it('articleId/page/sort 기준으로 캐시를 저장하고 조회한다', () => {
@@ -59,5 +61,55 @@ describe('article comments page cache', () => {
         sort: 'oldest',
       }),
     ).toBeNull();
+  });
+
+  it('TTL이 지난 캐시는 null을 반환한다', () => {
+    vi.useFakeTimers();
+    cacheArticleCommentsPage(pageData, 'article-1');
+
+    vi.advanceTimersByTime(ARTICLE_COMMENTS_CACHE_TTL_MS + 1);
+
+    expect(
+      getCachedArticleCommentsPage({
+        articleId: 'article-1',
+        page: 1,
+        sort: 'latest',
+      }),
+    ).toBeNull();
+  });
+
+  it('TTL 이내에 저장된 캐시는 계속 반환한다', () => {
+    vi.useFakeTimers();
+    cacheArticleCommentsPage(pageData, 'article-1');
+
+    vi.advanceTimersByTime(ARTICLE_COMMENTS_CACHE_TTL_MS - 1);
+
+    expect(
+      getCachedArticleCommentsPage({
+        articleId: 'article-1',
+        page: 1,
+        sort: 'latest',
+      }),
+    ).toEqual(pageData);
+  });
+
+  it('TTL이 지난 캐시를 조회한 뒤 새로 저장하면 새 데이터를 반환한다', () => {
+    vi.useFakeTimers();
+    cacheArticleCommentsPage(pageData, 'article-1');
+
+    vi.advanceTimersByTime(ARTICLE_COMMENTS_CACHE_TTL_MS + 1);
+
+    // 만료 항목 조회 → null 반환 (내부 삭제)
+    expect(
+      getCachedArticleCommentsPage({ articleId: 'article-1', page: 1, sort: 'latest' }),
+    ).toBeNull();
+
+    // 새 데이터로 다시 저장하면 조회 가능해야 한다
+    const updatedPageData = { ...pageData, totalCount: 5 };
+    cacheArticleCommentsPage(updatedPageData, 'article-1');
+
+    expect(
+      getCachedArticleCommentsPage({ articleId: 'article-1', page: 1, sort: 'latest' }),
+    ).toEqual(updatedPageData);
   });
 });

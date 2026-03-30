@@ -2,9 +2,13 @@ import { unstable_cacheTag } from 'next/cache';
 
 import { getProject, getResolvedProject } from '@/entities/project/api/detail/get-project';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import {
+  createOptionalPublicServerSupabaseClient,
+  getOptionalPublicServerSupabaseClient,
+} from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
@@ -14,6 +18,7 @@ vi.mock('@/shared/lib/supabase/config', () => ({
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(),
+  getOptionalPublicServerSupabaseClient: vi.fn(),
 }));
 
 const createProjectSlugLookupQuery = (id = 'funda-project') => ({
@@ -93,6 +98,7 @@ describe('getProject', () => {
       .mockReturnValueOnce(techStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getProject('funda-project', 'ko');
@@ -143,6 +149,7 @@ describe('getProject', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
@@ -178,6 +185,7 @@ describe('getProject', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
@@ -246,6 +254,7 @@ describe('getProject', () => {
       .mockReturnValueOnce(techStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).resolves.toMatchObject({
@@ -269,6 +278,7 @@ describe('getProject', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).rejects.toThrow(
@@ -314,6 +324,7 @@ describe('getProject', () => {
       .mockReturnValueOnce(projectTechStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     const result = await getResolvedProject('funda-project', 'fr');
@@ -341,6 +352,7 @@ describe('getProject', () => {
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'fr')).resolves.toBeNull();
@@ -387,6 +399,7 @@ describe('getProject', () => {
       .mockReturnValueOnce(projectTechStacksQuery);
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
     vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
 
     await expect(getProject('funda-project', 'ko')).resolves.toMatchObject({

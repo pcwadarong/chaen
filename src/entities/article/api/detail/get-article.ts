@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   type ArticleTranslationFallbackRpcRow,
@@ -10,7 +10,7 @@ import type { Article } from '@/entities/article/model/types';
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
+import { getOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 import 'server-only';
 
@@ -50,7 +50,7 @@ const isMissingArticleContentSchemaError = ({ code, message }: ArticleContentSch
 const resolveArticleLookup = async (
   articleSlug: string,
 ): Promise<{ data: ArticleLookup | null; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase = getOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
       data: null,
@@ -91,7 +91,7 @@ const fetchArticleFromContentSchema = async (
   articleId: string,
   localeFallbackChain: string[],
 ): Promise<{ data: ResolvedArticle; schemaMissing: boolean }> => {
-  const supabase = createOptionalPublicServerSupabaseClient();
+  const supabase = getOptionalPublicServerSupabaseClient();
   if (!supabase) {
     return {
       data: {
@@ -177,12 +177,18 @@ const fetchArticleByLocaleFallbackChain = async (
 
 /**
  * 단일 아티클 조회 결과를 `use cache`로 캐시합니다.
+ *
+ * 이 함수 본문은 캐시 miss 시에만 실행됩니다.
+ * `console.log`가 출력되면 DB 쿼리가 발생한 것이고, 출력이 없으면 캐시 hit입니다.
  */
 const readCachedArticle = async (
   articleSlug: string,
   normalizedLocale: string,
 ): Promise<ResolvedArticle> => {
   'use cache';
+  cacheLife('hours');
+
+  console.log(`[cache-miss:article] slug="${articleSlug}" locale="${normalizedLocale}"`);
 
   const article = await fetchArticleByLocaleFallbackChain(
     articleSlug,
@@ -199,6 +205,10 @@ const readCachedArticle = async (
 
 /**
  * 아티클과 실제 선택된 locale을 함께 반환합니다.
+ *
+ * 실행 시간을 서버 로그로 출력합니다.
+ * - 캐시 hit: 수 ms 이내 (DB 쿼리 없음)
+ * - 캐시 miss: 수십~수백 ms (cold start 포함 시 더 길어질 수 있음)
  */
 export const getResolvedArticle = async (
   articleSlug: string,
@@ -212,8 +222,13 @@ export const getResolvedArticle = async (
   }
 
   const normalizedLocale = targetLocale.toLowerCase();
+  const start = performance.now();
+  const result = await readCachedArticle(articleSlug, normalizedLocale);
+  const elapsed = (performance.now() - start).toFixed(1);
 
-  return readCachedArticle(articleSlug, normalizedLocale);
+  console.log(`[perf:article] slug="${articleSlug}" locale="${normalizedLocale}" ms=${elapsed}`);
+
+  return result;
 };
 
 /**
