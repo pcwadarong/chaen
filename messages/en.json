@@ -27,6 +27,7 @@
     "title": "An opening frame with room for motion."
   },
   "HomeHeroHint": {
+    "ariaLabel": "Home scene interaction hint",
     "closeAriaLabel": "Close hint",
     "stackedText": "Tap the laptop, bass, or camera, then drag to look around.",
     "wideText": "Scroll down or press the bass and camera."

@@ -27,6 +27,7 @@
     "title": "모션을 담아낼 수 있는 첫 화면 구조."
   },
   "HomeHeroHint": {
+    "ariaLabel": "홈 장면 상호작용 안내",
     "closeAriaLabel": "안내 닫기",
     "stackedText": "노트북, 기타, 카메라를 눌러보고 드래그해서 둘러보세요",
     "wideText": "스크롤을 내리거나 기타, 카메라를 눌러보세요"

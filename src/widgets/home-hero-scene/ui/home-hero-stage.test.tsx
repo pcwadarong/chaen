@@ -58,7 +58,7 @@ describe('HomeHeroStage', () => {
       />,
     );
 
-    expect(screen.getByTestId('scene-browser-fallback')).toBeTruthy();
+    expect(screen.getByRole('region', { name: '브라우저 fallback 제목' })).toBeTruthy();
     expect(screen.queryByTestId('home-hero-stage-canvas')).toBeNull();
   });
 });

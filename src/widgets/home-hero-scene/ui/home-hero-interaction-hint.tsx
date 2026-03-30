@@ -58,7 +58,7 @@ export const HomeHeroInteractionHint = ({ hidden = false }: HomeHeroInteractionH
   const text = sceneViewportMode === SCENE_VIEWPORT_MODE.wide ? t('wideText') : t('stackedText');
 
   return (
-    <aside aria-live="polite" className={wrapperClass}>
+    <aside aria-label={t('ariaLabel')} className={wrapperClass} role="note">
       <div className={cardClass}>
         <p className={textClass}>{text}</p>
         <XButton

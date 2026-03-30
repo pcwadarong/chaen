@@ -117,7 +117,11 @@ export const ContactScene = () => {
         <div className={copyColumnClass} data-testid="contact-scene-copy">
           <ContactStrip layout="split" />
         </div>
-        <div aria-hidden="true" className={mediaColumnClass} data-testid="contact-scene-media">
+        <div
+          aria-hidden={isWebglAvailable === false ? undefined : true}
+          className={mediaColumnClass}
+          data-testid="contact-scene-media"
+        >
           <div className={canvasFrameClass}>
             {isWebglAvailable === false ? (
               <SceneBrowserFallback

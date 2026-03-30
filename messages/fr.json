@@ -27,6 +27,7 @@
     "title": "Une ouverture pensée pour accueillir du mouvement."
   },
   "HomeHeroHint": {
+    "ariaLabel": "Aide d'interaction de la scène d'accueil",
     "closeAriaLabel": "Fermer l'aide",
     "stackedText": "Touchez l'ordinateur portable, la basse ou l'appareil photo, puis faites glisser pour explorer.",
     "wideText": "Faites défiler ou appuyez sur la basse et l'appareil photo."

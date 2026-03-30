@@ -12,6 +12,7 @@ import '@testing-library/jest-dom/vitest';
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) =>
     ({
+      ariaLabel: '홈 장면 상호작용 안내',
       closeAriaLabel: '닫기',
       stackedText: '노트북, 기타, 카메라를 눌러보고 드래그해서 장면을 둘러보세요',
       wideText: '스크롤을 내리거나 기타, 카메라를 눌러보세요',
@@ -38,6 +39,7 @@ describe('HomeHeroInteractionHint', () => {
   it('첫 방문의 wide viewport일 때, HomeHeroInteractionHint는 wide 안내 문구를 렌더링해야 한다', () => {
     render(<HomeHeroInteractionHint />);
 
+    expect(screen.getByRole('note', { name: '홈 장면 상호작용 안내' })).toBeTruthy();
     expect(screen.getByText('스크롤을 내리거나 기타, 카메라를 눌러보세요')).toBeTruthy();
   });
 

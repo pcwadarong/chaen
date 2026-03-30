@@ -8,15 +8,25 @@ import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type SceneLoadingShellProps = Readonly<{
   className?: string;
+  srLabel?: string;
 }>;
 
 /**
  * 3D 씬 코드 분할 또는 GLB 로딩 중에 먼저 보이는 공통 shell입니다.
  * 실제 장면과 비슷한 프레임을 먼저 렌더해 빈 화면이나 깜빡임을 줄입니다.
  */
-export const SceneLoadingShell = ({ className }: SceneLoadingShellProps) => (
-  <div aria-live="polite" className={cx(wrapperClass, className)} role="status">
-    <span className={srOnlyClass}>Loading 3D scene</span>
+export const SceneLoadingShell = ({
+  className,
+  srLabel = 'Loading 3D scene',
+}: SceneLoadingShellProps) => (
+  <div
+    aria-atomic="true"
+    aria-busy="true"
+    aria-live="polite"
+    className={cx(wrapperClass, className)}
+    role="status"
+  >
+    <span className={srOnlyClass}>{srLabel}</span>
     <div aria-hidden="true" className={panelClass}>
       <LoadingDots />
     </div>

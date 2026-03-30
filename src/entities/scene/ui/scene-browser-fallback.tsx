@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { css, cx } from 'styled-system/css';
 
 type SceneBrowserFallbackProps = Readonly<{
@@ -15,18 +15,29 @@ export const SceneBrowserFallback = ({
   className,
   description,
   title,
-}: SceneBrowserFallbackProps) => (
-  <section
-    aria-live="polite"
-    className={cx(wrapperClass, className)}
-    data-testid="scene-browser-fallback"
-  >
-    <div className={panelClass}>
-      <h2 className={titleClass}>{title}</h2>
-      <p className={descriptionClass}>{description}</p>
-    </div>
-  </section>
-);
+}: SceneBrowserFallbackProps) => {
+  const titleId = useId();
+  const descriptionId = useId();
+
+  return (
+    <section
+      aria-describedby={descriptionId}
+      aria-labelledby={titleId}
+      className={cx(wrapperClass, className)}
+      data-testid="scene-browser-fallback"
+      role="region"
+    >
+      <div className={panelClass}>
+        <h2 className={titleClass} id={titleId}>
+          {title}
+        </h2>
+        <p className={descriptionClass} id={descriptionId}>
+          {description}
+        </p>
+      </div>
+    </section>
+  );
+};
 
 const wrapperClass = css({
   width: 'full',

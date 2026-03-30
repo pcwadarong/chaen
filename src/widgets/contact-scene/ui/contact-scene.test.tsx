@@ -11,7 +11,11 @@ import { useBreakpoint } from '@/widgets/home-hero-scene/model/use-breakpoint';
 import '@testing-library/jest-dom/vitest';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string) =>
+    ({
+      webglDescription: '브라우저 fallback 설명',
+      webglTitle: '브라우저 fallback 제목',
+    })[key] ?? key,
 }));
 
 vi.mock('next/dynamic', () => ({
@@ -151,7 +155,7 @@ describe('ContactScene', () => {
     render(<ContactScene />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('scene-browser-fallback')).toBeTruthy();
+      expect(screen.getByRole('region', { name: '브라우저 fallback 제목' })).toBeTruthy();
     });
 
     expect(screen.queryByTestId('contact-scene-canvas')).toBeNull();
