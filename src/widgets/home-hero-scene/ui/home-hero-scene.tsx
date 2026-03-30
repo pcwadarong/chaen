@@ -110,18 +110,18 @@ export const HomeHeroScene = ({
           wrapperRef={webUiRef}
         />
         <div aria-hidden="true" className={blackoutOverlayClass} ref={blackoutOverlayRef} />
+        <HomeHeroOverlays
+          imageViewerOpenIndex={imageViewerOpenIndex}
+          imageViewerLabels={imageViewerLabels}
+          isMobileProjectSheetOpen={isMobileProjectSheetOpen}
+          items={items}
+          onCloseImageViewer={closeImageViewer}
+          onCloseMobileProjectSheet={handleCloseMobileProjectSheet}
+          onSelectCurrentImage={selectFrameImageByIndex}
+          photoItems={photoItems}
+          title={title}
+        />
       </div>
-      <HomeHeroOverlays
-        imageViewerOpenIndex={imageViewerOpenIndex}
-        imageViewerLabels={imageViewerLabels}
-        isMobileProjectSheetOpen={isMobileProjectSheetOpen}
-        items={items}
-        onCloseImageViewer={closeImageViewer}
-        onCloseMobileProjectSheet={handleCloseMobileProjectSheet}
-        onSelectCurrentImage={selectFrameImageByIndex}
-        photoItems={photoItems}
-        title={title}
-      />
     </section>
   );
 };
