@@ -1,5 +1,6 @@
 import {
   createAlignBlockMarkdown,
+  createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
@@ -62,5 +63,18 @@ describe('markdown-toolbar template helpers', () => {
   it('YouTube embed markdown는 유효한 id를 삽입하고 따옴표를 이스케이프한다', () => {
     expect(createYoutubeEmbedMarkdown('dQw4w9WgXcQ')).toBe('<YouTube id="dQw4w9WgXcQ" />');
     expect(createYoutubeEmbedMarkdown('abc"def')).toBe('<YouTube id="abc&quot;def" />');
+  });
+
+  it('첨부 파일 markdown는 속성을 안전하게 escape하고 size/type을 함께 담는다', () => {
+    expect(
+      createAttachmentEmbedMarkdown({
+        contentType: 'application/pdf',
+        fileName: 'resume "v2".pdf',
+        fileSize: 2048,
+        url: 'https://example.com/resume.pdf',
+      }),
+    ).toBe(
+      '<Attachment href="https://example.com/resume.pdf" name="resume &quot;v2&quot;.pdf" size="2048" type="application/pdf" />',
+    );
   });
 });

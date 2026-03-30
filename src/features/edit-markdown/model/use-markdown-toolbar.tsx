@@ -18,11 +18,13 @@ import type {
 } from '@/features/edit-markdown/model/markdown-toolbar.types';
 import {
   createAlignBlockMarkdown,
+  createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
 import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
+import { FileEmbedPopover } from '@/features/edit-markdown/ui/file-embed-popover';
 import { ImageEmbedPopover } from '@/features/edit-markdown/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/edit-markdown/ui/text-background-color-popover';
@@ -162,6 +164,22 @@ export const useMarkdownToolbar = ({
       closePopover?.({ restoreFocus: false });
     },
     [applyTextTransform, getSelectedText],
+  );
+
+  const handleAttachmentApply = React.useCallback(
+    (
+      attachment: {
+        contentType: string;
+        fileName: string;
+        fileSize: number;
+        url: string;
+      },
+      closePopover?: ClosePopover,
+    ) => {
+      applyTemplate(createAttachmentEmbedMarkdown(attachment));
+      closePopover?.({ restoreFocus: false });
+    },
+    [applyTemplate],
   );
 
   const handleTextColorApply = React.useCallback(
@@ -395,6 +413,18 @@ export const useMarkdownToolbar = ({
       {
         items: [
           {
+            key: 'file-embed',
+            node: (
+              <FileEmbedPopover
+                contentType={contentType}
+                onApply={handleAttachmentApply}
+                onTriggerMouseDown={event => event.preventDefault()}
+                triggerClassName={popoverTriggerClassName}
+              />
+            ),
+            type: 'custom',
+          },
+          {
             key: 'image-embed',
             node: (
               <ImageEmbedPopover
@@ -437,6 +467,7 @@ export const useMarkdownToolbar = ({
       handleAlignApply,
       handleBackgroundColorApply,
       contentType,
+      handleAttachmentApply,
       handleImageApply,
       handleLinkApply,
       handleTextColorApply,

@@ -4,6 +4,15 @@ import React from 'react';
 import { MarkdownToolbar } from '@/features/edit-markdown/ui/markdown-toolbar';
 import { Textarea } from '@/shared/ui/textarea/textarea';
 
+vi.mock('@/entities/editor/api/upload-editor-file', () => ({
+  uploadEditorFile: vi.fn(async () => ({
+    contentType: 'application/pdf',
+    fileName: 'resume.pdf',
+    fileSize: 2048,
+    url: 'https://example.com/resume.pdf',
+  })),
+}));
+
 /**
  * 툴바와 textarea를 함께 묶어 실제 편집 상호작용을 검증합니다.
  */
@@ -79,6 +88,31 @@ describe('MarkdownToolbar', () => {
 
     await waitFor(() => {
       expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
+    });
+  });
+
+  it('파일 팝오버로 업로드한 첨부 파일 markdown를 삽입한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '파일 첨부' }));
+    fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
+      target: {
+        files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('resume.pdf')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe(
+        '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',
+      );
     });
   });
 

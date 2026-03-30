@@ -8,6 +8,7 @@ import {
   markdownH4Class,
 } from '@/shared/lib/markdown/markdown-config';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
+import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
@@ -34,6 +35,13 @@ type MarkdownSegment =
       type: 'toggle';
     }
   | {
+      contentType?: string;
+      fileName: string;
+      fileSize?: number;
+      href: string;
+      type: 'attachment';
+    }
+  | {
       type: 'youtube';
       videoId: string;
     };
@@ -41,6 +49,8 @@ type MarkdownSegment =
 const toggleStartPrefix = ':::toggle ';
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const attachmentPattern =
+  /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
 const subtextPrefix = '-# ';
 const htmlLineBreakPattern = /<br\s*\/?>/gi;
 const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
@@ -350,6 +360,20 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
+    const attachmentMatch = line.match(attachmentPattern);
+
+    if (attachmentMatch) {
+      flushMarkdown();
+      segments.push({
+        contentType: attachmentMatch[4],
+        fileName: attachmentMatch[2],
+        fileSize: attachmentMatch[3] ? Number(attachmentMatch[3]) : undefined,
+        href: attachmentMatch[1],
+        type: 'attachment',
+      });
+      continue;
+    }
+
     if (line.startsWith(subtextPrefix)) {
       flushMarkdown();
 
@@ -411,6 +435,18 @@ export const renderRichMarkdown = ({
             title="YouTube video player"
           />
         </div>
+      );
+    }
+
+    if (segment.type === 'attachment') {
+      return (
+        <MarkdownAttachment
+          contentType={segment.contentType}
+          fileName={segment.fileName}
+          fileSize={segment.fileSize}
+          href={segment.href}
+          key={key}
+        />
       );
     }
 

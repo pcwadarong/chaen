@@ -118,6 +118,18 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('첨부 파일 커스텀 태그를 다운로드 카드 링크로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',
+    );
+    const attachmentLink = document.querySelector('a[data-markdown-attachment="true"]');
+
+    expect(attachmentLink).toBeTruthy();
+    expect(attachmentLink?.getAttribute('href')).toBe('https://example.com/resume.pdf');
+    expect(attachmentLink?.textContent).toContain('resume.pdf');
+    expect(attachmentLink?.textContent).toContain('2 KB');
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',

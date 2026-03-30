@@ -92,6 +92,28 @@ export const createYoutubeEmbedMarkdown = (videoId: string) =>
   `<YouTube id="${escapeJsxAttribute(videoId)}" />`;
 
 /**
+ * 첨부 파일 embed markdown 문자열을 생성합니다.
+ *
+ * @param contentType 첨부 파일 MIME 타입입니다.
+ * @param fileName 본문에 표시할 원본 파일명입니다.
+ * @param fileSize 첨부 파일 바이트 크기입니다.
+ * @param url 첨부 파일 공개 URL입니다.
+ * @returns 커스텀 Attachment markdown 문자열을 반환합니다.
+ */
+export const createAttachmentEmbedMarkdown = ({
+  contentType,
+  fileName,
+  fileSize,
+  url,
+}: {
+  contentType: string;
+  fileName: string;
+  fileSize: number;
+  url: string;
+}) =>
+  `<Attachment href="${escapeJsxAttribute(url)}" name="${escapeJsxAttribute(fileName)}" size="${String(fileSize)}" type="${escapeJsxAttribute(contentType)}" />`;
+
+/**
  * align block markdown 문자열을 생성합니다.
  *
  * @param align 정렬 방향입니다.
