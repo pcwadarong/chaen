@@ -3,6 +3,8 @@ import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
 import AdminRoute, { metadata } from '@/app/[locale]/admin/page';
+import { getAdminTopArticles } from '@/entities/article/api/list/get-admin-articles';
+import { getAdminPdfDownloadLogs } from '@/entities/pdf-file/api/get-admin-pdf-download-logs';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('next/navigation', () => ({
@@ -13,8 +15,16 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/views/dashboard', () => ({
-  DashboardPage: function DashboardPage() {
+vi.mock('@/entities/article/api/list/get-admin-articles', () => ({
+  getAdminTopArticles: vi.fn(),
+}));
+
+vi.mock('@/entities/pdf-file/api/get-admin-pdf-download-logs', () => ({
+  getAdminPdfDownloadLogs: vi.fn(),
+}));
+
+vi.mock('@/views/admin-analytics', () => ({
+  AdminAnalyticsPage: function AdminAnalyticsPage() {
     return null;
   },
 }));
@@ -31,6 +41,8 @@ describe('AdminRoute', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
+    vi.mocked(getAdminTopArticles).mockResolvedValue([]);
+    vi.mocked(getAdminPdfDownloadLogs).mockResolvedValue([]);
 
     const element = await AdminRoute({
       params: Promise.resolve({
@@ -39,7 +51,7 @@ describe('AdminRoute', () => {
     });
 
     expect(isValidElement(element)).toBe(true);
-    expect(element.type.name).toBe('DashboardPage');
+    expect(element.type.name).toBe('AdminAnalyticsPage');
     expect(element.props.locale).toBe('ko');
   });
 

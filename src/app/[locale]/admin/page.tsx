@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
+import { getAdminTopArticles } from '@/entities/article/api/list/get-admin-articles';
+import { getAdminPdfDownloadLogs } from '@/entities/pdf-file/api/get-admin-pdf-download-logs';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { DashboardPage } from '@/views/dashboard';
+import { AdminAnalyticsPage } from '@/views/admin-analytics';
 
 export const metadata: Metadata = {
   robots: {
@@ -24,7 +26,20 @@ const AdminRoute = async ({
   const { locale } = await params;
   await requireAdmin({ locale });
 
-  return <DashboardPage locale={locale} />;
+  const [topArticles, pdfLogs] = await Promise.all([
+    getAdminTopArticles({ limit: 5, locale }),
+    getAdminPdfDownloadLogs({ limit: 20 }),
+  ]);
+
+  return (
+    <AdminAnalyticsPage
+      activeSection="dashboard"
+      locale={locale}
+      pdfLogs={pdfLogs}
+      title="Dashboard"
+      topArticles={topArticles}
+    />
+  );
 };
 
 export default AdminRoute;

@@ -20,7 +20,13 @@ export const AdminSignOutButton = ({ redirectPath }: AdminSignOutButtonProps) =>
   return (
     <form action={formAction}>
       <input name="redirectPath" type="hidden" value={redirectPath} />
-      <Button disabled={isPending} tone="black" type="submit" variant="ghost">
+      <Button
+        className={signOutButtonClass}
+        disabled={isPending}
+        tone="black"
+        type="submit"
+        variant="underline"
+      >
         {isPending ? '로그아웃 중' : '로그아웃'}
       </Button>
       {state.errorMessage ? (
@@ -35,4 +41,14 @@ export const AdminSignOutButton = ({ redirectPath }: AdminSignOutButtonProps) =>
 const messageClass = css({
   color: 'error',
   fontSize: 'sm',
+});
+
+const errorInteractiveState = {
+  color: 'error',
+} as const;
+
+const signOutButtonClass = css({
+  color: 'error',
+  _hover: errorInteractiveState,
+  _focusVisible: errorInteractiveState,
 });
