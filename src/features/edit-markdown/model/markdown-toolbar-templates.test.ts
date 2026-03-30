@@ -2,6 +2,7 @@ import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
+  createMathEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
   extractYoutubeId,
@@ -76,5 +77,20 @@ describe('markdown-toolbar template helpers', () => {
     ).toBe(
       '<Attachment href="https://example.com/resume.pdf" name="resume &quot;v2&quot;.pdf" size="2048" type="application/pdf" />',
     );
+  });
+
+  it('수식 markdown는 inline/block 여부를 구분하고 줄바꿈을 한 줄로 정리한다', () => {
+    expect(
+      createMathEmbedMarkdown({
+        formula: 'a^2 + b^2 = c^2',
+        isBlock: false,
+      }),
+    ).toBe('<Math>a^2 + b^2 = c^2</Math>');
+    expect(
+      createMathEmbedMarkdown({
+        formula: '\\begin{cases}\n x, &x \\ge 0 \\\\\n -x, &x < 0\n\\end{cases}',
+        isBlock: true,
+      }),
+    ).toBe('<Math block="true">\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}</Math>');
   });
 });

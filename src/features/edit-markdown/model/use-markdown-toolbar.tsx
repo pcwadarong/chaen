@@ -20,6 +20,7 @@ import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
+  createMathEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
@@ -27,6 +28,7 @@ import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
 import { FileEmbedPopover } from '@/features/edit-markdown/ui/file-embed-popover';
 import { ImageEmbedPopover } from '@/features/edit-markdown/ui/image-embed-popover';
 import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover';
+import { MathEmbedPopover } from '@/features/edit-markdown/ui/math-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/edit-markdown/ui/text-background-color-popover';
 import { TextColorPopover } from '@/features/edit-markdown/ui/text-color-popover';
 import { YoutubeEmbedPopover } from '@/features/edit-markdown/ui/youtube-embed-popover';
@@ -177,6 +179,19 @@ export const useMarkdownToolbar = ({
       closePopover?: ClosePopover,
     ) => {
       applyTemplate(createAttachmentEmbedMarkdown(attachment));
+      closePopover?.({ restoreFocus: false });
+    },
+    [applyTemplate],
+  );
+
+  const handleMathApply = React.useCallback(
+    (formula: string, isBlock: boolean, closePopover?: ClosePopover) => {
+      applyTemplate(
+        createMathEmbedMarkdown({
+          formula,
+          isBlock,
+        }),
+      );
       closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
@@ -413,6 +428,17 @@ export const useMarkdownToolbar = ({
       {
         items: [
           {
+            key: 'math-embed',
+            node: (
+              <MathEmbedPopover
+                onApply={handleMathApply}
+                onTriggerMouseDown={event => event.preventDefault()}
+                triggerClassName={popoverTriggerClassName}
+              />
+            ),
+            type: 'custom',
+          },
+          {
             key: 'file-embed',
             node: (
               <FileEmbedPopover
@@ -470,6 +496,7 @@ export const useMarkdownToolbar = ({
       handleAttachmentApply,
       handleImageApply,
       handleLinkApply,
+      handleMathApply,
       handleTextColorApply,
       handleYoutubeApply,
       headingActions,

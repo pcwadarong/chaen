@@ -22,6 +22,8 @@ const escapeMarkdownLinkDestination = (value: string) =>
 const escapeJsxAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
 
+const normalizeMathFormula = (value: string) => value.trim().replaceAll(/\s*\n+\s*/g, ' ');
+
 /**
  * pathname에서 첫 번째 비어 있지 않은 segment를 읽습니다.
  *
@@ -112,6 +114,26 @@ export const createAttachmentEmbedMarkdown = ({
   url: string;
 }) =>
   `<Attachment href="${escapeJsxAttribute(url)}" name="${escapeJsxAttribute(fileName)}" size="${String(fileSize)}" type="${escapeJsxAttribute(contentType)}" />`;
+
+/**
+ * 수식 embed markdown 문자열을 생성합니다.
+ *
+ * @param formula 사용자가 입력한 LaTeX 수식 문자열입니다.
+ * @param isBlock block 수식 여부입니다.
+ * @returns 커스텀 Math markdown 문자열을 반환합니다.
+ */
+export const createMathEmbedMarkdown = ({
+  formula,
+  isBlock,
+}: {
+  formula: string;
+  isBlock: boolean;
+}) => {
+  const normalizedFormula = normalizeMathFormula(formula);
+  const blockAttribute = isBlock ? ' block="true"' : '';
+
+  return `<Math${blockAttribute}>${normalizedFormula}</Math>`;
+};
 
 /**
  * align block markdown 문자열을 생성합니다.

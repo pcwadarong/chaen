@@ -116,6 +116,22 @@ describe('MarkdownToolbar', () => {
     });
   });
 
+  it('수학 공식 팝오버에서 inline 수식 markdown를 삽입한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+
+    fireEvent.click(screen.getByRole('button', { name: '수학 공식' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'LaTeX 수식' }), {
+      target: { value: 'a^2 + b^2 = c^2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '인라인' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('<Math>a^2 + b^2 = c^2</Math>');
+    });
+  });
+
   it('선택 텍스트의 앞뒤 공백도 링크 라벨에 포함한다', async () => {
     render(<ToolbarHarness />);
 
