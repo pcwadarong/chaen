@@ -13,6 +13,27 @@ type HomeHeroInteractionHintProps = Readonly<{
 }>;
 
 const HOME_HERO_INTERACTION_HINT_STORAGE_KEY = 'home-hero:interaction-hint-dismissed';
+const HOME_HERO_INTERACTION_HINT_HIDE_SCROLL_TOP = 24;
+
+/**
+ * 홈 히어로 안내 문구가 따라가야 할 실제 스크롤 컨테이너를 찾습니다.
+ *
+ * 데스크톱 app-frame 모드에서는 내부 viewport가 스크롤 주체이고,
+ * 그 외 환경에서는 window가 직접 스크롤을 담당합니다.
+ *
+ * @returns 홈 히어로 스크롤 컨테이너 또는 브라우저 window
+ */
+const getHomeHeroHintScrollContainer = () =>
+  document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ?? window;
+
+/**
+ * 현재 홈 히어로 스크롤 컨테이너의 세로 스크롤 위치를 읽습니다.
+ *
+ * @param scrollContainer 홈 히어로 스크롤 주체
+ * @returns 현재 scroll top 값
+ */
+const getScrollTop = (scrollContainer: HTMLElement | Window) =>
+  scrollContainer instanceof Window ? scrollContainer.scrollY : scrollContainer.scrollTop;
 
 /**
  * 홈 첫 진입 시 현재 viewport 모드에 맞는 상호작용 안내 문구를 노출합니다.
@@ -23,6 +44,7 @@ export const HomeHeroInteractionHint = ({ hidden = false }: HomeHeroInteractionH
   const { sceneViewportMode } = useBreakpoint();
   const [isDismissed, setIsDismissed] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isScrolledAway, setIsScrolledAway] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -36,6 +58,26 @@ export const HomeHeroInteractionHint = ({ hidden = false }: HomeHeroInteractionH
     } catch {
       setIsDismissed(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const scrollContainer = getHomeHeroHintScrollContainer();
+
+    /**
+     * 홈 히어로가 top에서 충분히 벗어났는지 계산해 안내 문구 노출 여부를 갱신합니다.
+     */
+    const syncScrolledAwayState = () => {
+      setIsScrolledAway(getScrollTop(scrollContainer) > HOME_HERO_INTERACTION_HINT_HIDE_SCROLL_TOP);
+    };
+
+    syncScrolledAwayState();
+    scrollContainer.addEventListener('scroll', syncScrolledAwayState, { passive: true });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', syncScrolledAwayState);
+    };
   }, []);
 
   /**
@@ -53,7 +95,7 @@ export const HomeHeroInteractionHint = ({ hidden = false }: HomeHeroInteractionH
     }
   }, []);
 
-  if (!isHydrated || isDismissed || hidden) return null;
+  if (!isHydrated || isDismissed || isScrolledAway || hidden) return null;
 
   const text = sceneViewportMode === SCENE_VIEWPORT_MODE.wide ? t('wideText') : t('stackedText');
 
