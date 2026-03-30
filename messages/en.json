@@ -17,7 +17,7 @@
     "scrollToTopAriaLabel": "Back to top"
   },
   "Home": {
-    "description": "The home container assumes a Three.js-led opening, followed by project highlights and a closing contact section.",
+    "description": "A personal portfolio site archiving interactive frontend projects, UI implementation case studies, and technical articles.",
     "emptyProjects": "No projects have been published yet.",
     "eyebrow": "Home",
     "mobileProjectPanelAriaLabel": "Mobile project panel",

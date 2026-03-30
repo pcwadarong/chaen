@@ -17,7 +17,7 @@
     "scrollToTopAriaLabel": "Retour en haut"
   },
   "Home": {
-    "description": "La page d'accueil suppose une ouverture menée par une animation Three.js, suivie d'une sélection de projets et d'un bloc de contact.",
+    "description": "Un portfolio personnel qui archive des projets web frontend interactifs, des cas d’implémentation UI et des articles techniques.",
     "emptyProjects": "Aucun projet n'a encore été publié.",
     "eyebrow": "Accueil",
     "mobileProjectPanelAriaLabel": "Panneau mobile des projets",

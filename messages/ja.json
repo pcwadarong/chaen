@@ -17,7 +17,7 @@
     "scrollToTopAriaLabel": "ページ上部へ移動"
   },
   "Home": {
-    "description": "最初の画面は Three.js のアニメーションを中心にし、その下にプロジェクト紹介と連絡セクションが続く構成を想定しています。",
+    "description": "フロントエンド開発者として制作したインタラクティブなWebプロジェクト、UI実装事例、技術記事をまとめた個人ポートフォリオサイトです。",
     "emptyProjects": "まだ登録されたプロジェクトがありません。",
     "eyebrow": "ホーム",
     "mobileProjectPanelAriaLabel": "モバイルプロジェクトパネル",
