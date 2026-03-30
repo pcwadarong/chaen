@@ -99,18 +99,21 @@ const shellClass = css({
   width: 'full',
   minHeight: '[calc(100dvh - 5.5625rem)]',
   alignItems: 'stretch',
-  px: { base: '4', md: '5' },
-  py: { base: '0', md: '5' },
-  gridTemplateColumns: { base: '1fr', md: '[16rem minmax(0, 1fr)]' },
-  paddingTop: {
-    base: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px) + 0.1rem)]',
-    md: '0',
+  px: '5',
+  py: '5',
+  gridTemplateColumns: '[16rem minmax(0, 1fr)]',
+  paddingTop: '0',
+  _tabletDown: {
+    px: '4',
+    py: '0',
+    gridTemplateColumns: '1fr',
+    paddingTop: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px) + 0.1rem)]',
+    paddingBottom: '8',
   },
-  paddingBottom: { base: '8', md: '0' },
 });
 
 const mobileNavShellClass = css({
-  display: { base: 'block', md: 'none' },
+  display: 'none',
   position: 'fixed',
   top: '[calc(var(--global-nav-height, 0px) + var(--global-nav-offset, 0px))]',
   left: '0',
@@ -120,6 +123,9 @@ const mobileNavShellClass = css({
   background: '[rgba(255,255,255,0.92)]',
   backdropFilter: '[blur(14px)]',
   boxShadow: '[0 14px 32px rgba(15,23,42,0.08)]',
+  _tabletDown: {
+    display: 'block',
+  },
 });
 
 const mobileNavClass = css({
@@ -164,17 +170,20 @@ const mobileNavItemClass = cva({
 });
 
 const sidebarClass = css({
-  display: { base: 'none', md: 'grid' },
+  display: 'grid',
   alignContent: 'start',
   gap: '5',
   py: '5',
-  pr: { base: '0', md: '5' },
-  mr: { base: '0', md: '5' },
+  pr: '5',
+  mr: '5',
   borderRight: '[1px solid var(--colors-border)]',
   position: 'sticky',
   top: '0',
   alignSelf: 'stretch',
   minHeight: 'full',
+  _tabletDown: {
+    display: 'none',
+  },
 });
 
 const navClass = css({
@@ -229,7 +238,10 @@ const workspaceClass = cva({
     condensedTop: {
       false: {},
       true: {
-        paddingTop: { base: '4', md: '5' },
+        paddingTop: '5',
+        _tabletDown: {
+          paddingTop: '4',
+        },
       },
     },
   },
@@ -240,8 +252,12 @@ const workspaceHeaderClass = css({
   gridTemplateColumns: '[minmax(0,1fr) auto]',
   gap: '4',
   alignItems: 'start',
-  paddingTop: { base: '5', md: '6', lg: '6' },
-  paddingBottom: { base: '3', md: '4', lg: '4' },
+  paddingTop: '6',
+  paddingBottom: '4',
+  _tabletDown: {
+    paddingTop: '5',
+    paddingBottom: '3',
+  },
 });
 
 const workspaceHeadlineClass = css({
@@ -267,7 +283,10 @@ const workspaceActionClass = css({
   justifyContent: 'flex-end',
   gap: '2',
   minWidth: '0',
-  flexWrap: { base: 'nowrap', md: 'nowrap', lg: 'wrap' },
+  flexWrap: 'wrap',
+  _desktopDown: {
+    flexWrap: 'nowrap',
+  },
 });
 
 const summaryWrapClass = css({

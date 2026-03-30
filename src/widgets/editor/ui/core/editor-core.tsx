@@ -486,12 +486,15 @@ const localeTabRecipe = cva({
 });
 
 const mobilePaneTabListClass = css({
-  display: { base: 'grid', md: 'none' },
+  display: 'none',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   minWidth: '0',
   borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
   borderBottomColor: 'border',
+  _tabletDown: {
+    display: 'grid',
+  },
 });
 
 const mobilePaneTabRecipe = cva({

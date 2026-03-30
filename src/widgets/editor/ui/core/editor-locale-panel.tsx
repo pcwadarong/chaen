@@ -284,7 +284,10 @@ const summaryGridClass = css({
   display: 'grid',
   gap: '4',
   alignItems: 'stretch',
-  gridTemplateColumns: { base: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  _tabletDown: {
+    gridTemplateColumns: '1fr',
+  },
 });
 
 const summaryFieldClass = css({
@@ -309,7 +312,10 @@ const editorGridClass = css({
   minWidth: '0',
   minHeight: '0',
   alignItems: 'stretch',
-  gridTemplateColumns: { base: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  _tabletDown: {
+    gridTemplateColumns: '1fr',
+  },
 });
 
 const previewStackClass = css({
