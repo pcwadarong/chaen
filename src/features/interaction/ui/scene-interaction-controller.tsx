@@ -1,6 +1,7 @@
 'use client';
 
 import { useThree } from '@react-three/fiber';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { Object3D } from 'three';
 
@@ -8,6 +9,7 @@ import { useInteractionActions } from '@/features/interaction/model/useInteracti
 import { useRaycaster } from '@/features/interaction/model/useRaycaster';
 import { OutlineEffect } from '@/features/interaction/ui/outline-effect';
 import { useIsTouchDevice } from '@/shared/lib/dom/use-is-touch-device';
+import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 
 type SceneInteractionControllerProps = Readonly<{
   onBrowseProjects?: () => void;
@@ -32,6 +34,7 @@ export const SceneInteractionController = ({
   showOutlineEffect = true,
   onToggleBackgroundMusicPlayback,
 }: SceneInteractionControllerProps) => {
+  const t = useTranslations('SceneInteraction');
   const { gl, scene } = useThree();
   const isTouchDevice = useIsTouchDevice();
   const { handleMeshClick } = useInteractionActions({
@@ -57,12 +60,31 @@ export const SceneInteractionController = ({
   useEffect(() => {
     const canvasElement = gl.domElement;
     const previousAriaLabel = canvasElement.getAttribute('aria-label');
+    const previousAriaDescribedBy = canvasElement.getAttribute('aria-describedby');
     const previousTabIndex = canvasElement.tabIndex;
+    const helpTextElement = document.createElement('p');
+    const statusElement = document.createElement('p');
+
+    helpTextElement.id = 'scene-interaction-help-text';
+    helpTextElement.className = srOnlyClass;
+    helpTextElement.textContent = t('canvasHelpText');
+
+    statusElement.id = 'scene-interaction-status';
+    statusElement.className = srOnlyClass;
+    statusElement.setAttribute('aria-live', 'polite');
+    statusElement.setAttribute('role', 'status');
+    statusElement.textContent = '';
+
+    document.body.append(helpTextElement, statusElement);
 
     canvasElement.tabIndex = 0;
+    canvasElement.setAttribute(
+      'aria-describedby',
+      [previousAriaDescribedBy, helpTextElement.id].filter(Boolean).join(' '),
+    );
 
     if (previousAriaLabel === null) {
-      canvasElement.setAttribute('aria-label', '홈 씬 상호작용 캔버스');
+      canvasElement.setAttribute('aria-label', t('canvasAriaLabel'));
     }
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -79,6 +101,12 @@ export const SceneInteractionController = ({
 
       keyboardTargetIndexRef.current = nextTarget ? nextIndex : -1;
       setHoveredMeshDirect(nextTarget);
+
+      statusElement.textContent = nextTarget
+        ? t('keyboardTargetStatus', {
+            target: resolveKeyboardTargetLabel(nextTarget.name, t),
+          })
+        : '';
     };
     const handleFocus = () => {
       if (keyboardTargets.length === 0) return;
@@ -89,6 +117,7 @@ export const SceneInteractionController = ({
     };
     const handleBlur = () => {
       keyboardTargetIndexRef.current = -1;
+      statusElement.textContent = '';
       clearHoveredMesh();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -143,7 +172,15 @@ export const SceneInteractionController = ({
         canvasElement.setAttribute('aria-label', previousAriaLabel);
       }
 
+      if (previousAriaDescribedBy === null) {
+        canvasElement.removeAttribute('aria-describedby');
+      } else {
+        canvasElement.setAttribute('aria-describedby', previousAriaDescribedBy);
+      }
+
       canvasElement.tabIndex = previousTabIndex;
+      helpTextElement.remove();
+      statusElement.remove();
     };
   }, [
     clearHoveredMesh,
@@ -153,6 +190,7 @@ export const SceneInteractionController = ({
     onPointerClick,
     onPointerMove,
     setHoveredMeshDirect,
+    t,
   ]);
 
   // stacked / narrow-wide / coarse pointer에서는 outline composer 비용 대비 체감이 낮다.
@@ -169,3 +207,13 @@ const resolveKeyboardInteractionTargets = (scene: Object3D): Object3D[] =>
   KEYBOARD_INTERACTION_TARGET_NAMES.map(name => scene.getObjectByName(name)).filter(
     (target): target is Object3D => target !== undefined,
   );
+
+/**
+ * 키보드 순회 대상의 내부 mesh 이름을 사용자가 이해할 수 있는 라벨로 변환합니다.
+ */
+const resolveKeyboardTargetLabel = (targetName: string, t: ReturnType<typeof useTranslations>) => {
+  if (targetName === 'laptop') return t('targetLaptop');
+  if (targetName === 'bass_body') return t('targetBass');
+
+  return t('targetCamera');
+};

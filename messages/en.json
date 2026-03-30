@@ -293,6 +293,14 @@
     "webglDescription": "This browser cannot render the 3D scene directly. The rest of the content and links remain available below.",
     "webglTitle": "3D scene is unavailable in this browser."
   },
+  "SceneInteraction": {
+    "canvasAriaLabel": "Home scene interaction canvas",
+    "canvasHelpText": "Use the arrow keys to move between objects, then press Enter or Space to activate the current selection.",
+    "keyboardTargetStatus": "Current selection: {target}",
+    "targetBass": "Bass",
+    "targetCamera": "Camera",
+    "targetLaptop": "Laptop"
+  },
   "Switchers": {
     "locale": {
       "ariaLabel": "Choose language",

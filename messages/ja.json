@@ -293,6 +293,14 @@
     "webglDescription": "現在のブラウザでは 3D シーンを直接描画できません。下のコンテンツとリンクはそのまま利用できます。",
     "webglTitle": "このブラウザでは 3D シーンを利用できません。"
   },
+  "SceneInteraction": {
+    "canvasAriaLabel": "ホームシーン操作キャンバス",
+    "canvasHelpText": "矢印キーでオブジェクトを移動し、Enter または Space で現在の選択を実行できます。",
+    "keyboardTargetStatus": "現在の選択: {target}",
+    "targetBass": "ベース",
+    "targetCamera": "カメラ",
+    "targetLaptop": "ノートPC"
+  },
   "Switchers": {
     "locale": {
       "ariaLabel": "言語を選択",

@@ -293,6 +293,14 @@
     "webglDescription": "현재 브라우저에서는 3D 장면을 바로 렌더링할 수 없습니다. 아래 콘텐츠와 링크는 그대로 사용할 수 있습니다.",
     "webglTitle": "이 브라우저에서는 3D 장면이 비활성화됩니다."
   },
+  "SceneInteraction": {
+    "canvasAriaLabel": "홈 씬 상호작용 캔버스",
+    "canvasHelpText": "화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.",
+    "keyboardTargetStatus": "현재 선택: {target}",
+    "targetBass": "기타",
+    "targetCamera": "카메라",
+    "targetLaptop": "노트북"
+  },
   "Switchers": {
     "locale": {
       "ariaLabel": "언어 선택",

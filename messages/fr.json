@@ -293,6 +293,14 @@
     "webglDescription": "Ce navigateur ne peut pas afficher la scène 3D directement. Le reste du contenu et les liens restent disponibles ci-dessous.",
     "webglTitle": "La scène 3D n'est pas disponible dans ce navigateur."
   },
+  "SceneInteraction": {
+    "canvasAriaLabel": "Canvas d'interaction de la scène d'accueil",
+    "canvasHelpText": "Utilisez les flèches pour parcourir les objets, puis appuyez sur Entrée ou Espace pour activer la sélection courante.",
+    "keyboardTargetStatus": "Sélection actuelle : {target}",
+    "targetBass": "Basse",
+    "targetCamera": "Appareil photo",
+    "targetLaptop": "Ordinateur portable"
+  },
   "Switchers": {
     "locale": {
       "ariaLabel": "Choisir la langue",

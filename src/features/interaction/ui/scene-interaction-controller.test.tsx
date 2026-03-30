@@ -9,6 +9,22 @@ import { SceneInteractionController } from '@/features/interaction/ui/scene-inte
 
 import '@testing-library/jest-dom/vitest';
 
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string, values?: Record<string, string>) =>
+    key === 'keyboardTargetStatus'
+      ? `현재 선택: ${values?.target ?? ''}`
+      : ((
+          {
+            canvasAriaLabel: '홈 씬 상호작용 캔버스',
+            canvasHelpText:
+              '화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.',
+            targetBass: '기타',
+            targetCamera: '카메라',
+            targetLaptop: '노트북',
+          } as Record<string, string>
+        )[key] ?? key),
+}));
+
 const raycasterMockState = vi.hoisted(() => ({
   clearHoveredMesh: vi.fn(),
   hoveredOutlineMeshes: [] as Object3D[],
@@ -94,8 +110,12 @@ describe('SceneInteractionController', () => {
     fireEvent.focus(canvasElement);
 
     expect(canvasElement).toHaveAttribute('aria-label', '홈 씬 상호작용 캔버스');
+    expect(canvasElement.getAttribute('aria-describedby')).toContain('scene-interaction-help-text');
     expect(canvasElement.tabIndex).toBe(0);
     expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.laptop);
+    expect(document.body.textContent).toContain(
+      '화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.',
+    );
   });
 
   it('fine pointer 환경에서 outline이 허용되면, SceneInteractionController는 outline effect를 렌더해야 한다', () => {
@@ -142,6 +162,7 @@ describe('SceneInteractionController', () => {
 
     expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.bass);
     expect(interactionActionsMockState.handleMeshClick).toHaveBeenCalledWith(keyboardTargets.bass);
+    expect(document.body.textContent).toContain('현재 선택: 기타');
   });
 
   it('blur가 발생할 때, SceneInteractionController는 hover 상태를 해제해야 한다', () => {
@@ -150,5 +171,6 @@ describe('SceneInteractionController', () => {
     fireEvent.blur(canvasElement);
 
     expect(raycasterMockState.clearHoveredMesh).toHaveBeenCalledOnce();
+    expect(document.querySelector('#scene-interaction-status')?.textContent).toBe('');
   });
 });
