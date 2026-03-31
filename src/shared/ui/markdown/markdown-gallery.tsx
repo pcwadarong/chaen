@@ -225,24 +225,27 @@ const galleryTrackClass = css({
 });
 
 const gallerySlideClass = css({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  position: 'relative',
+  display: 'block',
   minWidth: '0',
   margin: '0',
-  p: '2',
+  width: 'full',
+  aspectRatio: '[4 / 5]',
+  minHeight: {
+    base: '72',
+    md: '96',
+  },
   borderRadius: 'lg',
   backgroundColor: 'surfaceMuted',
   scrollSnapAlign: 'start',
+  overflow: 'hidden',
 });
 
 const galleryImageClass = css({
   display: 'block',
-  maxWidth: 'full',
-  width: 'auto',
-  height: 'auto',
-  maxHeight: '[min(70vh,32rem)]',
-  objectFit: 'contain',
+  width: 'full',
+  height: 'full',
+  objectFit: 'cover',
 });
 
 const galleryNavButtonClass = css({
