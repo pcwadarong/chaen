@@ -67,7 +67,7 @@ describe('ImageEmbedPopover', () => {
     vi.clearAllMocks();
   });
 
-  it('이미지 툴바 트리거 hover/focus 상태에서 모달 열기 동작은 tooltip을 즉시 닫아야 한다', async () => {
+  it('트리거 hover/focus 상태에서, ImageEmbedPopover는 모달을 열 때 tooltip을 즉시 닫아야 한다', async () => {
     render(<ImageEmbedPopover contentType="article" onApply={vi.fn()} />);
     const trigger = screen.getByRole('button', { name: '이미지' });
     fireEvent.mouseEnter(trigger);
@@ -80,7 +80,7 @@ describe('ImageEmbedPopover', () => {
     });
   });
 
-  it('초기 상태에서 모달을 열면 드롭존과 기본 펼침 URL 입력만 렌더링되어야 한다', () => {
+  it('초기 상태에서, ImageEmbedPopover는 드롭존과 기본 URL 입력만 렌더링해야 한다', () => {
     const { dialog } = renderImageModal();
 
     expect(within(dialog).getByText('이미지를 여기로 끌어다 놓으세요.')).toBeTruthy();
@@ -90,7 +90,7 @@ describe('ImageEmbedPopover', () => {
     expect(within(dialog).queryByRole('button', { name: '개별 이미지로 삽입' })).toBeNull();
   });
 
-  it('초기 드롭존에 파일을 놓으면 편집 상태 레이아웃과 상단 액션이 렌더링되어야 한다', async () => {
+  it('초기 드롭존에 파일을 놓으면, ImageEmbedPopover는 편집 상태 레이아웃과 상단 액션을 렌더링해야 한다', async () => {
     const { dialog } = renderImageModal();
     vi.mocked(uploadEditorImage).mockResolvedValue('https://cdn.example.com/dropped.png');
 
@@ -113,7 +113,7 @@ describe('ImageEmbedPopover', () => {
     expect(within(dialog).getByLabelText('선택 이미지 업로드')).toBeTruthy();
   });
 
-  it('URL 추가 패널에 여러 줄 URL을 입력하면 편집 상태 row가 생성되어야 한다', () => {
+  it('여러 줄 URL을 추가하면, ImageEmbedPopover는 편집 상태 row를 생성해야 한다', () => {
     const { dialog } = renderImageModal();
 
     addUrls(dialog, ['https://example.com/one.png', 'https://example.com/two.png']);
@@ -124,7 +124,7 @@ describe('ImageEmbedPopover', () => {
     );
   });
 
-  it('개별 이미지로 삽입을 누르면 편집된 이미지 목록 payload를 전달해야 한다', () => {
+  it('개별 이미지 삽입을 실행하면, ImageEmbedPopover는 편집된 이미지 목록 payload를 전달해야 한다', () => {
     const { dialog, onApply } = renderImageModal();
 
     addUrls(dialog, ['https://example.com/one.png', 'https://example.com/two.png']);
@@ -153,7 +153,7 @@ describe('ImageEmbedPopover', () => {
     });
   });
 
-  it('유효 이미지가 1개뿐이면 슬라이드 삽입 버튼은 비활성화되어야 한다', () => {
+  it('유효 이미지가 1개뿐이면, ImageEmbedPopover는 슬라이드 삽입 버튼을 비활성화해야 한다', () => {
     const { dialog } = renderImageModal();
 
     addUrls(dialog, ['https://example.com/one.png']);
@@ -167,7 +167,7 @@ describe('ImageEmbedPopover', () => {
     ).toBe(true);
   });
 
-  it('업로드와 URL 추가를 섞어도 하나의 삽입 흐름으로 합쳐야 한다', async () => {
+  it('업로드와 URL 추가를 섞으면, ImageEmbedPopover는 하나의 삽입 흐름으로 합쳐야 한다', async () => {
     const { dialog, onApply } = renderImageModal();
     vi.mocked(uploadEditorImage).mockResolvedValue('https://cdn.example.com/uploaded.png');
 
@@ -192,6 +192,8 @@ describe('ImageEmbedPopover', () => {
         imageKind: 'content',
       });
     });
+
+    await screen.findByRole('button', { name: /from-upload\.png/ });
 
     fireEvent.click(within(dialog).getByRole('button', { name: '개별 이미지로 삽입' }));
     expect(onApply).toHaveBeenCalledWith({

@@ -168,6 +168,11 @@ export const useMarkdownToolbar = ({
       },
       closePopover?: ClosePopover,
     ) => {
+      if (!payload?.items || payload.items.length === 0) {
+        closePopover?.({ restoreFocus: false });
+        return;
+      }
+
       const nextValue =
         payload.mode === 'gallery'
           ? createImageGalleryMarkdown(payload.items)

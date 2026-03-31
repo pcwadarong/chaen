@@ -61,6 +61,8 @@ export const ImageEmbedPopover = ({
 }: ImageEmbedPopoverProps) => {
   const nextRowIdRef = useRef(0);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const emptyStateUrlInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const selectedUrlInputRef = useRef<HTMLInputElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [rows, setRows] = useState<ImageInputRow[]>([]);
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
@@ -73,9 +75,10 @@ export const ImageEmbedPopover = ({
 
   const isEmptyState = rows.length === 0;
   const filledRows = useMemo(() => getFilledImageRows(rows), [rows]);
+  const nonEmptyRowCount = filledRows.length;
   const duplicateRowIds = useMemo(() => getDuplicateRowIds(rows), [rows]);
   const hasDuplicateUrls = duplicateRowIds.size > 0;
-  const canAddRow = rows.length < MAX_IMAGE_EMBED_ITEMS;
+  const canAddRow = nonEmptyRowCount < MAX_IMAGE_EMBED_ITEMS;
   const selectedRow = rows.find(row => row.id === selectedRowId) ?? rows[0] ?? null;
   const selectedPreviewUrl = resolvePreviewImageSrc(selectedRow?.url ?? '');
   const isAddUrlsDisabled = normalizeEmbedInputList(pendingUrls).length === 0;
@@ -127,7 +130,7 @@ export const ImageEmbedPopover = ({
       return;
     }
 
-    const nextMaxLength = Math.max(rows.length, filledRows.length) + files.length;
+    const nextMaxLength = nonEmptyRowCount + files.length;
 
     if (nextMaxLength > MAX_IMAGE_EMBED_ITEMS) {
       setErrorMessage(`이미지는 최대 ${MAX_IMAGE_EMBED_ITEMS}개까지 넣을 수 있습니다.`);
@@ -196,7 +199,7 @@ export const ImageEmbedPopover = ({
 
     if (normalizedUrls.length === 0) return;
 
-    if (rows.length + normalizedUrls.length > MAX_IMAGE_EMBED_ITEMS) {
+    if (nonEmptyRowCount + normalizedUrls.length > MAX_IMAGE_EMBED_ITEMS) {
       setErrorMessage(`이미지는 최대 ${MAX_IMAGE_EMBED_ITEMS}개까지 넣을 수 있습니다.`);
       return;
     }
@@ -207,7 +210,7 @@ export const ImageEmbedPopover = ({
       url,
     }));
 
-    setRows(currentRows => [...currentRows, ...nextRows]);
+    setRows(currentRows => mergeImageRows(currentRows, nextRows).slice(0, MAX_IMAGE_EMBED_ITEMS));
     setSelectedRowId(nextRows[0]?.id ?? null);
     setPendingUrls('');
     setIsUrlPanelOpen(false);
@@ -341,7 +344,7 @@ export const ImageEmbedPopover = ({
       <Modal
         ariaLabel="이미지 삽입"
         closeAriaLabel="이미지 삽입 닫기"
-        initialFocusRef={triggerRef}
+        initialFocusRef={isEmptyState ? emptyStateUrlInputRef : selectedUrlInputRef}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       >
@@ -384,6 +387,7 @@ export const ImageEmbedPopover = ({
               <ImageEmbedPopoverEmptyState
                 acceptedFileTypes={ACCEPTED_IMAGE_FILE_TYPES}
                 canAddRow={canAddRow}
+                errorMessage={errorMessage}
                 isDragActive={isDragActive}
                 isUploading={isUploading}
                 onAddUrls={handleAddUrls}
@@ -393,6 +397,7 @@ export const ImageEmbedPopover = ({
                 onFileChange={handleFileChange}
                 onPendingUrlsChange={setPendingUrls}
                 pendingUrls={pendingUrls}
+                urlInputRef={emptyStateUrlInputRef}
                 urlAddDisabled={isAddUrlsDisabled}
               />
             ) : (
@@ -448,6 +453,7 @@ export const ImageEmbedPopover = ({
                   rows={rows}
                   selectedPreviewUrl={selectedPreviewUrl}
                   selectedRow={selectedRow}
+                  selectedUrlInputRef={selectedUrlInputRef}
                   uploadAccept={ACCEPTED_IMAGE_FILE_TYPES}
                 />
               </>
@@ -571,6 +577,11 @@ const uploadButtonWrapClass = css({
   color: 'text',
   cursor: 'pointer',
   flex: 'none',
+  _focusWithin: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+    borderColor: 'primary',
+  },
 });
 
 const uploadButtonLabelClass = css({

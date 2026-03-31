@@ -10,6 +10,7 @@ import { Textarea } from '@/shared/ui/textarea/textarea';
 type ImageEmbedPopoverEmptyStateProps = {
   acceptedFileTypes: string;
   canAddRow: boolean;
+  errorMessage: string | null;
   isDragActive: boolean;
   isUploading: boolean;
   pendingUrls: string;
@@ -20,6 +21,7 @@ type ImageEmbedPopoverEmptyStateProps = {
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPendingUrlsChange: (value: string) => void;
   urlAddDisabled: boolean;
+  urlInputRef: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 /**
@@ -31,6 +33,7 @@ type ImageEmbedPopoverEmptyStateProps = {
 export const ImageEmbedPopoverEmptyState = ({
   acceptedFileTypes,
   canAddRow,
+  errorMessage,
   isDragActive,
   isUploading,
   onAddUrls,
@@ -41,6 +44,7 @@ export const ImageEmbedPopoverEmptyState = ({
   onPendingUrlsChange,
   pendingUrls,
   urlAddDisabled,
+  urlInputRef,
 }: ImageEmbedPopoverEmptyStateProps) => (
   <section className={emptyStateLayoutClass}>
     <label
@@ -49,7 +53,6 @@ export const ImageEmbedPopoverEmptyState = ({
       onDragLeave={onDropzoneDragLeave}
       onDragOver={onDropzoneDragOver}
       onDrop={onDropzoneDrop}
-      role="presentation"
     >
       <input
         accept={acceptedFileTypes}
@@ -77,6 +80,7 @@ export const ImageEmbedPopoverEmptyState = ({
         id="markdown-toolbar-image-url-panel"
         onChange={event => onPendingUrlsChange(event.target.value)}
         placeholder={`https://example.com/image.png\nhttps://example.com/image-2.png`}
+        ref={urlInputRef}
         rows={3}
         value={pendingUrls}
       />
@@ -86,6 +90,11 @@ export const ImageEmbedPopoverEmptyState = ({
           추가
         </Button>
       </div>
+      {errorMessage ? (
+        <p aria-live="polite" className={metaErrorTextClass} role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </section>
   </section>
 );
@@ -117,6 +126,11 @@ const emptyStateClass = css({
   backgroundColor: 'surfaceMuted',
   transition: '[background-color 160ms ease, border-color 160ms ease]',
   cursor: 'pointer',
+  _focusWithin: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+    borderColor: 'primary',
+  },
 });
 
 const emptyStateActiveClass = css({
@@ -181,4 +195,9 @@ const fieldLabelClass = css({
 const metaTextClass = css({
   fontSize: 'xs',
   color: 'muted',
+});
+
+const metaErrorTextClass = css({
+  fontSize: 'xs',
+  color: 'error',
 });

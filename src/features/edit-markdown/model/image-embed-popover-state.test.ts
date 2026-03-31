@@ -30,18 +30,22 @@ describe('image-embed-popover-state', () => {
     ).toEqual(['row-1', 'row-2']);
   });
 
-  it('비어 있는 기존 row가 있을 때, mergeImageRows는 새 업로드 row를 앞쪽 빈 자리부터 채워야 한다', () => {
+  it('비어 있는 기존 row가 있을 때, mergeImageRows는 빈 자리를 먼저 채우고 남는 row는 뒤에 추가해야 한다', () => {
     expect(
       mergeImageRows(
         [
           { alt: '', id: 'row-1', url: '' },
           { alt: '', id: 'row-2', url: 'https://example.com/existing.png' },
         ],
-        [{ alt: '업로드', id: 'row-3', url: 'https://example.com/uploaded.png' }],
+        [
+          { alt: '업로드 1', id: 'row-3', url: 'https://example.com/uploaded-1.png' },
+          { alt: '업로드 2', id: 'row-4', url: 'https://example.com/uploaded-2.png' },
+        ],
       ),
     ).toEqual([
-      { alt: '업로드', id: 'row-3', url: 'https://example.com/uploaded.png' },
+      { alt: '업로드 1', id: 'row-3', url: 'https://example.com/uploaded-1.png' },
       { alt: '', id: 'row-2', url: 'https://example.com/existing.png' },
+      { alt: '업로드 2', id: 'row-4', url: 'https://example.com/uploaded-2.png' },
     ]);
   });
 

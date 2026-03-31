@@ -23,6 +23,7 @@ type ImageEmbedPopoverEditorProps = {
   rows: ImageInputRow[];
   selectedPreviewUrl: string | null;
   selectedRow: ImageInputRow | null;
+  selectedUrlInputRef: React.RefObject<HTMLInputElement | null>;
   uploadAccept: string;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onMoveRow: (rowId: string, direction: 'down' | 'up') => void;
@@ -53,13 +54,12 @@ export const ImageEmbedPopoverEditor = ({
   rows,
   selectedPreviewUrl,
   selectedRow,
+  selectedUrlInputRef,
   uploadAccept,
 }: ImageEmbedPopoverEditorProps) => (
   <div className={editorLayoutClass}>
     <div className={bodyClass}>
-      <aside
-        className={cx(sidebarClass, isMobileListCollapsed ? mobileSidebarHiddenClass : undefined)}
-      >
+      <aside className={sidebarClass}>
         <div className={sidebarHeaderClass}>
           <div className={sidebarHeaderInfoClass}>
             <p className={fieldLabelClass}>이미지 목록</p>
@@ -75,7 +75,14 @@ export const ImageEmbedPopoverEditor = ({
             {isMobileListCollapsed ? '이미지 목록 열기' : '이미지 목록 닫기'}
           </Button>
         </div>
-        <div className={rowListClass} data-image-list data-scrollable="true">
+        <div
+          className={cx(
+            rowListClass,
+            isMobileListCollapsed ? mobileRowListCollapsedClass : undefined,
+          )}
+          data-image-list
+          data-scrollable="true"
+        >
           {rows.map((row, index) => {
             const hasDuplicateUrl = duplicateRowIds.has(row.id);
             const isSelected = row.id === selectedRow?.id;
@@ -171,6 +178,7 @@ export const ImageEmbedPopoverEditor = ({
               selectedRow ? onUpdateRow(selectedRow.id, { url: event.target.value }) : undefined
             }
             placeholder="https://example.com/image.png"
+            ref={selectedUrlInputRef}
             value={selectedRow?.url ?? ''}
           />
         </div>
@@ -275,10 +283,10 @@ const sidebarClass = css({
   overflow: 'hidden',
 });
 
-const mobileSidebarHiddenClass = css({
+const mobileRowListCollapsedClass = css({
   display: {
     base: 'none',
-    md: 'grid',
+    md: 'flex',
   },
 });
 
@@ -473,6 +481,11 @@ const uploadButtonWrapClass = css({
   color: 'text',
   cursor: 'pointer',
   flex: 'none',
+  _focusWithin: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+    borderColor: 'primary',
+  },
 });
 
 const uploadButtonLabelClass = css({
