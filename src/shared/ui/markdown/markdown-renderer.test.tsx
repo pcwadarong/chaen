@@ -204,6 +204,29 @@ describe('MarkdownRenderer', () => {
     expect(blockMathNode?.querySelector('.katex')).toBeNull();
   });
 
+  it('gallery 블록은 슬라이더와 진행 바를 포함한 이미지 갤러리로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      [
+        ':::gallery',
+        '![첫 번째](https://example.com/one.png)',
+        '![두 번째](https://example.com/two.png)',
+        ':::',
+      ].join('\n'),
+    );
+    const gallery = document.querySelector('[data-markdown-gallery="true"]');
+    const images = Array.from(gallery?.querySelectorAll('img') ?? []);
+    const progress = gallery?.querySelector('[aria-label="총 2장의 이미지 중 1번째"]');
+
+    expect(gallery).toBeTruthy();
+    expect(gallery?.getAttribute('data-markdown-gallery-count')).toBe('2');
+    expect(images).toHaveLength(2);
+    expect(images[0]?.getAttribute('src')).toBe('https://example.com/one.png');
+    expect(images[1]?.getAttribute('src')).toBe('https://example.com/two.png');
+    expect(gallery?.querySelector('button[aria-label="이전 이미지"]')).toBeTruthy();
+    expect(gallery?.querySelector('button[aria-label="다음 이미지"]')).toBeTruthy();
+    expect(progress).toBeTruthy();
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',

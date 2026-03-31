@@ -2,6 +2,8 @@ import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
+  createImageEmbedMarkdownGroup,
+  createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
@@ -12,6 +14,35 @@ describe('markdown-toolbar template helpers', () => {
   it('이미지 markdown는 선택한 공백을 유지하면서 특수문자를 이스케이프한다', () => {
     expect(createImageEmbedMarkdown('  alt] text  ', 'https://example.com/image).png')).toBe(
       '![  alt\\] text  ](https://example.com/image\\).png)',
+    );
+  });
+
+  it('gallery markdown는 여러 이미지를 gallery block 문법으로 묶는다', () => {
+    expect(
+      createImageGalleryMarkdown([
+        { altText: '이미지 1', url: 'https://example.com/one.png' },
+        { altText: '이미지 2', url: 'https://example.com/two.png' },
+      ]),
+    ).toBe(
+      [
+        ':::gallery',
+        '![이미지 1](https://example.com/one.png)',
+        '![이미지 2](https://example.com/two.png)',
+        ':::',
+      ].join('\n'),
+    );
+  });
+
+  it('개별 이미지 group markdown는 여러 이미지를 빈 줄로 연결한다', () => {
+    expect(
+      createImageEmbedMarkdownGroup([
+        { altText: '이미지 1', url: 'https://example.com/one.png' },
+        { altText: '이미지 2', url: 'https://example.com/two.png' },
+      ]),
+    ).toBe(
+      ['![이미지 1](https://example.com/one.png)', '![이미지 2](https://example.com/two.png)'].join(
+        '\n\n',
+      ),
     );
   });
 

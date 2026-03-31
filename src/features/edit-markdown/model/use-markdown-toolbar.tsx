@@ -20,7 +20,8 @@ import type {
 import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
-  createImageEmbedMarkdown,
+  createImageEmbedMarkdownGroup,
+  createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
@@ -156,17 +157,27 @@ export const useMarkdownToolbar = ({
   );
 
   const handleImageApply = React.useCallback(
-    (url: string, closePopover?: ClosePopover) => {
-      const selectedText = getSelectedText();
-      const altText = selectedText || '이미지 설명';
-      const nextValue = createImageEmbedMarkdown(altText, url);
+    (
+      payload: {
+        items: Array<{
+          altText: string;
+          url: string;
+        }>;
+        mode: 'gallery' | 'individual';
+      },
+      closePopover?: ClosePopover,
+    ) => {
+      const nextValue =
+        payload.mode === 'gallery'
+          ? createImageGalleryMarkdown(payload.items)
+          : createImageEmbedMarkdownGroup(payload.items);
 
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
       closePopover?.({ restoreFocus: false });
     },
-    [applyTextTransform, getSelectedText],
+    [applyTextTransform],
   );
 
   const handleAttachmentApply = React.useCallback(

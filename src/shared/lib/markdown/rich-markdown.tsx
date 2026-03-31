@@ -1,6 +1,7 @@
 import React, { Fragment, type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   markdownH1Class,
   markdownH2Class,
@@ -9,6 +10,7 @@ import {
 } from '@/shared/lib/markdown/markdown-config';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
+import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
@@ -48,11 +50,16 @@ type MarkdownSegment =
       type: 'math';
     }
   | {
+      items: ReturnType<typeof collectMarkdownImages>;
+      type: 'gallery';
+    }
+  | {
       type: 'youtube';
       videoId: string;
     };
 
 const toggleStartPrefix = ':::toggle ';
+const galleryStartPattern = /^:::gallery\s*$/;
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
 const attachmentPattern =
@@ -378,6 +385,26 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
+    if (galleryStartPattern.test(line)) {
+      flushMarkdown();
+
+      const bodyLines: string[] = [];
+      let cursor = index + 1;
+
+      while (cursor < lines.length && lines[cursor] !== ':::') {
+        bodyLines.push(lines[cursor]);
+        cursor += 1;
+      }
+
+      segments.push({
+        items: collectMarkdownImages(bodyLines.join('\n')),
+        type: 'gallery',
+      });
+
+      index = cursor;
+      continue;
+    }
+
     const youtubeMatch = line.match(youtubePattern);
 
     if (youtubeMatch) {
@@ -495,6 +522,10 @@ export const renderRichMarkdown = ({
 
     if (segment.type === 'math') {
       return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
+    }
+
+    if (segment.type === 'gallery') {
+      return <MarkdownGallery galleryId={key} items={segment.items} key={key} />;
     }
 
     if (segment.type === 'subtext') {

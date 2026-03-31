@@ -85,6 +85,28 @@ export const createImageEmbedMarkdown = (altText: string, url: string) =>
   `![${escapeMarkdownAltText(altText)}](${escapeMarkdownLinkDestination(url)})`;
 
 /**
+ * 여러 이미지를 개별 markdown 이미지 문법 묶음으로 생성합니다.
+ *
+ * @param items 개별 이미지 alt/url 목록입니다.
+ * @returns 개별 이미지 markdown 문자열을 빈 줄 기준으로 연결해 반환합니다.
+ */
+export const createImageEmbedMarkdownGroup = (items: Array<{ altText: string; url: string }>) =>
+  items.map(item => createImageEmbedMarkdown(item.altText, item.url)).join('\n\n');
+
+/**
+ * gallery block markdown 문자열을 생성합니다.
+ *
+ * @param items 갤러리에 포함할 이미지 alt/url 목록입니다.
+ * @returns gallery block markdown 문자열을 반환합니다.
+ */
+export const createImageGalleryMarkdown = (items: Array<{ altText: string; url: string }>) =>
+  [
+    ':::gallery',
+    ...items.map(item => createImageEmbedMarkdown(item.altText, item.url)),
+    ':::',
+  ].join('\n');
+
+/**
  * YouTube embed markdown 문자열을 생성합니다.
  *
  * @param videoId YouTube video id입니다.
