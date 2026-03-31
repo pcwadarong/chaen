@@ -87,4 +87,46 @@ describe('FileEmbedPopover', () => {
 
     expect(onApply).not.toHaveBeenCalled();
   });
+
+  it('업로드 실패 후 다시 파일을 고르면 재시도 후 삽입할 수 있다', async () => {
+    const onApply = vi.fn();
+
+    vi.mocked(uploadEditorFile).mockRejectedValueOnce(new Error('upload failed'));
+
+    render(<FileEmbedPopover contentType="article" onApply={onApply} />);
+
+    fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
+      target: {
+        files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(
+        '파일 업로드에 실패했습니다. 다시 시도해주세요.',
+      );
+    });
+
+    fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
+      target: {
+        files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('resume.pdf')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    expect(onApply).toHaveBeenCalledWith(
+      {
+        contentType: 'application/pdf',
+        fileName: 'resume.pdf',
+        fileSize: 2048,
+        url: 'https://example.com/resume.pdf',
+      },
+      expect.any(Function),
+    );
+  });
 });

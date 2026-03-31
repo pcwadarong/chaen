@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { uploadEditorFile } from '@/entities/editor/api/upload-editor-file';
 
 describe('uploadEditorFile', () => {
