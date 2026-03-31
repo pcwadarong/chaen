@@ -222,9 +222,32 @@ describe('MarkdownRenderer', () => {
     expect(images).toHaveLength(2);
     expect(images[0]?.getAttribute('src')).toBe('https://example.com/one.png');
     expect(images[1]?.getAttribute('src')).toBe('https://example.com/two.png');
+    expect(images[0]?.getAttribute('alt')).toBe('첫 번째');
+    expect(images[1]?.getAttribute('alt')).toBe('두 번째');
     expect(gallery?.querySelector('button[aria-label="이전 이미지"]')).toBeTruthy();
     expect(gallery?.querySelector('button[aria-label="다음 이미지"]')).toBeTruthy();
     expect(progress).toBeTruthy();
+    expect(progress?.getAttribute('role')).toBe('progressbar');
+    expect(progress?.getAttribute('aria-valuenow')).toBe('1');
+  });
+
+  it('gallery 뒤에 일반 이미지가 오면, MarkdownRenderer는 일반 이미지 viewer id를 gallery와 독립적으로 유지해야 한다', async () => {
+    const document = await renderServerDocument(
+      [
+        ':::gallery',
+        '![첫 번째](https://example.com/one.png)',
+        '![두 번째](https://example.com/two.png)',
+        ':::',
+        '',
+        '![본문 이미지](https://example.com/standalone.png)',
+      ].join('\n'),
+    );
+
+    const standaloneImage = document.querySelector(
+      'img[data-markdown-viewer-id="markdown-image-0"][src="https://example.com/standalone.png"]',
+    );
+
+    expect(standaloneImage).toBeTruthy();
   });
 
   it('새 Video 문법이 주어지면, MarkdownRenderer는 YouTube iframe을 렌더링해야 한다', async () => {

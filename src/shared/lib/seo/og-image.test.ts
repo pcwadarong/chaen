@@ -1,4 +1,5 @@
 import {
+  buildDefaultOgImageUrl,
   buildOgImagePath,
   buildOgImageUrl,
   isOgImageType,
@@ -32,6 +33,7 @@ describe('og-image helpers', () => {
   });
 
   it('placeholder 이미지 URL을 노출한다', () => {
-    expect(OG_IMAGE_PLACEHOLDER_URL).toContain('images.unsplash.com');
+    expect(OG_IMAGE_PLACEHOLDER_URL).toBe('/thumbnail.png');
+    expect(buildDefaultOgImageUrl()).toBe('https://chaen.dev/thumbnail.png');
   });
 });

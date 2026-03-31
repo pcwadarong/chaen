@@ -90,16 +90,27 @@ export const MarkdownGallery = ({ galleryId, items }: MarkdownGalleryProps) => {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    let rafId = 0;
 
-    const handleScroll = () => {
+    const syncActiveIndex = () => {
+      rafId = 0;
       setActiveIndex(resolveActiveSlideIndex(container, scopedViewerItems.length));
     };
 
-    handleScroll();
+    const handleScroll = () => {
+      if (rafId) return;
+
+      rafId = window.requestAnimationFrame(syncActiveIndex);
+    };
+
+    syncActiveIndex();
     container.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       container.removeEventListener('scroll', handleScroll);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
     };
   }, [scopedViewerItems.length]);
 
@@ -174,7 +185,11 @@ export const MarkdownGallery = ({ galleryId, items }: MarkdownGalleryProps) => {
       {scopedViewerItems.length > 1 ? (
         <div
           aria-label={`총 ${scopedViewerItems.length}장의 이미지 중 ${activeIndex + 1}번째`}
+          aria-valuemax={scopedViewerItems.length}
+          aria-valuemin={1}
+          aria-valuenow={activeIndex + 1}
           className={galleryProgressClass}
+          role="progressbar"
         >
           <div
             className={galleryProgressValueClass}
