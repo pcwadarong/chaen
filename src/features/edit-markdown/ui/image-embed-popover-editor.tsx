@@ -18,6 +18,7 @@ type ImageEmbedPopoverEditorProps = {
   duplicateRowIds: Set<string>;
   errorMessage: string | null;
   filledRows: FilledImageRow[];
+  isMobileListCollapsed: boolean;
   isUploading: boolean;
   rows: ImageInputRow[];
   selectedPreviewUrl: string | null;
@@ -28,6 +29,7 @@ type ImageEmbedPopoverEditorProps = {
   onMoveRow: (rowId: string, direction: 'down' | 'up') => void;
   onRemoveRow: (rowId: string) => void;
   onSelectRow: (rowId: string) => void;
+  onToggleMobileList: () => void;
   onUpdateRow: (rowId: string, patch: Partial<Pick<ImageInputRow, 'alt' | 'url'>>) => void;
 };
 
@@ -41,12 +43,14 @@ export const ImageEmbedPopoverEditor = ({
   duplicateRowIds,
   errorMessage,
   filledRows,
+  isMobileListCollapsed,
   isUploading,
   onApply,
   onFileChange,
   onMoveRow,
   onRemoveRow,
   onSelectRow,
+  onToggleMobileList,
   onUpdateRow,
   rows,
   selectedPreviewUrl,
@@ -56,12 +60,44 @@ export const ImageEmbedPopoverEditor = ({
   const hasDuplicateUrls = duplicateRowIds.size > 0;
 
   return (
-    <>
+    <div className={editorLayoutClass}>
+      <footer className={actionRowClass}>
+        <div className={footerActionGroupClass}>
+          <Button
+            disabled={filledRows.length === 0 || hasDuplicateUrls}
+            onClick={() => onApply('individual')}
+            size="xs"
+          >
+            개별 이미지로 삽입
+          </Button>
+          <Button
+            disabled={filledRows.length <= 1 || hasDuplicateUrls}
+            onClick={() => onApply('gallery')}
+            size="xs"
+          >
+            슬라이드로 삽입
+          </Button>
+        </div>
+      </footer>
+
       <div className={bodyClass}>
-        <aside className={sidebarClass}>
+        <aside
+          className={cx(sidebarClass, isMobileListCollapsed ? mobileSidebarHiddenClass : undefined)}
+        >
           <div className={sidebarHeaderClass}>
-            <p className={fieldLabelClass}>이미지 목록</p>
-            <p className={metaTextClass}>{filledRows.length}개 · 최대 10개</p>
+            <div className={sidebarHeaderInfoClass}>
+              <p className={fieldLabelClass}>이미지 목록</p>
+              <p className={metaTextClass}>{filledRows.length}개 · 최대 10개</p>
+            </div>
+            <Button
+              className={mobileListToggleButtonClass}
+              onClick={onToggleMobileList}
+              size="xs"
+              tone="white"
+              variant="ghost"
+            >
+              {isMobileListCollapsed ? '이미지 목록 열기' : '이미지 목록 닫기'}
+            </Button>
           </div>
           <div className={rowListClass} data-image-list data-scrollable="true">
             {rows.map((row, index) => {
@@ -207,42 +243,41 @@ export const ImageEmbedPopoverEditor = ({
           ) : null}
         </section>
       </div>
-
-      <footer className={actionRowClass}>
-        <div className={footerActionGroupClass}>
-          <Button
-            disabled={filledRows.length === 0 || hasDuplicateUrls}
-            onClick={() => onApply('individual')}
-            size="xs"
-          >
-            개별 이미지로 삽입
-          </Button>
-          <Button
-            disabled={filledRows.length <= 1 || hasDuplicateUrls}
-            onClick={() => onApply('gallery')}
-            size="xs"
-          >
-            슬라이드로 삽입
-          </Button>
-        </div>
-      </footer>
-    </>
+    </div>
   );
 };
 
-const bodyClass = css({
+const editorLayoutClass = css({
   display: 'grid',
-  gridTemplateColumns: '[18rem 16rem minmax(0,1fr)]',
-  columnGap: '6',
+  gap: '4',
+  minHeight: '0',
+});
+
+const bodyClass = css({
+  display: {
+    base: 'flex',
+    md: 'grid',
+  },
+  flexDirection: {
+    base: 'column-reverse',
+    md: 'row',
+  },
+  gridTemplateColumns: {
+    md: '[18rem 16rem minmax(0,1fr)]',
+  },
+  columnGap: {
+    md: '6',
+  },
+  rowGap: {
+    base: '4',
+  },
+  flex: '1',
   minHeight: '0',
   overflow: 'hidden',
   paddingY: '4',
   borderTopWidth: '1px',
   borderTopStyle: 'solid',
   borderTopColor: 'border',
-  borderBottomWidth: '1px',
-  borderBottomStyle: 'solid',
-  borderBottomColor: 'border',
 });
 
 const sidebarClass = css({
@@ -250,11 +285,30 @@ const sidebarClass = css({
   gridTemplateRows: '[auto minmax(0,1fr)]',
   gap: '4',
   minHeight: '0',
-  pr: '5',
-  borderRightWidth: '1px',
-  borderRightStyle: 'solid',
-  borderRightColor: 'border',
+  pr: {
+    base: '0',
+    md: '5',
+  },
+  borderRightWidth: {
+    base: '0',
+    md: '1px',
+  },
+  borderRightStyle: {
+    base: 'none',
+    md: 'solid',
+  },
+  borderRightColor: {
+    base: 'transparent',
+    md: 'border',
+  },
   overflow: 'hidden',
+});
+
+const mobileSidebarHiddenClass = css({
+  display: {
+    base: 'none',
+    md: 'grid',
+  },
 });
 
 const sidebarHeaderClass = css({
@@ -262,6 +316,11 @@ const sidebarHeaderClass = css({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '3',
+});
+
+const sidebarHeaderInfoClass = css({
+  display: 'grid',
+  gap: '1',
 });
 
 const fieldLabelClass = css({
@@ -281,7 +340,10 @@ const rowListClass = css({
   alignContent: 'start',
   gap: '2',
   minHeight: '0',
-  maxHeight: '80',
+  maxHeight: {
+    base: '56',
+    md: '80',
+  },
   overflowY: 'auto',
   pr: '1',
 });
@@ -376,8 +438,16 @@ const previewFrameClass = css({
   position: 'relative',
   alignSelf: 'start',
   width: 'full',
-  maxWidth: '64',
+  maxWidth: {
+    base: '40',
+    md: '64',
+  },
   aspectRatio: 'square',
+  justifySelf: 'center',
+  order: {
+    base: '0',
+    md: '0',
+  },
   overflow: 'hidden',
   borderRadius: 'xl',
   borderWidth: '1px',
@@ -408,6 +478,10 @@ const editorFieldsClass = css({
   minHeight: '0',
   paddingY: '1',
   overflowY: 'auto',
+  order: {
+    base: '1',
+    md: '0',
+  },
 });
 
 const rowFieldClass = css({
@@ -451,14 +525,26 @@ const metaErrorTextClass = css({
 });
 
 const actionRowClass = css({
-  display: 'grid',
-  justifyContent: 'end',
-  gap: '3',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  order: '1',
+  paddingTop: '4',
+  borderTopWidth: '1px',
+  borderTopStyle: 'solid',
+  borderTopColor: 'border',
 });
 
 const footerActionGroupClass = css({
   display: 'flex',
   justifyContent: 'flex-end',
+  alignItems: 'center',
   gap: '2',
   flexWrap: 'wrap',
+});
+
+const mobileListToggleButtonClass = css({
+  display: {
+    base: 'inline-flex',
+    md: 'none',
+  },
 });

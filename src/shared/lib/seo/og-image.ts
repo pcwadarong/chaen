@@ -1,11 +1,10 @@
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 
 /**
- * 현재 OG 이미지 placeholder로 사용하는 기본 이미지 URL입니다.
- * 임시 파일로 추후 교체 예정
+ * OG 이미지 placeholder로 사용하는 기본 이미지 URL입니다.
  */
 export const OG_IMAGE_PLACEHOLDER_URL =
-  'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200';
+  'https://velog.velcdn.com/images/pcwadarong/post/600828d0-15e7-4392-8c6b-ee86a782e882/image.png';
 
 export type OgImageType = 'article' | 'project';
 

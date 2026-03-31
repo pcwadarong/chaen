@@ -138,12 +138,17 @@ const emptyStateDescriptionClass = css({
 const emptyStateLayoutClass = css({
   display: 'grid',
   gap: '3',
+  gridTemplateColumns: {
+    base: '1fr',
+    md: '[minmax(0,1fr) minmax(0,1.5fr)]',
+  },
+  alignItems: 'stretch',
 });
 
 const emptyStateInnerClass = css({
   display: 'grid',
   justifyItems: 'center',
-  gap: '2',
+  gap: '1',
   maxWidth: '80',
 });
 
@@ -156,6 +161,7 @@ const urlPanelClass = css({
   borderColor: 'border',
   borderRadius: 'xl',
   backgroundColor: 'surfaceMuted',
+  alignContent: 'start',
 });
 
 const urlPanelActionRowClass = css({

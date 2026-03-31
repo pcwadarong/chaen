@@ -69,6 +69,7 @@ export const ImageEmbedPopover = ({
   const [pendingUrls, setPendingUrls] = useState('');
   const [isUrlPanelOpen, setIsUrlPanelOpen] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
 
   const isEmptyState = rows.length === 0;
   const filledRows = useMemo(() => getFilledImageRows(rows), [rows]);
@@ -109,6 +110,7 @@ export const ImageEmbedPopover = ({
     setSelectedRowId(null);
     setPendingUrls('');
     setIsUrlPanelOpen(false);
+    setIsMobileListCollapsed(false);
     setIsOpen(false);
   };
 
@@ -164,6 +166,7 @@ export const ImageEmbedPopover = ({
       if (nextRows[0]) {
         setSelectedRowId(nextRows[0].id);
       }
+      setIsMobileListCollapsed(false);
 
       if (uploadedResults.some(result => result.errorMessage)) {
         setErrorMessage('일부 이미지 업로드에 실패했습니다. 다시 시도해 주세요.');
@@ -208,6 +211,7 @@ export const ImageEmbedPopover = ({
     setSelectedRowId(nextRows[0]?.id ?? null);
     setPendingUrls('');
     setIsUrlPanelOpen(false);
+    setIsMobileListCollapsed(false);
     setErrorMessage(null);
   };
 
@@ -222,6 +226,10 @@ export const ImageEmbedPopover = ({
 
       if (selectedRowId === rowId) {
         setSelectedRowId(nextRows[0]?.id ?? null);
+      }
+
+      if (nextRows.length === 0) {
+        setIsMobileListCollapsed(false);
       }
 
       return nextRows;
@@ -311,6 +319,7 @@ export const ImageEmbedPopover = ({
       onClick={event => {
         event.currentTarget.blur();
         setIsOpen(true);
+        setIsMobileListCollapsed(false);
       }}
       onMouseDown={event => {
         event.preventDefault();
@@ -428,11 +437,13 @@ export const ImageEmbedPopover = ({
                 errorMessage={errorMessage}
                 filledRows={filledRows}
                 isUploading={isUploading}
+                isMobileListCollapsed={isMobileListCollapsed}
                 onApply={handleApply}
                 onFileChange={handleReplaceSelectedRowImage}
                 onMoveRow={handleMoveRow}
                 onRemoveRow={handleRemoveRow}
                 onSelectRow={setSelectedRowId}
+                onToggleMobileList={() => setIsMobileListCollapsed(current => !current)}
                 onUpdateRow={updateRow}
                 rows={rows}
                 selectedPreviewUrl={selectedPreviewUrl}

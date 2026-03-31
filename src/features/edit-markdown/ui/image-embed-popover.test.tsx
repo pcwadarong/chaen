@@ -104,7 +104,7 @@ describe('ImageEmbedPopover', () => {
     });
 
     await waitFor(() => {
-      expect(within(dialog).getByText('이미지 목록')).toBeTruthy();
+      expect(within(dialog).getAllByText('이미지 목록').length).toBeGreaterThan(0);
     });
 
     expect(within(dialog).getByLabelText('이미지 파일 업로드')).toBeTruthy();
@@ -118,7 +118,7 @@ describe('ImageEmbedPopover', () => {
 
     addUrls(dialog, ['https://example.com/one.png', 'https://example.com/two.png']);
 
-    expect(within(dialog).getByText('이미지 목록')).toBeTruthy();
+    expect(within(dialog).getAllByText('이미지 목록').length).toBeGreaterThan(0);
     expect(within(dialog).getAllByRole('button', { name: /https:\/\/example\.com/ })).toHaveLength(
       2,
     );
