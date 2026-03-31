@@ -86,4 +86,15 @@ describe('MathEmbedPopover', () => {
       ' x, &x \\ge 0 \\\\ -x, &x < 0',
     );
   });
+
+  it('적분 템플릿 버튼을 누르면 적분 대상 함수 구간이 바로 선택된다', () => {
+    render(<MathEmbedPopover onApply={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '적분' }));
+
+    const textbox = screen.getByRole('textbox', { name: 'LaTeX 수식' }) as HTMLTextAreaElement;
+
+    expect(textbox.value).toBe('\\int_{a}^{b} f(x) \\, dx');
+    expect(textbox.value.slice(textbox.selectionStart, textbox.selectionEnd)).toBe('f(x)');
+  });
 });

@@ -171,6 +171,17 @@ describe('MarkdownRenderer', () => {
     expect(inlineMathNode?.querySelector('.katex')).toBeTruthy();
   });
 
+  it('여러 개의 inline 수학 공식은 각각 독립적으로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      '첫째는 <Math>a^2</Math> 이고 둘째는 <Math>b^2</Math> 입니다',
+    );
+    const inlineMathNodes = Array.from(document.querySelectorAll('[data-markdown-math="inline"]'));
+
+    expect(inlineMathNodes).toHaveLength(2);
+    expect(inlineMathNodes[0]?.textContent).toContain('a');
+    expect(inlineMathNodes[1]?.textContent).toContain('b');
+  });
+
   it('잘못된 inline 수식은 원문과 오류 힌트를 함께 fallback으로 렌더링한다', async () => {
     const document = await renderServerDocument('합은 <Math>\\fra{a}{b}</Math> 입니다');
     const inlineMathNode = document.querySelector('[data-markdown-math="inline"]');

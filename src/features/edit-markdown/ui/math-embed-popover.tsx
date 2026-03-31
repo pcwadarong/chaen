@@ -23,54 +23,74 @@ type MathTemplate = {
   };
 };
 
+/**
+ * 수식 템플릿 문자열과 핵심 편집 구간을 함께 생성합니다.
+ *
+ * @param key 템플릿 식별자입니다.
+ * @param label 툴바에 노출할 템플릿 이름입니다.
+ * @param prefix 선택 구간 앞에 오는 수식 조각입니다.
+ * @param editable 사용자가 바로 바꿀 핵심 수식 조각입니다.
+ * @param suffix 선택 구간 뒤에 오는 수식 조각입니다.
+ * @returns formula와 selection을 포함한 템플릿 정보를 반환합니다.
+ */
+const createMathTemplate = ({
+  editable,
+  key,
+  label,
+  prefix,
+  suffix,
+}: {
+  editable: string;
+  key: string;
+  label: string;
+  prefix: string;
+  suffix: string;
+}): MathTemplate => ({
+  formula: `${prefix}${editable}${suffix}`,
+  key,
+  label,
+  selection: {
+    end: prefix.length + editable.length,
+    start: prefix.length,
+  },
+});
+
 const mathTemplates = [
-  {
-    formula: '\\frac{a}{b}',
+  createMathTemplate({
+    editable: 'a',
     key: 'fraction',
     label: '분수',
-    selection: {
-      end: '\\frac{'.length + 1,
-      start: '\\frac{'.length,
-    },
-  },
-  {
-    formula: '\\sqrt{x}',
+    prefix: '\\frac{',
+    suffix: '}{b}',
+  }),
+  createMathTemplate({
+    editable: 'x',
     key: 'sqrt',
     label: '루트',
-    selection: {
-      end: '\\sqrt{x}'.indexOf('x') + 1,
-      start: '\\sqrt{x}'.indexOf('x'),
-    },
-  },
-  {
-    formula: '\\sum_{i=1}^{n} i',
+    prefix: '\\sqrt{',
+    suffix: '}',
+  }),
+  createMathTemplate({
+    editable: 'i=1',
     key: 'sum',
     label: '합',
-    selection: {
-      end: '\\sum_{i=1}^{n} i'.indexOf('i=1') + 'i=1'.length,
-      start: '\\sum_{i=1}^{n} i'.indexOf('i=1'),
-    },
-  },
-  {
-    formula: '\\int_{a}^{b} f(x) \\, dx',
+    prefix: '\\sum_{',
+    suffix: '}^{n} i',
+  }),
+  createMathTemplate({
+    editable: 'f(x)',
     key: 'integral',
     label: '적분',
-    selection: {
-      end: '\\int_{a}^{b} f(x) \\, dx'.indexOf('f(x)') + 'f(x)'.length,
-      start: '\\int_{a}^{b} f(x) \\, dx'.indexOf('f(x)'),
-    },
-  },
-  {
-    formula: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}',
+    prefix: '\\int_{a}^{b} ',
+    suffix: ' \\, dx',
+  }),
+  createMathTemplate({
+    editable: ' x, &x \\ge 0 \\\\ -x, &x < 0',
     key: 'cases',
     label: 'cases',
-    selection: {
-      end: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}'.indexOf(' \\end{cases}'),
-      start: '\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}'.indexOf(
-        ' x, &x \\ge 0 \\\\ -x, &x < 0 ',
-      ),
-    },
-  },
+    prefix: '\\begin{cases}',
+    suffix: ' \\end{cases}',
+  }),
 ] satisfies ReadonlyArray<MathTemplate>;
 
 /**

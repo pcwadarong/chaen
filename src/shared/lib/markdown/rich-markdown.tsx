@@ -57,7 +57,7 @@ const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
 const attachmentPattern =
   /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
-const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+)<\/Math>$/;
+const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
 const subtextPrefix = '-# ';
 const htmlLineBreakPattern = /<br\s*\/?>/gi;
 const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;

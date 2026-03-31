@@ -130,9 +130,11 @@ export const createMathEmbedMarkdown = ({
   isBlock: boolean;
 }) => {
   const normalizedFormula = normalizeMathFormula(formula);
-  const blockAttribute = isBlock ? ' block="true"' : '';
+  if (isBlock) {
+    return `\n<Math block="true">${normalizedFormula}</Math>\n`;
+  }
 
-  return `<Math${blockAttribute}>${normalizedFormula}</Math>`;
+  return `<Math>${normalizedFormula}</Math>`;
 };
 
 /**

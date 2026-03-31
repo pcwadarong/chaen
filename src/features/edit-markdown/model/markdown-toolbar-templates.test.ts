@@ -91,6 +91,8 @@ describe('markdown-toolbar template helpers', () => {
         formula: '\\begin{cases}\n x, &x \\ge 0 \\\\\n -x, &x < 0\n\\end{cases}',
         isBlock: true,
       }),
-    ).toBe('<Math block="true">\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}</Math>');
+    ).toBe(
+      '\n<Math block="true">\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}</Math>\n',
+    );
   });
 });
