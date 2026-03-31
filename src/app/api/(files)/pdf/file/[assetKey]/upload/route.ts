@@ -1,6 +1,10 @@
 import { revalidateTag } from 'next/cache';
 
-import { buildPdfFileAssetDownloadPath, revalidatePdfDependentPaths } from '@/entities/pdf-file';
+import {
+  buildPdfFileAssetDownloadPath,
+  revalidatePdfDependentPaths,
+  uploadPdfFile,
+} from '@/entities/pdf-file';
 import {
   createPdfFileAvailabilityCacheTag,
   PDF_FILES_CACHE_TAG,
@@ -8,7 +12,6 @@ import {
 import { getPdfFileAssetStorageConfig } from '@/entities/pdf-file/model/config';
 import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
 import { isPdfFileAssetKey } from '@/entities/pdf-file/model/types';
-import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';

@@ -97,3 +97,22 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 - **Keyboard Access**: All interactive elements must be accessible via `Tab`, `Enter`, and `Space`.
 - **Visual Cues**: Never remove focus outlines; ensure high-contrast focus states.
 - **Screen Readers**: Use `aria-live` for dynamic status updates and provide `alt`/`aria-label` for all non-text content.
+
+---
+
+## 6. Subagent Orchestration
+
+Use specialized subagents explicitly:
+
+- code-mapper → trace code paths and dependencies
+- fsd_architect_reviewer → validate architecture
+- a11y_ux_auditor → accessibility and UX checks
+- db_guardian → database validation when needed
+- implementer → apply minimal code changes and write commit message
+- test_writer → generate tests
+- pr_writer → generate PR documentation
+
+Execution rule:
+
+- Always analyze before modifying
+- Prefer minimal changes over refactoring

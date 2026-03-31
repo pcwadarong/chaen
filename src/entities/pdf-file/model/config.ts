@@ -3,18 +3,14 @@ import type {
   PdfFileAssetLocale,
   PdfFileContent,
   PdfFileKind,
+  PdfFileStorageConfig,
 } from '@/entities/pdf-file/model/types';
-import { createStoragePath, STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
-
-type PdfFileStorageConfig = {
-  assetKey: PdfFileAssetKey;
-  bucket: string;
-  downloadFileName: string;
-  filePath: string;
-  kind: PdfFileKind;
-  locale: PdfFileAssetLocale;
-  title: string;
-};
+import {
+  type ContentStorageBucket,
+  createContentStoragePath,
+  STORAGE_BUCKET,
+  STORAGE_DIRECTORY,
+} from '@/shared/lib/storage/storage-path';
 
 type PdfFileContentConfig = {
   tableName: string;
@@ -38,8 +34,6 @@ const PDF_FILE_ASSET_KEY_ORDER: PdfFileAssetKey[] = [
   'portfolio-ko',
   'portfolio-en',
 ];
-
-const PDF_FILE_BUCKET = STORAGE_BUCKET.pdf;
 
 const PDF_FILE_ASSET_DEFINITION_BY_KEY: Record<PdfFileAssetKey, PdfFileAssetDefinition> = {
   'portfolio-en': {
@@ -75,6 +69,26 @@ const DEFAULT_PDF_FILE_NAME_BY_ASSET_KEY: Record<PdfFileAssetKey, string> = {
   'resume-ko': 'ParkChaewon-Resume-kr.pdf',
 };
 
+/**
+ * PDF 자산 키별 storage 버킷을 반환합니다.
+ *
+ * resume 자산은 resume 버킷, portfolio 자산은 project 버킷 내부 `pdf/` 디렉터리에 저장합니다.
+ *
+ * @param assetKey 조회할 PDF 자산 키입니다.
+ * @returns 자산 키에 대응하는 storage 버킷 이름입니다.
+ */
+const getPdfFileStorageBucket = (assetKey: PdfFileAssetKey): ContentStorageBucket =>
+  assetKey.startsWith('resume-') ? STORAGE_BUCKET.resume : STORAGE_BUCKET.project;
+
+/**
+ * PDF 자산 키별 storage object path를 반환합니다.
+ *
+ * @param fileName 실제 저장할 파일명입니다.
+ * @returns 자산 키 정책에 맞는 storage object path입니다.
+ */
+const getPdfFileStoragePath = (fileName: string) =>
+  createContentStoragePath(STORAGE_DIRECTORY.pdf, fileName);
+
 const SHARED_PDF_FILE_CONTENT_TABLE_NAME = 'resume_contents';
 
 /**
@@ -87,9 +101,9 @@ export const getPdfFileAssetStorageConfig = (assetKey: PdfFileAssetKey): PdfFile
 
   return {
     assetKey,
-    bucket: PDF_FILE_BUCKET,
+    bucket: getPdfFileStorageBucket(assetKey),
     downloadFileName: resolvedFileName,
-    filePath: createStoragePath(resolvedFileName),
+    filePath: getPdfFileStoragePath(resolvedFileName),
     kind: assetDefinition.kind,
     locale: assetDefinition.locale,
     title: assetDefinition.title,

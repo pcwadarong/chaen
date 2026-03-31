@@ -1,16 +1,12 @@
-export { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 export type { EditorDraftSummary, EditorSeed } from '@/entities/editor/api/editor.types';
 export {
-  deleteEditorDraftAction,
-  publishEditorContentAction,
-  saveEditorDraftAction,
-} from '@/entities/editor/api/editor-actions';
-export {
-  createEditorSeed,
-  getEditorDraftSeed,
-  getEditorDraftSummaries,
-  getEditorSeed,
-} from '@/entities/editor/api/editor-read';
+  EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS,
+  EDITOR_ATTACHMENT_ALLOWED_MIME_TYPES,
+  EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT,
+  EDITOR_ATTACHMENT_MAX_FILE_SIZE,
+  isAllowedEditorAttachmentExtension,
+  isAllowedEditorAttachmentFile,
+} from '@/entities/editor/model/editor-attachment-policy';
 export {
   createEditorError,
   EDITOR_ERROR_MESSAGE,

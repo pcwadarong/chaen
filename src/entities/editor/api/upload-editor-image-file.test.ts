@@ -1,11 +1,13 @@
-import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
+// @vitest-environment node
+
+import { uploadEditorImageFile } from '@/entities/editor/api/upload-editor-image-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 vi.mock('@/shared/lib/supabase/service-role', () => ({
   createServiceRoleSupabaseClient: vi.fn(),
 }));
 
-describe('uploadImageFile', () => {
+describe('uploadEditorImageFile', () => {
   const upload = vi.fn();
   const getPublicUrl = vi.fn();
   const from = vi.fn();
@@ -33,10 +35,10 @@ describe('uploadImageFile', () => {
     } as never);
   });
 
-  it('프로젝트 이미지는 project 버킷에 업로드한다', async () => {
+  it('contentType이 project일 때, uploadEditorImageFile은 project 버킷에 업로드해야 한다', async () => {
     const file = new File(['binary'], 'thumb.png', { type: 'image/png' });
 
-    await uploadImageFile({
+    await uploadEditorImageFile({
       contentType: 'project',
       file,
       imageKind: 'thumbnail',
@@ -50,16 +52,33 @@ describe('uploadImageFile', () => {
     );
   });
 
-  it('본문 이미지는 images 경로에 업로드한다', async () => {
+  it('contentType이 article일 때, uploadEditorImageFile은 article 버킷에 업로드해야 한다', async () => {
     const file = new File(['binary'], 'thumb.png', { type: 'image/png' });
 
-    await uploadImageFile({
+    await uploadEditorImageFile({
       contentType: 'article',
       file,
       imageKind: 'content',
     });
 
     expect(from).toHaveBeenCalledWith('article');
+    expect(upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^images\//),
+      file,
+      expect.any(Object),
+    );
+  });
+
+  it('contentType이 resume일 때, uploadEditorImageFile은 resume 버킷에 업로드해야 한다', async () => {
+    const file = new File(['binary'], 'resume-image.png', { type: 'image/png' });
+
+    await uploadEditorImageFile({
+      contentType: 'resume',
+      file,
+      imageKind: 'content',
+    });
+
+    expect(from).toHaveBeenCalledWith('resume');
     expect(upload).toHaveBeenCalledWith(
       expect.stringMatching(/^images\//),
       file,

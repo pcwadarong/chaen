@@ -1,7 +1,9 @@
+import { STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
+
 /**
  * 사진 업로드용 Supabase Storage 버킷 이름입니다.
  */
-export const PHOTO_STORAGE_BUCKET = 'photo';
+export const PHOTO_STORAGE_BUCKET = STORAGE_BUCKET.photo;
 
 /**
  * 관리자 사진 업로드에서 허용하는 MIME 타입 집합입니다.

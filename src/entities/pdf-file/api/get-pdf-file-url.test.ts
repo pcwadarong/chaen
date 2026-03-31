@@ -1,13 +1,10 @@
+// @vitest-environment node
+
 import { getPdfFileUrl } from '@/entities/pdf-file/api/get-pdf-file-url';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { resolveOptionalStorageReadSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
-vi.mock('@/shared/lib/supabase/public-server', () => ({
-  createOptionalPublicServerSupabaseClient: vi.fn(),
-}));
-
-vi.mock('@/shared/lib/supabase/service-role', () => ({
-  createOptionalServiceRoleSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/storage-client', () => ({
+  resolveOptionalStorageReadSupabaseClient: vi.fn(),
 }));
 
 type MockStorage = {
@@ -18,18 +15,25 @@ type MockStorage = {
 /**
  * Supabase storage mock 객체를 생성합니다.
  */
-const createSupabaseMock = (storage: MockStorage) => ({
-  storage: {
-    from: vi.fn().mockReturnValue(storage),
-  },
-});
+const createSupabaseMock = (storage: MockStorage) => {
+  const from = vi.fn().mockReturnValue(storage);
+
+  return {
+    from,
+    supabase: {
+      storage: {
+        from,
+      },
+    },
+  };
+};
 
 describe('getPdfFileUrl', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('signed URL 조회 시 service role 클라이언트를 우선 사용한다', async () => {
+  it('읽기용 storage 클라이언트가 service role일 때, getPdfFileUrl은 signed URL을 반환해야 한다', async () => {
     const serviceStorage = {
       createSignedUrl: vi.fn().mockResolvedValue({
         data: {
@@ -39,26 +43,20 @@ describe('getPdfFileUrl', () => {
       }),
       getPublicUrl: vi.fn(),
     };
-    const publicStorage = {
-      createSignedUrl: vi.fn(),
-      getPublicUrl: vi.fn(),
-    };
+    const serviceSupabase = createSupabaseMock(serviceStorage);
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(
-      createSupabaseMock(serviceStorage) as never,
-    );
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      serviceSupabase.supabase as never,
     );
 
     const result = await getPdfFileUrl({ kind: 'resume', accessType: 'signed' });
 
     expect(result).toBe('https://example.com/signed-by-service.pdf');
+    expect(serviceSupabase.from).toHaveBeenCalledWith('resume');
     expect(serviceStorage.createSignedUrl).toHaveBeenCalledTimes(1);
-    expect(publicStorage.createSignedUrl).not.toHaveBeenCalled();
   });
 
-  it('service role이 없으면 public 서버 클라이언트로 signed URL을 조회한다', async () => {
+  it('읽기 전용 storage 클라이언트가 주어질 때, getPdfFileUrl은 signed URL을 반환해야 한다', async () => {
     const publicStorage = {
       createSignedUrl: vi.fn().mockResolvedValue({
         data: {
@@ -69,17 +67,19 @@ describe('getPdfFileUrl', () => {
       getPublicUrl: vi.fn(),
     };
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    const publicSupabase = createSupabaseMock(publicStorage);
+
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      publicSupabase.supabase as never,
     );
 
     const result = await getPdfFileUrl({ kind: 'resume', accessType: 'signed' });
 
     expect(result).toBe('https://example.com/signed-by-public.pdf');
+    expect(publicSupabase.from).toHaveBeenCalledWith('resume');
   });
 
-  it('storage object가 없으면 null을 반환한다', async () => {
+  it('storage object가 없을 때, getPdfFileUrl은 null을 반환해야 한다', async () => {
     const publicStorage = {
       createSignedUrl: vi.fn().mockResolvedValue({
         data: null,
@@ -90,17 +90,19 @@ describe('getPdfFileUrl', () => {
       getPublicUrl: vi.fn(),
     };
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    const publicSupabase = createSupabaseMock(publicStorage);
+
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      publicSupabase.supabase as never,
     );
 
     const result = await getPdfFileUrl({ kind: 'resume', accessType: 'signed' });
 
     expect(result).toBeNull();
+    expect(publicSupabase.from).toHaveBeenCalledWith('resume');
   });
 
-  it('public accessType일 때 public URL을 반환한다', async () => {
+  it('accessType이 public일 때, getPdfFileUrl은 public URL을 반환해야 한다', async () => {
     const publicStorage = {
       createSignedUrl: vi.fn(),
       getPublicUrl: vi.fn().mockReturnValue({
@@ -110,13 +112,15 @@ describe('getPdfFileUrl', () => {
       }),
     };
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    const publicSupabase = createSupabaseMock(publicStorage);
+
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      publicSupabase.supabase as never,
     );
 
     const result = await getPdfFileUrl({ kind: 'resume', accessType: 'public' });
 
     expect(result).toBe('https://example.com/public.pdf');
+    expect(publicSupabase.from).toHaveBeenCalledWith('resume');
   });
 });

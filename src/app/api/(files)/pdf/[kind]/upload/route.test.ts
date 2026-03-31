@@ -1,9 +1,12 @@
+// @vitest-environment node
+
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { POST } from '@/app/api/(files)/pdf/[kind]/upload/route';
+import type * as PdfFileEntityModule from '@/entities/pdf-file';
+import { uploadPdfFile } from '@/entities/pdf-file';
 import { PDF_FILE_API_ERROR_MESSAGE } from '@/entities/pdf-file/model/pdf-file-api-error';
-import { uploadPdfFile } from '@/features/upload-pdf-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('next/cache', () => ({
@@ -16,9 +19,14 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/features/upload-pdf-file', () => ({
-  uploadPdfFile: vi.fn(),
-}));
+vi.mock('@/entities/pdf-file', async () => {
+  const actual = await vi.importActual('@/entities/pdf-file');
+
+  return {
+    ...(actual as typeof PdfFileEntityModule),
+    uploadPdfFile: vi.fn(),
+  };
+});
 
 const createPdfUploadFile = (contents: string, type = 'application/pdf') =>
   ({
@@ -60,7 +68,7 @@ describe('api/pdf/[kind]/upload route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-en.pdf');
+    vi.mocked(uploadPdfFile).mockResolvedValue('pdf/ParkChaewon-Resume-en.pdf');
 
     const formData = {
       get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body')),
@@ -79,18 +87,18 @@ describe('api/pdf/[kind]/upload route', () => {
 
     expect(response.status).toBe(200);
     expect(uploadPdfFile).toHaveBeenCalledWith({
-      bucket: 'pdf',
+      bucket: 'resume',
       file: expect.objectContaining({
         name: 'resume.pdf',
         type: 'application/pdf',
       }),
-      filePath: 'ParkChaewon-Resume-en.pdf',
+      filePath: 'pdf/ParkChaewon-Resume-en.pdf',
       upsert: true,
     });
     expect(await response.json()).toEqual({
       downloadFileName: 'ParkChaewon-Resume-en.pdf',
       downloadPath: '/api/pdf/resume',
-      filePath: 'ParkChaewon-Resume-en.pdf',
+      filePath: 'pdf/ParkChaewon-Resume-en.pdf',
       isPdfReady: true,
     });
     expect(revalidateTag).toHaveBeenCalledWith('pdf-files');
@@ -108,7 +116,7 @@ describe('api/pdf/[kind]/upload route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadPdfFile).mockResolvedValue('ParkChaewon-Resume-en.pdf');
+    vi.mocked(uploadPdfFile).mockResolvedValue('pdf/ParkChaewon-Resume-en.pdf');
 
     const formData = {
       get: vi.fn().mockReturnValue(createPdfUploadFile('%PDF-1.7\nresume body', '')),
@@ -127,12 +135,12 @@ describe('api/pdf/[kind]/upload route', () => {
 
     expect(response.status).toBe(200);
     expect(uploadPdfFile).toHaveBeenCalledWith({
-      bucket: 'pdf',
+      bucket: 'resume',
       file: expect.objectContaining({
         name: 'resume.pdf',
         type: '',
       }),
-      filePath: 'ParkChaewon-Resume-en.pdf',
+      filePath: 'pdf/ParkChaewon-Resume-en.pdf',
       upsert: true,
     });
   });

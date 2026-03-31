@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import React from 'react';
 
-import { deleteEditorDraftAction } from '@/entities/editor';
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { getEditorDraftSummaries } from '@/entities/editor/api/editor-read';
+import { deleteEditorDraftAction } from '@/entities/editor/server';
 import { buildAdminPath } from '@/features/admin-session';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { EditorDraftsPage } from '@/views/editor-drafts';
