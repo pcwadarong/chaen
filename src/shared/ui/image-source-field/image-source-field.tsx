@@ -15,6 +15,7 @@ type ImageSourceFieldProps = {
   inputId: string;
   isUploading: boolean;
   label: string;
+  multiple?: boolean;
   onFileChange: React.ChangeEventHandler<HTMLInputElement>;
   onValueChange: (value: string) => void;
   previewAlt: string;
@@ -56,6 +57,7 @@ export const ImageSourceField = ({
   inputId,
   isUploading,
   label,
+  multiple = false,
   onFileChange,
   onValueChange,
   previewAlt,
@@ -87,6 +89,7 @@ export const ImageSourceField = ({
             aria-label={fileInputAriaLabel}
             className={fileInputClass}
             disabled={isUploading}
+            multiple={multiple}
             onChange={onFileChange}
             type="file"
           />

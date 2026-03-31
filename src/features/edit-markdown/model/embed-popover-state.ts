@@ -31,6 +31,26 @@ export const normalizeEmbedInput = (value: string) => {
 };
 
 /**
+ * 줄 단위 이미지 URL 입력값을 정리하고, 비어 있는 줄과 중복 URL을 제거합니다.
+ *
+ * @param value 사용자가 textarea에 입력한 원본 문자열입니다.
+ * @returns trim 및 중복 제거가 반영된 URL 목록을 반환합니다.
+ */
+export const normalizeEmbedInputList = (value: string) => {
+  const dedupedValues = new Set<string>();
+
+  value
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .forEach(line => {
+      dedupedValues.add(line);
+    });
+
+  return Array.from(dedupedValues);
+};
+
+/**
  * 이미지 팝오버 업로드 결과를 URL 또는 사용자용 에러 메시지로 정규화합니다.
  *
  * @param contentType 현재 에디터 콘텐츠 타입입니다.
