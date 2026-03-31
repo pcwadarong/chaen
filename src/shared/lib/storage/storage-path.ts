@@ -38,6 +38,12 @@ export const CONTENT_STORAGE_BUCKETS = [
 ] as const;
 
 export type ContentStorageBucket = (typeof CONTENT_STORAGE_BUCKETS)[number];
+/**
+ * editor 전용 콘텐츠 버킷 타입입니다.
+ *
+ * 현재는 ContentStorageBucket와 동일한 별칭이지만, editor 자산과 다른 저장 규칙이
+ * 필요해질 때 별도 매핑으로 확장할 수 있도록 분리해 둡니다.
+ */
 export type EditorContentStorageBucket = ContentStorageBucket;
 
 /**
@@ -48,6 +54,9 @@ export const isEditorContentStorageBucket = (value: string): value is EditorCont
 
 /**
  * editor contentType에 대응하는 storage 버킷을 반환합니다.
+ *
+ * 현재는 contentType과 버킷이 1:1로 대응하므로 입력값을 그대로 반환합니다.
+ * 향후 editor 전용 버킷 매핑이 생겨도 호출부는 이 함수를 유지할 수 있습니다.
  */
 export const resolveEditorContentStorageBucket = (
   contentType: EditorContentStorageBucket,

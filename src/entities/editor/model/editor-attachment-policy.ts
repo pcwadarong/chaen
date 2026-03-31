@@ -20,7 +20,10 @@ export const EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS = [
 
 export const EDITOR_ATTACHMENT_ALLOWED_MIME_TYPES = [
   'application/msword',
+  'application/hwp+zip',
   'application/pdf',
+  'application/vnd.hancom.hwpx',
+  'application/x-hwp+zip',
   'application/vnd.ms-excel',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -45,9 +48,12 @@ export const EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT = EDITOR_ATTACHMENT_ALLOWED_EXT
  * @returns 허용된 첨부 확장자인지 반환합니다.
  */
 export const isAllowedEditorAttachmentExtension = (fileName: string) => {
-  const extension = fileName.trim().split('.').pop()?.toLowerCase();
+  const baseName = fileName.trim().split('/').pop()?.split('\\').pop()?.trim() ?? '';
+  const lastDotIndex = baseName.lastIndexOf('.');
 
-  if (!extension) return false;
+  if (lastDotIndex <= 0 || lastDotIndex === baseName.length - 1) return false;
+
+  const extension = baseName.slice(lastDotIndex + 1).toLowerCase();
 
   return EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS.includes(
     extension as (typeof EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS)[number],

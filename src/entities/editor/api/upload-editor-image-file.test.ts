@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { uploadEditorImageFile } from '@/entities/editor/api/upload-editor-image-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -33,7 +35,7 @@ describe('uploadEditorImageFile', () => {
     } as never);
   });
 
-  it('프로젝트 이미지는 project 버킷에 업로드한다', async () => {
+  it('contentType이 project일 때, uploadEditorImageFile은 project 버킷에 업로드해야 한다', async () => {
     const file = new File(['binary'], 'thumb.png', { type: 'image/png' });
 
     await uploadEditorImageFile({
@@ -50,7 +52,7 @@ describe('uploadEditorImageFile', () => {
     );
   });
 
-  it('본문 이미지는 images 경로에 업로드한다', async () => {
+  it('contentType이 article일 때, uploadEditorImageFile은 article 버킷에 업로드해야 한다', async () => {
     const file = new File(['binary'], 'thumb.png', { type: 'image/png' });
 
     await uploadEditorImageFile({
@@ -67,7 +69,7 @@ describe('uploadEditorImageFile', () => {
     );
   });
 
-  it('resume 이미지는 resume 버킷에 업로드한다', async () => {
+  it('contentType이 resume일 때, uploadEditorImageFile은 resume 버킷에 업로드해야 한다', async () => {
     const file = new File(['binary'], 'resume-image.png', { type: 'image/png' });
 
     await uploadEditorImageFile({

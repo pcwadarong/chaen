@@ -1,6 +1,8 @@
+// @vitest-environment node
+
 import { POST } from '@/app/api/(files)/images/route';
-import type * as EditorEntityModule from '@/entities/editor';
-import { uploadEditorImageFile } from '@/entities/editor';
+import type * as EditorServerModule from '@/entities/editor/server';
+import { uploadEditorImageFile } from '@/entities/editor/server';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -8,11 +10,11 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/entities/editor', async () => {
-  const actual = await vi.importActual('@/entities/editor');
+vi.mock('@/entities/editor/server', async () => {
+  const actual = await vi.importActual('@/entities/editor/server');
 
   return {
-    ...(actual as typeof EditorEntityModule),
+    ...(actual as typeof EditorServerModule),
     uploadEditorImageFile: vi.fn(),
   };
 });

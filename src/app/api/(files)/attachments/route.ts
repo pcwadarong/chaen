@@ -1,6 +1,7 @@
-import { isAllowedEditorAttachmentFile, uploadEditorAttachmentFile } from '@/entities/editor';
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
+import { isAllowedEditorAttachmentFile } from '@/entities/editor/model/editor-attachment-policy';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import { uploadEditorAttachmentFile } from '@/entities/editor/server';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';

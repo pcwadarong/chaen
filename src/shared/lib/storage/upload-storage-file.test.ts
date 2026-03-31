@@ -34,7 +34,7 @@ describe('uploadStorageFile', () => {
     });
   });
 
-  it('public URL 포함 옵션이면 upload 결과와 public URL을 함께 반환한다', async () => {
+  it('includePublicUrl 옵션이 켜져 있을 때, uploadStorageFile은 upload 결과와 public URL을 함께 반환해야 한다', async () => {
     const result = await uploadStorageFile({
       bucketName: 'article',
       contentType: 'application/pdf',
@@ -63,7 +63,7 @@ describe('uploadStorageFile', () => {
     });
   });
 
-  it('업로드가 실패하면 prefix를 포함한 예외를 던진다', async () => {
+  it('업로드가 실패할 때, uploadStorageFile은 prefix가 포함된 예외를 던져야 한다', async () => {
     upload.mockResolvedValue({
       data: null,
       error: {

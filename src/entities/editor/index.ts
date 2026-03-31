@@ -1,18 +1,4 @@
-export { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 export type { EditorDraftSummary, EditorSeed } from '@/entities/editor/api/editor.types';
-export {
-  deleteEditorDraftAction,
-  publishEditorContentAction,
-  saveEditorDraftAction,
-} from '@/entities/editor/api/editor-actions';
-export {
-  createEditorSeed,
-  getEditorDraftSeed,
-  getEditorDraftSummaries,
-  getEditorSeed,
-} from '@/entities/editor/api/editor-read';
-export { uploadEditorAttachmentFile } from '@/entities/editor/api/upload-editor-attachment-file';
-export { uploadEditorImageFile } from '@/entities/editor/api/upload-editor-image-file';
 export {
   EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS,
   EDITOR_ATTACHMENT_ALLOWED_MIME_TYPES,

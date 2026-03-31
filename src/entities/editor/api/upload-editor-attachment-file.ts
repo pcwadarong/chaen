@@ -6,7 +6,7 @@ import {
   STORAGE_DIRECTORY,
 } from '@/shared/lib/storage/storage-path';
 import { uploadStorageFile } from '@/shared/lib/storage/upload-storage-file';
-import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { resolveStorageWriteSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
 import 'server-only';
 
@@ -22,7 +22,7 @@ export const uploadEditorAttachmentFile = async ({
   contentType,
   file,
 }: UploadAttachmentFileOptions) => {
-  const supabase = createServiceRoleSupabaseClient();
+  const supabase = await resolveStorageWriteSupabaseClient();
   const bucket = resolveEditorContentStorageBucket(contentType);
   const fileName = createUniqueStorageFileName(file.name);
   const filePath = createContentStoragePath(STORAGE_DIRECTORY.attachments, fileName);

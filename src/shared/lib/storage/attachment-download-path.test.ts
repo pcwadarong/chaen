@@ -17,18 +17,18 @@ describe('attachment-download-path', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
   });
 
-  it('콘텐츠 버킷의 public URL에서 storage path를 추출한다', () => {
+  it('유효한 article public URL이 주어질 때, parseAttachmentStoragePath는 bucketName과 filePath를 반환해야 한다', () => {
     expect(
       parseAttachmentStoragePath(
         'https://demo.supabase.co/storage/v1/object/public/article/attachments/demo%20resume.pdf',
       ),
     ).toEqual({
       bucketName: 'article',
-      filePath: 'attachments/demo resume.pdf',
+      filePath: 'demo resume.pdf',
     });
   });
 
-  it('같은 origin이 아니거나 허용되지 않은 storage 경로면 null을 반환한다', () => {
+  it('origin이 다르거나 attachments 경로가 아닌 storage URL이 주어질 때, parseAttachmentStoragePath는 null을 반환해야 한다', () => {
     expect(
       parseAttachmentStoragePath(
         'https://other.example.com/storage/v1/object/public/article/attachments/demo.pdf',
@@ -44,21 +44,26 @@ describe('attachment-download-path', () => {
         'https://demo.supabase.co/storage/v1/object/public/file/article/attachments/demo.pdf',
       ),
     ).toBeNull();
+    expect(
+      parseAttachmentStoragePath(
+        'https://demo.supabase.co/storage/v1/object/public/article/images/demo.pdf',
+      ),
+    ).toBeNull();
   });
 
-  it('내부 첨부 파일 다운로드 경로를 생성한다', () => {
+  it('유효한 버킷/파일명 정보가 주어지면 buildAttachmentDownloadPath는 내부 다운로드 경로를 반환해야 한다', () => {
     expect(
       buildAttachmentDownloadPath({
         bucketName: 'article',
         fileName: 'resume.pdf',
-        filePath: 'attachments/demo resume.pdf',
+        filePath: 'demo resume.pdf',
       }),
     ).toBe(
       '/api/attachments/download?bucket=article&fileName=resume.pdf&path=attachments%2Fdemo+resume.pdf',
     );
   });
 
-  it('콘텐츠 버킷 첨부 public URL이면 bucket query를 포함한 내부 다운로드 route로 변환한다', () => {
+  it('콘텐츠 버킷 첨부 public URL이 주어지면 resolveAttachmentDownloadHref는 내부 다운로드 route로 변환해야 한다', () => {
     expect(
       resolveAttachmentDownloadHref({
         fileName: 'resume.pdf',
@@ -69,7 +74,7 @@ describe('attachment-download-path', () => {
     );
   });
 
-  it('일반 외부 URL은 원본 href를 유지한다', () => {
+  it('외부 URL이 주어지면 resolveAttachmentDownloadHref는 원본 href를 그대로 반환해야 한다', () => {
     expect(
       resolveAttachmentDownloadHref({
         fileName: 'resume.pdf',

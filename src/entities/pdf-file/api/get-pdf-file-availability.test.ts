@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
@@ -37,7 +39,7 @@ describe('getPdfFileAvailability', () => {
     vi.clearAllMocks();
   });
 
-  it('storage에 파일이 있으면 true를 반환한다', async () => {
+  it('resume 버킷에 파일이 있을 때, getPdfFileAvailability는 true를 반환해야 한다', async () => {
     const publicStorage = {
       list: vi.fn().mockResolvedValue({
         data: [
@@ -60,7 +62,7 @@ describe('getPdfFileAvailability', () => {
     expect(unstable_cacheTag).toHaveBeenCalledWith('pdf-files', 'pdf-file-availability:resume');
   });
 
-  it('storage에 파일이 없으면 false를 반환한다', async () => {
+  it('project 버킷에 파일이 없을 때, getPdfFileAvailability는 false를 반환해야 한다', async () => {
     const publicStorage = {
       list: vi.fn().mockResolvedValue({
         data: [],

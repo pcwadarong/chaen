@@ -22,8 +22,8 @@ describe('getDashboardPageData', () => {
       {
         assetKey: 'resume-ko',
         bucket: 'resume',
-        downloadFileName: 'ParkChaewon-Resume-kr.pdf',
-        filePath: 'pdf/ParkChaewon-Resume-kr.pdf',
+        downloadFileName: 'ParkChaewon-Resume-ko.pdf',
+        filePath: 'pdf/ParkChaewon-Resume-ko.pdf',
         kind: 'resume',
         locale: 'ko',
         title: '이력서 PDF · 국문',
@@ -40,8 +40,8 @@ describe('getDashboardPageData', () => {
       {
         assetKey: 'portfolio-ko',
         bucket: 'project',
-        downloadFileName: 'ParkChaewon-Portfolio-kr.pdf',
-        filePath: 'pdf/ParkChaewon-Portfolio-kr.pdf',
+        downloadFileName: 'ParkChaewon-Portfolio-ko.pdf',
+        filePath: 'pdf/ParkChaewon-Portfolio-ko.pdf',
         kind: 'portfolio',
         locale: 'ko',
         title: '포트폴리오 PDF · 국문',
@@ -61,9 +61,9 @@ describe('getDashboardPageData', () => {
       pdfUploadItems: [
         {
           assetKey: 'resume-ko',
-          downloadFileName: 'ParkChaewon-Resume-kr.pdf',
+          downloadFileName: 'ParkChaewon-Resume-ko.pdf',
           downloadPath: '/api/pdf/file/resume-ko',
-          filePath: 'pdf/ParkChaewon-Resume-kr.pdf',
+          filePath: 'pdf/ParkChaewon-Resume-ko.pdf',
           isPdfReady: false,
           title: '이력서 PDF · 국문',
         },
@@ -77,9 +77,9 @@ describe('getDashboardPageData', () => {
         },
         {
           assetKey: 'portfolio-ko',
-          downloadFileName: 'ParkChaewon-Portfolio-kr.pdf',
+          downloadFileName: 'ParkChaewon-Portfolio-ko.pdf',
           downloadPath: '/api/pdf/file/portfolio-ko',
-          filePath: 'pdf/ParkChaewon-Portfolio-kr.pdf',
+          filePath: 'pdf/ParkChaewon-Portfolio-ko.pdf',
           isPdfReady: false,
           title: '포트폴리오 PDF · 국문',
         },

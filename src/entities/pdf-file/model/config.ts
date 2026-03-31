@@ -83,11 +83,10 @@ const getPdfFileStorageBucket = (assetKey: PdfFileAssetKey): ContentStorageBucke
 /**
  * PDF 자산 키별 storage object path를 반환합니다.
  *
- * @param assetKey 조회할 PDF 자산 키입니다.
  * @param fileName 실제 저장할 파일명입니다.
  * @returns 자산 키 정책에 맞는 storage object path입니다.
  */
-const getPdfFileStoragePath = (_assetKey: PdfFileAssetKey, fileName: string) =>
+const getPdfFileStoragePath = (fileName: string) =>
   createContentStoragePath(STORAGE_DIRECTORY.pdf, fileName);
 
 const SHARED_PDF_FILE_CONTENT_TABLE_NAME = 'resume_contents';
@@ -104,7 +103,7 @@ export const getPdfFileAssetStorageConfig = (assetKey: PdfFileAssetKey): PdfFile
     assetKey,
     bucket: getPdfFileStorageBucket(assetKey),
     downloadFileName: resolvedFileName,
-    filePath: getPdfFileStoragePath(assetKey, resolvedFileName),
+    filePath: getPdfFileStoragePath(resolvedFileName),
     kind: assetDefinition.kind,
     locale: assetDefinition.locale,
     title: assetDefinition.title,

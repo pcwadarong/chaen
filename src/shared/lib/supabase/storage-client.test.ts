@@ -25,7 +25,7 @@ describe('storage-client resolver', () => {
     vi.clearAllMocks();
   });
 
-  it('읽기 resolver는 service role이 있으면 이를 우선 반환한다', () => {
+  it('service role client가 있을 때, resolveOptionalStorageReadSupabaseClient는 해당 client를 우선 반환해야 한다', () => {
     const serviceClient = { storage: { from: vi.fn() } };
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(serviceClient as never);
@@ -36,7 +36,7 @@ describe('storage-client resolver', () => {
     expect(resolveOptionalStorageReadSupabaseClient()).toBe(serviceClient);
   });
 
-  it('읽기 resolver는 service role이 없으면 public server client로 폴백한다', () => {
+  it('service role client가 없을 때, resolveOptionalStorageReadSupabaseClient는 public server client로 폴백해야 한다', () => {
     const publicClient = { storage: { from: vi.fn() } };
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
@@ -45,12 +45,19 @@ describe('storage-client resolver', () => {
     expect(resolveOptionalStorageReadSupabaseClient()).toBe(publicClient);
   });
 
-  it('쓰기 resolver는 service role이 없으면 server client로 폴백한다', async () => {
+  it('service role client가 없을 때, resolveStorageWriteSupabaseClient는 server client로 폴백해야 한다', async () => {
     const serverClient = { storage: { from: vi.fn() } };
 
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
     vi.mocked(createServerSupabaseClient).mockResolvedValue(serverClient as never);
 
     await expect(resolveStorageWriteSupabaseClient()).resolves.toBe(serverClient);
+  });
+
+  it('service role과 public server client가 모두 없을 때, resolveOptionalStorageReadSupabaseClient는 null을 반환해야 한다', () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(null);
+
+    expect(resolveOptionalStorageReadSupabaseClient()).toBeNull();
   });
 });

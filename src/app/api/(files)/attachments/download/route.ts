@@ -18,9 +18,9 @@ const isAllowedAttachmentPath = (filePath: string) => {
   if (filePath.startsWith('/')) return false;
 
   const segments = filePath.split('/');
-  const [firstSegment, secondSegment, ...fileNameSegments] = segments;
+  const [firstSegment, ...restSegments] = segments;
 
-  if (firstSegment !== 'attachments' || [secondSegment, ...fileNameSegments].length === 0) {
+  if (firstSegment !== 'attachments' || restSegments.length === 0) {
     return false;
   }
 

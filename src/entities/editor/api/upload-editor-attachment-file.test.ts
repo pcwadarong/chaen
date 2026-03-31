@@ -1,10 +1,10 @@
 // @vitest-environment node
 
 import { uploadEditorAttachmentFile } from '@/entities/editor/api/upload-editor-attachment-file';
-import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { resolveStorageWriteSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
-vi.mock('@/shared/lib/supabase/service-role', () => ({
-  createServiceRoleSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/storage-client', () => ({
+  resolveStorageWriteSupabaseClient: vi.fn(),
 }));
 
 describe('uploadEditorAttachmentFile', () => {
@@ -28,14 +28,14 @@ describe('uploadEditorAttachmentFile', () => {
       upload,
     });
 
-    vi.mocked(createServiceRoleSupabaseClient).mockReturnValue({
+    vi.mocked(resolveStorageWriteSupabaseClient).mockResolvedValue({
       storage: {
         from,
       },
     } as never);
   });
 
-  it('첨부 파일은 콘텐츠 버킷의 attachments 경로에 업로드한다', async () => {
+  it("Under contentType 'article', uploadEditorAttachmentFile must upload the file to the content bucket's attachments path", async () => {
     const file = new File(['binary'], 'resume.pdf', { type: 'application/pdf' });
 
     await uploadEditorAttachmentFile({
@@ -54,7 +54,7 @@ describe('uploadEditorAttachmentFile', () => {
     );
   });
 
-  it('resume 첨부 파일은 resume 버킷의 attachments 경로에 업로드한다', async () => {
+  it("Under contentType 'resume', uploadEditorAttachmentFile must upload the file to the resume bucket's attachments path", async () => {
     const file = new File(['binary'], 'resume.pdf', { type: 'application/pdf' });
 
     await uploadEditorAttachmentFile({
@@ -73,7 +73,7 @@ describe('uploadEditorAttachmentFile', () => {
     );
   });
 
-  it('storage 업로드가 실패하면 원인 메시지를 포함한 예외를 던진다', async () => {
+  it('storage 업로드가 실패하면 uploadEditorAttachmentFile은 원인 메시지를 포함한 예외를 던져야 한다', async () => {
     upload.mockResolvedValue({
       error: {
         message: 'Storage quota exceeded',

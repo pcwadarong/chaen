@@ -10,6 +10,8 @@ type AttachmentStorageLocation = {
   filePath: string;
 };
 
+const ATTACHMENT_PATH_PREFIX = 'attachments/';
+
 /**
  * 같은 origin의 내부 첨부 파일 다운로드 경로를 생성합니다.
  */
@@ -25,7 +27,7 @@ export const buildAttachmentDownloadPath = ({
   const searchParams = new URLSearchParams({
     bucket: bucketName,
     fileName,
-    path: filePath,
+    path: `${ATTACHMENT_PATH_PREFIX}${filePath}`,
   });
 
   return `/api/attachments/download?${searchParams.toString()}`;
@@ -54,10 +56,14 @@ export const parseAttachmentStoragePath = (href: string): AttachmentStorageLocat
     if (!bucketName || !encodedFilePath) return null;
 
     if (!isEditorContentStorageBucket(bucketName)) return null;
+    if (!encodedFilePath.startsWith(ATTACHMENT_PATH_PREFIX)) return null;
+
+    const encodedAttachmentPath = encodedFilePath.slice(ATTACHMENT_PATH_PREFIX.length);
+    if (!encodedAttachmentPath) return null;
 
     return {
       bucketName,
-      filePath: decodeURIComponent(encodedFilePath),
+      filePath: decodeURIComponent(encodedAttachmentPath),
     };
   } catch {
     return null;
