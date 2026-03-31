@@ -5,6 +5,7 @@ export const STORAGE_BUCKET = {
   pdf: 'pdf',
   project: 'project',
   article: 'article',
+  file: 'file',
 } as const;
 
 /**

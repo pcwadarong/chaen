@@ -20,6 +20,10 @@ vi.mock('next-intl', () => ({
     )[key] ?? key,
 }));
 
+vi.mock('@/shared/lib/storage/attachment-download-path', () => ({
+  resolveAttachmentDownloadHref: vi.fn(({ href }: { href: string }) => href),
+}));
+
 /**
  * 서버 컴포넌트 결과를 HTML 문자열로 수집합니다.
  */
@@ -116,6 +120,88 @@ describe('MarkdownRenderer', () => {
     expect(image?.getAttribute('alt')).toBe('설명');
     expect(image?.getAttribute('aria-haspopup')).toBe('dialog');
     expect(image?.className).toBeTruthy();
+  });
+
+  it('첨부 파일 커스텀 태그를 다운로드 카드 링크로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',
+    );
+    const attachmentCard = document.querySelector('[data-markdown-attachment="true"]');
+    const downloadLink = attachmentCard?.querySelector('a[download="resume.pdf"]');
+
+    expect(attachmentCard).toBeTruthy();
+    expect(downloadLink).toBeTruthy();
+    expect(downloadLink?.getAttribute('href')).toBe('https://example.com/resume.pdf');
+    expect(attachmentCard?.textContent).toContain('resume.pdf');
+    expect(attachmentCard?.textContent).toContain('2 KB');
+    expect(downloadLink?.textContent).toContain('다운로드');
+  });
+
+  it('첨부 파일 속성의 HTML entity를 복원해 파일명과 href를 그대로 사용한다', async () => {
+    const document = await renderServerDocument(
+      '<Attachment href="https://example.com/download?name=R&amp;D&amp;v=2" name="R&amp;D &quot;v2&quot;.pdf" size="2048" type="application/pdf" />',
+    );
+    const attachmentCard = document.querySelector('[data-markdown-attachment="true"]');
+    const downloadLink = attachmentCard?.querySelector('a[download]');
+
+    expect(attachmentCard?.textContent).toContain('R&D "v2".pdf');
+    expect(downloadLink?.getAttribute('download')).toBe('R&D "v2".pdf');
+    expect(downloadLink?.getAttribute('href')).toBe('https://example.com/download?name=R&D&v=2');
+  });
+
+  it('수학 공식 커스텀 태그를 KaTeX 수식으로 렌더링한다', async () => {
+    const document = await renderServerDocument('<Math block="true">a^2 + b^2 = c^2</Math>');
+    const mathNode = document.querySelector('[data-markdown-math="block"]');
+
+    expect(mathNode).toBeTruthy();
+    expect(mathNode?.querySelector('.katex')).toBeTruthy();
+    expect(mathNode?.textContent).toContain('a');
+    expect(mathNode?.textContent).toContain('b');
+    expect(mathNode?.textContent).toContain('c');
+  });
+
+  it('문장 중간의 inline 수학 공식도 공백과 함께 KaTeX로 렌더링한다', async () => {
+    const document = await renderServerDocument('합은 <Math>a^2 + b^2</Math> 입니다');
+    const wrapper = document.querySelector('div');
+    const inlineMathNode = document.querySelector('[data-markdown-math="inline"]');
+
+    expect(wrapper?.textContent).toContain('합은');
+    expect(wrapper?.textContent).toContain('입니다');
+    expect(inlineMathNode).toBeTruthy();
+    expect(inlineMathNode?.querySelector('.katex')).toBeTruthy();
+  });
+
+  it('여러 개의 inline 수학 공식은 각각 독립적으로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      '첫째는 <Math>a^2</Math> 이고 둘째는 <Math>b^2</Math> 입니다',
+    );
+    const inlineMathNodes = Array.from(document.querySelectorAll('[data-markdown-math="inline"]'));
+
+    expect(inlineMathNodes).toHaveLength(2);
+    expect(inlineMathNodes[0]?.textContent).toContain('a');
+    expect(inlineMathNodes[1]?.textContent).toContain('b');
+  });
+
+  it('잘못된 inline 수식은 원문과 오류 힌트를 함께 fallback으로 렌더링한다', async () => {
+    const document = await renderServerDocument('합은 <Math>\\fra{a}{b}</Math> 입니다');
+    const inlineMathNode = document.querySelector('[data-markdown-math="inline"]');
+
+    expect(inlineMathNode).toBeTruthy();
+    expect(inlineMathNode?.getAttribute('data-markdown-math-error')).toBe('true');
+    expect(inlineMathNode?.textContent).toContain('\\fra{a}{b}');
+    expect(inlineMathNode?.textContent).toContain('수식 오류');
+    expect(inlineMathNode?.querySelector('.katex')).toBeNull();
+  });
+
+  it('잘못된 block 수식은 원문과 상세 오류 메시지를 fallback으로 렌더링한다', async () => {
+    const document = await renderServerDocument('<Math block="true">\\begin{cases} x </Math>');
+    const blockMathNode = document.querySelector('[data-markdown-math="block"]');
+
+    expect(blockMathNode).toBeTruthy();
+    expect(blockMathNode?.getAttribute('data-markdown-math-error')).toBe('true');
+    expect(blockMathNode?.textContent).toContain('\\begin{cases} x');
+    expect(blockMathNode?.textContent).toContain('수식 오류');
+    expect(blockMathNode?.querySelector('.katex')).toBeNull();
   });
 
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {

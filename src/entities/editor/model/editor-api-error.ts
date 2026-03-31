@@ -1,5 +1,7 @@
 export const EDITOR_API_ERROR_MESSAGE = {
   articleNotFound: 'Article not found',
+  attachmentUploadInvalidPayload: 'Invalid attachment upload payload',
+  attachmentUploadMissingFile: 'Attachment file is required',
   imageUploadInvalidPayload: 'Invalid image upload payload',
   imageUploadMissingFile: 'Image file is required',
   projectNotFound: 'Project not found',

@@ -22,6 +22,7 @@ import { getMarkdownColorPreset } from '@/shared/lib/markdown/markdown-color-pre
 import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 import { MarkdownImage } from '@/shared/ui/markdown/markdown-image';
+import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
 import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
@@ -41,6 +42,10 @@ type MarkdownInlineDirective =
       background?: string;
       color?: string;
       type: 'style';
+    }
+  | {
+      formula: string;
+      type: 'math';
     }
   | {
       type: 'spoiler';
@@ -102,6 +107,17 @@ const parseMarkdownInlineDirective = (href?: string): MarkdownInlineDirective | 
 
   if (href === '#md-underline:') {
     return { type: 'underline' };
+  }
+
+  if (href.startsWith('#md-math:')) {
+    try {
+      return {
+        formula: decodeURIComponent(href.slice('#md-math:'.length)),
+        type: 'math',
+      };
+    } catch {
+      return null;
+    }
   }
 
   return null;
@@ -264,6 +280,10 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
 
       if (inlineDirective?.type === 'underline') {
         return <u className={markdownUnderlineClass}>{children}</u>;
+      }
+
+      if (inlineDirective?.type === 'math') {
+        return <MarkdownMath formula={inlineDirective.formula} />;
       }
 
       const normalizedHref = normalizeHttpUrl(href);

@@ -8,6 +8,8 @@ import {
   markdownH4Class,
 } from '@/shared/lib/markdown/markdown-config';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
+import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
+import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
@@ -34,6 +36,18 @@ type MarkdownSegment =
       type: 'toggle';
     }
   | {
+      contentType?: string;
+      fileName: string;
+      fileSize?: number;
+      href: string;
+      type: 'attachment';
+    }
+  | {
+      formula: string;
+      isBlock: boolean;
+      type: 'math';
+    }
+  | {
       type: 'youtube';
       videoId: string;
     };
@@ -41,6 +55,9 @@ type MarkdownSegment =
 const toggleStartPrefix = ':::toggle ';
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const attachmentPattern =
+  /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
+const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
 const subtextPrefix = '-# ';
 const htmlLineBreakPattern = /<br\s*\/?>/gi;
 const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
@@ -49,12 +66,27 @@ const markdownHorizontalRulePlaceholder = '__MD_HORIZONTAL_RULE__';
 const inlineStyledSpanPattern = /<span style="([^"]+)">([\s\S]*?)<\/span>/g;
 const inlineUnderlinePattern = /<u>([\s\S]*?)<\/u>/g;
 const inlineSpoilerPattern = /\|\|([^|]+?)\|\|/g;
+const inlineMathPattern = /<Math>([\s\S]*?)<\/Math>/g;
 const fenceBoundaryPattern = /^\s*(`{3,}|~{3,})/;
 
 type FenceState = {
   delimiter: '`' | '~';
   size: number;
 } | null;
+
+/**
+ * editor template이 escape한 HTML attribute entity를 원래 문자열로 복원합니다.
+ *
+ * @param value attachment/math custom tag에서 읽은 raw attribute 값입니다.
+ * @returns entity가 복원된 일반 문자열을 반환합니다.
+ */
+const decodeHtmlAttributeEntities = (value: string) =>
+  value
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
 
 /**
  * 현재 줄이 fenced code block의 열기/닫기 경계인지 판별합니다.
@@ -209,6 +241,13 @@ export const preprocessMarkdownInlineSyntax = (markdown: string) =>
         const escapedText = escapeMarkdownLinkLabel(text.trim() || '스포일러');
 
         return `[${escapedText}](#md-spoiler:)`;
+      })
+      .replace(inlineMathPattern, (_, formula: string) => {
+        const normalizedFormula = formula.trim();
+        const encodedFormula = encodeURIComponent(normalizedFormula);
+        const escapedLabel = escapeMarkdownLinkLabel(normalizedFormula || 'math');
+
+        return `[${escapedLabel}](#md-math:${encodedFormula})`;
       }),
   );
 
@@ -350,6 +389,34 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
+    const attachmentMatch = line.match(attachmentPattern);
+
+    if (attachmentMatch) {
+      flushMarkdown();
+      segments.push({
+        contentType: attachmentMatch[4]
+          ? decodeHtmlAttributeEntities(attachmentMatch[4])
+          : undefined,
+        fileName: decodeHtmlAttributeEntities(attachmentMatch[2]),
+        fileSize: attachmentMatch[3] ? Number(attachmentMatch[3]) : undefined,
+        href: decodeHtmlAttributeEntities(attachmentMatch[1]),
+        type: 'attachment',
+      });
+      continue;
+    }
+
+    const mathMatch = line.match(mathPattern);
+
+    if (mathMatch) {
+      flushMarkdown();
+      segments.push({
+        formula: mathMatch[2],
+        isBlock: mathMatch[1] === 'true',
+        type: 'math',
+      });
+      continue;
+    }
+
     if (line.startsWith(subtextPrefix)) {
       flushMarkdown();
 
@@ -412,6 +479,22 @@ export const renderRichMarkdown = ({
           />
         </div>
       );
+    }
+
+    if (segment.type === 'attachment') {
+      return (
+        <MarkdownAttachment
+          contentType={segment.contentType}
+          fileName={segment.fileName}
+          fileSize={segment.fileSize}
+          href={segment.href}
+          key={key}
+        />
+      );
+    }
+
+    if (segment.type === 'math') {
+      return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
     }
 
     if (segment.type === 'subtext') {

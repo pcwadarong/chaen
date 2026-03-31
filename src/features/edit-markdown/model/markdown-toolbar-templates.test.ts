@@ -1,6 +1,8 @@
 import {
   createAlignBlockMarkdown,
+  createAttachmentEmbedMarkdown,
   createImageEmbedMarkdown,
+  createMathEmbedMarkdown,
   createToggleBlockMarkdown,
   createYoutubeEmbedMarkdown,
   extractYoutubeId,
@@ -62,5 +64,35 @@ describe('markdown-toolbar template helpers', () => {
   it('YouTube embed markdown는 유효한 id를 삽입하고 따옴표를 이스케이프한다', () => {
     expect(createYoutubeEmbedMarkdown('dQw4w9WgXcQ')).toBe('<YouTube id="dQw4w9WgXcQ" />');
     expect(createYoutubeEmbedMarkdown('abc"def')).toBe('<YouTube id="abc&quot;def" />');
+  });
+
+  it('첨부 파일 markdown는 속성을 안전하게 escape하고 size/type을 함께 담는다', () => {
+    expect(
+      createAttachmentEmbedMarkdown({
+        contentType: 'application/pdf',
+        fileName: 'resume "v2".pdf',
+        fileSize: 2048,
+        url: 'https://example.com/resume.pdf',
+      }),
+    ).toBe(
+      '<Attachment href="https://example.com/resume.pdf" name="resume &quot;v2&quot;.pdf" size="2048" type="application/pdf" />',
+    );
+  });
+
+  it('수식 markdown는 inline/block 여부를 구분하고 줄바꿈을 한 줄로 정리한다', () => {
+    expect(
+      createMathEmbedMarkdown({
+        formula: 'a^2 + b^2 = c^2',
+        isBlock: false,
+      }),
+    ).toBe('<Math>a^2 + b^2 = c^2</Math>');
+    expect(
+      createMathEmbedMarkdown({
+        formula: '\\begin{cases}\n x, &x \\ge 0 \\\\\n -x, &x < 0\n\\end{cases}',
+        isBlock: true,
+      }),
+    ).toBe(
+      '\n<Math block="true">\\begin{cases} x, &x \\ge 0 \\\\ -x, &x < 0 \\end{cases}</Math>\n',
+    );
   });
 });
