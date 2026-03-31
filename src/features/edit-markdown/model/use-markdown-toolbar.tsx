@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+import type { EditorAttachment } from '@/entities/editor/model/editor-attachment';
 import { createMarkdownLinkByMode } from '@/entities/editor/model/markdown-link';
 import {
   applyTextareaTransform,
@@ -169,15 +170,7 @@ export const useMarkdownToolbar = ({
   );
 
   const handleAttachmentApply = React.useCallback(
-    (
-      attachment: {
-        contentType: string;
-        fileName: string;
-        fileSize: number;
-        url: string;
-      },
-      closePopover?: ClosePopover,
-    ) => {
+    (attachment: EditorAttachment, closePopover?: ClosePopover) => {
       applyTemplate(createAttachmentEmbedMarkdown(attachment));
       closePopover?.({ restoreFocus: false });
     },

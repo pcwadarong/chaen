@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { uploadEditorFile } from '@/entities/editor/api/upload-editor-file';
 import { FileEmbedPopover } from '@/features/edit-markdown/ui/file-embed-popover';
 
 type PopoverMockProps = {
@@ -30,6 +31,10 @@ vi.mock('@/entities/editor/api/upload-editor-file', () => ({
 }));
 
 describe('FileEmbedPopover', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('업로드한 첨부 파일 메타데이터를 onApply에 전달한다', async () => {
     const onApply = vi.fn();
 
@@ -57,5 +62,29 @@ describe('FileEmbedPopover', () => {
       },
       expect.any(Function),
     );
+  });
+
+  it('업로드 실패 시 에러 메시지를 노출하고 onApply를 호출하지 않는다', async () => {
+    const onApply = vi.fn();
+
+    vi.mocked(uploadEditorFile).mockRejectedValueOnce(new Error('upload failed'));
+
+    render(<FileEmbedPopover contentType="article" onApply={onApply} />);
+
+    fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
+      target: {
+        files: [new File(['pdf'], 'resume.pdf', { type: 'application/pdf' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(
+        '파일 업로드에 실패했습니다. 다시 시도해주세요.',
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    expect(onApply).not.toHaveBeenCalled();
   });
 });

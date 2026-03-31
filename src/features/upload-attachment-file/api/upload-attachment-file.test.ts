@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { uploadAttachmentFile } from '@/features/upload-attachment-file/api/upload-attachment-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -50,5 +52,20 @@ describe('uploadAttachmentFile', () => {
         upsert: false,
       }),
     );
+  });
+
+  it('storage 업로드가 실패하면 원인 메시지를 포함한 예외를 던진다', async () => {
+    upload.mockResolvedValue({
+      error: {
+        message: 'Storage quota exceeded',
+      },
+    });
+
+    await expect(
+      uploadAttachmentFile({
+        contentType: 'article',
+        file: new File(['binary'], 'large-file.pdf', { type: 'application/pdf' }),
+      }),
+    ).rejects.toThrow('[attachment-upload] 파일 업로드 실패: Storage quota exceeded');
   });
 });

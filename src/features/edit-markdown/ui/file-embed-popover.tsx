@@ -168,6 +168,11 @@ const uploadButtonWrapClass = css({
   color: 'text',
   cursor: 'pointer',
   flex: 'none',
+  _focusWithin: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+    borderColor: 'primary',
+  },
 });
 
 const uploadButtonLabelClass = css({
