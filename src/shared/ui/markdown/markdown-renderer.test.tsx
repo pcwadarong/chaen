@@ -329,13 +329,13 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('p')?.textContent).toBe('첫 번째 줄\n두 번째 줄');
   });
 
-  it('줄 끝의 literal <br/>도 빈 문단 없이 markdown 줄바꿈으로 정규화한다', async () => {
+  it('줄 끝의 literal <br/> 뒤 Enter는 hard break와 다음 줄 분리를 함께 유지한다', async () => {
     const document = await renderServerDocument(['첫 번째 줄<br/>', '두 번째 줄'].join('\n'));
     const paragraphs = Array.from(document.querySelectorAll('p'));
 
-    expect(paragraphs).toHaveLength(1);
-    expect(document.querySelector('p br')).toBeTruthy();
-    expect(paragraphs[0]?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0]?.textContent).toBe('첫 번째 줄');
+    expect(paragraphs[1]?.textContent).toBe('두 번째 줄');
   });
 
   it('literal hr 태그는 구분선으로 정규화해 렌더링한다', async () => {

@@ -272,8 +272,7 @@ const normalizeMarkdownHtmlAliases = (markdown: string) =>
       .replace(htmlHorizontalRulePattern, markdownHorizontalRulePlaceholder)
       .replace(htmlLineBreakPattern, markdownLineBreakPlaceholder),
   )
-    .replace(new RegExp(`${markdownLineBreakPlaceholder}\n`, 'g'), '\n')
-    .replace(new RegExp(markdownLineBreakPlaceholder, 'g'), '\n')
+    .replace(new RegExp(markdownLineBreakPlaceholder, 'g'), '  \n')
     .replace(
       new RegExp(`(^|\n)${markdownHorizontalRulePlaceholder}(?=\n|$)`, 'g'),
       (_, prefix: string) => `${prefix}---`,
