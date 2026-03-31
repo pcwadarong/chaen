@@ -20,9 +20,11 @@ import type {
 import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
-  createImageEmbedMarkdown,
+  createImageEmbedMarkdownGroup,
+  createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
+  createUploadedVideoEmbedMarkdown,
   createYoutubeEmbedMarkdown,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
 import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
@@ -32,7 +34,7 @@ import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover
 import { MathEmbedPopover } from '@/features/edit-markdown/ui/math-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/edit-markdown/ui/text-background-color-popover';
 import { TextColorPopover } from '@/features/edit-markdown/ui/text-color-popover';
-import { YoutubeEmbedPopover } from '@/features/edit-markdown/ui/youtube-embed-popover';
+import { VideoEmbedModal } from '@/features/edit-markdown/ui/video-embed-modal';
 import {
   CodeBlockIcon,
   DashIcon,
@@ -156,17 +158,32 @@ export const useMarkdownToolbar = ({
   );
 
   const handleImageApply = React.useCallback(
-    (url: string, closePopover?: ClosePopover) => {
-      const selectedText = getSelectedText();
-      const altText = selectedText || '이미지 설명';
-      const nextValue = createImageEmbedMarkdown(altText, url);
+    (
+      payload: {
+        items: Array<{
+          altText: string;
+          url: string;
+        }>;
+        mode: 'gallery' | 'individual';
+      },
+      closePopover?: ClosePopover,
+    ) => {
+      if (!payload?.items || payload.items.length === 0) {
+        closePopover?.({ restoreFocus: false });
+        return;
+      }
+
+      const nextValue =
+        payload.mode === 'gallery'
+          ? createImageGalleryMarkdown(payload.items)
+          : createImageEmbedMarkdownGroup(payload.items);
 
       applyTextTransform(currentTextarea =>
         insertTemplate(currentTextarea, nextValue, nextValue.length),
       );
       closePopover?.({ restoreFocus: false });
     },
-    [applyTextTransform, getSelectedText],
+    [applyTextTransform],
   );
 
   const handleAttachmentApply = React.useCallback(
@@ -206,9 +223,26 @@ export const useMarkdownToolbar = ({
     [applyWrap],
   );
 
-  const handleYoutubeApply = React.useCallback(
-    (videoId: string, closePopover?: ClosePopover) => {
-      applyTemplate(createYoutubeEmbedMarkdown(videoId));
+  const handleVideoApply = React.useCallback(
+    (
+      payload: {
+        provider: 'upload' | 'youtube';
+        src?: string;
+        videoId?: string;
+      },
+      closePopover?: ClosePopover,
+    ) => {
+      if (payload.provider === 'upload') {
+        if (!payload.src) return;
+
+        applyTemplate(createUploadedVideoEmbedMarkdown(payload.src));
+        closePopover?.({ restoreFocus: false });
+        return;
+      }
+
+      if (!payload.videoId) return;
+
+      applyTemplate(createYoutubeEmbedMarkdown(payload.videoId));
       closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
@@ -467,10 +501,11 @@ export const useMarkdownToolbar = ({
             type: 'custom',
           },
           {
-            key: 'youtube-embed',
+            key: 'video-embed',
             node: (
-              <YoutubeEmbedPopover
-                onApply={handleYoutubeApply}
+              <VideoEmbedModal
+                contentType={contentType}
+                onApply={handleVideoApply}
                 onTriggerMouseDown={event => event.preventDefault()}
                 triggerClassName={popoverTriggerClassName}
               />
@@ -491,7 +526,7 @@ export const useMarkdownToolbar = ({
       handleLinkApply,
       handleMathApply,
       handleTextColorApply,
-      handleYoutubeApply,
+      handleVideoApply,
       headingActions,
       inlineFormatActions,
       popoverTriggerClassName,

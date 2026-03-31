@@ -7,4 +7,5 @@ export const API_INTERNAL_ERROR_MESSAGE = {
   pdfUploadFailed: 'PDF upload failed',
   slugCheckFailed: 'Slug duplicate check failed',
   tagsFetchFailed: '태그 목록을 불러오지 못했습니다.',
+  videoUploadFailed: 'Video upload failed',
 } as const;

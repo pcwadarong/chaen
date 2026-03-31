@@ -204,6 +204,85 @@ describe('MarkdownRenderer', () => {
     expect(blockMathNode?.querySelector('.katex')).toBeNull();
   });
 
+  it('gallery 블록은 슬라이더와 진행 바를 포함한 이미지 갤러리로 렌더링한다', async () => {
+    const document = await renderServerDocument(
+      [
+        ':::gallery',
+        '![첫 번째](https://example.com/one.png)',
+        '![두 번째](https://example.com/two.png)',
+        ':::',
+      ].join('\n'),
+    );
+    const gallery = document.querySelector('[data-markdown-gallery="true"]');
+    const images = Array.from(gallery?.querySelectorAll('img') ?? []);
+    const progress = gallery?.querySelector('[aria-label="총 2장의 이미지 중 1번째"]');
+
+    expect(gallery).toBeTruthy();
+    expect(gallery?.getAttribute('data-markdown-gallery-count')).toBe('2');
+    expect(images).toHaveLength(2);
+    expect(images[0]?.getAttribute('src')).toBe('https://example.com/one.png');
+    expect(images[1]?.getAttribute('src')).toBe('https://example.com/two.png');
+    expect(images[0]?.getAttribute('alt')).toBe('첫 번째');
+    expect(images[1]?.getAttribute('alt')).toBe('두 번째');
+    expect(gallery?.querySelector('button[aria-label="이전 이미지"]')).toBeTruthy();
+    expect(gallery?.querySelector('button[aria-label="다음 이미지"]')).toBeTruthy();
+    expect(progress).toBeTruthy();
+    expect(progress?.getAttribute('role')).toBe('progressbar');
+    expect(progress?.getAttribute('aria-valuenow')).toBe('1');
+  });
+
+  it('gallery 뒤에 일반 이미지가 오면, MarkdownRenderer는 일반 이미지 viewer id를 gallery와 독립적으로 유지해야 한다', async () => {
+    const document = await renderServerDocument(
+      [
+        ':::gallery',
+        '![첫 번째](https://example.com/one.png)',
+        '![두 번째](https://example.com/two.png)',
+        ':::',
+        '',
+        '![본문 이미지](https://example.com/standalone.png)',
+      ].join('\n'),
+    );
+
+    const standaloneImage = document.querySelector(
+      'img[data-markdown-viewer-id="markdown-image-0"][src="https://example.com/standalone.png"]',
+    );
+
+    expect(standaloneImage).toBeTruthy();
+  });
+
+  it('새 Video 문법이 주어지면, MarkdownRenderer는 YouTube iframe을 렌더링해야 한다', async () => {
+    const document = await renderServerDocument('<Video provider="youtube" id="dQw4w9WgXcQ" />');
+    const iframe = document.querySelector('iframe');
+
+    expect(iframe).toBeTruthy();
+    expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
+  });
+
+  it('유효하지 않은 YouTube video id가 주어지면, MarkdownRenderer는 iframe을 렌더링하지 않아야 한다', async () => {
+    const document = await renderServerDocument('<Video provider="youtube" id="invalid-script" />');
+
+    expect(document.querySelector('iframe')).toBeNull();
+  });
+
+  it('업로드 Video 문법이 주어지면, MarkdownRenderer는 HTML video 요소를 렌더링해야 한다', async () => {
+    const document = await renderServerDocument(
+      '<Video provider="upload" src="https://example.com/videos/demo.mp4" />',
+    );
+    const video = document.querySelector('video');
+
+    expect(video).toBeTruthy();
+    expect(video?.getAttribute('src')).toBe('https://example.com/videos/demo.mp4');
+    expect(video?.getAttribute('controls')).not.toBeNull();
+  });
+
+  it('legacy YouTube 문법이 주어지면, MarkdownRenderer는 하위 호환으로 YouTube iframe을 렌더링해야 한다', async () => {
+    const document = await renderServerDocument('<YouTube id="dQw4w9WgXcQ" />');
+    const iframe = document.querySelector('iframe');
+
+    expect(iframe).toBeTruthy();
+    expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',
@@ -393,7 +472,7 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('a')?.getAttribute('href')).toBe('https://openai.com/');
   });
 
-  it('custom syntax preview를 직접 렌더링한다', async () => {
+  it('When custom syntax가 주어지면, 각 변환 구문은 preview에서 기대된 요소로 렌더링되어야 한다', async () => {
     const markdown = [
       '<span style="color:#3B82F6">파란 글자</span>',
       '',
@@ -405,7 +484,7 @@ describe('MarkdownRenderer', () => {
       '',
       '-# 보조 문구',
       '',
-      '<YouTube id="dQw4w9WgXcQ" />',
+      '<Video provider="youtube" id="dQw4w9WgXcQ" />',
       '',
       ':::toggle ## 토글 제목',
       '토글 본문',
@@ -463,6 +542,22 @@ describe('MarkdownRenderer', () => {
     expect(toggleListDetails?.textContent).toContain('일반 토글');
     expect(toggleListDetails?.textContent).toContain('목록 본문');
     expect(toggleChevron).toBeTruthy();
+  });
+
+  it('When legacy YouTube custom syntax가 주어지면, video iframe 렌더링이 유지되어야 한다', async () => {
+    const markdown = '<YouTube id="dQw4w9WgXcQ" />';
+    const document = await renderServerDocument(markdown);
+    const iframe = document.querySelector('iframe');
+
+    expect(iframe?.getAttribute('src')).toContain('dQw4w9WgXcQ');
+  });
+
+  it('When Video 문법으로 provider와 id가 제공되면 iframe 렌더링으로 변환되어야 한다', async () => {
+    const markdown = '<Video provider="youtube" id="dQw4w9WgXcQ" />';
+    const document = await renderServerDocument(markdown);
+    const iframe = document.querySelector('iframe');
+
+    expect(iframe?.getAttribute('src')).toContain('dQw4w9WgXcQ');
   });
 
   it('task list는 checkbox와 task-list-item class를 유지한다', async () => {

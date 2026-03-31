@@ -1,6 +1,7 @@
 import React, { Fragment, type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   markdownH1Class,
   markdownH2Class,
@@ -9,7 +10,9 @@ import {
 } from '@/shared/lib/markdown/markdown-config';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
+import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
+import { MarkdownVideo } from '@/shared/ui/markdown/markdown-video';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
@@ -48,13 +51,21 @@ type MarkdownSegment =
       type: 'math';
     }
   | {
-      type: 'youtube';
-      videoId: string;
+      items: ReturnType<typeof collectMarkdownImages>;
+      type: 'gallery';
+    }
+  | {
+      provider: 'upload' | 'youtube';
+      src?: string;
+      type: 'video';
+      videoId?: string;
     };
 
 const toggleStartPrefix = ':::toggle ';
+const galleryStartPattern = /^:::gallery\s*$/;
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
-const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const legacyYoutubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const videoPattern = /^<Video provider="([^"]+)"(?: id="([^"]+)")?(?: src="([^"]+)")? \/>$/;
 const attachmentPattern =
   /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
 const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
@@ -378,13 +389,47 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
-    const youtubeMatch = line.match(youtubePattern);
+    if (galleryStartPattern.test(line)) {
+      flushMarkdown();
 
-    if (youtubeMatch) {
+      const bodyLines: string[] = [];
+      let cursor = index + 1;
+
+      while (cursor < lines.length && lines[cursor] !== ':::') {
+        bodyLines.push(lines[cursor]);
+        cursor += 1;
+      }
+
+      segments.push({
+        items: collectMarkdownImages(bodyLines.join('\n')),
+        type: 'gallery',
+      });
+
+      index = cursor;
+      continue;
+    }
+
+    const videoMatch = line.match(videoPattern);
+
+    if (videoMatch && (videoMatch[1] === 'youtube' || videoMatch[1] === 'upload')) {
       flushMarkdown();
       segments.push({
-        type: 'youtube',
-        videoId: youtubeMatch[1],
+        provider: videoMatch[1],
+        src: videoMatch[3] ? decodeHtmlAttributeEntities(videoMatch[3]) : undefined,
+        type: 'video',
+        videoId: videoMatch[2] ? decodeHtmlAttributeEntities(videoMatch[2]) : undefined,
+      });
+      continue;
+    }
+
+    const legacyYoutubeMatch = line.match(legacyYoutubePattern);
+
+    if (legacyYoutubeMatch) {
+      flushMarkdown();
+      segments.push({
+        provider: 'youtube',
+        type: 'video',
+        videoId: decodeHtmlAttributeEntities(legacyYoutubeMatch[1]),
       });
       continue;
     }
@@ -466,18 +511,14 @@ export const renderRichMarkdown = ({
       );
     }
 
-    if (segment.type === 'youtube') {
+    if (segment.type === 'video') {
       return (
-        <div className={youtubeFrameClass} key={key}>
-          <iframe
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            className={youtubeIframeClass}
-            referrerPolicy="strict-origin-when-cross-origin"
-            src={`https://www.youtube.com/embed/${segment.videoId}`}
-            title="YouTube video player"
-          />
-        </div>
+        <MarkdownVideo
+          key={key}
+          provider={segment.provider}
+          src={segment.src}
+          videoId={segment.videoId}
+        />
       );
     }
 
@@ -497,6 +538,10 @@ export const renderRichMarkdown = ({
       return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
     }
 
+    if (segment.type === 'gallery') {
+      return <MarkdownGallery galleryId={key} items={segment.items} key={key} />;
+    }
+
     if (segment.type === 'subtext') {
       return (
         <p className={subtextClass} key={key}>
@@ -514,6 +559,10 @@ export const renderRichMarkdown = ({
           })}
         </div>
       );
+    }
+
+    if (segment.type !== 'toggle') {
+      return null;
     }
 
     const summaryClassName =
@@ -548,24 +597,6 @@ export const renderRichMarkdown = ({
       </details>
     );
   });
-
-const youtubeFrameClass = css({
-  position: 'relative',
-  width: 'full',
-  overflow: 'hidden',
-  borderRadius: 'xl',
-  border: '[1px solid var(--colors-border)]',
-  background: 'surfaceMuted',
-  pt: '[56.25%]',
-});
-
-const youtubeIframeClass = css({
-  position: 'absolute',
-  inset: '0',
-  width: 'full',
-  height: 'full',
-  border: '[0]',
-});
 
 const subtextClass = css({
   m: '0',

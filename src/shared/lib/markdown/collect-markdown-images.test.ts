@@ -27,4 +27,23 @@ describe('collectMarkdownImages', () => {
   it('빈 src 이미지는 제외한다', () => {
     expect(collectMarkdownImages('![]( )')).toEqual([]);
   });
+
+  it('gallery 블록이 앞에 있어도, collectMarkdownImages는 일반 markdown 이미지에만 viewer id를 부여해야 한다', () => {
+    const markdown = [
+      ':::gallery',
+      '![갤러리 첫 번째](https://example.com/gallery-one.png)',
+      '![갤러리 두 번째](https://example.com/gallery-two.png)',
+      ':::',
+      '',
+      '![본문 이미지](https://example.com/standalone.png)',
+    ].join('\n');
+
+    expect(collectMarkdownImages(markdown)).toEqual([
+      {
+        alt: '본문 이미지',
+        src: 'https://example.com/standalone.png',
+        viewerId: 'markdown-image-0',
+      },
+    ]);
+  });
 });

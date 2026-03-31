@@ -3,6 +3,7 @@
 import { EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import {
   normalizeEmbedInput,
+  normalizeEmbedInputList,
   uploadImageEmbedSource,
 } from '@/features/edit-markdown/model/embed-popover-state';
 
@@ -14,6 +15,19 @@ describe('embed-popover-state', () => {
   it('입력값은 trim하고 비어 있으면 null을 반환한다', () => {
     expect(normalizeEmbedInput('  https://openai.com  ')).toBe('https://openai.com');
     expect(normalizeEmbedInput('   ')).toBeNull();
+  });
+
+  it('줄 단위 URL 입력은 공백과 중복을 제거한 목록으로 정리한다', () => {
+    expect(
+      normalizeEmbedInputList(
+        [
+          ' https://example.com/one.png ',
+          '',
+          'https://example.com/two.png',
+          'https://example.com/one.png',
+        ].join('\n'),
+      ),
+    ).toEqual(['https://example.com/one.png', 'https://example.com/two.png']);
   });
 
   it('이미지 업로드가 성공하면 URL을 반환한다', async () => {

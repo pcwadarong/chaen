@@ -18,6 +18,7 @@ export const STORAGE_DIRECTORY = {
   images: 'images',
   pdf: 'pdf',
   thumbnails: 'thumbnails',
+  videos: 'videos',
 } as const;
 
 export type StorageDirectory = (typeof STORAGE_DIRECTORY)[keyof typeof STORAGE_DIRECTORY];
@@ -27,6 +28,7 @@ export const CONTENT_STORAGE_DIRECTORIES = [
   STORAGE_DIRECTORY.images,
   STORAGE_DIRECTORY.pdf,
   STORAGE_DIRECTORY.thumbnails,
+  STORAGE_DIRECTORY.videos,
 ] as const;
 
 export type ContentStorageDirectory = (typeof CONTENT_STORAGE_DIRECTORIES)[number];

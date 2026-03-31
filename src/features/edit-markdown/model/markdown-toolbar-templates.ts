@@ -19,60 +19,17 @@ const escapeMarkdownLinkDestination = (value: string) =>
     .replaceAll('<', '%3C')
     .replaceAll('>', '%3E');
 
+const normalizeMathFormula = (value: string) => value.trim().replaceAll(/\s*\n+\s*/g, ' ');
 const escapeJsxAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
 
-const normalizeMathFormula = (value: string) => value.trim().replaceAll(/\s*\n+\s*/g, ' ');
-
-/**
- * pathname에서 첫 번째 비어 있지 않은 segment를 읽습니다.
- *
- * @param pathname URL pathname 문자열입니다.
- * @returns 첫 번째 유효 path segment 또는 null을 반환합니다.
- */
-export const getFirstPathSegment = (pathname: string) =>
-  pathname.split('/').find(segment => segment.length > 0) ?? null;
-
-/**
- * 다양한 YouTube URL 형태에서 video id를 추출합니다.
- *
- * @param value 사용자가 입력한 YouTube URL 문자열입니다.
- * @returns 안전한 호스트에서 추출한 video id 또는 null을 반환합니다.
- */
-export const extractYoutubeId = (value: string) => {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) return null;
-
-  try {
-    const url = new URL(trimmedValue);
-    const isYoutubeDomain = url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com');
-
-    if (url.hostname === 'youtu.be') {
-      return getFirstPathSegment(url.pathname);
-    }
-
-    if (isYoutubeDomain) {
-      if (url.pathname === '/watch') {
-        return url.searchParams.get('v');
-      }
-
-      const [, firstSegment, secondSegment] = url.pathname.split('/');
-
-      if (firstSegment === 'shorts' && secondSegment) {
-        return secondSegment;
-      }
-
-      if (firstSegment === 'embed' && secondSegment) {
-        return secondSegment;
-      }
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-};
+export {
+  createUploadedVideoEmbedMarkdown,
+  createVideoEmbedMarkdown,
+  createYoutubeEmbedMarkdown,
+  extractVideoEmbedReference,
+  extractYoutubeId,
+} from '@/features/edit-markdown/model/video-embed';
 
 /**
  * 이미지 embed markdown 문자열을 생성합니다.
@@ -85,13 +42,26 @@ export const createImageEmbedMarkdown = (altText: string, url: string) =>
   `![${escapeMarkdownAltText(altText)}](${escapeMarkdownLinkDestination(url)})`;
 
 /**
- * YouTube embed markdown 문자열을 생성합니다.
+ * 여러 이미지를 개별 markdown 이미지 문법 묶음으로 생성합니다.
  *
- * @param videoId YouTube video id입니다.
- * @returns 커스텀 YouTube markdown 문자열을 반환합니다.
+ * @param items 개별 이미지 alt/url 목록입니다.
+ * @returns 개별 이미지 markdown 문자열을 빈 줄 기준으로 연결해 반환합니다.
  */
-export const createYoutubeEmbedMarkdown = (videoId: string) =>
-  `<YouTube id="${escapeJsxAttribute(videoId)}" />`;
+export const createImageEmbedMarkdownGroup = (items: Array<{ altText: string; url: string }>) =>
+  items.map(item => createImageEmbedMarkdown(item.altText, item.url)).join('\n\n');
+
+/**
+ * gallery block markdown 문자열을 생성합니다.
+ *
+ * @param items 갤러리에 포함할 이미지 alt/url 목록입니다.
+ * @returns gallery block markdown 문자열을 반환합니다.
+ */
+export const createImageGalleryMarkdown = (items: Array<{ altText: string; url: string }>) =>
+  [
+    ':::gallery',
+    ...items.map(item => createImageEmbedMarkdown(item.altText, item.url)),
+    ':::',
+  ].join('\n');
 
 /**
  * 첨부 파일 embed markdown 문자열을 생성합니다.

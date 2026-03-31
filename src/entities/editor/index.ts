@@ -36,6 +36,14 @@ export {
   type TranslationField,
 } from '@/entities/editor/model/editor-types';
 export {
+  EDITOR_VIDEO_ALLOWED_EXTENSIONS,
+  EDITOR_VIDEO_ALLOWED_MIME_TYPES,
+  EDITOR_VIDEO_FILE_INPUT_ACCEPT,
+  EDITOR_VIDEO_MAX_FILE_SIZE,
+  isAllowedEditorVideoExtension,
+  isAllowedEditorVideoFile,
+} from '@/entities/editor/model/editor-video-policy';
+export {
   buildEditorLinkInsertion,
   createMarkdownLink,
   createMarkdownLinkByMode,
