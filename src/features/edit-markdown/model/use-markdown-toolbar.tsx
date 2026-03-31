@@ -34,6 +34,7 @@ import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover
 import { MathEmbedPopover } from '@/features/edit-markdown/ui/math-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/edit-markdown/ui/text-background-color-popover';
 import { TextColorPopover } from '@/features/edit-markdown/ui/text-color-popover';
+import { ToolbarTokenPopover } from '@/features/edit-markdown/ui/toolbar-token-popover';
 import { VideoEmbedModal } from '@/features/edit-markdown/ui/video-embed-modal';
 import {
   CodeBlockIcon,
@@ -270,6 +271,17 @@ export const useMarkdownToolbar = ({
     [applyHeading],
   );
 
+  const headingPopoverOptions = React.useMemo(
+    () =>
+      headingActions.map(action => ({
+        key: action.key,
+        label: action.label,
+        onClick: action.onClick,
+        token: action.token ?? '',
+      })),
+    [headingActions],
+  );
+
   const inlineFormatActions = React.useMemo<ToolbarActionItem[]>(
     () => [
       {
@@ -378,11 +390,36 @@ export const useMarkdownToolbar = ({
     [handleToggleApply],
   );
 
+  const togglePopoverOptions = React.useMemo(
+    () =>
+      toggleActions.map(action => ({
+        key: action.key,
+        label: action.label,
+        onClick: action.onClick,
+        token: action.token ?? '',
+      })),
+    [toggleActions],
+  );
+
   const toolbarSections = React.useMemo<ToolbarSection[]>(
     () => [
       {
         items: [
-          ...headingActions.map(action => ({ action, key: action.key, type: 'action' as const })),
+          {
+            key: 'heading-popover',
+            node: (
+              <ToolbarTokenPopover
+                onTriggerMouseDown={event => event.preventDefault()}
+                options={headingPopoverOptions}
+                panelLabel="제목 레벨 선택"
+                triggerAriaLabel="제목"
+                triggerClassName={popoverTriggerClassName}
+                triggerToken="H"
+                triggerTooltip="제목"
+              />
+            ),
+            type: 'custom',
+          },
           ...textStructureActions.map(action => ({
             action,
             key: action.key,
@@ -444,11 +481,21 @@ export const useMarkdownToolbar = ({
             key: action.key,
             type: 'action' as const,
           })),
-          ...toggleActions.map(action => ({
-            action,
-            key: action.key,
-            type: 'action' as const,
-          })),
+          {
+            key: 'toggle-popover',
+            node: (
+              <ToolbarTokenPopover
+                onTriggerMouseDown={event => event.preventDefault()}
+                options={togglePopoverOptions}
+                panelLabel="토글 레벨 선택"
+                triggerAriaLabel="토글"
+                triggerClassName={popoverTriggerClassName}
+                triggerToken="T"
+                triggerTooltip="토글"
+              />
+            ),
+            type: 'custom',
+          },
         ],
         key: 'block-syntax',
       },
@@ -527,11 +574,11 @@ export const useMarkdownToolbar = ({
       handleMathApply,
       handleTextColorApply,
       handleVideoApply,
-      headingActions,
+      headingPopoverOptions,
       inlineFormatActions,
       popoverTriggerClassName,
       textStructureActions,
-      toggleActions,
+      togglePopoverOptions,
     ],
   );
 
