@@ -6,9 +6,6 @@ import {
   createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
-  createVideoEmbedMarkdown,
-  createYoutubeEmbedMarkdown,
-  extractYoutubeId,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
 
 describe('markdown-toolbar template helpers', () => {
@@ -74,41 +71,6 @@ describe('markdown-toolbar template helpers', () => {
       cursorOffset: 15,
       text: ':::toggle ## 제목\n내용\n:::',
     });
-  });
-
-  it('유효한 YouTube URL이 주어지면, extractYoutubeId는 다양한 URL 형식에서 같은 video id를 반환해야 한다', () => {
-    expect(extractYoutubeId('  https://youtu.be/dQw4w9WgXcQ  ')).toBe('dQw4w9WgXcQ');
-    expect(extractYoutubeId('https://youtu.be/dQw4w9WgXcQ/extra')).toBe('dQw4w9WgXcQ');
-    expect(extractYoutubeId('https://youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
-    expect(extractYoutubeId('https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share')).toBe(
-      'dQw4w9WgXcQ',
-    );
-    expect(extractYoutubeId('https://www.youtube.com/embed/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
-  });
-
-  it('유효하지 않은 입력이 주어지면, extractYoutubeId는 null을 반환해야 한다', () => {
-    expect(extractYoutubeId('')).toBeNull();
-    expect(extractYoutubeId('   ')).toBeNull();
-    expect(extractYoutubeId('not-a-url')).toBeNull();
-    expect(extractYoutubeId('https://notyoutube.com/watch?v=dQw4w9WgXcQ')).toBeNull();
-  });
-
-  it('유효한 YouTube id가 주어지면, createYoutubeEmbedMarkdown는 Video 문법을 반환해야 한다', () => {
-    expect(createYoutubeEmbedMarkdown('dQw4w9WgXcQ')).toBe(
-      '<Video provider="youtube" id="dQw4w9WgXcQ" />',
-    );
-    expect(createYoutubeEmbedMarkdown('abc"def')).toBe(
-      '<Video provider="youtube" id="abc&quot;def" />',
-    );
-  });
-
-  it('provider와 video id가 주어지면, createVideoEmbedMarkdown는 provider 정보를 포함한 Video 문법을 반환해야 한다', () => {
-    expect(
-      createVideoEmbedMarkdown({
-        provider: 'youtube',
-        videoId: 'dQw4w9WgXcQ',
-      }),
-    ).toBe('<Video provider="youtube" id="dQw4w9WgXcQ" />');
   });
 
   it('첨부 파일 markdown는 속성을 안전하게 escape하고 size/type을 함께 담는다', () => {

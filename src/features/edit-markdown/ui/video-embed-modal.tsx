@@ -3,7 +3,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { extractYoutubeId } from '@/features/edit-markdown/model/markdown-toolbar-templates';
+import { extractVideoEmbedReference } from '@/features/edit-markdown/model/video-embed';
 import { Button } from '@/shared/ui/button/button';
 import { YoutubeIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
@@ -34,7 +34,8 @@ export const VideoEmbedModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
 
-  const videoId = useMemo(() => extractYoutubeId(videoUrl), [videoUrl]);
+  const videoReference = useMemo(() => extractVideoEmbedReference(videoUrl), [videoUrl]);
+  const videoId = videoReference?.videoId ?? null;
 
   /**
    * 영상 모달을 열고 남아 있는 tooltip/focus 상태를 정리합니다.
