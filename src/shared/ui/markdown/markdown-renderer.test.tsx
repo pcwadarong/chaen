@@ -137,6 +137,18 @@ describe('MarkdownRenderer', () => {
     expect(downloadLink?.textContent).toContain('다운로드');
   });
 
+  it('첨부 파일 속성의 HTML entity를 복원해 파일명과 href를 그대로 사용한다', async () => {
+    const document = await renderServerDocument(
+      '<Attachment href="https://example.com/download?name=R&amp;D&amp;v=2" name="R&amp;D &quot;v2&quot;.pdf" size="2048" type="application/pdf" />',
+    );
+    const attachmentCard = document.querySelector('[data-markdown-attachment="true"]');
+    const downloadLink = attachmentCard?.querySelector('a[download]');
+
+    expect(attachmentCard?.textContent).toContain('R&D "v2".pdf');
+    expect(downloadLink?.getAttribute('download')).toBe('R&D "v2".pdf');
+    expect(downloadLink?.getAttribute('href')).toBe('https://example.com/download?name=R&D&v=2');
+  });
+
   it('수학 공식 커스텀 태그를 KaTeX 수식으로 렌더링한다', async () => {
     const document = await renderServerDocument('<Math block="true">a^2 + b^2 = c^2</Math>');
     const mathNode = document.querySelector('[data-markdown-math="block"]');

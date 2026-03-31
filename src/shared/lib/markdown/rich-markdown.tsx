@@ -75,6 +75,20 @@ type FenceState = {
 } | null;
 
 /**
+ * editor template이 escape한 HTML attribute entity를 원래 문자열로 복원합니다.
+ *
+ * @param value attachment/math custom tag에서 읽은 raw attribute 값입니다.
+ * @returns entity가 복원된 일반 문자열을 반환합니다.
+ */
+const decodeHtmlAttributeEntities = (value: string) =>
+  value
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&amp;', '&');
+
+/**
  * 현재 줄이 fenced code block의 열기/닫기 경계인지 판별합니다.
  */
 const getFenceBoundary = (line: string, activeFence: FenceState) => {
@@ -380,10 +394,12 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
     if (attachmentMatch) {
       flushMarkdown();
       segments.push({
-        contentType: attachmentMatch[4],
-        fileName: attachmentMatch[2],
+        contentType: attachmentMatch[4]
+          ? decodeHtmlAttributeEntities(attachmentMatch[4])
+          : undefined,
+        fileName: decodeHtmlAttributeEntities(attachmentMatch[2]),
         fileSize: attachmentMatch[3] ? Number(attachmentMatch[3]) : undefined,
-        href: attachmentMatch[1],
+        href: decodeHtmlAttributeEntities(attachmentMatch[1]),
         type: 'attachment',
       });
       continue;

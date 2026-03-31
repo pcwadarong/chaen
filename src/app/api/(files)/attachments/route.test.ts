@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { POST } from '@/app/api/(files)/attachments/route';
 import { uploadAttachmentFile } from '@/features/upload-attachment-file/api/upload-attachment-file';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';

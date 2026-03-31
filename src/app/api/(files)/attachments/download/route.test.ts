@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { GET } from '@/app/api/(files)/attachments/download/route';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -54,10 +56,38 @@ describe('api/attachments/download route', () => {
     expect(createSignedUrl).toHaveBeenCalledWith('article/attachments/demo.pdf', 600, {
       download: 'resume.pdf',
     });
-    expect(response.status).toBe(302);
+    expect(response.status).toBe(307);
     expect(response.headers.get('location')).toBe(
       'https://demo.supabase.co/storage/v1/object/sign/file/demo.pdf',
     );
+  });
+
+  it('service role client가 없으면 404를 반환한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
+
+    const response = await GET(
+      new Request(
+        'https://chaen.dev/api/attachments/download?path=article%2Fattachments%2Fdemo.pdf&fileName=resume.pdf',
+      ),
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+    });
+  });
+
+  it('허용되지 않은 path면 400을 반환한다', async () => {
+    const response = await GET(
+      new Request(
+        'https://chaen.dev/api/attachments/download?path=private%2Fsecret.pdf&fileName=resume.pdf',
+      ),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: 'Invalid attachment download request',
+    });
   });
 
   it('signed URL 생성에 실패하면 404를 반환한다', async () => {
