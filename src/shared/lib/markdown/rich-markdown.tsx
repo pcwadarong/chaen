@@ -12,6 +12,7 @@ import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
+import { MarkdownVideo } from '@/shared/ui/markdown/markdown-video';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
@@ -509,18 +510,7 @@ export const renderRichMarkdown = ({
     }
 
     if (segment.type === 'video' && segment.provider === 'youtube') {
-      return (
-        <div className={youtubeFrameClass} key={key}>
-          <iframe
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            className={youtubeIframeClass}
-            referrerPolicy="strict-origin-when-cross-origin"
-            src={`https://www.youtube.com/embed/${segment.videoId}`}
-            title="YouTube video player"
-          />
-        </div>
-      );
+      return <MarkdownVideo key={key} provider={segment.provider} videoId={segment.videoId} />;
     }
 
     if (segment.type === 'attachment') {
@@ -598,24 +588,6 @@ export const renderRichMarkdown = ({
       </details>
     );
   });
-
-const youtubeFrameClass = css({
-  position: 'relative',
-  width: 'full',
-  overflow: 'hidden',
-  borderRadius: 'xl',
-  border: '[1px solid var(--colors-border)]',
-  background: 'surfaceMuted',
-  pt: '[56.25%]',
-});
-
-const youtubeIframeClass = css({
-  position: 'absolute',
-  inset: '0',
-  width: 'full',
-  height: 'full',
-  border: '[0]',
-});
 
 const subtextClass = css({
   m: '0',
