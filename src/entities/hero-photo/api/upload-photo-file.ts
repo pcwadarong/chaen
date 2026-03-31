@@ -1,6 +1,7 @@
 import { PHOTO_STORAGE_BUCKET } from '@/entities/hero-photo/model/config';
 import type { PhotoFileItem } from '@/entities/hero-photo/model/types';
 import { createUniqueStorageFileName } from '@/shared/lib/storage/create-unique-storage-file-name';
+import { uploadStorageFile } from '@/shared/lib/storage/upload-storage-file';
 import { createServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 import 'server-only';
@@ -57,24 +58,22 @@ const resolveUploadedPhotoCreatedAt = (uploadData: unknown): string => {
  */
 export const uploadPhotoFile = async ({ file }: { file: File }): Promise<PhotoFileItem> => {
   const supabase = createServiceRoleSupabaseClient();
-  const storage = supabase.storage.from(PHOTO_STORAGE_BUCKET);
   const filePath = createUniqueStorageFileName(file.name);
-  const uploadResult = await storage.upload(filePath, file, {
+  const uploadResult = await uploadStorageFile({
+    bucketName: PHOTO_STORAGE_BUCKET,
     contentType: file.type || 'application/octet-stream',
-    upsert: false,
-  });
-  const { error } = uploadResult;
-
-  if (error) {
-    throw new Error(`[photo-file] 사진 업로드 실패: ${error.message}`);
-  }
-
-  const { data } = storage.getPublicUrl(filePath);
-
-  return createUploadedPhotoItem({
-    createdAt: resolveUploadedPhotoCreatedAt(uploadResult.data),
+    errorPrefix: 'photo-file',
+    errorSubject: '사진',
     file,
     filePath,
-    publicUrl: data.publicUrl,
+    includePublicUrl: true,
+    supabase,
+  });
+
+  return createUploadedPhotoItem({
+    createdAt: resolveUploadedPhotoCreatedAt(uploadResult.uploadData),
+    file,
+    filePath: uploadResult.filePath,
+    publicUrl: uploadResult.publicUrl,
   });
 };

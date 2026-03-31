@@ -11,6 +11,16 @@ export {
   getEditorDraftSummaries,
   getEditorSeed,
 } from '@/entities/editor/api/editor-read';
+export { uploadEditorAttachmentFile } from '@/entities/editor/api/upload-editor-attachment-file';
+export { uploadEditorImageFile } from '@/entities/editor/api/upload-editor-image-file';
+export {
+  EDITOR_ATTACHMENT_ALLOWED_EXTENSIONS,
+  EDITOR_ATTACHMENT_ALLOWED_MIME_TYPES,
+  EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT,
+  EDITOR_ATTACHMENT_MAX_FILE_SIZE,
+  isAllowedEditorAttachmentExtension,
+  isAllowedEditorAttachmentFile,
+} from '@/entities/editor/model/editor-attachment-policy';
 export {
   createEditorError,
   EDITOR_ERROR_MESSAGE,

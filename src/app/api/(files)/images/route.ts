@@ -1,6 +1,6 @@
+import { uploadEditorImageFile } from '@/entities/editor';
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
-import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
@@ -36,7 +36,7 @@ export const POST = async (request: Request) =>
       }
 
       return {
-        url: await uploadImageFile({
+        url: await uploadEditorImageFile({
           contentType: contentType as EditorContentType,
           file,
           imageKind: imageKind as EditorImageUploadKind,

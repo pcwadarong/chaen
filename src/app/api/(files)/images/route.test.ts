@@ -1,5 +1,6 @@
 import { POST } from '@/app/api/(files)/images/route';
-import { uploadImageFile } from '@/features/upload-image-file/api/upload-image-file';
+import type * as EditorEntityModule from '@/entities/editor';
+import { uploadEditorImageFile } from '@/entities/editor';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -7,9 +8,14 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/features/upload-image-file/api/upload-image-file', () => ({
-  uploadImageFile: vi.fn(),
-}));
+vi.mock('@/entities/editor', async () => {
+  const actual = await vi.importActual('@/entities/editor');
+
+  return {
+    ...(actual as typeof EditorEntityModule),
+    uploadEditorImageFile: vi.fn(),
+  };
+});
 
 describe('api/images route', () => {
   afterEach(() => {
@@ -29,7 +35,7 @@ describe('api/images route', () => {
     } as Request);
 
     expect(response.status).toBe(403);
-    expect(uploadImageFile).not.toHaveBeenCalled();
+    expect(uploadEditorImageFile).not.toHaveBeenCalled();
   });
 
   it('유효하지 않은 payload면 400을 반환한다', async () => {
@@ -90,7 +96,7 @@ describe('api/images route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadImageFile).mockResolvedValue('https://example.com/thumb.png');
+    vi.mocked(uploadEditorImageFile).mockResolvedValue('https://example.com/thumb.png');
 
     const formData = new FormData();
     formData.set('contentType', 'project');
@@ -105,7 +111,7 @@ describe('api/images route', () => {
     expect(await response.json()).toEqual({
       url: 'https://example.com/thumb.png',
     });
-    expect(uploadImageFile).toHaveBeenCalledWith({
+    expect(uploadEditorImageFile).toHaveBeenCalledWith({
       contentType: 'project',
       file: expect.any(File),
       imageKind: 'content',

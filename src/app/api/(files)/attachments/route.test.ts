@@ -1,7 +1,8 @@
 // @vitest-environment node
 
 import { POST } from '@/app/api/(files)/attachments/route';
-import { uploadAttachmentFile } from '@/features/upload-attachment-file/api/upload-attachment-file';
+import type * as EditorEntityModule from '@/entities/editor';
+import { uploadEditorAttachmentFile } from '@/entities/editor';
 import { AdminAuthorizationError, requireAdmin } from '@/shared/lib/auth/require-admin';
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -9,9 +10,14 @@ vi.mock('@/shared/lib/auth/require-admin', () => ({
   requireAdmin: vi.fn(),
 }));
 
-vi.mock('@/features/upload-attachment-file/api/upload-attachment-file', () => ({
-  uploadAttachmentFile: vi.fn(),
-}));
+vi.mock('@/entities/editor', async () => {
+  const actual = await vi.importActual('@/entities/editor');
+
+  return {
+    ...(actual as typeof EditorEntityModule),
+    uploadEditorAttachmentFile: vi.fn(),
+  };
+});
 
 describe('api/attachments route', () => {
   afterEach(() => {
@@ -30,7 +36,7 @@ describe('api/attachments route', () => {
     } as Request);
 
     expect(response.status).toBe(403);
-    expect(uploadAttachmentFile).not.toHaveBeenCalled();
+    expect(uploadEditorAttachmentFile).not.toHaveBeenCalled();
   });
 
   it('유효하지 않은 payload면 400을 반환한다', async () => {
@@ -58,7 +64,7 @@ describe('api/attachments route', () => {
       userEmail: 'admin@example.com',
       userId: 'admin-id',
     });
-    vi.mocked(uploadAttachmentFile).mockResolvedValue({
+    vi.mocked(uploadEditorAttachmentFile).mockResolvedValue({
       contentType: 'application/pdf',
       fileName: 'resume.pdf',
       fileSize: 2048,
@@ -80,7 +86,7 @@ describe('api/attachments route', () => {
       fileSize: 2048,
       url: 'https://example.com/files/resume.pdf',
     });
-    expect(uploadAttachmentFile).toHaveBeenCalledWith({
+    expect(uploadEditorAttachmentFile).toHaveBeenCalledWith({
       contentType: 'project',
       file: expect.any(File),
     });

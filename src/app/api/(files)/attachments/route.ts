@@ -1,6 +1,6 @@
+import { isAllowedEditorAttachmentFile, uploadEditorAttachmentFile } from '@/entities/editor';
 import { EDITOR_API_ERROR_MESSAGE } from '@/entities/editor/model/editor-api-error';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
-import { uploadAttachmentFile } from '@/features/upload-attachment-file/api/upload-attachment-file';
 import { API_INTERNAL_ERROR_MESSAGE } from '@/shared/lib/http/api-error-catalog';
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
 import { runJsonRoute } from '@/shared/lib/http/run-json-route';
@@ -24,12 +24,12 @@ export const POST = async (request: Request) =>
       if (
         typeof contentType !== 'string' ||
         !contentTypes.includes(contentType as EditorContentType) ||
-        !file.name.trim()
+        !isAllowedEditorAttachmentFile(file)
       ) {
         return createApiErrorResponse(EDITOR_API_ERROR_MESSAGE.attachmentUploadInvalidPayload, 400);
       }
 
-      return uploadAttachmentFile({
+      return uploadEditorAttachmentFile({
         contentType: contentType as EditorContentType,
         file,
       });
