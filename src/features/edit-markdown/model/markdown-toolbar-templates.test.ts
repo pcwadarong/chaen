@@ -6,6 +6,7 @@ import {
   createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
+  createVideoEmbedMarkdown,
   createYoutubeEmbedMarkdown,
   extractYoutubeId,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
@@ -75,7 +76,7 @@ describe('markdown-toolbar template helpers', () => {
     });
   });
 
-  it('YouTube URL에서 안전한 호스트와 다양한 형식의 video id를 추출한다', () => {
+  it('유효한 YouTube URL이 주어지면, extractYoutubeId는 다양한 URL 형식에서 같은 video id를 반환해야 한다', () => {
     expect(extractYoutubeId('  https://youtu.be/dQw4w9WgXcQ  ')).toBe('dQw4w9WgXcQ');
     expect(extractYoutubeId('https://youtu.be/dQw4w9WgXcQ/extra')).toBe('dQw4w9WgXcQ');
     expect(extractYoutubeId('https://youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
@@ -85,16 +86,29 @@ describe('markdown-toolbar template helpers', () => {
     expect(extractYoutubeId('https://www.youtube.com/embed/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
   });
 
-  it('유효하지 않은 YouTube 입력은 null을 반환한다', () => {
+  it('유효하지 않은 입력이 주어지면, extractYoutubeId는 null을 반환해야 한다', () => {
     expect(extractYoutubeId('')).toBeNull();
     expect(extractYoutubeId('   ')).toBeNull();
     expect(extractYoutubeId('not-a-url')).toBeNull();
     expect(extractYoutubeId('https://notyoutube.com/watch?v=dQw4w9WgXcQ')).toBeNull();
   });
 
-  it('YouTube embed markdown는 유효한 id를 삽입하고 따옴표를 이스케이프한다', () => {
-    expect(createYoutubeEmbedMarkdown('dQw4w9WgXcQ')).toBe('<YouTube id="dQw4w9WgXcQ" />');
-    expect(createYoutubeEmbedMarkdown('abc"def')).toBe('<YouTube id="abc&quot;def" />');
+  it('유효한 YouTube id가 주어지면, createYoutubeEmbedMarkdown는 Video 문법을 반환해야 한다', () => {
+    expect(createYoutubeEmbedMarkdown('dQw4w9WgXcQ')).toBe(
+      '<Video provider="youtube" id="dQw4w9WgXcQ" />',
+    );
+    expect(createYoutubeEmbedMarkdown('abc"def')).toBe(
+      '<Video provider="youtube" id="abc&quot;def" />',
+    );
+  });
+
+  it('provider와 video id가 주어지면, createVideoEmbedMarkdown는 provider 정보를 포함한 Video 문법을 반환해야 한다', () => {
+    expect(
+      createVideoEmbedMarkdown({
+        provider: 'youtube',
+        videoId: 'dQw4w9WgXcQ',
+      }),
+    ).toBe('<Video provider="youtube" id="dQw4w9WgXcQ" />');
   });
 
   it('첨부 파일 markdown는 속성을 안전하게 escape하고 size/type을 함께 담는다', () => {

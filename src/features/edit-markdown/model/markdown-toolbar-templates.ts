@@ -107,13 +107,31 @@ export const createImageGalleryMarkdown = (items: Array<{ altText: string; url: 
   ].join('\n');
 
 /**
+ * Video embed markdown 문자열을 생성합니다.
+ *
+ * @param provider video provider 식별자입니다.
+ * @param videoId provider 내부 video id입니다.
+ * @returns 커스텀 Video markdown 문자열을 반환합니다.
+ */
+export const createVideoEmbedMarkdown = ({
+  provider,
+  videoId,
+}: {
+  provider: 'youtube';
+  videoId: string;
+}) => `<Video provider="${provider}" id="${escapeJsxAttribute(videoId)}" />`;
+
+/**
  * YouTube embed markdown 문자열을 생성합니다.
  *
  * @param videoId YouTube video id입니다.
- * @returns 커스텀 YouTube markdown 문자열을 반환합니다.
+ * @returns 커스텀 Video markdown 문자열을 반환합니다.
  */
 export const createYoutubeEmbedMarkdown = (videoId: string) =>
-  `<YouTube id="${escapeJsxAttribute(videoId)}" />`;
+  createVideoEmbedMarkdown({
+    provider: 'youtube',
+    videoId,
+  });
 
 /**
  * 첨부 파일 embed markdown 문자열을 생성합니다.

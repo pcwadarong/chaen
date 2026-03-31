@@ -33,7 +33,7 @@ import { LinkEmbedPopover } from '@/features/edit-markdown/ui/link-embed-popover
 import { MathEmbedPopover } from '@/features/edit-markdown/ui/math-embed-popover';
 import { TextBackgroundColorPopover } from '@/features/edit-markdown/ui/text-background-color-popover';
 import { TextColorPopover } from '@/features/edit-markdown/ui/text-color-popover';
-import { YoutubeEmbedPopover } from '@/features/edit-markdown/ui/youtube-embed-popover';
+import { VideoEmbedModal } from '@/features/edit-markdown/ui/video-embed-modal';
 import {
   CodeBlockIcon,
   DashIcon,
@@ -217,7 +217,7 @@ export const useMarkdownToolbar = ({
     [applyWrap],
   );
 
-  const handleYoutubeApply = React.useCallback(
+  const handleVideoApply = React.useCallback(
     (videoId: string, closePopover?: ClosePopover) => {
       applyTemplate(createYoutubeEmbedMarkdown(videoId));
       closePopover?.({ restoreFocus: false });
@@ -478,10 +478,10 @@ export const useMarkdownToolbar = ({
             type: 'custom',
           },
           {
-            key: 'youtube-embed',
+            key: 'video-embed',
             node: (
-              <YoutubeEmbedPopover
-                onApply={handleYoutubeApply}
+              <VideoEmbedModal
+                onApply={handleVideoApply}
                 onTriggerMouseDown={event => event.preventDefault()}
                 triggerClassName={popoverTriggerClassName}
               />
@@ -502,7 +502,7 @@ export const useMarkdownToolbar = ({
       handleLinkApply,
       handleMathApply,
       handleTextColorApply,
-      handleYoutubeApply,
+      handleVideoApply,
       headingActions,
       inlineFormatActions,
       popoverTriggerClassName,

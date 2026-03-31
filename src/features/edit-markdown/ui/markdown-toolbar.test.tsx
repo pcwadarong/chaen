@@ -75,16 +75,17 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('이미지 팝오버에서 URL을 입력해 markdown 이미지 문법을 삽입한다', async () => {
+  it('이미지 URL이 추가되면, 이미지 삽입 모달은 markdown 이미지 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
 
     fireEvent.click(screen.getByRole('button', { name: '이미지' }));
-    fireEvent.change(screen.getByRole('textbox', { name: '이미지' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: '웹 URL 추가' }), {
       target: { value: 'https://example.com/image.png' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+    fireEvent.click(screen.getByRole('button', { name: '추가' }));
+    fireEvent.click(screen.getByRole('button', { name: '개별 이미지로 삽입' }));
 
     await waitFor(() => {
       expect(textarea.value).toBe('![이미지 설명](https://example.com/image.png)');
@@ -167,19 +168,36 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('유튜브 팝오버는 유효한 URL 입력을 textarea 삽입으로 연결한다', async () => {
+  it('유효한 동영상 URL이 입력되면, 동영상 삽입은 textarea에 Video 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
 
-    fireEvent.click(screen.getByRole('button', { name: '유튜브' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'YouTube URL' }), {
+    fireEvent.click(screen.getByRole('button', { name: '영상' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '동영상 URL' }), {
       target: { value: 'https://youtu.be/dQw4w9WgXcQ/extra' },
     });
     fireEvent.click(screen.getByRole('button', { name: '삽입' }));
 
     await waitFor(() => {
-      expect(textarea.value).toBe('<YouTube id="dQw4w9WgXcQ" />');
+      expect(textarea.value).toBe('<Video provider="youtube" id="dQw4w9WgXcQ" />');
+    });
+  });
+
+  it('잘못된 동영상 URL이 입력되면, 동영상 삽입은 textarea 값을 변경해서는 안 된다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    textarea.setSelectionRange(0, 0);
+
+    fireEvent.click(screen.getByRole('button', { name: '영상' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '동영상 URL' }), {
+      target: { value: 'not-a-video-url' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '삽입' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('');
     });
   });
 

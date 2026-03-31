@@ -54,14 +54,16 @@ type MarkdownSegment =
       type: 'gallery';
     }
   | {
-      type: 'youtube';
+      provider: 'youtube';
+      type: 'video';
       videoId: string;
     };
 
 const toggleStartPrefix = ':::toggle ';
 const galleryStartPattern = /^:::gallery\s*$/;
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
-const youtubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const legacyYoutubePattern = /^<YouTube id="([^"]+)" \/>$/;
+const videoPattern = /^<Video provider="([^"]+)" id="([^"]+)" \/>$/;
 const attachmentPattern =
   /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
 const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
@@ -405,13 +407,26 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
       continue;
     }
 
-    const youtubeMatch = line.match(youtubePattern);
+    const videoMatch = line.match(videoPattern);
 
-    if (youtubeMatch) {
+    if (videoMatch && videoMatch[1] === 'youtube') {
       flushMarkdown();
       segments.push({
-        type: 'youtube',
-        videoId: youtubeMatch[1],
+        provider: 'youtube',
+        type: 'video',
+        videoId: decodeHtmlAttributeEntities(videoMatch[2]),
+      });
+      continue;
+    }
+
+    const legacyYoutubeMatch = line.match(legacyYoutubePattern);
+
+    if (legacyYoutubeMatch) {
+      flushMarkdown();
+      segments.push({
+        provider: 'youtube',
+        type: 'video',
+        videoId: decodeHtmlAttributeEntities(legacyYoutubeMatch[1]),
       });
       continue;
     }
@@ -493,7 +508,7 @@ export const renderRichMarkdown = ({
       );
     }
 
-    if (segment.type === 'youtube') {
+    if (segment.type === 'video' && segment.provider === 'youtube') {
       return (
         <div className={youtubeFrameClass} key={key}>
           <iframe
@@ -545,6 +560,10 @@ export const renderRichMarkdown = ({
           })}
         </div>
       );
+    }
+
+    if (segment.type !== 'toggle') {
+      return null;
     }
 
     const summaryClassName =
