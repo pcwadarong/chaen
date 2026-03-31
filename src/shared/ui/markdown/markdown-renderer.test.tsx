@@ -235,6 +235,17 @@ describe('MarkdownRenderer', () => {
     expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
   });
 
+  it('업로드 Video 문법이 주어지면, MarkdownRenderer는 HTML video 요소를 렌더링해야 한다', async () => {
+    const document = await renderServerDocument(
+      '<Video provider="upload" src="https://example.com/videos/demo.mp4" />',
+    );
+    const video = document.querySelector('video');
+
+    expect(video).toBeTruthy();
+    expect(video?.getAttribute('src')).toBe('https://example.com/videos/demo.mp4');
+    expect(video?.getAttribute('controls')).not.toBeNull();
+  });
+
   it('legacy YouTube 문법이 주어지면, MarkdownRenderer는 하위 호환으로 YouTube iframe을 렌더링해야 한다', async () => {
     const document = await renderServerDocument('<YouTube id="dQw4w9WgXcQ" />');
     const iframe = document.querySelector('iframe');

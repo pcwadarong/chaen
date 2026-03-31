@@ -55,16 +55,17 @@ type MarkdownSegment =
       type: 'gallery';
     }
   | {
-      provider: 'youtube';
+      provider: 'upload' | 'youtube';
+      src?: string;
       type: 'video';
-      videoId: string;
+      videoId?: string;
     };
 
 const toggleStartPrefix = ':::toggle ';
 const galleryStartPattern = /^:::gallery\s*$/;
 const alignStartPattern = /^:::align (left|center|right)\s*$/;
 const legacyYoutubePattern = /^<YouTube id="([^"]+)" \/>$/;
-const videoPattern = /^<Video provider="([^"]+)" id="([^"]+)" \/>$/;
+const videoPattern = /^<Video provider="([^"]+)"(?: id="([^"]+)")?(?: src="([^"]+)")? \/>$/;
 const attachmentPattern =
   /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
 const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
@@ -410,12 +411,13 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
 
     const videoMatch = line.match(videoPattern);
 
-    if (videoMatch && videoMatch[1] === 'youtube') {
+    if (videoMatch && (videoMatch[1] === 'youtube' || videoMatch[1] === 'upload')) {
       flushMarkdown();
       segments.push({
-        provider: 'youtube',
+        provider: videoMatch[1],
+        src: videoMatch[3] ? decodeHtmlAttributeEntities(videoMatch[3]) : undefined,
         type: 'video',
-        videoId: decodeHtmlAttributeEntities(videoMatch[2]),
+        videoId: videoMatch[2] ? decodeHtmlAttributeEntities(videoMatch[2]) : undefined,
       });
       continue;
     }
@@ -509,8 +511,15 @@ export const renderRichMarkdown = ({
       );
     }
 
-    if (segment.type === 'video' && segment.provider === 'youtube') {
-      return <MarkdownVideo key={key} provider={segment.provider} videoId={segment.videoId} />;
+    if (segment.type === 'video') {
+      return (
+        <MarkdownVideo
+          key={key}
+          provider={segment.provider}
+          src={segment.src}
+          videoId={segment.videoId}
+        />
+      );
     }
 
     if (segment.type === 'attachment') {

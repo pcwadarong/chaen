@@ -24,6 +24,7 @@ import {
   createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
+  createUploadedVideoEmbedMarkdown,
   createYoutubeEmbedMarkdown,
 } from '@/features/edit-markdown/model/markdown-toolbar-templates';
 import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
@@ -218,8 +219,25 @@ export const useMarkdownToolbar = ({
   );
 
   const handleVideoApply = React.useCallback(
-    (videoId: string, closePopover?: ClosePopover) => {
-      applyTemplate(createYoutubeEmbedMarkdown(videoId));
+    (
+      payload: {
+        provider: 'upload' | 'youtube';
+        src?: string;
+        videoId?: string;
+      },
+      closePopover?: ClosePopover,
+    ) => {
+      if (payload.provider === 'upload') {
+        if (!payload.src) return;
+
+        applyTemplate(createUploadedVideoEmbedMarkdown(payload.src));
+        closePopover?.({ restoreFocus: false });
+        return;
+      }
+
+      if (!payload.videoId) return;
+
+      applyTemplate(createYoutubeEmbedMarkdown(payload.videoId));
       closePopover?.({ restoreFocus: false });
     },
     [applyTemplate],
@@ -481,6 +499,7 @@ export const useMarkdownToolbar = ({
             key: 'video-embed',
             node: (
               <VideoEmbedModal
+                contentType={contentType}
                 onApply={handleVideoApply}
                 onTriggerMouseDown={event => event.preventDefault()}
                 triggerClassName={popoverTriggerClassName}

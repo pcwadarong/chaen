@@ -1,9 +1,16 @@
-export type VideoProvider = 'youtube';
+export type VideoProvider = 'upload' | 'youtube';
 
-export type VideoEmbedReference = {
-  provider: VideoProvider;
+export type YoutubeVideoEmbedReference = {
+  provider: 'youtube';
   videoId: string;
 };
+
+export type UploadVideoEmbedReference = {
+  provider: 'upload';
+  src: string;
+};
+
+export type VideoEmbedReference = UploadVideoEmbedReference | YoutubeVideoEmbedReference;
 
 const escapeJsxAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
@@ -87,7 +94,11 @@ export const extractVideoEmbedReference = (value: string): VideoEmbedReference |
  * @returns 안전한 호스트에서 추출한 video id 또는 null을 반환합니다.
  */
 export const extractYoutubeId = (value: string) =>
-  extractVideoEmbedReference(value)?.videoId ?? null;
+  (() => {
+    const reference = extractVideoEmbedReference(value);
+
+    return reference?.provider === 'youtube' ? reference.videoId : null;
+  })();
 
 /**
  * Video embed markdown 문자열을 생성합니다.
@@ -96,8 +107,13 @@ export const extractYoutubeId = (value: string) =>
  * @param videoId provider 내부 video id입니다.
  * @returns 커스텀 Video markdown 문자열을 반환합니다.
  */
-export const createVideoEmbedMarkdown = ({ provider, videoId }: VideoEmbedReference) =>
-  `<Video provider="${provider}" id="${escapeJsxAttribute(videoId)}" />`;
+export const createVideoEmbedMarkdown = (reference: VideoEmbedReference) => {
+  if (reference.provider === 'upload') {
+    return `<Video provider="upload" src="${escapeJsxAttribute(reference.src)}" />`;
+  }
+
+  return `<Video provider="${reference.provider}" id="${escapeJsxAttribute(reference.videoId)}" />`;
+};
 
 /**
  * YouTube video id만 받아 Video markdown 문자열을 생성합니다.
@@ -110,4 +126,16 @@ export const createYoutubeEmbedMarkdown = (videoId: string) =>
   createVideoEmbedMarkdown({
     provider: 'youtube',
     videoId,
+  });
+
+/**
+ * 업로드된 영상 공개 URL로 Video markdown 문자열을 생성합니다.
+ *
+ * @param src 업로드된 영상의 공개 URL입니다.
+ * @returns upload provider를 포함한 Video markdown 문자열을 반환합니다.
+ */
+export const createUploadedVideoEmbedMarkdown = (src: string) =>
+  createVideoEmbedMarkdown({
+    provider: 'upload',
+    src,
   });

@@ -2,8 +2,9 @@ import React from 'react';
 import { css } from 'styled-system/css';
 
 type MarkdownVideoProps = {
-  provider: 'youtube';
-  videoId: string;
+  provider: 'upload' | 'youtube';
+  src?: string;
+  videoId?: string;
 };
 
 /**
@@ -13,8 +14,16 @@ type MarkdownVideoProps = {
  * @param props 영상 provider와 video id입니다.
  * @returns provider에 맞는 iframe video block을 반환합니다.
  */
-export const MarkdownVideo = ({ provider, videoId }: MarkdownVideoProps) => {
-  if (provider !== 'youtube') return null;
+export const MarkdownVideo = ({ provider, src, videoId }: MarkdownVideoProps) => {
+  if (provider === 'upload' && src) {
+    return (
+      <div className={videoFrameClass}>
+        <video className={videoElementClass} controls preload="metadata" src={src} />
+      </div>
+    );
+  }
+
+  if (provider !== 'youtube' || !videoId) return null;
 
   return (
     <div className={videoFrameClass}>
@@ -46,4 +55,13 @@ const videoIframeClass = css({
   width: 'full',
   height: 'full',
   border: '[0]',
+});
+
+const videoElementClass = css({
+  position: 'absolute',
+  inset: '0',
+  width: 'full',
+  height: 'full',
+  objectFit: 'contain',
+  background: 'black',
 });

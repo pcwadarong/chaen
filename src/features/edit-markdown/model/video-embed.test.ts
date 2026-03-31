@@ -1,6 +1,7 @@
 // @vitest-environment node
 
 import {
+  createUploadedVideoEmbedMarkdown,
   createVideoEmbedMarkdown,
   createYoutubeEmbedMarkdown,
   extractVideoEmbedReference,
@@ -47,6 +48,12 @@ describe('video embed helpers', () => {
   it('유효한 YouTube id가 주어지면, createYoutubeEmbedMarkdown는 YouTube provider를 포함한 Video 문법을 반환해야 한다', () => {
     expect(createYoutubeEmbedMarkdown('abc"def')).toBe(
       '<Video provider="youtube" id="abc&quot;def" />',
+    );
+  });
+
+  it('업로드된 영상 URL이 주어지면, createUploadedVideoEmbedMarkdown는 upload provider 문법을 반환해야 한다', () => {
+    expect(createUploadedVideoEmbedMarkdown('https://example.com/videos/demo.mp4')).toBe(
+      '<Video provider="upload" src="https://example.com/videos/demo.mp4" />',
     );
   });
 });

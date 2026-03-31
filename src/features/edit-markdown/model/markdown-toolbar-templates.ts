@@ -24,6 +24,7 @@ const escapeJsxAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
 
 export {
+  createUploadedVideoEmbedMarkdown,
   createVideoEmbedMarkdown,
   createYoutubeEmbedMarkdown,
   extractVideoEmbedReference,

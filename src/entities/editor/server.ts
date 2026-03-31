@@ -14,3 +14,4 @@ export {
 } from '@/entities/editor/api/editor-read';
 export { uploadEditorAttachmentFile } from '@/entities/editor/api/upload-editor-attachment-file';
 export { uploadEditorImageFile } from '@/entities/editor/api/upload-editor-image-file';
+export { uploadEditorVideoFile } from '@/entities/editor/api/upload-editor-video-file';

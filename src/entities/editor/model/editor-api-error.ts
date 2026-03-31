@@ -8,4 +8,6 @@ export const EDITOR_API_ERROR_MESSAGE = {
   slugCheckInvalidContentType: 'Invalid content type',
   slugCheckInvalidSlug: 'Invalid slug',
   slugCheckUnavailable: 'Slug duplicate check is temporarily unavailable',
+  videoUploadInvalidPayload: 'Invalid video upload payload',
+  videoUploadMissingFile: 'Video file is required',
 } as const;
