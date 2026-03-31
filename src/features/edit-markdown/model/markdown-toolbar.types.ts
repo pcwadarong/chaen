@@ -25,17 +25,26 @@ export type ToolbarActionItem = {
   token?: string;
 };
 
+export type ToolbarTokenOption = {
+  key: string;
+  label: string;
+  onClick: () => void;
+  token: string;
+};
+
+export type ToolbarCustomItem = {
+  key: string;
+  node: React.ReactNode;
+  type: 'custom';
+};
+
 export type ToolbarSectionItem =
   | {
       action: ToolbarActionItem;
       key: string;
       type: 'action';
     }
-  | {
-      key: string;
-      node: React.ReactNode;
-      type: 'custom';
-    };
+  | ToolbarCustomItem;
 
 export type ToolbarSection = {
   items: ToolbarSectionItem[];

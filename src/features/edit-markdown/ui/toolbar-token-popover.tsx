@@ -3,19 +3,13 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
+import type { ToolbarTokenOption } from '@/features/edit-markdown/model/markdown-toolbar.types';
 import { Button } from '@/shared/ui/button/button';
 import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
-type ToolbarTokenPopoverOption = {
-  key: string;
-  label: string;
-  onClick: () => void;
-  token: string;
-};
-
 type ToolbarTokenPopoverProps = {
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
-  options: ToolbarTokenPopoverOption[];
+  options: ToolbarTokenOption[];
   panelLabel: string;
   triggerAriaLabel: string;
   triggerClassName?: string;

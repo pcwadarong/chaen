@@ -15,8 +15,13 @@ import type {
   LinkMode,
   MarkdownToolbarProps,
   ToolbarActionItem,
-  ToolbarSection,
+  ToolbarCustomItem,
 } from '@/features/edit-markdown/model/markdown-toolbar.types';
+import {
+  createMarkdownToolbarSections,
+  createToolbarCustomItem,
+  createToolbarTokenOptions,
+} from '@/features/edit-markdown/model/markdown-toolbar-composition';
 import {
   createAlignBlockMarkdown,
   createAttachmentEmbedMarkdown,
@@ -272,13 +277,7 @@ export const useMarkdownToolbar = ({
   );
 
   const headingPopoverOptions = React.useMemo(
-    () =>
-      headingActions.map(action => ({
-        key: action.key,
-        label: action.label,
-        onClick: action.onClick,
-        token: action.token ?? '',
-      })),
+    () => createToolbarTokenOptions(headingActions),
     [headingActions],
   );
 
@@ -391,190 +390,133 @@ export const useMarkdownToolbar = ({
   );
 
   const togglePopoverOptions = React.useMemo(
-    () =>
-      toggleActions.map(action => ({
-        key: action.key,
-        label: action.label,
-        onClick: action.onClick,
-        token: action.token ?? '',
-      })),
+    () => createToolbarTokenOptions(toggleActions),
     [toggleActions],
   );
 
-  const toolbarSections = React.useMemo<ToolbarSection[]>(
+  const highlightItems = React.useMemo<ToolbarCustomItem[]>(
     () => [
-      {
-        items: [
-          {
-            key: 'heading-popover',
-            node: (
-              <ToolbarTokenPopover
-                onTriggerMouseDown={event => event.preventDefault()}
-                options={headingPopoverOptions}
-                panelLabel="제목 레벨 선택"
-                triggerAriaLabel="제목"
-                triggerClassName={popoverTriggerClassName}
-                triggerToken="H"
-                triggerTooltip="제목"
-              />
-            ),
-            type: 'custom',
-          },
-          ...textStructureActions.map(action => ({
-            action,
-            key: action.key,
-            type: 'action' as const,
-          })),
-        ],
-        key: 'heading-and-subtext',
-      },
-      {
-        items: inlineFormatActions.map(action => ({
-          action,
-          key: action.key,
-          type: 'action' as const,
-        })),
-        key: 'text-emphasis',
-      },
-      {
-        items: [
-          {
-            key: 'text-color',
-            node: (
-              <TextColorPopover
-                onApply={handleTextColorApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'background-color',
-            node: (
-              <TextBackgroundColorPopover
-                onApply={handleBackgroundColorApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'align',
-            node: (
-              <AlignPopover
-                onApply={handleAlignApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-        ],
-        key: 'highlight-and-alignment',
-      },
-      {
-        items: [
-          ...blockSyntaxActions.map(action => ({
-            action,
-            key: action.key,
-            type: 'action' as const,
-          })),
-          {
-            key: 'toggle-popover',
-            node: (
-              <ToolbarTokenPopover
-                onTriggerMouseDown={event => event.preventDefault()}
-                options={togglePopoverOptions}
-                panelLabel="토글 레벨 선택"
-                triggerAriaLabel="토글"
-                triggerClassName={popoverTriggerClassName}
-                triggerToken="T"
-                triggerTooltip="토글"
-              />
-            ),
-            type: 'custom',
-          },
-        ],
-        key: 'block-syntax',
-      },
-      {
-        items: [
-          {
-            key: 'math-embed',
-            node: (
-              <MathEmbedPopover
-                onApply={handleMathApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'file-embed',
-            node: (
-              <FileEmbedPopover
-                contentType={contentType}
-                onApply={handleAttachmentApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'image-embed',
-            node: (
-              <ImageEmbedPopover
-                contentType={contentType}
-                onApply={handleImageApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'link-embed',
-            node: (
-              <LinkEmbedPopover
-                onApply={handleLinkApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-          {
-            key: 'video-embed',
-            node: (
-              <VideoEmbedModal
-                contentType={contentType}
-                onApply={handleVideoApply}
-                onTriggerMouseDown={event => event.preventDefault()}
-                triggerClassName={popoverTriggerClassName}
-              />
-            ),
-            type: 'custom',
-          },
-        ],
-        key: 'embed-and-media',
-      },
+      createToolbarCustomItem(
+        'text-color',
+        <TextColorPopover
+          onApply={handleTextColorApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'background-color',
+        <TextBackgroundColorPopover
+          onApply={handleBackgroundColorApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'align',
+        <AlignPopover
+          onApply={handleAlignApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+    ],
+    [handleAlignApply, handleBackgroundColorApply, handleTextColorApply, popoverTriggerClassName],
+  );
+
+  const embedItems = React.useMemo<ToolbarCustomItem[]>(
+    () => [
+      createToolbarCustomItem(
+        'math-embed',
+        <MathEmbedPopover
+          onApply={handleMathApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'file-embed',
+        <FileEmbedPopover
+          contentType={contentType}
+          onApply={handleAttachmentApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'image-embed',
+        <ImageEmbedPopover
+          contentType={contentType}
+          onApply={handleImageApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'link-embed',
+        <LinkEmbedPopover
+          onApply={handleLinkApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
+      createToolbarCustomItem(
+        'video-embed',
+        <VideoEmbedModal
+          contentType={contentType}
+          onApply={handleVideoApply}
+          onTriggerMouseDown={event => event.preventDefault()}
+          triggerClassName={popoverTriggerClassName}
+        />,
+      ),
     ],
     [
-      blockSyntaxActions,
-      handleAlignApply,
-      handleBackgroundColorApply,
       contentType,
       handleAttachmentApply,
       handleImageApply,
       handleLinkApply,
       handleMathApply,
-      handleTextColorApply,
       handleVideoApply,
+      popoverTriggerClassName,
+    ],
+  );
+
+  const toolbarSections = React.useMemo(
+    () =>
+      createMarkdownToolbarSections({
+        blockSyntaxActions,
+        embedItems,
+        headingPopover: (
+          <ToolbarTokenPopover
+            onTriggerMouseDown={event => event.preventDefault()}
+            options={headingPopoverOptions}
+            panelLabel="제목 레벨 선택"
+            triggerAriaLabel="제목"
+            triggerClassName={popoverTriggerClassName}
+            triggerToken="H"
+            triggerTooltip="제목"
+          />
+        ),
+        highlightItems,
+        inlineFormatActions,
+        textStructureActions,
+        togglePopover: (
+          <ToolbarTokenPopover
+            onTriggerMouseDown={event => event.preventDefault()}
+            options={togglePopoverOptions}
+            panelLabel="토글 레벨 선택"
+            triggerAriaLabel="토글"
+            triggerClassName={popoverTriggerClassName}
+            triggerToken="T"
+            triggerTooltip="토글"
+          />
+        ),
+      }),
+    [
+      blockSyntaxActions,
+      embedItems,
       headingPopoverOptions,
+      highlightItems,
       inlineFormatActions,
       popoverTriggerClassName,
       textStructureActions,
