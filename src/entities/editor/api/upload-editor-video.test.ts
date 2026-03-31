@@ -96,4 +96,18 @@ describe('uploadEditorVideo', () => {
       name: 'AbortError',
     });
   });
+
+  it('서버가 실패 응답을 반환하면, uploadEditorVideo는 응답 메시지를 포함한 예외를 던져야 한다', async () => {
+    const promise = uploadEditorVideo({
+      contentType: 'resume',
+      file: new File(['binary'], 'demo.mp4', { type: 'video/mp4' }),
+    });
+    const request = FakeXMLHttpRequest.instances[0];
+
+    request.respond(500, {
+      error: 'Video upload failed on server',
+    });
+
+    await expect(promise).rejects.toThrow('Video upload failed on server');
+  });
 });

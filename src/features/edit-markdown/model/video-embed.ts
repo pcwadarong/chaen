@@ -13,7 +13,12 @@ export type UploadVideoEmbedReference = {
 export type VideoEmbedReference = UploadVideoEmbedReference | YoutubeVideoEmbedReference;
 
 const escapeJsxAttribute = (value: string) =>
-  value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 
 /**
  * pathname에서 첫 번째 비어 있지 않은 segment를 읽습니다.
@@ -93,12 +98,11 @@ export const extractVideoEmbedReference = (value: string): VideoEmbedReference |
  * @param value 사용자가 입력한 YouTube URL 문자열입니다.
  * @returns 안전한 호스트에서 추출한 video id 또는 null을 반환합니다.
  */
-export const extractYoutubeId = (value: string) =>
-  (() => {
-    const reference = extractVideoEmbedReference(value);
+export const extractYoutubeId = (value: string) => {
+  const reference = extractVideoEmbedReference(value);
 
-    return reference?.provider === 'youtube' ? reference.videoId : null;
-  })();
+  return reference?.provider === 'youtube' ? reference.videoId : null;
+};
 
 /**
  * Video embed markdown 문자열을 생성합니다.

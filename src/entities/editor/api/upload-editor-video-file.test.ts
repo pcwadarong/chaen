@@ -35,8 +35,29 @@ describe('uploadEditorVideoFile', () => {
     } as never);
   });
 
-  it('contentType이 article일 때, uploadEditorVideoFile은 article 버킷의 videos 경로에 업로드해야 한다', async () => {
+  it('contentType이 article일 때, uploadEditorVideoFile은 article 버킷의 videos 경로에 업로드하고 공개 URL을 반환해야 한다', async () => {
     const file = new File(['binary'], 'demo.mp4', { type: 'video/mp4' });
+
+    await expect(
+      uploadEditorVideoFile({
+        contentType: 'article',
+        file,
+      }),
+    ).resolves.toBe('https://example.com/article/videos/uploaded-demo.mp4');
+
+    expect(from).toHaveBeenCalledWith('article');
+    expect(upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^videos\//),
+      file,
+      expect.objectContaining({
+        contentType: 'video/mp4',
+        upsert: false,
+      }),
+    );
+  });
+
+  it('확장자가 webm일 때, uploadEditorVideoFile은 file.type보다 확장자 기준 MIME을 우선 사용해야 한다', async () => {
+    const file = new File(['binary'], 'demo.webm', { type: 'video/mp4' });
 
     await uploadEditorVideoFile({
       contentType: 'article',
@@ -48,7 +69,7 @@ describe('uploadEditorVideoFile', () => {
       expect.stringMatching(/^videos\//),
       file,
       expect.objectContaining({
-        contentType: 'video/mp4',
+        contentType: 'video/webm',
         upsert: false,
       }),
     );

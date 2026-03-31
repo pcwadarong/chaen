@@ -7,12 +7,14 @@ type MarkdownVideoProps = {
   videoId?: string;
 };
 
+const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
+
 /**
- * markdown 커스텀 video 구문을 iframe 기반 영상 블록으로 렌더링합니다.
- * 현재는 YouTube provider만 지원하며, provider 분기 지점을 이 컴포넌트로 고정합니다.
+ * markdown 커스텀 video 구문을 provider별 영상 블록으로 렌더링합니다.
+ * 현재는 `youtube`, `upload` provider를 지원하며, renderer 분기 지점을 이 컴포넌트로 고정합니다.
  *
- * @param props 영상 provider와 video id입니다.
- * @returns provider에 맞는 iframe video block을 반환합니다.
+ * @param props 영상 provider와 provider별 식별값입니다. `youtube`는 `videoId`, `upload`는 공개 `src`를 사용합니다.
+ * @returns provider에 맞는 iframe 또는 업로드 video block을 반환합니다.
  */
 export const MarkdownVideo = ({ provider, src, videoId }: MarkdownVideoProps) => {
   if (provider === 'upload' && src) {
@@ -23,7 +25,7 @@ export const MarkdownVideo = ({ provider, src, videoId }: MarkdownVideoProps) =>
     );
   }
 
-  if (provider !== 'youtube' || !videoId) return null;
+  if (provider !== 'youtube' || !videoId || !YOUTUBE_VIDEO_ID_PATTERN.test(videoId)) return null;
 
   return (
     <div className={videoFrameClass}>

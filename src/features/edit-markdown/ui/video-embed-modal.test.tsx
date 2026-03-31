@@ -138,4 +138,27 @@ describe('VideoEmbedModal', () => {
     });
     expect(onApply).not.toHaveBeenCalled();
   });
+
+  it('허용되지 않은 영상 파일이 주어지면, VideoEmbedModal은 업로드 요청 없이 오류를 보여줘야 한다', async () => {
+    const onApply = vi.fn();
+    const invalidFile = new File(['binary'], 'demo.exe', { type: 'application/octet-stream' });
+
+    Object.defineProperty(invalidFile, 'size', {
+      configurable: true,
+      value: 600 * 1024 * 1024,
+    });
+
+    render(<VideoEmbedModal contentType="article" onApply={onApply} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '영상' }));
+    fireEvent.change(screen.getByLabelText('영상 업로드'), {
+      target: {
+        files: [invalidFile],
+      },
+    });
+
+    expect(await screen.findByText(/지원하지 않는 영상 파일입니다/)).toBeTruthy();
+    expect(uploadEditorVideo).not.toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+  });
 });

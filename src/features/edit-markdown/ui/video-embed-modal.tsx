@@ -8,6 +8,7 @@ import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import {
   EDITOR_VIDEO_FILE_INPUT_ACCEPT,
   EDITOR_VIDEO_MAX_FILE_SIZE,
+  isAllowedEditorVideoFile,
 } from '@/entities/editor/model/editor-video-policy';
 import { extractVideoEmbedReference } from '@/features/edit-markdown/model/video-embed';
 import { Button } from '@/shared/ui/button/button';
@@ -128,6 +129,15 @@ export const VideoEmbedModal = ({
 
     if (!file) return;
 
+    if (!isAllowedEditorVideoFile(file)) {
+      setErrorMessage(
+        `지원하지 않는 영상 파일입니다. MP4, MOV, WEBM, M4V · 최대 ${VIDEO_MAX_FILE_SIZE_MB}MB`,
+      );
+      setUploadedVideoUrl(null);
+      setUploadProgress(null);
+      return;
+    }
+
     uploadAbortControllerRef.current?.abort();
 
     const abortController = new AbortController();
@@ -141,14 +151,22 @@ export const VideoEmbedModal = ({
       const uploadedUrl = await uploadEditorVideo({
         contentType,
         file,
-        onProgress: progress => setUploadProgress(progress),
+        onProgress: progress => {
+          if (uploadAbortControllerRef.current !== abortController) return;
+
+          setUploadProgress(progress);
+        },
         signal: abortController.signal,
       });
+
+      if (uploadAbortControllerRef.current !== abortController) return;
 
       setUploadedVideoUrl(uploadedUrl);
       setVideoUrl('');
       setUploadProgress(100);
     } catch (error) {
+      if (uploadAbortControllerRef.current !== abortController) return;
+
       if (error instanceof Error && error.name === 'AbortError') {
         setErrorMessage('영상 업로드를 취소했습니다.');
       } else {
@@ -160,9 +178,8 @@ export const VideoEmbedModal = ({
     } finally {
       if (uploadAbortControllerRef.current === abortController) {
         uploadAbortControllerRef.current = null;
+        setIsUploading(false);
       }
-
-      setIsUploading(false);
     }
   };
 
@@ -377,7 +394,10 @@ const descriptionClass = css({
 
 const bodyClass = css({
   display: 'grid',
-  gridTemplateColumns: '[minmax(0,1.2fr) minmax(18rem,0.8fr)]',
+  gridTemplateColumns: {
+    base: '1fr',
+    md: '[minmax(0,1.2fr) minmax(18rem,0.8fr)]',
+  },
   gap: '8',
   paddingY: '5',
   borderTopWidth: '1px',

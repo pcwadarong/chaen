@@ -235,6 +235,12 @@ describe('MarkdownRenderer', () => {
     expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
   });
 
+  it('유효하지 않은 YouTube video id가 주어지면, MarkdownRenderer는 iframe을 렌더링하지 않아야 한다', async () => {
+    const document = await renderServerDocument('<Video provider="youtube" id="invalid-script" />');
+
+    expect(document.querySelector('iframe')).toBeNull();
+  });
+
   it('업로드 Video 문법이 주어지면, MarkdownRenderer는 HTML video 요소를 렌더링해야 한다', async () => {
     const document = await renderServerDocument(
       '<Video provider="upload" src="https://example.com/videos/demo.mp4" />',

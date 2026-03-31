@@ -41,4 +41,15 @@ describe('editor video policy', () => {
 
     expect(isAllowedEditorVideoFile(file)).toBe(false);
   });
+
+  it('영상 파일 크기가 정책 상한과 같으면, isAllowedEditorVideoFile은 true를 반환해야 한다', () => {
+    const file = new File(['binary'], 'demo.mp4', { type: 'video/mp4' });
+
+    Object.defineProperty(file, 'size', {
+      configurable: true,
+      value: EDITOR_VIDEO_MAX_FILE_SIZE,
+    });
+
+    expect(isAllowedEditorVideoFile(file)).toBe(true);
+  });
 });
