@@ -5,7 +5,10 @@ import { css, cx } from 'styled-system/css';
 
 import { uploadEditorVideo } from '@/entities/editor/api/upload-editor-video';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
-import { EDITOR_VIDEO_FILE_INPUT_ACCEPT } from '@/entities/editor/model/editor-video-policy';
+import {
+  EDITOR_VIDEO_FILE_INPUT_ACCEPT,
+  EDITOR_VIDEO_MAX_FILE_SIZE,
+} from '@/entities/editor/model/editor-video-policy';
 import { extractVideoEmbedReference } from '@/features/edit-markdown/model/video-embed';
 import { Button } from '@/shared/ui/button/button';
 import { YoutubeIcon } from '@/shared/ui/icons/app-icons';
@@ -28,9 +31,13 @@ type VideoEmbedModalProps = {
   triggerClassName?: string;
 };
 
+const MB = 1024 * 1024;
+const VIDEO_MAX_FILE_SIZE_MB = Math.round(EDITOR_VIDEO_MAX_FILE_SIZE / MB);
+
 /**
  * toolbar 내부 영상 삽입 모달입니다.
- * 현재는 YouTube URL만 지원하며, 유효한 URL일 때만 preview와 삽입 액션을 노출합니다.
+ * YouTube URL 입력과 실제 영상 파일 업로드를 함께 지원하며,
+ * 유효한 입력이 있을 때만 preview와 삽입 액션을 노출합니다.
  *
  * @param props 영상 삽입 트리거와 적용 콜백 구성입니다.
  * @returns 영상 삽입 버튼과 모달 UI를 반환합니다.
@@ -43,15 +50,26 @@ export const VideoEmbedModal = ({
 }: VideoEmbedModalProps) => {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const uploadAbortControllerRef = useRef<AbortController | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const videoReference = useMemo(() => extractVideoEmbedReference(videoUrl), [videoUrl]);
   const videoId = videoReference?.provider === 'youtube' ? videoReference.videoId : null;
   const previewMode = uploadedVideoUrl ? 'upload' : videoId ? 'youtube' : null;
+  const helperStatusMessage = errorMessage
+    ? errorMessage
+    : isUploading && uploadProgress !== null
+      ? `영상 업로드 중... ${uploadProgress}%`
+      : uploadedVideoUrl
+        ? '업로드된 영상을 삽입할 준비가 되었습니다.'
+        : videoId
+          ? '동영상을 삽입할 준비가 되었습니다.'
+          : '현재는 YouTube 링크 또는 업로드 영상 파일을 지원합니다.';
 
   /**
    * 영상 모달을 열고 남아 있는 tooltip/focus 상태를 정리합니다.
@@ -62,7 +80,15 @@ export const VideoEmbedModal = ({
   };
 
   /**
-   * 유효한 YouTube 영상일 때만 markdown 삽입을 실행합니다.
+   * 업로드 중인 영상 요청이 있으면 중단하고 모달을 닫습니다.
+   */
+  const handleClose = () => {
+    uploadAbortControllerRef.current?.abort();
+    setIsOpen(false);
+  };
+
+  /**
+   * 현재 준비된 video reference에 따라 markdown 삽입을 실행합니다.
    */
   const handleApply = () => {
     if (uploadedVideoUrl) {
@@ -72,6 +98,7 @@ export const VideoEmbedModal = ({
       });
       setUploadedVideoUrl(null);
       setVideoUrl('');
+      setUploadProgress(null);
       setErrorMessage(null);
       setIsOpen(false);
       return;
@@ -85,6 +112,7 @@ export const VideoEmbedModal = ({
     });
     setVideoUrl('');
     setUploadedVideoUrl(null);
+    setUploadProgress(null);
     setErrorMessage(null);
     setIsOpen(false);
   };
@@ -100,22 +128,49 @@ export const VideoEmbedModal = ({
 
     if (!file) return;
 
+    uploadAbortControllerRef.current?.abort();
+
+    const abortController = new AbortController();
+
+    uploadAbortControllerRef.current = abortController;
     setIsUploading(true);
+    setUploadProgress(0);
     setErrorMessage(null);
 
     try {
       const uploadedUrl = await uploadEditorVideo({
         contentType,
         file,
+        onProgress: progress => setUploadProgress(progress),
+        signal: abortController.signal,
       });
 
       setUploadedVideoUrl(uploadedUrl);
       setVideoUrl('');
+      setUploadProgress(100);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Video upload failed');
+      if (error instanceof Error && error.name === 'AbortError') {
+        setErrorMessage('영상 업로드를 취소했습니다.');
+      } else {
+        setErrorMessage(error instanceof Error ? error.message : 'Video upload failed');
+      }
+
+      setUploadedVideoUrl(null);
+      setUploadProgress(null);
     } finally {
+      if (uploadAbortControllerRef.current === abortController) {
+        uploadAbortControllerRef.current = null;
+      }
+
       setIsUploading(false);
     }
+  };
+
+  /**
+   * 진행 중인 영상 업로드를 사용자가 직접 취소합니다.
+   */
+  const handleCancelUpload = () => {
+    uploadAbortControllerRef.current?.abort();
   };
 
   return (
@@ -152,7 +207,7 @@ export const VideoEmbedModal = ({
         closeAriaLabel="영상 삽입 모달 닫기"
         initialFocusRef={inputRef}
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={handleClose}
       >
         <section className={modalFrameClass}>
           <header className={modalHeaderClass}>
@@ -161,7 +216,8 @@ export const VideoEmbedModal = ({
                 영상 삽입
               </h2>
               <p className={descriptionClass} id="markdown-toolbar-video-modal-description">
-                YouTube URL 입력 또는 영상 파일 업로드로 본문에 영상을 삽입합니다.
+                YouTube URL 또는 영상 파일을 삽입합니다. MP4, MOV, WEBM, M4V · 최대{' '}
+                {VIDEO_MAX_FILE_SIZE_MB}MB
               </p>
             </div>
           </header>
@@ -213,38 +269,43 @@ export const VideoEmbedModal = ({
 
               <div className={fieldClass}>
                 <span className={fieldLabelClass}>영상 업로드</span>
-                <label className={uploadButtonWrapClass}>
-                  <span aria-live="polite" className={uploadButtonLabelClass} role="status">
-                    {isUploading ? '업로드 중...' : '영상 파일 선택'}
-                  </span>
-                  <input
-                    accept={EDITOR_VIDEO_FILE_INPUT_ACCEPT}
-                    aria-label="영상 업로드"
-                    className={fileInputClass}
-                    disabled={isUploading}
-                    onChange={handleFileChange}
-                    type="file"
-                  />
-                </label>
+                <div className={uploadActionsClass}>
+                  <label className={uploadButtonWrapClass}>
+                    <span aria-live="polite" className={uploadButtonLabelClass} role="status">
+                      {isUploading ? '업로드 중...' : '영상 파일 선택'}
+                    </span>
+                    <input
+                      accept={EDITOR_VIDEO_FILE_INPUT_ACCEPT}
+                      aria-label="영상 업로드"
+                      className={fileInputClass}
+                      disabled={isUploading}
+                      onChange={handleFileChange}
+                      type="file"
+                    />
+                  </label>
+                  {isUploading ? (
+                    <Button onClick={handleCancelUpload} size="sm" variant="ghost">
+                      업로드 취소
+                    </Button>
+                  ) : null}
+                </div>
               </div>
 
               <p aria-live="polite" className={helperTextClass} role="status">
-                {errorMessage
-                  ? errorMessage
-                  : uploadedVideoUrl
-                    ? '업로드된 영상을 삽입할 준비가 되었습니다.'
-                    : videoId
-                      ? '동영상을 삽입할 준비가 되었습니다.'
-                      : '현재는 YouTube 링크 또는 업로드 영상 파일을 지원합니다.'}
+                {helperStatusMessage}
               </p>
             </section>
           </div>
 
           <footer className={footerClass}>
-            <Button onClick={() => setIsOpen(false)} size="sm" variant="ghost">
+            <Button onClick={handleClose} size="sm" variant="ghost">
               취소
             </Button>
-            <Button disabled={!uploadedVideoUrl && !videoId} onClick={handleApply} size="sm">
+            <Button
+              disabled={isUploading || (!uploadedVideoUrl && !videoId)}
+              onClick={handleApply}
+              size="sm"
+            >
               삽입
             </Button>
           </footer>
@@ -389,6 +450,13 @@ const helperTextClass = css({
   margin: '0',
   fontSize: 'xs',
   color: 'muted',
+});
+
+const uploadActionsClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '3',
+  flexWrap: 'wrap',
 });
 
 const uploadButtonWrapClass = css({

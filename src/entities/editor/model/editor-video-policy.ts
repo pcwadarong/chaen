@@ -1,6 +1,6 @@
 const MB = 1024 * 1024;
 
-export const EDITOR_VIDEO_MAX_FILE_SIZE = 200 * MB;
+export const EDITOR_VIDEO_MAX_FILE_SIZE = 500 * MB;
 
 export const EDITOR_VIDEO_ALLOWED_EXTENSIONS = ['m4v', 'mov', 'mp4', 'webm'] as const;
 
