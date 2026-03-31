@@ -9,8 +9,11 @@ import { ArticleSearchForm } from '@/features/article-search/ui/article-search-f
 import { Link, usePathname } from '@/i18n/navigation';
 import { viewportMediaQuery } from '@/shared/config/responsive';
 import {
+  buildGlobalNavHeightVar,
   buildHiddenGlobalNavOffsetValue,
+  GLOBAL_NAV_DOCKED_TOP_CSS_VAR,
   GLOBAL_NAV_OFFSET_CSS_VAR,
+  resolveGlobalNavLayoutVarScopes,
 } from '@/shared/lib/dom/global-nav-layout-vars';
 import {
   HOME_HERO_NAV_LOCK_EVENT,
@@ -268,17 +271,19 @@ export const GlobalNav = () => {
   }, [currentSearchQuery, handleMobileSearchClose, pathname]);
 
   useEffect(() => {
-    const styleScope =
-      document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ??
-      document.documentElement;
+    const offsetValue = isHidden ? buildHiddenGlobalNavOffsetValue() : '0px';
+    const dockedTopValue = isHidden ? '0px' : buildGlobalNavHeightVar();
 
-    styleScope.style.setProperty(
-      GLOBAL_NAV_OFFSET_CSS_VAR,
-      isHidden ? buildHiddenGlobalNavOffsetValue() : '0px',
-    );
+    resolveGlobalNavLayoutVarScopes().forEach(scope => {
+      scope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, offsetValue);
+      scope.style.setProperty(GLOBAL_NAV_DOCKED_TOP_CSS_VAR, dockedTopValue);
+    });
 
     return () => {
-      styleScope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, '0px');
+      resolveGlobalNavLayoutVarScopes().forEach(scope => {
+        scope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, '0px');
+        scope.style.setProperty(GLOBAL_NAV_DOCKED_TOP_CSS_VAR, buildGlobalNavHeightVar());
+      });
     };
   }, [isHidden]);
 

@@ -13,6 +13,6 @@ export const adminConsoleNavigationItems: AdminConsoleNavigationItem[] = [
   { href: '/admin', label: 'Dashboard', section: 'dashboard' },
   { href: '/admin/content', label: 'Content', section: 'content' },
   { href: '/admin/photo', label: 'Photo', section: 'photo' },
-  { href: '/admin/resume/edit', label: 'Resume', section: 'resume' },
+  { href: '/admin/resume', label: 'Resume', section: 'resume' },
   { href: '/admin/drafts', label: 'Drafts', section: 'drafts' },
 ];

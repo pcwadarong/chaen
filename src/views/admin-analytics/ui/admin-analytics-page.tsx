@@ -216,6 +216,7 @@ const summaryPanelClass = css({
   borderRadius: '3xl',
   border: '[1px solid var(--colors-border)]',
   background: 'surface',
+  boxShadow: 'sm',
 });
 
 const summaryEyebrowClass = css({
@@ -294,6 +295,7 @@ const panelClass = css({
   borderRadius: '3xl',
   border: '[1px solid var(--colors-border)]',
   background: 'surface',
+  boxShadow: 'sm',
 });
 
 const rankListClass = css({

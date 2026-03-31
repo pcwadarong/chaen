@@ -5,7 +5,9 @@ import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { parseEditorError } from '@/entities/editor/model/editor-error';
+import { Link } from '@/i18n/navigation';
 import { AdminTable } from '@/shared/ui/admin-table';
+import { Button } from '@/shared/ui/button/button';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';
 import { DraftTableRow } from '@/views/editor-drafts/ui/editor-drafts-row';
 import { AdminConsoleShell } from '@/widgets/admin-console';
@@ -124,6 +126,16 @@ export const EditorDraftsPage = ({
 
   return (
     <AdminConsoleShell
+      action={
+        <div className={actionClass}>
+          <Button asChild tone="white" variant="solid">
+            <Link href="/admin/articles/new">새 아티클 작성</Link>
+          </Button>
+          <Button asChild tone="white" variant="solid">
+            <Link href="/admin/projects/new">새 프로젝트 작성</Link>
+          </Button>
+        </div>
+      }
       activeSection="drafts"
       signOutRedirectPath={signOutRedirectPath}
       title="Drafts"
@@ -136,6 +148,13 @@ export const EditorDraftsPage = ({
 const pageClass = css({
   width: 'full',
   py: '0',
+});
+
+const actionClass = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  gap: '3',
 });
 
 const panelClass = css({
