@@ -48,12 +48,12 @@ describe('api/attachments/download route', () => {
 
     const response = await GET(
       new Request(
-        'https://chaen.dev/api/attachments/download?path=article%2Fattachments%2Fdemo.pdf&fileName=resume.pdf',
+        'https://chaen.dev/api/attachments/download?bucket=article&path=attachments%2Fdemo.pdf&fileName=resume.pdf',
       ),
     );
 
-    expect(from).toHaveBeenCalledWith('file');
-    expect(createSignedUrl).toHaveBeenCalledWith('article/attachments/demo.pdf', 600, {
+    expect(from).toHaveBeenCalledWith('article');
+    expect(createSignedUrl).toHaveBeenCalledWith('attachments/demo.pdf', 600, {
       download: 'resume.pdf',
     });
     expect(response.status).toBe(307);
@@ -62,12 +62,41 @@ describe('api/attachments/download route', () => {
     );
   });
 
+  it('콘텐츠 버킷 첨부는 bucket query 기준으로 signed URL을 생성한다', async () => {
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      storage: {
+        from,
+      },
+    } as never);
+    createSignedUrl.mockResolvedValue({
+      data: {
+        signedUrl: 'https://demo.supabase.co/storage/v1/object/sign/resume/demo.pdf',
+      },
+      error: null,
+    });
+
+    const response = await GET(
+      new Request(
+        'https://chaen.dev/api/attachments/download?bucket=resume&path=attachments%2Fdemo.pdf&fileName=resume.pdf',
+      ),
+    );
+
+    expect(from).toHaveBeenCalledWith('resume');
+    expect(createSignedUrl).toHaveBeenCalledWith('attachments/demo.pdf', 600, {
+      download: 'resume.pdf',
+    });
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe(
+      'https://demo.supabase.co/storage/v1/object/sign/resume/demo.pdf',
+    );
+  });
+
   it('service role client가 없으면 404를 반환한다', async () => {
     vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
 
     const response = await GET(
       new Request(
-        'https://chaen.dev/api/attachments/download?path=article%2Fattachments%2Fdemo.pdf&fileName=resume.pdf',
+        'https://chaen.dev/api/attachments/download?bucket=article&path=attachments%2Fdemo.pdf&fileName=resume.pdf',
       ),
     );
 
@@ -80,7 +109,33 @@ describe('api/attachments/download route', () => {
   it('허용되지 않은 path면 400을 반환한다', async () => {
     const response = await GET(
       new Request(
-        'https://chaen.dev/api/attachments/download?path=private%2Fsecret.pdf&fileName=resume.pdf',
+        'https://chaen.dev/api/attachments/download?bucket=article&path=private%2Fsecret.pdf&fileName=resume.pdf',
+      ),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: 'Invalid attachment download request',
+    });
+  });
+
+  it('콘텐츠 버킷이더라도 attachments 경로가 아니면 400을 반환한다', async () => {
+    const response = await GET(
+      new Request(
+        'https://chaen.dev/api/attachments/download?bucket=resume&path=private%2Fsecret.pdf&fileName=resume.pdf',
+      ),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: 'Invalid attachment download request',
+    });
+  });
+
+  it('bucket이 없으면 400을 반환한다', async () => {
+    const response = await GET(
+      new Request(
+        'https://chaen.dev/api/attachments/download?path=attachments%2Fdemo.pdf&fileName=resume.pdf',
       ),
     );
 
@@ -103,7 +158,7 @@ describe('api/attachments/download route', () => {
 
     const response = await GET(
       new Request(
-        'https://chaen.dev/api/attachments/download?path=article%2Fattachments%2Fdemo.pdf&fileName=resume.pdf',
+        'https://chaen.dev/api/attachments/download?bucket=article&path=attachments%2Fdemo.pdf&fileName=resume.pdf',
       ),
     );
 

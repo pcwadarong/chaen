@@ -1,3 +1,5 @@
+import type { ContentStorageBucket } from '@/shared/lib/storage/storage-path';
+
 /**
  * PDF 소개 콘텐츠의 종류입니다.
  * - `resume`: 이력서 페이지에서 사용하는 소개 콘텐츠
@@ -55,6 +57,19 @@ export type PdfFileDownloadOption = {
   fileName: string;
   href: string | null;
   locale: PdfFileAssetLocale;
+};
+
+/**
+ * PDF 자산 하나가 실제 storage 어디에 저장되는지 설명하는 설정 타입입니다.
+ */
+export type PdfFileStorageConfig = {
+  assetKey: PdfFileAssetKey;
+  bucket: ContentStorageBucket;
+  downloadFileName: string;
+  filePath: string;
+  kind: PdfFileKind;
+  locale: PdfFileAssetLocale;
+  title: string;
 };
 
 /**

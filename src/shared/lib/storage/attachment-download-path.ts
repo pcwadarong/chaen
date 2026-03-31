@@ -1,18 +1,29 @@
-import { STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
+import {
+  type EditorContentStorageBucket,
+  isEditorContentStorageBucket,
+} from '@/shared/lib/storage/storage-path';
 
 const SUPABASE_PUBLIC_STORAGE_PREFIX = '/storage/v1/object/public/';
+
+type AttachmentStorageLocation = {
+  bucketName: EditorContentStorageBucket;
+  filePath: string;
+};
 
 /**
  * 같은 origin의 내부 첨부 파일 다운로드 경로를 생성합니다.
  */
 export const buildAttachmentDownloadPath = ({
+  bucketName,
   fileName,
   filePath,
 }: {
+  bucketName: AttachmentStorageLocation['bucketName'];
   fileName: string;
   filePath: string;
 }) => {
   const searchParams = new URLSearchParams({
+    bucket: bucketName,
     fileName,
     path: filePath,
   });
@@ -21,9 +32,9 @@ export const buildAttachmentDownloadPath = ({
 };
 
 /**
- * Supabase public storage URL에서 file 버킷의 실제 object path를 추출합니다.
+ * Supabase public storage URL에서 콘텐츠 버킷 첨부 파일의 실제 storage 위치를 추출합니다.
  */
-export const parseAttachmentStoragePath = (href: string): string | null => {
+export const parseAttachmentStoragePath = (href: string): AttachmentStorageLocation | null => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   if (!supabaseUrl) return null;
 
@@ -33,13 +44,21 @@ export const parseAttachmentStoragePath = (href: string): string | null => {
 
     if (parsedHref.origin !== parsedSupabaseUrl.origin) return null;
 
-    const storagePrefix = `${SUPABASE_PUBLIC_STORAGE_PREFIX}${STORAGE_BUCKET.file}/`;
+    const storagePrefix = `${SUPABASE_PUBLIC_STORAGE_PREFIX}`;
     if (!parsedHref.pathname.startsWith(storagePrefix)) return null;
 
-    const encodedFilePath = parsedHref.pathname.slice(storagePrefix.length);
-    if (!encodedFilePath) return null;
+    const encodedStoragePath = parsedHref.pathname.slice(storagePrefix.length);
+    const [bucketName, ...encodedFilePathSegments] = encodedStoragePath.split('/');
+    const encodedFilePath = encodedFilePathSegments.join('/');
 
-    return decodeURIComponent(encodedFilePath);
+    if (!bucketName || !encodedFilePath) return null;
+
+    if (!isEditorContentStorageBucket(bucketName)) return null;
+
+    return {
+      bucketName,
+      filePath: decodeURIComponent(encodedFilePath),
+    };
   } catch {
     return null;
   }
@@ -55,11 +74,12 @@ export const resolveAttachmentDownloadHref = ({
   fileName: string;
   href: string;
 }) => {
-  const filePath = parseAttachmentStoragePath(href);
-  if (!filePath) return href;
+  const storageLocation = parseAttachmentStoragePath(href);
+  if (!storageLocation) return href;
 
   return buildAttachmentDownloadPath({
+    bucketName: storageLocation.bucketName,
     fileName,
-    filePath,
+    filePath: storageLocation.filePath,
   });
 };

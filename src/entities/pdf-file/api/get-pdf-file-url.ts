@@ -3,8 +3,8 @@ import {
   getPdfFileStorageConfig,
 } from '@/entities/pdf-file/model/config';
 import type { PdfFileAssetKey, PdfFileKind } from '@/entities/pdf-file/model/types';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import type { ContentStorageBucket } from '@/shared/lib/storage/storage-path';
+import { resolveOptionalStorageReadSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
 import 'server-only';
 
@@ -13,22 +13,14 @@ type PdfFileUrlAccessType = 'public' | 'signed';
 type GetPdfFileUrlOptions = {
   accessType?: PdfFileUrlAccessType;
   assetKey?: PdfFileAssetKey;
+  bucket?: ContentStorageBucket;
   kind?: PdfFileKind;
-  bucket?: string;
   filePath?: string;
   signedUrlExpiresInSeconds?: number;
   downloadFileName?: string;
 };
 
 const DEFAULT_SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 10;
-
-/**
- * signed URL 생성 시 사용할 Supabase 클라이언트를 선택합니다.
- * - 1순위: service role (private bucket/RLS 우회)
- * - 2순위: public anon
- */
-const resolvePdfStorageClient = () =>
-  createOptionalServiceRoleSupabaseClient() ?? createOptionalPublicServerSupabaseClient();
 
 /**
  * Supabase Storage 객체가 존재하지 않는지 확인합니다.
@@ -54,7 +46,7 @@ export const getPdfFileUrl = async ({
   const resolvedBucket = bucket ?? storageConfig.bucket;
   const resolvedFilePath = filePath ?? storageConfig.filePath;
   const resolvedDownloadFileName = downloadFileName ?? storageConfig.downloadFileName;
-  const supabase = resolvePdfStorageClient();
+  const supabase = resolveOptionalStorageReadSupabaseClient();
   if (!supabase) return null;
 
   const storage = supabase.storage.from(resolvedBucket);

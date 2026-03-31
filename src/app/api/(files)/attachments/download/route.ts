@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
 import { createApiErrorResponse } from '@/shared/lib/http/api-response';
-import { STORAGE_BUCKET } from '@/shared/lib/storage/storage-path';
+import { isEditorContentStorageBucket } from '@/shared/lib/storage/storage-path';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 const ATTACHMENT_DOWNLOAD_NOT_FOUND_MESSAGE = 'Not Found';
 const ATTACHMENT_DOWNLOAD_INVALID_REQUEST_MESSAGE = 'Invalid attachment download request';
 const ATTACHMENT_SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 10;
-const ALLOWED_ATTACHMENT_CONTENT_TYPES = ['article', 'project', 'resume'] as const;
 
 /**
  * 다운로드 요청 path가 editor attachment 경로 규칙을 따르는지 검증합니다.
@@ -19,17 +18,9 @@ const isAllowedAttachmentPath = (filePath: string) => {
   if (filePath.startsWith('/')) return false;
 
   const segments = filePath.split('/');
-  const [contentType, directory, ...fileNameSegments] = segments;
+  const [firstSegment, secondSegment, ...fileNameSegments] = segments;
 
-  if (
-    !ALLOWED_ATTACHMENT_CONTENT_TYPES.includes(
-      contentType as (typeof ALLOWED_ATTACHMENT_CONTENT_TYPES)[number],
-    )
-  ) {
-    return false;
-  }
-
-  if (directory !== 'attachments' || fileNameSegments.length === 0) {
+  if (firstSegment !== 'attachments' || [secondSegment, ...fileNameSegments].length === 0) {
     return false;
   }
 
@@ -41,10 +32,17 @@ const isAllowedAttachmentPath = (filePath: string) => {
  */
 export const GET = async (request: Request) => {
   const requestUrl = new URL(request.url);
+  const bucketName = requestUrl.searchParams.get('bucket')?.trim();
   const filePath = requestUrl.searchParams.get('path')?.trim();
   const fileName = requestUrl.searchParams.get('fileName')?.trim();
 
-  if (!filePath || !fileName || !isAllowedAttachmentPath(filePath)) {
+  if (
+    !bucketName ||
+    !isEditorContentStorageBucket(bucketName) ||
+    !filePath ||
+    !fileName ||
+    !isAllowedAttachmentPath(filePath)
+  ) {
     return createApiErrorResponse(ATTACHMENT_DOWNLOAD_INVALID_REQUEST_MESSAGE, 400);
   }
 
@@ -54,7 +52,7 @@ export const GET = async (request: Request) => {
   }
 
   const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET.file)
+    .from(bucketName)
     .createSignedUrl(filePath, ATTACHMENT_SIGNED_URL_EXPIRES_IN_SECONDS, {
       download: fileName,
     });

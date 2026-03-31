@@ -9,8 +9,7 @@ import {
   getPdfFileStorageConfig,
 } from '@/entities/pdf-file/model/config';
 import type { PdfFileAssetKey, PdfFileKind } from '@/entities/pdf-file/model/types';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { resolveOptionalStorageReadSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
 import 'server-only';
 
@@ -21,12 +20,6 @@ type GetPdfFileAvailabilityOptions = {
   assetKey?: PdfFileAssetKey;
   kind?: PdfFileKind;
 };
-
-/**
- * PDF 파일 존재 여부 확인 시 사용할 Supabase 클라이언트를 선택합니다.
- */
-const resolvePdfStorageClient = () =>
-  createOptionalServiceRoleSupabaseClient() ?? createOptionalPublicServerSupabaseClient();
 
 /**
  * Storage 파일 경로를 디렉터리와 파일명으로 분리합니다.
@@ -58,7 +51,7 @@ const readCachedPdfFileAvailability = async ({
   const storageConfig = assetKey
     ? getPdfFileAssetStorageConfig(assetKey)
     : getPdfFileStorageConfig(kind ?? 'resume');
-  const supabase = resolvePdfStorageClient();
+  const supabase = resolveOptionalStorageReadSupabaseClient();
   if (!supabase) return false;
 
   const { directoryPath, fileName } = splitStorageFilePath(storageConfig.filePath);

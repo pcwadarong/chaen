@@ -2,19 +2,14 @@ import { unstable_cacheTag } from 'next/cache';
 import { vi } from 'vitest';
 
 import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-availability';
-import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
-import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
+import { resolveOptionalStorageReadSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
 vi.mock('next/cache', () => ({
   unstable_cacheTag: vi.fn(),
 }));
 
-vi.mock('@/shared/lib/supabase/public-server', () => ({
-  createOptionalPublicServerSupabaseClient: vi.fn(),
-}));
-
-vi.mock('@/shared/lib/supabase/service-role', () => ({
-  createOptionalServiceRoleSupabaseClient: vi.fn(),
+vi.mock('@/shared/lib/supabase/storage-client', () => ({
+  resolveOptionalStorageReadSupabaseClient: vi.fn(),
 }));
 
 type MockStorage = {
@@ -24,11 +19,18 @@ type MockStorage = {
 /**
  * Supabase storage mock 객체를 생성합니다.
  */
-const createSupabaseMock = (storage: MockStorage) => ({
-  storage: {
-    from: vi.fn().mockReturnValue(storage),
-  },
-});
+const createSupabaseMock = (storage: MockStorage) => {
+  const from = vi.fn().mockReturnValue(storage);
+
+  return {
+    from,
+    supabase: {
+      storage: {
+        from,
+      },
+    },
+  };
+};
 
 describe('getPdfFileAvailability', () => {
   afterEach(() => {
@@ -47,12 +49,14 @@ describe('getPdfFileAvailability', () => {
       }),
     };
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    const publicSupabase = createSupabaseMock(publicStorage);
+
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      publicSupabase.supabase as never,
     );
 
     await expect(getPdfFileAvailability({ kind: 'resume' })).resolves.toBe(true);
+    expect(publicSupabase.from).toHaveBeenCalledWith('resume');
     expect(unstable_cacheTag).toHaveBeenCalledWith('pdf-files', 'pdf-file-availability:resume');
   });
 
@@ -64,12 +68,14 @@ describe('getPdfFileAvailability', () => {
       }),
     };
 
-    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue(null);
-    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(
-      createSupabaseMock(publicStorage) as never,
+    const publicSupabase = createSupabaseMock(publicStorage);
+
+    vi.mocked(resolveOptionalStorageReadSupabaseClient).mockReturnValue(
+      publicSupabase.supabase as never,
     );
 
     await expect(getPdfFileAvailability({ kind: 'portfolio' })).resolves.toBe(false);
+    expect(publicSupabase.from).toHaveBeenCalledWith('project');
     expect(unstable_cacheTag).toHaveBeenCalledWith('pdf-files', 'pdf-file-availability:portfolio');
   });
 });
