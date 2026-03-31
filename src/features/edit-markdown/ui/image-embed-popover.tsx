@@ -379,79 +379,101 @@ export const ImageEmbedPopover = ({
             <p className={metaTextClass}>허용 형식: {ACCEPTED_IMAGE_FORMAT_LABEL}</p>
           </header>
 
-          {isEmptyState ? (
-            <ImageEmbedPopoverEmptyState
-              acceptedFileTypes={ACCEPTED_IMAGE_FILE_TYPES}
-              canAddRow={canAddRow}
-              isDragActive={isDragActive}
-              isUploading={isUploading}
-              onAddUrls={handleAddUrls}
-              onDropzoneDragLeave={handleDropzoneDragLeave}
-              onDropzoneDragOver={handleDropzoneDragOver}
-              onDropzoneDrop={handleDropzoneDrop}
-              onFileChange={handleFileChange}
-              onPendingUrlsChange={setPendingUrls}
-              pendingUrls={pendingUrls}
-              urlAddDisabled={isAddUrlsDisabled}
-            />
-          ) : (
-            <>
-              {isUrlPanelOpen ? (
-                <section className={urlPanelClass}>
-                  <label className={fieldLabelClass} htmlFor="markdown-toolbar-image-url-panel">
-                    웹 URL 추가
-                  </label>
-                  <Textarea
-                    autoResize={false}
-                    id="markdown-toolbar-image-url-panel"
-                    onChange={event => setPendingUrls(event.target.value)}
-                    placeholder={`https://example.com/image.png\nhttps://example.com/image-2.png`}
-                    rows={3}
-                    value={pendingUrls}
-                  />
-                  <div className={urlPanelActionRowClass}>
-                    <p className={metaTextClass}>여러 URL은 한 줄에 하나씩 입력합니다.</p>
-                    <div className={headerButtonGroupClass}>
-                      <Button
-                        onClick={() => setIsUrlPanelOpen(false)}
-                        size="sm"
-                        tone="white"
-                        variant="ghost"
-                      >
-                        취소
-                      </Button>
-                      <Button
-                        disabled={isAddUrlsDisabled}
-                        onClick={handleAddUrls}
-                        size="sm"
-                        tone="white"
-                      >
-                        추가
-                      </Button>
-                    </div>
-                  </div>
-                </section>
-              ) : null}
-              <ImageEmbedPopoverEditor
-                duplicateRowIds={duplicateRowIds}
-                errorMessage={errorMessage}
-                filledRows={filledRows}
+          <div className={modalScrollableContentClass}>
+            {isEmptyState ? (
+              <ImageEmbedPopoverEmptyState
+                acceptedFileTypes={ACCEPTED_IMAGE_FILE_TYPES}
+                canAddRow={canAddRow}
+                isDragActive={isDragActive}
                 isUploading={isUploading}
-                isMobileListCollapsed={isMobileListCollapsed}
-                onApply={handleApply}
-                onFileChange={handleReplaceSelectedRowImage}
-                onMoveRow={handleMoveRow}
-                onRemoveRow={handleRemoveRow}
-                onSelectRow={setSelectedRowId}
-                onToggleMobileList={() => setIsMobileListCollapsed(current => !current)}
-                onUpdateRow={updateRow}
-                rows={rows}
-                selectedPreviewUrl={selectedPreviewUrl}
-                selectedRow={selectedRow}
-                uploadAccept={ACCEPTED_IMAGE_FILE_TYPES}
+                onAddUrls={handleAddUrls}
+                onDropzoneDragLeave={handleDropzoneDragLeave}
+                onDropzoneDragOver={handleDropzoneDragOver}
+                onDropzoneDrop={handleDropzoneDrop}
+                onFileChange={handleFileChange}
+                onPendingUrlsChange={setPendingUrls}
+                pendingUrls={pendingUrls}
+                urlAddDisabled={isAddUrlsDisabled}
               />
-            </>
-          )}
+            ) : (
+              <>
+                {isUrlPanelOpen ? (
+                  <section className={urlPanelClass}>
+                    <label className={fieldLabelClass} htmlFor="markdown-toolbar-image-url-panel">
+                      웹 URL 추가
+                    </label>
+                    <Textarea
+                      autoResize={false}
+                      id="markdown-toolbar-image-url-panel"
+                      onChange={event => setPendingUrls(event.target.value)}
+                      placeholder={`https://example.com/image.png\nhttps://example.com/image-2.png`}
+                      rows={3}
+                      value={pendingUrls}
+                    />
+                    <div className={urlPanelActionRowClass}>
+                      <p className={metaTextClass}>여러 URL은 한 줄에 하나씩 입력합니다.</p>
+                      <div className={headerButtonGroupClass}>
+                        <Button
+                          onClick={() => setIsUrlPanelOpen(false)}
+                          size="sm"
+                          tone="white"
+                          variant="ghost"
+                        >
+                          취소
+                        </Button>
+                        <Button
+                          disabled={isAddUrlsDisabled}
+                          onClick={handleAddUrls}
+                          size="sm"
+                          tone="white"
+                        >
+                          추가
+                        </Button>
+                      </div>
+                    </div>
+                  </section>
+                ) : null}
+                <ImageEmbedPopoverEditor
+                  duplicateRowIds={duplicateRowIds}
+                  errorMessage={errorMessage}
+                  filledRows={filledRows}
+                  isMobileListCollapsed={isMobileListCollapsed}
+                  isUploading={isUploading}
+                  onFileChange={handleReplaceSelectedRowImage}
+                  onMoveRow={handleMoveRow}
+                  onRemoveRow={handleRemoveRow}
+                  onSelectRow={setSelectedRowId}
+                  onToggleMobileList={() => setIsMobileListCollapsed(current => !current)}
+                  onUpdateRow={updateRow}
+                  rows={rows}
+                  selectedPreviewUrl={selectedPreviewUrl}
+                  selectedRow={selectedRow}
+                  uploadAccept={ACCEPTED_IMAGE_FILE_TYPES}
+                />
+              </>
+            )}
+          </div>
+
+          {!isEmptyState ? (
+            <footer className={modalFooterClass}>
+              <div className={modalFooterActionGroupClass}>
+                <Button
+                  disabled={filledRows.length === 0 || hasDuplicateUrls}
+                  onClick={() => handleApply('individual')}
+                  size="xs"
+                >
+                  개별 이미지로 삽입
+                </Button>
+                <Button
+                  disabled={filledRows.length <= 1 || hasDuplicateUrls}
+                  onClick={() => handleApply('gallery')}
+                  size="xs"
+                >
+                  슬라이드로 삽입
+                </Button>
+              </div>
+            </footer>
+          ) : null}
         </div>
       </Modal>
     </>
@@ -459,13 +481,42 @@ export const ImageEmbedPopover = ({
 };
 
 const modalContentClass = css({
-  display: 'grid',
+  display: 'flex',
+  flexDirection: 'column',
   gap: '4',
-  width: '[min(72rem,calc(100vw-2rem))]',
-  minHeight: '96',
-  maxHeight: '[min(52rem,calc(100vh-2rem))]',
+  width: '[min(72rem,calc(100dvw-2rem))]',
+  maxWidth: 'full',
+  maxHeight: '[calc(100dvh-2rem)]',
   p: '6',
   backgroundColor: 'surface',
+  minHeight: '0',
+  minWidth: '0',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+});
+
+const modalScrollableContentClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4',
+  paddingBottom: '2',
+});
+
+const modalFooterClass = css({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  paddingTop: '4',
+  borderTopWidth: '1px',
+  borderTopStyle: 'solid',
+  borderTopColor: 'border',
+});
+
+const modalFooterActionGroupClass = css({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  gap: '2',
+  flexWrap: 'wrap',
 });
 
 const modalHeaderClass = css({

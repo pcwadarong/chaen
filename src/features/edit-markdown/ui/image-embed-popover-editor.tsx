@@ -24,7 +24,6 @@ type ImageEmbedPopoverEditorProps = {
   selectedPreviewUrl: string | null;
   selectedRow: ImageInputRow | null;
   uploadAccept: string;
-  onApply: (mode: 'gallery' | 'individual') => void;
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onMoveRow: (rowId: string, direction: 'down' | 'up') => void;
   onRemoveRow: (rowId: string) => void;
@@ -45,7 +44,6 @@ export const ImageEmbedPopoverEditor = ({
   filledRows,
   isMobileListCollapsed,
   isUploading,
-  onApply,
   onFileChange,
   onMoveRow,
   onRemoveRow,
@@ -56,201 +54,177 @@ export const ImageEmbedPopoverEditor = ({
   selectedPreviewUrl,
   selectedRow,
   uploadAccept,
-}: ImageEmbedPopoverEditorProps) => {
-  const hasDuplicateUrls = duplicateRowIds.size > 0;
-
-  return (
-    <div className={editorLayoutClass}>
-      <footer className={actionRowClass}>
-        <div className={footerActionGroupClass}>
+}: ImageEmbedPopoverEditorProps) => (
+  <div className={editorLayoutClass}>
+    <div className={bodyClass}>
+      <aside
+        className={cx(sidebarClass, isMobileListCollapsed ? mobileSidebarHiddenClass : undefined)}
+      >
+        <div className={sidebarHeaderClass}>
+          <div className={sidebarHeaderInfoClass}>
+            <p className={fieldLabelClass}>이미지 목록</p>
+            <p className={metaTextClass}>{filledRows.length}개 · 최대 10개</p>
+          </div>
           <Button
-            disabled={filledRows.length === 0 || hasDuplicateUrls}
-            onClick={() => onApply('individual')}
+            className={mobileListToggleButtonClass}
+            onClick={onToggleMobileList}
             size="xs"
+            tone="white"
+            variant="ghost"
           >
-            개별 이미지로 삽입
-          </Button>
-          <Button
-            disabled={filledRows.length <= 1 || hasDuplicateUrls}
-            onClick={() => onApply('gallery')}
-            size="xs"
-          >
-            슬라이드로 삽입
+            {isMobileListCollapsed ? '이미지 목록 열기' : '이미지 목록 닫기'}
           </Button>
         </div>
-      </footer>
+        <div className={rowListClass} data-image-list data-scrollable="true">
+          {rows.map((row, index) => {
+            const hasDuplicateUrl = duplicateRowIds.has(row.id);
+            const isSelected = row.id === selectedRow?.id;
 
-      <div className={bodyClass}>
-        <aside
-          className={cx(sidebarClass, isMobileListCollapsed ? mobileSidebarHiddenClass : undefined)}
-        >
-          <div className={sidebarHeaderClass}>
-            <div className={sidebarHeaderInfoClass}>
-              <p className={fieldLabelClass}>이미지 목록</p>
-              <p className={metaTextClass}>{filledRows.length}개 · 최대 10개</p>
-            </div>
-            <Button
-              className={mobileListToggleButtonClass}
-              onClick={onToggleMobileList}
-              size="xs"
-              tone="white"
-              variant="ghost"
-            >
-              {isMobileListCollapsed ? '이미지 목록 열기' : '이미지 목록 닫기'}
-            </Button>
-          </div>
-          <div className={rowListClass} data-image-list data-scrollable="true">
-            {rows.map((row, index) => {
-              const hasDuplicateUrl = duplicateRowIds.has(row.id);
-              const isSelected = row.id === selectedRow?.id;
-
-              return (
-                <div
-                  className={cx(
-                    rowListItemClass,
-                    isSelected ? rowListItemSelectedClass : undefined,
-                    hasDuplicateUrl ? rowListItemErrorClass : undefined,
-                  )}
-                  key={row.id}
+            return (
+              <div
+                className={cx(
+                  rowListItemClass,
+                  isSelected ? rowListItemSelectedClass : undefined,
+                  hasDuplicateUrl ? rowListItemErrorClass : undefined,
+                )}
+                key={row.id}
+              >
+                <button
+                  aria-pressed={isSelected}
+                  className={rowListSelectButtonClass}
+                  onClick={() => onSelectRow(row.id)}
+                  type="button"
                 >
+                  <span className={rowListItemIndexClass}>{index + 1}</span>
+                  <span className={rowListItemTextClass}>
+                    {normalizeEmbedInput(row.alt) ?? normalizeEmbedInput(row.url) ?? '새 이미지'}
+                  </span>
+                </button>
+                <div className={rowListSortActionClass}>
                   <button
-                    aria-pressed={isSelected}
-                    className={rowListSelectButtonClass}
-                    onClick={() => onSelectRow(row.id)}
+                    aria-label={`${index + 1}번째 이미지를 위로 이동`}
+                    className={rowListActionButtonClass}
+                    disabled={index === 0}
+                    onClick={event => {
+                      event.stopPropagation();
+                      onMoveRow(row.id, 'up');
+                    }}
                     type="button"
                   >
-                    <span className={rowListItemIndexClass}>{index + 1}</span>
-                    <span className={rowListItemTextClass}>
-                      {normalizeEmbedInput(row.alt) ?? normalizeEmbedInput(row.url) ?? '새 이미지'}
-                    </span>
+                    <ArrowUpIcon aria-hidden color="text" size="sm" />
                   </button>
-                  <div className={rowListSortActionClass}>
-                    <button
-                      aria-label={`${index + 1}번째 이미지를 위로 이동`}
-                      className={rowListActionButtonClass}
-                      disabled={index === 0}
-                      onClick={event => {
-                        event.stopPropagation();
-                        onMoveRow(row.id, 'up');
-                      }}
-                      type="button"
-                    >
-                      <ArrowUpIcon aria-hidden color="text" size="sm" />
-                    </button>
-                    <button
-                      aria-label={`${index + 1}번째 이미지를 아래로 이동`}
-                      className={cx(rowListActionButtonClass, rowSortButtonDownClass)}
-                      disabled={index === rows.length - 1}
-                      onClick={event => {
-                        event.stopPropagation();
-                        onMoveRow(row.id, 'down');
-                      }}
-                      type="button"
-                    >
-                      <ArrowUpIcon aria-hidden color="text" size="sm" />
-                    </button>
-                    <button
-                      aria-label={`${index + 1}번째 이미지 삭제`}
-                      className={rowListActionButtonClass}
-                      onClick={event => {
-                        event.stopPropagation();
-                        onRemoveRow(row.id);
-                      }}
-                      type="button"
-                    >
-                      <TrashIcon aria-hidden color="text" size="sm" />
-                    </button>
-                  </div>
+                  <button
+                    aria-label={`${index + 1}번째 이미지를 아래로 이동`}
+                    className={cx(rowListActionButtonClass, rowSortButtonDownClass)}
+                    disabled={index === rows.length - 1}
+                    onClick={event => {
+                      event.stopPropagation();
+                      onMoveRow(row.id, 'down');
+                    }}
+                    type="button"
+                  >
+                    <ArrowUpIcon aria-hidden color="text" size="sm" />
+                  </button>
+                  <button
+                    aria-label={`${index + 1}번째 이미지 삭제`}
+                    className={rowListActionButtonClass}
+                    onClick={event => {
+                      event.stopPropagation();
+                      onRemoveRow(row.id);
+                    }}
+                    type="button"
+                  >
+                    <TrashIcon aria-hidden color="text" size="sm" />
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        </aside>
+              </div>
+            );
+          })}
+        </div>
+      </aside>
 
-        <div className={previewFrameClass} data-image-preview-frame data-preview-shape="square">
-          {selectedPreviewUrl ? (
-            <Image
-              alt={normalizeEmbedInput(selectedRow?.alt ?? '') ?? '이미지 미리보기'}
-              className={previewImageClass}
-              data-image-preview-fit="contain"
-              fill
-              sizes={viewportImageSizes.imageSourceField}
-              src={selectedPreviewUrl}
-              unoptimized
-            />
-          ) : (
-            <div className={previewPlaceholderClass}>미리보기 없음</div>
-          )}
+      <div className={previewFrameClass} data-image-preview-frame data-preview-shape="square">
+        {selectedPreviewUrl ? (
+          <Image
+            alt={normalizeEmbedInput(selectedRow?.alt ?? '') ?? '이미지 미리보기'}
+            className={previewImageClass}
+            data-image-preview-fit="contain"
+            fill
+            sizes={viewportImageSizes.imageSourceField}
+            src={selectedPreviewUrl}
+            unoptimized
+          />
+        ) : (
+          <div className={previewPlaceholderClass}>미리보기 없음</div>
+        )}
+      </div>
+
+      <section className={editorFieldsClass}>
+        <div className={rowFieldClass}>
+          <label className={fieldLabelClass} htmlFor="markdown-toolbar-selected-image-url">
+            URL
+          </label>
+          <Input
+            disabled={!selectedRow}
+            id="markdown-toolbar-selected-image-url"
+            onChange={event =>
+              selectedRow ? onUpdateRow(selectedRow.id, { url: event.target.value }) : undefined
+            }
+            placeholder="https://example.com/image.png"
+            value={selectedRow?.url ?? ''}
+          />
         </div>
 
-        <section className={editorFieldsClass}>
-          <div className={rowFieldClass}>
-            <label className={fieldLabelClass} htmlFor="markdown-toolbar-selected-image-url">
-              URL
-            </label>
-            <Input
-              disabled={!selectedRow}
-              id="markdown-toolbar-selected-image-url"
-              onChange={event =>
-                selectedRow ? onUpdateRow(selectedRow.id, { url: event.target.value }) : undefined
-              }
-              placeholder="https://example.com/image.png"
-              value={selectedRow?.url ?? ''}
+        <div className={rowFieldClass}>
+          <label className={fieldLabelClass} htmlFor="markdown-toolbar-selected-image-alt">
+            대체 텍스트
+          </label>
+          <Input
+            disabled={!selectedRow}
+            id="markdown-toolbar-selected-image-alt"
+            onChange={event =>
+              selectedRow ? onUpdateRow(selectedRow.id, { alt: event.target.value }) : undefined
+            }
+            placeholder="이미지 설명"
+            value={selectedRow?.alt ?? ''}
+          />
+        </div>
+
+        <div className={rowFieldClass}>
+          <span className={fieldLabelClass}>이미지 업로드</span>
+          <label className={uploadButtonWrapClass}>
+            <span aria-live="polite" className={uploadButtonLabelClass} role="status">
+              {isUploading ? '업로드 중...' : '선택 이미지 교체'}
+            </span>
+            <input
+              accept={uploadAccept}
+              aria-label="선택 이미지 업로드"
+              className={fileInputClass}
+              disabled={isUploading || !selectedRow}
+              onChange={onFileChange}
+              type="file"
             />
-          </div>
+          </label>
+        </div>
 
-          <div className={rowFieldClass}>
-            <label className={fieldLabelClass} htmlFor="markdown-toolbar-selected-image-alt">
-              대체 텍스트
-            </label>
-            <Input
-              disabled={!selectedRow}
-              id="markdown-toolbar-selected-image-alt"
-              onChange={event =>
-                selectedRow ? onUpdateRow(selectedRow.id, { alt: event.target.value }) : undefined
-              }
-              placeholder="이미지 설명"
-              value={selectedRow?.alt ?? ''}
-            />
-          </div>
-
-          <div className={rowFieldClass}>
-            <span className={fieldLabelClass}>이미지 업로드</span>
-            <label className={uploadButtonWrapClass}>
-              <span aria-live="polite" className={uploadButtonLabelClass} role="status">
-                {isUploading ? '업로드 중...' : '선택 이미지 교체'}
-              </span>
-              <input
-                accept={uploadAccept}
-                aria-label="선택 이미지 업로드"
-                className={fileInputClass}
-                disabled={isUploading || !selectedRow}
-                onChange={onFileChange}
-                type="file"
-              />
-            </label>
-          </div>
-
-          {selectedRow && duplicateRowIds.has(selectedRow.id) ? (
-            <p className={metaErrorTextClass} role="alert">
-              중복 URL은 삽입할 수 없습니다.
-            </p>
-          ) : null}
-          {errorMessage ? (
-            <p className={metaErrorTextClass} role="alert">
-              {errorMessage}
-            </p>
-          ) : null}
-        </section>
-      </div>
+        {selectedRow && duplicateRowIds.has(selectedRow.id) ? (
+          <p className={metaErrorTextClass} role="alert">
+            중복 URL은 삽입할 수 없습니다.
+          </p>
+        ) : null}
+        {errorMessage ? (
+          <p className={metaErrorTextClass} role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
+      </section>
     </div>
-  );
-};
+  </div>
+);
 
 const editorLayoutClass = css({
   display: 'grid',
   gap: '4',
-  minHeight: '0',
 });
 
 const bodyClass = css({
@@ -271,9 +245,6 @@ const bodyClass = css({
   rowGap: {
     base: '4',
   },
-  flex: '1',
-  minHeight: '0',
-  overflow: 'hidden',
   paddingY: '4',
   borderTopWidth: '1px',
   borderTopStyle: 'solid',
@@ -342,7 +313,6 @@ const rowListClass = css({
   minHeight: '0',
   maxHeight: {
     base: '56',
-    md: '80',
   },
   overflowY: 'auto',
   pr: '1',
@@ -475,9 +445,7 @@ const editorFieldsClass = css({
   display: 'grid',
   alignContent: 'start',
   gap: '4',
-  minHeight: '0',
   paddingY: '1',
-  overflowY: 'auto',
   order: {
     base: '1',
     md: '0',
@@ -522,24 +490,6 @@ const fileInputClass = css({
 const metaErrorTextClass = css({
   fontSize: 'xs',
   color: 'error',
-});
-
-const actionRowClass = css({
-  display: 'flex',
-  justifyContent: 'flex-end',
-  order: '1',
-  paddingTop: '4',
-  borderTopWidth: '1px',
-  borderTopStyle: 'solid',
-  borderTopColor: 'border',
-});
-
-const footerActionGroupClass = css({
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-  gap: '2',
-  flexWrap: 'wrap',
 });
 
 const mobileListToggleButtonClass = css({

@@ -89,14 +89,21 @@ const backdropClass = css({
   inset: '0',
   zIndex: '1200',
   backgroundColor: '[rgb(15 23 42 / 0.86)]',
+  p: '4',
   display: 'grid',
   placeItems: 'center',
-  p: '4',
+  overflow: 'hidden',
 });
 
 const frameBaseClass = css({
   position: 'relative',
   borderRadius: '3xl',
+  maxWidth: 'full',
+  display: 'flex',
+  flexDirection: 'column',
+  maxHeight: 'full',
+  minWidth: '0',
+  minHeight: '0',
   overflow: 'hidden',
 });
 
