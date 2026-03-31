@@ -5,6 +5,7 @@ import { css } from 'styled-system/css';
 
 import { uploadEditorFile } from '@/entities/editor/api/upload-editor-file';
 import type { EditorAttachment } from '@/entities/editor/model/editor-attachment';
+import { EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT } from '@/entities/editor/model/editor-attachment-policy';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import { Button } from '@/shared/ui/button/button';
 import { FileIcon } from '@/shared/ui/icons/app-icons';
@@ -98,6 +99,7 @@ export const FileEmbedPopover = ({
                   {isUploading ? '업로드 중...' : '파일 업로드'}
                 </span>
                 <input
+                  accept={EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT}
                   aria-label="첨부 파일 업로드"
                   className={fileInputClass}
                   disabled={isUploading}
