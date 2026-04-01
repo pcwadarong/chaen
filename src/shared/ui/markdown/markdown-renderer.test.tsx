@@ -312,6 +312,16 @@ describe('MarkdownRenderer', () => {
     expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
   });
 
+  it('mermaid fenced code block이 주어지면, MarkdownRenderer는 mermaid 렌더링 프레임을 렌더링해야 한다', async () => {
+    const document = await renderServerDocument(
+      ['```mermaid', 'flowchart TD', 'A --> B', '```'].join('\n'),
+    );
+    const mermaidFrame = document.querySelector('[data-markdown-mermaid="true"]');
+
+    expect(mermaidFrame).toBeTruthy();
+    expect(mermaidFrame?.textContent).toContain('Mermaid');
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',

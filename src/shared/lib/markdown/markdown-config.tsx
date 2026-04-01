@@ -24,6 +24,7 @@ import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 import { MarkdownImage } from '@/shared/ui/markdown/markdown-image';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
+import { MarkdownMermaid } from '@/shared/ui/markdown/markdown-mermaid';
 import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
@@ -147,6 +148,21 @@ const getCodeBlockLanguage = (children: ReactNode) => {
  */
 const getCodeBlockAriaLabel = (children: ReactNode) =>
   `Code block: ${getCodeBlockLanguage(children)}`;
+
+/**
+ * 코드 블록 children에서 실제 코드 문자열을 재귀적으로 수집합니다.
+ */
+const getCodeBlockText = (children: ReactNode): string => {
+  if (typeof children === 'string') return children;
+  if (typeof children === 'number') return String(children);
+  if (!children) return '';
+  if (Array.isArray(children)) return children.map(getCodeBlockText).join('');
+  if (isValidElement<{ children?: ReactNode }>(children)) {
+    return getCodeBlockText(children.props.children);
+  }
+
+  return '';
+};
 
 /**
  * 현재 code 노드가 fenced code block인지 판별합니다.
@@ -395,28 +411,31 @@ const createMarkdownComponents = ({
         {children}
       </p>
     ),
-    pre: ({ children, className, ...props }) => (
-      <div className={markdownCodeBlockFrameClass}>
-        <div className={markdownCodeBlockHeaderClass}>
-          <div aria-hidden className={markdownTrafficLightRowClass}>
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+    pre: ({ children, className, ...props }) =>
+      getCodeBlockLanguage(children) === 'mermaid' ? (
+        <MarkdownMermaid chart={getCodeBlockText(children).trim()} />
+      ) : (
+        <div className={markdownCodeBlockFrameClass}>
+          <div className={markdownCodeBlockHeaderClass}>
+            <div aria-hidden className={markdownTrafficLightRowClass}>
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+            </div>
+            <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
           </div>
-          <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
+          <pre
+            aria-label={getCodeBlockAriaLabel(children)}
+            className={
+              className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
+            }
+            tabIndex={0}
+            {...props}
+          >
+            {children}
+          </pre>
         </div>
-        <pre
-          aria-label={getCodeBlockAriaLabel(children)}
-          className={
-            className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
-          }
-          tabIndex={0}
-          {...props}
-        >
-          {children}
-        </pre>
-      </div>
-    ),
+      ),
     table: ({ children }) => (
       <div aria-label="Markdown table" className={markdownTableScrollClass} tabIndex={0}>
         <table className={markdownTableClass}>{children}</table>
