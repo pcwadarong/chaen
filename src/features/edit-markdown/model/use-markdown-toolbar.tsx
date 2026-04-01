@@ -5,12 +5,22 @@ import React from 'react';
 import type { EditorAttachment } from '@/entities/editor/model/editor-attachment';
 import { createMarkdownLinkByMode } from '@/entities/editor/model/markdown-link';
 import {
+  createAlignBlockMarkdown,
+  createAttachmentEmbedMarkdown,
+  createImageEmbedMarkdownGroup,
+  createImageGalleryMarkdown,
+  createMathEmbedMarkdown,
+  createToggleBlockMarkdown,
+  createUploadedVideoEmbedMarkdown,
+  createYoutubeEmbedMarkdown,
+} from '@/entities/editor-core/model/markdown-templates';
+import {
   applyTextareaTransform,
   insertTemplate,
   prefixLine,
   toggleHeadingLine,
   wrapSelection,
-} from '@/entities/editor/model/selection-utils';
+} from '@/entities/editor-core/model/selection-utils';
 import type {
   LinkMode,
   MarkdownToolbarProps,
@@ -22,16 +32,6 @@ import {
   createToolbarCustomItem,
   createToolbarTokenOptions,
 } from '@/features/edit-markdown/model/markdown-toolbar-composition';
-import {
-  createAlignBlockMarkdown,
-  createAttachmentEmbedMarkdown,
-  createImageEmbedMarkdownGroup,
-  createImageGalleryMarkdown,
-  createMathEmbedMarkdown,
-  createToggleBlockMarkdown,
-  createUploadedVideoEmbedMarkdown,
-  createYoutubeEmbedMarkdown,
-} from '@/features/edit-markdown/model/markdown-toolbar-templates';
 import { AlignPopover } from '@/features/edit-markdown/ui/align-popover';
 import { FileEmbedPopover } from '@/features/edit-markdown/ui/file-embed-popover';
 import { ImageEmbedPopover } from '@/features/edit-markdown/ui/image-embed-popover';

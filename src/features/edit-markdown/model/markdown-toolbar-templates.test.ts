@@ -6,7 +6,7 @@ import {
   createImageGalleryMarkdown,
   createMathEmbedMarkdown,
   createToggleBlockMarkdown,
-} from '@/features/edit-markdown/model/markdown-toolbar-templates';
+} from '@/entities/editor-core/model/markdown-templates';
 
 describe('markdown-toolbar template helpers', () => {
   it('이미지 markdown는 선택한 공백을 유지하면서 특수문자를 이스케이프한다', () => {

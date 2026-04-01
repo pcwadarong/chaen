@@ -3,7 +3,7 @@
 import {
   parseRichMarkdownSegments,
   parseToggleTitle,
-} from '@/shared/lib/markdown/rich-markdown-segments';
+} from '@/entities/editor-core/model/markdown-segments';
 
 describe('rich-markdown segment parser', () => {
   it('Under a heading-prefixed toggle title, parseToggleTitle must split the heading level and visible title', () => {

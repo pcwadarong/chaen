@@ -9,7 +9,7 @@ import {
   restoreCursor,
   toggleHeadingLine,
   wrapSelection,
-} from '@/entities/editor/model/selection-utils';
+} from '@/entities/editor-core/model/selection-utils';
 
 /**
  * 테스트용 textarea를 만들고 value/selection 상태를 초기화합니다.

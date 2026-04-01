@@ -60,4 +60,4 @@ export {
   restoreCursor,
   toggleHeadingLine,
   wrapSelection,
-} from '@/entities/editor/model/selection-utils';
+} from '@/entities/editor-core/model/selection-utils';

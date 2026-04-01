@@ -2,19 +2,19 @@ import React, { Fragment, type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import {
+  normalizeMarkdownHtmlAliases,
+  preprocessMarkdownInlineSyntax,
+} from '@/entities/editor-core/model/markdown-inline';
+import {
+  parseRichMarkdownSegments,
+  type RichMarkdownRenderArgs,
+} from '@/entities/editor-core/model/markdown-segments';
+import {
   markdownH1Class,
   markdownH2Class,
   markdownH3Class,
   markdownH4Class,
 } from '@/shared/lib/markdown/markdown-config';
-import {
-  normalizeMarkdownHtmlAliases,
-  preprocessMarkdownInlineSyntax,
-} from '@/shared/lib/markdown/rich-markdown-inline';
-import {
-  parseRichMarkdownSegments,
-  type RichMarkdownRenderArgs,
-} from '@/shared/lib/markdown/rich-markdown-segments';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';

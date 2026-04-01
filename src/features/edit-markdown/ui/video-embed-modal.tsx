@@ -10,7 +10,7 @@ import {
   EDITOR_VIDEO_MAX_FILE_SIZE,
   isAllowedEditorVideoFile,
 } from '@/entities/editor/model/editor-video-policy';
-import { extractVideoEmbedReference } from '@/features/edit-markdown/model/video-embed';
+import { extractVideoEmbedReference } from '@/entities/editor-core/model/video-embed';
 import { Button } from '@/shared/ui/button/button';
 import { YoutubeIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';

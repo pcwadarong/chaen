@@ -3,7 +3,7 @@
 import {
   normalizeMarkdownHtmlAliases,
   preprocessMarkdownInlineSyntax,
-} from '@/shared/lib/markdown/rich-markdown-inline';
+} from '@/entities/editor-core/model/markdown-inline';
 
 describe('rich-markdown inline utils', () => {
   it('Under a br alias followed by Enter, normalizeMarkdownHtmlAliases must preserve both the hard break and the following line separation', () => {
