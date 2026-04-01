@@ -1,3 +1,8 @@
+import {
+  type MarkdownToolbarPresetItemKey,
+  type MarkdownToolbarPresetSection,
+  resolveMarkdownToolbarPresetSections,
+} from '@/entities/editor-core/model/toolbar-preset';
 import type {
   ToolbarActionItem,
   ToolbarCustomItem,
@@ -7,13 +12,8 @@ import type {
 } from '@/features/edit-markdown/model/markdown-toolbar.types';
 
 type CreateMarkdownToolbarSectionsArgs = {
-  blockSyntaxActions: ToolbarActionItem[];
-  embedItems: ToolbarCustomItem[];
-  headingPopover: React.ReactNode;
-  highlightItems: ToolbarCustomItem[];
-  inlineFormatActions: ToolbarActionItem[];
-  textStructureActions: ToolbarActionItem[];
-  togglePopover: React.ReactNode;
+  itemRegistry: Partial<Record<MarkdownToolbarPresetItemKey, ToolbarSectionItem>>;
+  preset?: MarkdownToolbarPresetSection[];
 };
 
 /**
@@ -50,7 +50,10 @@ export const createToolbarActionItems = (actions: ToolbarActionItem[]): ToolbarS
  * @param node toolbar 안에 바로 렌더링할 custom node입니다.
  * @returns custom toolbar section item입니다.
  */
-export const createToolbarCustomItem = (key: string, node: React.ReactNode): ToolbarCustomItem => ({
+export const createToolbarCustomItem = (
+  key: MarkdownToolbarPresetItemKey,
+  node: React.ReactNode,
+): ToolbarCustomItem => ({
   key,
   node,
   type: 'custom',
@@ -58,44 +61,16 @@ export const createToolbarCustomItem = (key: string, node: React.ReactNode): Too
 
 /**
  * markdown toolbar의 최종 section preset을 조립합니다.
- * 기능을 일부 제거하거나 순서를 바꿀 때는 이 함수의 입력만 교체하면 전체 hook 구조를 건드리지 않아도 됩니다.
+ * hook은 action/custom node registry만 만들고, 실제 기능 노출 순서와 on/off는 core preset이 담당합니다.
  *
- * @param args 각 toolbar feature group과 custom trigger node 묶음입니다.
+ * @param args toolbar item registry와 optional preset입니다.
  * @returns 최종 toolbar section 배열입니다.
  */
 export const createMarkdownToolbarSections = ({
-  blockSyntaxActions,
-  embedItems,
-  headingPopover,
-  highlightItems,
-  inlineFormatActions,
-  textStructureActions,
-  togglePopover,
-}: CreateMarkdownToolbarSectionsArgs): ToolbarSection[] => [
-  {
-    items: [
-      createToolbarCustomItem('heading-popover', headingPopover),
-      ...createToolbarActionItems(textStructureActions),
-    ],
-    key: 'heading-and-subtext',
-  },
-  {
-    items: createToolbarActionItems(inlineFormatActions),
-    key: 'text-emphasis',
-  },
-  {
-    items: highlightItems,
-    key: 'highlight-and-alignment',
-  },
-  {
-    items: [
-      ...createToolbarActionItems(blockSyntaxActions),
-      createToolbarCustomItem('toggle-popover', togglePopover),
-    ],
-    key: 'block-syntax',
-  },
-  {
-    items: embedItems,
-    key: 'embed-and-media',
-  },
-];
+  itemRegistry,
+  preset,
+}: CreateMarkdownToolbarSectionsArgs): ToolbarSection[] =>
+  resolveMarkdownToolbarPresetSections({
+    itemRegistry,
+    preset,
+  });

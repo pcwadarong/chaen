@@ -23,12 +23,15 @@ import {
 } from '@/entities/editor-core/model/selection-utils';
 import type {
   LinkMode,
+  MarkdownToolbarPresetItemKey,
   MarkdownToolbarProps,
   ToolbarActionItem,
   ToolbarCustomItem,
+  ToolbarSectionItem,
 } from '@/features/edit-markdown/model/markdown-toolbar.types';
 import {
   createMarkdownToolbarSections,
+  createToolbarActionItems,
   createToolbarCustomItem,
   createToolbarTokenOptions,
 } from '@/features/edit-markdown/model/markdown-toolbar-composition';
@@ -484,33 +487,39 @@ export const useMarkdownToolbar = ({
   const toolbarSections = React.useMemo(
     () =>
       createMarkdownToolbarSections({
-        blockSyntaxActions,
-        embedItems,
-        headingPopover: (
-          <ToolbarTokenPopover
-            onTriggerMouseDown={event => event.preventDefault()}
-            options={headingPopoverOptions}
-            panelLabel="제목 레벨 선택"
-            triggerAriaLabel="제목"
-            triggerClassName={popoverTriggerClassName}
-            triggerToken="H"
-            triggerTooltip="제목"
-          />
-        ),
-        highlightItems,
-        inlineFormatActions,
-        textStructureActions,
-        togglePopover: (
-          <ToolbarTokenPopover
-            onTriggerMouseDown={event => event.preventDefault()}
-            options={togglePopoverOptions}
-            panelLabel="토글 레벨 선택"
-            triggerAriaLabel="토글"
-            triggerClassName={popoverTriggerClassName}
-            triggerToken="T"
-            triggerTooltip="토글"
-          />
-        ),
+        itemRegistry: Object.fromEntries(
+          [
+            createToolbarCustomItem(
+              'heading-popover',
+              <ToolbarTokenPopover
+                onTriggerMouseDown={event => event.preventDefault()}
+                options={headingPopoverOptions}
+                panelLabel="제목 레벨 선택"
+                triggerAriaLabel="제목"
+                triggerClassName={popoverTriggerClassName}
+                triggerToken="H"
+                triggerTooltip="제목"
+              />,
+            ),
+            ...createToolbarActionItems(textStructureActions),
+            ...createToolbarActionItems(inlineFormatActions),
+            ...highlightItems,
+            ...createToolbarActionItems(blockSyntaxActions),
+            createToolbarCustomItem(
+              'toggle-popover',
+              <ToolbarTokenPopover
+                onTriggerMouseDown={event => event.preventDefault()}
+                options={togglePopoverOptions}
+                panelLabel="토글 레벨 선택"
+                triggerAriaLabel="토글"
+                triggerClassName={popoverTriggerClassName}
+                triggerToken="T"
+                triggerTooltip="토글"
+              />,
+            ),
+            ...embedItems,
+          ].map(item => [item.key as MarkdownToolbarPresetItemKey, item] as const),
+        ) as Partial<Record<MarkdownToolbarPresetItemKey, ToolbarSectionItem>>,
       }),
     [
       blockSyntaxActions,

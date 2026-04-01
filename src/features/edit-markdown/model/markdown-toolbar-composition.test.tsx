@@ -2,6 +2,7 @@
 
 import React from 'react';
 
+import { DEFAULT_MARKDOWN_TOOLBAR_PRESET } from '@/entities/editor-core/model/toolbar-preset';
 import {
   createMarkdownToolbarSections,
   createToolbarActionItems,
@@ -56,21 +57,18 @@ describe('markdown-toolbar composition helpers', () => {
     ]);
   });
 
-  it('Under grouped toolbar features, createMarkdownToolbarSections must compose the fixed preset section order', () => {
-    const headingPopover = <div>heading</div>;
-    const togglePopover = <div>toggle</div>;
-    const embedItem = createToolbarCustomItem('video-embed', <div>video</div>);
-    const highlightItem = createToolbarCustomItem('align', <div>align</div>);
+  it('Under the default preset registry, createMarkdownToolbarSections must compose sections from item keys without changing the fixed order', () => {
+    const itemRegistry = {
+      align: createToolbarCustomItem('align', <div>align</div>),
+      'heading-popover': createToolbarCustomItem('heading-popover', <div>heading</div>),
+      'toggle-popover': createToolbarCustomItem('toggle-popover', <div>toggle</div>),
+      'video-embed': createToolbarCustomItem('video-embed', <div>video</div>),
+    } as const;
 
     expect(
       createMarkdownToolbarSections({
-        blockSyntaxActions: [],
-        embedItems: [embedItem],
-        headingPopover,
-        highlightItems: [highlightItem],
-        inlineFormatActions: [],
-        textStructureActions: [],
-        togglePopover,
+        itemRegistry,
+        preset: DEFAULT_MARKDOWN_TOOLBAR_PRESET,
       }).map(section => ({
         itemKeys: section.items.map(item => item.key),
         key: section.key,
@@ -81,6 +79,48 @@ describe('markdown-toolbar composition helpers', () => {
       { itemKeys: ['align'], key: 'highlight-and-alignment' },
       { itemKeys: ['toggle-popover'], key: 'block-syntax' },
       { itemKeys: ['video-embed'], key: 'embed-and-media' },
+    ]);
+  });
+
+  it('Under a reduced preset, createMarkdownToolbarSections must allow feature removal without changing hook logic', () => {
+    expect(
+      createMarkdownToolbarSections({
+        itemRegistry: {
+          'heading-popover': createToolbarCustomItem('heading-popover', <div>heading</div>),
+          'video-embed': createToolbarCustomItem('video-embed', <div>video</div>),
+        },
+        preset: [
+          {
+            itemKeys: ['heading-popover'],
+            key: 'heading-and-subtext',
+          },
+          {
+            itemKeys: ['video-embed'],
+            key: 'embed-and-media',
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        items: [
+          {
+            key: 'heading-popover',
+            node: <div>heading</div>,
+            type: 'custom',
+          },
+        ],
+        key: 'heading-and-subtext',
+      },
+      {
+        items: [
+          {
+            key: 'video-embed',
+            node: <div>video</div>,
+            type: 'custom',
+          },
+        ],
+        key: 'embed-and-media',
+      },
     ]);
   });
 });

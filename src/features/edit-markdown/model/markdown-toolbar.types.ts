@@ -1,6 +1,10 @@
 import type React from 'react';
 
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import type {
+  MarkdownToolbarPresetItemKey,
+  MarkdownToolbarSectionKey,
+} from '@/entities/editor-core/model/toolbar-preset';
 
 /**
  * markdown toolbar가 textarea 편집에 필요한 최소 계약을 정의합니다.
@@ -33,7 +37,7 @@ export type ToolbarTokenOption = {
 };
 
 export type ToolbarCustomItem = {
-  key: string;
+  key: MarkdownToolbarPresetItemKey;
   node: React.ReactNode;
   type: 'custom';
 };
@@ -48,5 +52,7 @@ export type ToolbarSectionItem =
 
 export type ToolbarSection = {
   items: ToolbarSectionItem[];
-  key: string;
+  key: MarkdownToolbarSectionKey;
 };
+
+export type { MarkdownToolbarPresetItemKey };
