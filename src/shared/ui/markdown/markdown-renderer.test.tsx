@@ -122,6 +122,35 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('host image viewer labels가 주어지면, MarkdownRenderer는 해당 열기 라벨을 이미지 트리거에 반영해야 한다', async () => {
+    const element = await MarkdownRenderer({
+      adapters: {
+        imageViewerLabels: {
+          actionBarAriaLabel: '액션 바',
+          closeAriaLabel: '닫기',
+          fitToScreenAriaLabel: '화면 맞춤',
+          imageViewerAriaLabel: '커스텀 이미지 뷰어',
+          locateSourceAriaLabel: '위치로 이동',
+          nextAriaLabel: '다음',
+          openAriaLabel: '커스텀 열기',
+          previousAriaLabel: '이전',
+          selectForFrameAriaLabel: '프레임용 선택',
+          selectForFrameLabel: '프레임 선택',
+          thumbnailListAriaLabel: '썸네일 목록',
+          zoomInAriaLabel: '확대',
+          zoomOutAriaLabel: '축소',
+        },
+      },
+      markdown: '![설명](https://example.com/image.png)',
+    });
+    const stream = await renderToReadableStream(element);
+    const html = await new Response(stream).text();
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    const image = document.querySelector('img[role="button"]');
+
+    expect(image?.getAttribute('aria-label')).toBe('설명 · 커스텀 열기');
+  });
+
   it('첨부 파일 커스텀 태그를 다운로드 카드 링크로 렌더링한다', async () => {
     const document = await renderServerDocument(
       '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',

@@ -1,5 +1,21 @@
 import type { LinkEmbedData } from '@/shared/lib/markdown/link-embed';
 
+export type MarkdownImageViewerLabels = {
+  actionBarAriaLabel: string;
+  closeAriaLabel: string;
+  fitToScreenAriaLabel: string;
+  imageViewerAriaLabel?: string;
+  locateSourceAriaLabel: string;
+  nextAriaLabel: string;
+  openAriaLabel: string;
+  previousAriaLabel: string;
+  selectForFrameAriaLabel: string;
+  selectForFrameLabel: string;
+  thumbnailListAriaLabel: string;
+  zoomInAriaLabel: string;
+  zoomOutAriaLabel: string;
+};
+
 /**
  * 첨부 파일 렌더러가 host app의 다운로드 링크 규칙을 주입받을 때 사용하는 resolver 타입입니다.
  * resolver가 없으면 package 기본 구현은 원본 href를 그대로 사용합니다.
@@ -21,5 +37,6 @@ export type FetchLinkPreviewMeta = (
  */
 export type MarkdownRendererHostAdapters = {
   fetchLinkPreviewMeta?: FetchLinkPreviewMeta;
+  imageViewerLabels?: Partial<MarkdownImageViewerLabels>;
   resolveAttachmentHref?: ResolveAttachmentHref;
 };

@@ -12,6 +12,7 @@ import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownRendererHostAdapters } from '@/entities/editor-core';
 import type { MarkdownImageViewerItem } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   getLinkText,
@@ -27,6 +28,7 @@ import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-but
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
 type MarkdownViewerConfig = {
+  adapters?: MarkdownRendererHostAdapters;
   items?: MarkdownImageViewerItem[];
 };
 type MarkdownInlineDirective =
@@ -185,11 +187,13 @@ const isBlockCode = ({
 const renderMarkdownImage = ({
   alt,
   imageIndex,
+  imageViewerLabels,
   src,
   viewerItems,
   ...props
 }: ImgHTMLAttributes<HTMLImageElement> & {
   imageIndex?: number;
+  imageViewerLabels?: MarkdownRendererHostAdapters['imageViewerLabels'];
   viewerItems?: MarkdownImageViewerItem[];
 }) => {
   const resolvedAlt = alt ?? '';
@@ -200,6 +204,7 @@ const renderMarkdownImage = ({
       alt={resolvedAlt}
       className={markdownImageClass}
       imageIndex={resolvedImageIndex}
+      imageViewerLabels={imageViewerLabels}
       src={src}
       viewerItems={viewerItems}
       {...props}
@@ -210,7 +215,10 @@ const renderMarkdownImage = ({
 /**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.
  */
-const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Components => {
+const createMarkdownComponents = ({
+  adapters,
+  items = [],
+}: MarkdownViewerConfig = {}): Components => {
   let imageIndex = 0;
   const viewerItems = items.filter(item => item.src.trim().length > 0);
 
@@ -367,6 +375,7 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         ...props,
         alt,
         imageIndex: currentImageIndex,
+        imageViewerLabels: adapters?.imageViewerLabels,
         src,
         viewerItems,
       });
@@ -429,8 +438,11 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
 /**
  * 서버/클라이언트에서 공통으로 사용할 markdown 렌더링 옵션을 구성합니다.
  */
-export const getMarkdownOptions = ({ items }: MarkdownViewerConfig = {}): MarkdownOptions => ({
-  components: createMarkdownComponents({ items }),
+export const getMarkdownOptions = ({
+  adapters,
+  items,
+}: MarkdownViewerConfig = {}): MarkdownOptions => ({
+  components: createMarkdownComponents({ adapters, items }),
   rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
   remarkPlugins: [remarkGfm, remarkBreaks],
 });

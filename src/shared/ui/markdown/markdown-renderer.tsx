@@ -32,6 +32,7 @@ export const MarkdownRenderer = async ({
   if (!markdown) return emptyText ? <p className={markdownEmptyTextClass}>{emptyText}</p> : null;
 
   const markdownOptions = getMarkdownOptions({
+    adapters,
     items: collectMarkdownImages(markdown),
   });
 
