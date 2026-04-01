@@ -89,7 +89,7 @@ describe('MarkdownImage', () => {
     expect(modal.getAttribute('data-alt')).toBe('설명');
   });
 
-  it('Under custom viewer labels, MarkdownImage must prefer host-provided labels over next-intl defaults', () => {
+  it('custom viewer labels가 주어지면, MarkdownImage는 next-intl 기본값보다 host labels를 우선 사용해야 한다', () => {
     render(
       <MarkdownImage
         alt="설명"

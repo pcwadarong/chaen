@@ -6,7 +6,7 @@ import {
 } from '@/entities/editor-core/model/toolbar-preset';
 
 describe('markdown toolbar preset', () => {
-  it('Under the default preset, resolveMarkdownToolbarPresetSections must preserve the fixed section order and item order', () => {
+  it('기본 preset이 주어지면, resolveMarkdownToolbarPresetSections는 고정된 section 순서와 item 순서를 유지해야 한다', () => {
     expect(
       resolveMarkdownToolbarPresetSections({
         itemRegistry: {
@@ -27,7 +27,7 @@ describe('markdown toolbar preset', () => {
     ]);
   });
 
-  it('Under a custom preset without some features, resolveMarkdownToolbarPresetSections must compose only the requested item keys', () => {
+  it('일부 기능이 빠진 custom preset이 주어지면, resolveMarkdownToolbarPresetSections는 요청된 item key만 조합해야 한다', () => {
     expect(
       resolveMarkdownToolbarPresetSections({
         itemRegistry: {
@@ -52,7 +52,7 @@ describe('markdown toolbar preset', () => {
     ]);
   });
 
-  it('Under the default preset contract, DEFAULT_MARKDOWN_TOOLBAR_PRESET must expose the current feature grouping as pure data', () => {
+  it('기본 preset 계약에서, DEFAULT_MARKDOWN_TOOLBAR_PRESET은 현재 기능 그룹 구성을 순수 데이터로 노출해야 한다', () => {
     expect(DEFAULT_MARKDOWN_TOOLBAR_PRESET).toEqual([
       { itemKeys: ['heading-popover', 'subtext'], key: 'heading-and-subtext' },
       { itemKeys: ['bold', 'italic', 'strike', 'underline'], key: 'text-emphasis' },

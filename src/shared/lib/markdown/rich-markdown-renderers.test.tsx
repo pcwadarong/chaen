@@ -17,7 +17,7 @@ const renderMarkdownFragment = (markdown: string, key: string) => (
 );
 
 describe('rich-markdown renderer registry', () => {
-  it('Under a custom video renderer override, renderRichMarkdown must render the overridden video node instead of the default renderer', () => {
+  it('custom video renderer override가 주어지면, renderRichMarkdown은 기본 renderer 대신 override된 video node를 렌더링해야 한다', () => {
     render(
       <div>
         {renderRichMarkdown({
@@ -39,7 +39,7 @@ describe('rich-markdown renderer registry', () => {
     expect(document.querySelector('iframe')).toBeNull();
   });
 
-  it('Under nested toggle content, renderRichMarkdown must reuse the same custom renderer registry recursively', () => {
+  it('nested toggle content가 주어지면, renderRichMarkdown은 같은 custom renderer registry를 재귀적으로 재사용해야 한다', () => {
     render(
       <div>
         {renderRichMarkdown({

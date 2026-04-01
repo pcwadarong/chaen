@@ -4,7 +4,7 @@ import React from 'react';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 
 describe('MarkdownAttachment', () => {
-  it('Under no host resolver, MarkdownAttachment must use the raw href as its download target', () => {
+  it('host resolver가 없으면, MarkdownAttachment는 원본 href를 다운로드 대상으로 사용해야 한다', () => {
     render(
       <MarkdownAttachment
         fileName="resume.pdf"
@@ -18,7 +18,7 @@ describe('MarkdownAttachment', () => {
     );
   });
 
-  it('Under a custom attachment resolver, MarkdownAttachment must use the resolved href', () => {
+  it('custom attachment resolver가 주어지면, MarkdownAttachment는 resolver가 반환한 href를 사용해야 한다', () => {
     render(
       <MarkdownAttachment
         fileName="resume.pdf"

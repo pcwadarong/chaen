@@ -6,14 +6,14 @@ import {
 } from '@/entities/editor-core/model/markdown-segments';
 
 describe('rich-markdown segment parser', () => {
-  it('Under a heading-prefixed toggle title, parseToggleTitle must split the heading level and visible title', () => {
+  it('heading prefix가 포함된 toggle title이 주어지면, parseToggleTitle은 heading level과 표시 title을 분리해야 한다', () => {
     expect(parseToggleTitle('### 토글 제목')).toEqual({
       headingLevel: 3,
       title: '토글 제목',
     });
   });
 
-  it('Under mixed custom syntax blocks, parseRichMarkdownSegments must preserve markdown chunks and custom segments in order', () => {
+  it('여러 custom syntax block이 섞여 있으면, parseRichMarkdownSegments는 markdown chunk와 custom segment 순서를 그대로 유지해야 한다', () => {
     expect(
       parseRichMarkdownSegments(
         [
@@ -73,7 +73,7 @@ describe('rich-markdown segment parser', () => {
     ]);
   });
 
-  it('Under custom syntax inside fenced code blocks, parseRichMarkdownSegments must keep the whole block as plain markdown', () => {
+  it('fenced code block 안에 custom syntax가 있어도, parseRichMarkdownSegments는 전체 block을 plain markdown로 유지해야 한다', () => {
     expect(
       parseRichMarkdownSegments(
         ['```md', '<Video provider="youtube" id="dQw4w9WgXcQ" />', '```'].join('\n'),

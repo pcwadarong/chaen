@@ -21,7 +21,7 @@ vi.mock('@/shared/ui/popover/popover', () => ({
 }));
 
 describe('LinkEmbedPopover', () => {
-  it('입력값을 trim해서 선택한 mode와 함께 onApply에 전달한다', () => {
+  it('trim된 URL 입력값이 주어지면, LinkEmbedPopover는 정규화된 값과 선택한 mode로 onApply를 호출해야 한다', () => {
     const onApply = vi.fn();
 
     render(<LinkEmbedPopover onApply={onApply} />);
@@ -34,7 +34,7 @@ describe('LinkEmbedPopover', () => {
     expect(onApply).toHaveBeenCalledWith('https://openai.com', 'link', expect.any(Function));
   });
 
-  it('공백만 입력하면 onApply를 호출하지 않는다', () => {
+  it('공백만 입력되면, LinkEmbedPopover는 onApply를 호출하지 않아야 한다', () => {
     const onApply = vi.fn();
 
     render(<LinkEmbedPopover onApply={onApply} />);
@@ -45,5 +45,33 @@ describe('LinkEmbedPopover', () => {
     fireEvent.click(screen.getByRole('button', { name: '하이퍼링크' }));
 
     expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it('custom labels가 주어지면, LinkEmbedPopover는 override된 텍스트를 렌더링해야 한다', () => {
+    const onApply = vi.fn();
+
+    render(
+      <LinkEmbedPopover
+        labels={{
+          cardButtonLabel: '카드 링크',
+          hyperlinkButtonLabel: '일반 링크',
+          panelLabel: '링크 넣기',
+          previewButtonLabel: '미리보기 링크',
+          triggerAriaLabel: '링크 추가',
+          triggerTooltip: '링크 추가',
+          urlInputAriaLabel: '커스텀 링크 URL',
+          urlPlaceholder: 'https://custom.example.com',
+        }}
+        onApply={onApply}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '링크 추가' })).toBeTruthy();
+    expect(
+      screen.getByRole('textbox', { name: '커스텀 링크 URL' }).getAttribute('placeholder'),
+    ).toBe('https://custom.example.com');
+    expect(screen.getByRole('button', { name: '미리보기 링크' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '일반 링크' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '카드 링크' })).toBeTruthy();
   });
 });

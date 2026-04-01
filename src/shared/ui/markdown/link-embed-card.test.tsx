@@ -10,7 +10,7 @@ describe('LinkEmbedCard', () => {
     vi.restoreAllMocks();
   });
 
-  it('Under a pending host fetcher, LinkEmbedCard must render the loading skeleton', () => {
+  it('host fetcher가 대기 중이면, LinkEmbedCard는 로딩 skeleton을 렌더링해야 한다', () => {
     render(
       <LinkEmbedCard
         fetchLinkPreviewMeta={() => new Promise(() => undefined)}
@@ -22,7 +22,7 @@ describe('LinkEmbedCard', () => {
     expect(screen.getByText('링크 정보를 불러오는 중...')).toBeInTheDocument();
   });
 
-  it('Under valid preview metadata, LinkEmbedCard must render the card variant', async () => {
+  it('유효한 preview metadata가 주어지면, LinkEmbedCard는 card variant를 렌더링해야 한다', async () => {
     render(
       <LinkEmbedCard
         fetchLinkPreviewMeta={async () => ({
@@ -46,7 +46,7 @@ describe('LinkEmbedCard', () => {
     expect(screen.getByText('https://github.com/openai/openai')).toBeInTheDocument();
   });
 
-  it('Under valid preview metadata, LinkEmbedCard must render the preview variant without card body text', async () => {
+  it('유효한 preview metadata가 주어지면, LinkEmbedCard는 카드 본문 텍스트 없이 preview variant를 렌더링해야 한다', async () => {
     render(
       <LinkEmbedCard
         fetchLinkPreviewMeta={async () => ({
@@ -70,7 +70,7 @@ describe('LinkEmbedCard', () => {
     expect(screen.queryByText('https://github.com/openai/openai')).not.toBeInTheDocument();
   });
 
-  it('Under insufficient preview metadata, LinkEmbedCard must fall back to a plain external link', async () => {
+  it('preview metadata가 부족하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
     render(
       <LinkEmbedCard
         fallbackLabel="Example"
@@ -93,7 +93,7 @@ describe('LinkEmbedCard', () => {
     expect(screen.queryByText('링크 정보를 불러오는 중...')).not.toBeInTheDocument();
   });
 
-  it('Under a failed host fetcher, LinkEmbedCard must fall back to a plain external link', async () => {
+  it('host fetcher가 실패하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
     render(
       <LinkEmbedCard
         fallbackLabel="Fallback"
@@ -111,7 +111,7 @@ describe('LinkEmbedCard', () => {
     expect(link.getAttribute('href')).toBe('https://example.com');
   });
 
-  it('Under no host fetcher, LinkEmbedCard must keep using the default app preview request', async () => {
+  it('host fetcher가 없으면, LinkEmbedCard는 기본 앱 preview 요청을 계속 사용해야 한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
