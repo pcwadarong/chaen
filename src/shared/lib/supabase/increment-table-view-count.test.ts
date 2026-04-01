@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi } from 'vitest';
 
 import { incrementTableViewCount } from '@/shared/lib/supabase/increment-table-view-count';

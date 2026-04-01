@@ -8,8 +8,6 @@ const DOM_UI_CHUNK_SIZE = 6;
 const HEAVY_TEST_FILES = [
   'src/widgets/editor/ui/core/editor-core.test.tsx',
   'src/features/edit-markdown/ui/markdown-toolbar.test.tsx',
-  'src/views/articles/ui/article-detail-page.test.tsx',
-  'src/views/project/ui/project-detail-page.test.tsx',
   'src/widgets/editor/ui/publish/publish-panel.test.tsx',
   'src/shared/ui/image-viewer/image-viewer-modal.test.tsx',
   'src/views/resume-editor/ui/resume-editor-client.test.tsx',
