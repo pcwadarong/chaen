@@ -18,6 +18,10 @@ type DetailPageShellProps = {
   emptyContentText?: string;
   guestbookCtaText: string;
   heroDescription: string;
+  heroHomeHref?: string;
+  heroHomeLabel?: string;
+  heroTitleSlot?: ReactNode;
+  heroTopSlot?: ReactNode;
   heroTitleAccessory?: ReactNode;
   hideAppFrameFooter?: boolean;
   locale?: string;
@@ -38,10 +42,19 @@ type DetailPageSidebarProps = {
 
 type DetailPageHeroProps = {
   description: string;
+  homeHref?: string;
+  homeLabel?: string;
   titleAccessory?: ReactNode;
+  titleSlot?: ReactNode;
+  topSlot?: ReactNode;
   locale?: string;
   tagContent?: ReactNode;
   title: string;
+};
+
+type DetailPageHeroHomeLinkProps = {
+  href: string;
+  label: string;
 };
 
 type DetailPageBodyProps = {
@@ -68,25 +81,87 @@ const DetailPageSidebar = ({ content, emptyArchiveText, items, label }: DetailPa
 );
 
 /**
+ * 모바일 디테일 헤더 좌측에 배치되는 홈 링크를 렌더링합니다.
+ */
+const DetailPageHeroHomeLink = ({ href, label }: DetailPageHeroHomeLinkProps) => (
+  <Link className={detailPageHeroHomeLinkClass} href={href}>
+    <ArrowUpIcon aria-hidden="true" className={detailPageHeroHomeLinkIconClass} size="sm" />
+    <span>{label}</span>
+  </Link>
+);
+
+/**
+ * 디테일 페이지 hero의 타이틀 행을 렌더링합니다.
+ *
+ * 모바일에서는 좌측 홈 링크와 우측 동일 너비 플레이스홀더를 함께 배치하고,
+ * 데스크톱에서는 기존처럼 중앙 타이틀 정렬만 유지합니다.
+ */
+const DetailPageHeroTitleRow = ({
+  homeHref,
+  homeLabel,
+  locale,
+  title,
+  titleAccessory,
+}: Pick<DetailPageHeroProps, 'homeHref' | 'homeLabel' | 'locale' | 'title' | 'titleAccessory'>) => {
+  const titleNode = (
+    <div className={detailPageTitleRowClass}>
+      <h1 className={detailPageTitleClass} lang={locale}>
+        {title}
+      </h1>
+      {titleAccessory ? (
+        <div className={detailPageTitleAccessoryClass}>{titleAccessory}</div>
+      ) : null}
+    </div>
+  );
+
+  if (!homeHref || !homeLabel) {
+    return titleNode;
+  }
+
+  return (
+    <div className={detailPageHeroTitleGridClass}>
+      <div className={detailPageHeroTitleSideClass}>
+        <DetailPageHeroHomeLink href={homeHref} label={homeLabel} />
+      </div>
+      <div className={detailPageHeroTitleCenterClass}>{titleNode}</div>
+      <div aria-hidden="true" className={detailPageHeroTitleSideClass}>
+        <span className={detailPageHeroHomeLinkPlaceholderClass}>
+          <ArrowUpIcon aria-hidden="true" className={detailPageHeroHomeLinkIconClass} size="sm" />
+          <span>{homeLabel}</span>
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/**
  * 디테일 페이지 hero 영역을 렌더링합니다.
  */
 const DetailPageHero = ({
   description,
+  homeHref,
+  homeLabel,
   locale,
   tagContent,
   title,
+  titleSlot,
+  topSlot,
   titleAccessory,
 }: DetailPageHeroProps) => (
   <header className={detailPageHeroClass}>
     <div className={detailPageHeroTextClass}>
-      <div className={detailPageTitleRowClass}>
-        <h1 className={detailPageTitleClass} lang={locale}>
-          {title}
-        </h1>
-        {titleAccessory ? (
-          <div className={detailPageTitleAccessoryClass}>{titleAccessory}</div>
-        ) : null}
-      </div>
+      {topSlot ? <div className={detailPageHeroTopSlotClass}>{topSlot}</div> : null}
+      {titleSlot ? (
+        titleSlot
+      ) : (
+        <DetailPageHeroTitleRow
+          homeHref={homeHref}
+          homeLabel={homeLabel}
+          locale={locale}
+          title={title}
+          titleAccessory={titleAccessory}
+        />
+      )}
       <p className={detailPageDescriptionClass} lang={locale}>
         {description}
       </p>
@@ -137,6 +212,10 @@ export const DetailPageShell = ({
   emptyContentText,
   guestbookCtaText,
   heroDescription,
+  heroHomeHref,
+  heroHomeLabel,
+  heroTitleSlot,
+  heroTopSlot,
   heroTitleAccessory,
   hideAppFrameFooter = false,
   locale,
@@ -173,8 +252,12 @@ export const DetailPageShell = ({
       >
         <DetailPageHero
           description={heroDescription}
+          homeHref={heroHomeHref}
+          homeLabel={heroHomeLabel}
           locale={locale}
           tagContent={tagContent}
+          titleSlot={heroTitleSlot}
+          topSlot={heroTopSlot}
           title={title}
           titleAccessory={heroTitleAccessory}
         />
@@ -243,6 +326,7 @@ const detailPageHeroClass = css({
 const detailPageHeroTextClass = css({
   display: 'flex',
   flexDirection: 'column',
+  width: 'full',
   minWidth: '0',
   gap: '4',
   alignItems: 'center',
@@ -277,6 +361,70 @@ const detailPageTitleAccessoryClass = css({
   marginLeft: '1',
 });
 
+const detailPageHeroTitleGridClass = css({
+  alignSelf: 'stretch',
+  width: 'full',
+  display: 'grid',
+  gridTemplateColumns: '[auto minmax(0,1fr) auto]',
+  alignItems: 'start',
+  columnGap: '2',
+  _desktopUp: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+const detailPageHeroTitleSideClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  _desktopUp: {
+    display: 'none',
+  },
+});
+
+const detailPageHeroTitleCenterClass = css({
+  display: 'flex',
+  justifyContent: 'center',
+  minWidth: '0',
+  textAlign: 'center',
+});
+
+const detailPageHeroHomeLinkClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  minHeight: '[2.75rem]',
+  color: 'muted',
+  fontSize: 'sm',
+  fontWeight: '[600]',
+  transition: 'colors',
+  _hover: {
+    color: 'text',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+    borderRadius: 'md',
+  },
+});
+
+const detailPageHeroHomeLinkIconClass = css({
+  transform: 'rotate(-90deg)',
+});
+
+const detailPageHeroHomeLinkPlaceholderClass = css({
+  visibility: 'hidden',
+  pointerEvents: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  minHeight: '[2.75rem]',
+  fontSize: 'sm',
+  fontWeight: '[600]',
+});
+
 const detailPageDescriptionClass = css({
   color: 'muted',
   fontSize: 'md',
@@ -286,6 +434,12 @@ const detailPageDescriptionClass = css({
     wordBreak: 'break-all',
     overflowWrap: 'anywhere',
   },
+});
+
+const detailPageHeroTopSlotClass = css({
+  width: 'full',
+  display: 'flex',
+  justifyContent: 'flex-start',
 });
 
 const detailPageTagWrapClass = css({

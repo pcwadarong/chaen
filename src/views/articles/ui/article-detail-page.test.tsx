@@ -1,10 +1,13 @@
+// @vitest-environment node
+
 import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
+  useTranslations: (namespace?: string) => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
+    if (namespace === 'Navigation' && key === 'home') return 'Home';
 
     return key;
   },
@@ -37,6 +40,21 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
       <span>삭제</span>
     </div>
   ),
+}));
+
+vi.mock('@/shared/ui/markdown/markdown-renderer', () => ({
+  MarkdownRenderer: ({ emptyText, markdown }: { emptyText?: string; markdown?: string | null }) => (
+    <div>{markdown ?? emptyText ?? ''}</div>
+  ),
+}));
+
+vi.mock('@/shared/providers', () => ({
+  useAuth: () => ({
+    isAdmin: false,
+    isAuthenticated: false,
+    userEmail: null,
+    userId: null,
+  }),
 }));
 
 /**
@@ -101,17 +119,18 @@ describe('ArticleDetailPage', () => {
 
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
     const html = await renderServerHtml();
-    const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
+    expect(html).toContain('Home');
+    expect(html).toContain('href="/articles"');
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
-    expect(textContent).toContain('#React');
-    expect(textContent).toContain('relatedArticlesTitle');
-    expect(textContent).toContain('Article 2');
+    expect(html).toContain('#<!-- -->React');
+    expect(html).toContain('relatedArticlesTitle');
+    expect(html).toContain('Article 2');
     expect(html).toContain('/admin/articles/article-1/edit');
-    expect(textContent).toContain('수정');
-    expect(textContent).toContain('삭제');
+    expect(html).toContain('수정');
+    expect(html).toContain('삭제');
   }, 30000);
 });

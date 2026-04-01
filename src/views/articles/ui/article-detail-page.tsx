@@ -11,6 +11,7 @@ import { ArticleListItem } from '@/entities/article/ui/article-list-item';
 import { getArticleDetailArchivePageAction } from '@/features/browse-article-archive/api/get-article-archive-page';
 import { deleteArticleAction } from '@/features/manage-article/api/delete-article';
 import { incrementArticleViewCountAction } from '@/features/track-article-view/api/increment-article-view-count-action';
+import { ArticleDetailMetaBar } from '@/features/track-article-view/ui/article-detail-meta-bar';
 import type { AppLocale } from '@/i18n/routing';
 import {
   resolvePublicContentPathSegment,
@@ -22,7 +23,6 @@ import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { ArticleCommentsSection } from '@/widgets/article-comments';
 import { DetailArchiveFeed } from '@/widgets/detail-page/archive/feed';
 import { AdminDetailActionsGate } from '@/widgets/detail-page/ui/admin-detail-actions-gate';
-import { DetailMetaBar } from '@/widgets/detail-page/ui/detail-meta-bar';
 import {
   DetailArchiveSidebarSkeleton,
   DetailRelatedArticlesSkeleton,
@@ -244,10 +244,12 @@ export const ArticleDetailPage = ({
         emptyContentText={t('emptyContent')}
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
+        heroHomeHref="/articles"
+        heroHomeLabel={navigationT('home')}
         hideAppFrameFooter
         locale={locale}
         metaBar={
-          <DetailMetaBar
+          <ArticleDetailMetaBar
             copyFailedText={detailUi('copyFailed')}
             copiedText={detailUi('shareCopied')}
             locale={locale}
