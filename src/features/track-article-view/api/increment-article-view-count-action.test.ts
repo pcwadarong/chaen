@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { revalidateTag } from 'next/cache';
 
 import { incrementArticleViewCount } from '@/entities/article/api/mutations/increment-article-view-count';
