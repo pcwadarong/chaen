@@ -3,7 +3,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { uploadEditorImage } from '@/entities/editor/api/upload-editor-image';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import {
   normalizeEmbedInput,
@@ -24,6 +23,7 @@ import {
 } from '@/features/edit-markdown/model/image-embed-popover-state';
 import { ImageEmbedPopoverEditor } from '@/features/edit-markdown/ui/image-embed-popover-editor';
 import { ImageEmbedPopoverEmptyState } from '@/features/edit-markdown/ui/image-embed-popover-empty-state';
+import { uploadEditorImageAdapter } from '@/features/edit-markdown-adapter';
 import { Button } from '@/shared/ui/button/button';
 import { ImageIcon } from '@/shared/ui/icons/app-icons';
 import { Modal } from '@/shared/ui/modal/modal';
@@ -43,7 +43,7 @@ type ImageEmbedPopoverProps = {
     },
     closePopover?: ClosePopover,
   ) => void;
-  onUploadImage?: typeof uploadEditorImage;
+  onUploadImage?: typeof uploadEditorImageAdapter;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -57,7 +57,7 @@ type ImageEmbedPopoverProps = {
 export const ImageEmbedPopover = ({
   contentType,
   onApply,
-  onUploadImage = uploadEditorImage,
+  onUploadImage = uploadEditorImageAdapter,
   onTriggerMouseDown,
   triggerClassName,
 }: ImageEmbedPopoverProps) => {

@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
-import { uploadEditorFile } from '@/entities/editor/api/upload-editor-file';
 import type { EditorAttachment } from '@/entities/editor/model/editor-attachment';
 import { EDITOR_ATTACHMENT_FILE_INPUT_ACCEPT } from '@/entities/editor/model/editor-attachment-policy';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
+import { uploadEditorFileAdapter } from '@/features/edit-markdown-adapter';
 import { Button } from '@/shared/ui/button/button';
 import { FileIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
@@ -15,7 +15,7 @@ import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 type FileEmbedPopoverProps = {
   contentType: EditorContentType;
   onApply: (attachment: EditorAttachment, closePopover?: ClosePopover) => void;
-  onUploadFile?: typeof uploadEditorFile;
+  onUploadFile?: typeof uploadEditorFileAdapter;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -26,7 +26,7 @@ type FileEmbedPopoverProps = {
 export const FileEmbedPopover = ({
   contentType,
   onApply,
-  onUploadFile = uploadEditorFile,
+  onUploadFile = uploadEditorFileAdapter,
   onTriggerMouseDown,
   triggerClassName,
 }: FileEmbedPopoverProps) => {

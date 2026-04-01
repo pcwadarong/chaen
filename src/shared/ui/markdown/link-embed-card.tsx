@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import type { FetchLinkPreviewMeta } from '@/entities/editor-core';
+import { fetchLinkPreviewMetaAdapter } from '@/features/edit-markdown-adapter';
 import { type LinkEmbedData, shouldFallbackToPlainLink } from '@/shared/lib/markdown/link-embed';
 
 type LinkEmbedCardProps = {
@@ -51,22 +52,6 @@ const createFallbackLinkEmbedData = (url: string, fallbackLabel?: string): LinkE
 });
 
 /**
- * 현재 앱에서 사용하는 기본 link preview 메타 조회 구현입니다.
- * host fetcher가 주입되지 않은 경우에만 `/api/og`를 사용합니다.
- */
-const fetchDefaultLinkPreviewMeta: FetchLinkPreviewMeta = async (url, signal) => {
-  const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`, {
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error(`OG fetch failed: ${response.status}`);
-  }
-
-  return (await response.json()) as LinkEmbedData;
-};
-
-/**
  * 외부 URL의 OG 메타를 조회해 제목 링크 또는 카드형 링크로 렌더링합니다.
  * 메타가 부족하면 일반 외부 링크로 자연스럽게 fallback합니다.
  */
@@ -80,7 +65,7 @@ export const LinkEmbedCard = ({
   const [state, setState] = useState<LinkEmbedState>({
     status: 'loading',
   });
-  const resolvedFetchLinkPreviewMeta = fetchLinkPreviewMeta ?? fetchDefaultLinkPreviewMeta;
+  const resolvedFetchLinkPreviewMeta = fetchLinkPreviewMeta ?? fetchLinkPreviewMetaAdapter;
 
   useEffect(() => {
     const controller = new AbortController();

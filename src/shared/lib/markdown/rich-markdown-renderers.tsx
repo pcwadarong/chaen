@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { MarkdownRendererHostAdapters, MarkdownSegment } from '@/entities/editor-core';
-import { resolveAttachmentDownloadHref } from '@/shared/lib/storage/attachment-download-path';
+import { resolveMarkdownAttachmentHref } from '@/features/edit-markdown-adapter';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
@@ -51,7 +51,7 @@ export const createDefaultRichMarkdownRendererRegistry = (
       fileSize={segment.fileSize}
       href={segment.href}
       key={key}
-      resolveAttachmentHref={adapters?.resolveAttachmentHref ?? resolveAttachmentDownloadHref}
+      resolveAttachmentHref={adapters?.resolveAttachmentHref ?? resolveMarkdownAttachmentHref}
     />
   ),
   gallery: ({ key, segment }) => (

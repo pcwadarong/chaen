@@ -3,7 +3,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { uploadEditorVideo } from '@/entities/editor/api/upload-editor-video';
 import type { EditorContentType } from '@/entities/editor/model/editor-types';
 import {
   EDITOR_VIDEO_FILE_INPUT_ACCEPT,
@@ -11,6 +10,7 @@ import {
   isAllowedEditorVideoFile,
 } from '@/entities/editor/model/editor-video-policy';
 import { extractVideoEmbedReference } from '@/entities/editor-core/model/video-embed';
+import { uploadEditorVideoAdapter } from '@/features/edit-markdown-adapter';
 import { Button } from '@/shared/ui/button/button';
 import { YoutubeIcon } from '@/shared/ui/icons/app-icons';
 import { Input } from '@/shared/ui/input/input';
@@ -28,7 +28,7 @@ type VideoEmbedModalProps = {
     },
     closePopover?: ClosePopover,
   ) => void;
-  onUploadVideo?: typeof uploadEditorVideo;
+  onUploadVideo?: typeof uploadEditorVideoAdapter;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -47,7 +47,7 @@ const VIDEO_MAX_FILE_SIZE_MB = Math.round(EDITOR_VIDEO_MAX_FILE_SIZE / MB);
 export const VideoEmbedModal = ({
   contentType,
   onApply,
-  onUploadVideo = uploadEditorVideo,
+  onUploadVideo = uploadEditorVideoAdapter,
   onTriggerMouseDown,
   triggerClassName,
 }: VideoEmbedModalProps) => {
