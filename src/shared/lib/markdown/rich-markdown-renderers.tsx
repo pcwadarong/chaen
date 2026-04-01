@@ -1,6 +1,7 @@
 import React from 'react';
 
-import type { MarkdownSegment } from '@/entities/editor-core/model/markdown-segments';
+import type { MarkdownRendererHostAdapters, MarkdownSegment } from '@/entities/editor-core';
+import { resolveAttachmentDownloadHref } from '@/shared/lib/storage/attachment-download-path';
 import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
 import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
@@ -40,7 +41,9 @@ export type PartialRichMarkdownRendererRegistry = Partial<RichMarkdownRendererRe
  *
  * @returns custom segment별 기본 renderer registry를 반환합니다.
  */
-export const createDefaultRichMarkdownRendererRegistry = (): RichMarkdownRendererRegistry => ({
+export const createDefaultRichMarkdownRendererRegistry = (
+  adapters?: MarkdownRendererHostAdapters,
+): RichMarkdownRendererRegistry => ({
   attachment: ({ key, segment }) => (
     <MarkdownAttachment
       contentType={segment.contentType}
@@ -48,6 +51,7 @@ export const createDefaultRichMarkdownRendererRegistry = (): RichMarkdownRendere
       fileSize={segment.fileSize}
       href={segment.href}
       key={key}
+      resolveAttachmentHref={adapters?.resolveAttachmentHref ?? resolveAttachmentDownloadHref}
     />
   ),
   gallery: ({ key, segment }) => (
@@ -74,7 +78,8 @@ export const createDefaultRichMarkdownRendererRegistry = (): RichMarkdownRendere
  */
 export const createRichMarkdownRendererRegistry = (
   overrides?: PartialRichMarkdownRendererRegistry,
+  adapters?: MarkdownRendererHostAdapters,
 ): RichMarkdownRendererRegistry => ({
-  ...createDefaultRichMarkdownRendererRegistry(),
+  ...createDefaultRichMarkdownRendererRegistry(adapters),
   ...overrides,
 });

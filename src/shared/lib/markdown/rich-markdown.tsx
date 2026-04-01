@@ -1,6 +1,7 @@
 import React, { Fragment, type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownRendererHostAdapters } from '@/entities/editor-core';
 import {
   normalizeMarkdownHtmlAliases,
   preprocessMarkdownInlineSyntax,
@@ -24,6 +25,7 @@ import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
 type RenderRichMarkdownArgs = RichMarkdownRenderArgs & {
+  adapters?: MarkdownRendererHostAdapters;
   renderMarkdownFragment: MarkdownFragmentRenderer;
   renderers?: PartialRichMarkdownRendererRegistry;
 };
@@ -38,11 +40,12 @@ type RenderRichMarkdownArgs = RichMarkdownRenderArgs & {
  * @returns custom syntax와 일반 markdown가 결합된 React 노드 목록입니다.
  */
 export const renderRichMarkdown = ({
+  adapters,
   markdown,
   renderMarkdownFragment,
   renderers,
 }: RenderRichMarkdownArgs) => {
-  const resolvedRenderers = createRichMarkdownRendererRegistry(renderers);
+  const resolvedRenderers = createRichMarkdownRendererRegistry(renderers, adapters);
 
   return parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
     const key = `rich-markdown-${index}`;
@@ -83,6 +86,7 @@ export const renderRichMarkdown = ({
       return (
         <div className={alignedBlockClass} key={key} style={{ textAlign: segment.align }}>
           {renderRichMarkdown({
+            adapters,
             markdown: segment.content,
             renderMarkdownFragment,
             renderers: resolvedRenderers,
@@ -120,6 +124,7 @@ export const renderRichMarkdown = ({
         </summary>
         <div className={toggleContentClass}>
           {renderRichMarkdown({
+            adapters,
             markdown: segment.content,
             renderMarkdownFragment,
             renderers: resolvedRenderers,

@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { FetchLinkPreviewMeta } from '@/entities/editor-core';
 import { type LinkEmbedData, shouldFallbackToPlainLink } from '@/shared/lib/markdown/link-embed';
 
 type LinkEmbedCardProps = {
   className?: string;
   fallbackLabel?: string;
+  fetchLinkPreviewMeta?: FetchLinkPreviewMeta;
   url: string;
   variant: 'card' | 'preview';
 };
@@ -37,28 +39,59 @@ const getSafeSiteName = (url: string) => {
 };
 
 /**
+ * link preview 메타를 조회하지 못했을 때 사용할 기본 fallback 데이터를 생성합니다.
+ */
+const createFallbackLinkEmbedData = (url: string, fallbackLabel?: string): LinkEmbedData => ({
+  description: '',
+  favicon: null,
+  image: null,
+  siteName: getSafeSiteName(url),
+  title: fallbackLabel || url,
+  url,
+});
+
+/**
+ * 현재 앱에서 사용하는 기본 link preview 메타 조회 구현입니다.
+ * host fetcher가 주입되지 않은 경우에만 `/api/og`를 사용합니다.
+ */
+const fetchDefaultLinkPreviewMeta: FetchLinkPreviewMeta = async (url, signal) => {
+  const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`, {
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`OG fetch failed: ${response.status}`);
+  }
+
+  return (await response.json()) as LinkEmbedData;
+};
+
+/**
  * 외부 URL의 OG 메타를 조회해 제목 링크 또는 카드형 링크로 렌더링합니다.
  * 메타가 부족하면 일반 외부 링크로 자연스럽게 fallback합니다.
  */
-export const LinkEmbedCard = ({ className, fallbackLabel, url, variant }: LinkEmbedCardProps) => {
+export const LinkEmbedCard = ({
+  className,
+  fallbackLabel,
+  fetchLinkPreviewMeta,
+  url,
+  variant,
+}: LinkEmbedCardProps) => {
   const [state, setState] = useState<LinkEmbedState>({
     status: 'loading',
   });
+  const resolvedFetchLinkPreviewMeta = fetchLinkPreviewMeta ?? fetchDefaultLinkPreviewMeta;
 
   useEffect(() => {
     const controller = new AbortController();
 
     const fetchEmbedData = async () => {
       try {
-        const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`, {
-          signal: controller.signal,
-        });
+        const data = await resolvedFetchLinkPreviewMeta(url, controller.signal);
 
-        if (!response.ok) {
-          throw new Error(`OG fetch failed: ${response.status}`);
+        if (!data) {
+          throw new Error('link preview data is empty');
         }
-
-        const data = (await response.json()) as LinkEmbedData;
 
         setState({
           data,
@@ -68,14 +101,7 @@ export const LinkEmbedCard = ({ className, fallbackLabel, url, variant }: LinkEm
         if (controller.signal.aborted) return;
 
         setState({
-          data: {
-            description: '',
-            favicon: null,
-            image: null,
-            siteName: getSafeSiteName(url),
-            title: fallbackLabel || url,
-            url,
-          },
+          data: createFallbackLinkEmbedData(url, fallbackLabel),
           status: 'fallback',
         });
       }
@@ -84,7 +110,7 @@ export const LinkEmbedCard = ({ className, fallbackLabel, url, variant }: LinkEm
     void fetchEmbedData();
 
     return () => controller.abort();
-  }, [fallbackLabel, url]);
+  }, [fallbackLabel, resolvedFetchLinkPreviewMeta, url]);
 
   if (state.status === 'loading') {
     return (
