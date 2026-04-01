@@ -15,27 +15,36 @@ import {
   markdownH3Class,
   markdownH4Class,
 } from '@/shared/lib/markdown/markdown-config';
+import {
+  createRichMarkdownRendererRegistry,
+  type PartialRichMarkdownRendererRegistry,
+} from '@/shared/lib/markdown/rich-markdown-renderers';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
-import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
-import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
-import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
-import { MarkdownVideo } from '@/shared/ui/markdown/markdown-video';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
+
+type RenderRichMarkdownArgs = RichMarkdownRenderArgs & {
+  renderMarkdownFragment: MarkdownFragmentRenderer;
+  renderers?: PartialRichMarkdownRendererRegistry;
+};
+
 /**
  * custom markdown segment와 일반 markdown fragment를 합쳐 최종 React 노드 목록으로 변환합니다.
+ * attachment/gallery/math/video는 기본 registry로 렌더링하고, 필요하면 일부 renderer를 host에서 override할 수 있습니다.
  *
  * @param markdown custom syntax가 포함될 수 있는 원본 markdown 문자열입니다.
  * @param renderMarkdownFragment 일반 markdown chunk를 렌더링할 fragment renderer입니다.
+ * @param renderers custom segment renderer 일부를 교체할 때 사용하는 optional registry입니다.
  * @returns custom syntax와 일반 markdown가 결합된 React 노드 목록입니다.
  */
 export const renderRichMarkdown = ({
   markdown,
   renderMarkdownFragment,
-}: RichMarkdownRenderArgs & {
-  renderMarkdownFragment: MarkdownFragmentRenderer;
-}) =>
-  parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
+  renderers,
+}: RenderRichMarkdownArgs) => {
+  const resolvedRenderers = createRichMarkdownRendererRegistry(renderers);
+
+  return parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
     const key = `rich-markdown-${index}`;
 
     if (segment.type === 'markdown') {
@@ -47,34 +56,19 @@ export const renderRichMarkdown = ({
     }
 
     if (segment.type === 'video') {
-      return (
-        <MarkdownVideo
-          key={key}
-          provider={segment.provider}
-          src={segment.src}
-          videoId={segment.videoId}
-        />
-      );
+      return resolvedRenderers.video({ key, segment });
     }
 
     if (segment.type === 'attachment') {
-      return (
-        <MarkdownAttachment
-          contentType={segment.contentType}
-          fileName={segment.fileName}
-          fileSize={segment.fileSize}
-          href={segment.href}
-          key={key}
-        />
-      );
+      return resolvedRenderers.attachment({ key, segment });
     }
 
     if (segment.type === 'math') {
-      return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
+      return resolvedRenderers.math({ key, segment });
     }
 
     if (segment.type === 'gallery') {
-      return <MarkdownGallery galleryId={key} items={segment.items} key={key} />;
+      return resolvedRenderers.gallery({ key, segment });
     }
 
     if (segment.type === 'subtext') {
@@ -91,6 +85,7 @@ export const renderRichMarkdown = ({
           {renderRichMarkdown({
             markdown: segment.content,
             renderMarkdownFragment,
+            renderers: resolvedRenderers,
           })}
         </div>
       );
@@ -127,11 +122,13 @@ export const renderRichMarkdown = ({
           {renderRichMarkdown({
             markdown: segment.content,
             renderMarkdownFragment,
+            renderers: resolvedRenderers,
           })}
         </div>
       </details>
     );
   });
+};
 
 const subtextClass = css({
   m: '0',
