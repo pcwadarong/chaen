@@ -273,14 +273,15 @@ export const GlobalNav = () => {
   useEffect(() => {
     const offsetValue = isHidden ? buildHiddenGlobalNavOffsetValue() : '0px';
     const dockedTopValue = isHidden ? '0px' : buildGlobalNavHeightVar();
+    const scopes = resolveGlobalNavLayoutVarScopes();
 
-    resolveGlobalNavLayoutVarScopes().forEach(scope => {
+    scopes.forEach(scope => {
       scope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, offsetValue);
       scope.style.setProperty(GLOBAL_NAV_DOCKED_TOP_CSS_VAR, dockedTopValue);
     });
 
     return () => {
-      resolveGlobalNavLayoutVarScopes().forEach(scope => {
+      scopes.forEach(scope => {
         scope.style.setProperty(GLOBAL_NAV_OFFSET_CSS_VAR, '0px');
         scope.style.setProperty(GLOBAL_NAV_DOCKED_TOP_CSS_VAR, buildGlobalNavHeightVar());
       });

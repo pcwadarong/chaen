@@ -27,7 +27,7 @@ describe('markdown toolbar preset', () => {
     ]);
   });
 
-  it('일부 기능이 빠진 custom preset이 주어지면, resolveMarkdownToolbarPresetSections는 요청된 item key만 조합해야 한다', () => {
+  it('일부 custom preset이 주어지면, resolveMarkdownToolbarPresetSections는 요청된 item key만 조합해야 한다', () => {
     expect(
       resolveMarkdownToolbarPresetSections({
         itemRegistry: {
@@ -52,7 +52,7 @@ describe('markdown toolbar preset', () => {
     ]);
   });
 
-  it('기본 preset 계약에서, DEFAULT_MARKDOWN_TOOLBAR_PRESET은 현재 기능 그룹 구성을 순수 데이터로 노출해야 한다', () => {
+  it('기본 preset 정의가 주어지면, DEFAULT_MARKDOWN_TOOLBAR_PRESET은 현재 기능 그룹 구성을 순수 데이터로 노출해야 한다', () => {
     expect(DEFAULT_MARKDOWN_TOOLBAR_PRESET).toEqual([
       { itemKeys: ['heading-popover', 'subtext'], key: 'heading-and-subtext' },
       { itemKeys: ['bold', 'italic', 'strike', 'underline'], key: 'text-emphasis' },
