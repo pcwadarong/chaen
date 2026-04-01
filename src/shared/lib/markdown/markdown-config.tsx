@@ -12,6 +12,7 @@ import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownRendererHostAdapters } from '@/entities/editor-core';
 import type { MarkdownImageViewerItem } from '@/shared/lib/markdown/collect-markdown-images';
 import {
   getLinkText,
@@ -23,10 +24,12 @@ import { normalizeHttpUrl } from '@/shared/lib/url/normalize-http-url';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 import { MarkdownImage } from '@/shared/ui/markdown/markdown-image';
 import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
+import { MarkdownMermaid } from '@/shared/ui/markdown/markdown-mermaid';
 import { MarkdownSpoilerButton } from '@/shared/ui/markdown/markdown-spoiler-button';
 
 type MarkdownOptions = Pick<Options, 'components' | 'rehypePlugins' | 'remarkPlugins'>;
 type MarkdownViewerConfig = {
+  adapters?: MarkdownRendererHostAdapters;
   items?: MarkdownImageViewerItem[];
 };
 type MarkdownInlineDirective =
@@ -147,6 +150,21 @@ const getCodeBlockAriaLabel = (children: ReactNode) =>
   `Code block: ${getCodeBlockLanguage(children)}`;
 
 /**
+ * 코드 블록 children에서 실제 코드 문자열을 재귀적으로 수집합니다.
+ */
+const getCodeBlockText = (children: ReactNode): string => {
+  if (typeof children === 'string') return children;
+  if (typeof children === 'number') return String(children);
+  if (!children) return '';
+  if (Array.isArray(children)) return children.map(getCodeBlockText).join('');
+  if (isValidElement<{ children?: ReactNode }>(children)) {
+    return getCodeBlockText(children.props.children);
+  }
+
+  return '';
+};
+
+/**
  * 현재 code 노드가 fenced code block인지 판별합니다.
  * rehype-pretty-code는 inline code에도 data attribute를 주입할 수 있어 className 기준으로만 구분합니다.
  */
@@ -185,11 +203,13 @@ const isBlockCode = ({
 const renderMarkdownImage = ({
   alt,
   imageIndex,
+  imageViewerLabels,
   src,
   viewerItems,
   ...props
 }: ImgHTMLAttributes<HTMLImageElement> & {
   imageIndex?: number;
+  imageViewerLabels?: MarkdownRendererHostAdapters['imageViewerLabels'];
   viewerItems?: MarkdownImageViewerItem[];
 }) => {
   const resolvedAlt = alt ?? '';
@@ -200,6 +220,7 @@ const renderMarkdownImage = ({
       alt={resolvedAlt}
       className={markdownImageClass}
       imageIndex={resolvedImageIndex}
+      imageViewerLabels={imageViewerLabels}
       src={src}
       viewerItems={viewerItems}
       {...props}
@@ -210,7 +231,10 @@ const renderMarkdownImage = ({
 /**
  * Markdown AST 노드를 서비스 UI에 맞는 React 컴포넌트로 치환합니다.
  */
-const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Components => {
+const createMarkdownComponents = ({
+  adapters,
+  items = [],
+}: MarkdownViewerConfig = {}): Components => {
   let imageIndex = 0;
   const viewerItems = items.filter(item => item.src.trim().length > 0);
 
@@ -294,6 +318,7 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         return (
           <LinkEmbedCard
             fallbackLabel={linkText || normalizedHref}
+            fetchLinkPreviewMeta={adapters?.fetchLinkPreviewMeta}
             url={normalizedHref}
             variant="preview"
           />
@@ -304,6 +329,7 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         return (
           <LinkEmbedCard
             fallbackLabel={renderMode === 'embed' ? normalizedHref : linkText || normalizedHref}
+            fetchLinkPreviewMeta={adapters?.fetchLinkPreviewMeta}
             url={normalizedHref}
             variant="card"
           />
@@ -367,6 +393,7 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         ...props,
         alt,
         imageIndex: currentImageIndex,
+        imageViewerLabels: adapters?.imageViewerLabels,
         src,
         viewerItems,
       });
@@ -386,28 +413,31 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
         {children}
       </p>
     ),
-    pre: ({ children, className, ...props }) => (
-      <div className={markdownCodeBlockFrameClass}>
-        <div className={markdownCodeBlockHeaderClass}>
-          <div aria-hidden className={markdownTrafficLightRowClass}>
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
-            <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+    pre: ({ children, className, ...props }) =>
+      getCodeBlockLanguage(children) === 'mermaid' ? (
+        <MarkdownMermaid chart={getCodeBlockText(children).trim()} />
+      ) : (
+        <div className={markdownCodeBlockFrameClass}>
+          <div className={markdownCodeBlockHeaderClass}>
+            <div aria-hidden className={markdownTrafficLightRowClass}>
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightRedClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightYellowClass)} />
+              <span className={cx(markdownTrafficLightClass, markdownTrafficLightGreenClass)} />
+            </div>
+            <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
           </div>
-          <span className={markdownCodeBlockLanguageClass}>{getCodeBlockLanguage(children)}</span>
+          <pre
+            aria-label={getCodeBlockAriaLabel(children)}
+            className={
+              className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
+            }
+            tabIndex={0}
+            {...props}
+          >
+            {children}
+          </pre>
         </div>
-        <pre
-          aria-label={getCodeBlockAriaLabel(children)}
-          className={
-            className ? `${markdownCodeBlockPreClass} ${className}` : markdownCodeBlockPreClass
-          }
-          tabIndex={0}
-          {...props}
-        >
-          {children}
-        </pre>
-      </div>
-    ),
+      ),
     table: ({ children }) => (
       <div aria-label="Markdown table" className={markdownTableScrollClass} tabIndex={0}>
         <table className={markdownTableClass}>{children}</table>
@@ -429,8 +459,11 @@ const createMarkdownComponents = ({ items = [] }: MarkdownViewerConfig = {}): Co
 /**
  * 서버/클라이언트에서 공통으로 사용할 markdown 렌더링 옵션을 구성합니다.
  */
-export const getMarkdownOptions = ({ items }: MarkdownViewerConfig = {}): MarkdownOptions => ({
-  components: createMarkdownComponents({ items }),
+export const getMarkdownOptions = ({
+  adapters,
+  items,
+}: MarkdownViewerConfig = {}): MarkdownOptions => ({
+  components: createMarkdownComponents({ adapters, items }),
   rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
   remarkPlugins: [remarkGfm, remarkBreaks],
 });

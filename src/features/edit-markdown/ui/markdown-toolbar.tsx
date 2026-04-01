@@ -15,12 +15,18 @@ import { ToolbarActionButton } from '@/features/edit-markdown/ui/toolbar-action-
  * textarea 기반 markdown 포맷 툴바입니다.
  * 실제 편집 규칙은 model hook에서 관리하고, 이 컴포넌트는 레이아웃과 렌더링만 담당합니다.
  */
-export const MarkdownToolbar = ({ contentType, onChange, textareaRef }: MarkdownToolbarProps) => {
+export const MarkdownToolbar = ({
+  contentType,
+  onChange,
+  textareaRef,
+  uiRegistry,
+}: MarkdownToolbarProps) => {
   const { toolbarSections } = useMarkdownToolbar({
     contentType,
     onChange,
     popoverTriggerClassName: popoverTriggerResetClass,
     textareaRef,
+    uiRegistry,
   });
 
   return (

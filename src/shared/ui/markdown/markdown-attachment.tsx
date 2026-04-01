@@ -1,7 +1,7 @@
 import React from 'react';
 import { css } from 'styled-system/css';
 
-import { resolveAttachmentDownloadHref } from '@/shared/lib/storage/attachment-download-path';
+import type { ResolveAttachmentHref } from '@/entities/editor-core';
 import { DownloadFileButton } from '@/shared/ui/download-file-button/download-file-button';
 import { FileIcon } from '@/shared/ui/icons/app-icons';
 
@@ -10,6 +10,7 @@ type MarkdownAttachmentProps = {
   fileName: string;
   fileSize?: number;
   href: string;
+  resolveAttachmentHref?: ResolveAttachmentHref;
 };
 
 /**
@@ -38,12 +39,10 @@ export const MarkdownAttachment = ({
   fileName,
   fileSize,
   href,
+  resolveAttachmentHref,
 }: MarkdownAttachmentProps) => {
   const attachmentSize = formatAttachmentSize(fileSize);
-  const downloadHref = resolveAttachmentDownloadHref({
-    fileName,
-    href,
-  });
+  const downloadHref = resolveAttachmentHref?.({ fileName, href }) ?? href;
 
   return (
     <section className={attachmentCardClass} data-markdown-attachment="true">

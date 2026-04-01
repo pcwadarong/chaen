@@ -1,12 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { uploadEditorVideo } from '@/entities/editor/api/upload-editor-video';
 import { VideoEmbedModal } from '@/features/edit-markdown/ui/video-embed-modal';
-
-vi.mock('@/entities/editor/api/upload-editor-video', () => ({
-  uploadEditorVideo: vi.fn(),
-}));
 
 describe('VideoEmbedModal', () => {
   it('유효한 동영상 URL이 주어지면, VideoEmbedModal은 추출된 video id로 onApply를 호출해야 한다', async () => {
@@ -46,10 +41,11 @@ describe('VideoEmbedModal', () => {
 
   it('영상 파일 업로드가 성공하면, VideoEmbedModal은 upload provider payload로 onApply를 호출해야 한다', async () => {
     const onApply = vi.fn();
+    const onUploadVideo = vi.fn().mockResolvedValue('https://example.com/videos/demo.mp4');
 
-    vi.mocked(uploadEditorVideo).mockResolvedValue('https://example.com/videos/demo.mp4');
-
-    render(<VideoEmbedModal contentType="project" onApply={onApply} />);
+    render(
+      <VideoEmbedModal contentType="project" onApply={onApply} onUploadVideo={onUploadVideo} />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '영상' }));
     fireEvent.change(screen.getByLabelText('영상 업로드'), {
@@ -59,7 +55,7 @@ describe('VideoEmbedModal', () => {
     });
 
     await waitFor(() => {
-      expect(uploadEditorVideo).toHaveBeenCalledWith(
+      expect(onUploadVideo).toHaveBeenCalledWith(
         expect.objectContaining({
           contentType: 'project',
           file: expect.any(File),
@@ -81,13 +77,14 @@ describe('VideoEmbedModal', () => {
 
   it('영상 업로드가 진행 중일 때, VideoEmbedModal은 진행률을 표시하고 삽입을 비활성화해야 한다', async () => {
     const onApply = vi.fn();
-
-    vi.mocked(uploadEditorVideo).mockImplementation(async ({ onProgress }) => {
+    const onUploadVideo = vi.fn().mockImplementation(async ({ onProgress }) => {
       onProgress?.(42);
       return await new Promise(() => {});
     });
 
-    render(<VideoEmbedModal contentType="article" onApply={onApply} />);
+    render(
+      <VideoEmbedModal contentType="article" onApply={onApply} onUploadVideo={onUploadVideo} />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '영상' }));
     fireEvent.change(screen.getByLabelText('영상 업로드'), {
@@ -102,8 +99,7 @@ describe('VideoEmbedModal', () => {
 
   it('업로드 취소를 누르면, VideoEmbedModal은 진행 중인 업로드를 중단하고 취소 상태를 안내해야 한다', async () => {
     const onApply = vi.fn();
-
-    vi.mocked(uploadEditorVideo).mockImplementation(
+    const onUploadVideo = vi.fn().mockImplementation(
       ({ onProgress, signal }) =>
         new Promise((_, reject) => {
           onProgress?.(30);
@@ -120,7 +116,9 @@ describe('VideoEmbedModal', () => {
         }),
     );
 
-    render(<VideoEmbedModal contentType="article" onApply={onApply} />);
+    render(
+      <VideoEmbedModal contentType="article" onApply={onApply} onUploadVideo={onUploadVideo} />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '영상' }));
     fireEvent.change(screen.getByLabelText('영상 업로드'), {
@@ -148,7 +146,11 @@ describe('VideoEmbedModal', () => {
       value: 600 * 1024 * 1024,
     });
 
-    render(<VideoEmbedModal contentType="article" onApply={onApply} />);
+    const onUploadVideo = vi.fn();
+
+    render(
+      <VideoEmbedModal contentType="article" onApply={onApply} onUploadVideo={onUploadVideo} />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '영상' }));
     fireEvent.change(screen.getByLabelText('영상 업로드'), {
@@ -158,7 +160,7 @@ describe('VideoEmbedModal', () => {
     });
 
     expect(await screen.findByText(/지원하지 않는 영상 파일입니다/)).toBeTruthy();
-    expect(uploadEditorVideo).not.toHaveBeenCalled();
+    expect(onUploadVideo).not.toHaveBeenCalled();
     expect(onApply).not.toHaveBeenCalled();
   });
 });

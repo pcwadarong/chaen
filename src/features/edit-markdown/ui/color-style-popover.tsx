@@ -7,45 +7,48 @@ import { markdownColorPresets } from '@/shared/lib/markdown/markdown-color-prese
 import { Button } from '@/shared/ui/button/button';
 import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
+export type ColorStylePopoverLabels = {
+  getOptionAriaLabel?: (label: string) => string;
+  panelLabel: string;
+  triggerAriaLabel: string;
+  triggerTooltip: string;
+};
+
 type ColorStylePopoverProps = {
+  labels: ColorStylePopoverLabels;
   previewMode: 'background' | 'text';
   onApply: (colorHex: string, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
-  panelLabel: string;
-  triggerAriaLabel: string;
   triggerClassName?: string;
   triggerContent: React.ReactNode;
-  triggerTooltip: string;
 };
 
 /**
  * 글자색/배경색 강조처럼 같은 팔레트를 재사용하는 toolbar 색상 팝오버 베이스입니다.
  */
 export const ColorStylePopover = ({
+  labels,
   previewMode,
   onApply,
   onTriggerMouseDown,
-  panelLabel,
-  triggerAriaLabel,
   triggerClassName,
   triggerContent,
-  triggerTooltip,
 }: ColorStylePopoverProps) => (
   <Popover
     onTriggerMouseDown={onTriggerMouseDown}
-    panelLabel={panelLabel}
+    panelLabel={labels.panelLabel}
     portalPlacement="start"
     renderInPortal
-    triggerAriaLabel={triggerAriaLabel}
+    triggerAriaLabel={labels.triggerAriaLabel}
     triggerClassName={triggerClassName}
     triggerContent={triggerContent}
-    triggerTooltip={triggerTooltip}
+    triggerTooltip={labels.triggerTooltip}
   >
     {({ closePopover }) => (
       <div className={colorGridClass}>
         {markdownColorPresets.map(option => (
           <Button
-            aria-label={`${option.label} 색상`}
+            aria-label={labels.getOptionAriaLabel?.(option.label) ?? `${option.label} 색상`}
             className={colorButtonClass}
             key={option.hex}
             onClick={() => onApply(option.hex, closePopover)}

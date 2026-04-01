@@ -34,8 +34,47 @@ const ToolbarHarness = () => {
   );
 };
 
+/**
+ * host app이 toolbar UI registry를 통해 popover labels를 덮어쓰는 시나리오를 검증합니다.
+ */
+const ToolbarWithCustomUiRegistryHarness = () => {
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [value, setValue] = React.useState('');
+
+  return (
+    <>
+      <MarkdownToolbar
+        contentType="article"
+        onChange={setValue}
+        textareaRef={textareaRef}
+        uiRegistry={{
+          labels: {
+            headingPopover: {
+              panelLabel: '커스텀 제목 선택',
+              triggerAriaLabel: '헤딩',
+              triggerTooltip: '헤딩',
+            },
+            linkEmbedPopover: {
+              panelLabel: '커스텀 링크 패널',
+              triggerAriaLabel: '링크 추가',
+              triggerTooltip: '링크 추가',
+            },
+          },
+        }}
+      />
+      <Textarea
+        aria-label="본문 입력"
+        autoResize={false}
+        onChange={event => setValue(event.target.value)}
+        ref={textareaRef}
+        value={value}
+      />
+    </>
+  );
+};
+
 describe('MarkdownToolbar', () => {
-  it('링크 팝오버에서 제목 링크를 삽입한다', async () => {
+  it('유효한 링크 URL이 입력되면, MarkdownToolbar는 제목 링크 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -51,7 +90,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('팝오버로 링크를 삽입한 뒤 textarea 포커스와 커서를 삽입 직후 위치로 복원한다', async () => {
+  it('링크 팝오버로 문법을 삽입하면, MarkdownToolbar는 textarea 포커스와 커서를 삽입 직후로 복원해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -75,7 +114,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('이미지 URL이 추가되면, 이미지 삽입 모달은 markdown 이미지 문법을 삽입해야 한다', async () => {
+  it('웹 URL 이미지가 추가되면, MarkdownToolbar는 markdown 이미지 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -92,7 +131,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('파일 팝오버로 업로드한 첨부 파일 markdown를 삽입한다', async () => {
+  it('업로드된 첨부 파일이 확인되면, MarkdownToolbar는 Attachment 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -117,7 +156,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('수학 공식 팝오버에서 inline 수식 markdown를 삽입한다', async () => {
+  it('인라인 수식이 입력되면, MarkdownToolbar는 Math 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -133,7 +172,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('선택 텍스트의 앞뒤 공백도 링크 라벨에 포함한다', async () => {
+  it('선택 텍스트에 앞뒤 공백이 포함되면, MarkdownToolbar는 공백까지 링크 라벨로 유지해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -151,7 +190,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('정렬 팝오버는 선택한 텍스트를 유지한 채 align block으로 감싼다', async () => {
+  it('정렬 옵션을 선택하면, MarkdownToolbar는 선택 텍스트를 유지한 채 align block으로 감싸야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -168,7 +207,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('유효한 동영상 URL이 입력되면, 동영상 삽입은 textarea에 Video 문법을 삽입해야 한다', async () => {
+  it('유효한 동영상 URL이 입력되면, MarkdownToolbar는 Video 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -184,7 +223,7 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('잘못된 동영상 URL이 입력되면, 동영상 삽입은 textarea 값을 변경해서는 안 된다', async () => {
+  it('잘못된 동영상 URL이 입력되면, MarkdownToolbar는 textarea 값을 변경하지 않아야 한다', async () => {
     render(<ToolbarHarness />);
 
     const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
@@ -201,22 +240,74 @@ describe('MarkdownToolbar', () => {
     });
   });
 
-  it('리스트·인라인 코드·줄바꿈·토글 목록 버튼은 노출하지 않는다', () => {
+  it('기본 compact toolbar가 렌더링되면, MarkdownToolbar는 숨김 대상 버튼을 노출하지 않고 제목/토글 트리거만 보여야 한다', () => {
     render(<ToolbarHarness />);
 
     expect(screen.queryByRole('button', { name: '목록' })).toBeNull();
     expect(screen.queryByRole('button', { name: '인라인 코드' })).toBeNull();
     expect(screen.queryByRole('button', { name: '줄바꿈' })).toBeNull();
     expect(screen.queryByRole('button', { name: '토글 목록' })).toBeNull();
-    expect(screen.getByRole('button', { name: '토글 제목 4' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '제목 4' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '토글 제목 4' })).toBeNull();
+    expect(screen.getByRole('button', { name: '제목' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '토글' })).toBeTruthy();
   });
 
-  it('툴팁으로 액션 이름을 노출한다', async () => {
+  it('툴바 액션에 포커스가 들어가면, MarkdownToolbar는 툴팁으로 액션 이름을 노출해야 한다', async () => {
     render(<ToolbarHarness />);
 
     const boldButton = screen.getByRole('button', { name: '굵게' });
     fireEvent.focus(boldButton);
 
     expect(await screen.findByRole('tooltip', { name: '굵게' })).toBeTruthy();
+  });
+
+  it('제목 팝오버에서 레벨을 선택하면, MarkdownToolbar는 heading 문법을 삽입해야 한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '섹션 제목' } });
+    textarea.focus();
+    textarea.setSelectionRange(0, 0);
+
+    fireEvent.click(screen.getByRole('button', { name: '제목' }));
+    fireEvent.click(screen.getByRole('button', { name: '제목 2' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe('## 섹션 제목');
+    });
+  });
+
+  it('토글 팝오버에서 레벨을 선택하면, MarkdownToolbar는 toggle 문법을 삽입해야 한다', async () => {
+    render(<ToolbarHarness />);
+
+    const textarea = screen.getByRole('textbox', { name: '본문 입력' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: '토글 내용' } });
+    textarea.focus();
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    fireEvent.click(screen.getByRole('button', { name: '토글' }));
+    fireEvent.click(screen.getByRole('button', { name: '토글 제목 3' }));
+
+    await waitFor(() => {
+      expect(textarea.value).toBe(':::toggle ### 토글 내용\n내용\n:::');
+    });
+  });
+
+  it('host app이 toolbar ui registry를 주입하면, MarkdownToolbar는 커스텀 popover labels를 그대로 노출해야 한다', async () => {
+    render(<ToolbarWithCustomUiRegistryHarness />);
+
+    const headingTrigger = screen.getByRole('button', { name: '헤딩' });
+    fireEvent.focus(headingTrigger);
+
+    expect(await screen.findByRole('tooltip', { name: '헤딩' })).toBeTruthy();
+
+    fireEvent.click(headingTrigger);
+
+    expect(await screen.findByText('커스텀 제목 선택')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '링크 추가' }));
+
+    expect(await screen.findByText('커스텀 링크 패널')).toBeTruthy();
   });
 });

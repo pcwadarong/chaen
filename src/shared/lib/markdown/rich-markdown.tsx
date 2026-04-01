@@ -1,506 +1,53 @@
 import React, { Fragment, type ReactNode } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
+import type { MarkdownRendererHostAdapters } from '@/entities/editor-core';
+import {
+  normalizeMarkdownHtmlAliases,
+  preprocessMarkdownInlineSyntax,
+} from '@/entities/editor-core/model/markdown-inline';
+import {
+  parseRichMarkdownSegments,
+  type RichMarkdownRenderArgs,
+} from '@/entities/editor-core/model/markdown-segments';
 import {
   markdownH1Class,
   markdownH2Class,
   markdownH3Class,
   markdownH4Class,
 } from '@/shared/lib/markdown/markdown-config';
+import {
+  createRichMarkdownRendererRegistry,
+  type PartialRichMarkdownRendererRegistry,
+} from '@/shared/lib/markdown/rich-markdown-renderers';
 import { ChevronRightIcon } from '@/shared/ui/icons/app-icons';
-import { MarkdownAttachment } from '@/shared/ui/markdown/markdown-attachment';
-import { MarkdownGallery } from '@/shared/ui/markdown/markdown-gallery';
-import { MarkdownMath } from '@/shared/ui/markdown/markdown-math';
-import { MarkdownVideo } from '@/shared/ui/markdown/markdown-video';
 
 type MarkdownFragmentRenderer = (markdown: string, key: string) => ReactNode;
 
-type ToggleHeadingLevel = 1 | 2 | 3 | 4 | null;
-
-type MarkdownSegment =
-  | {
-      markdown: string;
-      type: 'markdown';
-    }
-  | {
-      align: 'center' | 'left' | 'right';
-      content: string;
-      type: 'align';
-    }
-  | {
-      content: string;
-      type: 'subtext';
-    }
-  | {
-      content: string;
-      headingLevel: ToggleHeadingLevel;
-      title: string;
-      type: 'toggle';
-    }
-  | {
-      contentType?: string;
-      fileName: string;
-      fileSize?: number;
-      href: string;
-      type: 'attachment';
-    }
-  | {
-      formula: string;
-      isBlock: boolean;
-      type: 'math';
-    }
-  | {
-      items: ReturnType<typeof collectMarkdownImages>;
-      type: 'gallery';
-    }
-  | {
-      provider: 'upload' | 'youtube';
-      src?: string;
-      type: 'video';
-      videoId?: string;
-    };
-
-const toggleStartPrefix = ':::toggle ';
-const galleryStartPattern = /^:::gallery\s*$/;
-const alignStartPattern = /^:::align (left|center|right)\s*$/;
-const legacyYoutubePattern = /^<YouTube id="([^"]+)" \/>$/;
-const videoPattern = /^<Video provider="([^"]+)"(?: id="([^"]+)")?(?: src="([^"]+)")? \/>$/;
-const attachmentPattern =
-  /^<Attachment href="([^"]+)" name="([^"]+)"(?: size="(\d+)")?(?: type="([^"]+)")? \/>$/;
-const mathPattern = /^<Math(?: block="(true)")?>([\s\S]+?)<\/Math>$/;
-const subtextPrefix = '-# ';
-const htmlLineBreakPattern = /<br\s*\/?>/gi;
-const htmlHorizontalRulePattern = /<hr\s*\/?>/gi;
-const markdownLineBreakPlaceholder = '__MD_LINE_BREAK__';
-const markdownHorizontalRulePlaceholder = '__MD_HORIZONTAL_RULE__';
-const inlineStyledSpanPattern = /<span style="([^"]+)">([\s\S]*?)<\/span>/g;
-const inlineUnderlinePattern = /<u>([\s\S]*?)<\/u>/g;
-const inlineSpoilerPattern = /\|\|([^|]+?)\|\|/g;
-const inlineMathPattern = /<Math>([\s\S]*?)<\/Math>/g;
-const fenceBoundaryPattern = /^\s*(`{3,}|~{3,})/;
-
-type FenceState = {
-  delimiter: '`' | '~';
-  size: number;
-} | null;
-
-/**
- * editor template이 escape한 HTML attribute entity를 원래 문자열로 복원합니다.
- *
- * @param value attachment/math custom tag에서 읽은 raw attribute 값입니다.
- * @returns entity가 복원된 일반 문자열을 반환합니다.
- */
-const decodeHtmlAttributeEntities = (value: string) =>
-  value
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#39;', "'")
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&amp;', '&');
-
-/**
- * 현재 줄이 fenced code block의 열기/닫기 경계인지 판별합니다.
- */
-const getFenceBoundary = (line: string, activeFence: FenceState) => {
-  const match = line.match(fenceBoundaryPattern);
-
-  if (!match) return null;
-
-  const delimiter = match[1][0] as '`' | '~';
-  const size = match[1].length;
-
-  if (!activeFence) {
-    return {
-      delimiter,
-      size,
-    };
-  }
-
-  if (activeFence.delimiter !== delimiter || size < activeFence.size) {
-    return null;
-  }
-
-  return {
-    delimiter,
-    size,
-  };
-};
-
-/**
- * fenced code block/inline code를 제외한 일반 텍스트 구간에만 transform을 적용합니다.
- */
-const transformMarkdownOutsideCode = (markdown: string, transform: (value: string) => string) => {
-  const lines = markdown.split('\n');
-  let activeFence: FenceState = null;
-  return lines
-    .map(line => {
-      const fenceBoundary = getFenceBoundary(line, activeFence);
-
-      if (fenceBoundary) {
-        activeFence = activeFence ? null : fenceBoundary;
-        return line;
-      }
-
-      if (activeFence) {
-        return line;
-      }
-
-      let transformedLine = '';
-
-      for (let cursor = 0; cursor < line.length; ) {
-        if (line[cursor] !== '`') {
-          const nextBacktickIndex = line.indexOf('`', cursor);
-          const proseSegment = line.slice(
-            cursor,
-            nextBacktickIndex === -1 ? line.length : nextBacktickIndex,
-          );
-
-          transformedLine += transform(proseSegment);
-          cursor = nextBacktickIndex === -1 ? line.length : nextBacktickIndex;
-          continue;
-        }
-
-        let tickCount = 1;
-
-        while (line[cursor + tickCount] === '`') {
-          tickCount += 1;
-        }
-
-        const delimiter = '`'.repeat(tickCount);
-        const codeStart = cursor;
-        const codeEnd = line.indexOf(delimiter, cursor + tickCount);
-
-        if (codeEnd === -1) {
-          transformedLine += transform(line.slice(cursor));
-          break;
-        }
-
-        transformedLine += line.slice(codeStart, codeEnd + tickCount);
-        cursor = codeEnd + tickCount;
-      }
-
-      return transformedLine;
-    })
-    .join('\n');
-};
-
-/**
- * markdown 링크 라벨 안에서 깨질 수 있는 문자만 최소 범위로 escape합니다.
- */
-const escapeMarkdownLinkLabel = (value: string) =>
-  value.replace(/\\/g, '\\\\').replace(/\[/g, '\\[').replace(/\]/g, '\\]');
-
-/**
- * span style 문자열에서 color/background-color hex 값을 추출합니다.
- */
-const parseInlineStyle = (style: string) => {
-  const declarations = style
-    .split(';')
-    .map(entry => entry.trim())
-    .filter(Boolean);
-  const styleMap = new Map<string, string>();
-
-  declarations.forEach(entry => {
-    const [property, rawValue] = entry.split(':');
-    if (!property || !rawValue) return;
-
-    styleMap.set(property.trim().toLowerCase(), rawValue.trim());
-  });
-
-  const color = styleMap.get('color');
-  const background = styleMap.get('background-color');
-  const colorHex = color?.match(/^#[0-9A-Fa-f]{6}$/)?.[0];
-  const backgroundHex = background?.match(/^#[0-9A-Fa-f]{6}$/)?.[0];
-
-  return {
-    backgroundHex,
-    colorHex,
-  };
-};
-
-/**
- * 커스텀 인라인 문법을 react-markdown이 처리할 수 있는 특수 링크로 치환합니다.
- */
-export const preprocessMarkdownInlineSyntax = (markdown: string) =>
-  transformMarkdownOutsideCode(markdown, value =>
-    value
-      .replace(inlineStyledSpanPattern, (_, rawStyle: string, text: string) => {
-        const escapedText = escapeMarkdownLinkLabel(text.trim() || '텍스트');
-        const { backgroundHex, colorHex } = parseInlineStyle(rawStyle);
-
-        if (backgroundHex && colorHex) {
-          return `[${escapedText}](#md-style:color=${colorHex};background=${backgroundHex})`;
-        }
-
-        if (backgroundHex) {
-          return `[${escapedText}](#md-bg:${backgroundHex})`;
-        }
-
-        if (colorHex) {
-          return `[${escapedText}](#md-color:${colorHex})`;
-        }
-
-        return text;
-      })
-      .replace(inlineUnderlinePattern, (_, text: string) => {
-        const escapedText = escapeMarkdownLinkLabel(text.trim() || '텍스트');
-
-        return `[${escapedText}](#md-underline:)`;
-      })
-      .replace(inlineSpoilerPattern, (_, text: string) => {
-        const escapedText = escapeMarkdownLinkLabel(text.trim() || '스포일러');
-
-        return `[${escapedText}](#md-spoiler:)`;
-      })
-      .replace(inlineMathPattern, (_, formula: string) => {
-        const normalizedFormula = formula.trim();
-        const encodedFormula = encodeURIComponent(normalizedFormula);
-        const escapedLabel = escapeMarkdownLinkLabel(normalizedFormula || 'math');
-
-        return `[${escapedLabel}](#md-math:${encodedFormula})`;
-      }),
-  );
-
-/**
- * raw HTML로 적힌 기본 line-break/hr 문법을 markdown equivalent로 정규화합니다.
- * 현재 renderer는 rehype-raw를 쓰지 않으므로 이 단계에서 먼저 치환합니다.
- */
-const normalizeMarkdownHtmlAliases = (markdown: string) =>
-  transformMarkdownOutsideCode(markdown, value =>
-    value
-      .replace(htmlHorizontalRulePattern, markdownHorizontalRulePlaceholder)
-      .replace(htmlLineBreakPattern, markdownLineBreakPlaceholder),
-  )
-    .replace(new RegExp(`${markdownLineBreakPlaceholder}\n`, 'g'), '\n')
-    .replace(new RegExp(markdownLineBreakPlaceholder, 'g'), '\n')
-    .replace(
-      new RegExp(`(^|\n)${markdownHorizontalRulePlaceholder}(?=\n|$)`, 'g'),
-      (_, prefix: string) => `${prefix}---`,
-    )
-    .replace(new RegExp(markdownHorizontalRulePlaceholder, 'g'), '\n---\n');
-
-/**
- * toggle summary 문자열 앞의 heading prefix를 읽어 summary 스타일 레벨과 본문 제목을 분리합니다.
- */
-const parseToggleTitle = (rawTitle: string) => {
-  const trimmedTitle = rawTitle.trim();
-  const headingMatch = trimmedTitle.match(/^(#{1,4})(?:\s+(.*))?$/);
-  const fallbackTitle = 'Untitled toggle';
-
-  if (!trimmedTitle) {
-    return {
-      headingLevel: null,
-      title: fallbackTitle,
-    };
-  }
-
-  if (!headingMatch) {
-    return {
-      headingLevel: null,
-      title: trimmedTitle || fallbackTitle,
-    };
-  }
-
-  return {
-    headingLevel: headingMatch[1].length as ToggleHeadingLevel,
-    title: headingMatch[2]?.trim() || fallbackTitle,
-  };
-};
-
-/**
- * custom markdown block 문법을 일반 markdown chunk와 전용 block segment로 분리합니다.
- */
-export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] => {
-  const lines = markdown.split('\n');
-  const segments: MarkdownSegment[] = [];
-  const currentMarkdownLines: string[] = [];
-  let activeFence: FenceState = null;
-
-  const flushMarkdown = () => {
-    if (currentMarkdownLines.length === 0) return;
-
-    segments.push({
-      markdown: currentMarkdownLines.join('\n'),
-      type: 'markdown',
-    });
-    currentMarkdownLines.length = 0;
-  };
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const fenceBoundary = getFenceBoundary(line, activeFence);
-
-    if (fenceBoundary) {
-      currentMarkdownLines.push(line);
-      activeFence = activeFence ? null : fenceBoundary;
-      continue;
-    }
-
-    if (activeFence) {
-      currentMarkdownLines.push(line);
-      continue;
-    }
-
-    if (line.startsWith(toggleStartPrefix)) {
-      flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
-
-      const { headingLevel, title } = parseToggleTitle(line.slice(toggleStartPrefix.length));
-
-      segments.push({
-        content: bodyLines.join('\n'),
-        headingLevel,
-        title,
-        type: 'toggle',
-      });
-
-      index = cursor;
-      continue;
-    }
-
-    const alignMatch = line.match(alignStartPattern);
-
-    if (alignMatch) {
-      flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
-
-      segments.push({
-        align: alignMatch[1] as 'center' | 'left' | 'right',
-        content: bodyLines.join('\n'),
-        type: 'align',
-      });
-
-      index = cursor;
-      continue;
-    }
-
-    if (galleryStartPattern.test(line)) {
-      flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
-
-      segments.push({
-        items: collectMarkdownImages(bodyLines.join('\n')),
-        type: 'gallery',
-      });
-
-      index = cursor;
-      continue;
-    }
-
-    const videoMatch = line.match(videoPattern);
-
-    if (videoMatch && (videoMatch[1] === 'youtube' || videoMatch[1] === 'upload')) {
-      flushMarkdown();
-      segments.push({
-        provider: videoMatch[1],
-        src: videoMatch[3] ? decodeHtmlAttributeEntities(videoMatch[3]) : undefined,
-        type: 'video',
-        videoId: videoMatch[2] ? decodeHtmlAttributeEntities(videoMatch[2]) : undefined,
-      });
-      continue;
-    }
-
-    const legacyYoutubeMatch = line.match(legacyYoutubePattern);
-
-    if (legacyYoutubeMatch) {
-      flushMarkdown();
-      segments.push({
-        provider: 'youtube',
-        type: 'video',
-        videoId: decodeHtmlAttributeEntities(legacyYoutubeMatch[1]),
-      });
-      continue;
-    }
-
-    const attachmentMatch = line.match(attachmentPattern);
-
-    if (attachmentMatch) {
-      flushMarkdown();
-      segments.push({
-        contentType: attachmentMatch[4]
-          ? decodeHtmlAttributeEntities(attachmentMatch[4])
-          : undefined,
-        fileName: decodeHtmlAttributeEntities(attachmentMatch[2]),
-        fileSize: attachmentMatch[3] ? Number(attachmentMatch[3]) : undefined,
-        href: decodeHtmlAttributeEntities(attachmentMatch[1]),
-        type: 'attachment',
-      });
-      continue;
-    }
-
-    const mathMatch = line.match(mathPattern);
-
-    if (mathMatch) {
-      flushMarkdown();
-      segments.push({
-        formula: mathMatch[2],
-        isBlock: mathMatch[1] === 'true',
-        type: 'math',
-      });
-      continue;
-    }
-
-    if (line.startsWith(subtextPrefix)) {
-      flushMarkdown();
-
-      const subtextLines = [line.slice(subtextPrefix.length)];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor].startsWith(subtextPrefix)) {
-        subtextLines.push(lines[cursor].slice(subtextPrefix.length));
-        cursor += 1;
-      }
-
-      segments.push({
-        content: subtextLines.join('\n'),
-        type: 'subtext',
-      });
-
-      index = cursor - 1;
-      continue;
-    }
-
-    currentMarkdownLines.push(line);
-  }
-
-  flushMarkdown();
-
-  return segments;
+type RenderRichMarkdownArgs = RichMarkdownRenderArgs & {
+  adapters?: MarkdownRendererHostAdapters;
+  renderMarkdownFragment: MarkdownFragmentRenderer;
+  renderers?: PartialRichMarkdownRendererRegistry;
 };
 
 /**
  * custom markdown segment와 일반 markdown fragment를 합쳐 최종 React 노드 목록으로 변환합니다.
+ * attachment/gallery/math/video는 기본 registry로 렌더링하고, 필요하면 일부 renderer를 host에서 override할 수 있습니다.
+ *
+ * @param markdown custom syntax가 포함될 수 있는 원본 markdown 문자열입니다.
+ * @param renderMarkdownFragment 일반 markdown chunk를 렌더링할 fragment renderer입니다.
+ * @param renderers custom segment renderer 일부를 교체할 때 사용하는 optional registry입니다.
+ * @returns custom syntax와 일반 markdown가 결합된 React 노드 목록입니다.
  */
 export const renderRichMarkdown = ({
+  adapters,
   markdown,
   renderMarkdownFragment,
-}: {
-  markdown: string;
-  renderMarkdownFragment: MarkdownFragmentRenderer;
-}) =>
-  parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
+  renderers,
+}: RenderRichMarkdownArgs) => {
+  const resolvedRenderers = createRichMarkdownRendererRegistry(renderers, adapters);
+
+  return parseRichMarkdownSegments(normalizeMarkdownHtmlAliases(markdown)).map((segment, index) => {
     const key = `rich-markdown-${index}`;
 
     if (segment.type === 'markdown') {
@@ -512,34 +59,19 @@ export const renderRichMarkdown = ({
     }
 
     if (segment.type === 'video') {
-      return (
-        <MarkdownVideo
-          key={key}
-          provider={segment.provider}
-          src={segment.src}
-          videoId={segment.videoId}
-        />
-      );
+      return resolvedRenderers.video({ key, segment });
     }
 
     if (segment.type === 'attachment') {
-      return (
-        <MarkdownAttachment
-          contentType={segment.contentType}
-          fileName={segment.fileName}
-          fileSize={segment.fileSize}
-          href={segment.href}
-          key={key}
-        />
-      );
+      return resolvedRenderers.attachment({ key, segment });
     }
 
     if (segment.type === 'math') {
-      return <MarkdownMath formula={segment.formula} isBlock={segment.isBlock} key={key} />;
+      return resolvedRenderers.math({ key, segment });
     }
 
     if (segment.type === 'gallery') {
-      return <MarkdownGallery galleryId={key} items={segment.items} key={key} />;
+      return resolvedRenderers.gallery({ key, segment });
     }
 
     if (segment.type === 'subtext') {
@@ -554,8 +86,10 @@ export const renderRichMarkdown = ({
       return (
         <div className={alignedBlockClass} key={key} style={{ textAlign: segment.align }}>
           {renderRichMarkdown({
+            adapters,
             markdown: segment.content,
             renderMarkdownFragment,
+            renderers: resolvedRenderers,
           })}
         </div>
       );
@@ -590,13 +124,16 @@ export const renderRichMarkdown = ({
         </summary>
         <div className={toggleContentClass}>
           {renderRichMarkdown({
+            adapters,
             markdown: segment.content,
             renderMarkdownFragment,
+            renderers: resolvedRenderers,
           })}
         </div>
       </details>
     );
   });
+};
 
 const subtextClass = css({
   m: '0',

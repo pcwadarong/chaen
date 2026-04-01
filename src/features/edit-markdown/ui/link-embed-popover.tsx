@@ -10,8 +10,19 @@ import { Input } from '@/shared/ui/input/input';
 import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
 type LinkEmbedMode = 'card' | 'link' | 'preview';
+export type LinkEmbedPopoverLabels = {
+  cardButtonLabel: string;
+  panelLabel: string;
+  previewButtonLabel: string;
+  triggerAriaLabel: string;
+  triggerTooltip: string;
+  urlInputAriaLabel: string;
+  urlPlaceholder: string;
+  hyperlinkButtonLabel: string;
+};
 
 type LinkEmbedPopoverProps = {
+  labels?: Partial<LinkEmbedPopoverLabels>;
   onApply: (url: string, mode: LinkEmbedMode, closePopover?: ClosePopover) => void;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
@@ -21,11 +32,22 @@ type LinkEmbedPopoverProps = {
  * 관리자 에디터에서 사용하는 링크 삽입 팝오버 UI
  */
 export const LinkEmbedPopover = ({
+  labels,
   onApply,
   onTriggerMouseDown,
   triggerClassName,
 }: LinkEmbedPopoverProps) => {
   const [linkInput, setLinkInput] = useState('');
+  const resolvedLabels: LinkEmbedPopoverLabels = {
+    cardButtonLabel: labels?.cardButtonLabel ?? 'OG 카드',
+    panelLabel: labels?.panelLabel ?? '링크 삽입',
+    previewButtonLabel: labels?.previewButtonLabel ?? '제목 링크',
+    triggerAriaLabel: labels?.triggerAriaLabel ?? '링크 임베드',
+    triggerTooltip: labels?.triggerTooltip ?? '링크 임베드',
+    urlInputAriaLabel: labels?.urlInputAriaLabel ?? '링크 URL',
+    urlPlaceholder: labels?.urlPlaceholder ?? 'https://example.com',
+    hyperlinkButtonLabel: labels?.hyperlinkButtonLabel ?? '하이퍼링크',
+  };
 
   const handleApply = (mode: LinkEmbedMode, closePopover?: ClosePopover) => {
     const normalizedInput = normalizeEmbedInput(linkInput);
@@ -39,28 +61,34 @@ export const LinkEmbedPopover = ({
   return (
     <Popover
       onTriggerMouseDown={onTriggerMouseDown}
-      panelLabel="링크 삽입"
+      panelLabel={resolvedLabels.panelLabel}
       portalPlacement="start"
       renderInPortal
-      triggerAriaLabel="링크 임베드"
+      triggerAriaLabel={resolvedLabels.triggerAriaLabel}
       triggerClassName={triggerClassName}
       triggerContent={<LinkIcon aria-hidden color="text" size="sm" />}
-      triggerTooltip="링크 임베드"
+      triggerTooltip={resolvedLabels.triggerTooltip}
     >
       {({ closePopover }) => (
         <div className={popoverContentClass}>
           <Input
-            aria-label="링크 URL"
+            aria-label={resolvedLabels.urlInputAriaLabel}
             onChange={event => setLinkInput(event.target.value)}
             onMouseDown={event => event.stopPropagation()}
-            placeholder="https://example.com"
+            placeholder={resolvedLabels.urlPlaceholder}
             type="url"
             value={linkInput}
           />
           <div className={linkModeGridClass}>
-            <Button onClick={() => handleApply('preview', closePopover)}>제목 링크</Button>
-            <Button onClick={() => handleApply('link', closePopover)}>하이퍼링크</Button>
-            <Button onClick={() => handleApply('card', closePopover)}>OG 카드</Button>
+            <Button onClick={() => handleApply('preview', closePopover)}>
+              {resolvedLabels.previewButtonLabel}
+            </Button>
+            <Button onClick={() => handleApply('link', closePopover)}>
+              {resolvedLabels.hyperlinkButtonLabel}
+            </Button>
+            <Button onClick={() => handleApply('card', closePopover)}>
+              {resolvedLabels.cardButtonLabel}
+            </Button>
           </div>
         </div>
       )}

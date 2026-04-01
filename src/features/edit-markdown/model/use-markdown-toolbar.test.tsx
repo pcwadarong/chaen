@@ -1,4 +1,5 @@
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
+import React from 'react';
 
 import { useMarkdownToolbar } from '@/features/edit-markdown/model/use-markdown-toolbar';
 
@@ -18,6 +19,31 @@ const getToolbarActionByLabel = (
   }
 
   throw new Error(`toolbar action not found: ${label}`);
+};
+
+/**
+ * hook이 만든 custom toolbar item 안에서 token popover option을 label로 찾습니다.
+ */
+const getToolbarTokenOptionByLabel = (
+  toolbarSections: ReturnType<typeof useMarkdownToolbar>['toolbarSections'],
+  label: string,
+) => {
+  for (const section of toolbarSections) {
+    for (const item of section.items) {
+      if (!item || item.type !== 'custom' || !React.isValidElement(item.node)) continue;
+
+      const options = (
+        item.node.props as { options?: Array<{ label: string; onClick: () => void }> }
+      ).options;
+
+      const matchedOption = options?.find(option => option.label === label);
+      if (matchedOption) {
+        return matchedOption;
+      }
+    }
+  }
+
+  throw new Error(`toolbar token option not found: ${label}`);
 };
 
 /**
@@ -75,14 +101,14 @@ describe('useMarkdownToolbar', () => {
     textarea.value = '## 제목';
     textarea.setSelectionRange(0, textarea.value.length);
 
-    getToolbarActionByLabel(result.current.toolbarSections, '제목 3').onClick();
+    getToolbarTokenOptionByLabel(result.current.toolbarSections, '제목 3').onClick();
 
     await waitFor(() => {
       expect(textarea.value).toBe('### 제목');
     });
 
     textarea.setSelectionRange(0, textarea.value.length);
-    getToolbarActionByLabel(result.current.toolbarSections, '제목 3').onClick();
+    getToolbarTokenOptionByLabel(result.current.toolbarSections, '제목 3').onClick();
 
     await waitFor(() => {
       expect(textarea.value).toBe('제목');
@@ -90,7 +116,7 @@ describe('useMarkdownToolbar', () => {
 
     textarea.value = '';
     textarea.setSelectionRange(0, 0);
-    getToolbarActionByLabel(result.current.toolbarSections, '제목 4').onClick();
+    getToolbarTokenOptionByLabel(result.current.toolbarSections, '제목 4').onClick();
 
     await waitFor(() => {
       expect(textarea.value).toBe('#### ');
@@ -114,7 +140,7 @@ describe('useMarkdownToolbar', () => {
   it('토글 action은 빈 상태에서도 토글 템플릿을 삽입한다', async () => {
     const { result, textarea } = renderMarkdownToolbarHook();
 
-    getToolbarActionByLabel(result.current.toolbarSections, '토글 제목 4').onClick();
+    getToolbarTokenOptionByLabel(result.current.toolbarSections, '토글 제목 4').onClick();
 
     await waitFor(() => {
       expect(textarea.value).toContain(':::toggle #### ');

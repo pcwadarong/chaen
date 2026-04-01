@@ -8,37 +8,35 @@ import '@testing-library/jest-dom/vitest';
 describe('LinkEmbedCard', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
-  it('OG 데이터를 불러오는 동안 skeleton UI를 렌더링한다', () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => new Promise(() => undefined)),
+  it('host fetcher가 대기 중이면, LinkEmbedCard는 로딩 skeleton을 렌더링해야 한다', () => {
+    render(
+      <LinkEmbedCard
+        fetchLinkPreviewMeta={() => new Promise(() => undefined)}
+        url="https://github.com/openai/openai"
+        variant="card"
+      />,
     );
-
-    render(<LinkEmbedCard url="https://github.com/openai/openai" variant="card" />);
 
     expect(screen.getByText('링크 정보를 불러오는 중...')).toBeInTheDocument();
   });
 
-  it('OG 메타를 카드 형태로 렌더링한다', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        json: async () => ({
+  it('유효한 preview metadata가 주어지면, LinkEmbedCard는 card variant를 렌더링해야 한다', async () => {
+    render(
+      <LinkEmbedCard
+        fetchLinkPreviewMeta={async () => ({
           description: 'Repository description',
           favicon: 'https://github.com/favicon.ico',
           image: 'https://opengraph.githubassets.com/image.png',
           siteName: 'GitHub',
           title: 'openai/openai',
           url: 'https://github.com/openai/openai',
-        }),
-        ok: true,
-      }),
+        })}
+        url="https://github.com/openai/openai"
+        variant="card"
+      />,
     );
-
-    render(<LinkEmbedCard url="https://github.com/openai/openai" variant="card" />);
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'openai/openai' })).toBeInTheDocument();
@@ -48,23 +46,21 @@ describe('LinkEmbedCard', () => {
     expect(screen.getByText('https://github.com/openai/openai')).toBeInTheDocument();
   });
 
-  it('제목 링크 variant는 favicon과 title만 간결하게 렌더링한다', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        json: async () => ({
+  it('유효한 preview metadata가 주어지면, LinkEmbedCard는 카드 본문 텍스트 없이 preview variant를 렌더링해야 한다', async () => {
+    render(
+      <LinkEmbedCard
+        fetchLinkPreviewMeta={async () => ({
           description: 'Repository description',
           favicon: 'https://github.com/favicon.ico',
           image: 'https://opengraph.githubassets.com/image.png',
           siteName: 'GitHub',
           title: 'openai/openai',
           url: 'https://github.com/openai/openai',
-        }),
-        ok: true,
-      }),
+        })}
+        url="https://github.com/openai/openai"
+        variant="preview"
+      />,
     );
-
-    render(<LinkEmbedCard url="https://github.com/openai/openai" variant="preview" />);
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'openai/openai' })).toBeInTheDocument();
@@ -74,7 +70,48 @@ describe('LinkEmbedCard', () => {
     expect(screen.queryByText('https://github.com/openai/openai')).not.toBeInTheDocument();
   });
 
-  it('OG 메타가 부족하면 일반 외부 링크로 fallback한다', async () => {
+  it('preview metadata가 부족하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
+    render(
+      <LinkEmbedCard
+        fallbackLabel="Example"
+        fetchLinkPreviewMeta={async () => ({
+          description: '',
+          favicon: null,
+          image: null,
+          siteName: 'example.com',
+          title: 'https://example.com/',
+          url: 'https://example.com/',
+        })}
+        url="https://example.com"
+        variant="card"
+      />,
+    );
+
+    const link = await screen.findByRole('link', { name: 'Example' });
+
+    expect(link.getAttribute('href')).toBe('https://example.com/');
+    expect(screen.queryByText('링크 정보를 불러오는 중...')).not.toBeInTheDocument();
+  });
+
+  it('host fetcher가 실패하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
+    render(
+      <LinkEmbedCard
+        fallbackLabel="Fallback"
+        fetchLinkPreviewMeta={async () => {
+          throw new Error('network failed');
+        }}
+        url="https://example.com"
+        variant="card"
+      />,
+    );
+
+    const link = await screen.findByRole('link', { name: 'Fallback' });
+
+    expect(link).toBeInTheDocument();
+    expect(link.getAttribute('href')).toBe('https://example.com');
+  });
+
+  it('host fetcher가 없으면, LinkEmbedCard는 기본 앱 preview 요청을 계속 사용해야 한다', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -90,22 +127,13 @@ describe('LinkEmbedCard', () => {
       }),
     );
 
-    render(<LinkEmbedCard fallbackLabel="Example" url="https://example.com" variant="card" />);
-
-    const link = await screen.findByRole('link', { name: 'Example' });
-
-    expect(link.getAttribute('href')).toBe('https://example.com/');
-    expect(screen.queryByText('링크 정보를 불러오는 중...')).not.toBeInTheDocument();
-  });
-
-  it('fetch가 실패해도 기본 외부 링크로 fallback한다', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network failed')));
-
     render(<LinkEmbedCard fallbackLabel="Fallback" url="https://example.com" variant="card" />);
 
     const link = await screen.findByRole('link', { name: 'Fallback' });
 
-    expect(link).toBeInTheDocument();
-    expect(link.getAttribute('href')).toBe('https://example.com');
+    expect(fetch).toHaveBeenCalledWith('/api/og?url=https%3A%2F%2Fexample.com', {
+      signal: expect.any(AbortSignal),
+    });
+    expect(link.getAttribute('href')).toBe('https://example.com/');
   });
 });

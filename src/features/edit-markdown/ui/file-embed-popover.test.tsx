@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { uploadEditorFile } from '@/entities/editor/api/upload-editor-file';
 import { FileEmbedPopover } from '@/features/edit-markdown/ui/file-embed-popover';
 
 type PopoverMockProps = {
@@ -21,15 +20,6 @@ vi.mock('@/shared/ui/popover/popover', () => ({
   ),
 }));
 
-vi.mock('@/entities/editor/api/upload-editor-file', () => ({
-  uploadEditorFile: vi.fn(async () => ({
-    contentType: 'application/pdf',
-    fileName: 'resume.pdf',
-    fileSize: 2048,
-    url: 'https://example.com/resume.pdf',
-  })),
-}));
-
 describe('FileEmbedPopover', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -37,8 +27,16 @@ describe('FileEmbedPopover', () => {
 
   it('업로드한 첨부 파일 메타데이터를 onApply에 전달한다', async () => {
     const onApply = vi.fn();
+    const onUploadFile = vi.fn(async () => ({
+      contentType: 'application/pdf',
+      fileName: 'resume.pdf',
+      fileSize: 2048,
+      url: 'https://example.com/resume.pdf',
+    }));
 
-    render(<FileEmbedPopover contentType="article" onApply={onApply} />);
+    render(
+      <FileEmbedPopover contentType="article" onApply={onApply} onUploadFile={onUploadFile} />,
+    );
 
     const fileInput = screen.getByLabelText('첨부 파일 업로드');
     fireEvent.change(fileInput, {
@@ -66,10 +64,11 @@ describe('FileEmbedPopover', () => {
 
   it('업로드 실패 시 에러 메시지를 노출하고 onApply를 호출하지 않는다', async () => {
     const onApply = vi.fn();
+    const onUploadFile = vi.fn().mockRejectedValueOnce(new Error('upload failed'));
 
-    vi.mocked(uploadEditorFile).mockRejectedValueOnce(new Error('upload failed'));
-
-    render(<FileEmbedPopover contentType="article" onApply={onApply} />);
+    render(
+      <FileEmbedPopover contentType="article" onApply={onApply} onUploadFile={onUploadFile} />,
+    );
 
     fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
       target: {
@@ -90,10 +89,19 @@ describe('FileEmbedPopover', () => {
 
   it('업로드 실패 후 다시 파일을 고르면 재시도 후 삽입할 수 있다', async () => {
     const onApply = vi.fn();
+    const onUploadFile = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('upload failed'))
+      .mockResolvedValue({
+        contentType: 'application/pdf',
+        fileName: 'resume.pdf',
+        fileSize: 2048,
+        url: 'https://example.com/resume.pdf',
+      });
 
-    vi.mocked(uploadEditorFile).mockRejectedValueOnce(new Error('upload failed'));
-
-    render(<FileEmbedPopover contentType="article" onApply={onApply} />);
+    render(
+      <FileEmbedPopover contentType="article" onApply={onApply} onUploadFile={onUploadFile} />,
+    );
 
     fireEvent.change(screen.getByLabelText('첨부 파일 업로드'), {
       target: {

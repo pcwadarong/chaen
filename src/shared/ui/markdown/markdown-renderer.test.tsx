@@ -122,6 +122,35 @@ describe('MarkdownRenderer', () => {
     expect(image?.className).toBeTruthy();
   });
 
+  it('host image viewer labels가 주어지면, MarkdownRenderer는 해당 열기 라벨을 이미지 트리거에 반영해야 한다', async () => {
+    const element = await MarkdownRenderer({
+      adapters: {
+        imageViewerLabels: {
+          actionBarAriaLabel: '액션 바',
+          closeAriaLabel: '닫기',
+          fitToScreenAriaLabel: '화면 맞춤',
+          imageViewerAriaLabel: '커스텀 이미지 뷰어',
+          locateSourceAriaLabel: '위치로 이동',
+          nextAriaLabel: '다음',
+          openAriaLabel: '커스텀 열기',
+          previousAriaLabel: '이전',
+          selectForFrameAriaLabel: '프레임용 선택',
+          selectForFrameLabel: '프레임 선택',
+          thumbnailListAriaLabel: '썸네일 목록',
+          zoomInAriaLabel: '확대',
+          zoomOutAriaLabel: '축소',
+        },
+      },
+      markdown: '![설명](https://example.com/image.png)',
+    });
+    const stream = await renderToReadableStream(element);
+    const html = await new Response(stream).text();
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    const image = document.querySelector('img[role="button"]');
+
+    expect(image?.getAttribute('aria-label')).toBe('설명 · 커스텀 열기');
+  });
+
   it('첨부 파일 커스텀 태그를 다운로드 카드 링크로 렌더링한다', async () => {
     const document = await renderServerDocument(
       '<Attachment href="https://example.com/resume.pdf" name="resume.pdf" size="2048" type="application/pdf" />',
@@ -283,6 +312,16 @@ describe('MarkdownRenderer', () => {
     expect(iframe?.getAttribute('src')).toContain('https://www.youtube.com/embed/dQw4w9WgXcQ');
   });
 
+  it('mermaid fenced code block이 주어지면, MarkdownRenderer는 mermaid 렌더링 프레임을 렌더링해야 한다', async () => {
+    const document = await renderServerDocument(
+      ['```mermaid', 'flowchart TD', 'A --> B', '```'].join('\n'),
+    );
+    const mermaidFrame = document.querySelector('[data-markdown-mermaid="true"]');
+
+    expect(mermaidFrame).toBeTruthy();
+    expect(mermaidFrame?.textContent).toContain('Mermaid');
+  });
+
   it('locale이 주어지면 markdown wrapper에 lang 속성을 전달한다', async () => {
     const element = await MarkdownRenderer({
       locale: 'ja',
@@ -329,13 +368,13 @@ describe('MarkdownRenderer', () => {
     expect(document.querySelector('p')?.textContent).toBe('첫 번째 줄\n두 번째 줄');
   });
 
-  it('줄 끝의 literal <br/>도 빈 문단 없이 markdown 줄바꿈으로 정규화한다', async () => {
+  it('줄 끝의 literal <br/> 뒤 Enter는 hard break와 다음 줄 분리를 함께 유지한다', async () => {
     const document = await renderServerDocument(['첫 번째 줄<br/>', '두 번째 줄'].join('\n'));
     const paragraphs = Array.from(document.querySelectorAll('p'));
 
-    expect(paragraphs).toHaveLength(1);
-    expect(document.querySelector('p br')).toBeTruthy();
-    expect(paragraphs[0]?.textContent).toBe('첫 번째 줄\n두 번째 줄');
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0]?.textContent).toBe('첫 번째 줄');
+    expect(paragraphs[1]?.textContent).toBe('두 번째 줄');
   });
 
   it('literal hr 태그는 구분선으로 정규화해 렌더링한다', async () => {

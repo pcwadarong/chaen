@@ -89,6 +89,23 @@ describe('MarkdownImage', () => {
     expect(modal.getAttribute('data-alt')).toBe('설명');
   });
 
+  it('custom viewer labels가 주어지면, MarkdownImage는 next-intl 기본값보다 host labels를 우선 사용해야 한다', () => {
+    render(
+      <MarkdownImage
+        alt="설명"
+        imageViewerLabels={{
+          imageViewerAriaLabel: '커스텀 이미지 뷰어',
+          openAriaLabel: '커스텀 열기',
+        }}
+        src="https://example.com/image.png"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '설명 · 커스텀 열기' }));
+
+    expect(screen.getByRole('dialog', { name: '커스텀 이미지 뷰어' })).toBeTruthy();
+  });
+
   it('viewerItems가 있으면 본문 전체 이미지 목록과 현재 인덱스를 함께 전달한다', () => {
     render(
       <MarkdownImage

@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import {
   buildGlobalNavDockedPaddingTopValue,
   buildGlobalNavDockedTopValue,
+  buildGlobalNavHeightVar,
 } from '@/shared/lib/dom/global-nav-layout-vars';
 import {
   adminConsoleNavigationItems,
@@ -91,10 +92,11 @@ const shellClass = css({
   display: 'grid',
   gap: '0',
   width: 'full',
-  minHeight: '[calc(100dvh - 5.5625rem)]',
+  minHeight: `[calc(100dvh - ${buildGlobalNavHeightVar()})]`,
   alignItems: 'stretch',
   px: '5',
-  py: '5',
+  pt: '0',
+  pb: '5',
   gridTemplateColumns: '[16rem minmax(0, 1fr)]',
   paddingTop: '0',
   _tabletDown: {
@@ -103,6 +105,9 @@ const shellClass = css({
     gridTemplateColumns: '1fr',
     paddingTop: `[${buildGlobalNavDockedPaddingTopValue('0.1rem')}]`,
     paddingBottom: '8',
+    transitionProperty: '[padding-top]',
+    transitionDuration: '[240ms]',
+    transitionTimingFunction: '[ease]',
   },
 });
 
@@ -117,6 +122,10 @@ const mobileNavShellClass = css({
   background: '[rgba(255,255,255,0.92)]',
   backdropFilter: '[blur(14px)]',
   boxShadow: '[0 14px 32px rgba(15,23,42,0.08)]',
+  willChange: 'top',
+  transitionProperty: '[top]',
+  transitionDuration: '[240ms]',
+  transitionTimingFunction: '[ease]',
   _tabletDown: {
     display: 'block',
   },
@@ -172,9 +181,12 @@ const sidebarClass = css({
   mr: '5',
   borderRight: '[1px solid var(--colors-border)]',
   position: 'sticky',
-  top: '0',
+  top: `[${buildGlobalNavDockedTopValue()}]`,
   alignSelf: 'stretch',
   minHeight: 'full',
+  transitionProperty: '[top]',
+  transitionDuration: '[240ms]',
+  transitionTimingFunction: '[ease]',
   _tabletDown: {
     display: 'none',
   },
@@ -246,9 +258,18 @@ const workspaceHeaderClass = css({
   gridTemplateColumns: '[minmax(0,1fr) auto]',
   gap: '4',
   alignItems: 'start',
+  position: 'sticky',
+  top: `[${buildGlobalNavDockedTopValue()}]`,
+  zIndex: '4',
+  backgroundColor: 'surface',
   paddingTop: '6',
   paddingBottom: '4',
+  transitionProperty: '[top]',
+  transitionDuration: '[240ms]',
+  transitionTimingFunction: '[ease]',
   _tabletDown: {
+    position: 'sticky',
+    top: `[${buildGlobalNavDockedTopValue()}]`,
     paddingTop: '5',
     paddingBottom: '3',
   },

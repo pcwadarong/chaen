@@ -6,7 +6,7 @@ import {
   createYoutubeEmbedMarkdown,
   extractVideoEmbedReference,
   extractYoutubeId,
-} from '@/features/edit-markdown/model/video-embed';
+} from '@/entities/editor-core/model/video-embed';
 
 describe('video embed helpers', () => {
   it('유효한 YouTube URL이 주어지면, extractVideoEmbedReference는 provider와 video id를 반환해야 한다', () => {

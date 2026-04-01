@@ -43,6 +43,19 @@ describe('EditorDraftsPage', () => {
     );
   });
 
+  it('관리자 drafts 화면에서, EditorDraftsPage는 새 아티클 작성과 새 프로젝트 작성 CTA를 보여줘야 한다', () => {
+    render(<EditorDraftsPage items={[]} signOutRedirectPath="/ko/admin/login" />);
+
+    expect(screen.getByRole('link', { name: '새 아티클 작성' })).toHaveAttribute(
+      'href',
+      '/admin/articles/new',
+    );
+    expect(screen.getByRole('link', { name: '새 프로젝트 작성' })).toHaveAttribute(
+      'href',
+      '/admin/projects/new',
+    );
+  });
+
   it('삭제를 확인하면 server action을 호출하고 현재 목록에서 제거한다', async () => {
     const onDeleteDraft = vi.fn().mockResolvedValue(undefined);
 

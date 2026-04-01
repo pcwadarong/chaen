@@ -3,6 +3,11 @@
 import type { RefObject } from 'react';
 import { useEffect } from 'react';
 
+import {
+  GLOBAL_NAV_HEIGHT_CSS_VAR,
+  resolveGlobalNavLayoutVarScopes,
+} from '@/shared/lib/dom/global-nav-layout-vars';
+
 /**
  * 전역 네비게이션의 실제 높이를 CSS 변수로 동기화합니다.
  *
@@ -16,15 +21,15 @@ export const useGlobalNavHeightVar = (headerRef: RefObject<HTMLElement | null>) 
 
     const headerElement = headerRef.current;
 
-    const styleScope =
-      document.querySelector<HTMLElement>('[data-app-scroll-viewport="true"]') ??
-      document.documentElement;
-
     /**
      * 네비 실제 높이를 레이아웃 계산용 CSS 변수로 저장합니다.
      */
     const syncHeaderHeight = () => {
-      styleScope.style.setProperty('--global-nav-height', `${headerElement.offsetHeight}px`);
+      const headerHeight = `${headerElement.offsetHeight}px`;
+
+      resolveGlobalNavLayoutVarScopes().forEach(scope => {
+        scope.style.setProperty(GLOBAL_NAV_HEIGHT_CSS_VAR, headerHeight);
+      });
     };
 
     syncHeaderHeight();

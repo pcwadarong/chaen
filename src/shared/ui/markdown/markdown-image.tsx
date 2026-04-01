@@ -4,11 +4,13 @@ import { useTranslations } from 'next-intl';
 import React, { type ImgHTMLAttributes, useEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
+import type { MarkdownImageViewerLabels } from '@/entities/editor-core';
 import type { MarkdownImageViewerItem } from '@/shared/lib/markdown/collect-markdown-images';
 import { ImageViewerModal } from '@/shared/ui/image-viewer/image-viewer-modal';
 
 type MarkdownImageProps = ImgHTMLAttributes<HTMLImageElement> & {
   imageIndex?: number;
+  imageViewerLabels?: Partial<MarkdownImageViewerLabels>;
   viewerItems?: MarkdownImageViewerItem[];
 };
 
@@ -64,6 +66,7 @@ export const MarkdownImage = ({
   alt,
   className,
   imageIndex = 0,
+  imageViewerLabels: imageViewerLabelOverrides,
   onClick,
   onKeyDown,
   src,
@@ -81,26 +84,32 @@ export const MarkdownImage = ({
       ? viewerItems
       : [{ alt: resolvedAlt, src: resolvedSrc, viewerId: 'markdown-image-0' }];
   const viewerItemId = resolvedViewerItems[imageIndex]?.viewerId ?? `markdown-image-${imageIndex}`;
-  const imageViewerLabels = useMemo(
+  const resolvedImageViewerLabels = useMemo(
     () => ({
-      actionBarAriaLabel: t('actionBarAriaLabel'),
-      closeAriaLabel: t('closeAriaLabel'),
-      fitToScreenAriaLabel: t('fitToScreenAriaLabel'),
-      imageViewerAriaLabel: t('imageViewerAriaLabel'),
-      locateSourceAriaLabel: t('locateSourceAriaLabel'),
-      nextAriaLabel: t('nextAriaLabel'),
-      previousAriaLabel: t('previousAriaLabel'),
-      selectForFrameAriaLabel: t('selectForFrameAriaLabel'),
-      selectForFrameLabel: t('selectForFrameLabel'),
-      thumbnailListAriaLabel: t('thumbnailListAriaLabel'),
-      zoomInAriaLabel: t('zoomInAriaLabel'),
-      zoomOutAriaLabel: t('zoomOutAriaLabel'),
+      actionBarAriaLabel: imageViewerLabelOverrides?.actionBarAriaLabel ?? t('actionBarAriaLabel'),
+      closeAriaLabel: imageViewerLabelOverrides?.closeAriaLabel ?? t('closeAriaLabel'),
+      fitToScreenAriaLabel:
+        imageViewerLabelOverrides?.fitToScreenAriaLabel ?? t('fitToScreenAriaLabel'),
+      imageViewerAriaLabel:
+        imageViewerLabelOverrides?.imageViewerAriaLabel ?? t('imageViewerAriaLabel'),
+      locateSourceAriaLabel:
+        imageViewerLabelOverrides?.locateSourceAriaLabel ?? t('locateSourceAriaLabel'),
+      nextAriaLabel: imageViewerLabelOverrides?.nextAriaLabel ?? t('nextAriaLabel'),
+      previousAriaLabel: imageViewerLabelOverrides?.previousAriaLabel ?? t('previousAriaLabel'),
+      selectForFrameAriaLabel:
+        imageViewerLabelOverrides?.selectForFrameAriaLabel ?? t('selectForFrameAriaLabel'),
+      selectForFrameLabel:
+        imageViewerLabelOverrides?.selectForFrameLabel ?? t('selectForFrameLabel'),
+      thumbnailListAriaLabel:
+        imageViewerLabelOverrides?.thumbnailListAriaLabel ?? t('thumbnailListAriaLabel'),
+      zoomInAriaLabel: imageViewerLabelOverrides?.zoomInAriaLabel ?? t('zoomInAriaLabel'),
+      zoomOutAriaLabel: imageViewerLabelOverrides?.zoomOutAriaLabel ?? t('zoomOutAriaLabel'),
     }),
-    [t],
+    [imageViewerLabelOverrides, t],
   );
   const openViewerAriaLabel = resolvedAlt
-    ? `${resolvedAlt} · ${t('openAriaLabel')}`
-    : t('openAriaLabel');
+    ? `${resolvedAlt} · ${imageViewerLabelOverrides?.openAriaLabel ?? t('openAriaLabel')}`
+    : (imageViewerLabelOverrides?.openAriaLabel ?? t('openAriaLabel'));
 
   /**
    * 링크 안 이미지까지 포함해 기본 이동을 막고 이미지 뷰어만 엽니다.
@@ -186,7 +195,7 @@ export const MarkdownImage = ({
       <ImageViewerModal
         initialIndex={isViewerOpen ? imageIndex : null}
         items={resolvedViewerItems}
-        labels={imageViewerLabels}
+        labels={resolvedImageViewerLabels}
         onClose={() => {
           setIsViewerOpen(false);
         }}

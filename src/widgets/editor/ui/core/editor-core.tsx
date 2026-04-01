@@ -10,7 +10,7 @@ import {
   indentMarkdownList,
   insertTemplate,
   outdentMarkdownList,
-} from '@/entities/editor/model/selection-utils';
+} from '@/entities/editor-core/model/selection-utils';
 import { LOCALE_CODE_LABELS } from '@/shared/lib/i18n/locale-code-labels';
 import { getMarkdownOptions } from '@/shared/lib/markdown/markdown-config';
 import { Button } from '@/shared/ui/button/button';
