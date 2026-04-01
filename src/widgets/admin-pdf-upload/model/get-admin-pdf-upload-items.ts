@@ -10,7 +10,7 @@ import 'server-only';
  *
  * @returns 관리자 PDF 업로드 행 렌더링에 필요한 고정 자산 정보 배열
  */
-export const getAdminPdfUploadItems = async (): Promise<AdminPdfUploadItem[]> =>
+export const getAdminPdfUploadItems = (): AdminPdfUploadItem[] =>
   listPdfFileAssetStorageConfigs().map(storageConfig => ({
     assetKey: storageConfig.assetKey,
     downloadFileName: storageConfig.downloadFileName,

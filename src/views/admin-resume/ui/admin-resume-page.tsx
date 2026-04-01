@@ -1,5 +1,4 @@
 import React from 'react';
-import { css } from 'styled-system/css';
 
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
@@ -9,24 +8,19 @@ import { AdminPdfUploadPanel } from '@/widgets/admin-pdf-upload';
 
 type AdminResumePageProps = {
   pdfUploadItems: AdminPdfUploadItem[];
-  signOutRedirectPath?: string;
+  signOutRedirectPath: string;
 };
 
 /**
  * 관리자 resume 작업 허브를 렌더링합니다.
  * resume 본문 편집 진입과 PDF 파일 관리를 한 화면에 모읍니다.
  */
-export const AdminResumePage = ({
-  pdfUploadItems,
-  signOutRedirectPath = '/ko/admin/login',
-}: AdminResumePageProps) => (
+export const AdminResumePage = ({ pdfUploadItems, signOutRedirectPath }: AdminResumePageProps) => (
   <AdminConsoleShell
     action={
-      <div className={actionClass}>
-        <Button asChild tone="white" variant="solid">
-          <Link href="/admin/resume/edit">이력서 편집</Link>
-        </Button>
-      </div>
+      <Button asChild tone="white" variant="solid">
+        <Link href="/admin/resume/edit">이력서 편집</Link>
+      </Button>
     }
     activeSection="resume"
     signOutRedirectPath={signOutRedirectPath}
@@ -35,10 +29,3 @@ export const AdminResumePage = ({
     <AdminPdfUploadPanel initialItems={pdfUploadItems} />
   </AdminConsoleShell>
 );
-
-const actionClass = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-  gap: '3',
-});

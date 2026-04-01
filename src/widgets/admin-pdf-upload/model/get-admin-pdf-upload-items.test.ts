@@ -1,3 +1,5 @@
+/** @vitest-environment node */
+
 import { getAdminPdfUploadItems } from '@/widgets/admin-pdf-upload/model/get-admin-pdf-upload-items';
 
 vi.mock('@/entities/pdf-file', () => ({
@@ -26,8 +28,8 @@ describe('getAdminPdfUploadItems', () => {
     vi.clearAllMocks();
   });
 
-  it('고정 PDF 자산 구성이 주어졌을 때, getAdminPdfUploadItems는 관리자 업로드 항목 배열을 반환해야 한다', async () => {
-    await expect(getAdminPdfUploadItems()).resolves.toEqual([
+  it('고정 PDF 자산 구성이 주어지면, getAdminPdfUploadItems는 관리자 업로드 항목 배열을 반환해야 한다', () => {
+    expect(getAdminPdfUploadItems()).toEqual([
       {
         assetKey: 'resume-ko',
         downloadFileName: 'ParkChaewon-Resume-ko.pdf',

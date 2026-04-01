@@ -28,7 +28,7 @@ const AdminResumeRoute = async ({
 
   await requireAdmin({ locale });
 
-  const pdfUploadItems = await getAdminPdfUploadItems();
+  const pdfUploadItems = getAdminPdfUploadItems();
 
   return (
     <AdminResumePage
