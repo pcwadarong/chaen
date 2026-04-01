@@ -158,6 +158,7 @@
   },
   "ProjectDetail": {
     "archiveLabel": "프로젝트 아카이브",
+    "backToHome": "홈",
     "emptyContent": "아직 등록된 본문이 없습니다.",
     "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
     "emptySummary": "요약이 비어 있습니다.",

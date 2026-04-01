@@ -158,6 +158,7 @@
   },
   "ProjectDetail": {
     "archiveLabel": "プロジェクトアーカイブ",
+    "backToHome": "ホーム",
     "emptyContent": "本文はまだ登録されていません。",
     "emptyDescription": "詳細説明はまだ登録されていません。",
     "emptySummary": "概要はまだありません。",
