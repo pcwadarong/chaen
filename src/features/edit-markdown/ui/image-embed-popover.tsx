@@ -43,6 +43,7 @@ type ImageEmbedPopoverProps = {
     },
     closePopover?: ClosePopover,
   ) => void;
+  onUploadImage?: typeof uploadEditorImage;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -56,6 +57,7 @@ type ImageEmbedPopoverProps = {
 export const ImageEmbedPopover = ({
   contentType,
   onApply,
+  onUploadImage = uploadEditorImage,
   onTriggerMouseDown,
   triggerClassName,
 }: ImageEmbedPopoverProps) => {
@@ -146,7 +148,7 @@ export const ImageEmbedPopover = ({
           uploadImageEmbedSource({
             contentType,
             file,
-            uploadEditorImage,
+            uploadEditorImage: onUploadImage,
           }),
         ),
       );
@@ -268,7 +270,7 @@ export const ImageEmbedPopover = ({
       const result = await uploadImageEmbedSource({
         contentType,
         file,
-        uploadEditorImage,
+        uploadEditorImage: onUploadImage,
       });
 
       if (!result.url) {

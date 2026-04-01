@@ -28,6 +28,7 @@ type VideoEmbedModalProps = {
     },
     closePopover?: ClosePopover,
   ) => void;
+  onUploadVideo?: typeof uploadEditorVideo;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -46,6 +47,7 @@ const VIDEO_MAX_FILE_SIZE_MB = Math.round(EDITOR_VIDEO_MAX_FILE_SIZE / MB);
 export const VideoEmbedModal = ({
   contentType,
   onApply,
+  onUploadVideo = uploadEditorVideo,
   onTriggerMouseDown,
   triggerClassName,
 }: VideoEmbedModalProps) => {
@@ -148,7 +150,7 @@ export const VideoEmbedModal = ({
     setErrorMessage(null);
 
     try {
-      const uploadedUrl = await uploadEditorVideo({
+      const uploadedUrl = await onUploadVideo({
         contentType,
         file,
         onProgress: progress => {

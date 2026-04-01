@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
-import { uploadEditorImage } from '@/entities/editor/api/upload-editor-image';
 import { ImageEmbedPopover } from '@/features/edit-markdown/ui/image-embed-popover';
 
 vi.mock('next/image', () => ({
@@ -37,17 +36,22 @@ vi.mock('@/shared/ui/modal/modal', () => ({
     ) : null,
 }));
 
-vi.mock('@/entities/editor/api/upload-editor-image', () => ({
-  uploadEditorImage: vi.fn(),
-}));
-
-const renderImageModal = (onApply = vi.fn()) => {
-  render(<ImageEmbedPopover contentType="article" onApply={onApply} />);
+const renderImageModal = ({
+  onApply = vi.fn(),
+  onUploadImage = vi.fn(),
+}: {
+  onApply?: ReturnType<typeof vi.fn>;
+  onUploadImage?: ReturnType<typeof vi.fn>;
+} = {}) => {
+  render(
+    <ImageEmbedPopover contentType="article" onApply={onApply} onUploadImage={onUploadImage} />,
+  );
   fireEvent.click(screen.getByRole('button', { name: '이미지' }));
 
   return {
     dialog: screen.getByRole('dialog', { name: '이미지 삽입' }),
     onApply,
+    onUploadImage,
   };
 };
 
@@ -91,8 +95,9 @@ describe('ImageEmbedPopover', () => {
   });
 
   it('초기 드롭존에 파일을 놓으면, ImageEmbedPopover는 편집 상태 레이아웃과 상단 액션을 렌더링해야 한다', async () => {
-    const { dialog } = renderImageModal();
-    vi.mocked(uploadEditorImage).mockResolvedValue('https://cdn.example.com/dropped.png');
+    const { dialog, onUploadImage } = renderImageModal({
+      onUploadImage: vi.fn().mockResolvedValue('https://cdn.example.com/dropped.png'),
+    });
 
     const dropzone = dialog.querySelector('[data-image-empty-dropzone]');
     expect(dropzone).toBeTruthy();
@@ -106,6 +111,7 @@ describe('ImageEmbedPopover', () => {
     await waitFor(() => {
       expect(within(dialog).getAllByText('이미지 목록').length).toBeGreaterThan(0);
     });
+    expect(onUploadImage).toHaveBeenCalled();
 
     expect(within(dialog).getByLabelText('이미지 파일 업로드')).toBeTruthy();
     expect(within(dialog).getByRole('button', { name: 'URL 추가' })).toBeTruthy();
@@ -168,8 +174,8 @@ describe('ImageEmbedPopover', () => {
   });
 
   it('업로드와 URL 추가를 섞으면, ImageEmbedPopover는 하나의 삽입 흐름으로 합쳐야 한다', async () => {
-    const { dialog, onApply } = renderImageModal();
-    vi.mocked(uploadEditorImage).mockResolvedValue('https://cdn.example.com/uploaded.png');
+    const onUploadImage = vi.fn().mockResolvedValue('https://cdn.example.com/uploaded.png');
+    const { dialog, onApply } = renderImageModal({ onUploadImage });
 
     addUrls(dialog, ['https://example.com/first.png']);
     fireEvent.change(within(dialog).getByLabelText('URL'), {
@@ -186,7 +192,7 @@ describe('ImageEmbedPopover', () => {
     addUrls(dialog, ['https://example.com/second.png']);
 
     await waitFor(() => {
-      expect(vi.mocked(uploadEditorImage)).toHaveBeenCalledWith({
+      expect(onUploadImage).toHaveBeenCalledWith({
         contentType: 'article',
         file: expect.any(File),
         imageKind: 'content',

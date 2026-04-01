@@ -15,6 +15,7 @@ import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 type FileEmbedPopoverProps = {
   contentType: EditorContentType;
   onApply: (attachment: EditorAttachment, closePopover?: ClosePopover) => void;
+  onUploadFile?: typeof uploadEditorFile;
   onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
   triggerClassName?: string;
 };
@@ -25,6 +26,7 @@ type FileEmbedPopoverProps = {
 export const FileEmbedPopover = ({
   contentType,
   onApply,
+  onUploadFile = uploadEditorFile,
   onTriggerMouseDown,
   triggerClassName,
 }: FileEmbedPopoverProps) => {
@@ -44,7 +46,7 @@ export const FileEmbedPopover = ({
     setAttachmentError(null);
 
     try {
-      const uploadedAttachment = await uploadEditorFile({
+      const uploadedAttachment = await onUploadFile({
         contentType,
         file,
       });
