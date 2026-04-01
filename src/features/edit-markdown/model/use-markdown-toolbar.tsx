@@ -22,9 +22,11 @@ import {
   wrapSelection,
 } from '@/entities/editor-core/model/selection-utils';
 import type {
+  LinkEmbedPopoverRenderProps,
   LinkMode,
   MarkdownToolbarPresetItemKey,
   MarkdownToolbarProps,
+  TextColorPopoverRenderProps,
   ToolbarActionItem,
   ToolbarCustomItem,
   ToolbarSectionItem,
@@ -72,10 +74,14 @@ export const useMarkdownToolbar = ({
   contentType,
   onChange,
   textareaRef,
+  uiRegistry,
   popoverTriggerClassName,
 }: MarkdownToolbarProps & {
   popoverTriggerClassName: string;
 }) => {
+  const toolbarLabels = uiRegistry?.labels;
+  const toolbarPopoverRegistry = uiRegistry?.popovers;
+
   /**
    * 현재 textarea selection 범위를 그대로 읽어 선택 문자열을 반환합니다.
    * 공백을 포함한 원본 부분 문자열을 유지해 링크/이미지 라벨 삽입 시 사용자가 선택한 텍스트가 변형되지 않게 합니다.
@@ -397,23 +403,83 @@ export const useMarkdownToolbar = ({
     [toggleActions],
   );
 
+  /**
+   * toolbar token popover 기본 구현을 만들거나 host registry가 주입한 primitive를 사용합니다.
+   */
+  const renderTokenPopover = React.useCallback(
+    (
+      key: 'headingPopover' | 'togglePopover',
+      props: React.ComponentProps<typeof ToolbarTokenPopover>,
+    ) => {
+      const renderer =
+        key === 'headingPopover'
+          ? toolbarPopoverRegistry?.headingPopover
+          : toolbarPopoverRegistry?.togglePopover;
+
+      if (renderer) {
+        return renderer(props);
+      }
+
+      return <ToolbarTokenPopover {...props} />;
+    },
+    [toolbarPopoverRegistry?.headingPopover, toolbarPopoverRegistry?.togglePopover],
+  );
+
+  /**
+   * 글자색/배경색/링크 팝오버는 현재 앱 기본 UI를 유지하되,
+   * 외부 package 단계에서는 registry가 primitive를 교체할 수 있도록 분기합니다.
+   */
+  const renderToolbarPopover = React.useCallback(
+    (
+      key: 'backgroundColorPopover' | 'linkEmbedPopover' | 'textColorPopover',
+      props: LinkEmbedPopoverRenderProps | TextColorPopoverRenderProps,
+    ) => {
+      if (key === 'textColorPopover') {
+        if (toolbarPopoverRegistry?.textColorPopover) {
+          return toolbarPopoverRegistry.textColorPopover(props as TextColorPopoverRenderProps);
+        }
+
+        return <TextColorPopover {...(props as TextColorPopoverRenderProps)} />;
+      }
+
+      if (key === 'backgroundColorPopover') {
+        if (toolbarPopoverRegistry?.backgroundColorPopover) {
+          return toolbarPopoverRegistry.backgroundColorPopover(
+            props as TextColorPopoverRenderProps,
+          );
+        }
+
+        return <TextBackgroundColorPopover {...(props as TextColorPopoverRenderProps)} />;
+      }
+
+      if (toolbarPopoverRegistry?.linkEmbedPopover) {
+        return toolbarPopoverRegistry.linkEmbedPopover(props as LinkEmbedPopoverRenderProps);
+      }
+
+      return <LinkEmbedPopover {...(props as LinkEmbedPopoverRenderProps)} />;
+    },
+    [toolbarPopoverRegistry],
+  );
+
   const highlightItems = React.useMemo<ToolbarCustomItem[]>(
     () => [
       createToolbarCustomItem(
         'text-color',
-        <TextColorPopover
-          onApply={handleTextColorApply}
-          onTriggerMouseDown={event => event.preventDefault()}
-          triggerClassName={popoverTriggerClassName}
-        />,
+        renderToolbarPopover('textColorPopover', {
+          labels: toolbarLabels?.textColorPopover,
+          onApply: handleTextColorApply,
+          onTriggerMouseDown: event => event.preventDefault(),
+          triggerClassName: popoverTriggerClassName,
+        }),
       ),
       createToolbarCustomItem(
         'background-color',
-        <TextBackgroundColorPopover
-          onApply={handleBackgroundColorApply}
-          onTriggerMouseDown={event => event.preventDefault()}
-          triggerClassName={popoverTriggerClassName}
-        />,
+        renderToolbarPopover('backgroundColorPopover', {
+          labels: toolbarLabels?.backgroundColorPopover,
+          onApply: handleBackgroundColorApply,
+          onTriggerMouseDown: event => event.preventDefault(),
+          triggerClassName: popoverTriggerClassName,
+        }),
       ),
       createToolbarCustomItem(
         'align',
@@ -424,7 +490,15 @@ export const useMarkdownToolbar = ({
         />,
       ),
     ],
-    [handleAlignApply, handleBackgroundColorApply, handleTextColorApply, popoverTriggerClassName],
+    [
+      handleAlignApply,
+      handleBackgroundColorApply,
+      handleTextColorApply,
+      popoverTriggerClassName,
+      renderToolbarPopover,
+      toolbarLabels?.backgroundColorPopover,
+      toolbarLabels?.textColorPopover,
+    ],
   );
 
   const embedItems = React.useMemo<ToolbarCustomItem[]>(
@@ -457,11 +531,12 @@ export const useMarkdownToolbar = ({
       ),
       createToolbarCustomItem(
         'link-embed',
-        <LinkEmbedPopover
-          onApply={handleLinkApply}
-          onTriggerMouseDown={event => event.preventDefault()}
-          triggerClassName={popoverTriggerClassName}
-        />,
+        renderToolbarPopover('linkEmbedPopover', {
+          labels: toolbarLabels?.linkEmbedPopover,
+          onApply: handleLinkApply,
+          onTriggerMouseDown: event => event.preventDefault(),
+          triggerClassName: popoverTriggerClassName,
+        }),
       ),
       createToolbarCustomItem(
         'video-embed',
@@ -481,6 +556,8 @@ export const useMarkdownToolbar = ({
       handleMathApply,
       handleVideoApply,
       popoverTriggerClassName,
+      renderToolbarPopover,
+      toolbarLabels?.linkEmbedPopover,
     ],
   );
 
@@ -491,15 +568,17 @@ export const useMarkdownToolbar = ({
           [
             createToolbarCustomItem(
               'heading-popover',
-              <ToolbarTokenPopover
-                onTriggerMouseDown={event => event.preventDefault()}
-                options={headingPopoverOptions}
-                panelLabel="제목 레벨 선택"
-                triggerAriaLabel="제목"
-                triggerClassName={popoverTriggerClassName}
-                triggerToken="H"
-                triggerTooltip="제목"
-              />,
+              renderTokenPopover('headingPopover', {
+                labels: {
+                  panelLabel: toolbarLabels?.headingPopover?.panelLabel ?? '제목 레벨 선택',
+                  triggerAriaLabel: toolbarLabels?.headingPopover?.triggerAriaLabel ?? '제목',
+                  triggerTooltip: toolbarLabels?.headingPopover?.triggerTooltip ?? '제목',
+                },
+                onTriggerMouseDown: event => event.preventDefault(),
+                options: headingPopoverOptions,
+                triggerClassName: popoverTriggerClassName,
+                triggerToken: 'H',
+              }),
             ),
             ...createToolbarActionItems(textStructureActions),
             ...createToolbarActionItems(inlineFormatActions),
@@ -507,15 +586,17 @@ export const useMarkdownToolbar = ({
             ...createToolbarActionItems(blockSyntaxActions),
             createToolbarCustomItem(
               'toggle-popover',
-              <ToolbarTokenPopover
-                onTriggerMouseDown={event => event.preventDefault()}
-                options={togglePopoverOptions}
-                panelLabel="토글 레벨 선택"
-                triggerAriaLabel="토글"
-                triggerClassName={popoverTriggerClassName}
-                triggerToken="T"
-                triggerTooltip="토글"
-              />,
+              renderTokenPopover('togglePopover', {
+                labels: {
+                  panelLabel: toolbarLabels?.togglePopover?.panelLabel ?? '토글 레벨 선택',
+                  triggerAriaLabel: toolbarLabels?.togglePopover?.triggerAriaLabel ?? '토글',
+                  triggerTooltip: toolbarLabels?.togglePopover?.triggerTooltip ?? '토글',
+                },
+                onTriggerMouseDown: event => event.preventDefault(),
+                options: togglePopoverOptions,
+                triggerClassName: popoverTriggerClassName,
+                triggerToken: 'T',
+              }),
             ),
             ...embedItems,
           ].map(item => [item.key as MarkdownToolbarPresetItemKey, item] as const),
@@ -528,7 +609,10 @@ export const useMarkdownToolbar = ({
       highlightItems,
       inlineFormatActions,
       popoverTriggerClassName,
+      renderTokenPopover,
       textStructureActions,
+      toolbarLabels?.headingPopover,
+      toolbarLabels?.togglePopover,
       togglePopoverOptions,
     ],
   );

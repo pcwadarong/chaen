@@ -34,6 +34,45 @@ const ToolbarHarness = () => {
   );
 };
 
+/**
+ * host app이 toolbar UI registry를 통해 popover labels를 덮어쓰는 시나리오를 검증합니다.
+ */
+const ToolbarWithCustomUiRegistryHarness = () => {
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [value, setValue] = React.useState('');
+
+  return (
+    <>
+      <MarkdownToolbar
+        contentType="article"
+        onChange={setValue}
+        textareaRef={textareaRef}
+        uiRegistry={{
+          labels: {
+            headingPopover: {
+              panelLabel: '커스텀 제목 선택',
+              triggerAriaLabel: '헤딩',
+              triggerTooltip: '헤딩',
+            },
+            linkEmbedPopover: {
+              panelLabel: '커스텀 링크 패널',
+              triggerAriaLabel: '링크 추가',
+              triggerTooltip: '링크 추가',
+            },
+          },
+        }}
+      />
+      <Textarea
+        aria-label="본문 입력"
+        autoResize={false}
+        onChange={event => setValue(event.target.value)}
+        ref={textareaRef}
+        value={value}
+      />
+    </>
+  );
+};
+
 describe('MarkdownToolbar', () => {
   it('유효한 링크 URL이 입력되면, MarkdownToolbar는 제목 링크 문법을 삽입해야 한다', async () => {
     render(<ToolbarHarness />);
@@ -253,5 +292,22 @@ describe('MarkdownToolbar', () => {
     await waitFor(() => {
       expect(textarea.value).toBe(':::toggle ### 토글 내용\n내용\n:::');
     });
+  });
+
+  it('host app이 toolbar ui registry를 주입하면, MarkdownToolbar는 커스텀 popover labels를 그대로 노출해야 한다', async () => {
+    render(<ToolbarWithCustomUiRegistryHarness />);
+
+    const headingTrigger = screen.getByRole('button', { name: '헤딩' });
+    fireEvent.focus(headingTrigger);
+
+    expect(await screen.findByRole('tooltip', { name: '헤딩' })).toBeTruthy();
+
+    fireEvent.click(headingTrigger);
+
+    expect(await screen.findByText('커스텀 제목 선택')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '링크 추가' }));
+
+    expect(await screen.findByText('커스텀 링크 패널')).toBeTruthy();
   });
 });

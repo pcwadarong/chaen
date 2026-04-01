@@ -7,14 +7,18 @@ import type { ToolbarTokenOption } from '@/features/edit-markdown/model/markdown
 import { Button } from '@/shared/ui/button/button';
 import { type ClosePopover, Popover } from '@/shared/ui/popover/popover';
 
-type ToolbarTokenPopoverProps = {
-  onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
-  options: ToolbarTokenOption[];
+export type ToolbarTokenPopoverLabels = {
   panelLabel: string;
   triggerAriaLabel: string;
+  triggerTooltip: string;
+};
+
+export type ToolbarTokenPopoverProps = {
+  labels: ToolbarTokenPopoverLabels;
+  onTriggerMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
+  options: ToolbarTokenOption[];
   triggerClassName?: string;
   triggerToken: string;
-  triggerTooltip: string;
 };
 
 /**
@@ -22,24 +26,22 @@ type ToolbarTokenPopoverProps = {
  * trigger는 툴바 공간을 줄이고, 실제 단계 선택은 팝오버 안 버튼 목록에서 수행합니다.
  */
 export const ToolbarTokenPopover = ({
+  labels,
   onTriggerMouseDown,
   options,
-  panelLabel,
-  triggerAriaLabel,
   triggerClassName,
   triggerToken,
-  triggerTooltip,
 }: ToolbarTokenPopoverProps) => (
   <Popover
     onTriggerMouseDown={onTriggerMouseDown}
     panelClassName={panelClass}
-    panelLabel={panelLabel}
+    panelLabel={labels.panelLabel}
     portalPlacement="start"
     renderInPortal
-    triggerAriaLabel={triggerAriaLabel}
+    triggerAriaLabel={labels.triggerAriaLabel}
     triggerClassName={triggerClassName}
     triggerContent={<span className={triggerTokenClass}>{triggerToken}</span>}
-    triggerTooltip={triggerTooltip}
+    triggerTooltip={labels.triggerTooltip}
   >
     {({ closePopover }) => (
       <div className={optionGridClass}>
