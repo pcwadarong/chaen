@@ -318,6 +318,7 @@ const createMarkdownComponents = ({
         return (
           <LinkEmbedCard
             fallbackLabel={linkText || normalizedHref}
+            fetchLinkPreviewMeta={adapters?.fetchLinkPreviewMeta}
             url={normalizedHref}
             variant="preview"
           />
@@ -328,6 +329,7 @@ const createMarkdownComponents = ({
         return (
           <LinkEmbedCard
             fallbackLabel={renderMode === 'embed' ? normalizedHref : linkText || normalizedHref}
+            fetchLinkPreviewMeta={adapters?.fetchLinkPreviewMeta}
             url={normalizedHref}
             variant="card"
           />

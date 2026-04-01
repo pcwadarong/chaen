@@ -1,3 +1,5 @@
+/** @vitest-environment jsdom */
+
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
@@ -17,7 +19,7 @@ const renderMarkdownFragment = (markdown: string, key: string) => (
 );
 
 describe('rich-markdown renderer registry', () => {
-  it('custom video renderer override가 주어지면, renderRichMarkdown은 기본 renderer 대신 override된 video node를 렌더링해야 한다', () => {
+  it('custom video renderer override가 주어지면, renderRichMarkdown은 기본 video renderer 대신 override된 node를 렌더링해야 한다', () => {
     render(
       <div>
         {renderRichMarkdown({

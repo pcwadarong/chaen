@@ -85,4 +85,21 @@ describe('rich-markdown segment parser', () => {
       },
     ]);
   });
+
+  it('toggle 본문 안의 fenced code block에 :::가 있어도, parseRichMarkdownSegments는 fenced block을 유지한 채 toggle을 끝까지 파싱해야 한다', () => {
+    expect(
+      parseRichMarkdownSegments(
+        [':::toggle ## 제목', '```ts', "const marker = ':::';", '```', '실제 내용', ':::'].join(
+          '\n',
+        ),
+      ),
+    ).toEqual([
+      {
+        content: ['```ts', "const marker = ':::';", '```', '실제 내용'].join('\n'),
+        headingLevel: 2,
+        title: '제목',
+        type: 'toggle',
+      },
+    ]);
+  });
 });

@@ -148,6 +148,43 @@ export const parseToggleTitle = (rawTitle: string) => {
 };
 
 /**
+ * custom block 내부 본문을 읽으면서 fenced code block 안의 `:::` 종료 토큰은 무시합니다.
+ *
+ * @param lines 전체 markdown 라인 배열입니다.
+ * @param startIndex 본문 읽기를 시작할 첫 줄 index입니다.
+ * @returns 본문 라인과 종료 지점 cursor를 함께 반환합니다.
+ */
+const consumeCustomBlockBody = (lines: string[], startIndex: number) => {
+  const bodyLines: string[] = [];
+  let activeFence: FenceState = null;
+  let cursor = startIndex;
+
+  while (cursor < lines.length) {
+    const line = lines[cursor];
+    const fenceBoundary = getFenceBoundary(line, activeFence);
+
+    if (fenceBoundary) {
+      bodyLines.push(line);
+      activeFence = activeFence ? null : fenceBoundary;
+      cursor += 1;
+      continue;
+    }
+
+    if (!activeFence && line === ':::') {
+      break;
+    }
+
+    bodyLines.push(line);
+    cursor += 1;
+  }
+
+  return {
+    bodyLines,
+    cursor,
+  };
+};
+
+/**
  * custom markdown block 문법을 일반 markdown chunk와 전용 block segment로 분리합니다.
  *
  * @param markdown custom syntax를 포함할 수 있는 원본 markdown 문자열입니다.
@@ -189,14 +226,7 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
 
     if (line.startsWith(toggleStartPrefix)) {
       flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
+      const { bodyLines, cursor } = consumeCustomBlockBody(lines, index + 1);
 
       const { headingLevel, title } = parseToggleTitle(line.slice(toggleStartPrefix.length));
 
@@ -215,14 +245,7 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
 
     if (alignMatch) {
       flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
+      const { bodyLines, cursor } = consumeCustomBlockBody(lines, index + 1);
 
       segments.push({
         align: alignMatch[1] as 'center' | 'left' | 'right',
@@ -236,14 +259,7 @@ export const parseRichMarkdownSegments = (markdown: string): MarkdownSegment[] =
 
     if (galleryStartPattern.test(line)) {
       flushMarkdown();
-
-      const bodyLines: string[] = [];
-      let cursor = index + 1;
-
-      while (cursor < lines.length && lines[cursor] !== ':::') {
-        bodyLines.push(lines[cursor]);
-        cursor += 1;
-      }
+      const { bodyLines, cursor } = consumeCustomBlockBody(lines, index + 1);
 
       segments.push({
         items: collectMarkdownImages(bodyLines.join('\n')),
