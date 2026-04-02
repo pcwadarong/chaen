@@ -21,7 +21,7 @@ export default HomeLoading;
 
 const pageClass = css({
   position: 'relative',
-  minHeight: '100svh',
+  minHeight: 'svh',
   backgroundColor: '[#5d5bff]',
 });
 
