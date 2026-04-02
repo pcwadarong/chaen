@@ -4,15 +4,13 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
-const authState = vi.hoisted<
-  () => {
-    isAdmin: boolean;
-    isAuthenticated: boolean;
-    isReady: boolean;
-    userEmail: string | null;
-    userId: string | null;
-  }
->(() => ({
+const authState = vi.hoisted<{
+  isAdmin: boolean;
+  isAuthenticated: boolean;
+  isReady: boolean;
+  userEmail: string | null;
+  userId: string | null;
+}>(() => ({
   isAdmin: false,
   isAuthenticated: false,
   isReady: true,
