@@ -354,6 +354,38 @@ describe('getArticles', () => {
     });
   });
 
+  it('검색 RPC가 배포되지 않았으면 빈 검색 결과로 대체한다', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const supabaseClient = {
+      from: vi.fn(),
+      rpc: vi.fn().mockResolvedValue({
+        data: null,
+        error: {
+          message:
+            'Could not find the function public.search_article_translations(search_query, fallback_locales, page_limit, cursor_rank, cursor_publish_at, cursor_id) in the schema cache',
+        },
+      }),
+    };
+
+    vi.mocked(hasSupabaseEnv).mockReturnValue(true);
+    vi.mocked(createOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
+
+    const result = await getArticles({ locale: 'ko', query: 'react' });
+
+    expect(result).toEqual({
+      items: [],
+      nextCursor: null,
+      totalCount: 0,
+    });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[articles] search_article_translations RPC를 찾을 수 없어 빈 검색 결과로 대체합니다.',
+      expect.objectContaining({
+        locale: 'ko',
+        query: 'react',
+      }),
+    );
+  });
+
   it('태그 schema가 없으면 에러를 던진다', async () => {
     const tagsQuery = createQueryMock({
       result: {

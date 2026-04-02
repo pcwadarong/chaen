@@ -30,6 +30,21 @@ const isMissingArticlesShadowSchemaError = (message: string) => {
   return hasMissingRelationText && hasTargetRelationName;
 };
 
+/**
+ * 아티클 검색 RPC가 아직 배포되지 않았거나 접근 불가능한 상태인지 판별합니다.
+ */
+const isMissingArticleSearchRpcError = (message: string) => {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    (normalizedMessage.includes('function') &&
+      normalizedMessage.includes('search_article_translations') &&
+      normalizedMessage.includes('does not exist')) ||
+    (normalizedMessage.includes('could not find the function') &&
+      normalizedMessage.includes('search_article_translations'))
+  );
+};
+
 type GetArticlesOptions = {
   cursor?: string | null;
   limit?: number;
@@ -387,7 +402,26 @@ const fetchSearchArticles = async (
     search_query: query,
   });
 
-  if (error) throw new Error(`[articles] 검색 조회 실패: ${error.message}`);
+  if (error) {
+    if (isMissingArticleSearchRpcError(error.message)) {
+      console.error(
+        '[articles] search_article_translations RPC를 찾을 수 없어 빈 검색 결과로 대체합니다.',
+        {
+          locale,
+          message: error.message,
+          query,
+        },
+      );
+
+      return {
+        items: [],
+        nextCursor: null,
+        totalCount: 0,
+      };
+    }
+
+    throw new Error(`[articles] 검색 조회 실패: ${error.message}`);
+  }
 
   return toSearchArticlesPage((data ?? []) as ArticleSearchRow[], pageSize);
 };
