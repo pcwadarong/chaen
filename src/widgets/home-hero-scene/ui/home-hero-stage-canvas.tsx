@@ -150,14 +150,7 @@ export const HomeHeroStageCanvas = ({
             onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
           }}
         />
-        <Suspense
-          fallback={
-            <HomeHeroStageReadyBridge
-              isReady={false}
-              onReadyChange={onSceneReadyChange ?? noopBooleanHandler}
-            />
-          }
-        >
+        <Suspense fallback={null}>
           <HomeHeroStageReadyBridge
             isReady
             onReadyChange={onSceneReadyChange ?? noopBooleanHandler}

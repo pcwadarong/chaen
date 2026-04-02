@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { SceneBrowserFallback } from '@/entities/scene/ui/scene-browser-fallback';
@@ -32,13 +32,24 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
  */
 export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStageProps) => {
   const t = useTranslations('SceneFallback');
+  const commonT = useTranslations('Common');
   const isWebglAvailable = useSceneWebglAvailability();
   const [isSceneAssetLoading, setIsSceneAssetLoading] = useState(true);
   const [isSceneReady, setIsSceneReady] = useState(false);
   const [, setSceneLoadingProgress] = useState(0);
+  const [hasCompletedInitialBlockingLoad, setHasCompletedInitialBlockingLoad] = useState(false);
   const shouldShowLoadingOverlay =
-    isWebglAvailable === null ||
-    (isWebglAvailable === true && (isSceneAssetLoading || !isSceneReady));
+    isWebglAvailable === null || (isWebglAvailable === true && !hasCompletedInitialBlockingLoad);
+
+  useEffect(() => {
+    if (isWebglAvailable !== true || hasCompletedInitialBlockingLoad) {
+      return;
+    }
+
+    if (!isSceneAssetLoading && isSceneReady) {
+      setHasCompletedInitialBlockingLoad(true);
+    }
+  }, [hasCompletedInitialBlockingLoad, isSceneAssetLoading, isSceneReady, isWebglAvailable]);
 
   useHomeHeroSceneScrollLock(shouldShowLoadingOverlay);
 
@@ -53,7 +64,7 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
       ) : isWebglAvailable === null ? (
         <HomeHeroStageLoadingOverlay
           className={stageLoadingOverlayClass}
-          srLabel="Loading 3D scene"
+          srLabel={commonT('pageLoading')}
         />
       ) : (
         <>
@@ -70,7 +81,7 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
           {shouldShowLoadingOverlay ? (
             <HomeHeroStageLoadingOverlay
               className={stageLoadingOverlayClass}
-              srLabel="Loading 3D scene"
+              srLabel={commonT('pageLoading')}
             />
           ) : null}
         </>

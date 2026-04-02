@@ -4,6 +4,7 @@ import { useProgress } from '@react-three/drei';
 import { useEffect } from 'react';
 
 const SCENE_LOADING_PROGRESS_FALLBACK = 8;
+const readyBridgeTokens = new WeakMap<(isReady: boolean) => void, symbol>();
 
 type HomeHeroStageLoadingProgressBridgeProps = Readonly<{
   onLoadingChange: (isLoading: boolean) => void;
@@ -44,9 +45,17 @@ export const HomeHeroStageReadyBridge = ({
   onReadyChange,
 }: HomeHeroStageReadyBridgeProps) => {
   useEffect(() => {
+    const token = Symbol('home-hero-stage-ready-bridge');
+
+    readyBridgeTokens.set(onReadyChange, token);
     onReadyChange(isReady);
 
     return () => {
+      if (readyBridgeTokens.get(onReadyChange) !== token) {
+        return;
+      }
+
+      readyBridgeTokens.delete(onReadyChange);
       onReadyChange(false);
     };
   }, [isReady, onReadyChange]);
