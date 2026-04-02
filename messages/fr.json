@@ -260,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "Liste",
     "copyFailed": "Impossible de copier le lien.",
     "emptyArchive": "Aucun élément à afficher.",
     "leaveGuestbookMessage": "Laisser un message dans le livre d'or",

@@ -260,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "목록",
     "copyFailed": "링크 복사에 실패했습니다.",
     "emptyArchive": "표시할 항목이 없습니다.",
     "leaveGuestbookMessage": "방명록에 글 남기고 가기",

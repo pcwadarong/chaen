@@ -25,3 +25,8 @@ export type HomeHeroStageProps = Readonly<{
   interaction?: HomeHeroStageInteraction;
   sceneRefs: HomeHeroStageSceneRefs;
 }>;
+
+export type HomeHeroStageCanvasProps = HomeHeroStageProps &
+  Readonly<{
+    onSceneReadyChange?: (isReady: boolean) => void;
+  }>;

@@ -261,6 +261,8 @@ export const ProjectDetailPage = ({
         emptyContentText={t('emptyContent')}
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
+        heroHomeHref="/project"
+        heroHomeLabel={detailUi('backToList')}
         heroTitleAccessory={
           <ProjectExternalLinkList githubUrl={item.github_url} websiteUrl={item.website_url} />
         }
@@ -326,6 +328,7 @@ const externalLinkWrapClass = css({
   flexWrap: 'wrap',
   gap: '2',
   alignItems: 'center',
+  justifyContent: 'center',
 });
 
 const externalLinkClass = css({

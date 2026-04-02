@@ -11,7 +11,7 @@ import {
   DetailMetaViewCount,
 } from '@/widgets/detail-page/ui/detail-meta-bar-parts';
 
-type DetailMetaBarProps = {
+export type DetailMetaBarProps = {
   actionSlot?: ReactNode;
   copyFailedText: string;
   copiedText: string;

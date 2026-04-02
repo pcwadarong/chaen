@@ -26,7 +26,7 @@ import {
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
 import type {
-  HomeHeroStageProps,
+  HomeHeroStageCanvasProps,
   HomeHeroStageSceneRefs,
 } from '@/widgets/home-hero-scene/model/home-hero-stage-contract';
 import { useAllowCanvasContextMenu } from '@/widgets/home-hero-scene/model/use-allow-canvas-context-menu';
@@ -36,6 +36,7 @@ import {
   HomeHeroCharacterSeatSet,
   HomeHeroStageLights,
 } from '@/widgets/home-hero-scene/ui/home-hero-scene-primitives';
+import { HomeHeroStageReadyBridge } from '@/widgets/home-hero-scene/ui/home-hero-stage-loading-bridge';
 
 type HomeHeroCanvasInteractionHandlers = Readonly<{
   onBrowseProjects: () => void;
@@ -54,7 +55,12 @@ const AUDIO_PREPARE_KEYBOARD_KEYS = new Set(['Enter', ' ']);
 /**
  * 홈 히어로 영역의 breakpoint 대응 3D 스테이지를 구성합니다.
  */
-export const HomeHeroStageCanvas = ({ content, interaction, sceneRefs }: HomeHeroStageProps) => {
+export const HomeHeroStageCanvas = ({
+  content,
+  interaction,
+  onSceneReadyChange,
+  sceneRefs,
+}: HomeHeroStageCanvasProps) => {
   const items = content?.items ?? [];
   const selectedFrameImageSrc = content?.selectedFrameImageSrc;
   const interactionDisabledProgressThreshold =
@@ -106,59 +112,67 @@ export const HomeHeroStageCanvas = ({ content, interaction, sceneRefs }: HomeHer
   });
 
   return (
-    <Canvas
-      camera={{
-        far: HOME_HERO_CAMERA_FAR,
-        fov: sceneLayout.camera.fov,
-        near: HOME_HERO_CAMERA_NEAR,
-        position: sceneLayout.camera.position,
-      }}
-      dpr={renderQuality.dpr}
-      gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
-      shadows={renderQuality.shadows}
-      onCreated={({ gl }) => {
-        gl.domElement.id = 'three-canvas';
-        gl.domElement.setAttribute('aria-hidden', 'true');
-        gl.domElement.setAttribute('role', 'presentation');
-        gl.domElement.style.touchAction = 'none';
-        gl.setClearColor(0x000000, 0);
-        setCanvasElement(gl.domElement);
-      }}
-    >
-      <HomeHeroStageLights />
-      <HomeHeroCameraRig
-        currentBP={currentBP}
-        interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
-        onMonitorOverlayOpacityChange={setMonitorScreenOpacity}
-        onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
-        sceneLayout={sceneLayout}
-        sceneRefs={sceneRefs}
-        sceneViewportMode={sceneViewportMode}
-        showOutlineEffect={renderQuality.enableOutlineComposer}
-        interactionHandlers={{
-          onBrowseProjects: handleBrowseProjects,
-          onOpenImageViewer: interaction?.onOpenImageViewer,
-          onPlayBassString: playBassString,
-          onPrepareAudioPlayback: prepareBassAudioPlayback,
-          onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
+    <div className={canvasStageClass}>
+      <Canvas
+        camera={{
+          far: HOME_HERO_CAMERA_FAR,
+          fov: sceneLayout.camera.fov,
+          near: HOME_HERO_CAMERA_NEAR,
+          position: sceneLayout.camera.position,
         }}
-      />
-      <Suspense fallback={null}>
-        <HomeHeroSceneObjects
-          isBackgroundMusicPlaying={isBackgroundMusicPlaying}
-          isCloseupCostumeHidden={isCloseupCostumeHidden}
-          monitorScreenOpacity={monitorScreenOpacity}
-          monitorScreenTexture={monitorScreenTexture}
-          pauseMusicLabel={t('pauseMusic')}
-          onPrepareAudioPlayback={prepareBassAudioPlayback}
-          onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
-          selectedFrameImageSrc={selectedFrameImageSrc}
+        dpr={renderQuality.dpr}
+        gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
+        shadows={renderQuality.shadows}
+        onCreated={({ gl }) => {
+          gl.domElement.id = 'three-canvas';
+          gl.domElement.setAttribute('aria-hidden', 'true');
+          gl.domElement.setAttribute('role', 'presentation');
+          gl.domElement.style.touchAction = 'none';
+          gl.setClearColor(0x000000, 0);
+          setCanvasElement(gl.domElement);
+        }}
+      >
+        <HomeHeroStageLights />
+        <HomeHeroCameraRig
+          currentBP={currentBP}
+          interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
+          onMonitorOverlayOpacityChange={setMonitorScreenOpacity}
+          onCloseupCostumeHiddenChange={setIsCloseupCostumeHidden}
           sceneLayout={sceneLayout}
+          sceneRefs={sceneRefs}
+          sceneViewportMode={sceneViewportMode}
+          showOutlineEffect={renderQuality.enableOutlineComposer}
+          interactionHandlers={{
+            onBrowseProjects: handleBrowseProjects,
+            onOpenImageViewer: interaction?.onOpenImageViewer,
+            onPlayBassString: playBassString,
+            onPrepareAudioPlayback: prepareBassAudioPlayback,
+            onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
+          }}
         />
-      </Suspense>
-    </Canvas>
+        <Suspense fallback={null}>
+          <HomeHeroStageReadyBridge
+            isReady
+            onReadyChange={onSceneReadyChange ?? noopBooleanHandler}
+          />
+          <HomeHeroSceneObjects
+            isBackgroundMusicPlaying={isBackgroundMusicPlaying}
+            isCloseupCostumeHidden={isCloseupCostumeHidden}
+            monitorScreenOpacity={monitorScreenOpacity}
+            monitorScreenTexture={monitorScreenTexture}
+            pauseMusicLabel={t('pauseMusic')}
+            onPrepareAudioPlayback={prepareBassAudioPlayback}
+            onStopBassTrackPlayback={pauseBackgroundMusicPlayback}
+            selectedFrameImageSrc={selectedFrameImageSrc}
+            sceneLayout={sceneLayout}
+          />
+        </Suspense>
+      </Canvas>
+    </div>
   );
 };
+
+const noopBooleanHandler = () => {};
 
 /**
  * breakpoint와 스크롤 상태에 따라 기본 카메라와 Orbit 제어를 전환합니다.
@@ -332,4 +346,10 @@ const bassStopButtonClass = css({
 
 const bassStopButtonLabelClass = css({
   color: 'transparent',
+});
+
+const canvasStageClass = css({
+  position: 'relative',
+  width: 'full',
+  height: 'full',
 });

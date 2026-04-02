@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
@@ -9,6 +11,14 @@ vi.mock('next-intl', () => ({
     if (namespace === 'ProjectDetail') {
       if (key === 'periodLabel') return 'work period';
       if (key === 'ongoing') return 'Ongoing';
+    }
+
+    if (namespace === 'DetailUi' && key === 'backToList') {
+      return 'List';
+    }
+
+    if (namespace === 'Navigation') {
+      if (key === 'home') return 'Home';
     }
 
     if (namespace === 'TechStack.category') {
@@ -36,6 +46,12 @@ vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
       <a href={editHref}>수정</a>
       <span>삭제</span>
     </div>
+  ),
+}));
+
+vi.mock('@/shared/ui/markdown/markdown-renderer', () => ({
+  MarkdownRenderer: ({ emptyText, markdown }: { emptyText?: string; markdown?: string | null }) => (
+    <div>{markdown ?? emptyText ?? ''}</div>
   ),
 }));
 
@@ -99,6 +115,8 @@ describe('ProjectDetailPage', () => {
   it('프로젝트 메타 바에는 기간만 노출하고 스크린리더용 라벨은 함께 제공한다', async () => {
     const html = await renderServerHtml();
 
+    expect(html).toContain('List');
+    expect(html).toContain('href="/project"');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');
     expect(html).toContain('/admin/projects/project-1/edit');

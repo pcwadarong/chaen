@@ -1,10 +1,27 @@
+// @vitest-environment node
+
 import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
+const authState = vi.hoisted<{
+  isAdmin: boolean;
+  isAuthenticated: boolean;
+  isReady: boolean;
+  userEmail: string | null;
+  userId: string | null;
+}>(() => ({
+  isAdmin: false,
+  isAuthenticated: false,
+  isReady: true,
+  userEmail: null,
+  userId: null,
+}));
+
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
+  useTranslations: (namespace?: string) => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
+    if (namespace === 'DetailUi' && key === 'backToList') return 'List';
 
     return key;
   },
@@ -31,12 +48,23 @@ vi.mock('@/i18n/navigation', () => ({
 }));
 
 vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
-  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
-    <div data-testid="admin-detail-actions-gate">
-      <a href={editHref}>수정</a>
-      <span>삭제</span>
-    </div>
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) =>
+    authState.isAdmin ? (
+      <div data-testid="admin-detail-actions-gate">
+        <a href={editHref}>수정</a>
+        <span>삭제</span>
+      </div>
+    ) : null,
+}));
+
+vi.mock('@/shared/ui/markdown/markdown-renderer', () => ({
+  MarkdownRenderer: ({ emptyText, markdown }: { emptyText?: string; markdown?: string | null }) => (
+    <div>{markdown ?? emptyText ?? ''}</div>
   ),
+}));
+
+vi.mock('@/shared/providers', () => ({
+  useAuth: () => authState,
 }));
 
 /**
@@ -92,6 +120,11 @@ describe('ArticleDetailPage', () => {
   const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
   beforeEach(() => {
+    authState.isAdmin = false;
+    authState.isAuthenticated = false;
+    authState.isReady = true;
+    authState.userEmail = null;
+    authState.userId = null;
     process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app';
   });
 
@@ -101,17 +134,31 @@ describe('ArticleDetailPage', () => {
 
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
     const html = await renderServerHtml();
-    const textContent = new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
 
+    expect(html).toContain('List');
+    expect(html).toContain('href="/articles"');
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');
     expect(html).toContain('published 2026-03-08');
-    expect(textContent).toContain('#React');
-    expect(textContent).toContain('relatedArticlesTitle');
-    expect(textContent).toContain('Article 2');
+    expect(html).toContain('#<!-- -->React');
+    expect(html).toContain('relatedArticlesTitle');
+    expect(html).toContain('Article 2');
+    expect(html).not.toContain('/admin/articles/article-1/edit');
+    expect(html).not.toContain('수정');
+    expect(html).not.toContain('삭제');
+  }, 30000);
+
+  it('관리자 세션일 때만 수정과 삭제 액션을 노출한다', async () => {
+    authState.isAdmin = true;
+    authState.isAuthenticated = true;
+    authState.userEmail = 'admin@example.com';
+    authState.userId = 'admin-id';
+
+    const html = await renderServerHtml();
+
     expect(html).toContain('/admin/articles/article-1/edit');
-    expect(textContent).toContain('수정');
-    expect(textContent).toContain('삭제');
+    expect(html).toContain('수정');
+    expect(html).toContain('삭제');
   }, 30000);
 });

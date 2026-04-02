@@ -1,11 +1,30 @@
+import { useTranslations } from 'next-intl';
 import React from 'react';
+import { css } from 'styled-system/css';
 
-import { HomeRouteLoadingFrame } from '@/widgets/home-hero-scene/ui/home-route-loading-frame';
+import { HomeHeroStageLoadingOverlay } from '@/widgets/home-hero-scene/ui/home-hero-stage-loading-overlay';
 
 /**
- * 홈 라우트 전용 loading입니다.
- * locale 전역 스켈레톤 대신 홈 씬과 같은 로딩 패턴을 사용해 새로고침 시 이중 로딩 전환을 줄입니다.
+ * 홈 라우트는 locale 전역 fallback 대신 씬 로더와 같은 비주얼을 먼저 노출합니다.
  */
-const HomeLoading = () => <HomeRouteLoadingFrame />;
+const HomeLoading = () => {
+  const t = useTranslations('Common');
+
+  return (
+    <main className={pageClass}>
+      <HomeHeroStageLoadingOverlay className={overlayClass} srLabel={t('pageLoading')} />
+    </main>
+  );
+};
 
 export default HomeLoading;
+
+const pageClass = css({
+  position: 'relative',
+  minHeight: 'svh',
+  backgroundColor: '[#5d5bff]',
+});
+
+const overlayClass = css({
+  position: 'fixed',
+});
