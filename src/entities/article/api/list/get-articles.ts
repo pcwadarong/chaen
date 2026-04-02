@@ -78,6 +78,8 @@ type ArticleListTranslationSummaryRow = Pick<ArticleListItem, 'description' | 't
   locale: string;
 };
 
+type ArticleSearchTranslationRow = ArticleListTranslationSummaryRow;
+
 /**
  * 아티클 검색어를 RPC 전달용으로 정규화합니다.
  *
@@ -89,6 +91,11 @@ const normalizeSearchQuery = (query?: string | null) => query?.trim() ?? '';
  * 태그 필터를 slug 기준으로 정규화합니다.
  */
 const normalizeArticleTag = (tag?: string | null) => (tag?.trim() ? tag.trim().toLowerCase() : '');
+
+/**
+ * ILIKE 패턴에서 와일드카드로 해석되는 문자를 이스케이프합니다.
+ */
+const escapeIlikePattern = (value: string) => value.replaceAll('%', '\\%').replaceAll('_', '\\_');
 
 /**
  * 검색 결과용 rank + publish_at + id cursor를 URL에 안전한 문자열로 직렬화합니다.
@@ -355,6 +362,79 @@ const fetchArticlesByTagAndLocale = async (
 };
 
 /**
+ * locale fallback 번역 테이블을 직접 조회해 검색 대상 article id를 수집합니다.
+ */
+const fetchSearchArticleIdsByLocaleFallback = async (
+  query: string,
+  locale: string,
+): Promise<{ data: string[]; schemaMissing: boolean }> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
+
+  const localeFallbackChain = buildContentLocaleFallbackChain(locale);
+  const escapedQuery = escapeIlikePattern(query);
+  const { data, error } = await supabase
+    .from('article_translations')
+    .select('article_id,locale,title,description')
+    .in('locale', localeFallbackChain)
+    .or(`title.ilike.%${escapedQuery}%,description.ilike.%${escapedQuery}%`);
+
+  if (error) {
+    if (isMissingArticlesShadowSchemaError(error.message)) {
+      return {
+        data: [],
+        schemaMissing: true,
+      };
+    }
+
+    throw new Error(`[articles] fallback 검색 번역 조회 실패: ${error.message}`);
+  }
+
+  const articleIds = dedupeById(
+    ((data ?? []) as ArticleSearchTranslationRow[]).map(row => ({
+      id: row.article_id,
+    })),
+  ).map(row => row.id);
+
+  return {
+    data: articleIds,
+    schemaMissing: false,
+  };
+};
+
+/**
+ * 검색 RPC가 없을 때 title/description substring 검색으로 대체합니다.
+ */
+const fetchSearchArticlesByLocaleFallback = async (
+  query: string,
+  locale: string,
+  cursor: string | null | undefined,
+  pageSize: number,
+): Promise<ArticleListPage> => {
+  const matchedArticleIds = await fetchSearchArticleIdsByLocaleFallback(query, locale);
+  if (matchedArticleIds.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
+  if (matchedArticleIds.data.length === 0) {
+    return {
+      items: [],
+      nextCursor: null,
+      totalCount: 0,
+    };
+  }
+
+  const page = await fetchArticlesByLocaleFallback(
+    locale,
+    cursor,
+    pageSize,
+    matchedArticleIds.data,
+  );
+
+  return {
+    ...page,
+    totalCount: matchedArticleIds.data.length,
+  };
+};
+
+/**
  * RPC 검색 결과를 rank + publish_at + id keyset 페이지 형태로 변환합니다.
  *
  * RPC는 각 행마다 동일한 `total_count`를 포함하므로 첫 행의 메타데이터를 사용합니다.
@@ -404,20 +484,7 @@ const fetchSearchArticles = async (
 
   if (error) {
     if (isMissingArticleSearchRpcError(error.message)) {
-      console.error(
-        '[articles] search_article_translations RPC를 찾을 수 없어 빈 검색 결과로 대체합니다.',
-        {
-          locale,
-          message: error.message,
-          query,
-        },
-      );
-
-      return {
-        items: [],
-        nextCursor: null,
-        totalCount: 0,
-      };
+      return fetchSearchArticlesByLocaleFallback(query, locale, cursor, pageSize);
     }
 
     throw new Error(`[articles] 검색 조회 실패: ${error.message}`);

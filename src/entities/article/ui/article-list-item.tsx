@@ -54,7 +54,7 @@ export const ArticleListItem = ({ article }: ArticleListItemProps) => {
             {publishedDate}
           </time>
         </div>
-        <div className={mediaClass}>
+        <div className={mediaClass} suppressHydrationWarning>
           {previewThumbnailSrc ? (
             <Image
               alt=""

@@ -37,7 +37,7 @@ const createQueryMock = ({
 }: {
   result: QueryResult;
   terminalCall?: number;
-  terminalMethod: 'eq' | 'in' | 'limit' | 'maybeSingle';
+  terminalMethod: 'eq' | 'in' | 'limit' | 'maybeSingle' | 'or';
 }) => {
   const query = {
     eq: vi.fn(() =>
@@ -50,6 +50,11 @@ const createQueryMock = ({
         ? Promise.resolve(result)
         : query,
     ),
+    or: vi.fn(() =>
+      terminalMethod === 'or' && query.or.mock.calls.length >= terminalCall
+        ? Promise.resolve(result)
+        : query,
+    ),
     limit: vi
       .fn()
       .mockResolvedValue(terminalMethod === 'limit' ? result : { data: null, error: null }),
@@ -57,7 +62,6 @@ const createQueryMock = ({
       .fn()
       .mockResolvedValue(terminalMethod === 'maybeSingle' ? result : { data: null, error: null }),
     not: vi.fn().mockReturnThis(),
-    or: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
   };
@@ -354,10 +358,63 @@ describe('getArticles', () => {
     });
   });
 
-  it('검색 RPC가 배포되지 않았으면 빈 검색 결과로 대체한다', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('검색 RPC가 배포되지 않았으면 title/description fallback 검색 결과를 반환한다', async () => {
+    const searchTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            article_id: 'article-naver',
+            locale: 'ko',
+            title: '네이버 글',
+            description: '검색 설명',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'or',
+    });
+    const articlesQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            id: 'article-naver',
+            thumbnail_url: null,
+            publish_at: '2026-03-02T09:07:50.797695+00:00',
+            slug: 'naver-post',
+          },
+        ],
+        error: null,
+      },
+      terminalMethod: 'limit',
+    });
+    const displayTranslationsQuery = createQueryMock({
+      result: {
+        data: [
+          {
+            article_id: 'article-naver',
+            locale: 'ko',
+            title: '네이버 글',
+            description: '검색 설명',
+          },
+        ],
+        error: null,
+      },
+      terminalCall: 2,
+      terminalMethod: 'in',
+    });
+    let articleTranslationsReadCount = 0;
     const supabaseClient = {
-      from: vi.fn(),
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articlesQuery;
+        if (table === 'article_translations') {
+          articleTranslationsReadCount += 1;
+          return articleTranslationsReadCount === 1
+            ? searchTranslationsQuery
+            : displayTranslationsQuery;
+        }
+
+        throw new Error(`unexpected table: ${table}`);
+      }),
       rpc: vi.fn().mockResolvedValue({
         data: null,
         error: {
@@ -373,17 +430,24 @@ describe('getArticles', () => {
     const result = await getArticles({ locale: 'ko', query: 'react' });
 
     expect(result).toEqual({
-      items: [],
+      items: [
+        {
+          id: 'article-naver',
+          title: '네이버 글',
+          description: '검색 설명',
+          thumbnail_url: null,
+          publish_at: '2026-03-02T09:07:50.797695+00:00',
+          slug: 'naver-post',
+        },
+      ],
       nextCursor: null,
-      totalCount: 0,
+      totalCount: 1,
     });
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '[articles] search_article_translations RPC를 찾을 수 없어 빈 검색 결과로 대체합니다.',
-      expect.objectContaining({
-        locale: 'ko',
-        query: 'react',
-      }),
+    expect(searchTranslationsQuery.in).toHaveBeenCalledWith('locale', ['ko', 'en', 'ja', 'fr']);
+    expect(searchTranslationsQuery.or).toHaveBeenCalledWith(
+      'title.ilike.%react%,description.ilike.%react%',
     );
+    expect(articlesQuery.in).toHaveBeenCalledWith('id', ['article-naver']);
   });
 
   it('태그 schema가 없으면 에러를 던진다', async () => {
