@@ -4,6 +4,14 @@ import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { vi } from 'vitest';
 
+const authState = vi.hoisted(() => ({
+  isAdmin: false,
+  isAuthenticated: false,
+  isReady: true,
+  userEmail: null,
+  userId: null,
+}));
+
 vi.mock('next-intl', () => ({
   useTranslations: (namespace?: string) => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
@@ -34,12 +42,13 @@ vi.mock('@/i18n/navigation', () => ({
 }));
 
 vi.mock('@/widgets/detail-page/ui/admin-detail-actions-gate', () => ({
-  AdminDetailActionsGate: ({ editHref }: { editHref: string }) => (
-    <div data-testid="admin-detail-actions-gate">
-      <a href={editHref}>수정</a>
-      <span>삭제</span>
-    </div>
-  ),
+  AdminDetailActionsGate: ({ editHref }: { editHref: string }) =>
+    authState.isAdmin ? (
+      <div data-testid="admin-detail-actions-gate">
+        <a href={editHref}>수정</a>
+        <span>삭제</span>
+      </div>
+    ) : null,
 }));
 
 vi.mock('@/shared/ui/markdown/markdown-renderer', () => ({
@@ -49,12 +58,7 @@ vi.mock('@/shared/ui/markdown/markdown-renderer', () => ({
 }));
 
 vi.mock('@/shared/providers', () => ({
-  useAuth: () => ({
-    isAdmin: false,
-    isAuthenticated: false,
-    userEmail: null,
-    userId: null,
-  }),
+  useAuth: () => authState,
 }));
 
 /**
@@ -110,6 +114,11 @@ describe('ArticleDetailPage', () => {
   const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
   beforeEach(() => {
+    authState.isAdmin = false;
+    authState.isAuthenticated = false;
+    authState.isReady = true;
+    authState.userEmail = null;
+    authState.userId = null;
     process.env.NEXT_PUBLIC_SITE_URL = 'https://chaen.vercel.app';
   });
 
@@ -129,6 +138,19 @@ describe('ArticleDetailPage', () => {
     expect(html).toContain('#<!-- -->React');
     expect(html).toContain('relatedArticlesTitle');
     expect(html).toContain('Article 2');
+    expect(html).not.toContain('/admin/articles/article-1/edit');
+    expect(html).not.toContain('수정');
+    expect(html).not.toContain('삭제');
+  }, 30000);
+
+  it('관리자 세션일 때만 수정과 삭제 액션을 노출한다', async () => {
+    authState.isAdmin = true;
+    authState.isAuthenticated = true;
+    authState.userEmail = 'admin@example.com';
+    authState.userId = 'admin-id';
+
+    const html = await renderServerHtml();
+
     expect(html).toContain('/admin/articles/article-1/edit');
     expect(html).toContain('수정');
     expect(html).toContain('삭제');

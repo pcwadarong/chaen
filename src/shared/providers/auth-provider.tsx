@@ -15,13 +15,16 @@ import { isAuthSessionMissingError } from '@/shared/lib/auth/is-auth-session-mis
 import { createBrowserSupabaseClient } from '@/shared/lib/supabase/client';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 
-type AuthContextValue = AuthState;
+type AuthContextValue = AuthState & {
+  isReady: boolean;
+};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const EMPTY_AUTH_STATE: AuthContextValue = {
   isAdmin: false,
   isAuthenticated: false,
+  isReady: false,
   userEmail: null,
   userId: null,
 };
@@ -45,7 +48,10 @@ export const AuthProvider = ({ adminUserId = null, children }: AuthProviderProps
 
   useEffect(() => {
     if (!hasSupabaseEnv()) {
-      setAuthState(EMPTY_AUTH_STATE);
+      setAuthState({
+        ...EMPTY_AUTH_STATE,
+        isReady: true,
+      });
       return;
     }
 
@@ -74,13 +80,17 @@ export const AuthProvider = ({ adminUserId = null, children }: AuthProviderProps
       }
 
       if (error) {
-        setAuthState(EMPTY_AUTH_STATE);
+        setAuthState({
+          ...EMPTY_AUTH_STATE,
+          isReady: true,
+        });
         return;
       }
 
       setAuthState({
         isAdmin: isAdminSupabaseUser(user, adminIdentity),
         isAuthenticated: Boolean(user),
+        isReady: true,
         userEmail: user?.email ?? null,
         userId: user?.id ?? null,
       });
@@ -96,6 +106,7 @@ export const AuthProvider = ({ adminUserId = null, children }: AuthProviderProps
       setAuthState({
         isAdmin: isAdminSupabaseUser(user, adminIdentity),
         isAuthenticated: Boolean(user),
+        isReady: true,
         userEmail: user?.email ?? null,
         userId: user?.id ?? null,
       });

@@ -2,12 +2,14 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { vi } from 'vitest';
 
 import { ArticleDetailMetaBar } from '@/features/track-article-view/ui/article-detail-meta-bar';
 
 const authState = vi.hoisted(() => ({
   isAdmin: false,
   isAuthenticated: false,
+  isReady: true,
   userEmail: null,
   userId: null,
 }));
@@ -21,6 +23,7 @@ describe('ArticleDetailMetaBar', () => {
 
   beforeEach(() => {
     authState.isAdmin = false;
+    authState.isReady = true;
     trackViewActionMock.mockReset();
   });
 
@@ -53,7 +56,7 @@ describe('ArticleDetailMetaBar', () => {
     expect(screen.getByText('9')).toBeTruthy();
   });
 
-  it('관리자일 때는 조회수 증가 요청을 보내지 않아야 한다', async () => {
+  it('관리자일 때는 조회수 증가 요청을 보내지 않아야 한다', () => {
     authState.isAdmin = true;
 
     render(
@@ -70,9 +73,28 @@ describe('ArticleDetailMetaBar', () => {
       />,
     );
 
-    await waitFor(() => {
-      expect(trackViewActionMock).not.toHaveBeenCalled();
-    });
+    expect(trackViewActionMock).not.toHaveBeenCalled();
     expect(screen.getByText('7')).toBeTruthy();
+  });
+
+  it('인증 상태가 아직 준비되지 않았을 때는 조회수 증가 요청을 미뤄야 한다', () => {
+    authState.isReady = false;
+
+    render(
+      <ArticleDetailMetaBar
+        copyFailedText="복사 실패"
+        copiedText="복사됨"
+        locale="ko"
+        primaryMetaText="2026-03-08"
+        shareText="공유"
+        trackViewAction={trackViewActionMock}
+        trackViewStorageKey="article:test"
+        viewCount={3}
+        viewCountLabel="조회수"
+      />,
+    );
+
+    expect(trackViewActionMock).not.toHaveBeenCalled();
+    expect(screen.getByText('3')).toBeTruthy();
   });
 });
