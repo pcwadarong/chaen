@@ -2,23 +2,28 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import React from 'react';
+import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { SceneBrowserFallback } from '@/entities/scene/ui/scene-browser-fallback';
-import { SceneLoadingShell } from '@/entities/scene/ui/scene-loading-shell';
 import { useSceneWebglAvailability } from '@/shared/lib/dom/use-scene-webgl-availability';
 import { HOME_HERO_STAGE_BACKGROUND } from '@/widgets/home-hero-scene/model/home-hero-scene-theme';
-import type { HomeHeroStageProps } from '@/widgets/home-hero-scene/model/home-hero-stage-contract';
+import type {
+  HomeHeroStageCanvasProps,
+  HomeHeroStageProps,
+} from '@/widgets/home-hero-scene/model/home-hero-stage-contract';
+import { useHomeHeroSceneScrollLock } from '@/widgets/home-hero-scene/model/use-home-hero-scene-scroll-lock';
+import { HomeHeroStageLoadingProgressBridge } from '@/widgets/home-hero-scene/ui/home-hero-stage-loading-bridge';
+import { HomeHeroStageLoadingOverlay } from '@/widgets/home-hero-scene/ui/home-hero-stage-loading-overlay';
 
-const HomeHeroStageCanvas = dynamic<HomeHeroStageProps>(
+const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
   () =>
     import('@/widgets/home-hero-scene/ui/home-hero-stage-canvas').then(
       module => module.HomeHeroStageCanvas,
     ),
   {
     ssr: false,
-    loading: () => <SceneLoadingShell className={stageFallbackClass} />,
+    loading: () => null,
   },
 );
 
@@ -28,6 +33,14 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageProps>(
 export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStageProps) => {
   const t = useTranslations('SceneFallback');
   const isWebglAvailable = useSceneWebglAvailability();
+  const [isSceneAssetLoading, setIsSceneAssetLoading] = useState(true);
+  const [isSceneReady, setIsSceneReady] = useState(false);
+  const [, setSceneLoadingProgress] = useState(0);
+  const shouldShowLoadingOverlay =
+    isWebglAvailable === null ||
+    (isWebglAvailable === true && (isSceneAssetLoading || !isSceneReady));
+
+  useHomeHeroSceneScrollLock(shouldShowLoadingOverlay);
 
   return (
     <div className={stageFrameClass}>
@@ -38,9 +51,29 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
           title={t('webglTitle')}
         />
       ) : isWebglAvailable === null ? (
-        <SceneLoadingShell className={stageFallbackClass} />
+        <HomeHeroStageLoadingOverlay
+          className={stageLoadingOverlayClass}
+          srLabel="Loading 3D scene"
+        />
       ) : (
-        <HomeHeroStageCanvas content={content} interaction={interaction} sceneRefs={sceneRefs} />
+        <>
+          <HomeHeroStageLoadingProgressBridge
+            onLoadingChange={setIsSceneAssetLoading}
+            onProgressChange={setSceneLoadingProgress}
+          />
+          <HomeHeroStageCanvas
+            content={content}
+            interaction={interaction}
+            onSceneReadyChange={setIsSceneReady}
+            sceneRefs={sceneRefs}
+          />
+          {shouldShowLoadingOverlay ? (
+            <HomeHeroStageLoadingOverlay
+              className={stageLoadingOverlayClass}
+              srLabel="Loading 3D scene"
+            />
+          ) : null}
+        </>
       )}
     </div>
   );
@@ -59,4 +92,9 @@ const stageFallbackClass = css({
   width: 'full',
   height: 'full',
   backgroundColor: `[${HOME_HERO_STAGE_BACKGROUND}]`,
+});
+
+const stageLoadingOverlayClass = css({
+  background:
+    '[linear-gradient(180deg, color-mix(in srgb, #5d5bff 88%, white) 0%, color-mix(in srgb, #5d5bff 94%, black) 100%)]',
 });

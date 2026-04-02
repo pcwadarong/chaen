@@ -29,6 +29,10 @@ vi.mock('@/shared/lib/dom/use-scene-webgl-availability', () => ({
   useSceneWebglAvailability: vi.fn(),
 }));
 
+vi.mock('@/widgets/home-hero-scene/ui/home-hero-stage-loading-bridge', () => ({
+  HomeHeroStageLoadingProgressBridge: () => null,
+}));
+
 const mockedUseSceneWebglAvailability = vi.mocked(useSceneWebglAvailability);
 
 describe('HomeHeroStage', () => {

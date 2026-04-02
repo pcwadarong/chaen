@@ -138,6 +138,10 @@ vi.mock('@/features/monitor-overlay/model/use-monitor-overlay-texture', () => ({
   useMonitorOverlayTexture: () => null,
 }));
 
+vi.mock('@/widgets/home-hero-scene/model/use-home-hero-scene-scroll-lock', () => ({
+  useHomeHeroSceneScrollLock: vi.fn(),
+}));
+
 vi.mock('@/features/interaction/ui/scene-interaction-controller', () => ({
   SceneInteractionController: (props: Record<string, unknown>) => {
     homeHeroStageCanvasMockState.interactionControllerProps = props;

@@ -9,14 +9,14 @@ vi.mock('@react-three/drei', () => ({
   },
 }));
 
-const preloadMock = vi.hoisted(() => vi.fn());
+const glbPreloadMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/entities/scene/model/preloadGLB', () => ({
   preloadSceneGlbs: (preload: (path: string) => void) => {
     ['/models/character.glb', '/models/bass.glb', '/models/table.glb', '/models/sofa.glb'].forEach(
       path => {
         preload(path);
-        preloadMock(path);
+        glbPreloadMock(path);
       },
     );
   },
@@ -27,7 +27,7 @@ describe('SceneAssetPreloader', () => {
     render(<SceneAssetPreloader />);
 
     await waitFor(() => {
-      expect(preloadMock).toHaveBeenCalledTimes(4);
+      expect(glbPreloadMock).toHaveBeenCalledTimes(4);
     });
   });
 });
