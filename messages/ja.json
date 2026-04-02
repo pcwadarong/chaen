@@ -158,7 +158,6 @@
   },
   "ProjectDetail": {
     "archiveLabel": "プロジェクトアーカイブ",
-    "backToHome": "ホーム",
     "emptyContent": "本文はまだ登録されていません。",
     "emptyDescription": "詳細説明はまだ登録されていません。",
     "emptySummary": "概要はまだありません。",
@@ -261,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "一覧",
     "copyFailed": "リンクのコピーに失敗しました。",
     "emptyArchive": "表示する項目がありません。",
     "leaveGuestbookMessage": "ゲストブックにメッセージを残す",

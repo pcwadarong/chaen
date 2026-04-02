@@ -158,7 +158,6 @@
   },
   "ProjectDetail": {
     "archiveLabel": "Project archive",
-    "backToHome": "Home",
     "emptyContent": "Project content has not been added yet.",
     "emptyDescription": "Detailed description has not been added yet.",
     "emptySummary": "Summary is not available.",
@@ -261,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "List",
     "copyFailed": "Failed to copy the link.",
     "emptyArchive": "No items to display.",
     "leaveGuestbookMessage": "Leave a message in the guestbook",

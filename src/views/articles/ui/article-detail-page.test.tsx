@@ -15,7 +15,7 @@ const authState = vi.hoisted(() => ({
 vi.mock('next-intl', () => ({
   useTranslations: (namespace?: string) => (key: string) => {
     if (key === 'publishedAtLabel') return 'published';
-    if (namespace === 'Navigation' && key === 'home') return 'Home';
+    if (namespace === 'DetailUi' && key === 'backToList') return 'List';
 
     return key;
   },
@@ -129,7 +129,7 @@ describe('ArticleDetailPage', () => {
   it('아티클 상세 하단에 댓글 섹션을 렌더링한다', async () => {
     const html = await renderServerHtml();
 
-    expect(html).toContain('Home');
+    expect(html).toContain('List');
     expect(html).toContain('href="/articles"');
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');

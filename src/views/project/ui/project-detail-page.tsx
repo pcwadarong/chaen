@@ -262,7 +262,7 @@ export const ProjectDetailPage = ({
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
         heroHomeHref="/project"
-        heroHomeLabel={navigationT('home')}
+        heroHomeLabel={detailUi('backToList')}
         heroTitleAccessory={
           <ProjectExternalLinkList githubUrl={item.github_url} websiteUrl={item.website_url} />
         }

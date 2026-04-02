@@ -245,7 +245,7 @@ export const ArticleDetailPage = ({
         guestbookCtaText={detailUi('leaveGuestbookMessage')}
         heroDescription={item.description ?? t('emptySummary')}
         heroHomeHref="/articles"
-        heroHomeLabel={navigationT('home')}
+        heroHomeLabel={detailUi('backToList')}
         hideAppFrameFooter
         locale={locale}
         metaBar={

@@ -13,6 +13,10 @@ vi.mock('next-intl', () => ({
       if (key === 'ongoing') return 'Ongoing';
     }
 
+    if (namespace === 'DetailUi' && key === 'backToList') {
+      return 'List';
+    }
+
     if (namespace === 'Navigation') {
       if (key === 'home') return 'Home';
     }
@@ -111,7 +115,7 @@ describe('ProjectDetailPage', () => {
   it('프로젝트 메타 바에는 기간만 노출하고 스크린리더용 라벨은 함께 제공한다', async () => {
     const html = await renderServerHtml();
 
-    expect(html).toContain('Home');
+    expect(html).toContain('List');
     expect(html).toContain('href="/project"');
     expect(html).toContain('January 2026 - February 2026');
     expect(html).toContain('work period January 2026 - February 2026');

@@ -158,7 +158,6 @@
   },
   "ProjectDetail": {
     "archiveLabel": "Archive des projets",
-    "backToHome": "Accueil",
     "emptyContent": "Le contenu du projet n'a pas encore été ajouté.",
     "emptyDescription": "La description détaillée n'a pas encore été ajoutée.",
     "emptySummary": "Le résumé n'est pas disponible.",
@@ -261,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "Liste",
     "copyFailed": "Impossible de copier le lien.",
     "emptyArchive": "Aucun élément à afficher.",
     "leaveGuestbookMessage": "Laisser un message dans le livre d'or",

@@ -158,7 +158,6 @@
   },
   "ProjectDetail": {
     "archiveLabel": "프로젝트 아카이브",
-    "backToHome": "홈",
     "emptyContent": "아직 등록된 본문이 없습니다.",
     "emptyDescription": "아직 등록된 상세 설명이 없습니다.",
     "emptySummary": "요약이 비어 있습니다.",
@@ -261,6 +260,7 @@
     }
   },
   "DetailUi": {
+    "backToList": "목록",
     "copyFailed": "링크 복사에 실패했습니다.",
     "emptyArchive": "표시할 항목이 없습니다.",
     "leaveGuestbookMessage": "방명록에 글 남기고 가기",
