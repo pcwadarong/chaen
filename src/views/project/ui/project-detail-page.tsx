@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import React, { Suspense } from 'react';
-import { css } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import {
   getProjectDisplayMeta,
@@ -13,11 +13,12 @@ import {
 } from '@/entities/tech-stack/model/types';
 import { getProjectDetailArchivePageAction } from '@/features/browse-project-archive/api/get-project-archive-page';
 import { deleteProjectAction } from '@/features/manage-project/api/delete-project';
+import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildBreadcrumbJsonLd, buildProjectJsonLd } from '@/shared/lib/seo/structured-data';
-import { GithubIcon, GlobeIcon } from '@/shared/ui/icons/app-icons';
+import { ChevronRightIcon, GithubIcon, GlobeIcon } from '@/shared/ui/icons/app-icons';
 import { JsonLd } from '@/shared/ui/seo/JsonLd';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -62,10 +63,20 @@ type ProjectExternalLinkListProps = {
   websiteUrl?: string | null;
 };
 
+type ProjectDetailNavigationProps = {
+  currentItem: Project;
+  initialArchivePagePromise: Promise<ProjectArchivePage>;
+  nextLabel: string;
+  previousLabel: string;
+};
+
 const LINK_ICONS = {
   github: GithubIcon,
   website: GlobeIcon,
 } satisfies Record<ProjectExternalLinkItem['key'], typeof GithubIcon>;
+
+const resolveProjectArchiveItemPath = (item: ProjectArchivePage['items'][number]) =>
+  `/project/${item.slug ?? item.id}`;
 
 /**
  * 프로젝트 상세 좌측 아카이브 블록을 렌더링합니다.
@@ -190,6 +201,81 @@ const ProjectExternalLinkList = ({ githubUrl, websiteUrl }: ProjectExternalLinkL
 };
 
 /**
+ * 프로젝트 상세 하단의 이전/다음 프로젝트 이동 네비게이션을 렌더링합니다.
+ */
+const ProjectDetailNavigation = async ({
+  currentItem,
+  initialArchivePagePromise,
+  nextLabel,
+  previousLabel,
+}: ProjectDetailNavigationProps) => {
+  const archivePage = await initialArchivePagePromise;
+  const currentPathSegment = resolvePublicContentPathSegment(currentItem);
+  const currentIndex = archivePage.items.findIndex(
+    archiveItem => (archiveItem.slug ?? archiveItem.id) === currentPathSegment,
+  );
+
+  if (currentIndex < 0) return null;
+
+  const previousItem = currentIndex > 0 ? archivePage.items[currentIndex - 1] : null;
+  const nextItem =
+    currentIndex < archivePage.items.length - 1 ? archivePage.items[currentIndex + 1] : null;
+
+  if (!previousItem && !nextItem) return null;
+  const showDivider = Boolean(previousItem && nextItem);
+
+  return (
+    <nav aria-label={`${previousLabel} / ${nextLabel}`} className={projectNavigationClass}>
+      <div className={projectNavigationItemClass}>
+        {previousItem ? (
+          <Link
+            className={cx(projectNavigationLinkClass, projectNavigationLeftLinkClass)}
+            href={resolveProjectArchiveItemPath(previousItem)}
+          >
+            <span className={projectNavigationLabelClass}>{previousLabel}</span>
+            <span className={projectNavigationValueClass}>
+              <ChevronRightIcon
+                aria-hidden="true"
+                className={projectNavigationPreviousIconClass}
+                size="sm"
+              />
+              <span className={projectNavigationTextClass}>{previousItem.title}</span>
+            </span>
+          </Link>
+        ) : (
+          <div
+            aria-hidden="true"
+            className={projectNavigationPlaceholderClass}
+            data-align="start"
+          />
+        )}
+      </div>
+      <div
+        aria-hidden="true"
+        className={projectNavigationDividerClass}
+        data-visible={showDivider ? 'true' : 'false'}
+      />
+      <div className={projectNavigationItemClass}>
+        {nextItem ? (
+          <Link
+            className={cx(projectNavigationLinkClass, projectNavigationRightLinkClass)}
+            href={resolveProjectArchiveItemPath(nextItem)}
+          >
+            <span className={projectNavigationLabelClass}>{nextLabel}</span>
+            <span className={projectNavigationValueClass}>
+              <span className={projectNavigationTextClass}>{nextItem.title}</span>
+              <ChevronRightIcon aria-hidden="true" size="sm" />
+            </span>
+          </Link>
+        ) : (
+          <div aria-hidden="true" className={projectNavigationPlaceholderClass} data-align="end" />
+        )}
+      </div>
+    </nav>
+  );
+};
+
+/**
  * 프로젝트 상세 페이지의 본문/메타/좌측 아카이브 조합을 렌더링합니다.
  */
 export const ProjectDetailPage = ({
@@ -310,6 +396,16 @@ export const ProjectDetailPage = ({
           ) : undefined
         }
         title={item.title}
+        bottomContent={
+          <Suspense fallback={null}>
+            <ProjectDetailNavigation
+              currentItem={item}
+              initialArchivePagePromise={initialArchivePagePromise}
+              nextLabel={t('nextProject')}
+              previousLabel={t('previousProject')}
+            />
+          </Suspense>
+        }
       />
     </>
   );
@@ -344,6 +440,100 @@ const externalLinkClass = css({
     outline: '[2px solid var(--colors-focus-ring)]',
     outlineOffset: '[2px]',
   },
+});
+
+const projectNavigationClass = css({
+  display: 'flex',
+  alignItems: 'stretch',
+  gap: '5',
+  width: 'full',
+  maxWidth: '[40rem]',
+  mx: 'auto',
+  mt: '10',
+  pt: '8',
+  borderTop: '[1px solid var(--colors-border)]',
+});
+
+const projectNavigationItemClass = css({
+  flex: '1',
+  minWidth: '0',
+});
+
+const projectNavigationLinkClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1',
+  color: 'muted',
+  textDecoration: 'none',
+  transition: '[color 160ms ease]',
+  _hover: {
+    color: 'primary',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
+});
+
+const projectNavigationLeftLinkClass = css({
+  alignItems: 'flex-start',
+  textAlign: 'left',
+});
+
+const projectNavigationRightLinkClass = css({
+  alignItems: 'flex-end',
+  textAlign: 'right',
+});
+
+const projectNavigationPlaceholderClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1',
+  color: 'muted',
+  '&[data-align="start"]': {
+    alignItems: 'flex-start',
+    textAlign: 'left',
+  },
+  '&[data-align="end"]': {
+    alignItems: 'flex-end',
+    textAlign: 'right',
+  },
+});
+
+const projectNavigationDividerClass = css({
+  width: '[1px]',
+  alignSelf: 'stretch',
+  backgroundColor: 'border',
+  '&[data-visible="false"]': {
+    opacity: '0',
+  },
+});
+
+const projectNavigationLabelClass = css({
+  fontSize: 'xs',
+  color: 'muted',
+  lineHeight: 'tight',
+});
+
+const projectNavigationValueClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '1',
+  minWidth: '0',
+});
+
+const projectNavigationPreviousIconClass = css({
+  transform: 'rotate(180deg)',
+});
+
+const projectNavigationTextClass = css({
+  fontSize: 'sm',
+  fontWeight: 'medium',
+  lineHeight: 'tight',
+  minWidth: '0',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 const techStackRowClass = css({

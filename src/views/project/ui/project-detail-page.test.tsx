@@ -11,6 +11,8 @@ vi.mock('next-intl', () => ({
     if (namespace === 'ProjectDetail') {
       if (key === 'periodLabel') return 'work period';
       if (key === 'ongoing') return 'Ongoing';
+      if (key === 'previousProject') return 'Previous project';
+      if (key === 'nextProject') return 'Next project';
     }
 
     if (namespace === 'DetailUi' && key === 'backToList') {
@@ -70,11 +72,25 @@ const renderServerHtml = async ({
     initialArchivePagePromise: Promise.resolve({
       items: [
         {
+          id: 'project-0',
+          slug: 'project-0-slug',
+          title: 'Project 0',
+          description: 'summary',
+          publish_at: '2026-03-09T00:00:00.000Z',
+        },
+        {
           id: 'project-1',
           slug: 'project-1-slug',
           title: 'Project 1',
           description: 'summary',
           publish_at: '2026-03-08T00:00:00.000Z',
+        },
+        {
+          id: 'project-2',
+          slug: 'project-2-slug',
+          title: 'Project 2',
+          description: 'summary',
+          publish_at: '2026-03-07T00:00:00.000Z',
         },
       ],
       nextCursor: null,
@@ -126,6 +142,10 @@ describe('ProjectDetailPage', () => {
     expect(html).toContain('GitHub');
     expect(html).toContain('https://project-1.example.com');
     expect(html).toContain('https://github.com/example/project-1');
+    expect(html).toContain('Project 0');
+    expect(html).toContain('Project 2');
+    expect(html).toContain('href="/project/project-0-slug"');
+    expect(html).toContain('href="/project/project-2-slug"');
   }, 30000);
 
   it('기술 스택 카테고리 라벨은 locale 번역을 사용한다', async () => {
@@ -147,5 +167,27 @@ describe('ProjectDetailPage', () => {
 
     expect(html).toContain('Frontend');
     expect(html).toContain('React');
+  });
+
+  it('이전 또는 다음 프로젝트가 없어도 네비게이션 라벨 위치는 유지한다', async () => {
+    const html = await renderServerHtml({
+      item: {
+        id: 'project-0',
+        slug: 'project-0-slug',
+        title: 'Project 0',
+        description: 'summary',
+        content: '# hello',
+        created_at: '2026-03-09T00:00:00.000Z',
+        publish_at: '2026-03-09T00:00:00.000Z',
+        period_start: '2026-01-01',
+        period_end: '2026-02-01',
+        thumbnail_url: null,
+      },
+    });
+
+    expect(html).toContain('Next project');
+    expect(html).toContain('href="/project/project-1-slug"');
+    expect(html).not.toContain('data-align="start"><span class="fs_xs');
+    expect(html).not.toContain('href="/project/project--1-slug"');
   });
 });
