@@ -42,9 +42,10 @@ describe('ArticlesInteractiveShell', () => {
         loadErrorText="에러"
         loadMoreEndText="끝"
         loadingText="로딩"
+        popularTagsDefaultLabel="전체"
         popularTagsEmptyText="없음"
         popularTagsLoadingText="태그 로딩"
-        popularTagsTitle="tags"
+        popularTagsTitle="인기 태그"
         query=""
         retryText="재시도"
         searchClearText="초기화"
@@ -73,9 +74,10 @@ describe('ArticlesInteractiveShell', () => {
         loadErrorText="에러"
         loadMoreEndText="끝"
         loadingText="로딩"
+        popularTagsDefaultLabel="전체"
         popularTagsEmptyText="없음"
         popularTagsLoadingText="태그 로딩"
-        popularTagsTitle="tags"
+        popularTagsTitle="인기 태그"
         query=""
         retryText="재시도"
         searchClearText="초기화"
@@ -89,5 +91,37 @@ describe('ArticlesInteractiveShell', () => {
 
     expect(screen.queryByText('article-feed')).toBeNull();
     expect(screen.getByRole('status', { name: '로딩' })).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('태그 뷰에서는 사이드 검색과 사이드 태그 패널을 숨기고 상단 태그만 렌더링한다', () => {
+    render(
+      <ArticlesInteractiveShell
+        activeTag="react"
+        emptyText="비어 있음"
+        feedLocale="ko"
+        initialCursor={null}
+        initialItems={[]}
+        loadErrorText="에러"
+        loadMoreEndText="끝"
+        loadingText="로딩"
+        popularTagsDefaultLabel="전체"
+        popularTagsEmptyText="없음"
+        popularTagsLoadingText="태그 로딩"
+        popularTagsTitle="인기 태그"
+        query=""
+        retryText="재시도"
+        searchClearText="초기화"
+        searchPlaceholderText="검색"
+        searchSubmitText="검색"
+        showSearchFormInSidebar={false}
+        showTagFilterInSidebar={false}
+        tagLocale="ko"
+        topTagFilterSource="all"
+        topTagFilterTitle="전체 태그"
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'start-pending' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'start-tag-pending' })).toBeTruthy();
   });
 });

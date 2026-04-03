@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { css } from 'styled-system/css';
+import { css, cx } from 'styled-system/css';
 
 import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticleSearchForm } from '@/features/article-search/ui/article-search-form';
@@ -18,6 +18,7 @@ type ArticlesInteractiveShellProps = {
   loadMoreEndText: string;
   loadingText: string;
   popularTagsEmptyText: string;
+  popularTagsDefaultLabel: string;
   popularTagsLoadingText: string;
   popularTagsTitle: string;
   query: string;
@@ -25,7 +26,12 @@ type ArticlesInteractiveShellProps = {
   searchClearText: string;
   searchPlaceholderText: string;
   searchSubmitText: string;
+  showSearchFormInSidebar?: boolean;
+  showTagFilterInSidebar?: boolean;
+  topTagFilterHrefMode?: 'query' | 'tag-page';
+  topTagFilterSource?: 'all' | 'popular';
   tagLocale: string;
+  topTagFilterTitle?: string;
 };
 
 /**
@@ -41,6 +47,7 @@ export const ArticlesInteractiveShell = ({
   loadMoreEndText,
   loadingText,
   popularTagsEmptyText,
+  popularTagsDefaultLabel,
   popularTagsLoadingText,
   popularTagsTitle,
   query,
@@ -48,16 +55,43 @@ export const ArticlesInteractiveShell = ({
   searchClearText,
   searchPlaceholderText,
   searchSubmitText,
+  showSearchFormInSidebar = true,
+  showTagFilterInSidebar = true,
   tagLocale,
+  topTagFilterHrefMode = 'query',
+  topTagFilterSource = 'popular',
+  topTagFilterTitle,
 }: ArticlesInteractiveShellProps) => {
   const [isFeedPending, setIsFeedPending] = React.useState(false);
+  const hasSidebar = showSearchFormInSidebar || showTagFilterInSidebar;
 
   React.useEffect(() => {
     setIsFeedPending(false);
   }, [activeTag, initialCursor, query]);
 
   return (
-    <div className={layoutClass}>
+    <div className={cx(layoutClass, hasSidebar ? layoutWithSidebarClass : layoutFullWidthClass)}>
+      {topTagFilterTitle ? (
+        <div className={topTagFilterClass}>
+          <DeferredArticleTagFilterList
+            activeTag={activeTag}
+            defaultLabel={popularTagsDefaultLabel}
+            emptyText={popularTagsEmptyText}
+            hrefMode={topTagFilterHrefMode}
+            loadingText={popularTagsLoadingText}
+            locale={tagLocale}
+            onNavigationStart={({ nextTag }) => {
+              if (nextTag === activeTag && initialCursor === null && query.trim().length === 0) {
+                return;
+              }
+
+              setIsFeedPending(true);
+            }}
+            source={topTagFilterSource}
+            title={topTagFilterTitle}
+          />
+        </div>
+      ) : null}
       <div className={feedColumnClass}>
         {isFeedPending ? (
           <div aria-busy="true" aria-label={loadingText} className={pendingFeedClass} role="status">
@@ -87,34 +121,45 @@ export const ArticlesInteractiveShell = ({
           />
         )}
       </div>
-      <aside className={sidebarClass}>
-        <div className={sidebarPanelClass}>
-          <div className={desktopSearchFormClass}>
-            <ArticleSearchForm
-              clearText={searchClearText}
-              onPendingChange={setIsFeedPending}
-              pendingText={loadingText}
-              placeholder={searchPlaceholderText}
-              searchQuery={query}
-              submitText={searchSubmitText}
-            />
-          </div>
-          <DeferredArticleTagFilterList
-            activeTag={activeTag}
-            emptyText={popularTagsEmptyText}
-            loadingText={popularTagsLoadingText}
-            locale={tagLocale}
-            onNavigationStart={({ nextTag }) => {
-              if (nextTag === activeTag && initialCursor === null && query.trim().length === 0) {
-                return;
-              }
+      {showSearchFormInSidebar || showTagFilterInSidebar ? (
+        <aside className={sidebarClass}>
+          <div className={sidebarPanelClass}>
+            {showSearchFormInSidebar ? (
+              <div className={desktopSearchFormClass}>
+                <ArticleSearchForm
+                  clearText={searchClearText}
+                  onPendingChange={setIsFeedPending}
+                  pendingText={loadingText}
+                  placeholder={searchPlaceholderText}
+                  searchQuery={query}
+                  submitText={searchSubmitText}
+                />
+              </div>
+            ) : null}
+            {showTagFilterInSidebar ? (
+              <DeferredArticleTagFilterList
+                activeTag={activeTag}
+                defaultLabel={popularTagsDefaultLabel}
+                emptyText={popularTagsEmptyText}
+                loadingText={popularTagsLoadingText}
+                locale={tagLocale}
+                onNavigationStart={({ nextTag }) => {
+                  if (
+                    nextTag === activeTag &&
+                    initialCursor === null &&
+                    query.trim().length === 0
+                  ) {
+                    return;
+                  }
 
-              setIsFeedPending(true);
-            }}
-            title={popularTagsTitle}
-          />
-        </div>
-      </aside>
+                  setIsFeedPending(true);
+                }}
+                title={popularTagsTitle}
+              />
+            ) : null}
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 };
@@ -122,10 +167,23 @@ export const ArticlesInteractiveShell = ({
 const layoutClass = css({
   display: 'grid',
   gap: '6',
+});
+
+const layoutWithSidebarClass = css({
   _desktopUp: {
     gridTemplateColumns: 'minmax(0, 1fr) 18rem',
     alignItems: 'start',
   },
+});
+
+const layoutFullWidthClass = css({
+  _desktopUp: {
+    gridTemplateColumns: 'minmax(0, 1fr)',
+  },
+});
+
+const topTagFilterClass = css({
+  gridColumn: '1 / -1',
 });
 
 const feedColumnClass = css({

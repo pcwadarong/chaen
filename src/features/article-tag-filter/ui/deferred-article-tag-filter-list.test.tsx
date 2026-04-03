@@ -52,10 +52,11 @@ describe('DeferredArticleTagFilterList', () => {
       render(
         <DeferredArticleTagFilterList
           activeTag=""
+          defaultLabel="전체"
           emptyText="비어 있음"
           loadingText="불러오는 중"
           locale="ko"
-          title="tags"
+          title="인기 태그"
         />,
       );
     });
@@ -80,21 +81,55 @@ describe('DeferredArticleTagFilterList', () => {
     });
   });
 
-  it('조회 실패 시 empty 상태로 폴백한다', async () => {
+  it('조회 실패 시에도 기본 전체 필터는 유지한다', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network failed')));
 
     render(
       <DeferredArticleTagFilterList
         activeTag=""
+        defaultLabel="전체"
         emptyText="비어 있음"
         loadingText="불러오는 중"
         locale="ko"
-        title="tags"
+        title="인기 태그"
       />,
     );
 
     await waitFor(() => {
-      expect(screen.getByText('비어 있음')).toBeTruthy();
+      expect(screen.getByRole('link', { name: '전체' }).getAttribute('href')).toBe('/articles');
+    });
+  });
+
+  it('전체 태그 소스면 /api/tags를 호출하고 개수 없이 태그를 렌더링한다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: async () => [{ id: 'tag-1', label: '접근성', slug: 'a11y' }],
+        ok: true,
+      }),
+    );
+
+    render(
+      <DeferredArticleTagFilterList
+        activeTag=""
+        defaultLabel="전체"
+        emptyText="비어 있음"
+        loadingText="불러오는 중"
+        locale="ko"
+        source="all"
+        title="전체 태그"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: '접근성' }).getAttribute('href')).toBe(
+        '/articles/tag/a11y',
+      );
+    });
+
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('/api/tags?locale=ko', {
+      method: 'GET',
+      signal: expect.any(AbortSignal),
     });
   });
 });

@@ -12,6 +12,7 @@ import { getArticleDetailArchivePageAction } from '@/features/browse-article-arc
 import { deleteArticleAction } from '@/features/manage-article/api/delete-article';
 import { incrementArticleViewCountAction } from '@/features/track-article-view/api/increment-article-view-count-action';
 import { ArticleDetailMetaBar } from '@/features/track-article-view/ui/article-detail-meta-bar';
+import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import {
   resolvePublicContentPathSegment,
@@ -57,6 +58,7 @@ type ArticleArchiveSidebarProps = {
 
 type ArticleTagListProps = {
   ariaLabel: string;
+  tagSlugs: string[];
   tagLabelsPromise: Promise<string[]>;
 };
 
@@ -125,16 +127,18 @@ const ArticleArchiveSidebar = ({
 /**
  * 아티클 상세 태그 목록을 비동기 경계 안에서 렌더링합니다.
  */
-const ArticleTagList = async ({ ariaLabel, tagLabelsPromise }: ArticleTagListProps) => {
+const ArticleTagList = async ({ ariaLabel, tagLabelsPromise, tagSlugs }: ArticleTagListProps) => {
   const tagLabels = await tagLabelsPromise;
 
-  if (tagLabels.length === 0) return null;
+  if (tagSlugs.length === 0) return null;
 
   return (
     <ul aria-label={ariaLabel} className={tagListClass}>
-      {tagLabels.map(tagLabel => (
-        <li className={tagItemClass} key={tagLabel}>
-          <span className={tagButtonClass}>#{tagLabel}</span>
+      {tagSlugs.map((tagSlug, index) => (
+        <li className={tagItemClass} key={tagSlug}>
+          <Link className={tagButtonClass} href={`/articles/tag/${encodeURIComponent(tagSlug)}`}>
+            #{tagLabels[index] ?? tagSlug}
+          </Link>
         </li>
       ))}
     </ul>
@@ -293,7 +297,11 @@ export const ArticleDetailPage = ({
         tagContent={
           (item.tags?.length ?? 0) > 0 ? (
             <Suspense fallback={<DetailTagListSkeleton />}>
-              <ArticleTagList ariaLabel={t('tagSection')} tagLabelsPromise={tagLabelsPromise} />
+              <ArticleTagList
+                ariaLabel={t('tagSection')}
+                tagLabelsPromise={tagLabelsPromise}
+                tagSlugs={item.tags ?? []}
+              />
             </Suspense>
           ) : undefined
         }
@@ -332,6 +340,9 @@ const tagItemClass = css({
 });
 
 const tagButtonClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   px: '3',
   py: '[0.35rem]',
   borderRadius: 'full',
@@ -340,6 +351,16 @@ const tagButtonClass = css({
   fontSize: 'sm',
   lineHeight: 'tight',
   color: 'muted',
+  textDecoration: 'none',
+  transition: '[color 160ms ease, border-color 160ms ease, background-color 160ms ease]',
+  _hover: {
+    color: 'primary',
+    borderColor: 'primary',
+  },
+  _focusVisible: {
+    outline: '[2px solid var(--colors-focus-ring)]',
+    outlineOffset: '[2px]',
+  },
 });
 
 const relatedArticlesSectionClass = css({

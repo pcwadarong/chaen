@@ -137,6 +137,7 @@ describe('ArticleDetailPage', () => {
 
     expect(html).toContain('List');
     expect(html).toContain('href="/articles"');
+    expect(html).toContain('href="/articles/tag/react"');
     expect(html).toContain('data-testid="article-comments-section"');
     expect(html).toContain('article-1');
     expect(html).toContain('2026-03-08');

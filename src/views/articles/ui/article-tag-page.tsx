@@ -1,38 +1,33 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { ArticleListItem } from '@/entities/article/model/types';
 import { ArticlesInteractiveShell } from '@/views/articles/ui/articles-interactive-shell';
+import type { ArticlesPageProps } from '@/views/articles/ui/articles-page';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
-export type ArticlesPageProps = {
-  activeTag: string;
-  feedLocale: string;
-  initialCursor: string | null;
-  initialItems: ArticleListItem[];
-  locale: string;
-  pagination: {
-    currentPage: number;
-    nextHref: string | null;
-    previousHref: string | null;
-  };
-  searchQuery: string;
-};
+type ArticleTagPageProps = ArticlesPageProps;
 
-/** 아티클 목록 화면의 실제 페이지 컨테이너입니다. */
-export const ArticlesPage = ({
+/**
+ * 특정 태그 전용 아티클 목록 페이지를 렌더링합니다.
+ */
+export const ArticleTagPage = ({
   activeTag,
   feedLocale,
   initialCursor,
   initialItems,
   locale,
   searchQuery,
-}: ArticlesPageProps) => {
+}: ArticleTagPageProps) => {
   const t = useTranslations('Articles');
 
   return (
     <PageShell hideAppFrameFooter>
-      <PageHeader description={t('description')} title={t('title')} />
+      <PageHeader
+        description={t('tagPageDescription', {
+          tag: activeTag,
+        })}
+        title={`#${activeTag}`}
+      />
       <PageSection>
         <ArticlesInteractiveShell
           activeTag={activeTag}
@@ -43,8 +38,8 @@ export const ArticlesPage = ({
           loadErrorText={t('loadError')}
           loadMoreEndText={t('loadMoreEnd')}
           loadingText={t('loading')}
-          popularTagsEmptyText={t('popularTagsEmpty')}
           popularTagsDefaultLabel={t('popularTagsDefault')}
+          popularTagsEmptyText={t('popularTagsEmpty')}
           popularTagsLoadingText={t('popularTagsLoading')}
           popularTagsTitle={t('popularTagsTitle')}
           query={searchQuery}
@@ -52,7 +47,12 @@ export const ArticlesPage = ({
           searchClearText={t('searchClear')}
           searchPlaceholderText={t('searchPlaceholder')}
           searchSubmitText={t('searchSubmit')}
+          showSearchFormInSidebar={false}
+          showTagFilterInSidebar={false}
           tagLocale={locale}
+          topTagFilterHrefMode="tag-page"
+          topTagFilterSource="all"
+          topTagFilterTitle={t('allTagsTitle')}
         />
       </PageSection>
     </PageShell>
