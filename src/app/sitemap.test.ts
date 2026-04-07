@@ -2,22 +2,34 @@ import { vi } from 'vitest';
 
 import sitemap from '@/app/sitemap';
 
-const { eqMock, fromMock, inMock, lteMock, notMock, selectMock, supabaseClientMock } = vi.hoisted(
-  () => ({
-    eqMock: vi.fn(),
-    fromMock: vi.fn(),
-    inMock: vi.fn(),
-    lteMock: vi.fn(),
-    notMock: vi.fn(),
-    selectMock: vi.fn(),
-    supabaseClientMock: {
-      from: vi.fn(),
-    },
-  }),
-);
+const {
+  eqMock,
+  fromMock,
+  getPublicArticleTagSlugsMock,
+  inMock,
+  lteMock,
+  notMock,
+  selectMock,
+  supabaseClientMock,
+} = vi.hoisted(() => ({
+  eqMock: vi.fn(),
+  fromMock: vi.fn(),
+  getPublicArticleTagSlugsMock: vi.fn(),
+  inMock: vi.fn(),
+  lteMock: vi.fn(),
+  notMock: vi.fn(),
+  selectMock: vi.fn(),
+  supabaseClientMock: {
+    from: vi.fn(),
+  },
+}));
 
 vi.mock('@/shared/lib/supabase/public-server', () => ({
   createOptionalPublicServerSupabaseClient: vi.fn(() => supabaseClientMock),
+}));
+
+vi.mock('@/entities/tag', () => ({
+  getPublicArticleTagSlugs: getPublicArticleTagSlugsMock,
 }));
 
 describe('sitemap', () => {
@@ -33,6 +45,11 @@ describe('sitemap', () => {
     selectMock.mockReset();
     fromMock.mockReset();
     supabaseClientMock.from.mockReset();
+    getPublicArticleTagSlugsMock.mockReset();
+    getPublicArticleTagSlugsMock.mockResolvedValue({
+      data: ['react'],
+      schemaMissing: false,
+    });
 
     const articleQuery = {
       eq: eqMock,
@@ -121,6 +138,10 @@ describe('sitemap', () => {
           priority: 0.8,
           url: 'https://chaen.dev/en/project/project-1-slug',
         }),
+        expect.objectContaining({
+          priority: 0.7,
+          url: 'https://chaen.dev/ko/articles/tag/react',
+        }),
       ]),
     );
     expect(eqMock).toHaveBeenCalledWith('articles.visibility', 'public');
@@ -192,5 +213,29 @@ describe('sitemap', () => {
 
     expect(articleEntry?.lastModified).toEqual(new Date('2026-03-10T00:00:00.000Z'));
     expect(projectEntry?.lastModified).toEqual(new Date('2026-03-09T00:00:00.000Z'));
+  });
+
+  it('태그 조회가 실패해도 나머지 sitemap 엔트리는 계속 반환한다', async () => {
+    getPublicArticleTagSlugsMock.mockRejectedValueOnce(new Error('tag query failed'));
+
+    const entries = await sitemap();
+
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: 'https://chaen.dev/ko',
+        }),
+        expect.objectContaining({
+          url: 'https://chaen.dev/ko/articles/article-1-slug',
+        }),
+      ]),
+    );
+    expect(entries).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: 'https://chaen.dev/ko/articles/tag/react',
+        }),
+      ]),
+    );
   });
 });

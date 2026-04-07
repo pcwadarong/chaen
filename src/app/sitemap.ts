@@ -183,7 +183,8 @@ const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
  * 공개 아티클 태그 아카이브 URL을 locale별로 생성합니다.
  */
 const fetchArticleTagEntries = async (): Promise<MetadataRoute.Sitemap> => {
-  const publicArticleTags = await getPublicArticleTagSlugs();
+  const publicArticleTags = await getPublicArticleTagSlugs().catch(() => null);
+  if (!publicArticleTags) return [];
   if (publicArticleTags.schemaMissing) return [];
 
   return publicArticleTags.data.flatMap(tagSlug =>
