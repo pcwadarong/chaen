@@ -6,27 +6,32 @@ import type { ArticlesPageProps } from '@/views/articles/ui/articles-page';
 import { PageHeader, PageSection, PageShell } from '@/widgets/page-shell/ui/page-shell';
 
 type ArticleTagPageProps = ArticlesPageProps;
+type ArticleTagPageViewProps = ArticleTagPageProps & {
+  activeTagLabel?: string;
+};
 
 /**
  * 특정 태그 전용 아티클 목록 페이지를 렌더링합니다.
  */
 export const ArticleTagPage = ({
   activeTag,
+  activeTagLabel,
   feedLocale,
   initialCursor,
   initialItems,
   locale,
   searchQuery,
-}: ArticleTagPageProps) => {
+}: ArticleTagPageViewProps) => {
   const t = useTranslations('Articles');
+  const displayTag = activeTagLabel?.trim() || activeTag;
 
   return (
     <PageShell hideAppFrameFooter>
       <PageHeader
         description={t('tagPageDescription', {
-          tag: activeTag,
+          tag: displayTag,
         })}
-        title={`#${activeTag}`}
+        title={`#${displayTag}`}
       />
       <PageSection>
         <ArticlesInteractiveShell

@@ -1,7 +1,11 @@
 import { isValidElement } from 'react';
 import { vi } from 'vitest';
 
-import ArticleTagRoute, { generateMetadata } from '@/app/[locale]/articles/tag/[tag]/page';
+import ArticleTagRoute, {
+  generateMetadata,
+  generateStaticParams,
+} from '@/app/[locale]/articles/tag/[tag]/page';
+import { getTagIdBySlug } from '@/entities/tag';
 import { getArticleTagPageData } from '@/views/articles';
 
 const { notFoundMock } = vi.hoisted(() => ({
@@ -26,6 +30,21 @@ vi.mock('next-intl/server', () => ({
 
     return key;
   }),
+}));
+
+vi.mock('@/entities/tag', () => ({
+  getPublicArticleTagSlugs: vi.fn(async () => ({
+    data: ['retrospect', 'react'],
+    schemaMissing: false,
+  })),
+  getTagIdBySlug: vi.fn(async () => ({
+    data: 'tag-retrospect',
+    schemaMissing: false,
+  })),
+  getTagLabelMapBySlugs: vi.fn(async () => ({
+    data: new Map([['retrospect', 'Retrospect']]),
+    schemaMissing: false,
+  })),
 }));
 
 vi.mock('@/views/articles', () => ({
@@ -177,6 +196,7 @@ describe('ArticleTagRoute', () => {
       tag: 'retrospect',
     });
     expect(element.props.activeTag).toBe('retrospect');
+    expect(element.props.activeTagLabel).toBe('Retrospect');
     expect(element.props.searchQuery).toBe('three');
   });
 
@@ -210,10 +230,13 @@ describe('ArticleTagRoute', () => {
       }),
     ).resolves.toMatchObject({
       alternates: {
-        canonical:
-          'https://chaen.dev/en/articles/tag/retrospect?q=three&page=2&cursor=cursor-1&cursorHistory=cursor-root',
+        canonical: 'https://chaen.dev/en/articles/tag/retrospect',
       },
-      description: 'Articles tagged with retrospect',
+      description: 'Articles tagged with Retrospect',
+      openGraph: {
+        images: ['https://chaen.dev/thumbnail.png'],
+        url: 'https://chaen.dev/en/articles/tag/retrospect',
+      },
       pagination: {
         next: 'https://chaen.dev/en/articles/tag/retrospect?page=3',
         previous: 'https://chaen.dev/en/articles/tag/retrospect',
@@ -222,8 +245,18 @@ describe('ArticleTagRoute', () => {
         follow: true,
         index: false,
       },
-      title: '#retrospect | 2',
+      title: '#Retrospect | 2',
+      twitter: {
+        images: ['https://chaen.dev/thumbnail.png'],
+      },
     });
+  });
+
+  it('정적 params는 공개 아티클에 연결된 태그 slug만 seed한다', async () => {
+    await expect(generateStaticParams()).resolves.toEqual([
+      { tag: 'retrospect' },
+      { tag: 'react' },
+    ]);
   });
 
   it('유효하지 않은 page searchParam이면 notFound를 호출한다', async () => {
@@ -236,6 +269,25 @@ describe('ArticleTagRoute', () => {
         searchParams: Promise.resolve({
           page: '0',
         }),
+      }),
+    ).rejects.toThrow('NOT_FOUND');
+
+    expect(notFoundMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('존재하지 않는 태그 slug면 notFound를 호출한다', async () => {
+    vi.mocked(getTagIdBySlug).mockResolvedValueOnce({
+      data: null,
+      schemaMissing: false,
+    });
+
+    await expect(
+      ArticleTagRoute({
+        params: Promise.resolve({
+          locale: 'en',
+          tag: 'missing-tag',
+        }),
+        searchParams: Promise.resolve({}),
       }),
     ).rejects.toThrow('NOT_FOUND');
 

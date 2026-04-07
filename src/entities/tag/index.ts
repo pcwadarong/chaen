@@ -1,4 +1,7 @@
 export {
+  getAllTags,
+  getPublicArticleTagSlugs,
+  getTagIdBySlug,
   getTagLabelMapBySlugs,
   getTagOptionsByLocale,
   getTagSlugMap,

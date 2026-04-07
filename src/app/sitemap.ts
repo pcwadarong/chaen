@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 
+import { getPublicArticleTagSlugs } from '@/entities/tag';
 import { defaultLocale, locales } from '@/i18n/routing';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
@@ -179,17 +180,53 @@ const fetchProjectEntries = async (): Promise<MetadataRoute.Sitemap> => {
 };
 
 /**
+ * 공개 아티클 태그 아카이브 URL을 locale별로 생성합니다.
+ */
+const fetchArticleTagEntries = async (): Promise<MetadataRoute.Sitemap> => {
+  const publicArticleTags = await getPublicArticleTagSlugs();
+  if (publicArticleTags.schemaMissing) return [];
+
+  return publicArticleTags.data.flatMap(tagSlug =>
+    locales.map(locale => ({
+      alternates: {
+        languages: Object.fromEntries(
+          locales.map(candidateLocale => [
+            candidateLocale,
+            buildAbsoluteSiteUrl(
+              buildLocalizedPathname({
+                locale: candidateLocale,
+                pathname: `/articles/tag/${tagSlug}`,
+              }),
+            ),
+          ]),
+        ),
+      },
+      changeFrequency: 'weekly' as const,
+      lastModified: new Date(),
+      priority: 0.7,
+      url: buildAbsoluteSiteUrl(
+        buildLocalizedPathname({
+          locale,
+          pathname: `/articles/tag/${tagSlug}`,
+        }),
+      ),
+    })),
+  );
+};
+
+/**
  * 수동 XML 파일 대신 Next.js Dynamic Sitemap API 응답을 생성합니다.
  */
 const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
-  const [archiveEntries, articles, homeEntries, projects] = await Promise.all([
+  const [archiveEntries, articles, articleTags, homeEntries, projects] = await Promise.all([
     Promise.resolve(buildArchiveEntries()),
     fetchArticleEntries(),
+    fetchArticleTagEntries(),
     Promise.resolve(buildHomeEntries()),
     fetchProjectEntries(),
   ]);
 
-  return [...homeEntries, ...archiveEntries, ...articles, ...projects];
+  return [...homeEntries, ...archiveEntries, ...articleTags, ...articles, ...projects];
 };
 
 export default sitemap;

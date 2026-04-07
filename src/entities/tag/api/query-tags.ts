@@ -23,6 +23,14 @@ type TagTranslationRow = {
 
 type RelationTableName = 'article_tags' | 'project_tags';
 
+type EmbeddedTagRelation = {
+  slug: string;
+};
+
+type PublicArticleTagRow = {
+  tags: EmbeddedTagRelation | EmbeddedTagRelation[] | null;
+};
+
 type GetRelatedEntityIdsOptions = {
   entityColumn: 'article_id' | 'project_id';
   relationTable: RelationTableName;
@@ -349,6 +357,54 @@ export const getAllRelatedTagIds = async (
 
   return {
     data: (data ?? []).map(row => (row as { tag_id: string }).tag_id),
+    schemaMissing: false,
+  };
+};
+
+/**
+ * PostgREST embed 응답을 단일 relation row로 정규화합니다.
+ */
+const getEmbeddedTagRelation = <TRow extends object>(
+  relation: TRow | TRow[] | null,
+): TRow | null => {
+  if (Array.isArray(relation)) {
+    return relation[0] ?? null;
+  }
+
+  return relation;
+};
+
+/**
+ * 공개 아티클에 실제 연결된 태그 slug 목록만 반환합니다.
+ */
+export const getPublicArticleTagSlugs = async (): Promise<TagSchemaResult<string[]>> => {
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return { data: [], schemaMissing: false };
+
+  const nowIsoString = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('article_tags')
+    .select('tags!inner(slug),articles!inner(id,publish_at,visibility)')
+    .eq('articles.visibility', 'public')
+    .lte('articles.publish_at', nowIsoString)
+    .not('articles.publish_at', 'is', null);
+
+  if (error) {
+    if (isMissingTagSchemaError(error.message)) {
+      return { data: [], schemaMissing: true };
+    }
+
+    throw new Error(`[tags] 공개 아티클 태그 slug 조회 실패: ${error.message}`);
+  }
+
+  return {
+    data: Array.from(
+      new Set(
+        ((data ?? []) as PublicArticleTagRow[])
+          .map(row => getEmbeddedTagRelation(row.tags)?.slug?.trim().toLowerCase() ?? '')
+          .filter((slug): slug is string => slug.length > 0),
+      ),
+    ).sort((left, right) => left.localeCompare(right)),
     schemaMissing: false,
   };
 };
