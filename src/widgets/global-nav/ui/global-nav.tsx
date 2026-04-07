@@ -84,6 +84,7 @@ export const GlobalNav = () => {
   const articlesT = useTranslations('Articles');
   const { isAdmin } = useAuth();
   const pathname = usePathname();
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
   const searchParams = useSearchParams();
   const [isHidden, setIsHidden] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -330,7 +331,11 @@ export const GlobalNav = () => {
 
   return (
     <header
-      className={cx(headerClass, isHidden ? hiddenHeaderClass : visibleHeaderClass)}
+      className={cx(
+        headerClass,
+        isAdminRoute ? adminHeaderClass : undefined,
+        isHidden ? hiddenHeaderClass : visibleHeaderClass,
+      )}
       ref={headerRef}
     >
       {isArticlesRoute && isMobileSearchOpen ? (
@@ -383,6 +388,11 @@ const headerClass = css({
   _desktopUp: {
     borderTopLeftRadius: '[calc(2rem - 1px)]',
   },
+});
+
+const adminHeaderClass = css({
+  borderTopLeftRadius: '[0px]',
+  borderTopRightRadius: '[0px]',
 });
 
 const visibleHeaderClass = css({

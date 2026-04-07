@@ -36,7 +36,14 @@ export const RouteAwareAppFrame = ({ children, nav }: RouteAwareAppFrameProps) =
 };
 
 const adminRootClass = css({
-  minHeight: 'dvh',
   width: 'full',
+  minHeight: 'dvh',
   background: 'surface',
+  _desktopUp: {
+    height: 'dvh',
+    overflowY: 'auto',
+    overflowX: 'clip',
+    overscrollBehaviorY: 'contain',
+    scrollbarGutter: 'stable',
+  },
 });

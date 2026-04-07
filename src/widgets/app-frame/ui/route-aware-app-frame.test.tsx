@@ -30,6 +30,8 @@ describe('RouteAwareAppFrame', () => {
     expect(screen.queryByTestId('app-frame')).not.toBeInTheDocument();
     expect(screen.getByText('nav')).toBeInTheDocument();
     expect(screen.getByText('content')).toBeInTheDocument();
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('');
   });
 
   it('일반 경로에서는 기존 AppFrame 안에 렌더링한다', () => {
@@ -38,5 +40,7 @@ describe('RouteAwareAppFrame', () => {
     render(<RouteAwareAppFrame nav={<div>nav</div>}>content</RouteAwareAppFrame>);
 
     expect(screen.getByTestId('app-frame')).toBeTruthy();
+    expect(document.documentElement.style.overflow).toBe('');
+    expect(document.body.style.overflow).toBe('');
   });
 });
