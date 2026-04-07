@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 
-import { type AppLocale, locales } from '@/i18n/routing';
+import { type AppLocale, defaultLocale, locales } from '@/i18n/routing';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 
 /**
  * SEO canonical 및 x-default 계산에 사용하는 기준 locale입니다.
  */
-export const seoDefaultLocale: AppLocale = 'en';
+export const seoDefaultLocale: AppLocale = defaultLocale;
 
 type BuildLocaleAlternatesInput = {
   canonicalLocale: AppLocale;
@@ -21,19 +21,21 @@ export const buildLocaleAlternates = ({
   pathnameByLocale,
 }: BuildLocaleAlternatesInput): NonNullable<Metadata['alternates']> => {
   const languages = Object.fromEntries(
-    locales.map(locale => {
+    locales.flatMap(locale => {
       const pathname = pathnameByLocale[locale];
-      return [locale, pathname ? buildAbsoluteSiteUrl(pathname) : undefined];
+
+      return pathname ? [[locale, buildAbsoluteSiteUrl(pathname)]] : [];
     }),
-  ) as Record<string, string | undefined>;
+  ) as Record<string, string>;
+  const canonicalPathname = pathnameByLocale[canonicalLocale] ?? `/${canonicalLocale}`;
+  const xDefaultPathname =
+    pathnameByLocale[seoDefaultLocale] ?? pathnameByLocale[canonicalLocale] ?? canonicalPathname;
 
   return {
-    canonical: buildAbsoluteSiteUrl(pathnameByLocale[canonicalLocale] ?? `/${canonicalLocale}`),
+    canonical: buildAbsoluteSiteUrl(canonicalPathname),
     languages: {
       ...languages,
-      'x-default': buildAbsoluteSiteUrl(
-        pathnameByLocale[seoDefaultLocale] ?? `/${seoDefaultLocale}`,
-      ),
+      'x-default': buildAbsoluteSiteUrl(xDefaultPathname),
     },
   };
 };

@@ -40,7 +40,7 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
     }),
     getTranslations({ locale, namespace: 'ProjectDetail' }),
   ]);
-  const { item, resolvedLocale } = resolvedProject;
+  const { availableLocales, item, resolvedLocale } = resolvedProject;
 
   if (!item) return {};
 
@@ -63,12 +63,23 @@ export const generateMetadata = async ({ params }: ProjectDetailRouteProps): Pro
     description: item.description ?? t('emptySummary'),
     alternates: buildLocaleAlternates({
       canonicalLocale,
-      pathnameByLocale: buildPathnameByLocale(candidateLocale =>
-        buildLocalizedPathname({
-          locale: candidateLocale,
-          pathname: `/project/${projectPathSegment}`,
-        }),
-      ),
+      pathnameByLocale:
+        availableLocales.length > 0
+          ? Object.fromEntries(
+              availableLocales.map(candidateLocale => [
+                candidateLocale,
+                buildLocalizedPathname({
+                  locale: candidateLocale,
+                  pathname: `/project/${projectPathSegment}`,
+                }),
+              ]),
+            )
+          : buildPathnameByLocale(candidateLocale =>
+              buildLocalizedPathname({
+                locale: candidateLocale,
+                pathname: `/project/${projectPathSegment}`,
+              }),
+            ),
     }),
     openGraph: {
       description: item.description ?? t('emptySummary'),

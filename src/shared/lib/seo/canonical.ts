@@ -1,6 +1,5 @@
 import type { AppLocale } from '@/i18n/routing';
-import { locales } from '@/i18n/routing';
-import { seoDefaultLocale } from '@/shared/lib/seo/metadata';
+import { isValidLocale, locales } from '@/i18n/routing';
 
 type ResolveCanonicalLocaleInput = {
   requestedLocale: AppLocale;
@@ -8,18 +7,19 @@ type ResolveCanonicalLocaleInput = {
 };
 
 /**
- * 현재 요청 locale에 실제 번역이 있으면 자기 자신을 canonical로 사용하고,
- * fallback으로 렌더링됐다면 SEO 기본 locale(`en`)을 canonical로 사용합니다.
+ * 현재 요청이 fallback으로 렌더링됐더라도 실제로 선택된 번역 locale을 canonical로 사용합니다.
  */
 export const resolveCanonicalLocale = ({
   requestedLocale,
   resolvedLocale,
 }: ResolveCanonicalLocaleInput): AppLocale => {
-  if (resolvedLocale?.toLowerCase() === requestedLocale) {
-    return requestedLocale;
+  const normalizedResolvedLocale = resolvedLocale?.toLowerCase();
+
+  if (normalizedResolvedLocale && isValidLocale(normalizedResolvedLocale)) {
+    return normalizedResolvedLocale;
   }
 
-  return seoDefaultLocale;
+  return requestedLocale;
 };
 
 /**

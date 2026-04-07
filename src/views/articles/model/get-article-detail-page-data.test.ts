@@ -39,6 +39,7 @@ describe('article detail page data helpers', () => {
 
   it('shell helper는 상세 본문 최소 데이터만 조회한다', async () => {
     vi.mocked(getResolvedArticle).mockResolvedValue({
+      availableLocales: ['en', 'ko'],
       item: {
         id: 'frontend',
         title: 'Frontend',

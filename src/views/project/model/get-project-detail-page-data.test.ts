@@ -26,6 +26,7 @@ describe('project detail page data helpers', () => {
 
   it('shell helper는 상세 본문 최소 데이터만 조회한다', async () => {
     vi.mocked(getResolvedProject).mockResolvedValue({
+      availableLocales: ['ko'],
       item: {
         id: 'funda',
         title: 'FUNDA',
