@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import React, { Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import { Link } from '@/i18n/navigation';
+import { Link as LocalizedLink } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import { isActiveNavigationItem } from '@/widgets/global-nav/ui/is-active-navigation-item';
 import { LocaleSwitcher } from '@/widgets/global-nav/ui/locale-switcher';
@@ -13,6 +14,7 @@ type GlobalNavDesktopContentProps = {
   ariaLabel: string;
   navigationItems: readonly GlobalNavItem[];
   pathname: string;
+  showLocaleSwitcher?: boolean;
 };
 
 /** 데스크톱 뷰에서 사용하는 전역 내비게이션 링크/스위처 영역입니다. */
@@ -20,6 +22,7 @@ const GlobalNavDesktopContentBase = ({
   ariaLabel,
   navigationItems,
   pathname,
+  showLocaleSwitcher = true,
 }: GlobalNavDesktopContentProps) => (
   <div className={contentClass}>
     <nav aria-label={ariaLabel}>
@@ -34,13 +37,23 @@ const GlobalNavDesktopContentBase = ({
               type={undefined}
               variant="ghost"
             >
-              <Link
-                aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
-                href={item.href}
-                prefetch
-              >
-                {item.label}
-              </Link>
+              {item.href === '/admin' ? (
+                <Link
+                  aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                  href={item.href}
+                  prefetch
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <LocalizedLink
+                  aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                  href={item.href}
+                  prefetch
+                >
+                  {item.label}
+                </LocalizedLink>
+              )}
             </Button>
           </li>
         ))}
@@ -49,9 +62,11 @@ const GlobalNavDesktopContentBase = ({
     <hr aria-hidden className={controlsDividerClass} />
     <div className={controlsClass}>
       <MusicToggleButton />
-      <Suspense fallback={<span className={switcherFallbackClass} />}>
-        <LocaleSwitcher />
-      </Suspense>
+      {showLocaleSwitcher ? (
+        <Suspense fallback={<span className={switcherFallbackClass} />}>
+          <LocaleSwitcher />
+        </Suspense>
+      ) : null}
       <ThemeSwitcher />
     </div>
   </div>

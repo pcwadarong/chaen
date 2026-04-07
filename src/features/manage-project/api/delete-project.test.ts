@@ -41,7 +41,6 @@ describe('deleteProjectAction', () => {
     } as never);
 
     await deleteProjectAction({
-      locale: 'ko',
       projectId: 'project-1',
       projectSlug: 'project-1-slug',
     });

@@ -1,11 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
 import { parseEditorError } from '@/entities/editor/model/editor-error';
-import { Link } from '@/i18n/navigation';
 import { AdminTable } from '@/shared/ui/admin-table';
 import { Button } from '@/shared/ui/button/button';
 import { type ToastItem, ToastViewport } from '@/shared/ui/toast/toast';

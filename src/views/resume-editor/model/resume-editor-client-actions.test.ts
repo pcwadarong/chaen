@@ -79,7 +79,7 @@ describe('resume-editor-client-actions', () => {
 
   it('발행 시 resume 상태로 변환하고 redirect 경로를 추출한다', async () => {
     const onPublishSubmit = vi.fn().mockResolvedValue({
-      redirectPath: '/ko/admin/resume/edit',
+      redirectPath: '/admin/resume/edit',
     });
 
     const result = await submitResumePublish({
@@ -105,9 +105,9 @@ describe('resume-editor-client-actions', () => {
       'draft-current',
     );
     expect(result).toEqual({
-      redirectPath: '/ko/admin/resume/edit',
+      redirectPath: '/admin/resume/edit',
       result: {
-        redirectPath: '/ko/admin/resume/edit',
+        redirectPath: '/admin/resume/edit',
       },
     });
   });
@@ -139,8 +139,8 @@ describe('resume-editor-client-actions', () => {
   it('현재 경로와 발행 redirect 경로가 같으면 replace-refresh 모드를 반환한다', () => {
     expect(
       resolveResumePublishNavigationMode({
-        currentPathname: '/ko/admin/resume/edit',
-        redirectPath: '/ko/admin/resume/edit',
+        currentPathname: '/admin/resume/edit',
+        redirectPath: '/admin/resume/edit',
       }),
     ).toBe('replace-refresh');
   });
@@ -148,8 +148,8 @@ describe('resume-editor-client-actions', () => {
   it('현재 경로와 발행 redirect 경로가 다르면 push 모드를 반환한다', () => {
     expect(
       resolveResumePublishNavigationMode({
-        currentPathname: '/ko/admin/resume/edit',
-        redirectPath: '/ko/admin',
+        currentPathname: '/admin/resume/edit',
+        redirectPath: '/admin',
       }),
     ).toBe('push');
   });

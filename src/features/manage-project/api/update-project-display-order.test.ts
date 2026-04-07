@@ -52,7 +52,6 @@ describe('updateProjectDisplayOrderAction', () => {
     } as never);
 
     await updateProjectDisplayOrderAction({
-      locale: 'ko',
       orderedProjectIds: ['project-2', 'project-1'],
     });
 
@@ -66,7 +65,7 @@ describe('updateProjectDisplayOrderAction', () => {
     expect(revalidateTag).toHaveBeenCalledWith('projects');
     expect(revalidateTag).toHaveBeenCalledWith('project:project-2');
     expect(revalidateTag).toHaveBeenCalledWith('project:project-1');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/content');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/content');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ko');

@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import React from 'react';
 
-import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import { AdminConsoleShell } from '@/widgets/admin-console';
 import type { AdminPdfUploadItem } from '@/widgets/admin-pdf-upload';

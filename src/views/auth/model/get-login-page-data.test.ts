@@ -20,8 +20,8 @@ describe('getLoginPageData', () => {
       userId: 'admin-user-id',
     });
 
-    await expect(getLoginPageData({ locale: 'ko' })).resolves.toEqual({
-      redirectPath: '/ko/admin',
+    await expect(getLoginPageData()).resolves.toEqual({
+      redirectPath: '/admin',
     });
   });
 
@@ -33,7 +33,7 @@ describe('getLoginPageData', () => {
       userId: null,
     });
 
-    await expect(getLoginPageData({ locale: 'ko' })).resolves.toEqual({
+    await expect(getLoginPageData()).resolves.toEqual({
       redirectPath: null,
     });
   });

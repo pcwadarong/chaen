@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { ADMIN_LOCALE } from '@/features/admin-session/model/admin-path';
 import { locales } from '@/i18n/routing';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -12,7 +13,6 @@ import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 const deleteProjectSchema = z.object({
-  locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
   projectId: z.string().trim().min(1, '대상 프로젝트를 확인할 수 없습니다.'),
   projectSlug: z.string().trim().min(1, '대상 프로젝트 경로를 확인할 수 없습니다.'),
 });
@@ -48,25 +48,21 @@ const revalidateProjectPublicPaths = (projectSlug: string) => {
 /**
  * 관리자만 공개 프로젝트를 삭제하고 목록으로 이동합니다.
  */
-export const deleteProjectAction = async (input: {
-  locale: string;
-  projectId: string;
-  projectSlug: string;
-}) => {
+export const deleteProjectAction = async (input: { projectId: string; projectSlug: string }) => {
   const validation = validateActionInput(deleteProjectSchema, input);
 
   if (!validation.ok) {
     throw new Error(validation.errorMessage);
   }
 
-  await requireAdmin({ locale: validation.data.locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) {
     throw new Error(PROJECT_DELETE_FAILED);
   }
 
-  const { locale, projectId, projectSlug } = validation.data;
+  const { projectId, projectSlug } = validation.data;
   const { error: deleteError } = await supabase.rpc('delete_project_with_dependents', {
     target_project_id: projectId,
   });
@@ -81,7 +77,7 @@ export const deleteProjectAction = async (input: {
 
   redirect(
     buildLocalizedPathname({
-      locale: locale as (typeof locales)[number],
+      locale: ADMIN_LOCALE,
       pathname: '/project',
     }),
   );

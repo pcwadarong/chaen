@@ -1,10 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 import { useFormStatus } from 'react-dom';
 import { css } from 'styled-system/css';
 
-import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 
 type AdminDetailActionsProps = {

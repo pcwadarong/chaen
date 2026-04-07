@@ -37,7 +37,7 @@ vi.mock('@/widgets/admin-pdf-upload', () => ({
 
 describe('AdminResumePage', () => {
   it('항상, AdminResumePage는 이력서 편집 CTA 하나와 PDF 관리 패널만 보여줘야 한다', () => {
-    render(<AdminResumePage pdfUploadItems={[]} signOutRedirectPath="/ko/admin/login" />);
+    render(<AdminResumePage pdfUploadItems={[]} signOutRedirectPath="/admin/login" />);
 
     expect(screen.getByRole('link', { name: '이력서 편집' })).toHaveAttribute(
       'href',

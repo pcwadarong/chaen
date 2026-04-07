@@ -358,6 +358,7 @@ export const GlobalNav = () => {
           ariaLabel={ariaLabel}
           navigationItems={navigationItems}
           pathname={pathname}
+          showLocaleSwitcher={!isAdminRoute}
         />
         <GlobalNavMobileMenu
           ariaLabel={ariaLabel}
@@ -369,6 +370,7 @@ export const GlobalNav = () => {
           onToggle={handleMobileMenuToggle}
           openMenuLabel={openMenuLabel}
           pathname={pathname}
+          showLocaleSwitcher={!isAdminRoute}
         />
       </div>
     </header>

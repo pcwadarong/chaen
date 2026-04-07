@@ -26,7 +26,7 @@ describe('AdminSignOutButton', () => {
       ok: false,
     });
 
-    render(<AdminSignOutButton redirectPath="/ko/admin/login" />);
+    render(<AdminSignOutButton redirectPath="/admin/login" />);
 
     fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
 
@@ -36,7 +36,7 @@ describe('AdminSignOutButton', () => {
 
     const call = vi.mocked(signOutAdmin).mock.calls[0];
     expect(call?.[1]).toBeInstanceOf(FormData);
-    expect((call?.[1] as FormData).get('redirectPath')).toBe('/ko/admin/login');
+    expect((call?.[1] as FormData).get('redirectPath')).toBe('/admin/login');
   });
 
   it('로그아웃 실패 시 에러를 노출한다', async () => {
@@ -46,7 +46,7 @@ describe('AdminSignOutButton', () => {
       ok: false,
     });
 
-    render(<AdminSignOutButton redirectPath="/ko/admin/login" />);
+    render(<AdminSignOutButton redirectPath="/admin/login" />);
 
     fireEvent.click(screen.getByRole('button', { name: '로그아웃' }));
 

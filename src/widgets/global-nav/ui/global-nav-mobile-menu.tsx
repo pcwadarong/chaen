@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import React, { type ReactNode, Suspense } from 'react';
 import { css } from 'styled-system/css';
 
-import { Link } from '@/i18n/navigation';
+import { Link as LocalizedLink } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import { HamburgerIcon } from '@/shared/ui/icons/app-icons';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
@@ -24,6 +25,7 @@ type GlobalNavMobileMenuProps = {
   onToggle: () => void;
   openMenuLabel: string;
   pathname: string;
+  showLocaleSwitcher?: boolean;
 };
 
 const MOBILE_NAV_DRAWER_ID = 'mobile-nav-drawer';
@@ -39,14 +41,17 @@ const GlobalNavMobileMenuBase = ({
   onToggle,
   openMenuLabel,
   pathname,
+  showLocaleSwitcher = true,
 }: GlobalNavMobileMenuProps) => (
   <>
     <div className={mobileControlsClass}>
       {leadingAction}
       <MusicToggleButton />
-      <Suspense fallback={<span className={switcherFallbackClass} />}>
-        <LocaleSwitcher />
-      </Suspense>
+      {showLocaleSwitcher ? (
+        <Suspense fallback={<span className={switcherFallbackClass} />}>
+          <LocaleSwitcher />
+        </Suspense>
+      ) : null}
       <ThemeSwitcher />
       <Button
         aria-controls={MOBILE_NAV_DRAWER_ID}
@@ -75,15 +80,27 @@ const GlobalNavMobileMenuBase = ({
           <ul className={mobileListClass}>
             {navigationItems.map(item => (
               <li key={item.href}>
-                <Link
-                  aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
-                  className={mobileNavLinkClass}
-                  href={item.href}
-                  onClick={onClose}
-                  prefetch
-                >
-                  {item.label}
-                </Link>
+                {item.href === '/admin' ? (
+                  <Link
+                    aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                    className={mobileNavLinkClass}
+                    href={item.href}
+                    onClick={onClose}
+                    prefetch
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <LocalizedLink
+                    aria-current={isActiveNavigationItem(pathname, item.href) ? 'page' : undefined}
+                    className={mobileNavLinkClass}
+                    href={item.href}
+                    onClick={onClose}
+                    prefetch
+                  >
+                    {item.label}
+                  </LocalizedLink>
+                )}
               </li>
             ))}
           </ul>

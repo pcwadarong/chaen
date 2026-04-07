@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
+import { buildAdminSubPath } from '@/features/admin-session/model/admin-path';
 import { locales } from '@/i18n/routing';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -15,14 +16,10 @@ const articleSlugSchema = z
   .trim()
   .regex(/^[a-z0-9-]+$/)
   .optional();
-const localeSchema = z.enum(locales, {
-  error: () => ({ message: '지원되지 않는 로케일입니다.' }),
-});
 
 const updateArticleVisibilitySchema = z.object({
   articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
   articleSlug: articleSlugSchema,
-  locale: localeSchema,
   visibility: z.enum(['private', 'public']),
 });
 
@@ -31,19 +28,8 @@ const ARTICLE_VISIBILITY_UPDATE_FAILED = 'article.visibilityUpdateFailed';
 /**
  * 아티클 공개 상태 변경 이후 관리자/공개 경로를 다시 검증합니다.
  */
-const revalidateArticleVisibilityPaths = ({
-  articleSlug,
-  locale,
-}: {
-  articleSlug?: string;
-  locale: string;
-}) => {
-  revalidatePath(
-    buildLocalizedPathname({
-      locale: locale as (typeof locales)[number],
-      pathname: '/admin/content',
-    }),
-  );
+const revalidateArticleVisibilityPaths = ({ articleSlug }: { articleSlug?: string }) => {
+  revalidatePath(buildAdminSubPath('/content'));
 
   locales.forEach(itemLocale => {
     revalidatePath(
@@ -76,7 +62,6 @@ const revalidateArticleVisibilityPaths = ({
 export const updateArticleVisibilityAction = async (input: {
   articleId: string;
   articleSlug?: string;
-  locale: string;
   visibility: 'private' | 'public';
 }) => {
   const validation = validateActionInput(updateArticleVisibilitySchema, input);
@@ -85,9 +70,9 @@ export const updateArticleVisibilityAction = async (input: {
     throw new Error(validation.errorMessage);
   }
 
-  const { articleId, articleSlug, locale, visibility } = validation.data;
+  const { articleId, articleSlug, visibility } = validation.data;
 
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) {
@@ -102,5 +87,5 @@ export const updateArticleVisibilityAction = async (input: {
 
   revalidateTag(ARTICLES_CACHE_TAG);
   revalidateTag(createArticleCacheTag(articleId));
-  revalidateArticleVisibilityPaths({ articleSlug, locale });
+  revalidateArticleVisibilityPaths({ articleSlug });
 };

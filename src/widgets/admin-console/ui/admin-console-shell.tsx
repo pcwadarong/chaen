@@ -1,8 +1,8 @@
+import Link from 'next/link';
 import React, { type ReactNode } from 'react';
 import { css, cva } from 'styled-system/css';
 
 import { AdminSignOutButton } from '@/features/admin-session';
-import { Link } from '@/i18n/navigation';
 import {
   buildGlobalNavDockedPaddingTopValue,
   buildGlobalNavDockedTopValue,

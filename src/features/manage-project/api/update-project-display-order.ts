@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
+import { buildAdminSubPath } from '@/features/admin-session/model/admin-path';
 import { locales } from '@/i18n/routing';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -11,20 +12,14 @@ import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
 const updateProjectDisplayOrderSchema = z.object({
-  locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
   orderedProjectIds: z.array(z.string().trim().min(1)).min(1, '대상 프로젝트가 없습니다.'),
 });
 
 /**
  * 프로젝트 정렬 변경 후 관리자/공개 경로를 다시 검증합니다.
  */
-const revalidateProjectOrderPaths = (locale: string) => {
-  revalidatePath(
-    buildLocalizedPathname({
-      locale: locale as (typeof locales)[number],
-      pathname: '/admin/content',
-    }),
-  );
+const revalidateProjectOrderPaths = () => {
+  revalidatePath(buildAdminSubPath('/content'));
 
   locales.forEach(itemLocale => {
     revalidatePath(
@@ -45,17 +40,14 @@ const revalidateProjectOrderPaths = (locale: string) => {
 /**
  * 관리자가 전달한 프로젝트 배열 순서대로 `display_order`를 다시 저장합니다.
  */
-export const updateProjectDisplayOrderAction = async (input: {
-  locale: string;
-  orderedProjectIds: string[];
-}) => {
+export const updateProjectDisplayOrderAction = async (input: { orderedProjectIds: string[] }) => {
   const validation = validateActionInput(updateProjectDisplayOrderSchema, input);
 
   if (!validation.ok) throw new Error(validation.errorMessage);
 
-  const { locale, orderedProjectIds } = validation.data;
+  const { orderedProjectIds } = validation.data;
 
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw new Error('project.orderUpdateFailed');
@@ -94,5 +86,5 @@ export const updateProjectDisplayOrderAction = async (input: {
   validatedProjectIds.forEach(projectId => {
     revalidateTag(createProjectCacheTag(projectId));
   });
-  revalidateProjectOrderPaths(locale);
+  revalidateProjectOrderPaths();
 };

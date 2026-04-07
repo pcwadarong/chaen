@@ -1,7 +1,8 @@
-import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
-import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
+import type { AppLocale } from '@/i18n/routing';
 
 type AdminPathSection = 'root' | 'login';
+
+export const ADMIN_LOCALE: AppLocale = 'ko';
 
 const adminPathnameBySection: Record<AdminPathSection, string> = {
   login: '/admin/login',
@@ -14,10 +15,18 @@ type BuildAdminPathInput = {
 };
 
 /**
- * 관리자 관련 내부 경로를 locale prefix가 포함된 형태로 생성합니다.
+ * 관리자 관련 내부 경로를 locale prefix 없이 생성합니다.
  */
-export const buildAdminPath = ({ locale, section = 'root' }: BuildAdminPathInput): string =>
-  buildLocalizedPathname({
-    locale: resolveActionLocale(locale),
-    pathname: adminPathnameBySection[section],
-  });
+export const buildAdminPath = ({ section = 'root' }: BuildAdminPathInput): string =>
+  adminPathnameBySection[section];
+
+/**
+ * 관리자 하위 경로를 `/admin` 기준 절대 경로로 정규화합니다.
+ */
+export const buildAdminSubPath = (pathname = ''): string => {
+  if (!pathname || pathname === '/') {
+    return adminPathnameBySection.root;
+  }
+
+  return pathname.startsWith('/admin') ? pathname : `${adminPathnameBySection.root}${pathname}`;
+};

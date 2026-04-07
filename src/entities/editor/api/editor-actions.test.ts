@@ -297,7 +297,7 @@ describe('editor-actions', () => {
 
     expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(1, 'id', 'draft-1');
     expect(draftsDeleteQuery.eq).toHaveBeenNthCalledWith(2, 'content_type', 'article');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/drafts');
   });
 
   it('article 지금 발행 후에는 공개 slug 경로로 이동한다', async () => {
@@ -507,7 +507,7 @@ describe('editor-actions', () => {
       },
     });
 
-    expect(result).toEqual({ redirectPath: '/ko/admin/articles/article-1/edit' });
+    expect(result).toEqual({ redirectPath: '/admin/articles/article-1/edit' });
   });
 
   it('아직 공개 전인 예약 article은 예약 발행 시각을 수정한 뒤 목록 경로로 이동한다', async () => {
@@ -812,8 +812,8 @@ describe('editor-actions', () => {
     });
 
     expect(resumeDraftsDeleteQuery.eq).toHaveBeenCalledWith('id', 'resume-draft-1');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/resume/edit');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/drafts');
   });
 
   it('다른 cache helper에는 영향 없이 draft 관련 경로만 갱신한다', async () => {

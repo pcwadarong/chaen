@@ -69,7 +69,7 @@ const resumeEditorClientMockState = vi.hoisted(() => ({
 }));
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/ko/admin/resume/edit',
+  usePathname: () => '/admin/resume/edit',
   useRouter: () => ({
     push: resumeEditorClientMockState.routerPush,
     refresh: resumeEditorClientMockState.routerRefresh,

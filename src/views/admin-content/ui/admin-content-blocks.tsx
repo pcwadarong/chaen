@@ -1,11 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 import { css, cva } from 'styled-system/css';
 
 import type { AdminArticleListItem } from '@/entities/article/model/types';
 import type { AdminProjectListItem } from '@/entities/project/model/types';
-import { Link } from '@/i18n/navigation';
+import { Link as LocalizedLink } from '@/i18n/navigation';
 import { resolvePublicContentPathSegment } from '@/shared/lib/content/public-content';
 import { AdminTable } from '@/shared/ui/admin-table';
 import { Button } from '@/shared/ui/button/button';
@@ -194,12 +195,12 @@ export const AdminArticleTable = ({
           <td>
             <div className={titleMetaCellClass}>
               {article.slug ? (
-                <Link
+                <LocalizedLink
                   className={titleLinkClass}
                   href={`/articles/${resolvePublicContentPathSegment(article)}`}
                 >
                   {article.title}
-                </Link>
+                </LocalizedLink>
               ) : (
                 <strong className={primaryLabelClass}>{article.title}</strong>
               )}
@@ -306,12 +307,12 @@ export const AdminProjectTable = ({
           <td>
             <div className={titleMetaCellClass}>
               {project.slug ? (
-                <Link
+                <LocalizedLink
                   className={titleLinkClass}
                   href={`/project/${resolvePublicContentPathSegment(project)}`}
                 >
                   {project.title}
-                </Link>
+                </LocalizedLink>
               ) : (
                 <strong className={primaryLabelClass}>{project.title}</strong>
               )}

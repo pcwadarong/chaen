@@ -1,10 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 import { css } from 'styled-system/css';
 
 import type { EditorDraftSummary } from '@/entities/editor/api/editor.types';
-import { Link } from '@/i18n/navigation';
 import { Button } from '@/shared/ui/button/button';
 import {
   buildDraftContinueHref,

@@ -39,7 +39,6 @@ describe('updateProjectVisibilityAction', () => {
     } as never);
 
     await updateProjectVisibilityAction({
-      locale: 'ko',
       projectId: 'project-1',
       projectSlug: 'project-1-slug',
       visibility: 'public',
@@ -49,7 +48,7 @@ describe('updateProjectVisibilityAction', () => {
     expect(eq).toHaveBeenCalledWith('id', 'project-1');
     expect(revalidateTag).toHaveBeenCalledWith('projects');
     expect(revalidateTag).toHaveBeenCalledWith('project:project-1');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/content');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/content');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/project');
     expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/en/project/project-1-slug');

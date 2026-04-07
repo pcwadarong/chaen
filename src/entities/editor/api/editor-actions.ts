@@ -22,9 +22,9 @@ import type {
 } from '@/entities/editor/model/editor-types';
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { getTechStackIdsBySlugs } from '@/entities/tech-stack/api/query-tech-stacks';
+import { buildAdminSubPath } from '@/features/admin-session/model/admin-path';
 import { locales } from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/slug/slug';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
@@ -99,11 +99,10 @@ export const saveEditorDraftAction = async ({
   contentId,
   contentType,
   draftId,
-  locale,
   settings,
   state,
 }: SaveEditorDraftActionInput): Promise<DraftSaveResult> => {
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const parsedState = editorStateSchema.safeParse(state);
   const parsedSettings = publishSettingsSchema.safeParse(settings);
@@ -137,7 +136,6 @@ export const saveEditorDraftAction = async ({
     contentType,
     slugs: parsedState.data.tags,
   });
-  const normalizedLocale = resolveActionLocale(locale);
   const draftWebsiteUrl =
     contentType === 'project' ? parsedSettings.data.websiteUrl.trim() || null : null;
   const draftGithubUrl =
@@ -177,12 +175,7 @@ export const saveEditorDraftAction = async ({
 
     if (error) throw createEditorError('draftSaveFailed');
 
-    revalidatePath(
-      buildLocalizedPathname({
-        locale: normalizedLocale,
-        pathname: '/admin/drafts',
-      }),
-    );
+    revalidatePath(buildAdminSubPath('/drafts'));
 
     return {
       draftId: data.id,
@@ -198,12 +191,7 @@ export const saveEditorDraftAction = async ({
 
   if (error) throw createEditorError('draftSaveFailed');
 
-  revalidatePath(
-    buildLocalizedPathname({
-      locale: normalizedLocale,
-      pathname: '/admin/drafts',
-    }),
-  );
+  revalidatePath(buildAdminSubPath('/drafts'));
 
   return {
     draftId: data.id,
@@ -220,10 +208,9 @@ export const publishEditorContentAction = async ({
   contentType,
   draftId,
   editorState,
-  locale,
   settings,
 }: PublishEditorContentActionInput): Promise<PublishActionResult> => {
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const parsedState = editorStateSchema.safeParse(editorState);
   const parsedSettings = publishSettingsSchema.safeParse(settings);
@@ -367,15 +354,13 @@ export const publishEditorContentAction = async ({
   revalidateEditorContent({
     contentId: targetContentId,
     contentType,
-    locale,
     slug: normalizedSlug,
   });
 
   return {
-    redirectPath: buildLocalizedPathname({
-      locale: resolveActionLocale(locale),
-      pathname: redirectPath,
-    }),
+    redirectPath: redirectPath.startsWith('/admin')
+      ? buildAdminSubPath(redirectPath.slice('/admin'.length))
+      : redirectPath,
   };
 };
 
@@ -461,9 +446,8 @@ const getEditorEditPath = ({
 export const deleteEditorDraftAction = async ({
   contentType,
   draftId,
-  locale,
 }: DeleteEditorDraftActionInput) => {
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) throw createEditorError('serviceRoleUnavailable');
@@ -475,12 +459,7 @@ export const deleteEditorDraftAction = async ({
       throw createEditorError('draftDeleteFailed');
     }
 
-    revalidatePath(
-      buildLocalizedPathname({
-        locale: resolveActionLocale(locale),
-        pathname: '/admin/resume/edit',
-      }),
-    );
+    revalidatePath(buildAdminSubPath('/resume/edit'));
   } else {
     const { error } = await supabase
       .from('drafts')
@@ -493,12 +472,7 @@ export const deleteEditorDraftAction = async ({
     }
   }
 
-  revalidatePath(
-    buildLocalizedPathname({
-      locale: resolveActionLocale(locale),
-      pathname: '/admin/drafts',
-    }),
-  );
+  revalidatePath(buildAdminSubPath('/drafts'));
 };
 
 /**
@@ -693,7 +667,6 @@ const deleteEditorDrafts = async ({
 const revalidateEditorContent = ({
   contentId,
   contentType,
-  locale,
   slug,
 }: {
   contentId: string;
@@ -701,18 +674,13 @@ const revalidateEditorContent = ({
   locale?: string | null;
   slug: string;
 }) => {
-  const resolvedLocale = resolveActionLocale(locale);
-  const adminEditPath = buildLocalizedPathname({
-    locale: resolvedLocale,
-    pathname: getEditorEditPath({
+  const adminEditPath = buildAdminSubPath(
+    getEditorEditPath({
       contentId,
       contentType,
-    }),
-  });
-  const adminDraftsPath = buildLocalizedPathname({
-    locale: resolvedLocale,
-    pathname: '/admin/drafts',
-  });
+    }).slice('/admin'.length),
+  );
+  const adminDraftsPath = buildAdminSubPath('/drafts');
 
   revalidatePath(adminEditPath);
   revalidatePath(adminDraftsPath);

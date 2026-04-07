@@ -6,7 +6,6 @@ import { z } from 'zod';
 import {
   type DraftSaveResult,
   EDITOR_LOCALES,
-  type Locale,
   type PublishActionResult,
 } from '@/entities/editor/model/editor-types';
 import {
@@ -28,8 +27,8 @@ import {
   createResumeEditorError,
   RESUME_EDITOR_ERROR_MESSAGE,
 } from '@/entities/resume/model/resume-editor-error';
+import { buildAdminSubPath } from '@/features/admin-session/model/admin-path';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
-import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/service-role';
 
@@ -95,10 +94,9 @@ const logResumeEditorActionFailure = (
  */
 export const saveResumeDraftAction = async ({
   draftId,
-  locale,
   state,
 }: SaveResumeDraftActionInput): Promise<DraftSaveResult> => {
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const parsedState = resumeEditorStateSchema.safeParse(state);
 
@@ -113,7 +111,6 @@ export const saveResumeDraftAction = async ({
   if (!supabase) {
     throw createResumeEditorError('serviceRoleUnavailable');
   }
-  const normalizedLocale = resolveActionLocale(locale);
   const draftPayload = {
     contents: buildResumeDraftContentRecord(parsedState.data.contents),
   };
@@ -130,12 +127,12 @@ export const saveResumeDraftAction = async ({
     if (error) {
       logResumeEditorActionFailure('draft-update', error, {
         draftId: resolvedDraftId,
-        locale: normalizedLocale,
+        route: buildAdminSubPath('/resume/edit'),
       });
       throw createResumeEditorError('draftSaveFailed');
     }
 
-    revalidateResumeEditorPaths(normalizedLocale);
+    revalidateResumeEditorPaths();
 
     return {
       draftId: data.id,
@@ -151,12 +148,12 @@ export const saveResumeDraftAction = async ({
 
   if (error) {
     logResumeEditorActionFailure('draft-insert', error, {
-      locale: normalizedLocale,
+      route: buildAdminSubPath('/resume/edit'),
     });
     throw createResumeEditorError('draftSaveFailed');
   }
 
-  revalidateResumeEditorPaths(normalizedLocale);
+  revalidateResumeEditorPaths();
 
   return {
     draftId: data.id,
@@ -169,10 +166,9 @@ export const saveResumeDraftAction = async ({
  */
 export const publishResumeContentAction = async ({
   draftId,
-  locale,
   state,
 }: PublishResumeContentActionInput): Promise<PublishActionResult> => {
-  await requireAdmin({ locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const parsedState = resumeEditorStateSchema.safeParse(state);
 
@@ -211,7 +207,7 @@ export const publishResumeContentAction = async ({
   if (error) {
     logResumeEditorActionFailure('publish-upsert', error, {
       draftId: draftId ?? null,
-      locale: resolveActionLocale(locale),
+      route: buildAdminSubPath('/resume/edit'),
       tableName,
     });
     throw createResumeEditorError('publishFailed');
@@ -219,15 +215,12 @@ export const publishResumeContentAction = async ({
 
   await deleteResumeDrafts(supabase, draftId);
 
-  revalidateResumeEditorPaths(resolveActionLocale(locale));
+  revalidateResumeEditorPaths();
   revalidatePdfReadCaches();
   revalidateResumePublicPaths();
 
   return {
-    redirectPath: buildLocalizedPathname({
-      locale: resolveActionLocale(locale),
-      pathname: '/resume',
-    }),
+    redirectPath: '/resume',
   };
 };
 
@@ -297,21 +290,11 @@ const resolveLatestResumeDraftId = async () => {
 };
 
 /**
- * 현재 locale 기준 admin resume 편집/임시저장 경로를 다시 검증하게 만듭니다.
+ * admin resume 편집/임시저장 경로를 다시 검증하게 만듭니다.
  */
-const revalidateResumeEditorPaths = (locale: Locale) => {
-  revalidatePath(
-    buildLocalizedPathname({
-      locale,
-      pathname: '/admin/drafts',
-    }),
-  );
-  revalidatePath(
-    buildLocalizedPathname({
-      locale,
-      pathname: '/admin/resume/edit',
-    }),
-  );
+const revalidateResumeEditorPaths = () => {
+  revalidatePath(buildAdminSubPath('/drafts'));
+  revalidatePath(buildAdminSubPath('/resume/edit'));
 };
 
 /**

@@ -41,7 +41,6 @@ describe('updateArticleVisibilityAction', () => {
     await updateArticleVisibilityAction({
       articleId: 'article-1',
       articleSlug: 'article-1-slug',
-      locale: 'ko',
       visibility: 'private',
     });
 
@@ -49,7 +48,7 @@ describe('updateArticleVisibilityAction', () => {
     expect(eq).toHaveBeenCalledWith('id', 'article-1');
     expect(revalidateTag).toHaveBeenCalledWith('articles');
     expect(revalidateTag).toHaveBeenCalledWith('article:article-1');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/content');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/content');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/en/articles/article-1-slug');

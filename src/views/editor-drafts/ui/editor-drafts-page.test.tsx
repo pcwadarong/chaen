@@ -44,7 +44,7 @@ describe('EditorDraftsPage', () => {
   });
 
   it('관리자 drafts 화면에서, EditorDraftsPage는 새 아티클 작성과 새 프로젝트 작성 CTA를 보여줘야 한다', () => {
-    render(<EditorDraftsPage items={[]} signOutRedirectPath="/ko/admin/login" />);
+    render(<EditorDraftsPage items={[]} signOutRedirectPath="/admin/login" />);
 
     expect(screen.getByRole('link', { name: '새 아티클 작성' })).toHaveAttribute(
       'href',

@@ -26,7 +26,7 @@ describe('AdminLoginForm', () => {
       ok: false,
     });
 
-    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
+    render(<AdminLoginForm successRedirectPath="/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },
@@ -46,7 +46,7 @@ describe('AdminLoginForm', () => {
     const submittedFormData = call?.[1] as FormData;
     expect(submittedFormData.get('email')).toBe('admin@example.com');
     expect(submittedFormData.get('password')).toBe('secret-password');
-    expect(submittedFormData.get('redirectPath')).toBe('/ko/admin');
+    expect(submittedFormData.get('redirectPath')).toBe('/admin');
   });
 
   it('로그인 실패 시 에러 메시지를 노출한다', async () => {
@@ -56,7 +56,7 @@ describe('AdminLoginForm', () => {
       ok: false,
     });
 
-    render(<AdminLoginForm successRedirectPath="/ko/admin" />);
+    render(<AdminLoginForm successRedirectPath="/admin" />);
 
     fireEvent.change(screen.getByLabelText('이메일'), {
       target: { value: 'admin@example.com' },

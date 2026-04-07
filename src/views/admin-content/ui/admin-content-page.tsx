@@ -23,7 +23,7 @@ export const AdminContentPage = ({
   onToggleArticleVisibility,
   onToggleProjectVisibility,
   projects,
-  signOutRedirectPath = '/ko/admin/login',
+  signOutRedirectPath = '/admin/login',
 }: AdminContentPageProps) => {
   const {
     activeTab,

@@ -42,8 +42,8 @@ describe('requireAdmin', () => {
       userId: null,
     });
 
-    await expect(requireAdmin({ locale: 'ko' })).rejects.toThrow('redirect:/ko/admin/login');
-    expect(redirect).toHaveBeenCalledWith('/ko/admin/login');
+    await expect(requireAdmin({ locale: 'ko' })).rejects.toThrow('redirect:/admin/login');
+    expect(redirect).toHaveBeenCalledWith('/admin/login');
   });
 
   it('route/action에서는 403 에러를 던진다', async () => {

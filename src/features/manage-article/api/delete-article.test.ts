@@ -43,7 +43,6 @@ describe('deleteArticleAction', () => {
     await deleteArticleAction({
       articleId: 'article-1',
       articleSlug: 'article-1-slug',
-      locale: 'ko',
     });
 
     expect(rpc).toHaveBeenCalledWith('delete_article_cascade', {

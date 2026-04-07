@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
+import { ADMIN_LOCALE } from '@/features/admin-session/model/admin-path';
 import { locales } from '@/i18n/routing';
 import { validateActionInput } from '@/shared/lib/action/validate-action-input';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
@@ -14,7 +15,6 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 const deleteArticleSchema = z.object({
   articleId: z.string().trim().min(1, '대상 글을 확인할 수 없습니다.'),
   articleSlug: z.string().trim().min(1, '대상 글 경로를 확인할 수 없습니다.'),
-  locale: z.string().trim().min(2, '로케일을 확인할 수 없습니다.'),
 });
 
 const ARTICLE_DELETE_FAILED = 'article.deleteFailed';
@@ -42,25 +42,21 @@ const revalidateArticlePublicPaths = (articleSlug: string) => {
 /**
  * 관리자만 공개 아티클을 삭제하고 목록으로 이동합니다.
  */
-export const deleteArticleAction = async (input: {
-  articleId: string;
-  articleSlug: string;
-  locale: string;
-}) => {
+export const deleteArticleAction = async (input: { articleId: string; articleSlug: string }) => {
   const validation = validateActionInput(deleteArticleSchema, input);
 
   if (!validation.ok) {
     throw new Error(validation.errorMessage);
   }
 
-  await requireAdmin({ locale: validation.data.locale, onUnauthorized: 'throw' });
+  await requireAdmin({ onUnauthorized: 'throw' });
 
   const supabase = createOptionalServiceRoleSupabaseClient();
   if (!supabase) {
     throw new Error(ARTICLE_DELETE_FAILED);
   }
 
-  const { articleId, articleSlug, locale } = validation.data;
+  const { articleId, articleSlug } = validation.data;
   const { error: deleteError } = await supabase.rpc('delete_article_cascade', {
     target_article_id: articleId,
   });
@@ -75,7 +71,7 @@ export const deleteArticleAction = async (input: {
 
   redirect(
     buildLocalizedPathname({
-      locale: locale as (typeof locales)[number],
+      locale: ADMIN_LOCALE,
       pathname: '/articles',
     }),
   );

@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 
+import { buildAdminPath } from '@/features/admin-session/model/admin-path';
 import { type AuthState, getServerAuthState } from '@/shared/lib/auth/get-server-auth-state';
-import { resolveActionLocale } from '@/shared/lib/i18n/get-action-translations';
-import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 
 import 'server-only';
 
@@ -16,26 +15,13 @@ type RequireAdminOptions = {
  * 페이지에서는 로그인 화면으로 리다이렉트하고,
  * route/action에서는 `throw` 모드로 403 처리에 재사용합니다.
  */
-export const requireAdmin = async ({
-  locale,
-  onUnauthorized = 'redirect',
-}: RequireAdminOptions = {}): Promise<AuthState> => {
+export const requireAdmin = async (options: RequireAdminOptions = {}): Promise<AuthState> => {
   const authState = await getServerAuthState();
 
-  if (authState.isAdmin) {
-    return authState;
-  }
+  if (authState.isAdmin) return authState;
+  if (options.onUnauthorized === 'throw') throw new AdminAuthorizationError();
 
-  if (onUnauthorized === 'throw') {
-    throw new AdminAuthorizationError();
-  }
-
-  redirect(
-    buildLocalizedPathname({
-      locale: resolveActionLocale(locale),
-      pathname: '/admin/login',
-    }),
-  );
+  redirect(buildAdminPath({ section: 'login' }));
 };
 
 /**

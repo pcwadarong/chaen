@@ -11,10 +11,8 @@ vi.mock('@/features/admin-session/ui/admin-login-form', () => ({
 
 describe('LoginPage', () => {
   it('로그인 성공 후 이동 경로를 locale prefix가 포함된 관리자 경로로 전달한다', () => {
-    render(<LoginPage locale="ko" />);
+    render(<LoginPage />);
 
-    expect(screen.getByText('관리자 로그인 폼').getAttribute('data-redirect-path')).toBe(
-      '/ko/admin',
-    );
+    expect(screen.getByText('관리자 로그인 폼').getAttribute('data-redirect-path')).toBe('/admin');
   });
 });

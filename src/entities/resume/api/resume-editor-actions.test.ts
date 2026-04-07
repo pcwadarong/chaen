@@ -101,8 +101,8 @@ describe('resume-editor-actions', () => {
         }),
       }),
     );
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/drafts');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/resume/edit');
   });
 
   it('resume publish 시 resume_contents를 upsert하고 draft를 정리한 뒤 공개 resume 화면으로 redirect한다', async () => {
@@ -176,8 +176,8 @@ describe('resume-editor-actions', () => {
         onConflict: 'locale',
       },
     );
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/drafts');
-    expect(revalidatePath).toHaveBeenCalledWith('/ko/admin/resume/edit');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/drafts');
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/resume/edit');
     expect(revalidateTag).toHaveBeenCalledWith('pdf-files');
     expect(revalidateTag).toHaveBeenCalledWith('pdf-file-content');
     expect(revalidateTag).toHaveBeenCalledWith('pdf-file-availability:resume');

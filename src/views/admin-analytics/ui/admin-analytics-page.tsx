@@ -31,7 +31,7 @@ export const AdminAnalyticsPage = ({
   activeSection = 'dashboard',
   googleArticleTraffic,
   pdfLogs,
-  signOutRedirectPath = '/ko/admin/login',
+  signOutRedirectPath = '/admin/login',
   title = 'Dashboard',
   topArticles,
 }: AdminAnalyticsPageProps) => {
