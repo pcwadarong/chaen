@@ -41,9 +41,8 @@ const adminRootClass = css({
   background: 'surface',
   _desktopUp: {
     height: 'dvh',
-    overflowY: 'auto',
-    overflowX: 'clip',
-    overscrollBehaviorY: 'contain',
-    scrollbarGutter: 'stable',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
 });

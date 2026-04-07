@@ -395,6 +395,10 @@ const headerClass = css({
 const adminHeaderClass = css({
   borderTopLeftRadius: '[0px]',
   borderTopRightRadius: '[0px]',
+  _desktopUp: {
+    borderTopLeftRadius: '[0px]',
+    borderTopRightRadius: '[0px]',
+  },
 });
 
 const visibleHeaderClass = css({
