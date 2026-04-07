@@ -42,7 +42,7 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
     }),
     getTranslations({ locale, namespace: 'ArticleDetail' }),
   ]);
-  const { item, resolvedLocale } = resolvedArticle;
+  const { availableLocales, item, resolvedLocale } = resolvedArticle;
 
   if (!item) return {};
 
@@ -65,12 +65,23 @@ export const generateMetadata = async ({ params }: ArticleDetailRouteProps): Pro
     description: item.description ?? t('emptySummary'),
     alternates: buildLocaleAlternates({
       canonicalLocale,
-      pathnameByLocale: buildPathnameByLocale(candidateLocale =>
-        buildLocalizedPathname({
-          locale: candidateLocale,
-          pathname: `/articles/${articlePathSegment}`,
-        }),
-      ),
+      pathnameByLocale:
+        availableLocales.length > 0
+          ? Object.fromEntries(
+              availableLocales.map(candidateLocale => [
+                candidateLocale,
+                buildLocalizedPathname({
+                  locale: candidateLocale,
+                  pathname: `/articles/${articlePathSegment}`,
+                }),
+              ]),
+            )
+          : buildPathnameByLocale(candidateLocale =>
+              buildLocalizedPathname({
+                locale: candidateLocale,
+                pathname: `/articles/${articlePathSegment}`,
+              }),
+            ),
     }),
     openGraph: {
       description: item.description ?? t('emptySummary'),

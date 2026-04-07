@@ -8,6 +8,8 @@ import {
 import { ARTICLES_CACHE_TAG } from '@/entities/article/model/cache-tags';
 import type { Article } from '@/entities/article/model/types';
 import { getRelatedTagSlugs } from '@/entities/tag/api/query-tags';
+import type { AppLocale } from '@/i18n/routing';
+import { isValidLocale, locales } from '@/i18n/routing';
 import { buildContentLocaleFallbackChain } from '@/shared/lib/i18n/content-locale-fallback';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { getOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -15,6 +17,7 @@ import { getOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/pub
 import 'server-only';
 
 type ResolvedArticle = {
+  availableLocales: AppLocale[];
   item: Article | null;
   resolvedLocale: string | null;
 };
@@ -95,6 +98,7 @@ const fetchArticleFromContentSchema = async (
   if (!supabase) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -114,6 +118,7 @@ const fetchArticleFromContentSchema = async (
     if (isMissingArticleContentSchemaError(translationError)) {
       return {
         data: {
+          availableLocales: [],
           item: null,
           resolvedLocale: null,
         },
@@ -128,6 +133,7 @@ const fetchArticleFromContentSchema = async (
   if (!translation) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -135,14 +141,18 @@ const fetchArticleFromContentSchema = async (
     };
   }
 
-  const relatedTags = await getRelatedTagSlugs({
-    entityColumn: 'article_id',
-    entityId: articleId,
-    relationTable: 'article_tags',
-  });
+  const [availableLocales, relatedTags] = await Promise.all([
+    fetchAvailableArticleLocales(articleId),
+    getRelatedTagSlugs({
+      entityColumn: 'article_id',
+      entityId: articleId,
+      relationTable: 'article_tags',
+    }),
+  ]);
 
   return {
     data: {
+      availableLocales,
       item: mapArticle(
         mapArticleFallbackRpcRow(translation),
         relatedTags.schemaMissing ? [] : relatedTags.data,
@@ -161,6 +171,7 @@ const fetchArticleByLocaleFallbackChain = async (
   if (articleLookup.schemaMissing) throw new Error('[articles] content schema가 없습니다.');
   if (!articleLookup.data) {
     return {
+      availableLocales: [],
       item: null,
       resolvedLocale: null,
     };
@@ -202,6 +213,7 @@ export const getResolvedArticle = async (
 ): Promise<ResolvedArticle> => {
   if (!hasSupabaseEnv()) {
     return {
+      availableLocales: [],
       item: null,
       resolvedLocale: null,
     };
@@ -210,6 +222,29 @@ export const getResolvedArticle = async (
   const normalizedLocale = targetLocale.toLowerCase();
 
   return fetchCachedArticle(articleSlug, normalizedLocale);
+};
+
+const fetchAvailableArticleLocales = async (articleId: string): Promise<AppLocale[]> => {
+  const supabase = getOptionalPublicServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('article_translations')
+    .select('locale')
+    .eq('article_id', articleId)
+    .in('locale', [...locales]);
+
+  if (error) {
+    if (isMissingArticleContentSchemaError(error)) {
+      return [];
+    }
+
+    throw new Error(`[articles] 사용 가능한 번역 locale 조회 실패: ${error.message}`);
+  }
+
+  return ((data ?? []) as { locale: string }[])
+    .map(row => row.locale.toLowerCase())
+    .filter(isValidLocale);
 };
 
 /**

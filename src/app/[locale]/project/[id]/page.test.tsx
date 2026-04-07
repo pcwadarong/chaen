@@ -28,6 +28,7 @@ vi.mock('@/entities/project/api/detail/get-project-static-seed-params', () => ({
 
 vi.mock('@/views/project', () => ({
   getProjectDetailShellData: vi.fn(async () => ({
+    availableLocales: [],
     item: null,
     resolvedLocale: null,
   })),
@@ -59,6 +60,7 @@ describe('ProjectDetailRoute', () => {
 
   it('프로젝트 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
+      availableLocales: ['ko'],
       item: {
         id: 'supabase-editorial',
         slug: 'supabase-editorial-slug',
@@ -105,6 +107,7 @@ describe('ProjectDetailRoute', () => {
 
   it('프로젝트 상세 메타데이터에 OG 이미지를 포함한다', async () => {
     vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
+      availableLocales: ['ko'],
       item: {
         id: 'supabase-editorial',
         slug: 'supabase-editorial-slug',
@@ -138,6 +141,7 @@ describe('ProjectDetailRoute', () => {
 
   it('데이터가 없으면 notFound를 호출한다', async () => {
     vi.mocked(getProjectDetailShellData).mockResolvedValueOnce({
+      availableLocales: [],
       item: null,
       resolvedLocale: null,
     });

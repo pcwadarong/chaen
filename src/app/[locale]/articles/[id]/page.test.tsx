@@ -33,6 +33,7 @@ vi.mock('@/entities/article/api/detail/get-article-static-seed-params', () => ({
 
 vi.mock('@/views/articles', () => ({
   getArticleDetailShellData: vi.fn(async () => ({
+    availableLocales: [],
     item: null,
     resolvedLocale: null,
   })),
@@ -66,6 +67,7 @@ describe('ArticleDetailRoute', () => {
 
   it('아티클 상세 뷰 엔트리와 데이터를 반환한다', async () => {
     vi.mocked(getArticleDetailShellData).mockResolvedValueOnce({
+      availableLocales: ['ko'],
       item: {
         id: 'frontend-performance',
         slug: 'frontend-performance-slug',
@@ -116,6 +118,7 @@ describe('ArticleDetailRoute', () => {
 
   it('아티클 상세 메타데이터에 OG 이미지를 포함한다', async () => {
     vi.mocked(getArticleDetailShellData).mockResolvedValueOnce({
+      availableLocales: ['ko'],
       item: {
         id: 'frontend-performance',
         slug: 'frontend-performance-slug',
@@ -149,6 +152,7 @@ describe('ArticleDetailRoute', () => {
 
   it('데이터가 없으면 notFound를 호출한다', async () => {
     vi.mocked(getArticleDetailShellData).mockResolvedValueOnce({
+      availableLocales: [],
       item: null,
       resolvedLocale: null,
     });

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { locales } from '@/i18n/routing';
+import { defaultLocale, locales } from '@/i18n/routing';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { buildAbsoluteSiteUrl } from '@/shared/lib/seo/site-url';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
@@ -75,7 +75,7 @@ const buildHomeEntries = (): MetadataRoute.Sitemap =>
  * locale별 이력서 및 프로젝트 목록 URL 엔트리를 생성합니다.
  */
 const buildArchiveEntries = (): MetadataRoute.Sitemap =>
-  locales.flatMap(locale => [
+  [defaultLocale].flatMap(locale => [
     {
       changeFrequency: 'monthly' as const,
       lastModified: new Date(),

@@ -9,6 +9,8 @@ import {
 import { PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import type { Project } from '@/entities/project/model/types';
 import { getProjectTechStackMap } from '@/entities/tech-stack/api/query-tech-stacks';
+import type { AppLocale } from '@/i18n/routing';
+import { isValidLocale, locales } from '@/i18n/routing';
 import {
   buildContentLocaleFallbackChain,
   pickPreferredLocaleValue,
@@ -19,6 +21,7 @@ import { getOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/pub
 import 'server-only';
 
 type ResolvedProject = {
+  availableLocales: AppLocale[];
   item: Project | null;
   resolvedLocale: string | null;
 };
@@ -112,6 +115,7 @@ const fetchProjectFromContentSchema = async (
   if (!supabase) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -135,6 +139,7 @@ const fetchProjectFromContentSchema = async (
     if (isMissingProjectContentSchemaError(translationError)) {
       return {
         data: {
+          availableLocales: [],
           item: null,
           resolvedLocale: null,
         },
@@ -149,6 +154,7 @@ const fetchProjectFromContentSchema = async (
   if (!translation) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -156,17 +162,21 @@ const fetchProjectFromContentSchema = async (
     };
   }
 
-  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(error => {
-    console.error('[projects] Failed to load tech stacks for project', {
-      error,
-      projectId,
-    });
+  const [availableLocales, techStacksByProjectId] = await Promise.all([
+    fetchAvailableProjectLocales(projectId),
+    getProjectTechStackMap([projectId]).catch(error => {
+      console.error('[projects] Failed to load tech stacks for project', {
+        error,
+        projectId,
+      });
 
-    return new Map();
-  });
+      return new Map();
+    }),
+  ]);
 
   return {
     data: {
+      availableLocales,
       item: mapProject(
         mapProjectFallbackRpcRow(translation),
         techStacksByProjectId.get(projectId) ?? [],
@@ -188,6 +198,7 @@ const fetchProjectFromTranslationRows = async (
   if (!supabase) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -207,6 +218,7 @@ const fetchProjectFromTranslationRows = async (
     if (isMissingProjectContentSchemaError(error)) {
       return {
         data: {
+          availableLocales: [],
           item: null,
           resolvedLocale: null,
         },
@@ -226,6 +238,7 @@ const fetchProjectFromTranslationRows = async (
   if (!preferredTranslation) {
     return {
       data: {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       },
@@ -233,17 +246,21 @@ const fetchProjectFromTranslationRows = async (
     };
   }
 
-  const techStacksByProjectId = await getProjectTechStackMap([projectId]).catch(error => {
-    console.error('[projects] Failed to load tech stacks for project', {
-      error,
-      projectId,
-    });
+  const [availableLocales, techStacksByProjectId] = await Promise.all([
+    fetchAvailableProjectLocales(projectId),
+    getProjectTechStackMap([projectId]).catch(error => {
+      console.error('[projects] Failed to load tech stacks for project', {
+        error,
+        projectId,
+      });
 
-    return new Map();
-  });
+      return new Map();
+    }),
+  ]);
 
   return {
     data: {
+      availableLocales,
       item: mapProject(preferredTranslation, techStacksByProjectId.get(projectId) ?? []),
       resolvedLocale: preferredTranslation.locale.toLowerCase(),
     },
@@ -277,6 +294,7 @@ const fetchCachedProject = unstable_cache(
     if (projectLookup.schemaMissing) throw new Error('[projects] content schema가 없습니다.');
     if (!projectLookup.data) {
       return {
+        availableLocales: [],
         item: null,
         resolvedLocale: null,
       };
@@ -289,6 +307,7 @@ const fetchCachedProject = unstable_cache(
     );
 
     return {
+      availableLocales: resolvedProject.availableLocales,
       item: resolvedProject.item,
       resolvedLocale: resolvedProject.resolvedLocale,
     };
@@ -309,6 +328,7 @@ export const getResolvedProject = async (
 ): Promise<ResolvedProject> => {
   if (!hasSupabaseEnv()) {
     return {
+      availableLocales: [],
       item: null,
       resolvedLocale: null,
     };
@@ -317,6 +337,29 @@ export const getResolvedProject = async (
   const normalizedLocale = targetLocale.toLowerCase();
 
   return fetchCachedProject(projectSlug, normalizedLocale);
+};
+
+const fetchAvailableProjectLocales = async (projectId: string): Promise<AppLocale[]> => {
+  const supabase = getOptionalPublicServerSupabaseClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('project_translations')
+    .select('locale')
+    .eq('project_id', projectId)
+    .in('locale', [...locales]);
+
+  if (error) {
+    if (isMissingProjectContentSchemaError(error)) {
+      return [];
+    }
+
+    throw new Error(`[projects] 사용 가능한 번역 locale 조회 실패: ${error.message}`);
+  }
+
+  return ((data ?? []) as { locale: string }[])
+    .map(row => row.locale.toLowerCase())
+    .filter(isValidLocale);
 };
 
 /**
