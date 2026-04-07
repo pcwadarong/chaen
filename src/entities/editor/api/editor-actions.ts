@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 import { ARTICLES_CACHE_TAG, createArticleCacheTag } from '@/entities/article/model/cache-tags';
@@ -23,7 +24,13 @@ import type {
 import { createProjectCacheTag, PROJECTS_CACHE_TAG } from '@/entities/project/model/cache-tags';
 import { getTechStackIdsBySlugs } from '@/entities/tech-stack/api/query-tech-stacks';
 import { buildAdminSubPath } from '@/features/admin-session/model/admin-path';
-import { locales } from '@/i18n/routing';
+import {
+  type AppLocale,
+  defaultLocale,
+  isValidLocale,
+  localeCookieName,
+  locales,
+} from '@/i18n/routing';
 import { requireAdmin } from '@/shared/lib/auth/require-admin';
 import { buildLocalizedPathname } from '@/shared/lib/seo/metadata';
 import { isValidSlugFormat, normalizeSlugInput } from '@/shared/lib/slug/slug';
@@ -208,6 +215,7 @@ export const publishEditorContentAction = async ({
   contentType,
   draftId,
   editorState,
+  locale,
   settings,
 }: PublishEditorContentActionInput): Promise<PublishActionResult> => {
   await requireAdmin({ onUnauthorized: 'throw' });
@@ -287,9 +295,11 @@ export const publishEditorContentAction = async ({
     existingPublicationState === 'published'
       ? (existingContentPublication?.publish_at ?? null)
       : (parsedSettings.data.publishAt ?? nowIso);
+  const redirectLocale = await resolvePublishRedirectLocale(locale);
   const redirectPath = getPublishRedirectPath({
     contentId: targetContentId,
     contentType,
+    locale: redirectLocale,
     publishAt: effectivePublishAt,
     visibility: parsedSettings.data.visibility,
     slug: normalizedSlug,
@@ -370,12 +380,14 @@ export const publishEditorContentAction = async ({
 const getPublishRedirectPath = ({
   contentId,
   contentType,
+  locale,
   publishAt,
   visibility,
   slug,
 }: {
   contentId: string;
   contentType: 'article' | 'project';
+  locale: AppLocale;
   publishAt: string | null;
   visibility: PublishSettings['visibility'];
   slug: string;
@@ -394,10 +406,28 @@ const getPublishRedirectPath = ({
     publishDate.getTime() > new Date().getTime();
 
   if (isScheduled) {
-    return contentType === 'article' ? '/articles' : '/project';
+    return buildLocalizedPathname({
+      locale,
+      pathname: contentType === 'article' ? '/articles' : '/project',
+    });
   }
 
-  return contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`;
+  return buildLocalizedPathname({
+    locale,
+    pathname: contentType === 'article' ? `/articles/${slug}` : `/project/${slug}`,
+  });
+};
+
+const resolvePublishRedirectLocale = async (inputLocale?: string | null): Promise<AppLocale> => {
+  const normalizedInputLocale = inputLocale?.trim().toLowerCase();
+  if (normalizedInputLocale && isValidLocale(normalizedInputLocale)) {
+    return normalizedInputLocale;
+  }
+
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get(localeCookieName)?.value?.trim().toLowerCase();
+
+  return cookieLocale && isValidLocale(cookieLocale) ? cookieLocale : defaultLocale;
 };
 
 /**

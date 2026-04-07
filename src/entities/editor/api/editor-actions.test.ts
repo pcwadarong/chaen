@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 
 import { checkSlugDuplicate } from '@/entities/editor/api/check-slug-duplicate';
 import {
@@ -12,6 +13,12 @@ import { createOptionalServiceRoleSupabaseClient } from '@/shared/lib/supabase/s
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
+}));
+
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({
+    get: vi.fn(() => undefined),
+  })),
 }));
 
 vi.mock('@/shared/lib/auth/require-admin', () => ({
@@ -616,6 +623,108 @@ describe('editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/articles');
     expect(revalidatePath).toHaveBeenCalledWith('/ko/articles/scheduled-article');
+  });
+
+  it('발행 redirect locale은 입력값이 없으면 NEXT_LOCALE 쿠키를 따른다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-14T06:15:00.000Z'));
+
+    vi.mocked(requireAdmin).mockResolvedValue({
+      isAdmin: true,
+      isAuthenticated: true,
+      userEmail: 'admin@example.com',
+      userId: 'admin-id',
+    });
+    vi.mocked(checkSlugDuplicate).mockResolvedValue({
+      data: { duplicate: false, source: null },
+      schemaMissing: false,
+    });
+    vi.mocked(cookies).mockResolvedValue({
+      get: vi.fn((name: string) => (name === 'NEXT_LOCALE' ? { value: 'ja' } : undefined)),
+    } as never);
+
+    const articleReadQuery = {
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: {
+          publish_at: '2026-03-10T09:00:00.000Z',
+          visibility: 'public',
+        },
+        error: null,
+      }),
+      select: vi.fn().mockReturnThis(),
+    };
+    const articlesUpdateQuery = {
+      eq: vi.fn().mockResolvedValue({ error: null }),
+      update: vi.fn().mockReturnThis(),
+    };
+    const translationsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const translationsInsertQuery = {
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const articleTagsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const draftsDeleteQuery = {
+      delete: vi.fn().mockReturnThis(),
+      eq: vi
+        .fn()
+        .mockImplementation((column: string) =>
+          column === 'id' ? Promise.resolve({ error: null }) : draftsDeleteQuery,
+        ),
+    };
+    const articleTranslationsFromCalls: string[] = [];
+
+    vi.mocked(createOptionalServiceRoleSupabaseClient).mockReturnValue({
+      from: vi.fn((table: string) => {
+        if (table === 'articles') {
+          return articleReadQuery.select.mock.calls.length === 0
+            ? articleReadQuery
+            : articlesUpdateQuery;
+        }
+        if (table === 'article_translations') {
+          articleTranslationsFromCalls.push(table);
+          return articleTranslationsFromCalls.length === 1
+            ? translationsDeleteQuery
+            : translationsInsertQuery;
+        }
+        if (table === 'article_tags') return articleTagsDeleteQuery;
+        if (table === 'drafts') return draftsDeleteQuery;
+        throw new Error(`unexpected table: ${table}`);
+      }),
+    } as never);
+
+    const result = await publishEditorContentAction({
+      contentId: 'article-1',
+      contentType: 'article',
+      draftId: 'draft-1',
+      editorState: {
+        dirty: true,
+        slug: '',
+        tags: [],
+        translations: {
+          en: { content: '', description: '', title: '' },
+          fr: { content: '', description: '', title: '' },
+          ja: { content: '', description: '', title: '' },
+          ko: { content: '본문', description: '설명', title: '제목' },
+        },
+      },
+      settings: {
+        allowComments: true,
+        githubUrl: '',
+        publishAt: null,
+        slug: 'published-article',
+        thumbnailUrl: '',
+        visibility: 'public',
+        websiteUrl: '',
+      },
+    });
+
+    expect(result).toEqual({ redirectPath: '/ja/articles/published-article' });
   });
 
   it('이미 등록된 article은 server action에서도 예약 발행 재설정을 거부한다', async () => {

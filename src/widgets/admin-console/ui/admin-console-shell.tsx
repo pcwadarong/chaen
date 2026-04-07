@@ -333,6 +333,7 @@ const workspaceClass = cva({
     display: 'grid',
     alignContent: 'start',
     gap: '4',
+    pb: '5',
     minWidth: '0',
     minHeight: '0',
     height: 'full',
