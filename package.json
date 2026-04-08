@@ -21,6 +21,10 @@
     "test:dom:model": "node scripts/run-vitest-group.mjs dom-model",
     "test:dom:ui": "node scripts/run-vitest-group.mjs dom-ui",
     "test:dom:heavy": "node scripts/run-vitest-group.mjs dom-heavy",
+    "test:browser": "playwright test",
+    "test:browser:headed": "playwright test --headed",
+    "test:browser:debug": "playwright test --debug",
+    "test:browser:install": "playwright install chromium",
     "test:watch": "vitest",
     "postinstall": "husky"
   },
@@ -68,6 +72,7 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.35.0",
     "@pandacss/dev": "^1.9.0",
+    "@playwright/test": "^1.59.1",
     "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
