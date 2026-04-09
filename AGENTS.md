@@ -75,9 +75,36 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 
 - **Format**: Under **[Condition/Context]**, **[Subject]** must **[Expected Behavior/State Change]**.
 - **Examples**:
-  - **BAD**: "Saves user info."
-  - **GOOD**: "When valid user data is submitted, the 'user' state in the store must be updated with the provided payload."
-  - **GOOD**: "Clicking the 'Publish' button must trigger form validation; upon success, the 'Save Complete' toast must be rendered."
+- **BAD**: "Saves user info."
+- **GOOD**: "When valid user data is submitted, the 'user' state in the store must be updated with the provided payload."
+- **GOOD**: "Clicking the 'Publish' button must trigger form validation; upon success, the 'Save Complete' toast must be rendered."
+
+### Test Structure Maintenance
+
+- **Coverage Check**: Before closing substantial test refactors, run coverage for the touched area or the full Vitest suite when stability work is involved. Treat coverage regressions as signals to inspect missing contracts, not as numeric goals to game.
+- **Playwright Tiering**:
+  - `test:browser:smoke` is reserved for fast public-entry contracts and must stay small.
+  - `test:browser:full` owns the broader runtime regressions.
+  - Do not place the same browser contract in both smoke and full with duplicated spec intent.
+- **Selector Discipline**:
+  - Prefer `getByRole`, `getByLabelText`, and visible text queries first.
+  - Use `data-testid` only for non-accessible structural seams, mocked 3D/portal boundaries, or elements without stable semantics.
+  - Avoid assertions on Panda class output, incidental DOM nesting, or visual-only wrappers unless the class merge itself is the API under test.
+- **UI Constraint Guardrail**:
+  - Tests must not freeze incidental layout decisions such as exact wrapper structure, arbitrary class names, or non-contract styling.
+  - Variant/data attributes may be asserted only when they are deliberate public state markers.
+- **Hook and View Split**:
+  - When a component test starts stubbing `IntersectionObserver`, `ResizeObserver`, `requestAnimationFrame`, scroll containers, or repeated callback wiring, first ask whether that logic should move into a dedicated hook/model helper.
+  - After extraction, move pure branching and callback composition to Node tests, keep hook wiring in focused hook/jsdom tests, and leave component tests to rendering and integration seams.
+- **Test Stability**:
+  - Tests must stub required browser globals explicitly rather than relying on environment accidents.
+  - Coverage runs are part of stability verification, so tests should pass both in normal Vitest runs and under `--coverage`.
+- **Scattering Rule**:
+  - Co-located tests are preferred, but when a slice accumulates many one-off files with the same setup burden, consolidate by contract boundary rather than by implementation detail.
+  - Browser specs should stay grouped under `tests/browser` and named by user-facing contract, not by internal hook name.
+- **Language Quality**:
+  - Test titles should use domain terms, state conditions, and expected outcomes.
+  - Avoid vague labels such as "works", "renders", "handles click", or "shows correctly" unless the missing condition and result are spelled out in the same sentence.
 
 ---
 
