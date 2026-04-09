@@ -84,8 +84,8 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 - **Coverage Check**: Before closing substantial test refactors, run coverage for the touched area or the full Vitest suite when stability work is involved. Treat coverage regressions as signals to inspect missing contracts, not as numeric goals to game.
 - **Playwright Tiering**:
   - `test:browser:smoke` is reserved for fast public-entry contracts and must stay small.
-  - `test:browser:full` owns the broader runtime regressions.
-  - Do not place the same browser contract in both smoke and full with duplicated spec intent.
+  - `test:browser` owns the broader runtime regressions.
+  - Do not place the same browser contract in both smoke and the main browser suite with duplicated spec intent.
 - **Selector Discipline**:
   - Prefer `getByRole`, `getByLabelText`, and visible text queries first.
   - Use `data-testid` only for non-accessible structural seams, mocked 3D/portal boundaries, or elements without stable semantics.
