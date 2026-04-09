@@ -9,5 +9,14 @@ if [ $RESULT -ne 0 ]; then
   exit 1
 fi
 
-echo "✅ Format passed. Commit allowed."
+echo "▶ Running staged tests..."
+pnpm run test:staged
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Staged tests failed. Commit aborted."
+  exit 1
+fi
+
+echo "✅ Format and staged tests passed. Commit allowed."
 exit 0

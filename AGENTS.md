@@ -93,6 +93,8 @@ Test descriptions must describe a **Contract between State and Result**, not an 
   - `pnpm run test:browser:smoke`: Minimal public-entry smoke only. Keep this fast and small enough for frequent CI use.
   - `pnpm run test:browser:headed`: Local visual debugging run for Playwright.
   - `pnpm run test:browser:debug`: Interactive Playwright debugging session.
+  - `pnpm run test:staged`: Fast pre-commit Vitest run for staged code only. Use this to keep commit hooks short; it is not a substitute for full regression.
+  - `pnpm run test:prepush`: Pre-push gate. It should stay lighter than `pnpm run test` and focus on full Vitest plus browser smoke.
   - `pnpm run test:coverage`: Coverage-only Vitest run. It must exclude Playwright specs and execution harness files so the report reflects product contracts rather than browser fixtures.
 - **Bucket Intent**:
   - `node / dom:model / dom:ui / dom:heavy` are execution-cost buckets, not architectural layers.

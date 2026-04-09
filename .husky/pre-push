@@ -16,7 +16,7 @@ run_step () {
 
 run_step "lint" "pnpm run lint"
 run_step "type check" "pnpm run check-types"
-run_step "tests" "pnpm run test"
+run_step "tests" "pnpm run test:prepush"
 run_step "build" "pnpm run build"
 
 echo "✅ All checks passed. Push allowed."
