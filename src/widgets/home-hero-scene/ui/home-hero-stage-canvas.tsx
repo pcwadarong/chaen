@@ -20,6 +20,7 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { initializeHomeHeroStageCanvas } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-adapter';
 import { createHomeHeroStageCanvasInteractionHandlers } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-interaction';
 import { resolveHomeHeroStageCanvasRuntime } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-runtime';
 import type {
@@ -136,11 +137,10 @@ export const HomeHeroStageCanvas = ({
         gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
         shadows={renderQuality.shadows}
         onCreated={({ gl }) => {
-          gl.domElement.id = 'three-canvas';
-          gl.domElement.setAttribute('aria-hidden', 'true');
-          gl.domElement.setAttribute('role', 'presentation');
-          gl.domElement.style.touchAction = 'none';
-          gl.setClearColor(0x000000, 0);
+          initializeHomeHeroStageCanvas({
+            canvasElement: gl.domElement,
+            setClearColor: gl.setClearColor,
+          });
           setCanvasElement(gl.domElement);
           onSceneReadyChange?.(true);
         }}
