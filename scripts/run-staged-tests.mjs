@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
+import path from 'node:path';
 
 const CODE_FILE_PATTERN = /\.(cjs|cts|js|jsx|mjs|mts|ts|tsx)$/;
 const PLAYWRIGHT_SPEC_PATTERN = /^tests\/browser\/.+\.spec\.ts$/;
@@ -31,18 +32,84 @@ const getStagedFiles = () => {
 };
 
 /**
- * staged 코드 파일 중 Vitest 관련도를 계산할 대상만 남깁니다.
+ * 주어진 디렉터리에서 co-located Vitest 파일 목록을 찾습니다.
+ *
+ * @param directoryPath 검색할 상대 디렉터리 경로입니다.
+ * @returns 디렉터리 내부의 test 파일 상대 경로 배열입니다.
+ */
+const findVitestFilesInDirectory = directoryPath => {
+  try {
+    const output = execFileSync(
+      'rg',
+      [
+        '--files',
+        directoryPath,
+        '-g',
+        '*.test.ts',
+        '-g',
+        '*.test.tsx',
+        '-g',
+        '*.test.js',
+        '-g',
+        '*.test.jsx',
+        '-g',
+        '*.test.mts',
+        '-g',
+        '*.test.cts',
+        '-g',
+        '*.test.mjs',
+        '-g',
+        '*.test.cjs',
+      ],
+      {
+        encoding: 'utf8',
+      },
+    );
+
+    return output
+      .split('\n')
+      .map(filePath => filePath.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * staged 변경에서 직접 실행할 Vitest 파일 목록을 계산합니다.
+ *
+ * `vitest related`는 현재 저장소의 SVG alias 해석과 충돌하므로,
+ * pre-commit에서는 staged test 파일과 변경된 소스 파일 옆의 co-located test만 빠르게 실행합니다.
  *
  * @param files staged 파일 배열입니다.
- * @returns `vitest related`에 전달할 파일 배열입니다.
+ * @returns `vitest run`에 전달할 test 파일 배열입니다.
  */
-const resolveVitestRelatedTargets = files =>
-  files.filter(
-    filePath =>
-      CODE_FILE_PATTERN.test(filePath) &&
-      !PLAYWRIGHT_SPEC_PATTERN.test(filePath) &&
-      (isVitestRelatedSourceFile(filePath) || VITEST_TEST_FILE_PATTERN.test(filePath)),
-  );
+const resolveVitestRunTargets = files => {
+  const targets = new Set();
+
+  files.forEach(filePath => {
+    if (!CODE_FILE_PATTERN.test(filePath) || PLAYWRIGHT_SPEC_PATTERN.test(filePath)) {
+      return;
+    }
+
+    if (VITEST_TEST_FILE_PATTERN.test(filePath)) {
+      targets.add(filePath);
+      return;
+    }
+
+    if (!isVitestRelatedSourceFile(filePath)) {
+      return;
+    }
+
+    const directoryPath = path.dirname(filePath);
+
+    findVitestFilesInDirectory(directoryPath).forEach(testFilePath => {
+      targets.add(testFilePath);
+    });
+  });
+
+  return Array.from(targets);
+};
 
 /**
  * 현재 staged 변경에 Playwright spec가 포함되어 있는지 확인합니다.
@@ -61,7 +128,7 @@ const hasPlaywrightSpecChanges = files =>
  */
 const run = async () => {
   const stagedFiles = getStagedFiles();
-  const vitestTargets = resolveVitestRelatedTargets(stagedFiles);
+  const vitestTargets = resolveVitestRunTargets(stagedFiles);
 
   if (vitestTargets.length === 0) {
     if (hasPlaywrightSpecChanges(stagedFiles)) {
@@ -76,13 +143,9 @@ const run = async () => {
   }
 
   await new Promise((resolve, reject) => {
-    const child = spawn(
-      'pnpm',
-      ['exec', 'vitest', 'related', '--run', '--passWithNoTests', ...vitestTargets],
-      {
-        stdio: 'inherit',
-      },
-    );
+    const child = spawn('pnpm', ['exec', 'vitest', 'run', '--passWithNoTests', ...vitestTargets], {
+      stdio: 'inherit',
+    });
 
     child.on('error', reject);
     child.on('close', code => {
