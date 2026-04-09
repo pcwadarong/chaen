@@ -130,6 +130,7 @@ export const HomeHeroStageCanvas = ({
           gl.domElement.style.touchAction = 'none';
           gl.setClearColor(0x000000, 0);
           setCanvasElement(gl.domElement);
+          onSceneReadyChange?.(true);
         }}
       >
         <HomeHeroStageLights />

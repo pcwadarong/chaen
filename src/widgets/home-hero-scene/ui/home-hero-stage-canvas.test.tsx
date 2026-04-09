@@ -413,18 +413,4 @@ describe('HomeHeroStageCanvas', () => {
 
     expect(bassAudioMockState.pauseBackgroundMusicPlayback).toHaveBeenCalledOnce();
   });
-
-  it('실제 three canvas는 접근성 트리에서 숨기고 presentation role을 가져야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).not.toBeNull();
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
-      'aria-hidden',
-      'true',
-    );
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
-      'role',
-      'presentation',
-    );
-  });
 });

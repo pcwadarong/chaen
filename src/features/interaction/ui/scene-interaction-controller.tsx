@@ -2,7 +2,7 @@
 
 import { useThree } from '@react-three/fiber';
 import { useTranslations } from 'next-intl';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import type { Object3D } from 'three';
 
 import { useInteractionActions } from '@/features/interaction/model/useInteractionActions';
@@ -57,7 +57,10 @@ export const SceneInteractionController = ({
     },
   });
   const keyboardTargetIndexRef = useRef(-1);
-  const keyboardTargets = useMemo(() => resolveKeyboardInteractionTargets(scene), [scene]);
+  const resolveCurrentKeyboardTargets = useCallback(
+    () => resolveKeyboardInteractionTargets(scene),
+    [scene],
+  );
 
   useEffect(() => {
     const canvasElement = gl.domElement;
@@ -102,7 +105,7 @@ export const SceneInteractionController = ({
     const handlePointerLeave = () => {
       clearHoveredMesh();
     };
-    const syncKeyboardTargetByIndex = (nextIndex: number) => {
+    const syncKeyboardTargetByIndex = (nextIndex: number, keyboardTargets: Object3D[]) => {
       const nextTarget = keyboardTargets[nextIndex] ?? null;
 
       keyboardTargetIndexRef.current = nextTarget ? nextIndex : -1;
@@ -115,11 +118,13 @@ export const SceneInteractionController = ({
         : '';
     };
     const handleFocus = () => {
+      const keyboardTargets = resolveCurrentKeyboardTargets();
+
       if (keyboardTargets.length === 0) return;
 
       const nextIndex = keyboardTargetIndexRef.current >= 0 ? keyboardTargetIndexRef.current : 0;
 
-      syncKeyboardTargetByIndex(nextIndex);
+      syncKeyboardTargetByIndex(nextIndex, keyboardTargets);
     };
     const handleBlur = () => {
       keyboardTargetIndexRef.current = -1;
@@ -127,6 +132,8 @@ export const SceneInteractionController = ({
       clearHoveredMesh();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
+      const keyboardTargets = resolveCurrentKeyboardTargets();
+
       if (keyboardTargets.length === 0) return;
 
       if (KEYBOARD_NAVIGATION_KEYS.has(event.key)) {
@@ -138,7 +145,7 @@ export const SceneInteractionController = ({
         const nextIndex =
           (currentIndex + direction + keyboardTargets.length) % keyboardTargets.length;
 
-        syncKeyboardTargetByIndex(nextIndex);
+        syncKeyboardTargetByIndex(nextIndex, keyboardTargets);
         return;
       }
 
@@ -152,7 +159,7 @@ export const SceneInteractionController = ({
       if (!target) return;
 
       onPrepareAudioPlayback?.();
-      syncKeyboardTargetByIndex(targetIndex);
+      syncKeyboardTargetByIndex(targetIndex, keyboardTargets);
       handleMeshClick(target);
     };
 
@@ -193,10 +200,10 @@ export const SceneInteractionController = ({
     clearHoveredMesh,
     gl,
     handleMeshClick,
-    keyboardTargets,
     onPrepareAudioPlayback,
     onPointerClick,
     onPointerMove,
+    resolveCurrentKeyboardTargets,
     setHoveredMeshDirect,
     t,
   ]);

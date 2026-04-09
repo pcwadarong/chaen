@@ -27,6 +27,8 @@ const HomeHeroStageCanvas = dynamic<HomeHeroStageCanvasProps>(
   },
 );
 
+const INITIAL_BLOCKING_LOAD_READY_GRACE_MS = 600;
+
 /**
  * 홈 히어로 영역의 3D 캔버스 프레임과 로딩 폴백을 제공합니다.
  */
@@ -48,7 +50,22 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
 
     if (!isSceneAssetLoading && isSceneReady) {
       setHasCompletedInitialBlockingLoad(true);
+      return;
     }
+
+    if (!isSceneReady) {
+      return;
+    }
+
+    // loading manager가 일부 자산에서 active 상태를 길게 유지해도
+    // 실제 canvas가 올라온 뒤에는 초기 blocking overlay가 영구 고정되지 않도록 제한합니다.
+    const readyGraceTimer = window.setTimeout(() => {
+      setHasCompletedInitialBlockingLoad(true);
+    }, INITIAL_BLOCKING_LOAD_READY_GRACE_MS);
+
+    return () => {
+      window.clearTimeout(readyGraceTimer);
+    };
   }, [hasCompletedInitialBlockingLoad, isSceneAssetLoading, isSceneReady, isWebglAvailable]);
 
   useHomeHeroSceneScrollLock(shouldShowLoadingOverlay);
