@@ -3,14 +3,10 @@
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useLocale, useTranslations } from 'next-intl';
-import React, { Suspense, useCallback, useMemo, useState } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
-import {
-  SCENE_VIEWPORT_MODE,
-  type SceneBreakpoint,
-  type SceneViewportMode,
-} from '@/entities/scene/model/breakpointConfig';
+import type { SceneBreakpoint, SceneViewportMode } from '@/entities/scene/model/breakpointConfig';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
@@ -24,6 +20,7 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { createHomeHeroStageCanvasInteractionHandlers } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-interaction';
 import { resolveHomeHeroStageCanvasRuntime } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-runtime';
 import type {
   HomeHeroStageCanvasProps,
@@ -90,16 +87,6 @@ export const HomeHeroStageCanvas = ({
       }),
     [interactionDisabledProgressThreshold, sceneViewportMode],
   );
-  const handleBrowseProjects = useCallback(() => {
-    const shouldUseBottomSheet = sceneViewportMode === SCENE_VIEWPORT_MODE.stacked;
-
-    if (shouldUseBottomSheet) {
-      interaction?.onBrowseProjects?.();
-      return;
-    }
-
-    scrollHomeHeroToProjects(sceneRefs.triggerRef.current);
-  }, [interaction, sceneViewportMode, sceneRefs]);
   useAllowCanvasContextMenu(canvasElement);
   const sceneLayout = useMemo(
     () =>
@@ -113,6 +100,28 @@ export const HomeHeroStageCanvas = ({
     locale,
     ongoingLabel: projectDetailTranslations('ongoing'),
   });
+  const interactionHandlers = useMemo(
+    () =>
+      createHomeHeroStageCanvasInteractionHandlers({
+        onBrowseProjects: interaction?.onBrowseProjects,
+        onOpenImageViewer: interaction?.onOpenImageViewer,
+        onPlayBassString: playBassString,
+        onPrepareAudioPlayback: prepareBassAudioPlayback,
+        onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
+        sceneViewportMode,
+        scrollToProjects: scrollHomeHeroToProjects,
+        triggerElement: sceneRefs.triggerRef.current,
+      }),
+    [
+      interaction?.onBrowseProjects,
+      interaction?.onOpenImageViewer,
+      playBassString,
+      prepareBassAudioPlayback,
+      sceneRefs.triggerRef,
+      sceneViewportMode,
+      toggleBackgroundMusicPlayback,
+    ],
+  );
 
   return (
     <div className={canvasStageClass}>
@@ -146,13 +155,7 @@ export const HomeHeroStageCanvas = ({
           sceneRefs={sceneRefs}
           sceneViewportMode={sceneViewportMode}
           showOutlineEffect={renderQuality.enableOutlineComposer}
-          interactionHandlers={{
-            onBrowseProjects: handleBrowseProjects,
-            onOpenImageViewer: interaction?.onOpenImageViewer,
-            onPlayBassString: playBassString,
-            onPrepareAudioPlayback: prepareBassAudioPlayback,
-            onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
-          }}
+          interactionHandlers={interactionHandlers}
         />
         <Suspense fallback={null}>
           <HomeHeroStageReadyBridge

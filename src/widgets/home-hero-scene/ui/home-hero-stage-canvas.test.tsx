@@ -220,61 +220,6 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
   });
 
-  it('캔버스 interaction controller에는 오디오 prewarm 콜백이 연결되어야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onPrepareAudioPlayback?.();
-
-    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
-  });
-
-  it('stacked sceneViewportMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
-    const onBrowseProjects = vi.fn();
-
-    render(
-      <HomeHeroStageCanvas
-        {...createStageCanvasProps({
-          interaction: {
-            onBrowseProjects,
-          },
-        })}
-      />,
-    );
-
-    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
-
-    expect(onBrowseProjects).toHaveBeenCalledOnce();
-  });
-
-  it('wide sceneViewportMode에서는 viewport 폭과 무관하게 프로젝트 스크롤 이동을 사용해야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
-    homeHeroStageCanvasMockState.viewportWidth = 812;
-    const onBrowseProjects = vi.fn();
-
-    Object.defineProperty(window, 'innerWidth', {
-      configurable: true,
-      value: 812,
-      writable: true,
-    });
-
-    render(
-      <HomeHeroStageCanvas
-        {...createStageCanvasProps({
-          interaction: {
-            onBrowseProjects,
-          },
-        })}
-      />,
-    );
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
-
-    expect(onBrowseProjects).not.toHaveBeenCalled();
-  });
-
   it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
     render(
       <HomeHeroStageCanvas
@@ -290,16 +235,6 @@ describe('HomeHeroStageCanvas', () => {
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
     );
-  });
-
-  it('scene interaction controller는 background music 토글과 bass string 콜백을 함께 받아야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBackgroundMusicPlayback?.();
-    homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
-
-    expect(bassAudioMockState.toggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
-    expect(bassAudioMockState.playBassString).toHaveBeenCalledWith('line3');
   });
 
   it('background music 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
