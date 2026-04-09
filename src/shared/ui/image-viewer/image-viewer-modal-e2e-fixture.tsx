@@ -120,7 +120,7 @@ const triggerButtonClass = css({
   px: '5',
   borderRadius: 'full',
   backgroundColor: 'text',
-  color: 'bg',
+  color: 'surface',
   fontWeight: 'medium',
 });
 
