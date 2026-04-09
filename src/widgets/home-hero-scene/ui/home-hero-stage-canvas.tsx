@@ -11,7 +11,6 @@ import {
   type SceneBreakpoint,
   type SceneViewportMode,
 } from '@/entities/scene/model/breakpointConfig';
-import { getHomeHeroSceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
@@ -25,6 +24,7 @@ import {
   HOME_HERO_CAMERA_NEAR,
   type HomeHeroSceneLayout,
 } from '@/widgets/home-hero-scene/model/home-hero-scene-layout';
+import { resolveHomeHeroStageCanvasRuntime } from '@/widgets/home-hero-scene/model/home-hero-stage-canvas-runtime';
 import type {
   HomeHeroStageCanvasProps,
   HomeHeroStageSceneRefs,
@@ -80,12 +80,15 @@ export const HomeHeroStageCanvas = ({
     toggleBackgroundMusicPlayback,
   } = useBassAudio();
   const { currentBP, sceneViewportMode } = useBreakpoint();
-  const renderQuality = useMemo(
+  const { renderQuality } = useMemo(
     () =>
-      getHomeHeroSceneRenderQuality({
+      resolveHomeHeroStageCanvasRuntime({
+        interactionDisabledProgressThreshold,
+        isSequenceActive: false,
+        progress: 0,
         sceneViewportMode,
       }),
-    [sceneViewportMode],
+    [interactionDisabledProgressThreshold, sceneViewportMode],
   );
   const handleBrowseProjects = useCallback(() => {
     const shouldUseBottomSheet = sceneViewportMode === SCENE_VIEWPORT_MODE.stacked;
@@ -209,6 +212,17 @@ const HomeHeroCameraRig = ({
       webUiRef: sceneRefs.webUiRef,
     });
 
+  const runtime = React.useMemo(
+    () =>
+      resolveHomeHeroStageCanvasRuntime({
+        interactionDisabledProgressThreshold,
+        isSequenceActive,
+        progress,
+        sceneViewportMode,
+      }),
+    [interactionDisabledProgressThreshold, isSequenceActive, progress, sceneViewportMode],
+  );
+
   React.useEffect(() => {
     onCloseupCostumeHiddenChange(isCloseupCostumeHidden);
   }, [isCloseupCostumeHidden, onCloseupCostumeHiddenChange]);
@@ -217,15 +231,13 @@ const HomeHeroCameraRig = ({
     onMonitorOverlayOpacityChange(monitorOverlayOpacity);
   }, [monitorOverlayOpacity, onMonitorOverlayOpacityChange]);
 
-  const isInteractionEnabled = progress < interactionDisabledProgressThreshold;
-
   return (
     <>
       <OrbitControls
         enablePan={false}
         enableRotate
-        enableZoom={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked}
-        enabled={sceneViewportMode === SCENE_VIEWPORT_MODE.stacked || !isSequenceActive}
+        enableZoom={runtime.shouldEnableOrbitZoom}
+        enabled={runtime.areOrbitControlsEnabled}
         key={`${sceneViewportMode}-${currentBP}`}
         makeDefault
         maxAzimuthAngle={sceneLayout.camera.maxAzimuthAngle}
@@ -236,7 +248,7 @@ const HomeHeroCameraRig = ({
         minPolarAngle={sceneLayout.camera.minPolarAngle}
         target={sceneLayout.camera.lookAt}
       />
-      {isInteractionEnabled ? (
+      {runtime.isInteractionEnabled ? (
         <SceneInteractionController
           onBrowseProjects={interactionHandlers.onBrowseProjects}
           onOpenImageViewer={interactionHandlers.onOpenImageViewer}
