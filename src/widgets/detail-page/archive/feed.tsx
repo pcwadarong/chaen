@@ -19,20 +19,13 @@ import {
   DetailArchiveList,
   detailArchiveSidebarViewportClass,
 } from '@/widgets/detail-page/archive/list';
+import {
+  type DetailArchivePage,
+  type DetailArchiveRecord,
+  mergeCurrentArchiveItemIntoDetailArchivePage,
+  mergeDetailArchiveFeedItems,
+} from '@/widgets/detail-page/archive/model/detail-archive-feed';
 import { DetailArchiveSidebarSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
-
-type DetailArchiveRecord = {
-  description: string | null;
-  id: string;
-  publish_at?: string | null;
-  slug?: string | null;
-  title: string;
-};
-
-type DetailArchivePage<TItem> = {
-  items: TItem[];
-  nextCursor: string | null;
-};
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
   activeItemViewportOffsetRatio?: number | null;
@@ -81,7 +74,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
 }: DetailArchiveFeedProps<TItem>) => {
   const alignedSelectedPathSegmentRef = useRef<string | null>(null);
   const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(() =>
-    mergeCurrentArchiveItemIntoPage(initialPage, currentItem, pinCurrentItemToTop),
+    mergeCurrentArchiveItemIntoDetailArchivePage(initialPage, currentItem, pinCurrentItemToTop),
   );
   const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
@@ -119,7 +112,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   useEffect(() => {
     if (initialPage) {
       setBootstrapPage(
-        mergeCurrentArchiveItemIntoPage(initialPage, currentItem, pinCurrentItemToTop),
+        mergeCurrentArchiveItemIntoDetailArchivePage(initialPage, currentItem, pinCurrentItemToTop),
       );
       setBootstrapError(null);
       setIsBootstrapping(false);
@@ -148,7 +141,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
         if (!isMounted) return;
 
         setBootstrapPage(
-          mergeCurrentArchiveItemIntoPage(
+          mergeCurrentArchiveItemIntoDetailArchivePage(
             {
               items: result.data.items,
               nextCursor: result.data.nextCursor,
@@ -180,19 +173,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     initialItems: resolvedInitialPage.items,
     loadPage,
     locale,
-    mergeItems: (previousItems, incomingItems) => {
-      const seenIds = new Set(previousItems.map(item => item.id));
-
-      return [
-        ...previousItems,
-        ...incomingItems.filter(item => {
-          if (seenIds.has(item.id)) return false;
-          seenIds.add(item.id);
-
-          return true;
-        }),
-      ];
-    },
+    mergeItems: mergeDetailArchiveFeedItems,
   });
   const isAutoLoadEnabled = useAutoLoadAfterScroll();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -337,29 +318,6 @@ const alignActiveArchiveItemInViewport = (
     behavior: 'auto',
     top: nextScrollTop,
   });
-};
-
-/**
- * 현재 상세 항목이 초기 아카이브 페이지에 없을 때 목록 앞에 한 번만 보강합니다.
- */
-const mergeCurrentArchiveItemIntoPage = <TItem extends DetailArchiveRecord>(
-  page: DetailArchivePage<TItem> | null,
-  currentItem: TItem | null,
-  pinCurrentItemToTop: boolean,
-): DetailArchivePage<TItem> | null => {
-  if (!page || !currentItem) return page;
-
-  const itemsWithCurrent = pinCurrentItemToTop
-    ? [currentItem, ...page.items]
-    : [...page.items, currentItem];
-  const dedupedItems = itemsWithCurrent.filter(
-    (item, index, items) => items.findIndex(candidate => candidate.id === item.id) === index,
-  );
-
-  return {
-    ...page,
-    items: dedupedItems,
-  };
 };
 
 type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
