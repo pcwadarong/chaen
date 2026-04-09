@@ -23,6 +23,7 @@ import {
   type DetailArchiveRecord,
   mergeDetailArchiveFeedItems,
 } from '@/widgets/detail-page/archive/model/detail-archive-feed';
+import { useDetailArchiveAutoLoad } from '@/widgets/detail-page/archive/model/use-detail-archive-auto-load';
 import { useDetailArchiveBootstrapPage } from '@/widgets/detail-page/archive/model/use-detail-archive-bootstrap-page';
 import { DetailArchiveSidebarSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 
@@ -120,31 +121,19 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
+  useDetailArchiveAutoLoad({
+    errorMessage,
+    isAutoLoadEnabled,
+    loadMore,
+    sentinelRef,
+    viewportRef,
+  });
+
   useEffect(() => {
     if (activeItemViewportOffsetRatio === null) return;
 
     alignedSelectedPathSegmentRef.current = null;
   }, [activeItemViewportOffsetRatio, selectedPathSegment]);
-
-  useEffect(() => {
-    if (!sentinelRef.current || !viewportRef.current) return;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        const target = entries[0];
-        if (!target?.isIntersecting || errorMessage || !isAutoLoadEnabled) return;
-        void loadMore();
-      },
-      {
-        root: viewportRef.current,
-        threshold: 0.25,
-      },
-    );
-
-    observer.observe(sentinelRef.current);
-
-    return () => observer.disconnect();
-  }, [errorMessage, isAutoLoadEnabled, loadMore]);
 
   useEffect(() => {
     if (activeItemViewportOffsetRatio === null || isBootstrapping || bootstrapError) return;
