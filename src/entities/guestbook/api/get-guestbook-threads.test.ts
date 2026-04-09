@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { unstable_cacheTag } from 'next/cache';
 
 import { getGuestbookThreads } from '@/entities/guestbook/api/get-guestbook-threads';

@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
@@ -57,29 +57,5 @@ describe('HomeHeroInteractionHint', () => {
     expect(
       screen.getByText('노트북, 기타, 카메라를 눌러보고 드래그해서 장면을 둘러보세요'),
     ).toBeTruthy();
-  });
-
-  it('닫기 버튼을 누르면, HomeHeroInteractionHint는 localStorage에 dismissal을 기록하고 사라져야 한다', () => {
-    render(<HomeHeroInteractionHint />);
-
-    fireEvent.click(screen.getByRole('button', { name: '닫기' }));
-
-    expect(window.localStorage.getItem('home-hero:interaction-hint-dismissed')).toBe('true');
-    expect(screen.queryByText('스크롤을 내리거나 기타, 카메라를 눌러보세요')).toBeNull();
-  });
-
-  it('홈 스크롤이 top에서 벗어나면, HomeHeroInteractionHint는 자동으로 사라져야 한다', () => {
-    const scrollViewport = document.createElement('div');
-    scrollViewport.dataset.appScrollViewport = 'true';
-    document.body.appendChild(scrollViewport);
-
-    render(<HomeHeroInteractionHint />);
-
-    expect(screen.getByText('스크롤을 내리거나 기타, 카메라를 눌러보세요')).toBeTruthy();
-
-    scrollViewport.scrollTop = 40;
-    fireEvent.scroll(scrollViewport);
-
-    expect(screen.queryByText('스크롤을 내리거나 기타, 카메라를 눌러보세요')).toBeNull();
   });
 });

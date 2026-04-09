@@ -18,7 +18,21 @@ vi.mock('@/i18n/navigation', () => ({
 }));
 
 describe('EditorDraftsPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        disconnect() {}
+
+        observe() {}
+
+        unobserve() {}
+      },
+    );
+  });
+
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 

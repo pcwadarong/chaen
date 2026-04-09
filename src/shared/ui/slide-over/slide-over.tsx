@@ -137,6 +137,7 @@ export const SlideOver = ({
     <div
       aria-hidden={!isVisible}
       className={cx(backdropClass, isVisible ? backdropOpenClass : backdropClosedClass)}
+      data-slide-over-backdrop="true"
       onClick={event => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -150,6 +151,7 @@ export const SlideOver = ({
         aria-labelledby={ariaLabelledBy}
         aria-modal="true"
         className={cx(panelBaseClass, isVisible ? panelOpenClass : panelClosedClass, className)}
+        data-slide-over-panel="true"
         ref={frameRef}
         role="dialog"
         tabIndex={-1}

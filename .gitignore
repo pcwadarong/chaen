@@ -49,8 +49,11 @@ coverage/
 .eslintcache
 .prettier-cache
 
-# Test (Vitest)
+# Testing
 vitest.config.ts.timestamp-*
+playwright-report/
+test-results/
+output/playwright/
 
 # Supabase
 .supabase/

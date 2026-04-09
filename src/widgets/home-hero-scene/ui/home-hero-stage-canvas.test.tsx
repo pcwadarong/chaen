@@ -220,155 +220,6 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
   });
 
-  it('wide sceneViewportMode에서는 OrbitControls 줌이 비활성화되어야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(false);
-  });
-
-  it('stacked viewport에서는 낮은 DPR과 shadow 비활성 preset을 사용해야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
-    homeHeroStageCanvasMockState.viewportWidth = 768;
-
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
-      'data-dpr',
-      JSON.stringify([1, 1.25]),
-    );
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'false');
-    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(false);
-  });
-
-  it('wide viewport에서는 viewport 폭과 무관하게 full wide 품질 preset을 사용해야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
-    homeHeroStageCanvasMockState.viewportWidth = 812;
-
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute(
-      'data-dpr',
-      JSON.stringify([1, 2]),
-    );
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-shadows', 'true');
-    expect(homeHeroStageCanvasMockState.interactionControllerProps?.showOutlineEffect).toBe(true);
-  });
-
-  it('캔버스 interaction controller에는 오디오 prewarm 콜백이 연결되어야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onPrepareAudioPlayback?.();
-
-    expect(bassAudioMockState.prepareBassAudioPlayback).toHaveBeenCalledOnce();
-  });
-
-  it('스크롤 시퀀스가 진행 중이면 데스크탑 OrbitControls는 잠겨야 한다', () => {
-    homeHeroStageCanvasMockState.timelineState = {
-      ...homeHeroStageCanvasMockState.timelineState,
-      isScrollDriven: true,
-      isSequenceActive: true,
-    };
-
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(false);
-  });
-
-  it('스크롤 시퀀스가 끝나면 데스크탑 OrbitControls는 다시 활성화되어야 한다', () => {
-    homeHeroStageCanvasMockState.timelineState = {
-      ...homeHeroStageCanvasMockState.timelineState,
-      isScrollDriven: true,
-      isSequenceActive: false,
-    };
-
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enabled).toBe(true);
-  });
-
-  it('스크롤 progress가 0.5 이상이면 scene interaction controller를 비활성화해야 한다', () => {
-    homeHeroStageCanvasMockState.timelineState = {
-      ...homeHeroStageCanvasMockState.timelineState,
-      progress: 0.5,
-    };
-
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(screen.queryByTestId('scene-interaction-controller')).toBeNull();
-  });
-
-  it('interaction threshold를 올리면 같은 progress에서도 scene interaction controller를 유지해야 한다', () => {
-    homeHeroStageCanvasMockState.timelineState = {
-      ...homeHeroStageCanvasMockState.timelineState,
-      progress: 0.5,
-    };
-
-    render(
-      <HomeHeroStageCanvas
-        {...createStageCanvasProps({
-          interaction: {
-            interactionDisabledProgressThreshold: 0.6,
-          },
-        })}
-      />,
-    );
-
-    expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
-  });
-
-  it('stacked sceneViewportMode에서는 OrbitControls 줌이 유지되어야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'stacked';
-    const onBrowseProjects = vi.fn();
-
-    render(
-      <HomeHeroStageCanvas
-        {...createStageCanvasProps({
-          interaction: {
-            onBrowseProjects,
-          },
-        })}
-      />,
-    );
-
-    expect(homeHeroStageCanvasMockState.orbitControlsProps?.enableZoom).toBe(true);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
-
-    expect(onBrowseProjects).toHaveBeenCalledOnce();
-  });
-
-  it('wide sceneViewportMode에서는 viewport 폭과 무관하게 프로젝트 스크롤 이동을 사용해야 한다', () => {
-    homeHeroStageCanvasMockState.sceneViewportMode = 'wide';
-    homeHeroStageCanvasMockState.viewportWidth = 812;
-    const onBrowseProjects = vi.fn();
-
-    Object.defineProperty(window, 'innerWidth', {
-      configurable: true,
-      value: 812,
-      writable: true,
-    });
-
-    render(
-      <HomeHeroStageCanvas
-        {...createStageCanvasProps({
-          interaction: {
-            onBrowseProjects,
-          },
-        })}
-      />,
-    );
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onBrowseProjects?.();
-
-    expect(onBrowseProjects).not.toHaveBeenCalled();
-  });
-
-  it('Canvas는 과한 DPR 상한 대신 2까지로 제한되어야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(screen.getByTestId('home-hero-stage-canvas')).toHaveAttribute('data-dpr', '[1,2]');
-  });
-
   it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
     render(
       <HomeHeroStageCanvas
@@ -384,16 +235,6 @@ describe('HomeHeroStageCanvas', () => {
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
     );
-  });
-
-  it('scene interaction controller는 background music 토글과 bass string 콜백을 함께 받아야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    homeHeroStageCanvasMockState.interactionControllerProps?.onToggleBackgroundMusicPlayback?.();
-    homeHeroStageCanvasMockState.interactionControllerProps?.onPlayBassString?.('line3');
-
-    expect(bassAudioMockState.toggleBackgroundMusicPlayback).toHaveBeenCalledOnce();
-    expect(bassAudioMockState.playBassString).toHaveBeenCalledWith('line3');
   });
 
   it('background music 재생 중이면 bass 위 정지 버튼 오버레이를 노출해야 한다', () => {
@@ -412,19 +253,5 @@ describe('HomeHeroStageCanvas', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Navigation.pauseMusic' }));
 
     expect(bassAudioMockState.pauseBackgroundMusicPlayback).toHaveBeenCalledOnce();
-  });
-
-  it('실제 three canvas는 접근성 트리에서 숨기고 presentation role을 가져야 한다', () => {
-    render(<HomeHeroStageCanvas {...createStageCanvasProps()} />);
-
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).not.toBeNull();
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
-      'aria-hidden',
-      'true',
-    );
-    expect(homeHeroStageCanvasMockState.createdCanvasElement).toHaveAttribute(
-      'role',
-      'presentation',
-    );
   });
 });

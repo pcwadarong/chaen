@@ -76,12 +76,12 @@ describe('ProjectRoute', () => {
       },
       description: '작업한 프로젝트와 그 안에 쌓인 기록들을 함께 정리합니다.',
       openGraph: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
         url: 'https://chaen.dev/ko/project',
       },
       title: '프로젝트 아카이브',
       twitter: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
       },
     });
   });

@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { getTranslations } from 'next-intl/server';
 import { vi } from 'vitest';
 

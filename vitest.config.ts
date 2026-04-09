@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { defineConfig } from 'vitest/config';
+import { configDefaults, coverageConfigDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -34,8 +34,19 @@ export default defineConfig({
     clearMocks: true,
     unstubGlobals: true,
     unstubEnvs: true,
+    exclude: [...configDefaults.exclude, 'tests/browser/**'],
     coverage: {
+      clean: false,
+      exclude: [
+        ...coverageConfigDefaults.exclude,
+        'playwright.config.ts',
+        'styled-system/**',
+        'tests/browser/**',
+        'src/app/[locale]/test/**',
+        'src/**/*-e2e-fixture.tsx',
+      ],
       provider: 'v8',
+      reportsDirectory: './coverage',
       reporter: ['text', 'html'],
     },
   },

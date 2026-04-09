@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi } from 'vitest';
 
 import { getResolvedProject } from '@/entities/project/api/detail/get-project';

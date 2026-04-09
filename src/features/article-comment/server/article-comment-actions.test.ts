@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { vi } from 'vitest';
 

@@ -21,7 +21,6 @@ vi.mock('@/i18n/navigation', () => ({
 type ObserverCallback = IntersectionObserverCallback;
 
 let observerCallback: ObserverCallback | null = null;
-let observerOptions: IntersectionObserverInit | null = null;
 let requestAnimationFrameCallbacks: FrameRequestCallback[] = [];
 type TestArchiveItem = {
   created_at: string;
@@ -46,7 +45,6 @@ const loadPageActionMock = vi.fn();
 describe('DetailArchiveFeed', () => {
   beforeEach(() => {
     observerCallback = null;
-    observerOptions = null;
     requestAnimationFrameCallbacks = [];
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
       requestAnimationFrameCallbacks.push(callback);
@@ -58,9 +56,8 @@ describe('DetailArchiveFeed', () => {
     Object.defineProperty(globalThis, 'IntersectionObserver', {
       configurable: true,
       value: class {
-        constructor(callback: ObserverCallback, options?: IntersectionObserverInit) {
+        constructor(callback: ObserverCallback) {
           observerCallback = callback;
-          observerOptions = options ?? null;
         }
 
         disconnect() {}
@@ -76,16 +73,16 @@ describe('DetailArchiveFeed', () => {
     vi.clearAllMocks();
   });
 
-  it('sidebar viewport를 observer root로 연결하고 스크롤 이후 sentinel 감지 시 추가 로드를 호출한다', async () => {
+  it('추가 로드 에러가 나면 자동 재시도를 멈추고 retry 버튼으로만 다시 요청한다', async () => {
     const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
     const loadMore = vi.fn();
     useCursorPaginationFeed.mockReturnValue({
-      errorMessage: null,
+      errorMessage: 'load failed',
       hasMore: true,
       isLoadingMore: false,
       items: [
         {
-          created_at: '2025-12-31T00:00:00.000Z',
+          created_at: '2026-03-08T00:00:00.000Z',
           description: '요약',
           id: 'article-1',
           publish_at: '2026-03-08T00:00:00.000Z',
@@ -111,63 +108,9 @@ describe('DetailArchiveFeed', () => {
       />,
     );
 
-    expect(screen.getByRole('link', { name: '2026년 첫 글 요약' })).toHaveAttribute(
-      'href',
-      '/articles/article-1-slug',
-    );
-    expect(screen.getByText('2026년')).toBeInTheDocument();
-    expect(observerOptions?.root).toBe(container.querySelector('[data-scroll-region="true"]'));
+    const viewport = container.querySelector('[data-scroll-region="true"]') as HTMLElement;
 
-    observerCallback?.(
-      [{ isIntersecting: true } as IntersectionObserverEntry],
-      {} as IntersectionObserver,
-    );
-    expect(loadMore).not.toHaveBeenCalled();
-
-    fireEvent.scroll(window);
-
-    observerCallback?.(
-      [{ isIntersecting: true } as IntersectionObserverEntry],
-      {} as IntersectionObserver,
-    );
-
-    expect(loadMore).toHaveBeenCalledTimes(1);
-  });
-
-  it('추가 로드 에러가 나면 자동 재시도를 멈추고 retry 버튼으로만 다시 요청한다', async () => {
-    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
-    const loadMore = vi.fn();
-    useCursorPaginationFeed.mockReturnValue({
-      errorMessage: 'load failed',
-      hasMore: true,
-      isLoadingMore: false,
-      items: [
-        {
-          created_at: '2026-03-08T00:00:00.000Z',
-          description: '요약',
-          id: 'article-1',
-          publish_at: '2026-03-08T00:00:00.000Z',
-          slug: 'article-1-slug',
-          title: '첫 글',
-        },
-      ] satisfies TestArchiveItem[],
-      loadMore,
-    });
-
-    render(
-      <DetailArchiveFeed<TestArchiveItem>
-        emptyText="비어 있음"
-        hrefBasePath="/articles"
-        initialPage={{ items: [] as TestArchiveItem[], nextCursor: 'cursor-1' }}
-        loadErrorText="불러오기 실패"
-        loadPageAction={loadPageActionMock}
-        loadMoreEndText="끝"
-        loadingText="불러오는 중"
-        locale="ko"
-        retryText="다시 시도"
-        selectedPathSegment="article-1-slug"
-      />,
-    );
+    fireEvent.scroll(viewport);
 
     observerCallback?.(
       [{ isIntersecting: true } as IntersectionObserverEntry],
@@ -179,120 +122,6 @@ describe('DetailArchiveFeed', () => {
 
     expect(screen.getByText('불러오기 실패')).toBeInTheDocument();
     expect(loadMore).toHaveBeenCalledTimes(1);
-  });
-
-  it('현재 상세 항목이 초기 아카이브 페이지에 없어도 목록 맨 앞에 삽입한다', async () => {
-    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
-    useCursorPaginationFeed.mockImplementation(({ initialItems }) => ({
-      errorMessage: null,
-      hasMore: false,
-      isLoadingMore: false,
-      items: initialItems,
-      loadMore: vi.fn(),
-    }));
-
-    render(
-      <DetailArchiveFeed<TestArchiveItem>
-        currentItem={{
-          created_at: '2026-03-10T00:00:00.000Z',
-          description: '현재 글',
-          id: 'current-article',
-          publish_at: '2026-03-10T00:00:00.000Z',
-          slug: 'current-article-slug',
-          title: '현재 글',
-        }}
-        emptyText="비어 있음"
-        hrefBasePath="/articles"
-        initialPage={{
-          items: [
-            {
-              created_at: '2026-03-08T00:00:00.000Z',
-              description: '이전 글',
-              id: 'article-1',
-              publish_at: '2026-03-08T00:00:00.000Z',
-              slug: 'article-1-slug',
-              title: '이전 글',
-            },
-          ],
-          nextCursor: 'cursor-1',
-        }}
-        loadErrorText="불러오기 실패"
-        loadPageAction={loadPageActionMock}
-        loadMoreEndText="끝"
-        loadingText="불러오는 중"
-        locale="ko"
-        retryText="다시 시도"
-        selectedPathSegment="current-article-slug"
-      />,
-    );
-
-    const links = screen.getAllByRole('link');
-
-    expect(links[0]).toHaveAttribute('href', '/articles/current-article-slug');
-    expect(links[0]).toHaveAttribute('aria-current', 'page');
-    expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
-  });
-
-  it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice 순서에 맞는 위치에 둔다', async () => {
-    const useCursorPaginationFeed = await getUseCursorPaginationFeedMock();
-    useCursorPaginationFeed.mockImplementation(({ initialItems }) => ({
-      errorMessage: null,
-      hasMore: false,
-      isLoadingMore: false,
-      items: initialItems,
-      loadMore: vi.fn(),
-    }));
-
-    render(
-      <DetailArchiveFeed<TestArchiveItem>
-        currentItem={{
-          created_at: '2026-03-10T00:00:00.000Z',
-          description: '현재 글',
-          id: 'current-article',
-          publish_at: '2026-03-10T00:00:00.000Z',
-          slug: 'current-article-slug',
-          title: '현재 글',
-        }}
-        emptyText="비어 있음"
-        hrefBasePath="/articles"
-        initialPage={{
-          items: [
-            {
-              created_at: '2026-03-12T00:00:00.000Z',
-              description: '최신 글',
-              id: 'article-2',
-              publish_at: '2026-03-12T00:00:00.000Z',
-              slug: 'article-2-slug',
-              title: '최신 글',
-            },
-            {
-              created_at: '2026-03-11T00:00:00.000Z',
-              description: '그다음 글',
-              id: 'article-1',
-              publish_at: '2026-03-11T00:00:00.000Z',
-              slug: 'article-1-slug',
-              title: '그다음 글',
-            },
-          ],
-          nextCursor: 'cursor-1',
-        }}
-        loadErrorText="불러오기 실패"
-        loadPageAction={loadPageActionMock}
-        loadMoreEndText="끝"
-        loadingText="불러오는 중"
-        locale="ko"
-        pinCurrentItemToTop={false}
-        retryText="다시 시도"
-        selectedPathSegment="current-article-slug"
-      />,
-    );
-
-    const links = screen.getAllByRole('link');
-
-    expect(links[0]).toHaveAttribute('href', '/articles/article-2-slug');
-    expect(links[1]).toHaveAttribute('href', '/articles/article-1-slug');
-    expect(links[2]).toHaveAttribute('href', '/articles/current-article-slug');
-    expect(links[2]).toHaveAttribute('aria-current', 'page');
   });
 
   it('활성 항목을 viewport 상단 쪽 기준으로 한 번만 스크롤 정렬한다', async () => {

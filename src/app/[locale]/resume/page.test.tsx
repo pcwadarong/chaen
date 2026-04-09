@@ -65,12 +65,12 @@ describe('ResumeRoute', () => {
       },
       description: '서버 내용',
       openGraph: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
         url: 'https://chaen.dev/ko/resume',
       },
       title: '안녕하세요 박채원입니다.',
       twitter: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
       },
     });
   });

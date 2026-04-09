@@ -28,5 +28,6 @@ export type HomeHeroStageProps = Readonly<{
 
 export type HomeHeroStageCanvasProps = HomeHeroStageProps &
   Readonly<{
+    onCanvasInitializedChange?: (isInitialized: boolean) => void;
     onSceneReadyChange?: (isReady: boolean) => void;
   }>;

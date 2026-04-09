@@ -75,9 +75,54 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 
 - **Format**: Under **[Condition/Context]**, **[Subject]** must **[Expected Behavior/State Change]**.
 - **Examples**:
-  - **BAD**: "Saves user info."
-  - **GOOD**: "When valid user data is submitted, the 'user' state in the store must be updated with the provided payload."
-  - **GOOD**: "Clicking the 'Publish' button must trigger form validation; upon success, the 'Save Complete' toast must be rendered."
+- **BAD**: "Saves user info."
+- **GOOD**: "When valid user data is submitted, the 'user' state in the store must be updated with the provided payload."
+- **GOOD**: "Clicking the 'Publish' button must trigger form validation; upon success, the 'Save Complete' toast must be rendered."
+
+### Test Structure Maintenance
+
+- **Coverage Check**: Before closing substantial test refactors, run coverage for the touched area or the full Vitest suite when stability work is involved. Treat coverage regressions as signals to inspect missing contracts, not as numeric goals to game.
+- **Script Taxonomy**:
+  - `pnpm run test`: The full regression entry point. It must run every Vitest bucket and the main Playwright suite in sequence.
+  - `pnpm run test:vitest`: All Vitest buckets only. Use this when changing unit, hook, route, or jsdom contracts without touching real-browser behavior.
+  - `pnpm run test:node`: Pure logic only. Files explicitly marked with `@vitest-environment node` belong here.
+  - `pnpm run test:dom:model`: Light jsdom contracts for non-Node `*.test.ts` files. This bucket exists for DOM-adjacent model/hook wiring that is still cheap to run.
+  - `pnpm run test:dom:ui`: General jsdom component contracts for non-heavy `*.test.tsx` files. This is the default bucket for ordinary React rendering and event wiring.
+  - `pnpm run test:dom:heavy`: Intentionally small Vitest bucket for the known expensive editor-style jsdom suites listed in `scripts/run-vitest-group.mjs`. Add a file here only when runtime cost is consistently high, not because the feature feels important.
+  - `pnpm run test:browser`: Main Playwright regression suite. Use for real browser contracts such as focus management, portal layering, canvas/browser-event integration, actual scroll roots, and viewport repositioning.
+  - `pnpm run test:browser:smoke`: Minimal public-entry smoke only. Keep this fast and small enough for frequent CI use.
+  - `pnpm run test:browser:headed`: Local visual debugging run for Playwright.
+  - `pnpm run test:browser:debug`: Interactive Playwright debugging session.
+  - `pnpm run test:staged`: Fast pre-commit Vitest run for staged code only. Use this to keep commit hooks short; it is not a substitute for full regression.
+  - `pnpm run test:prepush`: Pre-push gate. It should stay lighter than `pnpm run test` and focus on full Vitest plus browser smoke.
+  - `pnpm run test:coverage`: Coverage-only Vitest run. It must exclude Playwright specs and execution harness files so the report reflects product contracts rather than browser fixtures.
+- **Bucket Intent**:
+  - `node / dom:model / dom:ui / dom:heavy` are execution-cost buckets, not architectural layers.
+  - If a test needs browser globals only because logic and rendering are tangled, prefer extracting a pure helper or hook first instead of promoting more files into heavier buckets.
+  - A file should move from `dom:ui` to `dom:heavy` only when repeated full-suite runs show it is one of the dominant slow files.
+- **Playwright Tiering**:
+  - `test:browser:smoke` is reserved for fast public-entry contracts and must stay small.
+  - `test:browser` owns the broader runtime regressions.
+  - Do not place the same browser contract in both smoke and the main browser suite with duplicated spec intent.
+- **Selector Discipline**:
+  - Prefer `getByRole`, `getByLabelText`, and visible text queries first.
+  - Use `data-testid` only for non-accessible structural seams, mocked 3D/portal boundaries, or elements without stable semantics.
+  - Avoid assertions on Panda class output, incidental DOM nesting, or visual-only wrappers unless the class merge itself is the API under test.
+- **UI Constraint Guardrail**:
+  - Tests must not freeze incidental layout decisions such as exact wrapper structure, arbitrary class names, or non-contract styling.
+  - Variant/data attributes may be asserted only when they are deliberate public state markers.
+- **Hook and View Split**:
+  - When a component test starts stubbing `IntersectionObserver`, `ResizeObserver`, `requestAnimationFrame`, scroll containers, or repeated callback wiring, first ask whether that logic should move into a dedicated hook/model helper.
+  - After extraction, move pure branching and callback composition to Node tests, keep hook wiring in focused hook/jsdom tests, and leave component tests to rendering and integration seams.
+- **Test Stability**:
+  - Tests must stub required browser globals explicitly rather than relying on environment accidents.
+  - Coverage runs are part of stability verification, so tests should pass both in normal Vitest runs and under `--coverage`.
+- **Scattering Rule**:
+  - Co-located tests are preferred, but when a slice accumulates many one-off files with the same setup burden, consolidate by contract boundary rather than by implementation detail.
+  - Browser specs should stay grouped under `tests/browser` and named by user-facing contract, not by internal hook name.
+- **Language Quality**:
+  - Test titles should use domain terms, state conditions, and expected outcomes.
+  - Avoid vague labels such as "works", "renders", "handles click", or "shows correctly" unless the missing condition and result are spelled out in the same sentence.
 
 ---
 

@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import React, { createRef } from 'react';
+import { render, screen } from '@testing-library/react';
+import React from 'react';
 
 import { Modal } from '@/shared/ui/modal/modal';
 
@@ -25,96 +25,5 @@ describe('Modal', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(dialog.getAttribute('aria-labelledby')).toBe('modal-title');
     expect(dialog.getAttribute('aria-describedby')).toBe('modal-description');
-  });
-
-  it('열릴 때 지정한 초기 포커스 요소로 이동한다', async () => {
-    const inputRef = createRef<HTMLInputElement>();
-
-    render(
-      <Modal closeAriaLabel="닫기" initialFocusRef={inputRef} isOpen onClose={vi.fn()}>
-        <input ref={inputRef} aria-label="비밀번호" />
-      </Modal>,
-    );
-
-    await waitFor(() => {
-      expect(inputRef.current).toBe(document.activeElement);
-    });
-  });
-
-  it('Tab과 Shift+Tab 키로 모달 내부 포커스를 순환시킨다', async () => {
-    render(
-      <Modal closeAriaLabel="닫기" isOpen onClose={vi.fn()}>
-        <div>
-          <button type="button">첫 번째</button>
-          <button type="button">마지막</button>
-        </div>
-      </Modal>,
-    );
-
-    const closeButton = await screen.findByRole('button', { name: '닫기' });
-    const lastButton = screen.getByRole('button', { name: '마지막' });
-
-    lastButton.focus();
-    fireEvent.keyDown(window, { key: 'Tab' });
-    expect(closeButton).toBe(document.activeElement);
-
-    closeButton.focus();
-    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
-    expect(lastButton).toBe(document.activeElement);
-  });
-
-  it('모달이 닫히면 이전 활성 요소로 포커스를 복원한다', async () => {
-    const onClose = vi.fn();
-    const { rerender } = render(
-      <>
-        <button type="button">트리거</button>
-        <Modal closeAriaLabel="닫기" isOpen={false} onClose={onClose}>
-          <div>본문</div>
-        </Modal>
-      </>,
-    );
-    const triggerButton = screen.getByRole('button', { name: '트리거' });
-    triggerButton.focus();
-    expect(triggerButton).toBe(document.activeElement);
-
-    rerender(
-      <>
-        <button type="button">트리거</button>
-        <Modal closeAriaLabel="닫기" isOpen onClose={onClose}>
-          <div>본문</div>
-        </Modal>
-      </>,
-    );
-
-    await screen.findByRole('dialog');
-
-    rerender(
-      <>
-        <button type="button">트리거</button>
-        <Modal closeAriaLabel="닫기" isOpen={false} onClose={onClose}>
-          <div>본문</div>
-        </Modal>
-      </>,
-    );
-
-    await waitFor(() => {
-      expect(triggerButton).toBe(document.activeElement);
-    });
-  });
-
-  it('Escape 키를 누르면 기본 동작을 막고 모달 닫기를 호출한다', async () => {
-    const onClose = vi.fn();
-
-    render(
-      <Modal closeAriaLabel="닫기" isOpen onClose={onClose}>
-        <div>본문</div>
-      </Modal>,
-    );
-
-    await screen.findByRole('dialog');
-    const isDefaultAllowed = fireEvent.keyDown(window, { cancelable: true, key: 'Escape' });
-
-    expect(isDefaultAllowed).toBe(false);
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

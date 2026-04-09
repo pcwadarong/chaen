@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/button/button';
 import '@testing-library/jest-dom/vitest';
 
 describe('Button', () => {
-  it('아이콘과 라벨을 함께 렌더링한다', () => {
+  it('leading visual이 주어지면, Button은 접근 가능한 이름을 유지한 채 아이콘과 라벨을 함께 노출해야 한다', () => {
     render(
       <Button leadingVisual={<svg aria-hidden viewBox="0 0 16 16" />} tone="primary">
         저장
@@ -77,7 +77,7 @@ describe('Button', () => {
     ).toThrow('Button with asChild requires a single React element child.');
   });
 
-  it('전달된 className을 기본 recipe 클래스와 병합한다', () => {
+  it('외부 className이 주어지면, Button은 기본 recipe 클래스에 사용자 클래스를 병합해야 한다', () => {
     render(
       <Button className="custom-class" tone="primary">
         병합
