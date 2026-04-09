@@ -29,7 +29,7 @@
     "test:browser:install": "playwright install chromium",
     "test:staged": "node scripts/run-staged-tests.mjs",
     "test:prepush": "pnpm run test:vitest && pnpm run test:browser:smoke",
-    "test:coverage": "rm -rf coverage && mkdir -p coverage/.tmp && vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary",
+    "test:coverage": "node -e \"const fs=require('node:fs'); fs.rmSync('coverage',{ recursive:true, force:true }); fs.mkdirSync('coverage/.tmp',{ recursive:true });\" && vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary",
     "test:watch": "vitest",
     "postinstall": "husky"
   },

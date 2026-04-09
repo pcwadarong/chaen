@@ -54,7 +54,16 @@ export const useDetailArchiveBootstrapPage = <TItem extends DetailArchiveRecord>
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(initialPage === null);
   const [bootstrapRequestKey, setBootstrapRequestKey] = useState(0);
-  const bootstrapPage = mergedInitialPage ?? fetchedBootstrapPage;
+  const mergedFetchedBootstrapPage = useMemo(
+    () =>
+      mergeCurrentArchiveItemIntoDetailArchivePage(
+        fetchedBootstrapPage,
+        currentItem,
+        pinCurrentItemToTop,
+      ),
+    [currentItem, fetchedBootstrapPage, pinCurrentItemToTop],
+  );
+  const bootstrapPage = mergedInitialPage ?? mergedFetchedBootstrapPage;
 
   useEffect(() => {
     if (!initialPage) return;
@@ -87,16 +96,10 @@ export const useDetailArchiveBootstrapPage = <TItem extends DetailArchiveRecord>
 
         if (!isMounted) return;
 
-        setFetchedBootstrapPage(
-          mergeCurrentArchiveItemIntoDetailArchivePage(
-            {
-              items: result.data.items,
-              nextCursor: result.data.nextCursor,
-            },
-            currentItem,
-            pinCurrentItemToTop,
-          ),
-        );
+        setFetchedBootstrapPage({
+          items: result.data.items,
+          nextCursor: result.data.nextCursor,
+        });
       } catch (error) {
         if (!isMounted) return;
 
@@ -113,7 +116,7 @@ export const useDetailArchiveBootstrapPage = <TItem extends DetailArchiveRecord>
     return () => {
       isMounted = false;
     };
-  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale, pinCurrentItemToTop]);
+  }, [bootstrapRequestKey, initialPage, loadPageAction, locale]);
 
   const retryBootstrap = useCallback(() => {
     setBootstrapRequestKey(previous => previous + 1);

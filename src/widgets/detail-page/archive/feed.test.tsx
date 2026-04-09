@@ -93,7 +93,7 @@ describe('DetailArchiveFeed', () => {
       loadMore,
     });
 
-    render(
+    const { container } = render(
       <DetailArchiveFeed<TestArchiveItem>
         emptyText="비어 있음"
         hrefBasePath="/articles"
@@ -108,7 +108,9 @@ describe('DetailArchiveFeed', () => {
       />,
     );
 
-    fireEvent.scroll(window);
+    const viewport = container.querySelector('[data-scroll-region="true"]') as HTMLElement;
+
+    fireEvent.scroll(viewport);
 
     observerCallback?.(
       [{ isIntersecting: true } as IntersectionObserverEntry],

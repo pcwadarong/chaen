@@ -10,11 +10,16 @@ import { Popover } from '@/shared/ui/popover/popover';
  */
 export const PopoverE2eFixture = () => {
   const [closeCount, setCloseCount] = React.useState(0);
+  const [isHydrated, setIsHydrated] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isPortaledOpen, setIsPortaledOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   return (
-    <main className={pageClass}>
+    <main className={pageClass} data-hydrated={isHydrated ? 'true' : 'false'}>
       <section className={panelClass}>
         <h1 className={titleClass}>Popover Fixture</h1>
         <p className={descriptionClass}>
@@ -29,13 +34,11 @@ export const PopoverE2eFixture = () => {
           isOpen={isOpen}
           label="테마"
           onOpenChange={nextOpen => {
-            setIsOpen(previousOpen => {
-              if (previousOpen && !nextOpen) {
-                setCloseCount(previousCount => previousCount + 1);
-              }
+            if (isOpen && !nextOpen) {
+              setCloseCount(previousCount => previousCount + 1);
+            }
 
-              return nextOpen;
-            });
+            setIsOpen(nextOpen);
           }}
           panelLabel="테마 선택"
           value="시스템"

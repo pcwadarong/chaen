@@ -5,9 +5,9 @@ test.setTimeout(60_000);
 
 const mockPdfOptions = async (page: Page) => {
   await page.route('**/api/pdf/options/**', async route => {
-    const requestUrl = route.request().url();
+    const requestUrl = new URL(route.request().url());
 
-    if (requestUrl.includes('/resume?')) {
+    if (requestUrl.pathname.includes('/resume')) {
       await route.fulfill({
         body: JSON.stringify([
           {
@@ -23,7 +23,7 @@ const mockPdfOptions = async (page: Page) => {
       return;
     }
 
-    if (requestUrl.includes('/portfolio?')) {
+    if (requestUrl.pathname.includes('/portfolio')) {
       await route.fulfill({
         body: JSON.stringify([
           {
@@ -50,9 +50,14 @@ const mockPdfOptions = async (page: Page) => {
 /**
  * 공개 resume route에서는 header action의 PDF 다운로드가 준비되면 실제 다운로드 옵션 팝오버를 열 수 있어야 한다.
  */
-test('이력서 공개 페이지는 header PDF 다운로드 액션을 열 수 있어야 한다', async ({ page }) => {
+test('이력서 공개 페이지가 로드되면, header는 PDF 다운로드 액션을 열 수 있어야 한다', async ({
+  page,
+}) => {
   await mockPdfOptions(page);
   await page.goto('/ko/resume', { waitUntil: 'domcontentloaded' });
+  await page.waitForResponse(
+    response => response.url().includes('/api/pdf/options/resume') && response.ok(),
+  );
 
   const triggerButton = page.getByRole('button', { name: '다운로드' });
 
@@ -69,9 +74,14 @@ test('이력서 공개 페이지는 header PDF 다운로드 액션을 열 수 �
 /**
  * 공개 project route에서는 header action의 포트폴리오 다운로드가 준비되면 실제 다운로드 옵션 팝오버를 열 수 있어야 한다.
  */
-test('프로젝트 공개 페이지는 header PDF 다운로드 액션을 열 수 있어야 한다', async ({ page }) => {
+test('프로젝트 공개 페이지가 로드되면, header는 포트폴리오 다운로드 액션을 열 수 있어야 한다', async ({
+  page,
+}) => {
   await mockPdfOptions(page);
   await page.goto('/ko/project', { waitUntil: 'domcontentloaded' });
+  await page.waitForResponse(
+    response => response.url().includes('/api/pdf/options/portfolio') && response.ok(),
+  );
 
   const triggerButton = page.getByRole('button', { name: '포트폴리오 다운로드' });
 

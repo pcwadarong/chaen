@@ -1,6 +1,3 @@
-'use client';
-
-import React from 'react';
 import { css } from 'styled-system/css';
 
 import { DeferredPdfDownloadPopover } from '@/shared/ui/pdf-download-popover/deferred-pdf-download-popover';

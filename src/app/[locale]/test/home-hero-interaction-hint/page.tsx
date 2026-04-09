@@ -21,14 +21,14 @@ const HomeHeroInteractionHintTestPage = () => (
       </p>
       <HomeHeroInteractionHint />
     </section>
-    <div className={sectionListClass}>
+    <section aria-label="Interaction hint fixture sections" className={sectionListClass}>
       {FIXTURE_SECTIONS.map(section => (
         <section className={sectionClass} id={section.id} key={section.id}>
           <h2 className={sectionTitleClass}>{section.title}</h2>
           <p className={sectionBodyClass}>{section.body}</p>
         </section>
       ))}
-    </div>
+    </section>
   </main>
 );
 

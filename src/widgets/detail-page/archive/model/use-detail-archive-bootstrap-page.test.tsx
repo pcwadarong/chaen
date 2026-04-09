@@ -22,6 +22,11 @@ const createArchiveItem = (
   ...overrides,
 });
 
+type BootstrapHarnessProps = {
+  currentItem: TestArchiveItem | null;
+  pinCurrentItemToTop: boolean;
+};
+
 describe('useDetailArchiveBootstrapPage', () => {
   it('초기 페이지가 있으면 fetch 없이 현재 항목 병합 결과를 바로 노출해야 한다', () => {
     const loadPageAction = vi.fn();
@@ -103,6 +108,56 @@ describe('useDetailArchiveBootstrapPage', () => {
     expect(result.current.bootstrapPage?.items.map(item => item.id)).toEqual([
       'current-article',
       'article-1',
+    ]);
+  });
+
+  it('remote bootstrap이 끝난 뒤 현재 항목 병합 파라미터가 바뀌어도, useDetailArchiveBootstrapPage는 fetch를 다시 호출하지 않아야 한다', async () => {
+    const loadPageAction = vi.fn().mockResolvedValue(
+      createActionSuccess({
+        items: [
+          createArchiveItem({
+            id: 'article-1',
+            slug: 'article-1-slug',
+            title: '이전 글',
+          }),
+        ],
+        nextCursor: 'cursor-1',
+      }),
+    );
+
+    const { rerender, result } = renderHook(
+      ({ currentItem, pinCurrentItemToTop }: BootstrapHarnessProps) =>
+        useDetailArchiveBootstrapPage({
+          currentItem,
+          loadPageAction,
+          locale: 'ko',
+          pinCurrentItemToTop,
+        }),
+      {
+        initialProps: {
+          currentItem: null,
+          pinCurrentItemToTop: true,
+        } as BootstrapHarnessProps,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isBootstrapping).toBe(false);
+    });
+
+    rerender({
+      currentItem: createArchiveItem({
+        id: 'current-article',
+        slug: 'current-article-slug',
+        title: '현재 글',
+      }),
+      pinCurrentItemToTop: false,
+    });
+
+    expect(loadPageAction).toHaveBeenCalledTimes(1);
+    expect(result.current.bootstrapPage?.items.map(item => item.id)).toEqual([
+      'article-1',
+      'current-article',
     ]);
   });
 

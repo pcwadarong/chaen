@@ -39,9 +39,9 @@ describe('useDetailArchiveAutoLoad', () => {
     observerCallback = null;
     observerOptions = null;
 
-    Object.defineProperty(globalThis, 'IntersectionObserver', {
-      configurable: true,
-      value: class {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
         constructor(callback: ObserverCallback, options?: IntersectionObserverInit) {
           observerCallback = callback;
           observerOptions = options ?? null;
@@ -51,8 +51,7 @@ describe('useDetailArchiveAutoLoad', () => {
 
         observe() {}
       },
-      writable: true,
-    });
+    );
   });
 
   afterEach(() => {
@@ -77,7 +76,7 @@ describe('useDetailArchiveAutoLoad', () => {
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('auto-load gate가 닫혀 있거나 에러가 있으면 sentinel 교차만으로는 추가 로드를 호출하지 않아야 한다', () => {
+  it('auto-load gate가 닫혀 있으면, sentinel 교차만으로는 추가 로드를 호출하지 않아야 한다', () => {
     const loadMore = vi.fn().mockResolvedValue(undefined);
 
     render(<AutoLoadHarness errorMessage={null} isAutoLoadEnabled={false} loadMore={loadMore} />);
@@ -88,6 +87,10 @@ describe('useDetailArchiveAutoLoad', () => {
     );
 
     expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('추가 로드 에러가 있으면, sentinel 교차만으로는 추가 로드를 호출하지 않아야 한다', () => {
+    const loadMore = vi.fn().mockResolvedValue(undefined);
 
     render(<AutoLoadHarness errorMessage="load failed" isAutoLoadEnabled loadMore={loadMore} />);
 

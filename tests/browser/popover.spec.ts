@@ -3,8 +3,6 @@ import { expect, test } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(60_000);
 
-const FIXTURE_HYDRATION_SETTLE_MS = 2_500;
-
 /**
  * Popover는 열릴 때 첫 번째 옵션으로 포커스를 이동시키고 Escape 닫힘 후 trigger 포커스를 복원해야 한다.
  */
@@ -12,7 +10,7 @@ test('팝오버는 첫 포커스와 Escape 닫힘 후 trigger 포커스 복원�
   page,
 }) => {
   await page.goto('/ko/test/popover', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const fixtureMain = page.getByRole('main');
   const triggerButton = fixtureMain.getByRole('button', { name: '테마 선택' });
@@ -37,7 +35,7 @@ test('팝오버는 첫 포커스와 Escape 닫힘 후 trigger 포커스 복원�
  */
 test('팝오버는 outside click으로 닫혀야 한다', async ({ page }) => {
   await page.goto('/ko/test/popover', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   await page.getByRole('main').getByRole('button', { name: '테마 선택' }).click();
   await expect(page.getByRole('dialog', { name: '테마 선택' })).toBeVisible();
@@ -52,7 +50,7 @@ test('팝오버는 outside click으로 닫혀야 한다', async ({ page }) => {
  */
 test('포털 팝오버는 scroll 이후 trigger 기준 위치 재계산을 반영해야 한다', async ({ page }) => {
   await page.goto('/ko/test/popover', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const scrollViewport = page.locator('[data-app-scroll-viewport="true"]');
   const triggerButton = page.getByRole('button', { name: '포털 메뉴 열기' });

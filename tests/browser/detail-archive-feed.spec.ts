@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 /**
  * 스크롤 의도가 생기기 전에는 DetailArchiveFeed auto-load가 실행되지 않아야 한다.
  */
-test('스크롤 의도 이후에만 상세 아카이브 auto-load가 실행되어야 한다', async ({ page }) => {
+test('사용자가 스크롤 의도를 만든 뒤 sentinel이 교차하면, detail archive auto-load는 추가 로드를 실행해야 한다', async ({
+  page,
+}) => {
   await page.goto('/ko/test/detail-archive');
 
   const viewport = page.locator('[data-scroll-region="true"]').first();

@@ -3,8 +3,6 @@ import { expect, test } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(60_000);
 
-const FIXTURE_HYDRATION_SETTLE_MS = 2_500;
-
 /**
  * Tooltip은 focus 시 열리고 aria-describedby로 연결되며, blur 후에는 닫혀야 한다.
  */
@@ -12,7 +10,7 @@ test('툴팁은 focus와 blur에 따라 aria-describedby 연결과 닫힘을 반
   page,
 }) => {
   await page.goto('/ko/test/tooltip', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const fixtureMain = page.getByRole('main');
   const triggerButton = fixtureMain.getByRole('button', { name: '굵게 버튼' });
@@ -39,7 +37,7 @@ test('툴팁은 focus와 blur에 따라 aria-describedby 연결과 닫힘을 반
  */
 test('툴팁은 hover와 focus 중 하나라도 유지되면 계속 열려 있어야 한다', async ({ page }) => {
   await page.goto('/ko/test/tooltip', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const triggerButton = page.getByRole('main').getByRole('button', { name: '정렬 버튼' });
   const outsideButton = page.getByRole('main').getByRole('button', { name: '바깥 포커스 이동' });
@@ -63,7 +61,7 @@ test('openOnFocus가 false인 툴팁은 hover에서만 열리고 mouse leave 시
   page,
 }) => {
   await page.goto('/ko/test/tooltip', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const triggerButton = page.getByRole('main').getByRole('button', { name: '축소 버튼' });
   const tooltip = page.getByRole('tooltip', { name: '이미지 축소' });
@@ -83,7 +81,7 @@ test('openOnFocus가 false인 툴팁은 hover에서만 열리고 mouse leave 시
  */
 test('툴팁은 auto placement와 scroll 이후 위치 재계산을 반영해야 한다', async ({ page }) => {
   await page.goto('/ko/test/tooltip', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(FIXTURE_HYDRATION_SETTLE_MS);
+  await page.locator('[data-hydrated="true"]').waitFor();
 
   const scrollViewport = page.locator('[data-app-scroll-viewport="true"]');
   const triggerButton = page.getByRole('main').getByRole('button', { name: '자동 배치 버튼' });

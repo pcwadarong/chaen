@@ -84,7 +84,8 @@ const run = async () => {
       },
     );
 
-    child.on('exit', code => {
+    child.on('error', reject);
+    child.on('close', code => {
       if (code === 0) {
         resolve();
         return;

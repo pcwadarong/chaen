@@ -4,7 +4,7 @@ import React from 'react';
 import { Tooltip } from '@/shared/ui/tooltip/tooltip';
 
 describe('Tooltip', () => {
-  it('tooltip을 document.body에 포털로 렌더링한다', async () => {
+  it('focus 상태가 되면, Tooltip must render in document.body portal', async () => {
     render(
       <Tooltip content="링크">
         <button type="button">L</button>
@@ -18,7 +18,7 @@ describe('Tooltip', () => {
     expect(tooltip.parentElement).toBe(document.body);
   });
 
-  it('portalClassName이 전달되면 tooltip 포털 요소 클래스에 병합되어야 한다', async () => {
+  it('portalClassName이 전달되면, Tooltip must merge the class into the portal element', async () => {
     render(
       <Tooltip content="링크 복사" portalClassName="tooltip-portal-test">
         <button type="button">C</button>

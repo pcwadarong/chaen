@@ -12,7 +12,7 @@ vi.mock('@/widgets/project-showcase/ui/project-showcase', () => ({
 }));
 
 describe('HomeHeroWebUi', () => {
-  it('홈 히어로 web layer가 마운트되면, ProjectShowcase를 HTML UI 레이어 안에 포함해야 한다', () => {
+  it('홈 히어로 web layer가 마운트되면, HomeHeroWebUi는 ProjectShowcase를 HTML UI 레이어 안에 포함해야 한다', () => {
     render(
       <HomeHeroWebUi
         items={[

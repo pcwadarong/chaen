@@ -17,14 +17,14 @@ const GlobalNavScrollTestPage = () => (
         데스크톱 app-frame 내부 스크롤에서 global nav가 아래로는 숨고, 위로는 다시 보여야 한다.
       </p>
     </section>
-    <div className={sectionListClass}>
+    <section aria-label="Scrollable sections" className={sectionListClass}>
       {SCROLL_SECTIONS.map(section => (
         <section className={sectionClass} id={section.id} key={section.id}>
           <h2 className={sectionTitleClass}>{section.title}</h2>
           <p className={sectionBodyClass}>{section.body}</p>
         </section>
       ))}
-    </div>
+    </section>
   </main>
 );
 

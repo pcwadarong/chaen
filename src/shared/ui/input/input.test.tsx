@@ -4,7 +4,7 @@ import React from 'react';
 import { Input } from '@/shared/ui/input/input';
 
 describe('Input', () => {
-  it('search type과 접근성 라벨이 주어지면, 검색 입력을 searchbox role로 노출해야 한다', () => {
+  it('search type과 접근성 라벨이 주어지면, Input은 검색 입력을 searchbox role로 노출해야 한다', () => {
     render(<Input aria-label="검색어" placeholder="검색어를 입력하세요" type="search" />);
 
     expect(screen.getByRole('searchbox', { name: '검색어' })).toBeTruthy();

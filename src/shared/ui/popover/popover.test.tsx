@@ -4,7 +4,7 @@ import React from 'react';
 import { Popover } from '@/shared/ui/popover/popover';
 
 describe('Popover', () => {
-  it('트리거와 다이얼로그 패널을 접근성 속성으로 연결한다', async () => {
+  it('팝오버가 열리면, Popover는 트리거와 다이얼로그 패널을 접근성 속성으로 연결해야 한다', async () => {
     render(
       <Popover label="언어" panelLabel="언어 선택" value="한국어">
         {() => <button type="button">한국어</button>}
@@ -22,7 +22,7 @@ describe('Popover', () => {
     expect(trigger.getAttribute('aria-labelledby')).toBe(dialog.getAttribute('aria-labelledby'));
   });
 
-  it('커스텀 트리거 콘텐츠를 표시한다', () => {
+  it('커스텀 triggerContent가 주어지면, Popover는 기본 라벨 대신 해당 콘텐츠를 표시해야 한다', () => {
     render(
       <Popover label="테마" panelLabel="테마 선택" triggerContent={<span>아이콘 전용</span>}>
         {() => <button type="button">시스템</button>}
@@ -33,7 +33,7 @@ describe('Popover', () => {
     expect(screen.queryByText('테마')).toBeNull();
   });
 
-  it('별도의 triggerAriaLabel을 지원한다', () => {
+  it('별도의 triggerAriaLabel이 주어지면, Popover는 해당 접근성 라벨로 트리거를 노출해야 한다', () => {
     render(
       <Popover
         panelLabel="액션 메뉴"
@@ -47,7 +47,7 @@ describe('Popover', () => {
     expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy();
   });
 
-  it('controlled 모드에서는 onOpenChange만 호출하고 DOM 열림 상태는 prop 변경 전까지 유지한다', async () => {
+  it('controlled 모드에서 열림 요청이 들어오면, Popover는 onOpenChange만 호출하고 DOM 상태는 prop 변경 전까지 유지해야 한다', async () => {
     const onOpenChange = vi.fn();
     const { rerender } = render(
       <Popover isOpen={false} onOpenChange={onOpenChange} panelLabel="액션 메뉴">

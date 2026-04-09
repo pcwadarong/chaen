@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { css } from 'styled-system/css';
 
 import { Tooltip } from '@/shared/ui/tooltip/tooltip';
@@ -8,44 +8,52 @@ import { Tooltip } from '@/shared/ui/tooltip/tooltip';
 /**
  * Tooltip의 브라우저 hover/focus 계약을 검증하기 위한 fixture입니다.
  */
-export const TooltipE2eFixture = () => (
-  <main className={pageClass}>
-    <div className={spacerClass} />
-    <section className={panelClass}>
-      <h1 className={titleClass}>Tooltip Fixture</h1>
-      <p className={descriptionClass}>
-        실제 브라우저에서 focus, blur, hover, openOnFocus 제어가 tooltip 상태와 aria-describedby에
-        반영되는지 검증한다.
-      </p>
-      <div className={buttonRowClass}>
-        <Tooltip content="굵게">
-          <button className={triggerButtonClass} type="button">
-            굵게 버튼
-          </button>
-        </Tooltip>
-        <Tooltip content="정렬">
-          <button className={triggerButtonClass} type="button">
-            정렬 버튼
-          </button>
-        </Tooltip>
-        <Tooltip content="이미지 축소" openOnFocus={false}>
-          <button className={triggerButtonClass} type="button">
-            축소 버튼
-          </button>
-        </Tooltip>
-        <Tooltip content="자동 배치" preferredPlacement="auto">
-          <button className={triggerButtonClass} type="button">
-            자동 배치 버튼
-          </button>
-        </Tooltip>
-      </div>
-      <button className={outsideButtonClass} type="button">
-        바깥 포커스 이동
-      </button>
-    </section>
-    <div className={spacerClass} />
-  </main>
-);
+export const TooltipE2eFixture = () => {
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  return (
+    <main className={pageClass} data-hydrated={isHydrated ? 'true' : 'false'}>
+      <div className={spacerClass} />
+      <section className={panelClass}>
+        <h1 className={titleClass}>Tooltip Fixture</h1>
+        <p className={descriptionClass}>
+          실제 브라우저에서 focus, blur, hover, openOnFocus 제어가 tooltip 상태와 aria-describedby에
+          반영되는지 검증한다.
+        </p>
+        <div className={buttonRowClass}>
+          <Tooltip content="굵게">
+            <button className={triggerButtonClass} type="button">
+              굵게 버튼
+            </button>
+          </Tooltip>
+          <Tooltip content="정렬">
+            <button className={triggerButtonClass} type="button">
+              정렬 버튼
+            </button>
+          </Tooltip>
+          <Tooltip content="이미지 축소" openOnFocus={false}>
+            <button className={triggerButtonClass} type="button">
+              축소 버튼
+            </button>
+          </Tooltip>
+          <Tooltip content="자동 배치" preferredPlacement="auto">
+            <button className={triggerButtonClass} type="button">
+              자동 배치 버튼
+            </button>
+          </Tooltip>
+        </div>
+        <button className={outsideButtonClass} type="button">
+          바깥 포커스 이동
+        </button>
+      </section>
+      <div className={spacerClass} />
+    </main>
+  );
+};
 
 const pageClass = css({
   minHeight: '[220dvh]',

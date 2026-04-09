@@ -1,12 +1,14 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const HOME_HERO_INTERACTION_HINT_STORAGE_KEY = 'home-hero:interaction-hint-dismissed';
 
 /**
- * HomeHeroInteractionHint를 노출하기 전에 이전 dismissal 흔적을 비워 첫 방문 상태를 맞춥니다.
+ * 현재 문서에서 HomeHeroInteractionHint dismissal 흔적을 지워 첫 방문 상태를 맞춥니다.
  */
-const clearInteractionHintDismissal = async (page: Page) => {
-  await page.addInitScript((storageKey: string) => {
+const clearInteractionHintDismissal = async (page: {
+  evaluate: <T>(pageFunction: (storageKey: string) => T, arg: string) => Promise<T>;
+}) => {
+  await page.evaluate(storageKey => {
     window.localStorage.removeItem(storageKey);
   }, HOME_HERO_INTERACTION_HINT_STORAGE_KEY);
 };
@@ -18,8 +20,9 @@ test('홈 히어로 안내 문구는 닫힘 후 같은 브라우저 재방문에
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await clearInteractionHintDismissal(page);
   await page.goto('/ko/test/home-hero-interaction-hint');
+  await clearInteractionHintDismissal(page);
+  await page.reload();
 
   const hint = page.getByRole('note', { name: '홈 장면 상호작용 안내' });
 
@@ -50,18 +53,17 @@ test('홈 히어로 안내 문구는 scroll viewport가 top 임계값을 넘기�
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await clearInteractionHintDismissal(page);
   await page.goto('/ko/test/home-hero-interaction-hint');
+  await clearInteractionHintDismissal(page);
+  await page.reload();
 
   const hint = page.getByRole('note', { name: '홈 장면 상호작용 안내' });
   const viewport = page.locator('[data-app-scroll-viewport="true"]').first();
 
   await expect(hint).toBeVisible();
 
-  await viewport.evaluate(element => {
-    element.scrollTop = 40;
-    element.dispatchEvent(new Event('scroll'));
-  });
+  await viewport.hover();
+  await page.mouse.wheel(0, 80);
 
   await expect(hint).toHaveCount(0);
 });

@@ -8,6 +8,11 @@ describe('api/og route', () => {
   });
 
   afterEach(() => {
+    if (originalSiteUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+      return;
+    }
+
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 

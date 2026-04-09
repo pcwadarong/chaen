@@ -34,7 +34,7 @@ const createArchivePage = (items: TestArchiveItem[]): DetailArchivePage<TestArch
 });
 
 describe('detail-archive-feed model', () => {
-  it('초기 페이지에 현재 상세 항목이 없으면 맨 앞에 한 번만 삽입해야 한다', () => {
+  it('초기 페이지에 현재 상세 항목이 없으면, detail archive page는 현재 항목을 맨 앞에 한 번만 삽입해야 한다', () => {
     const page = createArchivePage([
       createArchiveItem({
         description: '이전 글',
@@ -58,7 +58,7 @@ describe('detail-archive-feed model', () => {
     expect(mergedPage?.items.map(item => item.id)).toEqual(['current-article', 'article-1']);
   });
 
-  it('맨 위 고정을 끄면 현재 상세 항목을 기존 slice 뒤에 두어 순서를 유지해야 한다', () => {
+  it('맨 위 고정이 꺼져 있으면, detail archive page는 현재 항목을 기존 slice 뒤에 붙여 순서를 유지해야 한다', () => {
     const page = createArchivePage([
       createArchiveItem({
         id: 'article-2',
@@ -91,7 +91,7 @@ describe('detail-archive-feed model', () => {
     ]);
   });
 
-  it('cursor 다음 페이지에 같은 id가 있어도 기존 항목을 유지한 채 한 번만 합쳐야 한다', () => {
+  it('cursor 페이지에 같은 id가 포함되면, mergeDetailArchiveFeedItems는 기존 항목을 유지하고 중복을 한 번만 포함해야 한다', () => {
     const mergedItems = mergeDetailArchiveFeedItems(
       [
         createArchiveItem({
