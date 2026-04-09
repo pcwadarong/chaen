@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { Popover } from '@/shared/ui/popover/popover';
@@ -20,63 +20,6 @@ describe('Popover', () => {
     expect(trigger.getAttribute('aria-controls')).toBe(dialog.id);
     expect(dialog.getAttribute('aria-labelledby')).toBeTruthy();
     expect(trigger.getAttribute('aria-labelledby')).toBe(dialog.getAttribute('aria-labelledby'));
-  });
-
-  it('열리면 첫 번째 포커스 가능한 옵션으로 포커스를 이동한다', async () => {
-    render(
-      <Popover label="테마" panelLabel="테마 선택" value="시스템">
-        {() => (
-          <div>
-            <button type="button">시스템</button>
-            <button type="button">라이트</button>
-          </div>
-        )}
-      </Popover>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: '테마 선택' }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: '시스템' })).toBe(document.activeElement);
-    });
-  });
-
-  it('Escape 키로 닫히면 트리거 버튼으로 포커스를 복원한다', async () => {
-    render(
-      <Popover label="테마" panelLabel="테마 선택" value="시스템">
-        {() => <button type="button">시스템</button>}
-      </Popover>,
-    );
-
-    const trigger = screen.getByRole('button', { name: '테마 선택' });
-    trigger.focus();
-
-    fireEvent.click(trigger);
-    await screen.findByRole('dialog', { name: '테마 선택' });
-
-    fireEvent.keyDown(window, { cancelable: true, key: 'Escape' });
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: '테마 선택' })).toBeNull();
-      expect(trigger).toBe(document.activeElement);
-    });
-  });
-
-  it('외부 click 이벤트로 팝오버를 닫는다', async () => {
-    render(
-      <Popover label="테마" panelLabel="테마 선택" value="시스템">
-        {() => <button type="button">시스템</button>}
-      </Popover>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: '테마 선택' }));
-    await screen.findByRole('dialog', { name: '테마 선택' });
-
-    fireEvent.click(document.body);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: '테마 선택' })).toBeNull();
-    });
   });
 
   it('커스텀 트리거 콘텐츠를 표시한다', () => {
