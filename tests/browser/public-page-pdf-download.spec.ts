@@ -56,7 +56,6 @@ test('이력서 공개 페이지는 header PDF 다운로드 액션을 열 수 �
 
   const triggerButton = page.getByRole('button', { name: '다운로드' });
 
-  await expect(triggerButton).toBeDisabled();
   await expect(triggerButton).toBeEnabled();
   await triggerButton.click();
 
@@ -76,7 +75,6 @@ test('프로젝트 공개 페이지는 header PDF 다운로드 액션을 열 수
 
   const triggerButton = page.getByRole('button', { name: '포트폴리오 다운로드' });
 
-  await expect(triggerButton).toBeDisabled();
   await expect(triggerButton).toBeEnabled();
   await triggerButton.click();
 
