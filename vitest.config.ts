@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -34,8 +34,11 @@ export default defineConfig({
     clearMocks: true,
     unstubGlobals: true,
     unstubEnvs: true,
+    exclude: [...configDefaults.exclude, 'tests/browser/**'],
     coverage: {
+      clean: false,
       provider: 'v8',
+      reportsDirectory: './coverage',
       reporter: ['text', 'html'],
     },
   },

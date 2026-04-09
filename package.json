@@ -27,6 +27,7 @@
     "test:browser:headed": "playwright test --headed",
     "test:browser:debug": "playwright test --debug",
     "test:browser:install": "playwright install chromium",
+    "test:coverage": "rm -rf coverage && mkdir -p coverage/.tmp && vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary",
     "test:watch": "vitest",
     "postinstall": "husky"
   },
