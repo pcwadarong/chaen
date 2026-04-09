@@ -1,12 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 const HOME_HERO_INTERACTION_HINT_STORAGE_KEY = 'home-hero:interaction-hint-dismissed';
 
 /**
  * HomeHeroInteractionHint를 노출하기 전에 이전 dismissal 흔적을 비워 첫 방문 상태를 맞춥니다.
  */
-const clearInteractionHintDismissal = async (page: Parameters<typeof test>[0]['page']) => {
-  await page.addInitScript(storageKey => {
+const clearInteractionHintDismissal = async (page: Page) => {
+  await page.addInitScript((storageKey: string) => {
     window.localStorage.removeItem(storageKey);
   }, HOME_HERO_INTERACTION_HINT_STORAGE_KEY);
 };

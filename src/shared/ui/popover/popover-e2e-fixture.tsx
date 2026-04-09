@@ -115,7 +115,7 @@ const optionButtonClass = css({
   minHeight: '10',
   px: '3',
   borderRadius: 'xl',
-  background: 'bg',
+  background: 'surface',
 });
 
 const outsidePanelClass = css({

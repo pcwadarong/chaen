@@ -115,7 +115,7 @@ export const DetailArchiveFeedE2eFixture = () => {
 };
 
 const pageClass = css({
-  minHeight: '100vh',
+  minHeight: 'dvh',
   display: 'grid',
   placeItems: 'center',
   px: '6',

@@ -146,7 +146,7 @@ const inputClass = css({
   borderRadius: 'xl',
   borderWidth: '1px',
   borderColor: 'border',
-  background: 'bg',
+  background: 'surface',
 });
 
 const buttonRowClass = css({
@@ -163,5 +163,5 @@ const innerButtonClass = css({
   borderRadius: 'full',
   borderWidth: '1px',
   borderColor: 'border',
-  background: 'bg',
+  background: 'surface',
 });
