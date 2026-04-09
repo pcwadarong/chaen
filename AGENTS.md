@@ -82,6 +82,22 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 ### Test Structure Maintenance
 
 - **Coverage Check**: Before closing substantial test refactors, run coverage for the touched area or the full Vitest suite when stability work is involved. Treat coverage regressions as signals to inspect missing contracts, not as numeric goals to game.
+- **Script Taxonomy**:
+  - `pnpm run test`: The full regression entry point. It must run every Vitest bucket and the main Playwright suite in sequence.
+  - `pnpm run test:vitest`: All Vitest buckets only. Use this when changing unit, hook, route, or jsdom contracts without touching real-browser behavior.
+  - `pnpm run test:node`: Pure logic only. Files explicitly marked with `@vitest-environment node` belong here.
+  - `pnpm run test:dom:model`: Light jsdom contracts for non-Node `*.test.ts` files. This bucket exists for DOM-adjacent model/hook wiring that is still cheap to run.
+  - `pnpm run test:dom:ui`: General jsdom component contracts for non-heavy `*.test.tsx` files. This is the default bucket for ordinary React rendering and event wiring.
+  - `pnpm run test:dom:heavy`: Intentionally small Vitest bucket for the known expensive editor-style jsdom suites listed in `scripts/run-vitest-group.mjs`. Add a file here only when runtime cost is consistently high, not because the feature feels important.
+  - `pnpm run test:browser`: Main Playwright regression suite. Use for real browser contracts such as focus management, portal layering, canvas/browser-event integration, actual scroll roots, and viewport repositioning.
+  - `pnpm run test:browser:smoke`: Minimal public-entry smoke only. Keep this fast and small enough for frequent CI use.
+  - `pnpm run test:browser:headed`: Local visual debugging run for Playwright.
+  - `pnpm run test:browser:debug`: Interactive Playwright debugging session.
+  - `pnpm run test:coverage`: Coverage-only Vitest run. It must exclude Playwright specs and execution harness files so the report reflects product contracts rather than browser fixtures.
+- **Bucket Intent**:
+  - `node / dom:model / dom:ui / dom:heavy` are execution-cost buckets, not architectural layers.
+  - If a test needs browser globals only because logic and rendering are tangled, prefer extracting a pure helper or hook first instead of promoting more files into heavier buckets.
+  - A file should move from `dom:ui` to `dom:heavy` only when repeated full-suite runs show it is one of the dominant slow files.
 - **Playwright Tiering**:
   - `test:browser:smoke` is reserved for fast public-entry contracts and must stay small.
   - `test:browser` owns the broader runtime regressions.
