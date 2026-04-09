@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { getRelatedArticles } from '@/entities/article/api/detail/get-related-articles';
 import { getRelatedTagIds } from '@/entities/tag/api/query-tags';
 import { hasSupabaseEnv } from '@/shared/lib/supabase/config';

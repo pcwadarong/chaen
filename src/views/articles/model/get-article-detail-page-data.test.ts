@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi } from 'vitest';
 
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
