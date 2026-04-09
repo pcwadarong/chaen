@@ -11,6 +11,7 @@ import { Popover } from '@/shared/ui/popover/popover';
 export const PopoverE2eFixture = () => {
   const [closeCount, setCloseCount] = React.useState(0);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isPortaledOpen, setIsPortaledOpen] = React.useState(false);
 
   return (
     <main className={pageClass}>
@@ -51,16 +52,36 @@ export const PopoverE2eFixture = () => {
           )}
         </Popover>
       </div>
+      <div className={anchorRowClass}>
+        <Popover
+          isOpen={isPortaledOpen}
+          onOpenChange={setIsPortaledOpen}
+          panelLabel="포털 메뉴"
+          portalPlacement="start"
+          renderInPortal
+          triggerAriaLabel="포털 메뉴 열기"
+          triggerContent={<span>포털 메뉴</span>}
+        >
+          {() => (
+            <div className={popoverBodyClass}>
+              <button className={optionButtonClass} type="button">
+                포털 항목
+              </button>
+            </div>
+          )}
+        </Popover>
+      </div>
       <section className={outsidePanelClass}>
         <h2 className={outsideTitleClass}>Outside Area</h2>
         <p>팝오버 바깥 클릭 닫힘 계약을 검증하기 위한 안전한 영역이다.</p>
       </section>
+      <div className={bottomSpacerClass} />
     </main>
   );
 };
 
 const pageClass = css({
-  minHeight: 'svh',
+  minHeight: '[220dvh]',
   display: 'grid',
   alignContent: 'start',
   gap: '6',
@@ -133,4 +154,8 @@ const outsidePanelClass = css({
 const outsideTitleClass = css({
   fontSize: 'xl',
   fontWeight: 'semibold',
+});
+
+const bottomSpacerClass = css({
+  height: '[48dvh]',
 });

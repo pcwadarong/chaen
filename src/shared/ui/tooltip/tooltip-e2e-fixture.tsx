@@ -10,6 +10,7 @@ import { Tooltip } from '@/shared/ui/tooltip/tooltip';
  */
 export const TooltipE2eFixture = () => (
   <main className={pageClass}>
+    <div className={spacerClass} />
     <section className={panelClass}>
       <h1 className={titleClass}>Tooltip Fixture</h1>
       <p className={descriptionClass}>
@@ -32,16 +33,22 @@ export const TooltipE2eFixture = () => (
             축소 버튼
           </button>
         </Tooltip>
+        <Tooltip content="자동 배치" preferredPlacement="auto">
+          <button className={triggerButtonClass} type="button">
+            자동 배치 버튼
+          </button>
+        </Tooltip>
       </div>
       <button className={outsideButtonClass} type="button">
         바깥 포커스 이동
       </button>
     </section>
+    <div className={spacerClass} />
   </main>
 );
 
 const pageClass = css({
-  minHeight: 'svh',
+  minHeight: '[220dvh]',
   display: 'grid',
   alignContent: 'start',
   gap: '6',
@@ -49,6 +56,10 @@ const pageClass = css({
   py: '6',
   background:
     '[linear-gradient(180deg, color-mix(in srgb, #5d5bff 10%, white) 0%, color-mix(in srgb, #5d5bff 2%, white) 100%)]',
+});
+
+const spacerClass = css({
+  height: '[42dvh]',
 });
 
 const panelClass = css({
