@@ -19,7 +19,7 @@ describe('createHomeHeroStageCanvasInteractionHandlers', () => {
       onToggleBackgroundMusicPlayback: vi.fn(),
       sceneViewportMode: SCENE_VIEWPORT_MODE.stacked,
       scrollToProjects,
-      triggerElement: null,
+      triggerElementRef: { current: null },
     });
 
     handlers.onBrowseProjects();
@@ -40,13 +40,32 @@ describe('createHomeHeroStageCanvasInteractionHandlers', () => {
       onToggleBackgroundMusicPlayback: vi.fn(),
       sceneViewportMode: SCENE_VIEWPORT_MODE.wide,
       scrollToProjects,
-      triggerElement,
+      triggerElementRef: { current: triggerElement },
     });
 
     handlers.onBrowseProjects();
 
     expect(onBrowseProjects).not.toHaveBeenCalled();
     expect(scrollToProjects).toHaveBeenCalledWith(triggerElement);
+  });
+
+  it('wide viewport에서 ref가 나중에 채워지면, browse handler는 호출 시점의 trigger를 읽어야 한다', () => {
+    const triggerElementRef = { current: null as HTMLElement | null };
+    const scrollToProjects = vi.fn();
+
+    const handlers = createHomeHeroStageCanvasInteractionHandlers({
+      onPlayBassString: vi.fn(),
+      onPrepareAudioPlayback: vi.fn(),
+      onToggleBackgroundMusicPlayback: vi.fn(),
+      sceneViewportMode: SCENE_VIEWPORT_MODE.wide,
+      scrollToProjects,
+      triggerElementRef,
+    });
+
+    triggerElementRef.current = {} as HTMLElement;
+    handlers.onBrowseProjects();
+
+    expect(scrollToProjects).toHaveBeenCalledWith(triggerElementRef.current);
   });
 
   it('bass/audio/image viewer 콜백은 변경 없이 그대로 전달해야 한다', () => {
@@ -62,7 +81,7 @@ describe('createHomeHeroStageCanvasInteractionHandlers', () => {
       onToggleBackgroundMusicPlayback,
       sceneViewportMode: SCENE_VIEWPORT_MODE.wide,
       scrollToProjects: vi.fn(),
-      triggerElement: null,
+      triggerElementRef: { current: null },
     });
 
     handlers.onOpenImageViewer?.();

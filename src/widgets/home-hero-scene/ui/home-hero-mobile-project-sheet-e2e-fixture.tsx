@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { css } from 'styled-system/css';
 
 import type { ProjectListItem } from '@/entities/project/model/types';
@@ -25,7 +25,6 @@ const FIXTURE_PROJECT_ITEMS: ProjectListItem[] = [
  */
 export const HomeHeroMobileProjectSheetE2eFixture = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <main className={pageClass}>
@@ -35,13 +34,7 @@ export const HomeHeroMobileProjectSheetE2eFixture = () => {
           trigger에서 열기, dialog 진입 포커스, Tab 순환, Escape 닫힘 후 포커스 복귀를 검증한다.
         </p>
         <div className={controlsClass}>
-          <Button
-            onClick={() => setIsOpen(true)}
-            ref={triggerRef}
-            size="sm"
-            tone="primary"
-            type="button"
-          >
+          <Button onClick={() => setIsOpen(true)} size="sm" tone="primary" type="button">
             프로젝트 패널 열기
           </Button>
           <Button size="sm" tone="white" type="button" variant="ghost">

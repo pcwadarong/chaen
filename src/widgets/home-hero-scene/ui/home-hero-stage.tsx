@@ -36,6 +36,7 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
   const t = useTranslations('SceneFallback');
   const commonT = useTranslations('Common');
   const isWebglAvailable = useSceneWebglAvailability();
+  const [isCanvasInitialized, setIsCanvasInitialized] = useState(false);
   const [isSceneAssetLoading, setIsSceneAssetLoading] = useState(true);
   const [isSceneReady, setIsSceneReady] = useState(false);
   const [, setSceneLoadingProgress] = useState(0);
@@ -53,7 +54,7 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
       return;
     }
 
-    if (!isSceneReady) {
+    if (!isCanvasInitialized) {
       return;
     }
 
@@ -66,7 +67,13 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
     return () => {
       window.clearTimeout(readyGraceTimer);
     };
-  }, [hasCompletedInitialBlockingLoad, isSceneAssetLoading, isSceneReady, isWebglAvailable]);
+  }, [
+    hasCompletedInitialBlockingLoad,
+    isCanvasInitialized,
+    isSceneAssetLoading,
+    isSceneReady,
+    isWebglAvailable,
+  ]);
 
   useHomeHeroSceneScrollLock(shouldShowLoadingOverlay);
 
@@ -92,6 +99,7 @@ export const HomeHeroStage = ({ content, interaction, sceneRefs }: HomeHeroStage
           <HomeHeroStageCanvas
             content={content}
             interaction={interaction}
+            onCanvasInitializedChange={setIsCanvasInitialized}
             onSceneReadyChange={setIsSceneReady}
             sceneRefs={sceneRefs}
           />

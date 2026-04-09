@@ -167,36 +167,37 @@ describe('SceneInteractionController', () => {
     expect(raycasterMockState.clearHoveredMesh).toHaveBeenCalledOnce();
     expect(document.querySelector('#scene-interaction-status')?.textContent).toBe('');
   });
-});
-it('canvas에 포커스가 들어올 때, SceneInteractionController는 첫 keyboard target을 hover 상태로 설정해야 한다', () => {
-  render(<SceneInteractionController onBrowseProjects={vi.fn()} onOpenImageViewer={vi.fn()} />);
 
-  fireEvent.focus(canvasElement);
+  it('canvas에 포커스가 들어올 때, SceneInteractionController는 첫 keyboard target을 hover 상태로 설정해야 한다', () => {
+    render(<SceneInteractionController onBrowseProjects={vi.fn()} onOpenImageViewer={vi.fn()} />);
 
-  expect(canvasElement).toHaveAttribute('aria-label', '홈 씬 상호작용 캔버스');
-  expect(canvasElement.getAttribute('aria-describedby')).toContain('scene-interaction-help-text');
-  expect(canvasElement.tabIndex).toBe(0);
-  expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.laptop);
-  expect(document.body.textContent).toContain(
-    '화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.',
-  );
-});
+    fireEvent.focus(canvasElement);
 
-it('화살표 키와 Enter 입력이 들어올 때, SceneInteractionController는 keyboard target을 순환하고 현재 타겟 click을 실행해야 한다', () => {
-  render(
-    <SceneInteractionController
-      onBrowseProjects={vi.fn()}
-      onOpenImageViewer={vi.fn()}
-      onPrepareAudioPlayback={audioPreparationMockState.prepareAudioPlayback}
-    />,
-  );
+    expect(canvasElement).toHaveAttribute('aria-label', '홈 씬 상호작용 캔버스');
+    expect(canvasElement.getAttribute('aria-describedby')).toContain('scene-interaction-help-text');
+    expect(canvasElement.tabIndex).toBe(0);
+    expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.laptop);
+    expect(document.body.textContent).toContain(
+      '화살표 키로 오브젝트를 이동하고 Enter 또는 Space로 현재 선택을 실행할 수 있습니다.',
+    );
+  });
 
-  fireEvent.focus(canvasElement);
-  fireEvent.keyDown(canvasElement, { key: 'ArrowRight' });
-  fireEvent.keyDown(canvasElement, { key: 'Enter' });
+  it('화살표 키와 Enter 입력이 들어올 때, SceneInteractionController는 keyboard target을 순환하고 현재 타겟 click을 실행해야 한다', () => {
+    render(
+      <SceneInteractionController
+        onBrowseProjects={vi.fn()}
+        onOpenImageViewer={vi.fn()}
+        onPrepareAudioPlayback={audioPreparationMockState.prepareAudioPlayback}
+      />,
+    );
 
-  expect(audioPreparationMockState.prepareAudioPlayback).toHaveBeenCalledOnce();
-  expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.bass);
-  expect(interactionActionsMockState.handleMeshClick).toHaveBeenCalledWith(keyboardTargets.bass);
-  expect(document.body.textContent).toContain('현재 선택: 기타');
+    fireEvent.focus(canvasElement);
+    fireEvent.keyDown(canvasElement, { key: 'ArrowRight' });
+    fireEvent.keyDown(canvasElement, { key: 'Enter' });
+
+    expect(audioPreparationMockState.prepareAudioPlayback).toHaveBeenCalledOnce();
+    expect(raycasterMockState.setHoveredMeshDirect).toHaveBeenCalledWith(keyboardTargets.bass);
+    expect(interactionActionsMockState.handleMeshClick).toHaveBeenCalledWith(keyboardTargets.bass);
+    expect(document.body.textContent).toContain('현재 선택: 기타');
+  });
 });

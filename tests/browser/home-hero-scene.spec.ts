@@ -48,10 +48,9 @@ test('홈 히어로 canvas는 접근성 속성과 contextmenu browser event 결�
   await expect(page.locator('[role="status"][aria-busy="true"]')).toHaveCount(0, {
     timeout: 30_000,
   });
-  await expect(canvas).toHaveAttribute('aria-hidden', 'true');
-  await expect(canvas).toHaveAttribute('role', 'presentation');
   await expect(helpText).toHaveCount(1);
   await expect.poll(() => canvas.evaluate(node => node.tabIndex)).toBe(0);
+  await expect(canvas).toHaveAttribute('aria-label', '홈 씬 상호작용 캔버스');
   await expect
     .poll(() => canvas.evaluate(node => node.getAttribute('aria-describedby') ?? ''))
     .toContain('scene-interaction-help-text');

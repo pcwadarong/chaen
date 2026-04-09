@@ -12,8 +12,6 @@ export const initializeHomeHeroStageCanvas = ({
   setClearColor,
 }: InitializeHomeHeroStageCanvasInput) => {
   canvasElement.id = 'three-canvas';
-  canvasElement.setAttribute('aria-hidden', 'true');
-  canvasElement.setAttribute('role', 'presentation');
   canvasElement.style.touchAction = 'none';
   setClearColor(0x000000, 0);
 };

@@ -13,7 +13,9 @@ type CreateHomeHeroStageCanvasInteractionHandlersParams = Readonly<{
   onToggleBackgroundMusicPlayback: () => void | Promise<void>;
   sceneViewportMode: SceneViewportMode;
   scrollToProjects: (triggerElement: HTMLElement | null) => void;
-  triggerElement: HTMLElement | null;
+  triggerElementRef: Readonly<{
+    current: HTMLElement | null;
+  }>;
 }>;
 
 export type HomeHeroStageCanvasInteractionHandlers = Readonly<{
@@ -36,7 +38,7 @@ export const createHomeHeroStageCanvasInteractionHandlers = ({
   onToggleBackgroundMusicPlayback,
   sceneViewportMode,
   scrollToProjects,
-  triggerElement,
+  triggerElementRef,
 }: CreateHomeHeroStageCanvasInteractionHandlersParams): HomeHeroStageCanvasInteractionHandlers => ({
   onBrowseProjects: () => {
     if (sceneViewportMode === SCENE_VIEWPORT_MODE.stacked) {
@@ -44,7 +46,7 @@ export const createHomeHeroStageCanvasInteractionHandlers = ({
       return;
     }
 
-    scrollToProjects(triggerElement);
+    scrollToProjects(triggerElementRef.current);
   },
   onOpenImageViewer,
   onPlayBassString,

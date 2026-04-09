@@ -56,6 +56,7 @@ const AUDIO_PREPARE_KEYBOARD_KEYS = new Set(['Enter', ' ']);
 export const HomeHeroStageCanvas = ({
   content,
   interaction,
+  onCanvasInitializedChange,
   onSceneReadyChange,
   sceneRefs,
 }: HomeHeroStageCanvasProps) => {
@@ -111,7 +112,7 @@ export const HomeHeroStageCanvas = ({
         onToggleBackgroundMusicPlayback: toggleBackgroundMusicPlayback,
         sceneViewportMode,
         scrollToProjects: scrollHomeHeroToProjects,
-        triggerElement: sceneRefs.triggerRef.current,
+        triggerElementRef: sceneRefs.triggerRef,
       }),
     [
       interaction?.onBrowseProjects,
@@ -142,7 +143,7 @@ export const HomeHeroStageCanvas = ({
             setClearColor: gl.setClearColor,
           });
           setCanvasElement(gl.domElement);
-          onSceneReadyChange?.(true);
+          onCanvasInitializedChange?.(true);
         }}
       >
         <HomeHeroStageLights />
