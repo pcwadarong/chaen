@@ -68,12 +68,12 @@ describe('HomeRoute', () => {
       },
       description: '홈 설명',
       openGraph: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
         url: 'https://chaen.dev/ko',
       },
       title: '홈',
       twitter: {
-        images: ['https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200'],
+        images: ['https://chaen.dev/thumbnail.png'],
       },
     });
   });

@@ -20,6 +20,24 @@ vi.mock('@/i18n/navigation', () => ({
 }));
 
 describe('AdminContentPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        disconnect() {}
+
+        observe() {}
+
+        unobserve() {}
+      },
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   const articles = [
     {
       id: 'article-1',

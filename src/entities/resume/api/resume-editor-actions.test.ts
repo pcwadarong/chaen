@@ -192,7 +192,7 @@ describe('resume-editor-actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/project');
     expect(revalidatePath).toHaveBeenCalledWith('/ja/project');
     expect(revalidatePath).toHaveBeenCalledWith('/fr/project');
-    expect(result).toEqual({ redirectPath: '/ko/resume' });
+    expect(result).toEqual({ redirectPath: '/resume' });
   });
 
   it('draftId가 없을 때 resume publish는 공개 콘텐츠만 저장하고 draft 전체 삭제를 시도하지 않아야 한다', async () => {
@@ -253,7 +253,7 @@ describe('resume-editor-actions', () => {
 
     expect(upsertQuery.upsert).toHaveBeenCalledTimes(1);
     expect(deleteDraftQuery.delete).not.toHaveBeenCalled();
-    expect(result).toEqual({ redirectPath: '/ko/resume' });
+    expect(result).toEqual({ redirectPath: '/resume' });
   });
 
   it('service role이 없으면 resume draft 저장을 중단한다', async () => {

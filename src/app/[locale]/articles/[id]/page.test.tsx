@@ -106,7 +106,7 @@ describe('ArticleDetailRoute', () => {
       }),
       locale: 'ko',
     });
-    expect(element.props.initialArchivePage).toEqual({
+    await expect(element.props.initialArchivePagePromise).resolves.toEqual({
       items: [],
       nextCursor: null,
     });

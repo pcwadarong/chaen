@@ -61,6 +61,12 @@ describe('useDetailArchiveBootstrapPage', () => {
   });
 
   it('초기 페이지가 없으면 첫 페이지를 가져와 현재 항목 병합 결과를 채워야 한다', async () => {
+    const currentItem = createArchiveItem({
+      description: '현재 글',
+      id: 'current-article',
+      slug: 'current-article-slug',
+      title: '현재 글',
+    });
     const loadPageAction = vi.fn().mockResolvedValue(
       createActionSuccess({
         items: [
@@ -77,12 +83,7 @@ describe('useDetailArchiveBootstrapPage', () => {
 
     const { result } = renderHook(() =>
       useDetailArchiveBootstrapPage({
-        currentItem: createArchiveItem({
-          description: '현재 글',
-          id: 'current-article',
-          slug: 'current-article-slug',
-          title: '현재 글',
-        }),
+        currentItem,
         loadPageAction,
         locale: 'ko',
         pinCurrentItemToTop: true,
