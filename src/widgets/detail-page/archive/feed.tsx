@@ -9,7 +9,6 @@ import {
   resolvePublicContentPublishedAt,
 } from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
-import { getErrorMessage } from '@/shared/lib/error/get-error-message';
 import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
 import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
@@ -22,9 +21,9 @@ import {
 import {
   type DetailArchivePage,
   type DetailArchiveRecord,
-  mergeCurrentArchiveItemIntoDetailArchivePage,
   mergeDetailArchiveFeedItems,
 } from '@/widgets/detail-page/archive/model/detail-archive-feed';
+import { useDetailArchiveBootstrapPage } from '@/widgets/detail-page/archive/model/use-detail-archive-bootstrap-page';
 import { DetailArchiveSidebarSkeleton } from '@/widgets/detail-page/ui/detail-page-section-skeletons';
 
 type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
@@ -48,7 +47,6 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
 };
 
 const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
-const DETAIL_ARCHIVE_DEFAULT_LIMIT = 10;
 const EMPTY_DETAIL_ARCHIVE_PAGE = {
   items: [],
   nextCursor: null,
@@ -73,12 +71,14 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
   selectedPathSegment,
 }: DetailArchiveFeedProps<TItem>) => {
   const alignedSelectedPathSegmentRef = useRef<string | null>(null);
-  const [bootstrapPage, setBootstrapPage] = React.useState<DetailArchivePage<TItem> | null>(() =>
-    mergeCurrentArchiveItemIntoDetailArchivePage(initialPage, currentItem, pinCurrentItemToTop),
-  );
-  const [bootstrapError, setBootstrapError] = React.useState<string | null>(null);
-  const [isBootstrapping, setIsBootstrapping] = React.useState(initialPage === null);
-  const [bootstrapRequestKey, setBootstrapRequestKey] = React.useState(0);
+  const { bootstrapError, bootstrapPage, isBootstrapping, retryBootstrap } =
+    useDetailArchiveBootstrapPage({
+      currentItem,
+      initialPage,
+      loadPageAction,
+      locale,
+      pinCurrentItemToTop,
+    });
   const resolvedInitialPage =
     bootstrapPage ?? (EMPTY_DETAIL_ARCHIVE_PAGE as DetailArchivePage<TItem>);
   const loadPage = useCallback(
@@ -108,65 +108,6 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     },
     [loadPageAction],
   );
-
-  useEffect(() => {
-    if (initialPage) {
-      setBootstrapPage(
-        mergeCurrentArchiveItemIntoDetailArchivePage(initialPage, currentItem, pinCurrentItemToTop),
-      );
-      setBootstrapError(null);
-      setIsBootstrapping(false);
-      return;
-    }
-
-    let isMounted = true;
-
-    const bootstrapArchivePage = async () => {
-      setIsBootstrapping(true);
-      setBootstrapError(null);
-
-      try {
-        const result = await loadPageAction({
-          cursor: null,
-          limit: DETAIL_ARCHIVE_DEFAULT_LIMIT,
-          locale,
-        });
-
-        if (!result.ok || !result.data) {
-          throw new Error(
-            result.errorCode ?? result.errorMessage ?? DETAIL_ARCHIVE_LOAD_ERROR_CODE,
-          );
-        }
-
-        if (!isMounted) return;
-
-        setBootstrapPage(
-          mergeCurrentArchiveItemIntoDetailArchivePage(
-            {
-              items: result.data.items,
-              nextCursor: result.data.nextCursor,
-            },
-            currentItem,
-            pinCurrentItemToTop,
-          ),
-        );
-      } catch (error) {
-        if (!isMounted) return;
-
-        setBootstrapError(getErrorMessage(error));
-      } finally {
-        if (isMounted) {
-          setIsBootstrapping(false);
-        }
-      }
-    };
-
-    void bootstrapArchivePage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [bootstrapRequestKey, currentItem, initialPage, loadPageAction, locale, pinCurrentItemToTop]);
 
   const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useCursorPaginationFeed<TItem>({
     initialCursor: resolvedInitialPage.nextCursor,
@@ -251,11 +192,7 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
           <p aria-live="polite" className={sidebarErrorTextClass}>
             {loadErrorText}
           </p>
-          <Button
-            onClick={() => setBootstrapRequestKey(previous => previous + 1)}
-            tone="white"
-            variant="ghost"
-          >
+          <Button onClick={retryBootstrap} tone="white" variant="ghost">
             {retryText}
           </Button>
         </div>
