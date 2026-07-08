@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { d2Coding, pretendard, pretendardJp } from '@/app/fonts';
 import { SceneAssetPreloader } from '@/entities/scene/ui/scene-asset-preloader';
+import { QueryProvider } from '@/shared/providers';
 
 import './globals.css';
 import 'katex/dist/katex.min.css';
@@ -27,7 +28,7 @@ const RootLayout = ({ children }: RootLayoutProps) => (
   >
     <body>
       <SceneAssetPreloader />
-      {children}
+      <QueryProvider>{children}</QueryProvider>
     </body>
   </html>
 );
