@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { vi } from 'vitest';
 
 import { GET } from '@/app/api/(content)/article-popular-tags/route';

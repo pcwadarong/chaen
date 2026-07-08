@@ -47,7 +47,7 @@ const readCachedPdfFileAvailability = async ({
   const cacheKey = assetKey ?? kind ?? 'resume';
 
   cacheTag(PDF_FILES_CACHE_TAG, createPdfFileAvailabilityCacheTag(cacheKey));
-  // 예약 발행(publish_at) 글이 태그 무효화 없이도 TTL로 노출되도록 함.
+  // 스토리지 조회 부하를 줄이고 놓친 태그 무효화를 보완하기 위한 TTL 캐시입니다.
   cacheLife({ expire: 86400, revalidate: 3600, stale: 300 });
 
   const storageConfig = assetKey

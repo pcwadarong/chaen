@@ -56,7 +56,7 @@ describe('articles 쿼리 키', () => {
 describe('articleComments 쿼리 키', () => {
   it('page 키는 scope 키를 접두사로 포함해 scope로 무효화하면 모든 페이지가 함께 걸린다', () => {
     const scopeKey = articleComments.scope('article-1');
-    const pageKey = articleComments.page('article-1', 'latest', 2);
+    const pageKey = articleComments.page('article-1', 'ko', 'latest', 2);
 
     expect(pageKey.slice(0, scopeKey.length)).toEqual(scopeKey);
   });
@@ -68,13 +68,15 @@ describe('articleComments 쿼리 키', () => {
     expect(scopeA).not.toEqual(scopeB);
   });
 
-  it('정렬 또는 페이지가 다르면 서로 다른 키를 반환한다', () => {
-    const latestPage1 = articleComments.page('article-1', 'latest', 1);
-    const oldestPage1 = articleComments.page('article-1', 'oldest', 1);
-    const latestPage2 = articleComments.page('article-1', 'latest', 2);
+  it('locale, 정렬 또는 페이지가 다르면 서로 다른 키를 반환한다', () => {
+    const latestPage1 = articleComments.page('article-1', 'ko', 'latest', 1);
+    const oldestPage1 = articleComments.page('article-1', 'ko', 'oldest', 1);
+    const latestPage2 = articleComments.page('article-1', 'ko', 'latest', 2);
+    const latestPage1En = articleComments.page('article-1', 'en', 'latest', 1);
 
     expect(latestPage1).not.toEqual(oldestPage1);
     expect(latestPage1).not.toEqual(latestPage2);
+    expect(latestPage1).not.toEqual(latestPage1En);
   });
 });
 

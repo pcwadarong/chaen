@@ -95,9 +95,13 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     });
   const resolvedInitialPage =
     bootstrapPage ?? (EMPTY_DETAIL_ARCHIVE_PAGE as DetailArchivePage<TItem>);
-  const seedKey = isBootstrapping
-    ? DETAIL_ARCHIVE_BOOTSTRAPPING_SEED_KEY
-    : (resolvedInitialPage.nextCursor ?? 'root');
+  // 서로 다른 상세 페이지가 같은 커서 시드(예: 마지막 윈도우의 'root')를 공유해도
+  // 이전 페이지의 캐시가 재사용되지 않도록 현재 아이템 식별자를 시드에 포함합니다.
+  const seedKey = `${selectedPathSegment}:${
+    isBootstrapping
+      ? DETAIL_ARCHIVE_BOOTSTRAPPING_SEED_KEY
+      : (resolvedInitialPage.nextCursor ?? 'root')
+  }`;
   const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     enabled: !isBootstrapping && !bootstrapError,
     getNextPageParam: lastPage => lastPage.nextCursor,

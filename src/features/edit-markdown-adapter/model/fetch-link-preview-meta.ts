@@ -45,6 +45,9 @@ export const createCachedFetchLinkPreviewMeta =
   (queryClient: QueryClient): FetchLinkPreviewMeta =>
   url =>
     queryClient.fetchQuery({
+      // fetchQuery는 observer 없이 곧바로 inactive가 되므로, 기본 gcTime(5분)이면
+      // staleTime(24시간)보다 먼저 캐시가 수거된다. gcTime을 함께 맞춰 유지한다.
+      gcTime: OG_PREVIEW_STALE_TIME,
       queryFn: ({ signal }) => fetchLinkPreviewMetaAdapter(url, signal),
       queryKey: og.preview(url),
       staleTime: OG_PREVIEW_STALE_TIME,

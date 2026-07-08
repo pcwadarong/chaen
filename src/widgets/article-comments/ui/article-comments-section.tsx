@@ -190,22 +190,35 @@ export const ArticleCommentsSection = ({
    * (`setQueryData`), 표시 상태(`queryState`)를 서버가 clamp한 페이지/정렬로
    * 맞춘 뒤, 형제 페이지들은 `refetchType: 'none'`으로 stale만 표시해 다음
    * 접근 시 새로 조회되도록 합니다.
+   *
+   * 재조회 자체가 실패하더라도 뮤테이션은 이미 서버에 반영된 상태이므로,
+   * 활성 페이지를 포함해 즉시 refetch하는 무효화로 UI가 자동 복구되게 합니다.
    */
   const refreshCommentsPage = useCallback(
     async (nextPage: number, nextSort: ArticleCommentsSort) => {
-      const result = await getArticleCommentsPageAction({
-        articleId,
-        fresh: true,
-        locale,
-        page: nextPage,
-        sort: nextSort,
-      });
+      let refreshedPage: Awaited<ReturnType<typeof getArticleCommentsPageAction>>['data'] = null;
 
-      if (!result.ok || !result.data) return;
+      try {
+        const result = await getArticleCommentsPageAction({
+          articleId,
+          fresh: true,
+          locale,
+          page: nextPage,
+          sort: nextSort,
+        });
+        if (result.ok) refreshedPage = result.data;
+      } catch {
+        // 아래 복구 무효화 경로로 넘어갑니다.
+      }
 
-      const refreshedPage = result.data;
+      if (!refreshedPage) {
+        await queryClient.invalidateQueries({
+          queryKey: articleComments.scope(articleId),
+        });
+        return;
+      }
       queryClient.setQueryData(
-        articleComments.page(articleId, refreshedPage.sort, refreshedPage.page),
+        articleComments.page(articleId, locale, refreshedPage.sort, refreshedPage.page),
         refreshedPage,
       );
       setQueryState({

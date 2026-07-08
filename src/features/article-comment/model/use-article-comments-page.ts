@@ -62,7 +62,7 @@ export const useArticleCommentsPage = ({
 
       return result.data;
     },
-    queryKey: articleComments.page(articleId, sort, page),
+    queryKey: articleComments.page(articleId, locale, sort, page),
     staleTime: ARTICLE_COMMENTS_PAGE_STALE_TIME_MS,
   });
 };

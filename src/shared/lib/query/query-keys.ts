@@ -101,15 +101,19 @@ export const articleComments = {
    */
   scope: (articleId: string) => [...articleComments.all, articleId] as const,
   /**
-   * 특정 글·정렬·페이지의 댓글 목록 쿼리 키를 만듭니다.
+   * 특정 글·locale·정렬·페이지의 댓글 목록 쿼리 키를 만듭니다.
+   *
+   * `queryFn`이 locale에 의존하므로, 클라이언트 locale 전환 시 이전 locale의
+   * 캐시가 재사용되지 않도록 locale을 키에 포함합니다.
    *
    * @param articleId 대상 글 id입니다.
+   * @param locale 조회 locale입니다.
    * @param sort 댓글 정렬 기준입니다.
    * @param page 조회할 페이지 번호입니다.
    * @returns 댓글 페이지 쿼리 키입니다.
    */
-  page: (articleId: string, sort: ArticleCommentsSort, page: number) =>
-    [...articleComments.scope(articleId), sort, page] as const,
+  page: (articleId: string, locale: string, sort: ArticleCommentsSort, page: number) =>
+    [...articleComments.scope(articleId), locale, sort, page] as const,
 };
 
 /**
