@@ -96,6 +96,11 @@ vi.mock('@react-three/drei', () => ({
 
     return <div data-testid="orbit-controls" />;
   },
+  Preload: () => <div data-testid="preload-all" />,
+}));
+
+vi.mock('@/shared/lib/three/use-render-when-visible', () => ({
+  RenderWhenVisible: () => null,
 }));
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-character', () => ({
@@ -215,9 +220,9 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
     expect(screen.getByTestId('character-main')).toBeTruthy();
     expect(screen.queryByTestId('character-contact')).toBeNull();
-    expect(screen.getByTestId('prop-/models/sofa.glb')).toBeTruthy();
-    expect(screen.getByTestId('prop-/models/bass.glb')).toBeTruthy();
-    expect(screen.getByTestId('prop-/models/table.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/sofa.v2.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/bass.v2.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/table.v2.glb')).toBeTruthy();
   });
 
   it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
@@ -231,7 +236,7 @@ describe('HomeHeroStageCanvas', () => {
       />,
     );
 
-    expect(screen.getByTestId('prop-/models/table.glb')).toHaveAttribute(
+    expect(screen.getByTestId('prop-/models/table.v2.glb')).toHaveAttribute(
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
     );

@@ -14,10 +14,10 @@ export type CharacterOrmTextures = Readonly<{
 }>;
 
 const CHARACTER_ORM_TEXTURE_PATHS = {
-  gear: '/textures/gear_ORM.png',
-  hair: '/textures/hair_ORM.png',
-  outfit: '/textures/outfit_ORM.png',
-  skin: '/textures/skin_ORM.png',
+  gear: '/textures/gear_ORM.v2.webp',
+  hair: '/textures/hair_ORM.v2.webp',
+  outfit: '/textures/outfit_ORM.v2.webp',
+  skin: '/textures/skin_ORM.v2.webp',
 } as const;
 
 const SKIN_MESH_NAMES = new Set(['body', 'face']);
@@ -39,6 +39,7 @@ const MONITOR_SCREEN_FALLBACK_COLOR = new Color('#03060d');
 const MONITOR_SCREEN_TINT_COLOR = new Color('#ffffff');
 
 type ApplyCharacterScreenTextureParams = Readonly<{
+  anisotropy?: number;
   opacity: number;
   texture: Texture | null;
 }>;
@@ -96,11 +97,17 @@ export const applyCharacterMaterials = (scene: Group, textures: CharacterOrmText
 /**
  * 캐릭터 노트북 화면 mesh에 현재 monitor texture와 표시 강도를 반영합니다.
  * 실제 액정 면은 항상 불투명하게 유지하고, opacity 값은 texture가 얼마나 켜져 보이는지만 제어합니다.
+ * `anisotropy`가 주어지면 texture에 이방성 필터링 값을 반영해 비스듬한 각도의 텍스트 선명도를 높입니다.
  */
 export const applyCharacterScreenTexture = (
   scene: Group,
-  { opacity, texture }: ApplyCharacterScreenTextureParams,
+  { anisotropy, opacity, texture }: ApplyCharacterScreenTextureParams,
 ): void => {
+  if (texture && anisotropy !== undefined && texture.anisotropy !== anisotropy) {
+    texture.anisotropy = anisotropy;
+    texture.needsUpdate = true;
+  }
+
   scene.traverse(node => {
     if (!isMeshNode(node)) return;
     if (node.name !== LAPTOP_SCREEN_MESH_NAME) return;

@@ -17,6 +17,7 @@ import {
   resolveCharacterClipDurations,
 } from '@/entities/character/model/character-clip-durations';
 import { prepareCharacterInstance } from '@/entities/character/model/prepare-character-instance';
+import { CHARACTER_MODEL_PATH } from '@/entities/scene/model/preloadGLB';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 export type CharacterInstanceType = 'main' | 'contact';
@@ -57,7 +58,7 @@ export const useCharacterInstance = ({
   nodeRefs: CharacterNodeRefs;
   object: Group;
 } => {
-  const gltf = useGLTF('/models/character.glb');
+  const gltf = useGLTF(CHARACTER_MODEL_PATH);
   const ormTextures = useCharacterMaterials();
   const characterCache = useMemo(
     () => getOrCreateCharacterCache(gltf.scene, ormTextures),
@@ -84,8 +85,10 @@ export const useCharacterInstance = ({
     if (characterCache.lastUpdatedFrame === currentFrame) return;
 
     characterCache.lastUpdatedFrame = currentFrame;
-    characterCache.mainMixer.update(delta);
-    characterCache.contactMixer.update(delta);
+    // frameloop가 'never'에서 재개될 때 delta가 크게 튀는 것을 방지하기 위해 상한을 둔다.
+    const clampedDelta = Math.min(delta, 1 / 30);
+    characterCache.mainMixer.update(clampedDelta);
+    characterCache.contactMixer.update(clampedDelta);
   });
 
   return {

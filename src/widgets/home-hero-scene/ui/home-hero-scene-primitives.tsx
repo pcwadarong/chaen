@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Texture } from 'three';
 
+import { SOFA_MODEL_PATH } from '@/entities/scene/model/preloadGLB';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { HomeHeroCharacter } from '@/widgets/home-hero-scene/ui/home-hero-character';
 
@@ -16,7 +17,20 @@ type HomeHeroCharacterSeatSetProps = Readonly<{
 export const HomeHeroStageLights = () => (
   <>
     <ambientLight color="#f8f4ff" intensity={1.5} />
-    <directionalLight castShadow color="#fff8f0" intensity={2.2} position={[1.5, 5.0, 8.0]} />
+    <directionalLight
+      castShadow
+      color="#fff8f0"
+      intensity={2.2}
+      position={[1.5, 5.0, 8.0]}
+      shadow-bias={-0.0005}
+      shadow-camera-bottom={-6}
+      shadow-camera-far={25}
+      shadow-camera-left={-6}
+      shadow-camera-near={1}
+      shadow-camera-right={6}
+      shadow-camera-top={6}
+      shadow-mapSize={[1024, 1024]}
+    />
     <pointLight
       color="#fff8e8"
       decay={1.5}
@@ -43,6 +57,6 @@ export const HomeHeroCharacterSeatSet = ({
       monitorScreenTexture={monitorScreenTexture}
       position={position}
     />
-    <SceneProp path="/models/sofa.glb" position={[0, 0, -1]} />
+    <SceneProp path={SOFA_MODEL_PATH} position={[0, 0, -1]} />
   </>
 );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useThree } from '@react-three/fiber';
 import React, { useEffect } from 'react';
 import type { Texture } from 'three';
 
@@ -34,6 +35,8 @@ export const HomeHeroCharacter = ({
   monitorScreenTexture = null,
   position,
 }: HomeHeroCharacterProps) => {
+  // 이 컴포넌트는 <Canvas> 내부에 마운트되므로 renderer(gl)에 접근할 수 있다.
+  const gl = useThree(state => state.gl);
   const { clipDurations, clips, mixer, nodeRefs, object } = useCharacterInstance({ instance });
   const { currentState } = useCharacterAnimation({
     clipDurations,
@@ -72,10 +75,11 @@ export const HomeHeroCharacter = ({
     if (instance !== 'main') return;
 
     applyCharacterScreenTexture(object, {
+      anisotropy: gl.capabilities.getMaxAnisotropy(),
       opacity: monitorScreenOpacity,
       texture: monitorScreenTexture,
     });
-  }, [instance, monitorScreenOpacity, monitorScreenTexture, object]);
+  }, [gl, instance, monitorScreenOpacity, monitorScreenTexture, object]);
 
   useEffect(
     () => () => {

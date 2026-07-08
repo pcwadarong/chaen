@@ -25,6 +25,8 @@ type OutlineEffectProps = Readonly<{
  * coarse pointer 환경은 성능과 UX 기준으로 outline을 렌더하지 않습니다.
  * postprocessing 라이브러리를 직접 사용해 @react-three/postprocessing의 R3F v9 호환성 문제를 우회합니다.
  * scene.background는 캔버스 레벨에서 투명 처리되므로 composer 내에서 별도 관리하지 않습니다.
+ * composer가 non-MSAA FBO로 렌더하면 Canvas의 `antialias: true`가 무효화되므로
+ * `multisampling` 옵션으로 동일한 안티앨리어싱 품질을 복원합니다.
  */
 export const OutlineEffect = ({ hoveredMeshes }: OutlineEffectProps) => {
   const { gl, scene, camera, size } = useThree();
@@ -44,7 +46,9 @@ export const OutlineEffect = ({ hoveredMeshes }: OutlineEffectProps) => {
       blendFunction: BlendFunction.SRC,
       mode: ToneMappingMode.ACES_FILMIC,
     });
-    const composer = new EffectComposer(gl);
+    const composer = new EffectComposer(gl, {
+      multisampling: Math.min(4, gl.capabilities.maxSamples),
+    });
 
     gl.toneMapping = NoToneMapping;
     composer.addPass(new RenderPass(scene, camera));

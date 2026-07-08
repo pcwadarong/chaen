@@ -16,11 +16,16 @@ import {
   applyScenePropMaterials,
   useScenePropMaterials,
 } from '@/entities/scene/lib/use-scene-prop-materials';
+import type {
+  BASS_MODEL_PATH,
+  SOFA_MODEL_PATH,
+  TABLE_MODEL_PATH,
+} from '@/entities/scene/model/preloadGLB';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
   frameScreenImageSrc?: string | null;
-  path: '/models/bass.glb' | '/models/sofa.glb' | '/models/table.glb';
+  path: typeof BASS_MODEL_PATH | typeof SOFA_MODEL_PATH | typeof TABLE_MODEL_PATH;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number];

@@ -44,6 +44,14 @@ vi.mock('@react-three/fiber', () => ({
   }),
 }));
 
+vi.mock('@react-three/drei', () => ({
+  Preload: () => null,
+}));
+
+vi.mock('@/shared/lib/three/use-render-when-visible', () => ({
+  RenderWhenVisible: () => null,
+}));
+
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-scene-primitives', () => ({
   HomeHeroCharacterSeatSet: ({ instance }: { instance: 'contact' | 'main' }) => (
     <div data-testid={`character-seat-set-${instance}`} />

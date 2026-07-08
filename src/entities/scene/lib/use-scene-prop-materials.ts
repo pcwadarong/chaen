@@ -11,7 +11,7 @@ export type PropsOrmTextures = Readonly<{
 }>;
 
 const PROP_ORM_TEXTURE_PATHS = {
-  room: '/textures/room_ORM.png',
+  room: '/textures/room_ORM.v2.webp',
 } as const;
 
 const ROOM_ORM_EXCLUDED_MESH_NAMES = new Set(['frame_screen']);
