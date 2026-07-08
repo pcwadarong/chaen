@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 
 import { collectMarkdownImages } from '@/shared/lib/markdown/collect-markdown-images';
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { MarkdownRenderer } from '@/shared/ui/markdown/markdown-renderer';
 
 vi.mock('next-intl', () => ({
@@ -29,7 +31,10 @@ vi.mock('@/shared/lib/storage/attachment-download-path', () => ({
  */
 const renderServerHtml = async (markdown: string) => {
   const element = await MarkdownRenderer({ markdown });
-  const stream = await renderToReadableStream(element);
+  const QueryClientTestWrapper = createQueryClientWrapper();
+  const stream = await renderToReadableStream(
+    <QueryClientTestWrapper>{element}</QueryClientTestWrapper>,
+  );
 
   return new Response(stream).text();
 };

@@ -2,10 +2,8 @@ import { render } from '@testing-library/react';
 import React from 'react';
 
 import type { ArticleCommentPage } from '@/entities/article/comment/model';
-import {
-  ArticleCommentsSection,
-  resetArticleCommentsPageCacheForTest,
-} from '@/widgets/article-comments/ui/article-comments-section';
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
+import { ArticleCommentsSection } from '@/widgets/article-comments/ui/article-comments-section';
 
 import '@testing-library/jest-dom/vitest';
 
@@ -27,6 +25,8 @@ const mockedCommentActions = vi.hoisted(() => ({
 export const composeFormSpy = vi.fn();
 export const actionPopoverRenderCount = hoistedRenderState.actionPopoverRenderCount;
 export const mockedGetArticleCommentsPageAction = mockedCommentActions.getArticleCommentsPageAction;
+export const mockedDeleteArticleCommentAction = mockedCommentActions.deleteArticleCommentAction;
+export const mockedUpdateArticleCommentAction = mockedCommentActions.updateArticleCommentAction;
 export const sortButtonRenderCount = hoistedRenderState.sortButtonRenderCount;
 
 vi.mock('next-intl', () => ({
@@ -196,16 +196,21 @@ export const initialPage: ArticleCommentPage = {
 
 /**
  * 댓글 섹션 테스트 공통 상태를 초기화합니다.
+ *
+ * 기존 Map 캐시 리셋 대신, `renderArticleCommentsSection`이 렌더마다 새 테스트
+ * QueryClient를 생성하므로 캐시 격리는 렌더 시점에 자동으로 보장됩니다.
  */
 export const resetArticleCommentsSectionTestState = () => {
   vi.clearAllMocks();
   actionPopoverRenderCount.value = 0;
   sortButtonRenderCount.value = 0;
-  resetArticleCommentsPageCacheForTest();
 };
 
 /**
  * 기본 props로 댓글 섹션을 렌더링합니다.
+ *
+ * 매 렌더마다 새 테스트 QueryClientProvider로 감싸 테스트 간 React Query 캐시가
+ * 공유되지 않도록 격리합니다.
  */
 export const renderArticleCommentsSection = (props?: {
   articleId?: string;
@@ -218,6 +223,7 @@ export const renderArticleCommentsSection = (props?: {
       initialPage={props?.initialPage}
       locale={props?.locale ?? 'ko'}
     />,
+    { wrapper: createQueryClientWrapper() },
   );
 
 /**

@@ -3,6 +3,7 @@ import React from 'react';
 
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import type { PublishSettings } from '@/widgets/editor/ui/core/editor-core.types';
 import { PublishPanel } from '@/widgets/editor/ui/publish/publish-panel';
 import { createDefaultPublishSettings } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -56,6 +57,7 @@ const renderPublishPanel = (
       onClose={onClose}
       onSubmit={onSubmit}
     />,
+    { wrapper: createQueryClientWrapper() },
   );
 
   return {
@@ -109,7 +111,9 @@ describe('PublishPanel', () => {
       target: { value: '10:00' },
     });
 
-    expect(await screen.findByText('UTC: 2026-03-20T01:00:00.000Z')).toBeTruthy();
+    // 실행 타임존과 무관하게 "로컬 입력 → UTC 변환" 계약을 검증한다.
+    const expectedUtcLabel = `UTC: ${new Date(2026, 2, 20, 10, 0).toISOString()}`;
+    expect(await screen.findByText(expectedUtcLabel)).toBeTruthy();
   });
 
   it('이미 발행된 글을 수정할 때는 publishAt이 있어도 기본 모드를 지금 발행으로 둔다', async () => {
@@ -367,7 +371,7 @@ describe('PublishPanel', () => {
       );
     };
 
-    render(<PublishPanelHarness />);
+    render(<PublishPanelHarness />, { wrapper: createQueryClientWrapper() });
 
     await waitFor(() => {
       expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('draft-slug');
@@ -413,7 +417,7 @@ describe('PublishPanel', () => {
       );
     };
 
-    render(<PublishPanelHarness />);
+    render(<PublishPanelHarness />, { wrapper: createQueryClientWrapper() });
 
     const thumbnailInput = await screen.findByLabelText('썸네일');
 

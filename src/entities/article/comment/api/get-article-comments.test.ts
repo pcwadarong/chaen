@@ -7,6 +7,7 @@ import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
@@ -43,6 +44,7 @@ describe('getArticleComments', () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -68,6 +70,7 @@ describe('getArticleComments', () => {
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -114,6 +117,7 @@ describe('getArticleComments', () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -153,6 +157,7 @@ describe('getArticleComments', () => {
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi
         .fn()
@@ -189,6 +194,7 @@ describe('getArticleComments', () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -228,6 +234,7 @@ describe('getArticleComments', () => {
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi
         .fn()
@@ -281,6 +288,7 @@ describe('getArticleComments', () => {
     const rootQuery = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [

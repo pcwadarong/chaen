@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 import {
   getArticles,
   getResolvedArticlesFirstPage,
@@ -153,6 +155,86 @@ export const buildArticlesPageHref = ({
 };
 
 /**
+ * 정규화된 원시 파라미터로 아티클 목록 초기 데이터를 조회합니다.
+ *
+ * generateMetadata와 페이지 본문이 동일 요청에서 두 번 호출하므로 React `cache()`로
+ * 요청 범위 dedupe합니다. 객체 인자는 참조 기준이라 캐시가 무효화되므로 원시값만 받고,
+ * `cursorHistory`는 join한 문자열로 전달받아 내부에서 배열로 복원합니다.
+ */
+const getCachedArticlesPageData = cache(
+  async (
+    locale: string,
+    page: number,
+    normalizedCursor: string | null,
+    serializedCursorHistory: string,
+    normalizedQuery: string,
+    normalizedTag: string,
+  ): Promise<ArticlesPageProps> => {
+    const normalizedCursorHistory = serializedCursorHistory
+      ? serializedCursorHistory.split(',')
+      : [];
+    const shouldUseDirectCursor = page > 1 && normalizedCursor;
+    let currentCursor: string | null = null;
+    const currentCursorHistory = normalizedCursorHistory;
+    let currentPage = 1;
+    let feedLocale = locale.toLowerCase();
+    let articlesPage;
+
+    if (shouldUseDirectCursor) {
+      articlesPage = await getArticles({
+        cursor: normalizedCursor,
+        locale: feedLocale,
+        query: normalizedQuery,
+        tag: normalizedTag,
+      });
+      currentCursor = normalizedCursor;
+      currentPage = articlesPage.items.length === 0 ? page - 1 : page;
+    } else {
+      const resolvedArticlesPage = await getResolvedArticlesFirstPage({
+        locale,
+        query: normalizedQuery,
+        tag: normalizedTag,
+      });
+      feedLocale = resolvedArticlesPage.resolvedLocale;
+      articlesPage = resolvedArticlesPage.page;
+    }
+
+    return {
+      activeTag: normalizedTag,
+      feedLocale,
+      initialCursor: articlesPage.nextCursor,
+      initialItems: articlesPage.items,
+      locale,
+      pagination: {
+        currentPage,
+        nextHref: articlesPage.nextCursor
+          ? buildArticlesPageHref({
+              cursor: articlesPage.nextCursor,
+              cursorHistory: currentCursor ? [...currentCursorHistory, currentCursor] : [],
+              locale,
+              page: currentPage + 1,
+              query: normalizedQuery,
+              tag: normalizedTag,
+            })
+          : null,
+        previousHref:
+          currentPage > 1
+            ? buildArticlesPageHref({
+                cursor: currentCursorHistory.at(-1) ?? null,
+                cursorHistory: currentCursorHistory.slice(0, -1),
+                locale,
+                page: currentPage - 1,
+                query: normalizedQuery,
+                tag: normalizedTag,
+              })
+            : null,
+      },
+      searchQuery: normalizedQuery,
+    };
+  },
+);
+
+/**
  * 아티클 목록 페이지의 초기 무한스크롤 데이터를 조회합니다.
  *
  * 서버에서 정규화한 query를 내려줘야 클라이언트 피드가 동일한 키로 초기화됩니다.
@@ -169,62 +251,13 @@ export const getArticlesPageData = async ({
   const normalizedCursorHistory = normalizeCursorHistoryParams(cursorHistory);
   const normalizedQuery = normalizeSearchParams(query);
   const normalizedTag = normalizedQuery ? '' : normalizeTagParams(tag);
-  const shouldUseDirectCursor = page > 1 && normalizedCursor;
-  let currentCursor: string | null = null;
-  const currentCursorHistory = normalizedCursorHistory;
-  let currentPage = 1;
-  let feedLocale = locale.toLowerCase();
-  let articlesPage;
 
-  if (shouldUseDirectCursor) {
-    articlesPage = await getArticles({
-      cursor: normalizedCursor,
-      locale: feedLocale,
-      query: normalizedQuery,
-      tag: normalizedTag,
-    });
-    currentCursor = normalizedCursor;
-    currentPage = articlesPage.items.length === 0 ? page - 1 : page;
-  } else {
-    const resolvedArticlesPage = await getResolvedArticlesFirstPage({
-      locale,
-      query: normalizedQuery,
-      tag: normalizedTag,
-    });
-    feedLocale = resolvedArticlesPage.resolvedLocale;
-    articlesPage = resolvedArticlesPage.page;
-  }
-
-  return {
-    activeTag: normalizedTag,
-    feedLocale,
-    initialCursor: articlesPage.nextCursor,
-    initialItems: articlesPage.items,
+  return getCachedArticlesPageData(
     locale,
-    pagination: {
-      currentPage,
-      nextHref: articlesPage.nextCursor
-        ? buildArticlesPageHref({
-            cursor: articlesPage.nextCursor,
-            cursorHistory: currentCursor ? [...currentCursorHistory, currentCursor] : [],
-            locale,
-            page: currentPage + 1,
-            query: normalizedQuery,
-            tag: normalizedTag,
-          })
-        : null,
-      previousHref:
-        currentPage > 1
-          ? buildArticlesPageHref({
-              cursor: currentCursorHistory.at(-1) ?? null,
-              cursorHistory: currentCursorHistory.slice(0, -1),
-              locale,
-              page: currentPage - 1,
-              query: normalizedQuery,
-              tag: normalizedTag,
-            })
-          : null,
-    },
-    searchQuery: normalizedQuery,
-  };
+    page,
+    normalizedCursor,
+    normalizedCursorHistory.join(','),
+    normalizedQuery,
+    normalizedTag,
+  );
 };

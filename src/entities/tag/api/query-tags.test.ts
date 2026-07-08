@@ -5,6 +5,7 @@ import { getAllTags, getTagIdBySlug } from '@/entities/tag/api/query-tags';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 

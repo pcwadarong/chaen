@@ -1,9 +1,19 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { LinkEmbedCard } from '@/shared/ui/markdown/link-embed-card';
 
 import '@testing-library/jest-dom/vitest';
+
+/**
+ * `LinkEmbedCard`를 React Query 래퍼로 감싸 렌더링합니다.
+ *
+ * @param ui 렌더링할 엘리먼트입니다.
+ * @returns Testing Library 렌더 결과입니다.
+ */
+const renderWithClient = (ui: React.ReactElement) =>
+  render(ui, { wrapper: createQueryClientWrapper() });
 
 describe('LinkEmbedCard', () => {
   afterEach(() => {
@@ -11,7 +21,7 @@ describe('LinkEmbedCard', () => {
   });
 
   it('host fetcher가 대기 중이면, LinkEmbedCard는 로딩 skeleton을 렌더링해야 한다', () => {
-    render(
+    renderWithClient(
       <LinkEmbedCard
         fetchLinkPreviewMeta={() => new Promise(() => undefined)}
         url="https://github.com/openai/openai"
@@ -23,7 +33,7 @@ describe('LinkEmbedCard', () => {
   });
 
   it('유효한 preview metadata가 주어지면, LinkEmbedCard는 card variant를 렌더링해야 한다', async () => {
-    render(
+    renderWithClient(
       <LinkEmbedCard
         fetchLinkPreviewMeta={async () => ({
           description: 'Repository description',
@@ -47,7 +57,7 @@ describe('LinkEmbedCard', () => {
   });
 
   it('유효한 preview metadata가 주어지면, LinkEmbedCard는 카드 본문 텍스트 없이 preview variant를 렌더링해야 한다', async () => {
-    render(
+    renderWithClient(
       <LinkEmbedCard
         fetchLinkPreviewMeta={async () => ({
           description: 'Repository description',
@@ -71,7 +81,7 @@ describe('LinkEmbedCard', () => {
   });
 
   it('preview metadata가 부족하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
-    render(
+    renderWithClient(
       <LinkEmbedCard
         fallbackLabel="Example"
         fetchLinkPreviewMeta={async () => ({
@@ -94,7 +104,7 @@ describe('LinkEmbedCard', () => {
   });
 
   it('host fetcher가 실패하면, LinkEmbedCard는 일반 외부 링크로 fallback해야 한다', async () => {
-    render(
+    renderWithClient(
       <LinkEmbedCard
         fallbackLabel="Fallback"
         fetchLinkPreviewMeta={async () => {
@@ -127,7 +137,9 @@ describe('LinkEmbedCard', () => {
       }),
     );
 
-    render(<LinkEmbedCard fallbackLabel="Fallback" url="https://example.com" variant="card" />);
+    renderWithClient(
+      <LinkEmbedCard fallbackLabel="Fallback" url="https://example.com" variant="card" />,
+    );
 
     const link = await screen.findByRole('link', { name: 'Fallback' });
 

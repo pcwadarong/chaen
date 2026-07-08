@@ -17,6 +17,13 @@ vi.mock('googleapis', () => ({
   },
 }));
 
+vi.mock('next/cache', () => ({
+  unstable_cache:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]) =>
+      fn(...args),
+}));
+
 describe('getAdminGoogleArticleTraffic', () => {
   const originalClientEmail = process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL;
   const originalPrivateKey = process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY;
@@ -170,7 +177,8 @@ describe('getAdminGoogleArticleTraffic', () => {
     const { getAdminGoogleArticleTraffic } =
       await import('@/entities/article/api/list/get-admin-google-article-traffic');
 
-    await getAdminGoogleArticleTraffic({ today: new Date('2026-03-31T00:30:00+09:00') });
+    // 실행 타임존(로컬/CI-UTC)과 무관하게 "로컬 날짜 범위" 계약을 검증하도록 로컬 컴포넌트로 생성한다.
+    await getAdminGoogleArticleTraffic({ today: new Date(2026, 2, 31, 0, 30) });
 
     expect(mockQuery).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -64,15 +64,9 @@ describe('ProjectRoute', () => {
         }),
       }),
     ).resolves.toMatchObject({
+      // project 아카이브는 canonical 신호만 노출한다(hreflang alternates 미제공).
       alternates: {
         canonical: 'https://chaen.dev/ko/project',
-        languages: {
-          'x-default': 'https://chaen.dev/en/project',
-          en: 'https://chaen.dev/en/project',
-          fr: 'https://chaen.dev/fr/project',
-          ja: 'https://chaen.dev/ja/project',
-          ko: 'https://chaen.dev/ko/project',
-        },
       },
       description: '작업한 프로젝트와 그 안에 쌓인 기록들을 함께 정리합니다.',
       openGraph: {

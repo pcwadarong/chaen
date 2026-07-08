@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import type { TagOption } from '@/entities/tag/api/tag.types';
 import { TAGS_CACHE_TAG } from '@/entities/tag/model/cache-tags';
@@ -203,6 +203,8 @@ const readCachedTagLabelMapBySlugs = async ({
   'use cache';
 
   cacheTag(TAGS_CACHE_TAG);
+  // 예약 발행(publish_at) 글이 태그 무효화 없이도 TTL로 노출되도록 함.
+  cacheLife({ expire: 86400, revalidate: 3600, stale: 300 });
 
   const supabase = createOptionalPublicServerSupabaseClient();
   if (!supabase) return { data: new Map(), schemaMissing: false };

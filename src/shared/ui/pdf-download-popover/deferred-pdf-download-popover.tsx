@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 
 import type {
@@ -7,7 +8,11 @@ import type {
   PdfFileDownloadSource,
   PdfFileKind,
 } from '@/entities/pdf-file/model/types';
+import { pdf } from '@/shared/lib/query/query-keys';
 import { PdfDownloadPopover } from '@/shared/ui/pdf-download-popover/pdf-download-popover';
+
+const PDF_OPTIONS_STALE_TIME = 5 * 60_000;
+const EMPTY_PDF_DOWNLOAD_OPTIONS: PdfFileDownloadOption[] = [];
 
 type DeferredPdfDownloadPopoverProps = {
   className?: string;
@@ -28,59 +33,32 @@ export const DeferredPdfDownloadPopover = ({
   source,
   unavailableLabel,
 }: DeferredPdfDownloadPopoverProps) => {
-  const [options, setOptions] = React.useState<PdfFileDownloadOption[]>([]);
-  const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading');
+  const { data, isPending } = useQuery({
+    queryFn: async ({ signal }) => {
+      const searchParams = new URLSearchParams({
+        source,
+      });
+      const response = await fetch(`/api/pdf/options/${kind}?${searchParams.toString()}`, {
+        method: 'GET',
+        signal,
+      });
 
-  React.useEffect(() => {
-    const abortController = new AbortController();
-
-    const loadOptions = async () => {
-      setStatus('loading');
-
-      try {
-        const searchParams = new URLSearchParams({
-          source,
-        });
-        const response = await fetch(`/api/pdf/options/${kind}?${searchParams.toString()}`, {
-          method: 'GET',
-          signal: abortController.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to load PDF options: ${response.status}`);
-        }
-
-        const data = (await response.json()) as PdfFileDownloadOption[];
-        setOptions(data);
-        setStatus('ready');
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        console.error('[pdf] deferred download options failed', {
-          error,
-          kind,
-          source,
-        });
-        setOptions([]);
-        setStatus('error');
+      if (!response.ok) {
+        throw new Error(`Failed to load PDF options: ${response.status}`);
       }
-    };
 
-    void loadOptions();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [kind, source]);
+      return (await response.json()) as PdfFileDownloadOption[];
+    },
+    queryKey: pdf.options(kind, source),
+    staleTime: PDF_OPTIONS_STALE_TIME,
+  });
 
   return (
     <PdfDownloadPopover
       className={className}
       label={label}
-      options={options}
-      pending={status === 'loading'}
+      options={data ?? EMPTY_PDF_DOWNLOAD_OPTIONS}
+      pending={isPending}
       unavailableLabel={unavailableLabel}
     />
   );

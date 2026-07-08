@@ -12,6 +12,7 @@ import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
@@ -364,25 +365,16 @@ describe('getArticleDetailListWindow', () => {
       terminalCall: 2,
       terminalMethod: 'in',
     });
+    // olderPage와 newer base row 조회가 Promise.all로 병렬 실행되므로
+    // 호출 순서가 아닌 테이블 + older/newer 순서 기준으로 query mock을 반환합니다.
+    const articlesQueue = [olderArticlesQuery, newerArticlesQuery];
+    const translationsQueue = [olderTranslationsQuery, newerTranslationsQuery];
     const supabaseClient = {
-      from: vi
-        .fn()
-        .mockImplementationOnce((table: string) => {
-          if (table === 'articles') return olderArticlesQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'article_translations') return olderTranslationsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'articles') return newerArticlesQuery;
-          throw new Error(`unexpected table: ${table}`);
-        })
-        .mockImplementationOnce((table: string) => {
-          if (table === 'article_translations') return newerTranslationsQuery;
-          throw new Error(`unexpected table: ${table}`);
-        }),
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articlesQueue.shift();
+        if (table === 'article_translations') return translationsQueue.shift();
+        throw new Error(`unexpected table: ${table}`);
+      }),
     };
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);

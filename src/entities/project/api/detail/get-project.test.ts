@@ -33,6 +33,18 @@ const createProjectSlugLookupQuery = (id = 'funda-project') => ({
   select: vi.fn().mockReturnThis(),
 });
 
+/**
+ * `fetchAvailableProjectLocales`가 사용하는 `project_translations` locale 조회 mock을 만듭니다.
+ */
+const createProjectTranslationLocalesQuery = () => ({
+  eq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockResolvedValue({
+    data: [],
+    error: null,
+  }),
+  select: vi.fn().mockReturnThis(),
+});
+
 describe('getProject', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -91,11 +103,14 @@ describe('getProject', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTechStacksQuery)
-      .mockReturnValueOnce(techStacksQuery);
+    const projectLocalesQuery = createProjectTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'projects') return projectSlugQuery;
+      if (table === 'project_translations') return projectLocalesQuery;
+      if (table === 'project_tech_stacks') return projectTechStacksQuery;
+      if (table === 'tech_stacks') return techStacksQuery;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -245,12 +260,15 @@ describe('getProject', () => {
         },
       }),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTranslationsQuery)
-      .mockReturnValueOnce(projectTechStacksQuery)
-      .mockReturnValueOnce(techStacksQuery);
+    // recovery(fetchProjectFromTranslationRows)와 availableLocales 조회가 모두
+    // project_translations를 `.select().eq().in()`로 읽으므로 같은 query mock을 재사용합니다.
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'projects') return projectSlugQuery;
+      if (table === 'project_translations') return projectTranslationsQuery;
+      if (table === 'project_tech_stacks') return projectTechStacksQuery;
+      if (table === 'tech_stacks') return techStacksQuery;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -317,10 +335,13 @@ describe('getProject', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTechStacksQuery);
+    const projectLocalesQuery = createProjectTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'projects') return projectSlugQuery;
+      if (table === 'project_translations') return projectLocalesQuery;
+      if (table === 'project_tech_stacks') return projectTechStacksQuery;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -391,10 +412,13 @@ describe('getProject', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(projectSlugQuery)
-      .mockReturnValueOnce(projectTechStacksQuery);
+    const projectLocalesQuery = createProjectTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'projects') return projectSlugQuery;
+      if (table === 'project_translations') return projectLocalesQuery;
+      if (table === 'project_tech_stacks') return projectTechStacksQuery;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);

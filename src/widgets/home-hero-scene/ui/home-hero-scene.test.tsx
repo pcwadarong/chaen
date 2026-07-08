@@ -1,11 +1,21 @@
 /* @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import React from 'react';
 
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
 
 import '@testing-library/jest-dom/vitest';
+
+/**
+ * `HomeHeroScene`는 프로젝트 프리뷰를 React Query로 후속 조회하므로,
+ * 모든 렌더를 테스트용 QueryClientProvider로 감싸 렌더링합니다.
+ *
+ * @param ui 렌더링할 엘리먼트입니다.
+ * @returns Testing Library 렌더 결과입니다.
+ */
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: createQueryClientWrapper() });
 
 const HOME_HERO_PHOTO_ITEMS = [
   {

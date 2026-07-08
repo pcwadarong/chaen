@@ -34,7 +34,8 @@ describe('seo metadata helpers', () => {
         en: 'https://chaen.dev/en/articles/hello',
         ja: 'https://chaen.dev/ja/articles/hello',
         fr: 'https://chaen.dev/fr/articles/hello',
-        'x-default': 'https://chaen.dev/en/articles/hello',
+        // x-default는 앱 기본 locale(seoDefaultLocale = ko)의 경로를 따른다.
+        'x-default': 'https://chaen.dev/ko/articles/hello',
       },
     });
   });

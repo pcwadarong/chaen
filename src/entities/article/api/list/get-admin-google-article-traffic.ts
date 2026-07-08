@@ -1,15 +1,85 @@
 import { google } from 'googleapis';
+import { unstable_cache } from 'next/cache';
 
 import type {
   AdminGoogleArticleTraffic,
   AdminGoogleArticleTrafficItem,
 } from '@/entities/article/model/types';
 import { formatYearMonthDay } from '@/shared/lib/date/format-year-month-day';
-import { getGoogleSearchConsoleConfigOptional } from '@/shared/lib/google-search-console/config';
+import {
+  getGoogleSearchConsoleConfigOptional,
+  type GoogleSearchConsoleConfig,
+} from '@/shared/lib/google-search-console/config';
 
 import 'server-only';
 
 const GOOGLE_SEARCH_CONSOLE_READONLY_SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
+
+type SearchConsoleClient = ReturnType<typeof google.searchconsole>;
+
+let cachedSearchConsoleClient: SearchConsoleClient | null = null;
+
+/**
+ * Search Console 클라이언트를 모듈 스코프에 1회만 생성해 재사용합니다.
+ *
+ * 매 요청마다 GoogleAuth를 새로 만들던 비용을 제거합니다.
+ */
+const getSearchConsoleClient = (config: GoogleSearchConsoleConfig): SearchConsoleClient => {
+  cachedSearchConsoleClient ??= google.searchconsole({
+    auth: new google.auth.GoogleAuth({
+      credentials: {
+        client_email: config.clientEmail,
+        private_key: config.privateKey,
+      },
+      scopes: [GOOGLE_SEARCH_CONSOLE_READONLY_SCOPE],
+    }),
+    version: 'v1',
+  });
+
+  return cachedSearchConsoleClient;
+};
+
+/**
+ * Search Console 아티클 유입 상위 행을 15분 TTL 캐시로 조회합니다.
+ *
+ * 날짜(`startDate`/`endDate`)를 인자로 받아 캐시 키가 일 단위로만 바뀌게 합니다.
+ * 에러 상태 판별은 호출자에서 처리하므로, 실패 시 예외를 던져 캐시되지 않게 합니다.
+ */
+const fetchGoogleArticleTrafficRows = unstable_cache(
+  async (startDate: string, endDate: string, limit: number) => {
+    const config = getGoogleSearchConsoleConfigOptional();
+    if (!config) return [];
+
+    const searchConsole = getSearchConsoleClient(config);
+    const response = await searchConsole.searchanalytics.query({
+      requestBody: {
+        dataState: 'final',
+        dimensionFilterGroups: [
+          {
+            filters: [
+              {
+                dimension: 'page',
+                expression: '/articles/',
+                operator: 'contains',
+              },
+            ],
+            groupType: 'and',
+          },
+        ],
+        dimensions: ['page'],
+        endDate,
+        rowLimit: limit,
+        searchType: 'web',
+        startDate,
+      },
+      siteUrl: config.siteUrl,
+    });
+
+    return response.data.rows ?? [];
+  },
+  ['admin-google-article-traffic'],
+  { revalidate: 900 },
+);
 
 /**
  * Search Console row의 절대 URL을 관리자 패널용 path로 정규화합니다.
@@ -81,41 +151,8 @@ export const getAdminGoogleArticleTraffic = async ({
   }
 
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: config.clientEmail,
-        private_key: config.privateKey,
-      },
-      scopes: [GOOGLE_SEARCH_CONSOLE_READONLY_SCOPE],
-    });
-    const searchConsole = google.searchconsole({
-      auth,
-      version: 'v1',
-    });
-    const response = await searchConsole.searchanalytics.query({
-      requestBody: {
-        dataState: 'final',
-        dimensionFilterGroups: [
-          {
-            filters: [
-              {
-                dimension: 'page',
-                expression: '/articles/',
-                operator: 'contains',
-              },
-            ],
-            groupType: 'and',
-          },
-        ],
-        dimensions: ['page'],
-        endDate,
-        rowLimit: limit,
-        searchType: 'web',
-        startDate: formattedStartDate,
-      },
-      siteUrl: config.siteUrl,
-    });
-    const items = (response.data.rows ?? [])
+    const rows = await fetchGoogleArticleTrafficRows(formattedStartDate, endDate, limit);
+    const items = rows
       .map(mapGoogleArticleTrafficItem)
       .filter((item): item is AdminGoogleArticleTrafficItem => item !== null);
 

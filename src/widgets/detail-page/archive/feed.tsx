@@ -1,16 +1,19 @@
 'use client';
 
+import { useInfiniteQuery } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { css } from 'styled-system/css';
 
+import type { AppLocale } from '@/i18n/routing';
 import type { ActionResult } from '@/shared/lib/action/action-result';
 import {
   resolvePublicContentPathSegment,
   resolvePublicContentPublishedAt,
 } from '@/shared/lib/content/public-content';
 import { formatYear } from '@/shared/lib/date/format-year';
+import { getErrorMessage } from '@/shared/lib/error/get-error-message';
+import { detailArchive, type DetailArchiveDomain } from '@/shared/lib/query/query-keys';
 import { useAutoLoadAfterScroll } from '@/shared/lib/react/use-auto-load-after-scroll';
-import { useCursorPaginationFeed } from '@/shared/lib/react/use-cursor-pagination-feed';
 import { Button } from '@/shared/ui/button/button';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -48,10 +51,20 @@ type DetailArchiveFeedProps<TItem extends DetailArchiveRecord> = {
 };
 
 const DETAIL_ARCHIVE_LOAD_ERROR_CODE = 'detailArchive.loadFailed';
+const DETAIL_ARCHIVE_PAGE_LIMIT = 10;
 const EMPTY_DETAIL_ARCHIVE_PAGE = {
   items: [],
   nextCursor: null,
 } satisfies DetailArchivePage<DetailArchiveRecord>;
+
+/**
+ * 부트스트랩이 아직 끝나지 않았을 때 쿼리 키에 사용하는 시드 토큰입니다.
+ *
+ * 부트스트랩 중에는 시드가 빈 페이지이므로, 실제 시드가 준비되면 키가 반드시
+ * 갈라지도록 별도 토큰을 사용합니다. 이렇게 하지 않으면 단일 페이지 아카이브에서
+ * 빈 시드의 `initialData`가 그대로 캐시에 남아 목록이 비어 보일 수 있습니다.
+ */
+const DETAIL_ARCHIVE_BOOTSTRAPPING_SEED_KEY = '__bootstrapping__';
 
 /**
  * 상세 페이지 좌측 아카이브 목록에 cursor 기반 추가 로드를 붙입니다.
@@ -82,20 +95,31 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
     });
   const resolvedInitialPage =
     bootstrapPage ?? (EMPTY_DETAIL_ARCHIVE_PAGE as DetailArchivePage<TItem>);
-  const loadPage = useCallback(
-    async ({
-      cursor,
-      limit,
-      locale: nextLocale,
-    }: {
-      cursor: string | null;
-      limit: number;
-      locale: string;
-    }) => {
+  // 서로 다른 상세 페이지가 같은 커서 시드(예: 마지막 윈도우의 'root')를 공유해도
+  // 이전 페이지의 캐시가 재사용되지 않도록 현재 아이템 식별자를 시드에 포함합니다.
+  const seedKey = `${selectedPathSegment}:${
+    isBootstrapping
+      ? DETAIL_ARCHIVE_BOOTSTRAPPING_SEED_KEY
+      : (resolvedInitialPage.nextCursor ?? 'root')
+  }`;
+  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    enabled: !isBootstrapping && !bootstrapError,
+    getNextPageParam: lastPage => lastPage.nextCursor,
+    initialData: {
+      pageParams: [null],
+      pages: [
+        {
+          items: resolvedInitialPage.items,
+          nextCursor: resolvedInitialPage.nextCursor,
+        },
+      ],
+    },
+    initialPageParam: resolvedInitialPage.nextCursor,
+    queryFn: async ({ pageParam }) => {
       const result = await loadPageAction({
-        cursor,
-        limit,
-        locale: nextLocale,
+        cursor: pageParam,
+        limit: DETAIL_ARCHIVE_PAGE_LIMIT,
+        locale,
       });
 
       if (!result.ok || !result.data) {
@@ -107,16 +131,30 @@ export const DetailArchiveFeed = <TItem extends DetailArchiveRecord>({
         nextCursor: result.data.nextCursor,
       };
     },
-    [loadPageAction],
-  );
-
-  const { errorMessage, hasMore, isLoadingMore, items, loadMore } = useCursorPaginationFeed<TItem>({
-    initialCursor: resolvedInitialPage.nextCursor,
-    initialItems: resolvedInitialPage.items,
-    loadPage,
-    locale,
-    mergeItems: mergeDetailArchiveFeedItems,
+    queryKey: detailArchive.feed(
+      resolveDetailArchiveDomain(hrefBasePath),
+      locale as AppLocale,
+      seedKey,
+    ),
+    staleTime: Infinity,
   });
+
+  const items = useMemo(
+    () =>
+      (data?.pages ?? []).reduce<TItem[]>(
+        (mergedItems, page) => mergeDetailArchiveFeedItems(mergedItems, page.items),
+        [],
+      ),
+    [data],
+  );
+  const errorMessage = error ? getErrorMessage(error) : null;
+  const isLoadingMore = isFetchingNextPage;
+  const hasMore = hasNextPage;
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    await fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   const isAutoLoadEnabled = useAutoLoadAfterScroll();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -245,6 +283,19 @@ const alignActiveArchiveItemInViewport = (
     top: nextScrollTop,
   });
 };
+
+/**
+ * 아카이브가 렌더되는 화면(글/프로젝트 상세)을 쿼리 키 도메인 값으로 변환합니다.
+ *
+ * 두 상세 화면의 아카이브 캐시가 서로 섞이지 않도록 `hrefBasePath`를 기준으로
+ * 도메인을 구분합니다. `/articles`로 시작하면 글 아카이브, 그 외에는 프로젝트
+ * 아카이브로 취급합니다.
+ *
+ * @param hrefBasePath 아카이브 링크의 기준 경로입니다.
+ * @returns 쿼리 키에 사용할 아카이브 도메인 값입니다.
+ */
+const resolveDetailArchiveDomain = (hrefBasePath: string): DetailArchiveDomain =>
+  hrefBasePath.startsWith('/articles') ? 'article' : 'project';
 
 type BuildDetailArchiveLinkItemsInput<TItem extends DetailArchiveRecord> = {
   hrefBasePath: string;

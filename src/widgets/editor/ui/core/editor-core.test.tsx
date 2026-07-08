@@ -356,7 +356,8 @@ describe('EditorCore', () => {
     'autosave는 마지막 입력 후 180초 뒤 한 번만 실행된다',
     async () => {
       vi.useFakeTimers();
-      vi.setSystemTime(new Date('2026-03-12T09:07:00+09:00'));
+      // 실행 타임존과 무관하게 로컬 09:07이 되도록 로컬 컴포넌트로 고정한다("저장됨 09:10" 라벨 검증).
+      vi.setSystemTime(new Date(2026, 2, 12, 9, 7));
       const onDraftSave = vi.fn().mockResolvedValue(undefined);
 
       renderEditorCore({ onDraftSave });

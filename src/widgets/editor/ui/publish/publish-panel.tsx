@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { css } from 'styled-system/css';
 
@@ -10,6 +11,7 @@ import {
   parseEditorError,
   resolveEditorPublishInlineErrorField,
 } from '@/entities/editor/model/editor-error';
+import { editor, type EditorSlugCheckType } from '@/shared/lib/query/query-keys';
 import { normalizeSlugInput } from '@/shared/lib/slug/slug';
 import { Button } from '@/shared/ui/button/button';
 import { SlideOver } from '@/shared/ui/slide-over/slide-over';
@@ -108,6 +110,7 @@ export const PublishPanel = ({
   onSettingsChange,
   onSubmit,
 }: PublishPanelProps) => {
+  const queryClient = useQueryClient();
   const showPublishCommentsSetting = shouldShowPublishCommentsSetting(contentType);
   const [slug, setSlug] = useState('');
   const [visibility, setVisibility] = useState<PublishVisibility>('public');
@@ -285,37 +288,48 @@ export const PublishPanel = ({
    */
   const handleCheckDuplicate = useCallback(
     async (nextSlug: string) => {
-      const searchParams = new URLSearchParams({
-        slug: nextSlug,
-        type: contentType,
+      // 디바운스 체크와 제출 시 재체크가 같은 키로 dedupe되도록 React Query 캐시를 경유합니다.
+      const duplicate = await queryClient.fetchQuery({
+        queryFn: async ({ signal }) => {
+          const searchParams = new URLSearchParams({
+            slug: nextSlug,
+            type: contentType,
+          });
+
+          if (contentId) {
+            searchParams.set('excludeId', contentId);
+          }
+
+          const response = await fetch(`/api/editor/slug-check?${searchParams.toString()}`, {
+            signal,
+          });
+          const body = (await response.json()) as {
+            duplicate?: boolean;
+            error?: string;
+            message?: string;
+          };
+
+          if (!response.ok || typeof body.duplicate !== 'boolean') {
+            throw createEditorError(
+              'slugCheckFailed',
+              body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
+            );
+          }
+
+          return body.duplicate;
+        },
+        queryKey: editor.slugCheck(contentType as EditorSlugCheckType, nextSlug, contentId),
+        staleTime: 30_000,
       });
 
-      if (contentId) {
-        searchParams.set('excludeId', contentId);
-      }
-
-      const response = await fetch(`/api/editor/slug-check?${searchParams.toString()}`);
-      const body = (await response.json()) as {
-        duplicate?: boolean;
-        error?: string;
-        message?: string;
-      };
-
-      if (!response.ok || typeof body.duplicate !== 'boolean') {
-        throw createEditorError(
-          'slugCheckFailed',
-          body.error ?? body.message ?? EDITOR_ERROR_MESSAGE.slugCheckFailed,
-        );
-      }
-
-      if (!body.duplicate) {
+      if (!duplicate) {
         verifiedSlugRef.current = nextSlug;
         setErrors(previous => (previous.slug ? { ...previous, slug: undefined } : previous));
       }
 
-      return body.duplicate;
+      return duplicate;
     },
-    [contentId, contentType],
+    [contentId, contentType, queryClient],
   );
 
   /**

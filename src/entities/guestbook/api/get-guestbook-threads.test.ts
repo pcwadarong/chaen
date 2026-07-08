@@ -7,6 +7,7 @@ import { hasSupabaseEnv } from '@/shared/lib/supabase/config';
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 
@@ -62,7 +63,7 @@ describe('getGuestbookThreads', () => {
 
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
@@ -107,7 +108,8 @@ describe('getGuestbookThreads', () => {
     expect(vi.mocked(unstable_cacheTag).mock.calls.flat()).toContain('guestbook:replies:parent-1');
     expect(parentQuery.is).toHaveBeenCalledWith('parent_id', null);
     expect(parentQuery.is).not.toHaveBeenCalledWith('deleted_at', null);
-    expect(replyQuery.eq).toHaveBeenCalledWith('parent_id', 'parent-1');
+    expect(replyQuery.in).toHaveBeenCalledWith('parent_id', ['parent-1']);
+    expect(replyQuery.is).toHaveBeenCalledWith('deleted_at', null);
   });
 
   it('삭제된 원댓글은 답글이 없으면 목록에서 제외한다', async () => {
@@ -136,7 +138,7 @@ describe('getGuestbookThreads', () => {
 
     const replyQuery = {
       select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [],

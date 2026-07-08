@@ -13,7 +13,9 @@ describe('publish-panel utils', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-13T00:00:00+09:00'));
 
-    expect(toScheduledPublishUtcIso('2026-03-20', '10:00')).toBe('2026-03-20T01:00:00.000Z');
+    // 실행 타임존(로컬/CI-UTC)과 무관하게 검증하도록 기대값도 로컬 컴포넌트로 생성한다.
+    const expectedUtcIso = new Date(2026, 2, 20, 10, 0).toISOString();
+    expect(toScheduledPublishUtcIso('2026-03-20', '10:00')).toBe(expectedUtcIso);
 
     vi.useRealTimers();
   });

@@ -5,6 +5,7 @@ import { getPdfFileContent } from '@/entities/pdf-file/api/get-pdf-file-content'
 import { createOptionalPublicServerSupabaseClient } from '@/shared/lib/supabase/public-server';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 

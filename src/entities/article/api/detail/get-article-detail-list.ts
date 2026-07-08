@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import { ARTICLES_CACHE_TAG } from '@/entities/article/model/cache-tags';
 import type { ArticleArchivePage } from '@/entities/article/model/types';
@@ -278,6 +278,8 @@ const readCachedArticleDetailList = async (input: {
   'use cache';
 
   cacheTag(ARTICLES_CACHE_TAG);
+  // 예약 발행(publish_at) 글이 태그 무효화 없이도 TTL로 노출되도록 함.
+  cacheLife({ expire: 86400, revalidate: 3600, stale: 300 });
 
   const parsedCursor = parseLocaleAwarePublishedAtIdCursor(input.cursor);
   const requestedLocale = parsedCursor?.locale ?? input.normalizedLocale;
@@ -349,12 +351,15 @@ export const getArticleDetailListWindow = async ({
     publishedAt: currentItem.publish_at,
   });
 
-  let olderPage = await getArticleDetailList({
-    cursor: olderCursor,
-    limit: trailingSlots,
-    locale,
-  });
-  let newerBaseRowsResult = await fetchNewerArticleArchiveBaseRows(currentItem, leadingSlots);
+  // olderPage 조회와 newer base row 조회는 서로 의존하지 않으므로 병렬로 실행합니다.
+  let [olderPage, newerBaseRowsResult] = await Promise.all([
+    getArticleDetailList({
+      cursor: olderCursor,
+      limit: trailingSlots,
+      locale,
+    }),
+    fetchNewerArticleArchiveBaseRows(currentItem, leadingSlots),
+  ]);
   if (newerBaseRowsResult.schemaMissing) {
     throw new Error('[articles] content schema가 없습니다.');
   }

@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   type ArticleTranslationRow,
@@ -283,6 +283,8 @@ const readCachedRelatedArticles = async ({
   'use cache';
 
   cacheTag(ARTICLES_CACHE_TAG, createArticleCacheTag(articleId));
+  // 예약 발행(publish_at) 글이 태그 무효화 없이도 TTL로 노출되도록 함.
+  cacheLife({ expire: 86400, revalidate: 3600, stale: 300 });
 
   const candidateArticleIds = await fetchCandidateArticleIdsBySharedTags({
     articleId,

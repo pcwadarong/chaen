@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 import { getResolvedArticle } from '@/entities/article/api/detail/get-article';
 import {
   getArticleDetailList,
@@ -84,13 +86,24 @@ export const getArticleTagLabels = async ({
 };
 
 /**
+ * 원시 파라미터로 아티클 상세 shell 데이터를 조회합니다.
+ *
+ * generateMetadata와 페이지 본문이 동일 요청에서 두 번 호출하므로 React `cache()`로
+ * 요청 범위 dedupe합니다. 객체 인자는 참조 기준이라 캐시가 무효화되므로 원시값만 받습니다.
+ */
+const getCachedArticleDetailShellData = cache(
+  (articleSlug: string, locale: string): Promise<ArticleDetailShellData> =>
+    getResolvedArticle(articleSlug, locale),
+);
+
+/**
  * 아티클 상세 본문 shell에 필요한 최소 데이터를 조회합니다.
  */
 export const getArticleDetailShellData = ({
   articleSlug,
   locale,
 }: GetArticleDetailPageDataInput): Promise<ArticleDetailShellData> =>
-  getResolvedArticle(articleSlug, locale);
+  getCachedArticleDetailShellData(articleSlug, locale);
 
 /**
  * 아티클 상세 좌측 아카이브를 현재 글을 포함한 초기 slice로 조회합니다.

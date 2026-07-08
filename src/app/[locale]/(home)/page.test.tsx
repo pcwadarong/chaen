@@ -59,7 +59,7 @@ describe('HomeRoute', () => {
       alternates: {
         canonical: 'https://chaen.dev/ko',
         languages: {
-          'x-default': 'https://chaen.dev/en',
+          'x-default': 'https://chaen.dev/ko',
           en: 'https://chaen.dev/en',
           fr: 'https://chaen.dev/fr',
           ja: 'https://chaen.dev/ja',
