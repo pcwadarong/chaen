@@ -10,13 +10,22 @@ describe('seo canonical helpers', () => {
     ).toBe('ko');
   });
 
-  it('요청 locale 번역이 없으면 en을 canonical로 사용한다', () => {
+  it('요청 locale 번역이 없으면 실제 해석된 번역 locale을 canonical로 사용한다', () => {
     expect(
       resolveCanonicalLocale({
         requestedLocale: 'fr',
         resolvedLocale: 'ko',
       }),
-    ).toBe('en');
+    ).toBe('ko');
+  });
+
+  it('해석된 locale이 유효하지 않으면 요청 locale을 canonical로 사용한다', () => {
+    expect(
+      resolveCanonicalLocale({
+        requestedLocale: 'fr',
+        resolvedLocale: null,
+      }),
+    ).toBe('fr');
   });
 
   it('locale별 경로 맵을 생성한다', () => {
