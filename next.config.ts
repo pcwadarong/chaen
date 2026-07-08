@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
   experimental: {
     useCache: true,
   },
+  // `public/` 파일은 Next가 콘텐츠 해싱을 하지 않으므로, immutable 캐싱의 전제는
+  // 파일명 버전 접미사(`.v2` 등, `src/entities/scene/model/preloadGLB.ts` 참고)다.
+  // 에셋 내용이 바뀌면 반드시 파일명 버전을 올려야 한다.
+  async headers() {
+    const immutable = [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }];
+
+    return [
+      { source: '/models/:path*', headers: immutable },
+      { source: '/textures/:path*', headers: immutable },
+      { source: '/decoders/:path*', headers: immutable },
+    ];
+  },
   images: {
     remotePatterns: [
       {

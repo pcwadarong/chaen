@@ -1,17 +1,19 @@
 'use client';
 
-import { Html, OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls, Preload } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { Suspense, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import type { SceneBreakpoint, SceneViewportMode } from '@/entities/scene/model/breakpointConfig';
+import { BASS_MODEL_PATH, TABLE_MODEL_PATH } from '@/entities/scene/model/preloadGLB';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
+import { RenderWhenVisible } from '@/shared/lib/three/use-render-when-visible';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -147,6 +149,7 @@ export const HomeHeroStageCanvas = ({
         }}
       >
         <HomeHeroStageLights />
+        <RenderWhenVisible />
         <HomeHeroCameraRig
           currentBP={currentBP}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
@@ -159,6 +162,7 @@ export const HomeHeroStageCanvas = ({
           interactionHandlers={interactionHandlers}
         />
         <Suspense fallback={null}>
+          <Preload all />
           <HomeHeroStageReadyBridge
             isReady
             onReadyChange={onSceneReadyChange ?? noopBooleanHandler}
@@ -298,7 +302,7 @@ const HomeHeroSceneObjects = ({
       monitorScreenTexture={monitorScreenTexture}
     />
     <group position={[...sceneLayout.bassPosition]} rotation={[...sceneLayout.bassRotation]}>
-      <SceneProp path="/models/bass.glb" position={[0, 0, 0]} />
+      <SceneProp path={BASS_MODEL_PATH} position={[0, 0, 0]} />
       {isBackgroundMusicPlaying ? (
         <Html center distanceFactor={8} position={[0, 2.2, 0]} transform>
           <button
@@ -321,7 +325,7 @@ const HomeHeroSceneObjects = ({
     </group>
     <SceneProp
       frameScreenImageSrc={selectedFrameImageSrc}
-      path="/models/table.glb"
+      path={TABLE_MODEL_PATH}
       position={[...sceneLayout.tablePosition]}
       rotation={[...sceneLayout.tableRotation]}
     />

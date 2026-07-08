@@ -1,9 +1,11 @@
 'use client';
 
+import { Preload } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
 import React, { Suspense, useEffect } from 'react';
 
 import type { SceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
+import { RenderWhenVisible } from '@/shared/lib/three/use-render-when-visible';
 import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
@@ -54,8 +56,10 @@ export const ContactSceneCanvas = ({
   >
     <ContactSceneCameraRig />
     <HomeHeroStageLights />
+    <RenderWhenVisible />
     {/* 데스크탑 전용 보강 씬이라 기본 wrapper가 먼저 렌더되고, 모델 로딩 중에는 빈 캔버스로 유지합니다. */}
     <Suspense fallback={null}>
+      <Preload all />
       <group position={[0, -2.4, 0]}>
         <HomeHeroCharacterSeatSet instance="contact" />
         <mesh receiveShadow position={[1.2, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>

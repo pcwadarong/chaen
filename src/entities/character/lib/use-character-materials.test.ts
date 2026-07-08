@@ -135,6 +135,43 @@ describe('applyCharacterMaterials', () => {
     expect(laptopScreenMesh.material.color.getHexString()).not.toBe('ffffff');
   });
 
+  it('anisotropy가 주어지면 monitor texture에 이방성 값과 갱신 표시(version 증가)가 반영되어야 한다', () => {
+    const scene = new Group();
+    const laptopScreenMesh = createMesh('laptop_screen');
+    const texture = new Texture();
+    const initialVersion = texture.version;
+
+    scene.add(laptopScreenMesh);
+
+    applyCharacterScreenTexture(scene, {
+      anisotropy: 8,
+      opacity: 1,
+      texture,
+    });
+
+    expect(texture.anisotropy).toBe(8);
+    expect(texture.version).toBeGreaterThan(initialVersion);
+  });
+
+  it('anisotropy가 이미 동일하면 monitor texture를 다시 갱신 표시(version 증가)하지 않아야 한다', () => {
+    const scene = new Group();
+    const laptopScreenMesh = createMesh('laptop_screen');
+    const texture = new Texture();
+
+    texture.anisotropy = 8;
+    const initialVersion = texture.version;
+    scene.add(laptopScreenMesh);
+
+    applyCharacterScreenTexture(scene, {
+      anisotropy: 8,
+      opacity: 1,
+      texture,
+    });
+
+    expect(texture.anisotropy).toBe(8);
+    expect(texture.version).toBe(initialVersion);
+  });
+
   it('monitor texture가 없을 때 laptop_screen material은 fallback 색과 빈 map으로 돌아가야 한다', () => {
     const scene = new Group();
     const laptopScreenMesh = createMesh('laptop_screen');

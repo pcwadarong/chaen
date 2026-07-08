@@ -24,6 +24,7 @@ const eslintConfig = [
       '**/*.config.js',
       '**/*.config.ts',
       'next-env.d.ts',
+      'public/decoders/**',
     ],
   },
   {

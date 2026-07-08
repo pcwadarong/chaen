@@ -27,6 +27,20 @@ const MONITOR_TEXTURE_WIDTH = 1280;
 // monitor texture 원본 캔버스 세로 해상도. 액정 비율과 함께 맞춰야 왜곡이 줄어든다.
 const MONITOR_TEXTURE_HEIGHT = 580;
 
+/**
+ * devicePixelRatio 기반 monitor texture 슈퍼샘플링 배율을 계산합니다.
+ * 물리 캔버스를 이 배율만큼 키워 텍스트 선명도를 높이되, 2배에서 상한을 둬 GPU 비용을 억제합니다.
+ *
+ * @param devicePixelRatio - 현재 디바이스 픽셀 비율입니다.
+ * @returns 최대 2로 제한된 슈퍼샘플링 배율입니다.
+ */
+export const resolveMonitorRenderScale = (devicePixelRatio: number): number =>
+  Math.min(2, devicePixelRatio);
+
+// monitor texture 슈퍼샘플링 배율. 물리 캔버스만 이 배율로 키우고 그리기 좌표는 논리 1280×580을 유지한다.
+const MONITOR_TEXTURE_RENDER_SCALE =
+  typeof window === 'undefined' ? 1 : resolveMonitorRenderScale(window.devicePixelRatio);
+
 // 모델 UV 방향에 맞추기 위한 텍스처 회전값. 현재는 시계 반대 방향 90도 회전이 정방향이다.
 const MONITOR_TEXTURE_ROTATION = Math.PI / 2;
 
@@ -97,20 +111,59 @@ const DESCRIPTION_Y_OFFSET = 76;
 // description 최대 줄 수. 카드 높이를 줄인 상태에서 읽힘을 유지하기 위해 2줄로 제한한다.
 const DESCRIPTION_MAX_LINES = 2;
 
-// period 메타 텍스트 크기. 너무 커지면 날짜 정보가 먼저 튀고, 너무 작으면 읽기 어려워진다.
-const PERIOD_FONT = '200 12px sans-serif';
+// period 메타 텍스트 두께/크기. 너무 커지면 날짜 정보가 먼저 튀고, 너무 작으면 읽기 어려워진다.
+const PERIOD_FONT_WEIGHT = 200;
+const PERIOD_FONT_SIZE = 12;
 
-// title 텍스트 크기. 카드의 대표 위계를 결정하는 핵심 수치다.
-const TITLE_FONT = '300 16px sans-serif';
+// title 텍스트 두께/크기. 카드의 대표 위계를 결정하는 핵심 수치다.
+const TITLE_FONT_WEIGHT = 300;
+const TITLE_FONT_SIZE = 16;
 
 // title 줄간격. 줄이면 덩어리감이 생기고, 늘리면 조금 더 에디토리얼하게 보인다.
 const TITLE_LINE_HEIGHT = 24;
 
-// description 텍스트 크기. 카드 정보량과 가독성 균형을 맞추는 수치다.
-const DESCRIPTION_FONT = '200 12px sans-serif';
+// description 텍스트 두께/크기. 카드 정보량과 가독성 균형을 맞추는 수치다.
+const DESCRIPTION_FONT_WEIGHT = 200;
+const DESCRIPTION_FONT_SIZE = 12;
 
 // description 줄간격. 카드 높이를 줄인 상태라 현재는 다소 타이트하게 유지한다.
 const DESCRIPTION_LINE_HEIGHT = 22;
+
+// monitor 텍스트가 폰트 로드 전 사용할 폴백 패밀리.
+const MONITOR_FALLBACK_FONT_FAMILY = 'sans-serif';
+
+// document.fonts.load 시 실제 사용 글리프(한글/라틴/숫자)를 커버하기 위한 샘플 텍스트.
+const MONITOR_FONT_SAMPLE_TEXT = '프로젝트 Project 2024';
+
+// getComputedStyle 결과를 1회만 읽어 재사용하기 위한 모듈 메모.
+let cachedMonitorFontFamily: string | null = null;
+
+/**
+ * 노트북 화면 텍스트에 사용할 실제 폰트 패밀리를 1회 계산해 메모이즈합니다.
+ * Pretendard는 next/font 해시 패밀리명이라 하드코딩할 수 없으므로 body 계산 스타일에서 읽어옵니다.
+ * SSR 등 document가 없으면 폴백 패밀리를 반환하며, 이 경우 캐시하지 않아 클라이언트에서 다시 해석합니다.
+ *
+ * @returns canvas font shorthand에 사용할 폰트 패밀리 문자열입니다.
+ */
+export const resolveMonitorFontFamily = (): string => {
+  if (cachedMonitorFontFamily) return cachedMonitorFontFamily;
+  if (typeof document === 'undefined' || !document.body) return MONITOR_FALLBACK_FONT_FAMILY;
+
+  const bodyFontFamily = getComputedStyle(document.body).fontFamily.trim();
+  cachedMonitorFontFamily = bodyFontFamily || MONITOR_FALLBACK_FONT_FAMILY;
+
+  return cachedMonitorFontFamily;
+};
+
+/**
+ * 해석된 monitor 폰트 패밀리로 canvas font shorthand 문자열을 구성합니다.
+ *
+ * @param weight - 폰트 두께입니다.
+ * @param size - px 단위 폰트 크기입니다.
+ * @returns `"{weight} {size}px {family}"` 형태의 canvas font 문자열입니다.
+ */
+const buildMonitorFont = (weight: number, size: number): string =>
+  `${weight} ${size}px ${resolveMonitorFontFamily()}`;
 
 /**
  * 노트북 화면에 붙일 CanvasTexture를 생성합니다.
@@ -140,12 +193,15 @@ export const useMonitorOverlayTexture = ({
   // 썸네일 이미지 로드: 3개 모두 별도 관리
   const thumbnailImagesRef = useRef<(HTMLImageElement | null)[]>([null, null, null]);
 
+  // canvas/texture는 여기서 1회만 생성한다. theme/locale/data 변경은 redraw로만 반영하며,
+  // 재할당 금지 불변식을 지키기 위해 이 생성 로직을 redraw effect로 옮기면 안 된다.
   const texture = useMemo(() => {
     if (typeof document === 'undefined') return null;
 
     const canvas = document.createElement('canvas');
-    canvas.width = MONITOR_TEXTURE_WIDTH;
-    canvas.height = MONITOR_TEXTURE_HEIGHT;
+    // 물리 캔버스는 슈퍼샘플링 배율만큼 키우고, 그리기 좌표는 setTransform으로 논리 크기를 유지한다.
+    canvas.width = MONITOR_TEXTURE_WIDTH * MONITOR_TEXTURE_RENDER_SCALE;
+    canvas.height = MONITOR_TEXTURE_HEIGHT * MONITOR_TEXTURE_RENDER_SCALE;
 
     const nextTexture = new CanvasTexture(canvas);
     nextTexture.center.set(0.5, 0.5);
@@ -161,6 +217,7 @@ export const useMonitorOverlayTexture = ({
   useEffect(() => {
     if (!texture || typeof window === 'undefined') return;
 
+    let isEffectActive = true;
     thumbnailImagesRef.current = [null, null, null];
 
     const redraw = () => {
@@ -169,11 +226,32 @@ export const useMonitorOverlayTexture = ({
 
       if (!context) return;
 
+      // 슈퍼샘플링 물리 캔버스를 논리 좌표계로 되돌린다. setTransform은 절대값이라 반복 redraw에도 배율이 누적되지 않는다.
+      context.setTransform(MONITOR_TEXTURE_RENDER_SCALE, 0, 0, MONITOR_TEXTURE_RENDER_SCALE, 0, 0);
       drawMonitorOverlayTexture(context, screenData, thumbnailImagesRef.current, colorPalette);
       texture.needsUpdate = true;
     };
 
+    // 1차 draw: 폰트 로드 전이라도 폴백 폰트로 즉시 그려 빈 화면을 만들지 않는다.
     redraw();
+
+    // 실제 폰트가 준비되면 동일 canvas에 다시 그려 텍스트 선명도를 끌어올린다.
+    if (typeof document !== 'undefined' && document.fonts) {
+      const fontSpecs = [
+        buildMonitorFont(PERIOD_FONT_WEIGHT, PERIOD_FONT_SIZE),
+        buildMonitorFont(TITLE_FONT_WEIGHT, TITLE_FONT_SIZE),
+        buildMonitorFont(DESCRIPTION_FONT_WEIGHT, DESCRIPTION_FONT_SIZE),
+      ];
+
+      void Promise.all(fontSpecs.map(spec => document.fonts.load(spec, MONITOR_FONT_SAMPLE_TEXT)))
+        .then(() => document.fonts.ready)
+        .then(() => {
+          if (isEffectActive) redraw();
+        })
+        .catch(() => {
+          // 폰트 로드 실패 시 이미 폴백 폰트로 그려진 상태를 유지한다.
+        });
+    }
 
     const cleanupFns: (() => void)[] = [];
 
@@ -210,6 +288,7 @@ export const useMonitorOverlayTexture = ({
     });
 
     return () => {
+      isEffectActive = false;
       cleanupFns.forEach(fn => fn());
     };
   }, [colorPalette, screenData, texture]);
@@ -233,10 +312,9 @@ const drawMonitorOverlayTexture = (
   thumbnailImages: (HTMLImageElement | null)[],
   colorPalette: MonitorOverlayColorPalette,
 ) => {
-  const { canvas } = context;
-
+  // 슈퍼샘플링 배율은 setTransform이 흡수하므로 배경은 논리 크기 기준으로 채운다.
   context.fillStyle = colorPalette.background;
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, MONITOR_TEXTURE_WIDTH, MONITOR_TEXTURE_HEIGHT);
 
   screenData.projects.forEach((project, i) => {
     const cardX = CONTENT_X + i * (CARD_WIDTH + CARD_GAP);
@@ -292,7 +370,7 @@ const drawContentCard = (
   // Period (meta) — 260px 폭 기준 단축 표시
   drawText(context, {
     color: colorPalette.muted,
-    font: PERIOD_FONT,
+    font: buildMonitorFont(PERIOD_FONT_WEIGHT, PERIOD_FONT_SIZE),
     maxWidth: contentMaxW,
     text: project.periodLabel,
     x: x + CONTENT_PAD,
@@ -302,7 +380,7 @@ const drawContentCard = (
   // Title
   drawMultilineText(context, {
     color: colorPalette.text,
-    font: TITLE_FONT,
+    font: buildMonitorFont(TITLE_FONT_WEIGHT, TITLE_FONT_SIZE),
     lineHeight: TITLE_LINE_HEIGHT,
     maxLines: 2,
     maxWidth: contentMaxW,
@@ -315,7 +393,7 @@ const drawContentCard = (
   if (project.description) {
     drawMultilineText(context, {
       color: colorPalette.muted,
-      font: DESCRIPTION_FONT,
+      font: buildMonitorFont(DESCRIPTION_FONT_WEIGHT, DESCRIPTION_FONT_SIZE),
       lineHeight: DESCRIPTION_LINE_HEIGHT,
       maxLines: DESCRIPTION_MAX_LINES,
       maxWidth: contentMaxW,

@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { preloadSceneGlbs, sceneModelPaths } from '@/entities/scene/model/preloadGLB';
+import {
+  BASS_MODEL_PATH,
+  CHARACTER_MODEL_PATH,
+  preloadSceneGlbs,
+  sceneModelPaths,
+  SOFA_MODEL_PATH,
+  TABLE_MODEL_PATH,
+} from '@/entities/scene/model/preloadGLB';
 
 describe('preloadGLB', () => {
   it('등록된 GLB 경로를 모두 전달받은 preload 함수에 넘긴다', () => {
@@ -9,15 +16,21 @@ describe('preloadGLB', () => {
     preloadSceneGlbs(preload);
 
     expect(sceneModelPaths).toEqual([
-      '/models/character.glb',
-      '/models/bass.glb',
-      '/models/table.glb',
-      '/models/sofa.glb',
+      CHARACTER_MODEL_PATH,
+      BASS_MODEL_PATH,
+      TABLE_MODEL_PATH,
+      SOFA_MODEL_PATH,
+    ]);
+    expect(sceneModelPaths).toEqual([
+      '/models/character.v2.glb',
+      '/models/bass.v2.glb',
+      '/models/table.v2.glb',
+      '/models/sofa.v2.glb',
     ]);
     expect(preload).toHaveBeenCalledTimes(4);
-    expect(preload).toHaveBeenNthCalledWith(1, '/models/character.glb');
-    expect(preload).toHaveBeenNthCalledWith(2, '/models/bass.glb');
-    expect(preload).toHaveBeenNthCalledWith(3, '/models/table.glb');
-    expect(preload).toHaveBeenNthCalledWith(4, '/models/sofa.glb');
+    expect(preload).toHaveBeenNthCalledWith(1, CHARACTER_MODEL_PATH);
+    expect(preload).toHaveBeenNthCalledWith(2, BASS_MODEL_PATH);
+    expect(preload).toHaveBeenNthCalledWith(3, TABLE_MODEL_PATH);
+    expect(preload).toHaveBeenNthCalledWith(4, SOFA_MODEL_PATH);
   });
 });

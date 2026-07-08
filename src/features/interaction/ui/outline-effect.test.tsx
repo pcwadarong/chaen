@@ -46,7 +46,7 @@ vi.mock('postprocessing', () => ({
 
 const fiberMock = vi.hoisted(() => ({
   camera: { kind: 'camera' },
-  gl: { render: vi.fn(), toneMapping: 4 },
+  gl: { capabilities: { maxSamples: 8 }, render: vi.fn(), toneMapping: 4 },
   scene: { kind: 'scene' },
   size: { height: 600, width: 800 },
 }));
@@ -89,7 +89,9 @@ describe('OutlineEffect', () => {
       outlineEffectInstanceMock,
       toneMappingEffectInstanceMock,
     );
-    expect(postprocessingMock.EffectComposer).toHaveBeenCalledWith(fiberMock.gl);
+    expect(postprocessingMock.EffectComposer).toHaveBeenCalledWith(fiberMock.gl, {
+      multisampling: 4,
+    });
     expect(composerInstanceMock.setSize).toHaveBeenCalledWith(800, 600);
     expect(fiberMock.gl.toneMapping).toBe(0);
   });
