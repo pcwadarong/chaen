@@ -98,7 +98,8 @@ describe('editor-core utils', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-12T00:00:00.000Z'));
 
-    expect(formatSavedAtLabel('2026-03-12T09:07:00+09:00')).toBe('09:07');
+    // 실행 타임존(로컬/CI-UTC)과 무관하게 로컬 09:07을 가리키도록 로컬 컴포넌트로 생성한다.
+    expect(formatSavedAtLabel(new Date(2026, 2, 12, 9, 7).toISOString())).toBe('09:07');
     vi.useRealTimers();
   });
 });
