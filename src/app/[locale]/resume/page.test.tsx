@@ -56,7 +56,7 @@ describe('ResumeRoute', () => {
       alternates: {
         canonical: 'https://chaen.dev/ko/resume',
         languages: {
-          'x-default': 'https://chaen.dev/en/resume',
+          'x-default': 'https://chaen.dev/ko/resume',
           en: 'https://chaen.dev/en/resume',
           fr: 'https://chaen.dev/fr/resume',
           ja: 'https://chaen.dev/ja/resume',

@@ -111,7 +111,9 @@ describe('PublishPanel', () => {
       target: { value: '10:00' },
     });
 
-    expect(await screen.findByText('UTC: 2026-03-20T01:00:00.000Z')).toBeTruthy();
+    // 실행 타임존과 무관하게 "로컬 입력 → UTC 변환" 계약을 검증한다.
+    const expectedUtcLabel = `UTC: ${new Date(2026, 2, 20, 10, 0).toISOString()}`;
+    expect(await screen.findByText(expectedUtcLabel)).toBeTruthy();
   });
 
   it('이미 발행된 글을 수정할 때는 publishAt이 있어도 기본 모드를 지금 발행으로 둔다', async () => {
