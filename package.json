@@ -30,6 +30,8 @@
     "test:staged": "node scripts/run-staged-tests.mjs",
     "test:coverage": "node -e \"const fs=require('node:fs'); fs.rmSync('coverage',{ recursive:true, force:true }); fs.mkdirSync('coverage/.tmp',{ recursive:true });\" && vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary",
     "test:watch": "vitest",
+    "optimize:models": "node scripts/optimize-models.mjs",
+    "optimize:textures": "node scripts/optimize-textures.mjs",
     "postinstall": "husky"
   },
   "lint-staged": {
@@ -76,6 +78,10 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.35.0",
+    "@gltf-transform/cli": "^4.4.1",
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "@pandacss/dev": "^1.9.0",
     "@playwright/test": "^1.59.1",
     "@svgr/webpack": "^8.1.0",
@@ -92,6 +98,7 @@
     "commitizen": "^4.3.1",
     "concurrently": "^9.2.1",
     "cz-customizable": "^7.5.1",
+    "draco3dgltf": "^1.5.7",
     "eslint": "^9.35.0",
     "eslint-config-next": "^15.5.3",
     "eslint-config-prettier": "^10.1.8",
@@ -101,7 +108,9 @@
     "husky": "^9.1.7",
     "jsdom": "^27.0.0",
     "lint-staged": "^16.1.6",
+    "meshoptimizer": "^1.2.0",
     "prettier": "^3.6.2",
+    "sharp": "^0.35.3",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.43.0",
     "vitest": "^3.2.4"
