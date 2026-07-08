@@ -7,6 +7,7 @@ import { getPdfFileAvailability } from '@/entities/pdf-file/api/get-pdf-file-ava
 import { resolveOptionalStorageReadSupabaseClient } from '@/shared/lib/supabase/storage-client';
 
 vi.mock('next/cache', () => ({
+  unstable_cacheLife: vi.fn(),
   unstable_cacheTag: vi.fn(),
 }));
 

@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   createGuestbookEntryCacheTag,
@@ -49,33 +49,40 @@ const fetchGuestbookParents = async (
 };
 
 /**
- * 전달된 원댓글 id 목록에 대한 대댓글을 조회합니다.
+ * 전달된 원댓글 id 목록에 대한 대댓글을 단일 `.in()` 쿼리로 조회해 parent별로 그룹핑합니다.
+ *
+ * parent별 개별 조회(N+1) 대신 한 번의 쿼리로 읽고, 모든 parentId를 빈 배열로 초기화한 뒤
+ * `created_at` 오름차순 정렬 결과를 순서대로 담아 parent 내부 순서를 보존합니다.
  */
 const fetchRepliesByParentIds = async (
   parentIds: string[],
 ): Promise<Record<string, GuestbookEntryRow[]>> => {
   if (parentIds.length === 0) return {};
 
-  const readRepliesByParentId = async (parentId: string): Promise<GuestbookEntryRow[]> => {
-    const supabase = createOptionalPublicServerSupabaseClient();
-    if (!supabase) return [];
-
-    const { data, error } = await supabase
-      .from('guestbook_entries')
-      .select('*')
-      .eq('parent_id', parentId)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new Error(`[guestbook] 대댓글 조회 실패: ${error.message}`);
-    return (data ?? []) as GuestbookEntryRow[];
-  };
-
-  const repliesByParent = await Promise.all(
-    parentIds.map(async parentId => [parentId, await readRepliesByParentId(parentId)] as const),
+  const repliesByParent: Record<string, GuestbookEntryRow[]> = Object.fromEntries(
+    parentIds.map(parentId => [parentId, []]),
   );
 
-  return Object.fromEntries(repliesByParent);
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return repliesByParent;
+
+  const { data, error } = await supabase
+    .from('guestbook_entries')
+    .select('*')
+    .in('parent_id', parentIds)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+
+  if (error) throw new Error(`[guestbook] 대댓글 조회 실패: ${error.message}`);
+
+  (data ?? []).forEach(reply => {
+    const typedReply = reply as GuestbookEntryRow;
+    if (typedReply.parent_id && repliesByParent[typedReply.parent_id]) {
+      repliesByParent[typedReply.parent_id].push(typedReply);
+    }
+  });
+
+  return repliesByParent;
 };
 
 /**
@@ -140,6 +147,8 @@ const readCachedGuestbookThreads = async (
   ]);
 
   cacheTag(GUESTBOOK_CACHE_TAG, ...guestbookTags);
+  // UGC라 태그 무효화가 늦어도 짧은 TTL로 신선도를 유지함.
+  cacheLife({ expire: 3600, revalidate: 300, stale: 60 });
 
   return page;
 };

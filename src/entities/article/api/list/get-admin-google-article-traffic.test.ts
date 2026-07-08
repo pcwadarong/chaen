@@ -17,6 +17,13 @@ vi.mock('googleapis', () => ({
   },
 }));
 
+vi.mock('next/cache', () => ({
+  unstable_cache:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]) =>
+      fn(...args),
+}));
+
 describe('getAdminGoogleArticleTraffic', () => {
   const originalClientEmail = process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL;
   const originalPrivateKey = process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY;

@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import {
   createPdfFileContentCacheTag,
@@ -31,6 +31,8 @@ const readCachedPdfFileContent = async ({
   'use cache';
 
   cacheTag(PDF_FILES_CACHE_TAG, PDF_FILE_CONTENT_CACHE_TAG, createPdfFileContentCacheTag(kind));
+  // 예약 발행(publish_at) 글이 태그 무효화 없이도 TTL로 노출되도록 함.
+  cacheLife({ expire: 86400, revalidate: 3600, stale: 300 });
 
   const { tableName } = getPdfFileContentConfig(kind);
   const supabase = createOptionalPublicServerSupabaseClient();

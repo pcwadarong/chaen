@@ -1,4 +1,4 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 import type {
   ArticleComment,
@@ -128,32 +128,40 @@ const fetchArticleCommentRoots = async (
 };
 
 /**
- * 전달된 루트 댓글 id 목록의 대댓글을 조회합니다.
+ * 전달된 루트 댓글 id 목록의 대댓글을 단일 `.in()` 쿼리로 조회해 parent별로 그룹핑합니다.
+ *
+ * parent별 개별 조회(N+1) 대신 한 번의 쿼리로 읽고, 모든 parentId를 빈 배열로 초기화한 뒤
+ * `created_at` 오름차순 정렬 결과를 순서대로 담아 parent 내부 순서를 보존합니다.
  */
 const fetchRepliesByParentIds = async (
   parentIds: string[],
 ): Promise<Record<string, ArticleCommentRow[]>> => {
   if (parentIds.length === 0) return {};
 
-  const repliesByParentId = await Promise.all(
-    parentIds.map(async parentId => {
-      const supabase = createOptionalPublicServerSupabaseClient();
-      if (!supabase) return [parentId, []] as const;
-
-      const { data, error } = await supabase
-        .from('article_comments')
-        .select('*')
-        .eq('parent_id', parentId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: true });
-
-      if (error) throw new Error(`[article-comments] 대댓글 조회 실패: ${error.message}`);
-
-      return [parentId, (data ?? []) as ArticleCommentRow[]] as const;
-    }),
+  const repliesByParentId: Record<string, ArticleCommentRow[]> = Object.fromEntries(
+    parentIds.map(parentId => [parentId, []]),
   );
 
-  return Object.fromEntries(repliesByParentId);
+  const supabase = createOptionalPublicServerSupabaseClient();
+  if (!supabase) return repliesByParentId;
+
+  const { data, error } = await supabase
+    .from('article_comments')
+    .select('*')
+    .in('parent_id', parentIds)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+
+  if (error) throw new Error(`[article-comments] 대댓글 조회 실패: ${error.message}`);
+
+  (data ?? []).forEach(reply => {
+    const typedReply = reply as ArticleCommentRow;
+    if (typedReply.parent_id && repliesByParentId[typedReply.parent_id]) {
+      repliesByParentId[typedReply.parent_id].push(typedReply);
+    }
+  });
+
+  return repliesByParentId;
 };
 
 /**
@@ -197,6 +205,8 @@ const readCachedArticleCommentThreads = async (
   ]);
 
   cacheTag(ARTICLE_COMMENTS_CACHE_TAG, createArticleCommentsCacheTag(articleId), ...commentTags);
+  // UGC라 태그 무효화가 늦어도 짧은 TTL로 신선도를 유지함.
+  cacheLife({ expire: 3600, revalidate: 300, stale: 60 });
 
   return threads;
 };

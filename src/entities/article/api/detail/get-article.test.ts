@@ -33,6 +33,18 @@ const createArticleSlugLookupQuery = (id = 'frontend-performance') => ({
   select: vi.fn().mockReturnThis(),
 });
 
+/**
+ * `fetchAvailableArticleLocales`가 사용하는 `article_translations` locale 조회 mock을 만듭니다.
+ */
+const createArticleTranslationLocalesQuery = () => ({
+  eq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockResolvedValue({
+    data: [],
+    error: null,
+  }),
+  select: vi.fn().mockReturnThis(),
+});
+
 describe('getArticle', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -87,11 +99,14 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(articleSlugQuery)
-      .mockReturnValueOnce(articleTagsV2Query)
-      .mockReturnValueOnce(tagsQuery);
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'articles') return articleSlugQuery;
+      if (table === 'article_translations') return articleLocalesQuery;
+      if (table === 'article_tags') return articleTagsV2Query;
+      if (table === 'tags') return tagsQuery;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -209,10 +224,13 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(articleSlugQuery)
-      .mockReturnValueOnce(articleTagsV2Query);
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'articles') return articleSlugQuery;
+      if (table === 'article_translations') return articleLocalesQuery;
+      if (table === 'article_tags') return articleTagsV2Query;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -258,10 +276,13 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(articleSlugQuery)
-      .mockReturnValueOnce(articleTagsV2Query);
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'articles') return articleSlugQuery;
+      if (table === 'article_translations') return articleLocalesQuery;
+      if (table === 'article_tags') return articleTagsV2Query;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -311,8 +332,14 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
     const supabaseClient = {
-      from: vi.fn().mockReturnValueOnce(articleSlugQuery).mockReturnValueOnce(articleTagsV2Query),
+      from: vi.fn((table: string) => {
+        if (table === 'articles') return articleSlugQuery;
+        if (table === 'article_translations') return articleLocalesQuery;
+        if (table === 'article_tags') return articleTagsV2Query;
+        throw new Error(`unexpected table: ${table}`);
+      }),
       rpc: vi.fn().mockResolvedValue({
         data: [
           {
@@ -378,10 +405,13 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(articleSlugQuery)
-      .mockReturnValueOnce(articleTagsV2Query);
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'articles') return articleSlugQuery;
+      if (table === 'article_translations') return articleLocalesQuery;
+      if (table === 'article_tags') return articleTagsV2Query;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
@@ -429,10 +459,13 @@ describe('getArticle', () => {
       }),
       select: vi.fn().mockReturnThis(),
     };
-    supabaseClient.from = vi
-      .fn()
-      .mockReturnValueOnce(articleSlugQuery)
-      .mockReturnValueOnce(articleTagsV2Query);
+    const articleLocalesQuery = createArticleTranslationLocalesQuery();
+    supabaseClient.from = vi.fn((table: string) => {
+      if (table === 'articles') return articleSlugQuery;
+      if (table === 'article_translations') return articleLocalesQuery;
+      if (table === 'article_tags') return articleTagsV2Query;
+      throw new Error(`unexpected table: ${table}`);
+    });
 
     vi.mocked(hasSupabaseEnv).mockReturnValue(true);
     vi.mocked(getOptionalPublicServerSupabaseClient).mockReturnValue(supabaseClient as never);
