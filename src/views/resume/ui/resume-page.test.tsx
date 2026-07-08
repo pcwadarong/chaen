@@ -1,24 +1,28 @@
 import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { ResumePage } from '@/views/resume/ui/resume-page';
 
 /**
  * resume 페이지 서버 렌더링 결과를 HTML 문자열로 수집합니다.
  */
 const renderResumePageHtml = async () => {
+  const QueryClientTestWrapper = createQueryClientWrapper();
   const stream = await renderToReadableStream(
-    <ResumePage
-      content={{
-        body: ['## 핵심 경험', '', '- Next.js App Router', '- Markdown preview'].join('\n'),
-        description: '설명',
-        locale: 'ko',
-        title: '박채원 이력서',
-        updated_at: '2026-03-20T00:00:00.000Z',
-      }}
-      downloadLabel="이력서 다운로드"
-      unavailableLabel="이력서 준비 중"
-    />,
+    <QueryClientTestWrapper>
+      <ResumePage
+        content={{
+          body: ['## 핵심 경험', '', '- Next.js App Router', '- Markdown preview'].join('\n'),
+          description: '설명',
+          locale: 'ko',
+          title: '박채원 이력서',
+          updated_at: '2026-03-20T00:00:00.000Z',
+        }}
+        downloadLabel="이력서 다운로드"
+        unavailableLabel="이력서 준비 중"
+      />
+    </QueryClientTestWrapper>,
   );
 
   return new Response(stream).text();

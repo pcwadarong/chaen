@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useState } from 'react';
 import { css, cx } from 'styled-system/css';
 
 import type { FetchLinkPreviewMeta } from '@/entities/editor-core';
-import { fetchLinkPreviewMetaAdapter } from '@/features/edit-markdown-adapter';
+import { createCachedFetchLinkPreviewMeta } from '@/features/edit-markdown-adapter';
 import { type LinkEmbedData, shouldFallbackToPlainLink } from '@/shared/lib/markdown/link-embed';
 
 type LinkEmbedCardProps = {
@@ -65,14 +66,20 @@ export const LinkEmbedCard = ({
   const [state, setState] = useState<LinkEmbedState>({
     status: 'loading',
   });
-  const resolvedFetchLinkPreviewMeta = fetchLinkPreviewMeta ?? fetchLinkPreviewMetaAdapter;
+  const queryClient = useQueryClient();
+  const resolvedFetchLinkPreviewMeta = useMemo(
+    () => fetchLinkPreviewMeta ?? createCachedFetchLinkPreviewMeta(queryClient),
+    [fetchLinkPreviewMeta, queryClient],
+  );
 
   useEffect(() => {
-    const controller = new AbortController();
+    let isActive = true;
 
     const fetchEmbedData = async () => {
       try {
-        const data = await resolvedFetchLinkPreviewMeta(url, controller.signal);
+        const data = await resolvedFetchLinkPreviewMeta(url);
+
+        if (!isActive) return;
 
         if (!data) {
           throw new Error('link preview data is empty');
@@ -83,7 +90,7 @@ export const LinkEmbedCard = ({
           status: shouldFallbackToPlainLink(data) ? 'fallback' : 'success',
         });
       } catch {
-        if (controller.signal.aborted) return;
+        if (!isActive) return;
 
         setState({
           data: createFallbackLinkEmbedData(url, fallbackLabel),
@@ -94,7 +101,9 @@ export const LinkEmbedCard = ({
 
     void fetchEmbedData();
 
-    return () => controller.abort();
+    return () => {
+      isActive = false;
+    };
   }, [fallbackLabel, resolvedFetchLinkPreviewMeta, url]);
 
   if (state.status === 'loading') {

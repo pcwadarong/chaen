@@ -3,6 +3,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { useHomeHeroProjectPreview } from '@/widgets/home-hero-scene/model/use-home-hero-project-preview';
 
 const EMPTY_ITEMS: [] = [];
@@ -15,22 +16,24 @@ describe('useHomeHeroProjectPreview', () => {
   it('초기 프로젝트가 주어질 때, useHomeHeroProjectPreview는 추가 fetch 없이 초기 목록을 유지해야 한다', () => {
     const fetchSpy = vi.spyOn(window, 'fetch');
 
-    const { result } = renderHook(() =>
-      useHomeHeroProjectPreview({
-        initialItems: [
-          {
-            description: 'description',
-            id: 'project-1',
-            period_end: null,
-            period_start: null,
-            publish_at: '2026-03-01T00:00:00.000Z',
-            slug: 'project-1',
-            thumbnail_url: null,
-            title: 'Project 1',
-          },
-        ],
-        locale: 'ko',
-      }),
+    const { result } = renderHook(
+      () =>
+        useHomeHeroProjectPreview({
+          initialItems: [
+            {
+              description: 'description',
+              id: 'project-1',
+              period_end: null,
+              period_start: null,
+              publish_at: '2026-03-01T00:00:00.000Z',
+              slug: 'project-1',
+              thumbnail_url: null,
+              title: 'Project 1',
+            },
+          ],
+          locale: 'ko',
+        }),
+      { wrapper: createQueryClientWrapper() },
     );
 
     expect(result.current.isLoading).toBe(false);
@@ -58,11 +61,13 @@ describe('useHomeHeroProjectPreview', () => {
       ok: true,
     } as Response);
 
-    const { result } = renderHook(() =>
-      useHomeHeroProjectPreview({
-        initialItems: EMPTY_ITEMS,
-        locale: 'ko',
-      }),
+    const { result } = renderHook(
+      () =>
+        useHomeHeroProjectPreview({
+          initialItems: EMPTY_ITEMS,
+          locale: 'ko',
+        }),
+      { wrapper: createQueryClientWrapper() },
     );
 
     expect(result.current.isLoading).toBe(true);

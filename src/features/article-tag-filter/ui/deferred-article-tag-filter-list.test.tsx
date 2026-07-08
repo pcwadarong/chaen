@@ -3,6 +3,7 @@ import React from 'react';
 import { vi } from 'vitest';
 
 import { DeferredArticleTagFilterList } from '@/features/article-tag-filter/ui/deferred-article-tag-filter-list';
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 
 vi.mock('@/i18n/navigation', () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
@@ -58,6 +59,7 @@ describe('DeferredArticleTagFilterList', () => {
           locale="ko"
           title="인기 태그"
         />,
+        { wrapper: createQueryClientWrapper() },
       );
     });
 
@@ -93,6 +95,7 @@ describe('DeferredArticleTagFilterList', () => {
         locale="ko"
         title="인기 태그"
       />,
+      { wrapper: createQueryClientWrapper() },
     );
 
     await waitFor(() => {
@@ -119,6 +122,7 @@ describe('DeferredArticleTagFilterList', () => {
         source="all"
         title="전체 태그"
       />,
+      { wrapper: createQueryClientWrapper() },
     );
 
     await waitFor(() => {

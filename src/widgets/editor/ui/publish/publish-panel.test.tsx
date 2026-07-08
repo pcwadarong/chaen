@@ -3,6 +3,7 @@ import React from 'react';
 
 import { createEditorError, EDITOR_ERROR_MESSAGE } from '@/entities/editor/model/editor-error';
 import { optimizeThumbnailImageFile } from '@/shared/lib/image/optimize-thumbnail-image-file';
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import type { PublishSettings } from '@/widgets/editor/ui/core/editor-core.types';
 import { PublishPanel } from '@/widgets/editor/ui/publish/publish-panel';
 import { createDefaultPublishSettings } from '@/widgets/editor/ui/publish/publish-panel.utils';
@@ -56,6 +57,7 @@ const renderPublishPanel = (
       onClose={onClose}
       onSubmit={onSubmit}
     />,
+    { wrapper: createQueryClientWrapper() },
   );
 
   return {
@@ -367,7 +369,7 @@ describe('PublishPanel', () => {
       );
     };
 
-    render(<PublishPanelHarness />);
+    render(<PublishPanelHarness />, { wrapper: createQueryClientWrapper() });
 
     await waitFor(() => {
       expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('draft-slug');
@@ -413,7 +415,7 @@ describe('PublishPanel', () => {
       );
     };
 
-    render(<PublishPanelHarness />);
+    render(<PublishPanelHarness />, { wrapper: createQueryClientWrapper() });
 
     const thumbnailInput = await screen.findByLabelText('썸네일');
 

@@ -1,12 +1,19 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useRef, useState } from 'react';
 import { css, cva } from 'styled-system/css';
 
 import { uploadPdfFileByAssetKey } from '@/entities/pdf-file/api/upload-pdf-file-by-asset-key';
 import type { PdfFileAssetKey } from '@/entities/pdf-file/model/types';
+import { pdf } from '@/shared/lib/query/query-keys';
 import { Button } from '@/shared/ui/button/button';
 import type { AdminPdfUploadItem } from '@/widgets/admin-pdf-upload/model/admin-pdf-upload.types';
+
+type AdminPdfAvailabilityItem = {
+  assetKey: PdfFileAssetKey;
+  isPdfReady: boolean;
+};
 
 type AdminPdfUploadPanelProps = {
   initialItems: AdminPdfUploadItem[];
@@ -32,9 +39,9 @@ const createUploadErrorMessage = (title: string) =>
  * 대시보드에서 PDF 자산 4종을 개별 업로드/다운로드 확인할 수 있는 관리자 패널입니다.
  */
 export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) => {
+  const queryClient = useQueryClient();
   const inputRefs = useRef<Partial<Record<PdfFileAssetKey, HTMLInputElement | null>>>({});
   const [items, setItems] = useState(initialItems);
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(true);
   const [feedbackByAssetKey, setFeedbackByAssetKey] = useState<
     Partial<Record<PdfFileAssetKey, UploadFeedback>>
   >({});
@@ -42,60 +49,39 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
     Partial<Record<PdfFileAssetKey, boolean>>
   >({});
 
-  React.useEffect(() => {
-    const abortController = new AbortController();
+  const { data: availabilityItems, isLoading: isCheckingAvailability } = useQuery({
+    queryFn: async ({ signal }): Promise<AdminPdfAvailabilityItem[]> => {
+      const response = await fetch('/api/pdf/admin/availability', {
+        method: 'GET',
+        signal,
+      });
 
-    const loadAvailability = async () => {
-      setIsCheckingAvailability(true);
-
-      try {
-        const response = await fetch('/api/pdf/admin/availability', {
-          method: 'GET',
-          signal: abortController.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to load admin PDF availability: ${response.status}`);
-        }
-
-        const data = (await response.json()) as {
-          items: Array<{
-            assetKey: PdfFileAssetKey;
-            isPdfReady: boolean;
-          }>;
-        };
-        const readinessByAssetKey = new Map(
-          data.items.map(item => [item.assetKey, item.isPdfReady] as const),
-        );
-
-        setItems(previous =>
-          previous.map(item => ({
-            ...item,
-            // 업로드 직후 true로 바뀐 상태는 늦게 도착한 초기 조회가 false로 덮지 않도록 유지합니다.
-            isPdfReady: item.isPdfReady || (readinessByAssetKey.get(item.assetKey) ?? false),
-          })),
-        );
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        console.error('[admin-pdf-upload] availability fetch failed', {
-          error,
-        });
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsCheckingAvailability(false);
-        }
+      if (!response.ok) {
+        throw new Error(`Failed to load admin PDF availability: ${response.status}`);
       }
-    };
 
-    void loadAvailability();
+      const data = (await response.json()) as { items: AdminPdfAvailabilityItem[] };
 
-    return () => {
-      abortController.abort();
-    };
-  }, []);
+      return data.items;
+    },
+    queryKey: pdf.adminAvailability,
+  });
+
+  useEffect(() => {
+    if (!availabilityItems) return;
+
+    const readinessByAssetKey = new Map(
+      availabilityItems.map(item => [item.assetKey, item.isPdfReady] as const),
+    );
+
+    setItems(previous =>
+      previous.map(item => ({
+        ...item,
+        // 업로드 직후 true로 바뀐 상태는 늦게 도착한 초기 조회가 false로 덮지 않도록 유지합니다.
+        isPdfReady: item.isPdfReady || (readinessByAssetKey.get(item.assetKey) ?? false),
+      })),
+    );
+  }, [availabilityItems]);
 
   /**
    * 파일 선택 버튼에서 숨겨진 input 클릭을 위임합니다.
@@ -149,6 +135,9 @@ export const AdminPdfUploadPanel = ({ initialItems }: AdminPdfUploadPanelProps) 
             tone: 'success',
           },
         }));
+        // 업로드 성공 후 어드민 가용성과 공개 다운로드 옵션 캐시를 무효화합니다.
+        void queryClient.invalidateQueries({ queryKey: pdf.adminAvailability });
+        void queryClient.invalidateQueries({ queryKey: [...pdf.all, 'options'] });
       } catch (error) {
         const message =
           error instanceof Error && error.message

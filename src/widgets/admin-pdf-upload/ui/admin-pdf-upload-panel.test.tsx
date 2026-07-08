@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
+import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
 import { AdminPdfUploadPanel } from '@/widgets/admin-pdf-upload/ui/admin-pdf-upload-panel';
 
 vi.mock('@/entities/pdf-file/api/upload-pdf-file-by-asset-key', () => ({
@@ -71,7 +72,9 @@ describe('AdminPdfUploadPanel', () => {
       }),
     );
 
-    render(<AdminPdfUploadPanel initialItems={baseItems} />);
+    render(<AdminPdfUploadPanel initialItems={baseItems} />, {
+      wrapper: createQueryClientWrapper(),
+    });
 
     expect(screen.getByRole('heading', { level: 2, name: 'PDF 파일 관리' })).toBeTruthy();
     expect(screen.getByText('ParkChaewon-Resume-kr.pdf')).toBeTruthy();
@@ -105,7 +108,9 @@ describe('AdminPdfUploadPanel', () => {
       }),
     );
 
-    render(<AdminPdfUploadPanel initialItems={baseItems} />);
+    render(<AdminPdfUploadPanel initialItems={baseItems} />, {
+      wrapper: createQueryClientWrapper(),
+    });
 
     const resumeInput = screen.getByLabelText('이력서 PDF · 국문 파일 선택', {
       selector: 'input',
@@ -159,7 +164,9 @@ describe('AdminPdfUploadPanel', () => {
       }),
     );
 
-    render(<AdminPdfUploadPanel initialItems={baseItems} />);
+    render(<AdminPdfUploadPanel initialItems={baseItems} />, {
+      wrapper: createQueryClientWrapper(),
+    });
 
     const portfolioInput = screen.getByLabelText('포트폴리오 PDF · 국문 파일 선택', {
       selector: 'input',
@@ -224,7 +231,9 @@ describe('AdminPdfUploadPanel', () => {
       }),
     );
 
-    render(<AdminPdfUploadPanel initialItems={baseItems} />);
+    render(<AdminPdfUploadPanel initialItems={baseItems} />, {
+      wrapper: createQueryClientWrapper(),
+    });
 
     fireEvent.change(screen.getByLabelText('이력서 PDF · 국문 파일 선택', { selector: 'input' }), {
       target: {

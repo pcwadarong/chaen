@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React, { useCallback } from 'react';
 
 import type { LocalizedArticleTagStat } from '@/entities/article/model/types';
 import type { TagOption } from '@/entities/tag/api/tag.types';
@@ -8,6 +9,12 @@ import {
   type ArticleTagFilterItem,
   ArticleTagFilterList,
 } from '@/features/article-tag-filter/ui/article-tag-filter-list';
+import type { AppLocale } from '@/i18n/routing';
+import { articles, tags } from '@/shared/lib/query/query-keys';
+
+type TagSourceResponse = LocalizedArticleTagStat[] | TagOption[];
+
+const EMPTY_TAG_FILTER_ITEMS: ArticleTagFilterItem[] = [];
 
 type TagFilterHrefMode = 'query' | 'tag-page';
 type TagFilterSource = 'all' | 'popular';
@@ -29,7 +36,7 @@ type DeferredArticleTagFilterListProps = {
  */
 const mapTagSourceItems = (
   source: TagFilterSource,
-  data: LocalizedArticleTagStat[] | TagOption[],
+  data: TagSourceResponse,
 ): ArticleTagFilterItem[] => {
   if (source === 'all') {
     return (data as TagOption[]).map(item => ({
@@ -61,57 +68,33 @@ export const DeferredArticleTagFilterList = ({
   title,
 }: DeferredArticleTagFilterListProps) => {
   const resolvedHrefMode = hrefMode ?? (source === 'all' ? 'tag-page' : 'query');
-  const [items, setItems] = React.useState<ArticleTagFilterItem[]>([]);
-  const [status, setStatus] = React.useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const selectTagFilterItems = useCallback(
+    (data: TagSourceResponse) => mapTagSourceItems(source, data),
+    [source],
+  );
+  const { data, isPending } = useQuery({
+    queryFn: async ({ signal }): Promise<TagSourceResponse> => {
+      const searchParams = new URLSearchParams({
+        locale,
+      });
+      const response = await fetch(
+        `${source === 'all' ? '/api/tags' : '/api/article-popular-tags'}?${searchParams.toString()}`,
+        {
+          method: 'GET',
+          signal,
+        },
+      );
 
-  React.useEffect(() => {
-    const abortController = new AbortController();
-
-    const loadItems = async () => {
-      setStatus('loading');
-
-      try {
-        const searchParams = new URLSearchParams({
-          locale,
-        });
-        const response = await fetch(
-          `${
-            source === 'all' ? '/api/tags' : '/api/article-popular-tags'
-          }?${searchParams.toString()}`,
-          {
-            method: 'GET',
-            signal: abortController.signal,
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to load article ${source} tags: ${response.status}`);
-        }
-
-        const data = (await response.json()) as LocalizedArticleTagStat[] | TagOption[];
-        setItems(mapTagSourceItems(source, data));
-        setStatus('ready');
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        console.error('[articles] deferred tags failed', {
-          error,
-          locale,
-          source,
-        });
-        setItems([]);
-        setStatus('error');
+      if (!response.ok) {
+        throw new Error(`Failed to load article ${source} tags: ${response.status}`);
       }
-    };
 
-    void loadItems();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [locale, source]);
+      return (await response.json()) as TagSourceResponse;
+    },
+    queryKey:
+      source === 'all' ? tags.all(locale as AppLocale) : articles.popularTags(locale as AppLocale),
+    select: selectTagFilterItems,
+  });
 
   return (
     <ArticleTagFilterList
@@ -119,11 +102,11 @@ export const DeferredArticleTagFilterList = ({
       defaultLabel={defaultLabel}
       emptyText={emptyText}
       hrefMode={resolvedHrefMode}
-      items={items}
+      items={data ?? EMPTY_TAG_FILTER_ITEMS}
       itemDivider={source === 'all' ? 'dot' : 'none'}
       loadingText={loadingText}
       onNavigationStart={onNavigationStart}
-      pending={status === 'idle' || status === 'loading'}
+      pending={isPending}
       title={title}
     />
   );
