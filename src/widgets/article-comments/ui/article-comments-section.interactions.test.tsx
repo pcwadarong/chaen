@@ -1,9 +1,12 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 
+import { ARTICLE_COMMENT_ERROR_CODE } from '@/entities/article/comment/error';
 import {
   actionPopoverRenderCount,
   composeFormSpy,
   initialPage,
+  mockedDeleteArticleCommentAction,
+  mockedGetArticleCommentsPageAction,
   renderArticleCommentsSection,
   resetArticleCommentsSectionTestState,
   sortButtonRenderCount,
@@ -115,6 +118,61 @@ describe('ArticleCommentsSection interactions', () => {
     });
 
     expect(sortButtonRenderCount.value).toBe(2);
+  });
+
+  it('정렬을 오래된순으로 바꾸면 1페이지를 새로 조회한다', async () => {
+    mockedGetArticleCommentsPageAction.mockResolvedValue({
+      data: { ...initialPage, page: 1, sort: 'oldest' },
+      errorMessage: null,
+      ok: true,
+    });
+
+    renderArticleCommentsSection({ initialPage });
+
+    fireEvent.click(screen.getByRole('tab', { name: 'sortOldest' }));
+
+    await waitFor(() => {
+      expect(mockedGetArticleCommentsPageAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          articleId: 'article-1',
+          page: 1,
+          sort: 'oldest',
+        }),
+      );
+    });
+  });
+
+  it('삭제 모달에서 비밀번호가 틀리면 오류 메시지를 노출한다', async () => {
+    mockedDeleteArticleCommentAction.mockResolvedValue({
+      data: null,
+      errorCode: ARTICLE_COMMENT_ERROR_CODE.invalidPassword,
+      errorMessage: 'invalid password',
+      ok: false,
+    });
+
+    renderArticleCommentsSection({ initialPage });
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'actionMenuLabel' })[0]);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'delete' })).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+
+    fireEvent.change(screen.getByLabelText('password'), {
+      target: { value: 'wrong-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'deleteConfirm' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('secretVerifyFailed');
+    });
+    expect(mockedDeleteArticleCommentAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        articleId: 'article-1',
+        commentId: 'comment-1',
+        password: 'wrong-password',
+      }),
+    );
   });
 
   it('댓글이 없으면 정렬 탭과 목록 패널을 렌더하지 않아야 한다', () => {
