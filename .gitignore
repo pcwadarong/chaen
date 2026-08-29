@@ -68,7 +68,9 @@ public/**/*.map
 
 # ai
 .codex/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/agents/
 .code-review-graph/
 job/
 
