@@ -1,6 +1,5 @@
 'use client';
 
-import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import { type AnimationClip, AnimationMixer, type Group, type Mesh, type Object3D } from 'three';
@@ -18,6 +17,7 @@ import {
 } from '@/entities/character/model/character-clip-durations';
 import { prepareCharacterInstance } from '@/entities/character/model/prepare-character-instance';
 import { CHARACTER_MODEL_PATH } from '@/entities/scene/model/preloadGLB';
+import { useSceneGltf } from '@/entities/scene/model/use-scene-gltf';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 export type CharacterInstanceType = 'main' | 'contact';
@@ -58,7 +58,7 @@ export const useCharacterInstance = ({
   nodeRefs: CharacterNodeRefs;
   object: Group;
 } => {
-  const gltf = useGLTF(CHARACTER_MODEL_PATH);
+  const gltf = useSceneGltf(CHARACTER_MODEL_PATH);
   const ormTextures = useCharacterMaterials();
   const characterCache = useMemo(
     () => getOrCreateCharacterCache(gltf.scene, ormTextures),

@@ -1,10 +1,10 @@
 'use client';
 
-import { useTexture } from '@react-three/drei';
 import { useMemo } from 'react';
 import { Color, type Group, MeshStandardMaterial, type Texture } from 'three';
 
 import { applyOrmToMaterial, isMeshNode, prepareOrmTexture } from '@/shared/lib/three/orm-material';
+import { useKtx2Textures } from '@/shared/lib/three/use-ktx2-textures';
 
 export type CharacterOrmTextures = Readonly<{
   gear: Texture;
@@ -14,10 +14,10 @@ export type CharacterOrmTextures = Readonly<{
 }>;
 
 const CHARACTER_ORM_TEXTURE_PATHS = {
-  gear: '/textures/gear_ORM.v2.webp',
-  hair: '/textures/hair_ORM.v2.webp',
-  outfit: '/textures/outfit_ORM.v2.webp',
-  skin: '/textures/skin_ORM.v2.webp',
+  gear: '/textures/gear_ORM.v3.ktx2',
+  hair: '/textures/hair_ORM.v3.ktx2',
+  outfit: '/textures/outfit_ORM.v3.ktx2',
+  skin: '/textures/skin_ORM.v3.ktx2',
 } as const;
 
 const SKIN_MESH_NAMES = new Set(['body', 'face']);
@@ -48,7 +48,7 @@ type ApplyCharacterScreenTextureParams = Readonly<{
  * 캐릭터에서 사용하는 ORM texture를 로드하고 GLTF 재질에 맞는 설정으로 정리합니다.
  */
 export const useCharacterMaterials = (): CharacterOrmTextures => {
-  const [skin, outfit, hair, gear] = useTexture([
+  const [skin, outfit, hair, gear] = useKtx2Textures([
     CHARACTER_ORM_TEXTURE_PATHS.skin,
     CHARACTER_ORM_TEXTURE_PATHS.outfit,
     CHARACTER_ORM_TEXTURE_PATHS.hair,
