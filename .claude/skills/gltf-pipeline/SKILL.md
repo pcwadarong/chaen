@@ -19,22 +19,22 @@ grep -rn "laptop_screen\|frame_screen\|laptop_cover\|laptop_logo" src/
 
 현재 알려진 이름 조회 지점 (파일별로 정확히 분리 — 어디를 고쳐야 하는지가 달라진다):
 
-| 파일 | 조회하는 이름 | 용도 |
-|---|---|---|
-| `entities/character/lib/use-character-materials.ts` | `body` `face` / `brows` `eyebrow` `hair` / `inner` `neck_collar` `outer` `pants` `ribon` `sock` / `headphone_band` `headphone_housing` `headphone_pads` `heart` `laptop` `laptop_cover` `shoes` `shoes_strip` | ORM 텍스처 주입 (skin/hair/outfit/gear 4집합) |
-| ″ | `laptop_screen` | 런타임 모니터 texture 주입 |
-| `entities/character/model/prepare-character-instance.ts` | `laptop` `laptop_screen` / `brows` `eyebrow` / `hair` / `outer` `pants` `ribon` / `heart` | contact 숨김·양면화·tint·초기 비표시 |
-| `entities/character/model/use-character-instance.ts` | `heart` `laptop` `brows` `eyebrow` `face` | node 참조 수집 |
-| `entities/scene/lib/use-scene-prop-materials.ts` | `frame_screen` | ORM 제외 + 액자 이미지 주입 |
+| 파일                                                     | 조회하는 이름                                                                                                                                                                                                 | 용도                                          |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `entities/character/lib/use-character-materials.ts`      | `body` `face` / `brows` `eyebrow` `hair` / `inner` `neck_collar` `outer` `pants` `ribon` `sock` / `headphone_band` `headphone_housing` `headphone_pads` `heart` `laptop` `laptop_cover` `shoes` `shoes_strip` | ORM 텍스처 주입 (skin/hair/outfit/gear 4집합) |
+| ″                                                        | `laptop_screen`                                                                                                                                                                                               | 런타임 모니터 texture 주입                    |
+| `entities/character/model/prepare-character-instance.ts` | `laptop` `laptop_screen` / `brows` `eyebrow` / `hair` / `outer` `pants` `ribon` / `heart`                                                                                                                     | contact 숨김·양면화·tint·초기 비표시          |
+| `entities/character/model/use-character-instance.ts`     | `heart` `laptop` `brows` `eyebrow` `face`                                                                                                                                                                     | node 참조 수집                                |
+| `entities/scene/lib/use-scene-prop-materials.ts`         | `frame_screen`                                                                                                                                                                                                | ORM 제외 + 액자 이미지 주입                   |
 
 > **검증된 유령 이름 — 코드엔 있는데 GLB엔 없다.** 매칭이 안 되므로 동작에 영향은 없지만,
 > 이 목록을 근거로 "이 이름이 살아있으니 안전하다"고 판단하면 안 된다.
 >
-> | 이름 | 있는 곳 |
-> |---|---|
-> | `laptop_logo` | `use-character-materials.ts`의 `GEAR_MESH_NAMES` |
-> | `monitor` | `prepare-character-instance.ts`의 `CONTACT_HIDDEN_NODE_NAMES` |
-> | `head` | `use-character-instance.ts`의 `findCharacterNodeRefs` (`face` 폴백이 실제로 걸린다) |
+> | 이름          | 있는 곳                                                                             |
+> | ------------- | ----------------------------------------------------------------------------------- |
+> | `laptop_logo` | `use-character-materials.ts`의 `GEAR_MESH_NAMES`                                    |
+> | `monitor`     | `prepare-character-instance.ts`의 `CONTACT_HIDDEN_NODE_NAMES`                       |
+> | `head`        | `use-character-instance.ts`의 `findCharacterNodeRefs` (`face` 폴백이 실제로 걸린다) |
 
 **이 목록에 없는 새 메시 이름을 발견하면, 실제 소비 코드를 먼저 찾아 목록에 추가한 뒤 다음 단계로 간다.** 목록이 최신이 아닌 채로 최적화를 진행하지 않는다.
 
@@ -105,11 +105,24 @@ KTX2는 GPU 압축 포맷을 그대로 올리므로 파일과 VRAM이 **함께**
 
 ### 포맷 선택
 
-| 텍스처 종류 | 포맷 | 이유 |
-|---|---|---|
-| baseColor | ETC1S | 압축률 우선. 색상은 아티팩트가 덜 보인다 |
-| ORM (roughness/metal/AO) | ETC1S | 스칼라 데이터, 정밀도 요구 낮음 |
-| **normal map** | **UASTC** | ETC1S로 압축하면 노멀이 눈에 띄게 깨진다. 예외 없음 |
+| 텍스처 종류                  | 포맷      | 이유                                                                                                            |
+| ---------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| baseColor                    | ETC1S     | 압축률 우선. 색상은 아티팩트가 덜 보인다                                                                        |
+| **ORM (roughness/metal/AO)** | **UASTC** | ETC1S는 RGB를 공동 인코딩해 채널이 서로 번진다. ORM은 R/G/B가 독립 신호라 이 번짐이 그대로 셰이딩 오류로 보인다 |
+| **normal map**               | **UASTC** | ETC1S로 압축하면 노멀이 눈에 띄게 깨진다. 예외 없음                                                             |
+
+> **ORM을 ETC1S로 굽지 마라 — 실측으로 확인됐다.** 노트북 커버의 "Chaen" 각인은
+> baseColor가 아니라 `gear_ORM`의 roughness 대비로 보이는데, ETC1S로 구우니 획이 끊기고
+> 번져 보였다. 포맷(ETC1S/UASTC)·RDO·mipmap 생성을 각각 바꿔 가며 좁힌 결과 원인은
+> **ETC1S의 채널 스미어 하나**였고, ORM만 UASTC로 바꾸자 원본과 구분되지 않았다.
+>
+> UASTC는 파일이 커지므로 **ORM 해상도를 baseColor보다 한 단계 낮추는 것**으로 상쇄한다.
+> ORM은 색이 아니라 셰이딩 계수라 텍셀 밀도 요구가 낮다 (chaen은 2048² → 1024²).
+
+> **VRAM 계산 시 주의:** 전송 포맷은 GPU가 정한다. three `KTX2Loader`는 BPTC를 지원하는
+> 데스크톱에서 ETC1S도 UASTC도 **BC7(1바이트/텍셀)**로 푼다 — 이 경우 ETC1S를 골라도
+> VRAM 이득은 없고 파일만 작아진다. ETC1S의 VRAM 이득(ETC1 0.5바이트/텍셀)은
+> ETC2만 지원하는 모바일에서 나온다.
 
 `gltf-transform`의 `etc1s` / `uastc` 커맨드를 쓴다. 이 함수들은 **노드나 머티리얼 이름을
 건드리지 않으므로** Step 2·3의 금지 목록과 충돌하지 않는다. 다만 `--pattern`으로 대상을
@@ -164,7 +177,7 @@ useGLTF(path, true, true, loader => {
 ### 검증
 
 ```js
-renderer.info.memory   // { geometries, textures } — 전후 비교
+renderer.info.memory; // { geometries, textures } — 전후 비교
 ```
 
 - **화질 비교 지점** (전후 같은 카메라 위치 스크린샷):
