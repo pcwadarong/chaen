@@ -34,14 +34,23 @@
 | `src/entities/character/lib/use-character-materials.ts` | `CHARACTER_ORM_TEXTURE_PATHS` |
 | `src/entities/scene/lib/use-scene-prop-materials.ts` | `PROP_ORM_TEXTURE_PATHS` |
 
-`src/entities/scene/model/scene-asset-paths.ts`(FSD상 entities/scene/model)로 통합하고,
-`SCENE_ASSET_VERSION` 상수를 두어 모든 URL에 `?v=<version>` 쿼리를 붙여라.
+`src/entities/scene/model/scene-asset-paths.ts`(FSD상 entities/scene/model)로 통합한다.
 `preloadGLB.ts`는 이 모듈을 쓰도록 재편한다 (기존 `preloadSceneGlbs` 시그니처는 유지해서
 `scene-asset-preloader.tsx`와 그 테스트가 깨지지 않게 하라).
 
-버전 상수 방식을 고른 이유를 PR에 남겨라: 콘텐츠 해시 파일명은 자산을 빌드 산출물로
-만들어야 해서 개인 포트폴리오 규모에는 과하다. 쿼리 버전은 한 줄만 올리면 되고
-immutable 캐시와도 정상 동작한다.
+**무효화 수단은 `.vN` 파일명 접미사다** — `gltf-pipeline` 스킬 Step 6이 이미 이 저장소의
+관례로 정해둔 방식이다. `?v=` 쿼리나 콘텐츠 해시를 새로 도입하지 마라.
+
+```
+public/models/character.glb  →  public/models/character.v2.glb
+```
+
+쿼리 버전 대비 이점: 파일별로 무효화된다. 캐릭터 GLB만 바뀌었는데 텍스처 5종까지
+전부 다시 받게 만들 이유가 없다. 콘텐츠 해시 대비 이점: 자산을 빌드 산출물로 만들지
+않아도 된다 — 개인 포트폴리오 규모에 과하다.
+
+경로 상수를 한곳에 모으는 것 자체가 이 방식의 전제다. 파일명만 올리고 참조를 안 고치면
+이전 버전이 캐시된 채 계속 서빙되는데, 경로가 5곳에 흩어져 있으면 반드시 하나를 빠뜨린다.
 
 ### B. `next.config.ts`에 헤더 추가
 
@@ -64,9 +73,10 @@ async headers() {
 
 ### C. 갱신 절차를 문서화
 
-`SCENE_ASSET_VERSION`을 언제 올려야 하는지를 `scene-asset-paths.ts` 상단 한국어 JSDoc과
-PR 문서에 명시하라. **브랜치 `01`과 `06`이 자산을 통째로 교체하므로, 그 브랜치들이
-병합될 때 이 상수를 반드시 올려야 한다.** 이 사실을 README의 병합 순서 노트에도 반영할 것.
+`.vN`을 언제 올려야 하는지를 `scene-asset-paths.ts` 상단 한국어 JSDoc에 명시하라.
+**브랜치 `01`과 `06`이 자산을 통째로 교체하므로, 그 브랜치들은 병합 시 `.vN`을 반드시
+올려야 한다.** `gltf-pipeline` 스킬 Step 6과 같은 규칙이므로, 스킬을 단일 출처로 링크하고
+여기서 규칙을 복제하지 마라.
 
 ## 하지 말 것
 
@@ -88,19 +98,19 @@ PR 문서에 명시하라. **브랜치 `01`과 `06`이 자산을 통째로 교�
    ```
    `public, max-age=31536000, immutable`이 나와야 한다.
 3. DevTools Network에서 리로드 시 `(disk cache)`로 뜨는지, 조건부 요청이 사라졌는지 확인.
-4. `SCENE_ASSET_VERSION`을 한 칸 올렸을 때 새 URL로 재요청되는지 확인.
+4. `.vN`을 한 칸 올렸을 때 새 URL로 재요청되는지 확인.
 5. `pnpm run test:browser:smoke`
 
 ## 커밋 분할 제안
 
-1. `♻️ refactor: 3D 자산 경로와 버전 상수를 scene-asset-paths로 통합`
+1. `♻️ refactor: 3D 자산 경로를 scene-asset-paths로 통합`
 2. `🔧 chore: models/textures에 immutable 캐시 헤더 추가`
 
 `⚡ perf:`를 쓸 경우 변형 선택자 없는 U+26A1 `⚡`여야 husky 훅을 통과한다.
 
 ## PR 문서
 
-`docs/pr/3d-asset-cache-headers.md`. 설계 섹션에 "왜 콘텐츠 해시가 아니라 쿼리 버전인가",
+`docs/pr/3d-asset-cache-headers.md`. 설계 섹션에 "왜 콘텐츠 해시가 아니라 `.vN` 파일명인가",
 "immutable의 함정과 그걸 어떻게 막았는가"를 쓸 것. 후속 섹션에 브랜치 01·06 병합 시
-버전 상수를 올려야 한다는 점을 명시.
+`.vN`을 올려야 한다는 점을 명시.
 ```
