@@ -130,8 +130,14 @@ Test descriptions must describe a **Contract between State and Result**, not an 
 
 1.  **Iterative TDD**: Write one test -> Implement one logic unit -> Repeat.
 2.  **Commit Granularity**: Divide work into meaningful, logical units. Seek user confirmation and suggest [commit message + 1-3 line description] after each unit.
-3.  **PR Documentation**: Maintain markdown files in `docs/pr/`. Focus on "Problems Solved" and "Impact" (UX/SEO/Performance).
-    - **Structure**: Goal -> Changes in this branch -> User-facing changes -> Implementation Highlights (Design decisions, tricky logic) -> Verification results.
+3.  **PR Documentation**: Maintain markdown files in `docs/pr/`. The document records **why**, not what — the diff already shows what changed. The primary reader is the author three months later.
+    - **Structure**: `## 목적` -> `## 설계` -> `## Changes` -> `## 리뷰 포인트` -> `## Test plan` -> `## 후속`
+    - **`## 설계` is the core.** State the reasoning behind each decision and why the alternative was rejected — "B로 하면 X가 깨져서 A로 했다", not "A로 했다".
+    - **`## Changes` must include what was deliberately *not* changed**, with the reason. This pre-empts the reviewer's "why wasn't this done?".
+    - **`## 후속` must state what it is waiting on**, not just "나중에 함".
+    - **Omit trial and error.** Reverted attempts, commit reshuffles, and intermediate wrong judgments do not belong. Results and their grounds only.
+    - Use tables and code blocks so the document can be skimmed. Detailed design docs live elsewhere — link them at the top and keep the PR body a summary.
+    - Full template and writing rules: `.claude/skills/pr-workflow/references/body-template.md`
 4.  **Language**: Commit messages and PR summaries must be in **Korean**.
 
 ---

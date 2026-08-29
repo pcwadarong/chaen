@@ -28,6 +28,7 @@ pnpm-debug.log*
 
 # Docs (generated)
 docs/*
+!docs/3d-performance/
 
 # Environment
 .env
@@ -67,7 +68,9 @@ public/**/*.map
 
 # ai
 .codex/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/agents/
 .code-review-graph/
 job/
 
