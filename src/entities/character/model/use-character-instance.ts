@@ -33,11 +33,15 @@ export type CharacterNodeRefs = Readonly<{
 type CharacterInstanceCache = {
   contact: Group;
   contactMixer: AnimationMixer;
-  lastUpdatedFrame: number | null;
   main: Group;
   mainMixer: AnimationMixer;
   sourceScene: Group;
 };
+
+/**
+ * frameloop가 'never'에서 재개될 때 delta가 크게 튀어 애니메이션이 순간이동하는 것을 막는 상한입니다.
+ */
+const MIXER_MAX_DELTA_SECONDS = 1 / 30;
 
 let characterInstanceCache: CharacterInstanceCache | null = null;
 
@@ -79,16 +83,10 @@ export const useCharacterInstance = ({
     analyzedScenes.add(gltf.scene);
   }, [gltf]);
 
-  useFrame((state, delta) => {
-    const currentFrame = state.gl.info.render.frame;
-
-    if (characterCache.lastUpdatedFrame === currentFrame) return;
-
-    characterCache.lastUpdatedFrame = currentFrame;
-    // frameloop가 'never'에서 재개될 때 delta가 크게 튀는 것을 방지하기 위해 상한을 둔다.
-    const clampedDelta = Math.min(delta, 1 / 30);
-    characterCache.mainMixer.update(clampedDelta);
-    characterCache.contactMixer.update(clampedDelta);
+  // 이 훅은 캔버스마다 한 번씩 호출되고 그 캔버스의 rAF에서만 실행되므로, 자기 인스턴스의 mixer만 진행시킨다.
+  // 두 캔버스를 아우르는 프레임 가드를 두지 않는 이유는 `gl.info.render.frame`이 렌더러별 카운터이기 때문이다.
+  useFrame((_, delta) => {
+    mixer.update(Math.min(delta, MIXER_MAX_DELTA_SECONDS));
   });
 
   return {
@@ -126,7 +124,6 @@ const getOrCreateCharacterCache = (
   characterInstanceCache = {
     contact,
     contactMixer: new AnimationMixer(contact),
-    lastUpdatedFrame: null,
     main,
     mainMixer: new AnimationMixer(main),
     sourceScene: scene,
