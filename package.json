@@ -31,6 +31,7 @@
     "test:coverage": "node -e \"const fs=require('node:fs'); fs.rmSync('coverage',{ recursive:true, force:true }); fs.mkdirSync('coverage/.tmp',{ recursive:true });\" && vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=text-summary",
     "test:watch": "vitest",
     "optimize:models": "node scripts/optimize-models.mjs",
+    "sync:decoders": "node scripts/sync-decoders.mjs",
     "optimize:textures": "node scripts/optimize-textures.mjs",
     "postinstall": "husky"
   },
@@ -107,6 +108,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "husky": "^9.1.7",
     "jsdom": "^27.0.0",
+    "ktx2-encoder": "^0.6.0",
     "lint-staged": "^16.1.6",
     "meshoptimizer": "^1.2.0",
     "prettier": "^3.6.2",

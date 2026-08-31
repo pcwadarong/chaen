@@ -24,7 +24,8 @@ const PER_PAGE = 100;
 function gh(args, { input } = {}) {
   try {
     // GITHUB_TOKEN 을 지운 환경으로 실행 — 위 주석의 계정 오염 방지.
-    const { GITHUB_TOKEN: _ignored, ...env } = process.env;
+    const env = { ...process.env };
+    delete env.GITHUB_TOKEN;
 
     return execFileSync('gh', args, {
       encoding: 'utf8',
@@ -59,12 +60,7 @@ function ghPost(endpoint, payload) {
  */
 export async function getCurrentPR() {
   try {
-    return ghJson([
-      'pr',
-      'view',
-      '--json',
-      'number,title,url,baseRefName,headRefName,headRefOid',
-    ]);
+    return ghJson(['pr', 'view', '--json', 'number,title,url,baseRefName,headRefName,headRefOid']);
   } catch {
     // PR 이 없을 때도 gh 는 non-zero 로 끝난다. 여기선 "없음"이 정상 경로다.
     return null;
@@ -88,7 +84,7 @@ export async function getPRReviewComments(prNumber) {
   const raw =
     ghJson(['api', `repos/{owner}/{repo}/pulls/${prNumber}/comments?per_page=${PER_PAGE}`]) ?? [];
 
-  return raw.map((c) => ({
+  return raw.map(c => ({
     id: c.id,
     user: c.user?.login ?? 'unknown',
     path: c.path,
@@ -105,7 +101,7 @@ export async function getPRReviews(prNumber) {
   const raw =
     ghJson(['api', `repos/{owner}/{repo}/pulls/${prNumber}/reviews?per_page=${PER_PAGE}`]) ?? [];
 
-  return raw.map((r) => ({
+  return raw.map(r => ({
     id: r.id,
     user: r.user?.login ?? 'unknown',
     state: r.state,

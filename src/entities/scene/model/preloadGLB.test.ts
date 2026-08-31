@@ -22,10 +22,10 @@ describe('preloadGLB', () => {
       SOFA_MODEL_PATH,
     ]);
     expect(sceneModelPaths).toEqual([
-      '/models/character.v2.glb',
-      '/models/bass.v2.glb',
-      '/models/table.v2.glb',
-      '/models/sofa.v2.glb',
+      '/models/character.v3.glb',
+      '/models/bass.v3.glb',
+      '/models/table.v3.glb',
+      '/models/sofa.v3.glb',
     ]);
     expect(preload).toHaveBeenCalledTimes(4);
     expect(preload).toHaveBeenNthCalledWith(1, CHARACTER_MODEL_PATH);

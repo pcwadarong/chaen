@@ -19,22 +19,22 @@ grep -rn "laptop_screen\|frame_screen\|laptop_cover\|laptop_logo" src/
 
 현재 알려진 이름 조회 지점 (파일별로 정확히 분리 — 어디를 고쳐야 하는지가 달라진다):
 
-| 파일 | 조회하는 이름 | 용도 |
-|---|---|---|
-| `entities/character/lib/use-character-materials.ts` | `body` `face` / `brows` `eyebrow` `hair` / `inner` `neck_collar` `outer` `pants` `ribon` `sock` / `headphone_band` `headphone_housing` `headphone_pads` `heart` `laptop` `laptop_cover` `shoes` `shoes_strip` | ORM 텍스처 주입 (skin/hair/outfit/gear 4집합) |
-| ″ | `laptop_screen` | 런타임 모니터 texture 주입 |
-| `entities/character/model/prepare-character-instance.ts` | `laptop` `laptop_screen` / `brows` `eyebrow` / `hair` / `outer` `pants` `ribon` / `heart` | contact 숨김·양면화·tint·초기 비표시 |
-| `entities/character/model/use-character-instance.ts` | `heart` `laptop` `brows` `eyebrow` `face` | node 참조 수집 |
-| `entities/scene/lib/use-scene-prop-materials.ts` | `frame_screen` | ORM 제외 + 액자 이미지 주입 |
+| 파일                                                     | 조회하는 이름                                                                                                                                                                                                 | 용도                                          |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `entities/character/lib/use-character-materials.ts`      | `body` `face` / `brows` `eyebrow` `hair` / `inner` `neck_collar` `outer` `pants` `ribon` `sock` / `headphone_band` `headphone_housing` `headphone_pads` `heart` `laptop` `laptop_cover` `shoes` `shoes_strip` | ORM 텍스처 주입 (skin/hair/outfit/gear 4집합) |
+| ″                                                        | `laptop_screen`                                                                                                                                                                                               | 런타임 모니터 texture 주입                    |
+| `entities/character/model/prepare-character-instance.ts` | `laptop` `laptop_screen` / `brows` `eyebrow` / `hair` / `outer` `pants` `ribon` / `heart`                                                                                                                     | contact 숨김·양면화·tint·초기 비표시          |
+| `entities/character/model/use-character-instance.ts`     | `heart` `laptop` `brows` `eyebrow` `face`                                                                                                                                                                     | node 참조 수집                                |
+| `entities/scene/lib/use-scene-prop-materials.ts`         | `frame_screen`                                                                                                                                                                                                | ORM 제외 + 액자 이미지 주입                   |
 
 > **검증된 유령 이름 — 코드엔 있는데 GLB엔 없다.** 매칭이 안 되므로 동작에 영향은 없지만,
 > 이 목록을 근거로 "이 이름이 살아있으니 안전하다"고 판단하면 안 된다.
 >
-> | 이름 | 있는 곳 |
-> |---|---|
-> | `laptop_logo` | `use-character-materials.ts`의 `GEAR_MESH_NAMES` |
-> | `monitor` | `prepare-character-instance.ts`의 `CONTACT_HIDDEN_NODE_NAMES` |
-> | `head` | `use-character-instance.ts`의 `findCharacterNodeRefs` (`face` 폴백이 실제로 걸린다) |
+> | 이름          | 있는 곳                                                                             |
+> | ------------- | ----------------------------------------------------------------------------------- |
+> | `laptop_logo` | `use-character-materials.ts`의 `GEAR_MESH_NAMES`                                    |
+> | `monitor`     | `prepare-character-instance.ts`의 `CONTACT_HIDDEN_NODE_NAMES`                       |
+> | `head`        | `use-character-instance.ts`의 `findCharacterNodeRefs` (`face` 폴백이 실제로 걸린다) |
 
 **이 목록에 없는 새 메시 이름을 발견하면, 실제 소비 코드를 먼저 찾아 목록에 추가한 뒤 다음 단계로 간다.** 목록이 최신이 아닌 채로 최적화를 진행하지 않는다.
 
@@ -105,55 +105,93 @@ KTX2는 GPU 압축 포맷을 그대로 올리므로 파일과 VRAM이 **함께**
 
 ### 포맷 선택
 
-| 텍스처 종류 | 포맷 | 이유 |
-|---|---|---|
-| baseColor | ETC1S | 압축률 우선. 색상은 아티팩트가 덜 보인다 |
-| ORM (roughness/metal/AO) | ETC1S | 스칼라 데이터, 정밀도 요구 낮음 |
-| **normal map** | **UASTC** | ETC1S로 압축하면 노멀이 눈에 띄게 깨진다. 예외 없음 |
+| 텍스처 종류                  | 포맷      | 이유                                                                                                            |
+| ---------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| baseColor                    | ETC1S     | 압축률 우선. 색상은 아티팩트가 덜 보인다                                                                        |
+| **ORM (roughness/metal/AO)** | **UASTC** | ETC1S는 RGB를 공동 인코딩해 채널이 서로 번진다. ORM은 R/G/B가 독립 신호라 이 번짐이 그대로 셰이딩 오류로 보인다 |
+| **normal map**               | **UASTC** | ETC1S로 압축하면 노멀이 눈에 띄게 깨진다. 예외 없음                                                             |
 
-`gltf-transform`의 `etc1s` / `uastc` 커맨드를 쓴다. 이 함수들은 **노드나 머티리얼 이름을
-건드리지 않으므로** Step 2·3의 금지 목록과 충돌하지 않는다. 다만 `--pattern`으로 대상을
-가려 normal만 UASTC로 보내야 한다.
+> **ORM을 ETC1S로 굽지 마라 — 실측으로 확인됐다.** 노트북 커버의 "Chaen" 각인은
+> baseColor가 아니라 `gear_ORM`의 roughness 대비로 보이는데, ETC1S로 구우니 획이 끊기고
+> 번져 보였다. 포맷(ETC1S/UASTC)·RDO·mipmap 생성을 각각 바꿔 가며 좁힌 결과 원인은
+> **ETC1S의 채널 스미어 하나**였고, ORM만 UASTC로 바꾸자 원본과 구분되지 않았다.
+>
+> UASTC는 파일이 커지므로 **ORM 해상도를 baseColor보다 한 단계 낮추는 것**으로 상쇄한다.
+> ORM은 색이 아니라 셰이딩 계수라 텍셀 밀도 요구가 낮다 (chaen은 2048² → 1024²).
+>
+> **VRAM 계산 시 주의:** 전송 포맷은 GPU가 정한다. three `KTX2Loader`는 BPTC를 지원하는
+> 데스크톱에서 ETC1S도 UASTC도 **BC7(1바이트/텍셀)**로 푼다 — 이 경우 ETC1S를 골라도
+> VRAM 이득은 없고 파일만 작아진다. ETC1S의 VRAM 이득(ETC1 0.5바이트/텍셀)은
+> ETC2만 지원하는 모바일에서 나온다.
+
+### 인코더
+
+`gltf-transform`의 `etc1s` / `uastc` **CLI 커맨드는 쓰지 않는다.** 시스템에 KTX-Software
+바이너리를 요구해 재현이 어렵고(`basis_universal` npm 패키지는 리눅스 바이너리만 담고 있어
+macOS에서 돌지 않는다), 플랫폼을 타지 않는 wasm 인코더인 **`ktx2-encoder`**를 devDependency로
+쓴다. 프리셋은 `scripts/ktx2-presets.mjs` 한곳에 모아 GLB 안팎을 같은 규칙으로 굽는다.
+
+압축은 텍스처 데이터만 건드리고 **노드나 머티리얼 이름은 손대지 않으므로** Step 2·3의 금지
+목록과 충돌하지 않는다. 다만 `slots`(`normalTexture` 등)와 `pattern`으로 대상을 갈라
+normal/ORM만 UASTC로 보내야 한다.
+
+> **함정:** `ktx2` 트랜스폼은 인코딩 실패를 `logger.warn`으로만 남기고 그 텍스처를 원본
+> 포맷 그대로 통과시킨다. 로그를 놓치면 절반만 변환된 에셋이 조용히 배포되므로,
+> 변환 후 **모든 텍스처가 `image/ktx2`인지 확인하고 아니면 빌드를 세운다**
+> (`assertAllTexturesAreKtx2`).
 
 ### 로더 배선 (여기가 실제로 어려운 부분)
 
 **1. transcoder를 self-host한다.** CDN 의존을 만들지 않는다.
 
-```bash
-cp -r node_modules/three/examples/jsm/libs/basis public/basis
-```
+`pnpm sync:decoders`(`scripts/sync-decoders.mjs`)가 `three/examples/jsm/libs`에서
+`public/decoders/{basis,draco}/`로 복사한다. 디코더는 three 버전과 짝이 맞아야 하므로
+**three를 올린 뒤에는 이 스크립트를 다시 돌린다.**
 
 **2. `KTX2Loader`는 실제 `WebGLRenderer`로 `detectSupport()`를 호출해야 한다.**
 지원 포맷(ASTC/ETC/BC/PVRTC)을 렌더러에서 질의하기 때문이다. 렌더러 없이 만든 로더는
 transcode 단계에서 실패한다.
 
 **3. drei `useGLTF`에는 네 번째 인자 `extendLoader`로 물린다.**
+chaen에서는 `entities/scene/model/use-scene-gltf.ts`가 씬 GLB를 여는 유일한 통로이고,
+`useGLTF.setDecoderPath`도 여기 모여 있다.
 
 ```ts
 const gl = useThree(state => state.gl);
 useGLTF(path, true, true, loader => {
-  loader.setKTX2Loader(ktx2Loader.detectSupport(gl));
+  loader.setKTX2Loader(resolveKtx2Loader(gl));
 });
 ```
 
-> **함정 (chaen 고유):** canvas가 2개다. 두 렌더러의 지원 포맷 집합이 다를 수 있으므로
-> `KTX2Loader` 인스턴스를 **전역 싱글턴으로 공유하면 안 된다.** 렌더러별로 관리하거나,
-> 두 캔버스가 같은 컨텍스트 속성으로 생성되어 포맷 집합이 동일함을 확인하고 근거를 남긴다.
-> 여기가 KTX2 전환에서 가장 틀리기 쉬운 자리다.
+> **함정 (chaen 고유):** canvas가 2개다. 두 렌더러의 지원 포맷 집합이 다를 수 있어
+> "전역 싱글턴 금지"가 직관이지만, **로더를 나눠도 공유는 사라지지 않는다.** R3F `useLoader`는
+> 로드 결과를 URL 단위로 전역 캐시하므로 KTX2는 먼저 로드한 컨텍스트의 포맷으로 한 번만
+> transcode되고, GLB도 한 번 파싱해 두 씬이 clone해 쓴다. 로더를 나누면 GLB를 두 번 받을 뿐이다.
+>
+> 그래서 chaen은 **인스턴스 하나 + `detectSupport` 최초 1회**로 가고, 두 번째 렌더러에서는
+> *버릴 로더*로 감지해 포맷 집합이 같은지 **검증만** 한다(`shared/lib/three/ktx2-loader.ts`).
+> 공유 로더에 `detectSupport`를 다시 부르면 안 된다 — `KTX2Loader`는 worker를 만들 때 그 시점의
+> `workerConfig`를 구워 넣으므로, 덮어쓰면 한 pool 안에 설정이 다른 worker가 섞인다.
+>
+> 인스턴스를 하나로 유지하는 방법: R3F `useLoader`는 생성자뿐 아니라 **로더 인스턴스**도 받는다.
+> 생성자를 넘기면 클래스마다 인스턴스가 따로 생겨 worker pool과 transcoder wasm이 이중으로 뜬다.
 
 **4. `public/textures/*`는 GLB 밖에 있다.** `useTexture`(drei)는 KTX2를 못 읽는다.
-`useKTX2`로 교체해야 하는 호출 지점:
+drei의 `useKTX2`도 쓰지 않는다 — three-stdlib의 KTX2Loader를 쓰고 transcoder 기본 경로가
+외부 CDN이라, 자체 호스팅한 transcoder와 구현이 갈린다. 대신 `shared/lib/three/use-ktx2-textures.ts`
+(공유 로더를 `useLoader`에 그대로 넘긴다)로 교체하는 호출 지점:
 
 - `entities/character/lib/use-character-materials.ts` — ORM 4종
 - `entities/scene/lib/use-scene-prop-materials.ts` — room ORM
 
-> **함정:** `prepareOrmTexture`가 `flipY = false`를 설정한다. KTX2는 컨테이너 레벨에서
-> 방향을 다루므로 동작이 다를 수 있다. **UV가 뒤집혀 보이면 여기가 원인이다.**
-> `colorSpace`도 재확인 — ORM은 `NoColorSpace`, baseColor는 `SRGBColorSpace`.
+> **함정 (해소됨):** `prepareOrmTexture`의 `flipY = false`는 KTX2에서도 그대로 맞다.
+> `CompressedTexture`는 **생성자가 이미 `flipY = false`**이기 때문이다. `colorSpace`도
+> KTX2 DFD의 transfer function 판정과 같은 값이 나온다 — ORM은 `NoColorSpace`,
+> baseColor는 `SRGBColorSpace`. 둘 다 명시적 가드로 남겨 두면 된다.
 
-**5. Draco 디코더도 같이 self-host한다.** drei의 기본 Draco 디코더 경로가 외부 CDN을
-가리키는지 확인하고, 그렇다면 transcoder를 옮기는 김에 함께 `public/`으로 내린다.
-**Draco 자체를 빼지는 않는다** — 지오메트리는 Draco로 이미 충분히 작다.
+**5. Draco 디코더도 같이 self-host한다.** drei `useGLTF`는 기본으로 DRACOLoader를 준비하며
+외부 CDN 경로를 세팅하므로, `useGLTF.setDecoderPath('/decoders/draco/')`로 덮는다.
+지오메트리는 Meshopt로 압축돼 있어 실제로 쓰이진 않지만 방어적으로 유지한다.
 
 ### 폴백
 
@@ -164,8 +202,12 @@ useGLTF(path, true, true, loader => {
 ### 검증
 
 ```js
-renderer.info.memory   // { geometries, textures } — 전후 비교
+renderer.info.memory; // { geometries, textures } — **개수**다. 바이트가 아니다
 ```
+
+VRAM 바이트를 재려면 WebGL 컨텍스트의 `texStorage2D` / `compressedTexImage2D` 호출을 가로채
+`internalformat`과 밉 레벨 수로 할당량을 합산한다. 캔버스가 2개면 컨텍스트별로 따로 집계하고,
+렌더 타깃(그림자·postprocessing)은 밉맵이 없으므로 에셋 텍스처와 분리해서 본다.
 
 - **화질 비교 지점** (전후 같은 카메라 위치 스크린샷):
   얼굴 클로즈업(피부 그라데이션·눈) / 머리카락 알파 경계 / 옷(가장 큰 텍스처) /
@@ -184,9 +226,10 @@ renderer.info.memory   // { geometries, textures } — 전후 비교
 - [ ] 스킨드 메시(캐릭터류)에 `weld()`나 단독 `quantize()`를 쓰지 않았는가?
 - [ ] 변환 후 `gltf-transform inspect`로 이름·애니메이션 클립 수/duration이 보존됐는지 확인했는가?
 - [ ] KTX2 변환 전에 런타임 ORM으로 덮어써지는 죽은 텍스처를 먼저 제거했는가? 집합에 안 걸리는 노드(`eye_left`/`eye_right` 등)를 전수 확인했는가?
-- [ ] normal map을 ETC1S가 아니라 UASTC로 압축했는가?
+- [ ] normal map**과 ORM**을 ETC1S가 아니라 UASTC로 압축했는가?
+- [ ] 변환 후 모든 texture가 `image/ktx2`인지 확인했는가? (실패가 warn으로만 남고 통과한다)
 - [ ] transcoder/Draco 디코더를 `public/`에 self-host했는가? CDN을 참조하지 않는가?
-- [ ] canvas 2개 각각의 렌더러로 `detectSupport`를 처리했는가?
-- [ ] `useTexture` → `useKTX2` 교체 후 UV 방향(`flipY`)과 `colorSpace`를 확인했는가?
-- [ ] `renderer.info.memory.textures` 전후를 측정했는가? Safari에서 확인했는가?
+- [ ] `KTX2Loader` 인스턴스가 하나이고 `detectSupport`가 최초 1회만 도는가? 두 번째 캔버스는 검증만 하는가?
+- [ ] `useTexture` → `useKtx2Textures` 교체 후 UV 방향(`flipY`)과 `colorSpace`를 확인했는가?
+- [ ] VRAM **바이트**를 전후 측정했는가(`info.memory`는 개수다)? Safari에서 확인했는가?
 - [ ] 원본을 덮어쓰지 않고 `.vN` 접미사로 새 파일을 만들었는가? 참조하는 모든 경로를 갱신했는가?

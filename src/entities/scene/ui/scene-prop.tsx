@@ -1,6 +1,5 @@
 'use client';
 
-import { useGLTF } from '@react-three/drei';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Box3,
@@ -21,6 +20,7 @@ import type {
   SOFA_MODEL_PATH,
   TABLE_MODEL_PATH,
 } from '@/entities/scene/model/preloadGLB';
+import { useSceneGltf } from '@/entities/scene/model/use-scene-gltf';
 import { isMeshNode } from '@/shared/lib/three/orm-material';
 
 type ScenePropProps = Readonly<{
@@ -41,7 +41,7 @@ export const SceneProp = ({
   rotation = [0, 0, 0],
   scale = [1, 1, 1],
 }: ScenePropProps) => {
-  const gltf = useGLTF(path);
+  const gltf = useSceneGltf(path);
   const ormTextures = useScenePropMaterials();
   const [frameScreenTexture, setFrameScreenTexture] = useState<Texture | null>(null);
   const { clonedFrameScreenMaterials, object } = useMemo(() => {

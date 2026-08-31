@@ -6,10 +6,10 @@
  * 파일명이 절대 바뀌지 않는다는 전제에 의존하므로, 같은 파일명으로 내용만
  * 교체하면 브라우저/CDN에 캐시된 옛 버전이 계속 서빙됩니다.
  */
-export const CHARACTER_MODEL_PATH = '/models/character.v2.glb';
-export const BASS_MODEL_PATH = '/models/bass.v2.glb';
-export const TABLE_MODEL_PATH = '/models/table.v2.glb';
-export const SOFA_MODEL_PATH = '/models/sofa.v2.glb';
+export const CHARACTER_MODEL_PATH = '/models/character.v3.glb';
+export const BASS_MODEL_PATH = '/models/bass.v3.glb';
+export const TABLE_MODEL_PATH = '/models/table.v3.glb';
+export const SOFA_MODEL_PATH = '/models/sofa.v3.glb';
 
 export const sceneModelPaths = [
   CHARACTER_MODEL_PATH,
