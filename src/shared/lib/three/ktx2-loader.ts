@@ -1,5 +1,3 @@
-'use client';
-
 import type { WebGLRenderer } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 
@@ -75,5 +73,3 @@ export const resolveKtx2Loader = (renderer: WebGLRenderer): KTX2Loader => {
 
   return loader;
 };
-
-export { KTX2Loader };
