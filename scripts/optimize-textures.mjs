@@ -39,11 +39,14 @@ const formatSize = bytes =>
  * PNG를 basis 인코더가 받는 32bit RGBA raster로 디코딩한다.
  * alpha가 전부 불투명하면 인코더가 alpha 슬라이스를 만들지 않으므로(전송 후 BC3 대신 BC1),
  * 채널을 인위적으로 지우지 않고 원본 그대로 넘긴다.
+ * `toColourspace('srgb')`가 먼저 필요하다 — grayscale ORM PNG는 sharp에서 1채널이라
+ * `ensureAlpha()`만 걸면 2채널(gray+alpha)이 나오고, 인코더는 그걸 조용히 RGBA로 읽는다.
  * @param {Uint8Array} buffer - PNG 바이트
  * @returns {Promise<{ data: Uint8Array, height: number, width: number }>} RGBA raster
  */
 const decodeImage = async buffer => {
   const { data, info } = await sharp(Buffer.from(buffer))
+    .toColourspace('srgb')
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });

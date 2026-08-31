@@ -89,11 +89,14 @@ const createIO = async () => {
 
 /**
  * KTX2 인코더가 Node에서 쓸 이미지 디코더. basis 인코더는 32bit RGBA raster만 받는다.
+ * `toColourspace('srgb')`가 먼저 필요하다 — grayscale roughness/AO PNG는 sharp에서 1채널이라
+ * `ensureAlpha()`만 걸면 2채널(gray+alpha)이 나오고, 인코더는 그걸 조용히 RGBA로 읽는다.
  * @param {Uint8Array} buffer - PNG/WebP 등 인코딩된 이미지 바이트
  * @returns {Promise<{ data: Uint8Array, height: number, width: number }>} RGBA raster
  */
 const decodeImage = async buffer => {
   const { data, info } = await sharp(Buffer.from(buffer))
+    .toColourspace('srgb')
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -167,17 +170,25 @@ const stripRuntimeOverriddenOrmTextures = isOverriddenAtRuntime => document => {
 };
 
 /**
- * KTX2 전환 이후 남은 EXT_texture_webp 확장을 제거한다.
- * 모든 texture가 image/ktx2가 되면 이 확장은 참조자가 없는 채로 extensionsUsed에만 남는다.
+ * 모든 texture가 KTX2로 바뀌었는지 확인하고, 남은 EXT_texture_webp 확장을 제거한다.
+ *
+ * ktx2 트랜스폼은 인코딩 실패를 `logger.warn`으로만 남기고 그 texture를 원본 포맷 그대로
+ * 통과시킨다. 로그를 놓치면 절반만 변환된 에셋이 조용히 배포되므로 여기서 빌드를 세운다.
  * @returns {import('@gltf-transform/core').Transform} 트랜스폼
  */
-const dropUnusedWebpExtension = () => document => {
-  const hasWebp = document
+const assertAllTexturesAreKtx2 = () => document => {
+  const notConverted = document
     .getRoot()
     .listTextures()
-    .some(texture => texture.getMimeType() === 'image/webp');
+    .filter(texture => texture.getMimeType() !== 'image/ktx2');
 
-  if (hasWebp) return;
+  if (notConverted.length > 0) {
+    const summary = notConverted
+      .map(texture => `${texture.getName() || '(unnamed)'} (${texture.getMimeType()})`)
+      .join(', ');
+
+    throw new Error(`KTX2로 변환되지 않은 texture가 남았다: ${summary}`);
+  }
 
   for (const extension of document.getRoot().listExtensionsUsed()) {
     if (extension.extensionName === 'EXT_texture_webp') extension.dispose();
@@ -195,7 +206,7 @@ const dropUnusedWebpExtension = () => document => {
 const ktx2Transforms = () => [
   ktx2({ ...UASTC_NORMAL_OPTIONS, imageDecoder: decodeImage, slots: /normalTexture/ }),
   ktx2({ ...ETC1S_COLOR_OPTIONS, imageDecoder: decodeImage }),
-  dropUnusedWebpExtension(),
+  assertAllTexturesAreKtx2(),
 ];
 
 /**

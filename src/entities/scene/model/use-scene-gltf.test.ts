@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { useGLTF } from '@react-three/drei';
 import type { WebGLRenderer } from 'three';
 

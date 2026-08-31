@@ -3,7 +3,7 @@
 import { useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 
-import { resolveGltfKtx2Loader } from '@/shared/lib/three/ktx2-loader';
+import { resolveKtx2Loader } from '@/shared/lib/three/ktx2-loader';
 
 // GLB는 전부 Meshopt로 압축되어 Draco 디코더가 실제로 쓰이진 않지만,
 // drei useGLTF는 기본으로 DRACOLoader를 준비해 외부(Google 정적 호스팅) CDN 경로를 세팅한다.
@@ -27,6 +27,6 @@ export const useSceneGltf = (path: string): SceneGltf => {
     // drei의 GLTFLoader는 three-stdlib 것이라 KTX2Loader 타입도 three-stdlib 선언을 요구한다.
     // three-stdlib은 직접 의존성이 아니므로(drei의 전이 의존) three 본체의 KTX2Loader를 쓰고,
     // 구조만 같으면 되는 자리라 여기서 한 번만 좁혀 준다.
-    loader.setKTX2Loader(resolveGltfKtx2Loader(gl) as unknown as StdlibKtx2Loader);
+    loader.setKTX2Loader(resolveKtx2Loader(gl) as unknown as StdlibKtx2Loader);
   });
 };
