@@ -15,6 +15,10 @@ import { preloadSceneGlbs } from '@/entities/scene/model/preloadGLB';
  *
  * 대신 바이트만 받아 둡니다. 전체 비용의 대부분은 다운로드이고, `/models`는 immutable이라
  * 캔버스가 실제로 로드할 때 네트워크를 다시 타지 않습니다.
+ *
+ * 3D를 렌더하는 라우트의 **레이아웃**에서만 마운트해야 합니다. 루트 레이아웃에 두면 3D를
+ * 쓰지 않는 라우트까지 GLB를 통째로 받고, 반대로 페이지 컴포넌트 안에 두면 그 페이지의
+ * 데이터 조회가 끝날 때까지 프리페치가 시작되지 않습니다.
  */
 export const SceneAssetPreloader = () => {
   useEffect(() => {
