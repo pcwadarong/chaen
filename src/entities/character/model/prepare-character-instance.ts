@@ -38,6 +38,7 @@ export const prepareCharacterInstance = (
     if (!isMeshNode(node)) return;
 
     node.castShadow = true;
+    node.receiveShadow = true;
 
     if (RUNTIME_SCREEN_MESH_NAMES.has(node.name)) {
       node.material = cloneMaterial(node.material);
