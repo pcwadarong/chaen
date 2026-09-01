@@ -220,9 +220,9 @@ describe('HomeHeroStageCanvas', () => {
     expect(screen.getByTestId('scene-interaction-controller')).toBeTruthy();
     expect(screen.getByTestId('character-main')).toBeTruthy();
     expect(screen.queryByTestId('character-contact')).toBeNull();
-    expect(screen.getByTestId('prop-/models/sofa.v3.glb')).toBeTruthy();
-    expect(screen.getByTestId('prop-/models/bass.v3.glb')).toBeTruthy();
-    expect(screen.getByTestId('prop-/models/table.v3.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/sofa.v4.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/bass.v4.glb')).toBeTruthy();
+    expect(screen.getByTestId('prop-/models/table.v4.glb')).toBeTruthy();
   });
 
   it('선택된 frame 이미지 src가 table prop까지 전달되어야 한다', () => {
@@ -236,7 +236,7 @@ describe('HomeHeroStageCanvas', () => {
       />,
     );
 
-    expect(screen.getByTestId('prop-/models/table.v3.glb')).toHaveAttribute(
+    expect(screen.getByTestId('prop-/models/table.v4.glb')).toHaveAttribute(
       'data-frame-screen-src',
       'https://example.com/frame.jpg',
     );
