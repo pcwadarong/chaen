@@ -117,7 +117,7 @@ pnpm commit   # ♻️ refactor: PR 리뷰 피드백 반영 (…)
    → 이번 스코프에서 할까요?
 
 ### ❌ 무시 (1건)
-1. @coderabbitai `src/shared/ui/button.tsx:12` — 스타일 파일 분리 제안
+1. @coderabbitai `src/shared/ui/button/button.tsx:12` — 스타일 파일 분리 제안
    → 이유: AGENTS.md §2가 co-location 강제
 
 반영을 진행할까요?

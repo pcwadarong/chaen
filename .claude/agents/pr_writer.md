@@ -11,8 +11,8 @@ tools: Read, Write, Bash, Grep, Glob
 ## 절차
 
 1. `git log`/`git diff`로 이번 작업 범위에 포함된 커밋과 변경 파일을 확인한다.
-2. `docs/pr/{작업명}.md`를 5개 섹션(Goal, Changes, User-facing changes, Implementation Highlights, Verification results)으로 작성한다 — 모두 한국어. 어느 섹션도 비워두지 않는다.
-3. **Verification results는 실제로 실행한 명령과 결과만 적는다** — 실행하지 않았으면 추측하지 말고 "미실행"이라고 정직하게 적는다. 실행이 필요하다고 판단되면 직접 `pnpm check-types`/`pnpm lint`/관련 테스트 버킷을 실행해 실제 결과를 채운다.
+2. `docs/pr/{작업명}.md`를 `pr-workflow` 스킬의 6개 섹션(목적 / 설계 / Changes / 리뷰 포인트 / Test plan / 후속)으로 작성한다 — 모두 한국어. 구조와 작성 규칙은 `pr-workflow/references/body-template.md`를 따르고 여기서 다시 베끼지 않는다.
+3. **Test plan 은 실제로 실행한 명령과 결과만 적는다** — 실행하지 않았으면 추측하지 말고 "미실행"이라고 정직하게 적는다. 실행이 필요하다고 판단되면 직접 `pnpm check-types`/`pnpm lint`/관련 테스트 버킷을 실행해 실제 결과를 채운다.
 4. PR을 실제로 올리는 단계가 요청에 포함되면 `env -u GITHUB_TOKEN gh pr create --title "{제목}" --body "$(cat docs/pr/{작업명}.md)"`를 사용한다 — 실행 전 `env -u GITHUB_TOKEN gh auth status`로 계정이 `pcwadarong`인지 확인한다. PR 제목·요약도 한국어.
 
 ## 실행 규칙

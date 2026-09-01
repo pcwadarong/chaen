@@ -18,7 +18,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 2. **최소 변경 우선**: 요청받은 문제를 해결하는 데 필요한 변경만 한다 — 주변 리팩터링, 무관한 스타일 정리, 미래를 위한 추상화를 끼워 넣지 않는다.
 3. **컨벤션 준수**: `const` 화살표 함수, 불필요한 `div` 래퍼 금지, `@/...` alias만 사용, 새/변경된 함수·훅에는 한국어 JSDoc, Panda CSS(`css()`/`cva()`, 하드코딩 픽셀 금지, `cx(localRecipe, props.className)` 구성)를 따른다.
 4. **변경 후 검증**: 최소한 `pnpm check-types`와 관련 lint를 실행해 깨진 게 없는지 확인한다. 테스트가 있는 영역이면 관련 버킷을 실행한다(버킷 판단은 `test-strategy` 스킬 참조).
-5. **커밋 메시지 제안**: 변경이 의미 있는 논리적 단위인지 확인하고, 허용된 커밋 타입(`✨ feat:`, `🐛 fix:`, `♻️ refactor:`, `💄 style:`, `📝 docs:`, `🔧 chore:`, `🔥 remove:`, `🧪 test:`, `⚡ perf`(variation selector 없는 순수 U+26A1), `⚙️ ci:`, `🧹 lint:`) 중 하나로 시작하는 한국어 메시지 + 1-3줄 설명을 제안한다. 실제 커밋은 사용자 확인 후 `pnpm commit`으로.
+5. **커밋 메시지 제안**: 변경이 의미 있는 논리적 단위인지 확인하고, 허용된 커밋 타입(단일 출처는 `pr-workflow` 스킬 Step 2의 표 — 이모지는 직접 타이핑하지 말고 표에서 복사하거나 `pnpm commit`으로 생성한다) 중 하나로 시작하는 한국어 메시지 + 1-3줄 설명을 제안한다. 실제 커밋은 사용자 확인 후 `pnpm commit`으로.
 
 ## 실행 규칙
 

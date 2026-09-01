@@ -1,9 +1,6 @@
 /**
  * PR 스킬들이 공유하는 GitHub 접근 계층.
  *
- * jobs-client 에서 가져온 스킬 스크립트들이 이 모듈을 import 하는데 파일 자체가 안 넘어와서
- * 전부 ERR_MODULE_NOT_FOUND 로 죽고 있었다. 그래서 여기서 새로 만든다.
- *
  * Octokit + GITHUB_TOKEN 대신 `gh` CLI 를 쓴다.
  *   - 이 레포는 개인 레포 하나뿐이라 토큰을 따로 발급/보관할 이유가 없다
  *   - `gh auth` 인증을 그대로 물려받으므로 .env 에 비밀이 하나 덜 생긴다
@@ -11,7 +8,7 @@
  *
  * `gh api` 는 경로의 {owner}/{repo} 를 현재 레포로 자동 치환한다.
  *
- * ⚠️ chaen 고유: 셸에 회사 계정(chole_karrot)의 GITHUB_TOKEN 이 설정돼 있고 gh 가 그걸
+ * ⚠️ chaen 고유: 셸에 회사 계정의 GITHUB_TOKEN 이 설정돼 있고 gh 가 그걸
  *    우선 사용한다. 그대로 두면 **조용히 회사 계정으로 코멘트가 달린다.** 그래서 모든
  *    호출에서 GITHUB_TOKEN 을 지워 keyring 의 개인 계정(pcwadarong) 인증을 쓰게 한다.
  */
