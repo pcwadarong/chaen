@@ -25,7 +25,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const SRC_DIR = resolve(ROOT, 'assets-src/models');
 const OUT_DIR = resolve(ROOT, 'public/models');
-const ASSET_VERSION = 'v3';
+const ASSET_VERSION = 'v4';
 
 /**
  * 런타임이 외부 ORM texture로 덮어쓰는 mesh 이름 집합.
@@ -196,6 +196,45 @@ const assertAllTexturesAreKtx2 = () => document => {
 };
 
 /**
+ * 런타임이 코드로 map/texture를 주입하는 mesh 이름 집합.
+ * `use-scene-prop-materials.ts`의 frame_screen(선택 이미지)과
+ * `use-monitor-overlay-texture.ts`의 laptop_screen(모니터 오버레이)이 여기 속한다.
+ * 이 mesh들은 GLB 시점엔 어떤 texture도 UV를 참조하지 않아, prune()의
+ * keepAttributes 기본값(false)이 TEXCOORD_0을 "미사용"으로 지운다.
+ * 지워지면 런타임 map은 붙어도 UV가 없어 화면이 조용히 단색으로 렌더된다.
+ */
+const RUNTIME_TEXTURED_MESH_NAMES = new Set(['frame_screen', 'laptop_screen']);
+
+/**
+ * RUNTIME_TEXTURED_MESH_NAMES에 속한 mesh가 TEXCOORD_0을 유지하는지 확인한다.
+ *
+ * prune()이 UV를 지우면 런타임 map이 에러 없이 단색으로 렌더되므로 로그로는 못 잡는다.
+ * assertAllTexturesAreKtx2()와 같은 이유로 여기서 빌드를 세운다.
+ * @returns {import('@gltf-transform/core').Transform} 트랜스폼
+ */
+const assertRuntimeTexturedMeshesKeepUv = () => document => {
+  const missing = new Set();
+
+  for (const node of document.getRoot().listNodes()) {
+    if (!RUNTIME_TEXTURED_MESH_NAMES.has(node.getName())) continue;
+
+    const mesh = node.getMesh();
+
+    if (!mesh) continue;
+
+    for (const primitive of mesh.listPrimitives()) {
+      if (!primitive.getAttribute('TEXCOORD_0')) missing.add(node.getName());
+    }
+  }
+
+  if (missing.size > 0) {
+    throw new Error(
+      `런타임에 texture를 주입하는 mesh에 TEXCOORD_0이 없다: ${[...missing].join(', ')}`,
+    );
+  }
+};
+
+/**
  * KTX2 압축 트랜스폼 목록을 반환한다. 앞 단계에서 이미 image/ktx2가 된 texture는 건너뛰므로
  * 좁은 규칙(normal)부터 넓은 규칙(나머지) 순으로 나열한다.
  *
@@ -216,10 +255,12 @@ const ktx2Transforms = () => [
  */
 const propTransforms = () => [
   dedup(),
-  prune(),
+  // keepAttributes: true — frame_screen은 빌드 시점엔 어떤 texture도 UV를 참조하지 않아
+  // 기본값(false)이면 TEXCOORD_0을 "미사용"으로 지운다. 캐릭터 파이프라인과 대칭.
+  prune({ keepAttributes: true }),
   weld(),
   stripRuntimeOverriddenOrmTextures(name => !PROP_RUNTIME_ORM_EXCLUDED_MESH_NAMES.has(name)),
-  prune(),
+  prune({ keepAttributes: true }),
   // KTX2 인코더는 리사이즈를 하지 않으므로 해상도 조정은 여기서 끝내고 무손실(PNG)로 넘긴다.
   textureCompress({
     encoder: sharp,
@@ -227,6 +268,7 @@ const propTransforms = () => [
     resize: [1024, 1024],
   }),
   ...ktx2Transforms(),
+  assertRuntimeTexturedMeshesKeepUv(),
   meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
 ];
 
@@ -251,11 +293,12 @@ const characterTransforms = () => [
     resize: [1024, 1024],
   }),
   ...ktx2Transforms(),
+  assertRuntimeTexturedMeshesKeepUv(),
   meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
 ];
 
 /**
- * 단일 GLB를 최적화해 public/models/{name}.v3.glb로 출력하고 전후 사이즈를 출력한다.
+ * 단일 GLB를 최적화해 public/models/{name}.v4.glb로 출력하고 전후 사이즈를 출력한다.
  * @param {NodeIO} io - 확장/의존성이 등록된 NodeIO
  * @param {string} name - 확장자 없는 파일명(character/bass/table/sofa)
  * @param {import('@gltf-transform/core').Transform[]} transforms - 적용할 트랜스폼 목록

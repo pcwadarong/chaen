@@ -4,10 +4,10 @@ import React from 'react';
 import { SceneAssetPreloader } from '@/entities/scene/ui/scene-asset-preloader';
 
 const SCENE_GLB_PATHS = [
-  '/models/character.v3.glb',
-  '/models/bass.v3.glb',
-  '/models/table.v3.glb',
-  '/models/sofa.v3.glb',
+  '/models/character.v4.glb',
+  '/models/bass.v4.glb',
+  '/models/table.v4.glb',
+  '/models/sofa.v4.glb',
 ];
 
 vi.mock('@/entities/scene/model/preloadGLB', () => ({
