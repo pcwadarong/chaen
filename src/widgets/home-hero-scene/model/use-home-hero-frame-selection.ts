@@ -29,6 +29,9 @@ type UseHomeHeroFrameSelectionResult = Readonly<{
  * - 뷰어에서 선택한 이미지를 액자 이미지로 반영
  *
  * `photoItems`가 비어 있을 수 있으므로, 모든 선택 로직은 "없으면 null 유지"를 기본값으로 삼습니다.
+ * 목록은 서버 조회가 끝난 뒤 늦게 도착할 수도 있으므로(→ `useHomeHeroPhotoItems`),
+ * 기본 액자 이미지는 상태 초기값이 아니라 매 렌더 파생값으로 계산합니다. 초기값으로 두면
+ * 첫 렌더의 빈 목록이 그대로 굳어 사진이 도착해도 액자가 비어 있습니다.
  * 또한 storage 접근이 막힌 브라우저에서는 예외를 삼키고 메모리 상태만 유지합니다.
  *
  * @param params 홈 히어로에서 사용할 이미지 목록
@@ -39,9 +42,9 @@ export const useHomeHeroFrameSelection = ({
 }: UseHomeHeroFrameSelectionParams): UseHomeHeroFrameSelectionResult => {
   const defaultFrameImageSrc = photoItems[0]?.src ?? null;
   const [imageViewerOpenIndex, setImageViewerOpenIndex] = useState<number | null>(null);
-  const [selectedFrameImageSrc, setSelectedFrameImageSrc] = useState<string | null>(
-    defaultFrameImageSrc,
-  );
+  // null은 "아직 고르지 않음"이라 기본 이미지를 따른다는 뜻이다.
+  const [pickedFrameImageSrc, setPickedFrameImageSrc] = useState<string | null>(null);
+  const selectedFrameImageSrc = pickedFrameImageSrc ?? defaultFrameImageSrc;
   const selectedFrameImageSrcRef = useRef<string | null>(defaultFrameImageSrc);
   const selectedFrameImageIndex = useMemo(
     () => photoItems.findIndex(item => item.src === selectedFrameImageSrc),
@@ -66,7 +69,7 @@ export const useHomeHeroFrameSelection = ({
     if (!storedImageSrc) return;
     if (!photoItems.some(item => item.src === storedImageSrc)) return;
 
-    setSelectedFrameImageSrc(storedImageSrc);
+    setPickedFrameImageSrc(storedImageSrc);
   }, [photoItems]);
 
   useEffect(() => {
@@ -105,9 +108,9 @@ export const useHomeHeroFrameSelection = ({
    */
   const selectFrameImageByIndex = useCallback(
     (nextIndex: number) => {
-      const nextImageSrc = photoItems[nextIndex]?.src ?? defaultFrameImageSrc;
-      selectedFrameImageSrcRef.current = nextImageSrc;
-      setSelectedFrameImageSrc(nextImageSrc);
+      const nextImageSrc = photoItems[nextIndex]?.src ?? null;
+      selectedFrameImageSrcRef.current = nextImageSrc ?? defaultFrameImageSrc;
+      setPickedFrameImageSrc(nextImageSrc);
     },
     [defaultFrameImageSrc, photoItems],
   );

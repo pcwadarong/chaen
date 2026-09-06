@@ -9,6 +9,7 @@ import type { ImageViewerLabels } from '@/shared/ui/image-viewer/image-viewer-mo
 import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/home-hero-image-viewer-item';
 import { useHomeHeroFrameSelection } from '@/widgets/home-hero-scene/model/use-home-hero-frame-selection';
 import { useHomeHeroNavLock } from '@/widgets/home-hero-scene/model/use-home-hero-nav-lock';
+import { useHomeHeroPhotoItems } from '@/widgets/home-hero-scene/model/use-home-hero-photo-items';
 import { useHomeHeroProjectPreview } from '@/widgets/home-hero-scene/model/use-home-hero-project-preview';
 import { useHomeHeroViewportHeightVar } from '@/widgets/home-hero-scene/model/use-home-hero-viewport-height-var';
 import { HomeHeroContactButtons } from '@/widgets/home-hero-scene/ui/home-hero-contact-buttons';
@@ -20,7 +21,7 @@ type HomeHeroSceneProps = {
   readonly interactionDisabledProgressThreshold?: number;
   readonly items?: ProjectListItem[];
   readonly locale?: string;
-  readonly photoItems: HomeHeroImageViewerItem[];
+  readonly photoItemsPromise: Promise<HomeHeroImageViewerItem[]>;
   readonly title: string;
   readonly triggerRef?: React.RefObject<HTMLElement | null>;
 };
@@ -32,7 +33,7 @@ export const HomeHeroScene = ({
   interactionDisabledProgressThreshold = DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD,
   items,
   locale = 'ko',
-  photoItems,
+  photoItemsPromise,
   title,
   triggerRef,
 }: HomeHeroSceneProps) => {
@@ -44,6 +45,7 @@ export const HomeHeroScene = ({
   const blackoutOverlayRef = useRef<HTMLDivElement>(null);
   const [isMobileProjectSheetOpen, setIsMobileProjectSheetOpen] = React.useState(false);
   const sectionRef = triggerRef ?? localSectionRef;
+  const photoItems = useHomeHeroPhotoItems(photoItemsPromise);
   const { isLoading: isProjectPreviewLoading, items: projectItems } = useHomeHeroProjectPreview({
     initialItems: items,
     locale,

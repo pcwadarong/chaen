@@ -56,7 +56,7 @@ export const generateMetadata = async ({ params }: HomeRouteProps): Promise<Meta
 /** 홈 페이지 엔트리입니다. */
 const HomeRoute = async ({ params }: HomeRouteProps) => {
   const { locale } = await params;
-  const pageData = await getHomePageData({ locale });
+  const pageData = getHomePageData({ locale });
 
   return <HomePage {...pageData} />;
 };

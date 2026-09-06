@@ -45,6 +45,9 @@ const HOME_HERO_E2E_PHOTO_ITEMS: HomeHeroImageViewerItem[] = [
   },
 ];
 
+// 모듈 스코프에 고정한다. 렌더마다 새 promise를 만들면 수신 훅의 effect가 매번 다시 돈다.
+const HOME_HERO_E2E_PHOTO_ITEMS_PROMISE = Promise.resolve(HOME_HERO_E2E_PHOTO_ITEMS);
+
 /**
  * HomeHeroScene의 실제 브라우저 계약을 검증하기 위한 fixture 화면입니다.
  */
@@ -53,7 +56,7 @@ export const HomeHeroSceneE2eFixture = () => (
     <HomeHeroScene
       items={HOME_HERO_E2E_PROJECT_ITEMS}
       locale="ko"
-      photoItems={HOME_HERO_E2E_PHOTO_ITEMS}
+      photoItemsPromise={HOME_HERO_E2E_PHOTO_ITEMS_PROMISE}
       title="Selected Projects"
     />
   </main>

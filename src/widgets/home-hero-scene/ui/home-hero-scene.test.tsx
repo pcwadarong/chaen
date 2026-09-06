@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import React from 'react';
 
 import { createQueryClientWrapper } from '@/shared/lib/test/render-with-query-client';
@@ -12,10 +12,19 @@ import '@testing-library/jest-dom/vitest';
  * `HomeHeroScene`는 프로젝트 프리뷰를 React Query로 후속 조회하므로,
  * 모든 렌더를 테스트용 QueryClientProvider로 감싸 렌더링합니다.
  *
+ * hero photo는 promise로 들어와 effect에서 수신되므로, 단언 전에 마이크로태스크 큐를
+ * 한 번 비워 목록이 반영된 상태로 만듭니다.
+ *
  * @param ui 렌더링할 엘리먼트입니다.
  * @returns Testing Library 렌더 결과입니다.
  */
-const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: createQueryClientWrapper() });
+const render = async (ui: React.ReactElement) => {
+  const result = rtlRender(ui, { wrapper: createQueryClientWrapper() });
+
+  await act(async () => {});
+
+  return result;
+};
 
 const HOME_HERO_PHOTO_ITEMS = [
   {
@@ -31,6 +40,8 @@ const HOME_HERO_PHOTO_ITEMS = [
     src: 'https://example.com/photo-3.jpg',
   },
 ];
+
+const HOME_HERO_PHOTO_ITEMS_PROMISE = Promise.resolve(HOME_HERO_PHOTO_ITEMS);
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -123,8 +134,8 @@ describe('HomeHeroScene', () => {
     vi.restoreAllMocks();
   });
 
-  it('첫 화면 안전 구간 sentinel과 함께 캔버스 및 웹 UI 레이어를 렌더링한다', () => {
-    render(
+  it('첫 화면 안전 구간 sentinel과 함께 캔버스 및 웹 UI 레이어를 렌더링한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -136,7 +147,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -146,8 +157,8 @@ describe('HomeHeroScene', () => {
     expect(screen.getByTestId('home-hero-web-ui')).toBeTruthy();
   });
 
-  it('camera click 시 ImageViewerModal은 storage photo 목록을 사용해야 한다', () => {
-    render(
+  it('camera click 시 ImageViewerModal은 storage photo 목록을 사용해야 한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -159,7 +170,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -176,8 +187,8 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('초기 렌더 시 첫 번째 임시 이미지가 액자에 기본 선택되어 있어야 한다', () => {
-    render(
+  it('초기 렌더 시 첫 번째 임시 이미지가 액자에 기본 선택되어 있어야 한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -189,7 +200,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -200,8 +211,8 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('image viewer에서 이미지를 선택하면 선택된 액자 이미지 src를 stage에 전달해야 한다', () => {
-    render(
+  it('image viewer에서 이미지를 선택하면 선택된 액자 이미지 src를 stage에 전달해야 한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -213,7 +224,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -231,8 +242,8 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('선택된 액자 이미지가 있으면 image viewer는 그 인덱스로 열려야 한다', () => {
-    render(
+  it('선택된 액자 이미지가 있으면 image viewer는 그 인덱스로 열려야 한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -244,7 +255,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -259,13 +270,13 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('저장된 액자 이미지가 있으면 다음 진입 시 localStorage 기준으로 복원해야 한다', () => {
+  it('저장된 액자 이미지가 있으면 다음 진입 시 localStorage 기준으로 복원해야 한다', async () => {
     window.localStorage.setItem(
       'home-hero:selected-frame-image-src',
       HOME_HERO_PHOTO_ITEMS[2]?.src ?? '',
     );
 
-    render(
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -277,7 +288,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -288,12 +299,12 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('localStorage getItem이 실패해도 기본 액자 이미지를 유지한 채 렌더링해야 한다', () => {
+  it('localStorage getItem이 실패해도 기본 액자 이미지를 유지한 채 렌더링해야 한다', async () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('storage denied');
     });
 
-    expect(() =>
+    await expect(
       render(
         <HomeHeroScene
           items={[
@@ -306,11 +317,11 @@ describe('HomeHeroScene', () => {
               slug: 'motion-library',
             },
           ]}
-          photoItems={HOME_HERO_PHOTO_ITEMS}
+          photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
           title="Selected Projects"
         />,
       ),
-    ).not.toThrow();
+    ).resolves.toBeDefined();
 
     expect(screen.getByTestId('home-hero-stage')).toHaveAttribute(
       'data-frame-screen-src',
@@ -318,12 +329,12 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('localStorage setItem이 실패해도 선택한 액자 이미지는 화면 상태에 반영해야 한다', () => {
+  it('localStorage setItem이 실패해도 선택한 액자 이미지는 화면 상태에 반영해야 한다', async () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('storage denied');
     });
 
-    render(
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -335,7 +346,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
@@ -349,8 +360,8 @@ describe('HomeHeroScene', () => {
     );
   });
 
-  it('browse action이 들어오면 모바일 프로젝트 패널을 열어야 한다', () => {
-    render(
+  it('browse action이 들어오면 모바일 프로젝트 패널을 열어야 한다', async () => {
+    await render(
       <HomeHeroScene
         items={[
           {
@@ -362,7 +373,7 @@ describe('HomeHeroScene', () => {
             slug: 'motion-library',
           },
         ]}
-        photoItems={HOME_HERO_PHOTO_ITEMS}
+        photoItemsPromise={HOME_HERO_PHOTO_ITEMS_PROMISE}
         title="Selected Projects"
       />,
     );
