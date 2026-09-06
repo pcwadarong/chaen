@@ -13,10 +13,12 @@ vi.mock('next-intl/server', () => ({
   }),
 }));
 
+const photoItemsPromise = Promise.resolve([]);
+
 vi.mock('@/views/home', () => ({
-  getHomePageData: vi.fn(async () => ({
+  getHomePageData: vi.fn(() => ({
     locale: 'ko',
-    photoItems: [],
+    photoItemsPromise,
   })),
   HomePage: function HomePage() {
     return null;
@@ -34,7 +36,7 @@ describe('HomeRoute', () => {
     process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
-  it("locale이 'ko'일 때, HomeRoute는 홈 뷰 엔트리와 hero photo 데이터를 반환해야 한다", async () => {
+  it("locale이 'ko'일 때, HomeRoute는 hero photo를 await하지 않고 promise 그대로 홈 뷰에 넘겨야 한다", async () => {
     const element = await HomeRoute({
       params: Promise.resolve({
         locale: 'ko',
@@ -45,7 +47,7 @@ describe('HomeRoute', () => {
     expect(element.type.name).toBe('HomePage');
     expect(getHomePageData).toHaveBeenCalledWith({ locale: 'ko' });
     expect(element.props.locale).toBe('ko');
-    expect(element.props.photoItems).toEqual([]);
+    expect(element.props.photoItemsPromise).toBe(photoItemsPromise);
   });
 
   it("locale이 'ko'일 때, generateMetadata는 placeholder OG 이미지와 alternates를 포함해야 한다", async () => {

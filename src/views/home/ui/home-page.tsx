@@ -8,16 +8,20 @@ import { HomeHeroScene } from '@/widgets/home-hero-scene/ui/home-hero-scene';
 
 export type HomePageProps = {
   locale: string;
-  photoItems: HomeHeroImageViewerItem[];
+  photoItemsPromise: Promise<HomeHeroImageViewerItem[]>;
 };
 
 /** 홈 화면의 실제 페이지 컨테이너입니다. */
-export const HomePage = ({ locale, photoItems }: HomePageProps) => {
+export const HomePage = ({ locale, photoItemsPromise }: HomePageProps) => {
   const t = useTranslations('Home');
 
   return (
     <main className={pageClass} data-hide-app-frame-footer="true">
-      <HomeHeroScene locale={locale} photoItems={photoItems} title={t('showcaseTitle')} />
+      <HomeHeroScene
+        locale={locale}
+        photoItemsPromise={photoItemsPromise}
+        title={t('showcaseTitle')}
+      />
       <ContactScene />
     </main>
   );

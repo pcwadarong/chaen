@@ -49,10 +49,14 @@ test('홈 히어로 canvas는 접근성 속성과 contextmenu browser event 결�
     timeout: 30_000,
   });
   await expect(helpText).toHaveCount(1);
-  await expect.poll(() => canvas.evaluate(node => node.tabIndex)).toBe(0);
+  // 씬 초기화와 액자 텍스처 업로드가 겹치면 메인 스레드가 수 초간 막혀 poll이 진행되지 못한다.
+  // 위 canvas/overlay 단언과 같은 상한을 쓴다 — 검증 대상은 "언제"가 아니라 "속성이 붙는가"다.
+  await expect.poll(() => canvas.evaluate(node => node.tabIndex), { timeout: 30_000 }).toBe(0);
   await expect(canvas).toHaveAttribute('aria-label', '홈 씬 상호작용 캔버스');
   await expect
-    .poll(() => canvas.evaluate(node => node.getAttribute('aria-describedby') ?? ''))
+    .poll(() => canvas.evaluate(node => node.getAttribute('aria-describedby') ?? ''), {
+      timeout: 30_000,
+    })
     .toContain('scene-interaction-help-text');
   expect(
     await canvas.evaluate(node => {
