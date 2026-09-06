@@ -23,7 +23,8 @@ type OutlineEffectProps = Readonly<{
 /**
  * fine pointer 환경에서 현재 hover된 mesh만 후처리 outline로 강조합니다.
  * coarse pointer 환경은 성능과 UX 기준으로 outline을 렌더하지 않습니다.
- * postprocessing 라이브러리를 직접 사용해 @react-three/postprocessing의 R3F v9 호환성 문제를 우회합니다.
+ * postprocessing 라이브러리를 직접 사용합니다. toneMapping·multisampling·selection 갱신 시점을
+ * 직접 잡아야 해서 @react-three/postprocessing의 declarative wrapper를 쓰지 않습니다.
  * scene.background는 캔버스 레벨에서 투명 처리되므로 composer 내에서 별도 관리하지 않습니다.
  * composer가 non-MSAA FBO로 렌더하면 Canvas의 `antialias: true`가 무효화되므로
  * `multisampling` 옵션으로 동일한 안티앨리어싱 품질을 복원합니다.
