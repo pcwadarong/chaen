@@ -13,6 +13,7 @@ import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
+import { SceneTimingProbe } from '@/shared/lib/three/scene-timing-probe';
 import { useCanvasVisibilityFrameloop } from '@/shared/lib/three/use-render-when-visible';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
@@ -151,6 +152,7 @@ export const HomeHeroStageCanvas = ({
         }}
       >
         <HomeHeroStageLights />
+        <SceneTimingProbe />
         <HomeHeroCameraRig
           currentBP={currentBP}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
@@ -164,6 +166,7 @@ export const HomeHeroStageCanvas = ({
         />
         <Suspense fallback={null}>
           <Preload all />
+          <SceneTimingProbe isContent />
           <HomeHeroStageReadyBridge
             isReady
             onReadyChange={onSceneReadyChange ?? noopBooleanHandler}
