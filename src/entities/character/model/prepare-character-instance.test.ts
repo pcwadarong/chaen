@@ -1,4 +1,17 @@
-import { Box3, BoxGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
+import {
+  Bone,
+  Box3,
+  BoxGeometry,
+  DoubleSide,
+  Float32BufferAttribute,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  Skeleton,
+  SkinnedMesh,
+  Texture,
+  Uint16BufferAttribute,
+} from 'three';
 
 import {
   CHARACTER_OUTFIT_COLOR_CONFIG,
@@ -105,11 +118,53 @@ describe('prepareCharacterInstance', () => {
     expect(clonedScene.position.y).toBeCloseTo(-0.75);
     expect(new Box3().setFromObject(clonedScene).min.y).toBeCloseTo(0);
   });
+  it('SkinnedMesh는 카메라가 가까워질 때 통째로 사라지지 않도록 frustum culling이 꺼진 상태여야 한다', () => {
+    const sourceScene = createCharacterSceneFixture();
+    const skinnedBrows = createSkinnedMesh('skinned_brows');
+
+    sourceScene.add(skinnedBrows);
+
+    const clonedScene = prepareCharacterInstance(sourceScene, {
+      instance: 'main',
+      outfitColors: CHARACTER_OUTFIT_COLOR_CONFIG.main,
+    });
+
+    expect(getRequiredMesh(clonedScene, 'skinned_brows').frustumCulled).toBe(false);
+    // 스킨 변형이 없는 정적 mesh는 boundingSphere가 정확하므로 컬링을 유지한다.
+    expect(getRequiredMesh(clonedScene, 'laptop_screen').frustumCulled).toBe(true);
+  });
 });
 
 /**
  * 테스트용 캐릭터 scene fixture를 생성합니다.
  */
+const createSkinnedMesh = (name: string): SkinnedMesh => {
+  const geometry = new BoxGeometry(1, 1, 1);
+  const vertexCount = geometry.attributes.position.count;
+
+  // SkeletonUtils.clone은 skinIndex/skinWeight와 bone을 요구하므로 최소 구성을 갖춘다.
+  geometry.setAttribute(
+    'skinIndex',
+    new Uint16BufferAttribute(new Uint16Array(vertexCount * 4), 4),
+  );
+  geometry.setAttribute(
+    'skinWeight',
+    new Float32BufferAttribute(
+      Float32Array.from({ length: vertexCount * 4 }, (_, index) => (index % 4 === 0 ? 1 : 0)),
+      4,
+    ),
+  );
+
+  const bone = new Bone();
+  const mesh = new SkinnedMesh(geometry, new MeshStandardMaterial({ color: '#ffffff' }));
+
+  mesh.name = name;
+  mesh.add(bone);
+  mesh.bind(new Skeleton([bone]));
+
+  return mesh;
+};
+
 const createCharacterSceneFixture = (): Group => {
   const scene = new Group();
   const laptopGroup = new Group();

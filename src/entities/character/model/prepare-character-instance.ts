@@ -40,6 +40,14 @@ export const prepareCharacterInstance = (
     node.castShadow = true;
     node.receiveShadow = true;
 
+    // SkinnedMesh의 boundingSphere는 bind pose 지오메트리에서 계산되고 스킨·모프 변형을 반영하지
+    // 않는다. 카메라가 얼굴로 다가가면 실제로는 화면 안에 있는 mesh가 프러스텀 밖으로 판정되어
+    // 통째로 사라진다(눈썹처럼 바운딩 스피어가 작을수록 먼저 걸린다). 캐릭터는 항상 화면 중앙에
+    // 있어 컬링으로 아낄 것이 없으므로 끈다.
+    if (isSkinnedMeshNode(node)) {
+      node.frustumCulled = false;
+    }
+
     if (RUNTIME_SCREEN_MESH_NAMES.has(node.name)) {
       node.material = cloneMaterial(node.material);
       return;
@@ -162,3 +170,9 @@ export const findCharacterMesh = (scene: Group, name: string): Mesh | null => {
  * traverse 중 만나는 Object3D를 Mesh로 안전하게 좁힙니다.
  */
 const isMeshNode = (node: Object3D): node is Mesh => 'isMesh' in node && node.isMesh === true;
+
+/**
+ * traverse 중 만나는 노드가 스킨 변형을 받는 SkinnedMesh인지 판별합니다.
+ */
+const isSkinnedMeshNode = (node: Object3D): boolean =>
+  'isSkinnedMesh' in node && node.isSkinnedMesh === true;
