@@ -1,5 +1,10 @@
 # 03. 믹서 프레임 가드 수정 — `fix/character-mixer-frame-guard`
 
+> ✅ **완료 — #97로 머지됨** (`fix/character-mixer-frame-guard`)
+>
+> 아래는 작업 당시의 지시서다. **새 작업의 출발점으로 쓰지 마라** — 그때의 코드·경로 기준으로
+> 쓰여 있어 지금과 다르다. 현재 상태는 [README](./README.md)를 본다.
+
 - **효과**: 애니메이션 재생 속도 정확화 + 오프스크린 스켈레톤 갱신 제거
 - **의존**: 없음
 - **위험도**: 중간 — 애니메이션 타이밍이 눈에 보이게 바뀐다 (의도된 변화)
@@ -9,7 +14,7 @@
 
 ## 프롬프트
 
-```
+````
 `docs/3d-performance/README.md`를 먼저 읽어라. 이 작업은 F-4를 해결한다.
 
 ## 배경
@@ -26,7 +31,7 @@ useFrame((state, delta) => {
   characterCache.mainMixer.update(clampedDelta);
   characterCache.contactMixer.update(clampedDelta);
 });
-```
+````
 
 가드의 의도는 "한 프레임에 믹서를 한 번만 갱신"이다. 하지만:
 
@@ -55,6 +60,7 @@ useFrame((state, delta) => {
 > 클램프가 걸리지 않으므로 **정확히 2배**가 되고, 프레임이 떨어지면 배율이 달라진다.
 
 재현 방법:
+
 - `mainMixer.time`을 프레임마다 로깅해 실제 경과 시간 대비 증가율을 측정
 - 또는 contact가 보이는 상태 / 안 보이는 상태에서 같은 idle 클립의 한 사이클 길이 비교
 - 측정치를 PR 문서에 남길 것. **재현이 안 되면 추측으로 고치지 마라** — 원인을 다시 분석하라.
@@ -74,9 +80,11 @@ contact 인스턴스를 쓰는 캔버스의 useFrame → contactMixer.update(cla
 ```
 
 확인할 것 — 같은 인스턴스를 한 페이지에서 두 번 이상 마운트하는 곳이 있는가?
+
 ```
 grep -rn "HomeHeroCharacterSeatSet\|useCharacterInstance" src --include=*.tsx | grep -v test
 ```
+
 없다면 가드를 완전히 제거해도 된다. 있다면 **믹서 단위로** 마지막 갱신을 기록하되,
 전역 프레임 번호가 아니라 렌더러 식별자와 프레임 번호의 조합을 키로 써야 한다.
 
@@ -129,4 +137,7 @@ grep -rn "HomeHeroCharacterSeatSet\|useCharacterInstance" src --include=*.tsx | 
 캔버스 간 가드로 쓸 수 없는가"를 정확히 설명하라 — 렌더러별 카운터라는 사실이 핵심이고
 리뷰어가 가장 먼저 의심할 지점이다. 재현 측정치(전/후 사이클 길이)와,
 `clampedDelta`를 왜 남겼는지를 함께 쓸 것.
+
+```
+
 ```

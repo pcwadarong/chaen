@@ -1,5 +1,10 @@
 # 02. 프리로드 범위 축소 — `perf/3d-preload-scope`
 
+> ✅ **완료 — #98로 머지됨** (`perf/3d-preload-scope`)
+>
+> 아래는 작업 당시의 지시서다. **새 작업의 출발점으로 쓰지 마라** — 그때의 코드·경로 기준으로
+> 쓰여 있어 지금과 다르다. 현재 상태는 [README](./README.md)를 본다.
+
 - **효과**: 3D를 쓰지 않는 모든 라우트에서 9.6MB 다운로드 제거
 - **의존**: 없음
 - **위험도**: 낮음~중간 — 홈 진입 체감 로딩이 나빠지지 않는지가 관건
@@ -28,10 +33,12 @@
 - `src/app/layout.tsx`에서 `<SceneAssetPreloader />` 제거
 - 홈 뷰(`src/views/home/ui/home-page.tsx`) 또는 홈 라우트 레이아웃으로 이동
 - 3D를 쓰는 다른 진입점이 있는지 먼저 확인하라:
-  ```
-  grep -rn "HomeHeroStage\|ContactScene\|SceneProp\|useCharacterInstance" src --include=*.tsx | grep -v test
-  ```
-  FSD상 어느 레이어에 두는 게 맞는지 판단하고 PR 문서에 근거를 남길 것.
+```
+
+grep -rn "HomeHeroStage\|ContactScene\|SceneProp\|useCharacterInstance" src --include=\*.tsx | grep -v test
+
+```
+FSD상 어느 레이어에 두는 게 맞는지 판단하고 PR 문서에 근거를 남길 것.
 
 > **주의:** `scene-asset-preloader.tsx`는 프리로드만 하는 파일이 아니다.
 > 모듈 최상위에서 `useGLTF.setDecoderPath('/decoders/draco/')`를 호출한다(PR #93).
@@ -70,17 +77,17 @@
 ## 검증
 
 1. `pnpm run check-types && pnpm run lint && pnpm run test:vitest`
-   - `scene-asset-preloader` 관련 테스트가 있다. 계약이 바뀌면 갱신하라.
+ - `scene-asset-preloader` 관련 테스트가 있다. 계약이 바뀌면 갱신하라.
 2. **네트워크 탭 검증이 핵심이다.** `pnpm dev` 후 DevTools Network를 `glb`로 필터:
-   - `/articles` 진입 → GLB 요청 **0건**
-   - `/resume` 진입 → GLB 요청 **0건**
-   - `/` 진입 → GLB 4건, 초기 HTML/JS/폰트를 막지 않는지
-   - `/articles` → `/` 클라이언트 네비게이션에서도 정상 시작되는지
+ - `/articles` 진입 → GLB 요청 **0건**
+ - `/resume` 진입 → GLB 요청 **0건**
+ - `/` 진입 → GLB 4건, 초기 HTML/JS/폰트를 막지 않는지
+ - `/articles` → `/` 클라이언트 네비게이션에서도 정상 시작되는지
 3. **외부 CDN 회귀 확인** — Network에서 `gstatic.com`으로 나가는 요청이 **0건**인지 확인.
-   (현재 GLB가 전부 Meshopt라 이 검사는 양쪽 다 통과할 가능성이 높다 — 통과했다고
-   디코더 경로 설정이 옳은 자리에 있다는 뜻은 아니다.)
+ (현재 GLB가 전부 Meshopt라 이 검사는 양쪽 다 통과할 가능성이 높다 — 통과했다고
+ 디코더 경로 설정이 옳은 자리에 있다는 뜻은 아니다.)
 4. 홈 진입 후 3D가 뜨기까지의 체감 시간이 before 대비 나빠지지 않았는지.
-   나빠졌다면 B의 지연을 되돌려라.
+ 나빠졌다면 B의 지연을 되돌려라.
 5. `pnpm run test:browser:smoke`
 
 ## 커밋 분할 제안
