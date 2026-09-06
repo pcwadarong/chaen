@@ -2,6 +2,7 @@
 
 import { act, renderHook } from '@testing-library/react';
 
+import type { HomeHeroImageViewerItem } from '@/widgets/home-hero-scene/model/home-hero-image-viewer-item';
 import { useHomeHeroFrameSelection } from '@/widgets/home-hero-scene/model/use-home-hero-frame-selection';
 
 const PHOTO_ITEMS = [
@@ -50,5 +51,22 @@ describe('useHomeHeroFrameSelection', () => {
     });
 
     expect(result.current.imageViewerOpenIndex).toBe(1);
+  });
+
+  it('사진 목록이 아직 도착하지 않았을 때 뷰어를 열면, 목록이 뒤늦게 도착해도 뷰어가 저절로 열리지 않아야 한다', () => {
+    const { rerender, result } = renderHook(
+      ({ photoItems }) => useHomeHeroFrameSelection({ photoItems }),
+      { initialProps: { photoItems: [] as HomeHeroImageViewerItem[] } },
+    );
+
+    act(() => {
+      result.current.openImageViewer();
+    });
+
+    expect(result.current.imageViewerOpenIndex).toBeNull();
+
+    rerender({ photoItems: PHOTO_ITEMS });
+
+    expect(result.current.imageViewerOpenIndex).toBeNull();
   });
 });

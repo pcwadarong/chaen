@@ -86,8 +86,15 @@ export const useHomeHeroFrameSelection = ({
   /**
    * 현재 액자에 적용된 이미지 인덱스를 기준으로 이미지 뷰어를 엽니다.
    * 일치하는 이미지가 없으면 첫 번째 이미지부터 시작합니다.
+   *
+   * 목록이 비어 있으면 아무것도 하지 않습니다. 인덱스만 세워두면 `ImageViewerModal`이
+   * `items.length > 0`에서 막혀 클릭이 먹지 않은 것처럼 보이고, 상호작용 힌트는
+   * `imageViewerOpenIndex !== null`로 숨겨지며, 뒤늦게 목록이 도착하는 순간 뷰어가
+   * 저절로 열립니다. 목록은 서버 조회가 끝난 뒤 도착할 수 있습니다(→ `useHomeHeroPhotoItems`).
    */
   const openImageViewer = useCallback(() => {
+    if (photoItems.length === 0) return;
+
     const nextIndex = photoItems.findIndex(item => item.src === selectedFrameImageSrcRef.current);
 
     setImageViewerOpenIndex(nextIndex >= 0 ? nextIndex : 0);
