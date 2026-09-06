@@ -100,6 +100,15 @@ export const useCharacterInstance = ({
 
 /**
  * 캐릭터 두 인스턴스와 각 mixer를 모듈 스코프 캐시에 한 번만 생성해 재사용합니다.
+ *
+ * 캐시 키를 `sourceScene` **객체 동일성**으로 두는 것이 라우트 이동 후 재마운트에서도 올바른 이유:
+ * `sourceScene`은 `useSceneGltf`(→ drei `useGLTF(url)`)가 URL 단위로 캐시하는 GLTF의 `scene`이다.
+ * drei의 useGLTF 캐시는 언마운트로 비워지지 않으므로, 홈에서 다른 라우트로 나갔다 client-side로
+ * 돌아와도 **같은 `scene` 객체**가 반환된다 → 여기서 캐시가 그대로 재사용되고(클론·mixer 재생성 없음)
+ * 재마운트된 Canvas가 기존 인스턴스를 다시 부모로 붙인다. 실측으로도 client-side 왕복 후
+ * 애니메이션이 정상 재개됨을 확인했다.
+ * 이 값이 달라지는 경우는 (a) `preloadGLB.ts`의 `.vN` 경로 변경 또는 (b) `useGLTF.clear` 호출뿐인데,
+ * 둘 다 전체 페이지 리로드(모듈 스코프 초기화)를 동반하므로 오래된 클론이 남아 누수될 경로가 없다.
  */
 const getOrCreateCharacterCache = (
   scene: Group,

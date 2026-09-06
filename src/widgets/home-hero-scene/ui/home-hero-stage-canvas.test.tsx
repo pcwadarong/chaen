@@ -100,7 +100,7 @@ vi.mock('@react-three/drei', () => ({
 }));
 
 vi.mock('@/shared/lib/three/use-render-when-visible', () => ({
-  RenderWhenVisible: () => null,
+  useCanvasVisibilityFrameloop: () => 'always',
 }));
 
 vi.mock('@/widgets/home-hero-scene/ui/home-hero-character', () => ({

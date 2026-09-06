@@ -161,3 +161,36 @@ describe('useCharacterInstance 믹서 프레임 갱신', () => {
     expect(mainAdvance).toBeCloseTo(MIXER_DELTA_CEILING, 5);
   });
 });
+
+describe('useCharacterInstance 모듈 스코프 캐시', () => {
+  // 캐시 키는 `sourceScene` 객체 동일성이다. drei useGLTF 캐시가 URL 단위로 scene 객체를 유지하므로
+  // 라우트 이동 후 client-side 복귀에서도 같은 scene이 돌아오고, 인스턴스/mixer를 재생성하지 않아야 한다.
+  it('같은 sourceScene으로 재마운트하면 캐릭터 인스턴스와 mixer를 그대로 재사용해야 한다', () => {
+    const scene = new Group();
+    gltfMockState.gltf = { animations: [], scene };
+
+    const first = renderHook(() => useCharacterInstance({ instance: 'main' }));
+    const firstObject = first.result.current.object;
+    const firstMixer = first.result.current.mixer;
+    // 홈 → 다른 라우트로 이동해 캔버스가 언마운트돼도 drei useGLTF 캐시는 비워지지 않는다.
+    first.unmount();
+
+    const second = renderHook(() => useCharacterInstance({ instance: 'main' }));
+
+    expect(second.result.current.object).toBe(firstObject);
+    expect(second.result.current.mixer).toBe(firstMixer);
+  });
+
+  it('sourceScene 객체가 달라지면(.vN 경로 변경·useGLTF.clear 상당) 인스턴스와 mixer를 새로 생성해야 한다', () => {
+    gltfMockState.gltf = { animations: [], scene: new Group() };
+    const first = renderHook(() => useCharacterInstance({ instance: 'main' }));
+    const firstObject = first.result.current.object;
+    const firstMixer = first.result.current.mixer;
+
+    gltfMockState.gltf = { animations: [], scene: new Group() };
+    const second = renderHook(() => useCharacterInstance({ instance: 'main' }));
+
+    expect(second.result.current.object).not.toBe(firstObject);
+    expect(second.result.current.mixer).not.toBe(firstMixer);
+  });
+});

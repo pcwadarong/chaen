@@ -13,7 +13,7 @@ import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
 import { useMonitorOverlayTexture } from '@/features/monitor-overlay/model/use-monitor-overlay-texture';
-import { RenderWhenVisible } from '@/shared/lib/three/use-render-when-visible';
+import { useCanvasVisibilityFrameloop } from '@/shared/lib/three/use-render-when-visible';
 import { PauseIcon } from '@/shared/ui/icons/app-icons';
 import { srOnlyClass } from '@/shared/ui/styles/sr-only-style';
 import {
@@ -68,6 +68,7 @@ export const HomeHeroStageCanvas = ({
     interaction?.interactionDisabledProgressThreshold ??
     DEFAULT_INTERACTION_DISABLED_PROGRESS_THRESHOLD;
   const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  const frameloop = useCanvasVisibilityFrameloop(canvasElement);
   const [isCloseupCostumeHidden, setIsCloseupCostumeHidden] = useState(false);
   const [monitorScreenOpacity, setMonitorScreenOpacity] = useState(0);
   const locale = useLocale();
@@ -137,6 +138,7 @@ export const HomeHeroStageCanvas = ({
           position: sceneLayout.camera.position,
         }}
         dpr={renderQuality.dpr}
+        frameloop={frameloop}
         gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
         shadows={renderQuality.shadows}
         onCreated={({ gl }) => {
@@ -149,7 +151,6 @@ export const HomeHeroStageCanvas = ({
         }}
       >
         <HomeHeroStageLights />
-        <RenderWhenVisible />
         <HomeHeroCameraRig
           currentBP={currentBP}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}

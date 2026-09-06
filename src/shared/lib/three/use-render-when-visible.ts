@@ -1,42 +1,46 @@
 'use client';
 
-import { useThree } from '@react-three/fiber';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const VISIBILITY_INTERSECTION_THRESHOLD = 0;
 const VISIBILITY_INTERSECTION_ROOT_MARGIN = '10%';
 
+export type CanvasFrameloop = 'always' | 'never';
+
 /**
- * Canvas가 실제로 화면에 보이지 않는 동안 렌더 루프를 멈춰 불필요한 GPU/CPU 비용을 없앱니다.
- * `frameloop="demand"`는 캐릭터 mixer/gsap 티커/OrbitControls 댐핑이 상시 구동돼
- * 매 프레임 invalidate로 퇴화하므로 채택하지 않고, 두 Canvas 모두 기본값인
- * `frameloop="always"`을 유지한 채 가시성에 따라 on/off만 토글합니다.
- * 가시성은 두 신호로 판단합니다: (1) `gl.domElement`에 대한 IntersectionObserver(뷰포트 교차),
- * (2) `document.visibilitychange`(브라우저 탭 백그라운드). 둘 중 하나라도 "숨김"이면 즉시
- * `setFrameloop('never')`로 정지하고, 두 신호가 **모두** "보임"으로 돌아온 순간에만
- * `setFrameloop('always')`로 재개한 뒤 프레임 점프를 막기 위해 `invalidate()`를 1회 호출합니다.
- * 이렇게 두 소스를 각각 추적해야 "탭은 백그라운드인데 스크롤상 캔버스는 보이는" 또는
- * 그 반대의 경우에 잘못 재개되지 않습니다.
- * Canvas 내부에서 마운트해야 하며(useThree 사용), 화면에는 아무것도 그리지 않습니다.
+ * Canvas가 실제로 화면에 보이는 동안에만 렌더 루프를 돌리기 위한 `frameloop` 값을 계산합니다.
+ * 반환값은 반드시 `<Canvas frameloop={...}>` prop으로 전달해야 합니다.
+ *
+ * 왜 명령형 `setFrameloop('never')`가 아니라 제어형 prop인가:
+ * `<Canvas>`는 리렌더될 때마다 `frameloop` prop을 스토어에 다시 적용하며, prop이 없으면
+ * 기본값 `'always'`로 되돌립니다(react-three-fiber `configure`는 deps 없는 layout effect).
+ * 따라서 Canvas 내부 컴포넌트에서 `setFrameloop('never')`를 명령형으로 호출하면
+ * 다음 리렌더 한 번에 곧바로 `'always'`로 덮어써집니다 — 화면 밖으로 나간 캔버스가
+ * 계속 도는 원인이었습니다. 값을 prop으로 "제어"하면 리렌더가 일어나도 의도한 상태가 유지됩니다.
+ *
+ * 가시성은 두 신호로 판단합니다: (1) 캔버스 요소에 대한 IntersectionObserver(뷰포트 교차),
+ * (2) `document.visibilitychange`(브라우저 탭 백그라운드). 둘 중 하나라도 "숨김"이면 `'never'`,
+ * 두 신호가 **모두** "보임"일 때만 `'always'`입니다. 두 소스를 각각 추적해야
+ * "탭은 백그라운드인데 스크롤상 캔버스는 보이는" 또는 그 반대의 경우에 잘못 재개되지 않습니다.
+ *
+ * `frameloop`을 `'demand'`가 아니라 `'always'`/`'never'` 토글로 두는 이유: 캐릭터 mixer·gsap 티커·
+ * OrbitControls 댐핑이 상시 구동돼 `'demand'`는 매 프레임 invalidate로 퇴화하기 때문입니다.
+ *
+ * @param canvasElement Canvas의 `onCreated`에서 얻은 `gl.domElement`. 아직 준비 전이면 `null`.
  */
-export const RenderWhenVisible = () => {
-  const setFrameloop = useThree(state => state.setFrameloop);
-  const gl = useThree(state => state.gl);
-  const invalidate = useThree(state => state.invalidate);
+export const useCanvasVisibilityFrameloop = (
+  canvasElement: HTMLCanvasElement | null,
+): CanvasFrameloop => {
+  const [frameloop, setFrameloop] = useState<CanvasFrameloop>('always');
 
   useEffect(() => {
-    const canvasElement = gl.domElement;
+    if (!canvasElement) return;
+
     let isIntersecting = true;
     let isDocumentVisible = document.visibilityState !== 'hidden';
 
     const applyVisibility = () => {
-      if (isIntersecting && isDocumentVisible) {
-        setFrameloop('always');
-        invalidate();
-        return;
-      }
-
-      setFrameloop('never');
+      setFrameloop(isIntersecting && isDocumentVisible ? 'always' : 'never');
     };
 
     const intersectionObserver = new IntersectionObserver(
@@ -62,7 +66,7 @@ export const RenderWhenVisible = () => {
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', handleDocumentVisibilityChange);
     };
-  }, [gl, invalidate, setFrameloop]);
+  }, [canvasElement]);
 
-  return null;
+  return frameloop;
 };

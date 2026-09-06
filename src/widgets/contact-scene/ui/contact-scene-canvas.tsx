@@ -2,10 +2,10 @@
 
 import { Preload } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 
 import type { SceneRenderQuality } from '@/entities/scene/model/scene-render-quality';
-import { RenderWhenVisible } from '@/shared/lib/three/use-render-when-visible';
+import { useCanvasVisibilityFrameloop } from '@/shared/lib/three/use-render-when-visible';
 import {
   HOME_HERO_CAMERA_FAR,
   HOME_HERO_CAMERA_NEAR,
@@ -42,31 +42,37 @@ export const ContactSceneCanvas = ({
   renderQuality,
 }: {
   readonly renderQuality: Pick<SceneRenderQuality, 'dpr' | 'shadows'>;
-}) => (
-  <Canvas
-    camera={{
-      far: HOME_HERO_CAMERA_FAR,
-      fov: CONTACT_SCENE_CAMERA_FOV,
-      near: HOME_HERO_CAMERA_NEAR,
-      position: CONTACT_SCENE_CAMERA_POSITION,
-    }}
-    dpr={renderQuality.dpr}
-    gl={{ alpha: true, antialias: true }}
-    shadows={renderQuality.shadows}
-  >
-    <ContactSceneCameraRig />
-    <HomeHeroStageLights />
-    <RenderWhenVisible />
-    {/* 데스크탑 전용 보강 씬이라 기본 wrapper가 먼저 렌더되고, 모델 로딩 중에는 빈 캔버스로 유지합니다. */}
-    <Suspense fallback={null}>
-      <Preload all />
-      <group position={[0, -2.4, 0]}>
-        <HomeHeroCharacterSeatSet instance="contact" />
-        <mesh receiveShadow position={[1.2, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[18, 18]} />
-          <shadowMaterial color={'#7d7362'} opacity={0.18} transparent />
-        </mesh>
-      </group>
-    </Suspense>
-  </Canvas>
-);
+}) => {
+  const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+  const frameloop = useCanvasVisibilityFrameloop(canvasElement);
+
+  return (
+    <Canvas
+      camera={{
+        far: HOME_HERO_CAMERA_FAR,
+        fov: CONTACT_SCENE_CAMERA_FOV,
+        near: HOME_HERO_CAMERA_NEAR,
+        position: CONTACT_SCENE_CAMERA_POSITION,
+      }}
+      dpr={renderQuality.dpr}
+      frameloop={frameloop}
+      gl={{ alpha: true, antialias: true }}
+      onCreated={({ gl }) => setCanvasElement(gl.domElement)}
+      shadows={renderQuality.shadows}
+    >
+      <ContactSceneCameraRig />
+      <HomeHeroStageLights />
+      {/* 데스크탑 전용 보강 씬이라 기본 wrapper가 먼저 렌더되고, 모델 로딩 중에는 빈 캔버스로 유지합니다. */}
+      <Suspense fallback={null}>
+        <Preload all />
+        <group position={[0, -2.4, 0]}>
+          <HomeHeroCharacterSeatSet instance="contact" />
+          <mesh receiveShadow position={[1.2, -0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[18, 18]} />
+            <shadowMaterial color={'#7d7362'} opacity={0.18} transparent />
+          </mesh>
+        </group>
+      </Suspense>
+    </Canvas>
+  );
+};

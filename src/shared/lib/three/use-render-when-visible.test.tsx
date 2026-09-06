@@ -1,25 +1,9 @@
 /* @vitest-environment jsdom */
 
-import { render } from '@testing-library/react';
-import React from 'react';
+import { act, renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { RenderWhenVisible } from '@/shared/lib/three/use-render-when-visible';
-
-const fiberMockState = vi.hoisted(() => ({
-  domElement: null as HTMLCanvasElement | null,
-  invalidate: vi.fn(),
-  setFrameloop: vi.fn(),
-}));
-
-vi.mock('@react-three/fiber', () => ({
-  useThree: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({
-      gl: { domElement: fiberMockState.domElement },
-      invalidate: fiberMockState.invalidate,
-      setFrameloop: fiberMockState.setFrameloop,
-    }),
-}));
+import { useCanvasVisibilityFrameloop } from '@/shared/lib/three/use-render-when-visible';
 
 type IntersectionObserverCallback = (
   entries: Array<{ isIntersecting: boolean }>,
@@ -30,6 +14,7 @@ const intersectionObserverMockState = vi.hoisted(() => ({
   callback: null as IntersectionObserverCallback | null,
   disconnect: vi.fn(),
   observe: vi.fn(),
+  observed: null as Element | null,
   options: undefined as IntersectionObserverInit | undefined,
 }));
 
@@ -40,7 +25,10 @@ class MockIntersectionObserver {
   }
 
   disconnect = intersectionObserverMockState.disconnect;
-  observe = intersectionObserverMockState.observe;
+  observe = (element: Element) => {
+    intersectionObserverMockState.observed = element;
+    intersectionObserverMockState.observe(element);
+  };
   takeRecords = vi.fn(() => []);
   unobserve = vi.fn();
 }
@@ -52,12 +40,26 @@ const setDocumentVisibilityState = (value: DocumentVisibilityState) => {
   });
 };
 
-describe('RenderWhenVisible', () => {
+const emitIntersection = (isIntersecting: boolean) => {
+  act(() => {
+    intersectionObserverMockState.callback?.([{ isIntersecting }], {} as IntersectionObserver);
+  });
+};
+
+const emitVisibilityChange = (value: DocumentVisibilityState) => {
+  act(() => {
+    setDocumentVisibilityState(value);
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+};
+
+describe('useCanvasVisibilityFrameloop', () => {
+  let canvas: HTMLCanvasElement;
+
   beforeEach(() => {
-    fiberMockState.domElement = document.createElement('canvas');
-    fiberMockState.invalidate.mockReset();
-    fiberMockState.setFrameloop.mockReset();
+    canvas = document.createElement('canvas');
     intersectionObserverMockState.callback = null;
+    intersectionObserverMockState.observed = null;
     intersectionObserverMockState.options = undefined;
     intersectionObserverMockState.disconnect.mockReset();
     intersectionObserverMockState.observe.mockReset();
@@ -69,83 +71,70 @@ describe('RenderWhenVisible', () => {
     vi.unstubAllGlobals();
   });
 
-  it('threshold 0과 rootMargin 10%로 gl.domElement를 관찰해야 한다', () => {
-    render(<RenderWhenVisible />);
+  it('canvasElement가 아직 없으면 관찰하지 않고 always를 반환해야 한다', () => {
+    const { result } = renderHook(() => useCanvasVisibilityFrameloop(null));
 
-    expect(intersectionObserverMockState.observe).toHaveBeenCalledWith(fiberMockState.domElement);
+    expect(result.current).toBe('always');
+    expect(intersectionObserverMockState.observe).not.toHaveBeenCalled();
+  });
+
+  it('threshold 0과 rootMargin 10%로 canvasElement를 관찰해야 한다', () => {
+    renderHook(() => useCanvasVisibilityFrameloop(canvas));
+
+    expect(intersectionObserverMockState.observed).toBe(canvas);
     expect(intersectionObserverMockState.options).toMatchObject({
       rootMargin: '10%',
       threshold: 0,
     });
   });
 
-  it('IntersectionObserver가 비가시 상태를 보고하면 frameloop을 never로 정지해야 한다', () => {
-    render(<RenderWhenVisible />);
-    fiberMockState.setFrameloop.mockClear();
+  it('초기값은 always이고, 캔버스가 화면 밖으로 나가면 never를 반환해야 한다', () => {
+    const { result } = renderHook(() => useCanvasVisibilityFrameloop(canvas));
+    expect(result.current).toBe('always');
 
-    intersectionObserverMockState.callback?.(
-      [{ isIntersecting: false }],
-      {} as IntersectionObserver,
-    );
+    emitIntersection(false);
 
-    expect(fiberMockState.setFrameloop).toHaveBeenLastCalledWith('never');
+    expect(result.current).toBe('never');
   });
 
-  it('탭이 background로 전환되면 canvas가 보여도 frameloop을 never로 정지해야 한다', () => {
-    render(<RenderWhenVisible />);
-    fiberMockState.setFrameloop.mockClear();
+  it('탭이 background로 전환되면 캔버스가 보여도 never를 반환해야 한다', () => {
+    const { result } = renderHook(() => useCanvasVisibilityFrameloop(canvas));
+    emitIntersection(true);
+    expect(result.current).toBe('always');
 
-    setDocumentVisibilityState('hidden');
-    document.dispatchEvent(new Event('visibilitychange'));
+    emitVisibilityChange('hidden');
 
-    expect(fiberMockState.setFrameloop).toHaveBeenLastCalledWith('never');
+    expect(result.current).toBe('never');
   });
 
-  it('탭만 다시 보여도 canvas가 화면 밖이면 계속 never를 유지해야 한다', () => {
-    render(<RenderWhenVisible />);
+  it('탭만 다시 보여도 캔버스가 화면 밖이면 계속 never를 유지해야 한다', () => {
+    const { result } = renderHook(() => useCanvasVisibilityFrameloop(canvas));
 
-    intersectionObserverMockState.callback?.(
-      [{ isIntersecting: false }],
-      {} as IntersectionObserver,
-    );
-    setDocumentVisibilityState('hidden');
-    document.dispatchEvent(new Event('visibilitychange'));
-    fiberMockState.setFrameloop.mockClear();
+    emitIntersection(false);
+    emitVisibilityChange('hidden');
+    emitVisibilityChange('visible');
 
-    setDocumentVisibilityState('visible');
-    document.dispatchEvent(new Event('visibilitychange'));
-
-    expect(fiberMockState.setFrameloop).toHaveBeenLastCalledWith('never');
+    expect(result.current).toBe('never');
   });
 
-  it('두 신호가 모두 가시 상태로 돌아오면 always로 재개하고 invalidate를 1회 호출해야 한다', () => {
-    render(<RenderWhenVisible />);
+  it('두 신호가 모두 가시 상태로 돌아온 순간에만 always로 재개해야 한다', () => {
+    const { result } = renderHook(() => useCanvasVisibilityFrameloop(canvas));
 
-    intersectionObserverMockState.callback?.(
-      [{ isIntersecting: false }],
-      {} as IntersectionObserver,
-    );
-    setDocumentVisibilityState('hidden');
-    document.dispatchEvent(new Event('visibilitychange'));
-    fiberMockState.setFrameloop.mockClear();
-    fiberMockState.invalidate.mockClear();
+    emitIntersection(false);
+    emitVisibilityChange('hidden');
+    expect(result.current).toBe('never');
 
-    setDocumentVisibilityState('visible');
-    document.dispatchEvent(new Event('visibilitychange'));
-    expect(fiberMockState.setFrameloop).toHaveBeenLastCalledWith('never');
+    // 탭만 먼저 돌아왔을 때는 아직 화면 밖이라 never를 유지해야 한다.
+    emitVisibilityChange('visible');
+    expect(result.current).toBe('never');
 
-    intersectionObserverMockState.callback?.(
-      [{ isIntersecting: true }],
-      {} as IntersectionObserver,
-    );
-
-    expect(fiberMockState.setFrameloop).toHaveBeenLastCalledWith('always');
-    expect(fiberMockState.invalidate).toHaveBeenCalledTimes(1);
+    emitIntersection(true);
+    expect(result.current).toBe('always');
   });
 
   it('언마운트 시 observer와 visibilitychange 리스너를 정리해야 한다', () => {
     const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
-    const { unmount } = render(<RenderWhenVisible />);
+    const { unmount } = renderHook(() => useCanvasVisibilityFrameloop(canvas));
 
     unmount();
 
