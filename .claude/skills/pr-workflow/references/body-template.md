@@ -100,7 +100,7 @@
 같은 내용을 두 군데 두면 반드시 한쪽이 낡는다.
 
 ```markdown
-> 상세 분석: [docs/3d-performance/README.md](docs/3d-performance/README.md)
+> 상세 분석: [docs/{주제}/README.md](docs/{주제}/README.md)
 ```
 
 ## CodeRabbit 자동 영역 보존
