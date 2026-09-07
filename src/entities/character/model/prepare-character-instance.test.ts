@@ -118,6 +118,7 @@ describe('prepareCharacterInstance', () => {
     expect(clonedScene.position.y).toBeCloseTo(-0.75);
     expect(new Box3().setFromObject(clonedScene).min.y).toBeCloseTo(0);
   });
+
   it('SkinnedMesh는 카메라가 가까워질 때 통째로 사라지지 않도록 frustum culling이 꺼진 상태여야 한다', () => {
     const sourceScene = createCharacterSceneFixture();
     const skinnedBrows = createSkinnedMesh('skinned_brows');
@@ -136,13 +137,17 @@ describe('prepareCharacterInstance', () => {
 });
 
 /**
- * 테스트용 캐릭터 scene fixture를 생성합니다.
+ * 스킨 변형을 받는 `SkinnedMesh` 하나를 만듭니다.
+ *
+ * `SkeletonUtils.clone`이 `skinIndex`/`skinWeight` 속성과 bone을 요구하므로 최소 구성을 갖춥니다.
+ *
+ * @param name mesh 이름입니다.
+ * @returns bone 하나에 바인딩된 `SkinnedMesh`입니다.
  */
 const createSkinnedMesh = (name: string): SkinnedMesh => {
   const geometry = new BoxGeometry(1, 1, 1);
   const vertexCount = geometry.attributes.position.count;
 
-  // SkeletonUtils.clone은 skinIndex/skinWeight와 bone을 요구하므로 최소 구성을 갖춘다.
   geometry.setAttribute(
     'skinIndex',
     new Uint16BufferAttribute(new Uint16Array(vertexCount * 4), 4),
@@ -165,6 +170,9 @@ const createSkinnedMesh = (name: string): SkinnedMesh => {
   return mesh;
 };
 
+/**
+ * 테스트용 캐릭터 scene fixture를 생성합니다.
+ */
 const createCharacterSceneFixture = (): Group => {
   const scene = new Group();
   const laptopGroup = new Group();
