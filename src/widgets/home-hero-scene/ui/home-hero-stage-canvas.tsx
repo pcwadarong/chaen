@@ -9,6 +9,7 @@ import { css, cx } from 'styled-system/css';
 import type { SceneBreakpoint, SceneViewportMode } from '@/entities/scene/model/breakpointConfig';
 import { BASS_MODEL_PATH, TABLE_MODEL_PATH } from '@/entities/scene/model/preloadGLB';
 import { SceneProp } from '@/entities/scene/ui/scene-prop';
+import { SceneTimingProbe } from '@/entities/scene/ui/scene-timing-probe';
 import { useBassAudio } from '@/features/audio/model/use-bass-audio';
 import { scrollHomeHeroToProjects } from '@/features/interaction/model/scroll-home-hero-to-projects';
 import { SceneInteractionController } from '@/features/interaction/ui/scene-interaction-controller';
@@ -151,6 +152,7 @@ export const HomeHeroStageCanvas = ({
         }}
       >
         <HomeHeroStageLights />
+        <SceneTimingProbe />
         <HomeHeroCameraRig
           currentBP={currentBP}
           interactionDisabledProgressThreshold={interactionDisabledProgressThreshold}
@@ -164,6 +166,7 @@ export const HomeHeroStageCanvas = ({
         />
         <Suspense fallback={null}>
           <Preload all />
+          <SceneTimingProbe isContent />
           <HomeHeroStageReadyBridge
             isReady
             onReadyChange={onSceneReadyChange ?? noopBooleanHandler}

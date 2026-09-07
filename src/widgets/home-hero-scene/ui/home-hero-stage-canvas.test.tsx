@@ -85,6 +85,8 @@ vi.mock('@react-three/fiber', () => ({
       </div>
     );
   },
+  // SceneTimingProbe가 첫 프레임을 기록하는 데 쓴다. jsdom에는 렌더 루프가 없으므로 no-op.
+  useFrame: () => undefined,
 }));
 
 vi.mock('@react-three/drei', () => ({
