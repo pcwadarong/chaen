@@ -28,7 +28,6 @@ pnpm-debug.log*
 
 # Docs (generated)
 docs/*
-!docs/3d-performance/
 
 # Environment
 .env
