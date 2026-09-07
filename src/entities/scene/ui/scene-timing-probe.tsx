@@ -3,7 +3,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 
-import { markSceneFirstContentFrame, markSceneFirstFrame } from '@/shared/lib/three/scene-timing';
+import { markSceneFirstContentFrame, markSceneFirstFrame } from '@/entities/scene/lib/scene-timing';
 
 type SceneTimingProbeProps = {
   /**

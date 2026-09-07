@@ -3,8 +3,8 @@
 import { useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 
+import { markSceneGlbReady } from '@/entities/scene/lib/scene-timing';
 import { resolveKtx2Loader } from '@/shared/lib/three/ktx2-loader';
-import { markSceneGlbReady } from '@/shared/lib/three/scene-timing';
 
 // GLB는 전부 Meshopt로 압축되어 Draco 디코더가 실제로 쓰이진 않지만,
 // drei useGLTF는 기본으로 DRACOLoader를 준비해 외부(Google 정적 호스팅) CDN 경로를 세팅한다.
